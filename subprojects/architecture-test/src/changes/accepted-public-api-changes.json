@@ -127,6 +127,78 @@
             "changes": [
                 "METHOD_ABSTRACT_NOW_DEFAULT"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Upload",
+            "member": "Class org.gradle.api.tasks.Upload",
+            "acceptation": "Class was previously deprecated and is being removed in Gradle 8.0",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Upload",
+            "member": "Method org.gradle.api.tasks.Upload.getConfiguration()",
+            "acceptation": "Class to be removed, functionality deleted",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Upload",
+            "member": "Method org.gradle.api.tasks.Upload.getDescriptorDestination()",
+            "acceptation": "Class to be removed, functionality deleted",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Upload",
+            "member": "Method org.gradle.api.tasks.Upload.getPublicationServices()",
+            "acceptation": "Class to be removed, functionality deleted",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Upload",
+            "member": "Method org.gradle.api.tasks.Upload.getRepositories()",
+            "acceptation": "Class to be removed, functionality deleted",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Upload",
+            "member": "Method org.gradle.api.tasks.Upload.repositories(groovy.lang.Closure)",
+            "acceptation": "Class to be removed, functionality deleted",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.Upload",
+            "member": "Method org.gradle.api.tasks.Upload.repositories(org.gradle.api.Action)",
+            "acceptation": "Class to be removed, functionality deleted",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.getUploadTaskName(org.gradle.api.NamedDomainObjectProvider)",
+            "acceptation": "Class to be removed, functionality deleted",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.getUploadTaskName$annotations(org.gradle.api.NamedDomainObjectProvider)",
+            "acceptation": "Class to be removed, functionality deleted",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
