@@ -64,13 +64,12 @@ public class JavaToolchainQueryService {
         Transformer<T, JavaToolchain> toolFunction,
         DefaultJavaToolchainUsageProgressDetails.JavaTool requestedTool
     ) {
-        ProviderInternal<JavaToolchain> toolchainProvider = findMatchingToolchain(spec);
-        return toolchainProvider
+        return findMatchingToolchain(spec)
             .withSideEffect(toolchain -> toolchain.emitUsageEvent(requestedTool))
             .map(toolFunction);
     }
 
-    Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
+    ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
         JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) filter;
         if (!filterInternal.isValid()) {
             DeprecationLogger.deprecate("Using toolchain specifications without setting a language version")
