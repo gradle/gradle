@@ -48,45 +48,45 @@ class DeprecationMessagesTest extends Specification {
     def "logs deprecation message"() {
         given:
         def builder = new DeprecationMessageBuilder()
-        builder.setSummary("Summary.")
+        builder.setSummary("Summary is deprecated.")
 
         when:
         builder.willBeRemovedInGradle8().undocumented().nagUser()
 
         then:
-        expectMessage "Summary. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
+        expectMessage "Summary is deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
     }
 
     def "logs deprecation message with advice"() {
         given:
         def builder = new DeprecationMessageBuilder()
-        builder.setSummary("Summary.")
+        builder.setSummary("Summary is deprecated.")
         builder.withAdvice("Advice.")
 
         when:
         builder.willBeRemovedInGradle8().undocumented().nagUser()
 
         then:
-        expectMessage "Summary. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
+        expectMessage "Summary is deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
     }
 
     def "logs deprecation message with contextual advice"() {
         given:
         def builder = new DeprecationMessageBuilder()
-        builder.setSummary("Summary.")
+        builder.setSummary("Summary is deprecated.")
         builder.withContext("Context.")
 
         when:
         builder.willBeRemovedInGradle8().undocumented().nagUser()
 
         then:
-        expectMessage "Summary. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Context."
+        expectMessage "Summary is deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Context."
     }
 
     def "logs deprecation message with advice and contextual advice"() {
         given:
         def builder = new DeprecationMessageBuilder()
-        builder.setSummary("Summary.")
+        builder.setSummary("Summary is deprecated.")
         builder.withAdvice("Advice.")
         builder.withContext("Context.")
 
@@ -94,7 +94,7 @@ class DeprecationMessagesTest extends Specification {
         builder.willBeRemovedInGradle8().undocumented().nagUser()
 
         then:
-        expectMessage "Summary. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Context. Advice."
+        expectMessage "Summary is deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Context. Advice."
     }
 
     def "logs generic deprecation message for specific thing"() {
@@ -308,12 +308,12 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecation without scheduled removal"() {
         when:
-        DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level.", "Consider using 'transitive = false' at the dependency level if you need this to be published.")
+        DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level - this behavior is deprecated.", "Consider using 'transitive = false' at the dependency level if you need this to be published.")
             .undocumented()
             .nagUser()
 
         then:
-        expectMessage "Publication ignores 'transitive = false' at configuration level. Consider using 'transitive = false' at the dependency level if you need this to be published."
+        expectMessage "Publication ignores 'transitive = false' at configuration level - this behavior is deprecated. Consider using 'transitive = false' at the dependency level if you need this to be published."
     }
 
     def "logs documentation reference"() {
