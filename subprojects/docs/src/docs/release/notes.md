@@ -191,6 +191,10 @@ The following Attributes have disambiguation rules defined.
 
 [Allow buildScan.background to launch external processes with configuration cache enabled gradle#20536](https://github.com/gradle/gradle/issues/20536)
 
+#### Improved handling of `--offline` option
+
+Handling of the [`--offline`](userguide/command_line_interface.html#sec:command_line_execution_options) option was improved so configuration cached for online and offline modes are stored independently.
+This change supports builds and plugins that need to behave differently during configuration depending on whether the `--offline` option is in effect.
 
 <a name="execution"></a>
 ### Execution
