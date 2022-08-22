@@ -17,8 +17,11 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.RelativePath;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 /**
  * The result of running a transformation.
@@ -36,6 +39,14 @@ public interface TransformationResult {
      * The relative paths of selected parts of the input artifact need to resolved based on the provided input artifact location.
      */
     ImmutableList<File> resolveOutputsForInputArtifact(File inputArtifact);
+
+    void visitResult(TransformationResultVisitor visitor);
+
+    int size();
+
+    static OutputTypeInferringBuilder builderFor(File inputArtifact, File outputDir) {
+        return new OutputTypeInferringBuilder(inputArtifact, outputDir);
+    }
 
     static Builder builder() {
         return new Builder();
@@ -78,6 +89,8 @@ public interface TransformationResult {
          */
         private interface TransformationOutput {
             File resolveForInputArtifact(File inputArtifact);
+
+            void visitResult(TransformationResultVisitor visitor);
         }
 
         private static ImmutableList<File> convertToProducedOutputLocations(ImmutableList<TransformationOutput> transformationOutputs) {
@@ -97,6 +110,16 @@ public interface TransformationResult {
             public ImmutableList<File> resolveOutputsForInputArtifact(File inputArtifact) {
                 return producedOutputLocations;
             }
+
+            @Override
+            public void visitResult(TransformationResultVisitor visitor) {
+                producedOutputLocations.forEach(visitor::visitOutput);
+            }
+
+            @Override
+            public int size() {
+                return producedOutputLocations.size();
+            }
         }
 
         private static class ResolvingTransformationResult implements TransformationResult {
@@ -112,6 +135,16 @@ public interface TransformationResult {
                 transformationOutputs.forEach(output -> builder.add(output.resolveForInputArtifact(inputArtifact)));
                 return builder.build();
             }
+
+            @Override
+            public void visitResult(TransformationResultVisitor visitor) {
+                transformationOutputs.forEach(output -> output.visitResult(visitor));
+            }
+
+            @Override
+            public int size() {
+                return transformationOutputs.size();
+            }
         }
 
         private static class PartOfInputArtifact implements TransformationOutput {
@@ -125,6 +158,11 @@ public interface TransformationResult {
             public File resolveForInputArtifact(File inputArtifact) {
                 return new File(inputArtifact, relativePath);
             }
+
+            @Override
+            public void visitResult(TransformationResultVisitor visitor) {
+                visitor.visitInput(relativePath);
+            }
         }
 
         private static class EntireInputArtifact implements TransformationOutput {
@@ -133,6 +171,11 @@ public interface TransformationResult {
             @Override
             public File resolveForInputArtifact(File inputArtifact) {
                 return inputArtifact;
+            }
+
+            @Override
+            public void visitResult(TransformationResultVisitor visitor) {
+                visitor.visitInput();
             }
         }
 
@@ -151,6 +194,50 @@ public interface TransformationResult {
             public File resolveForInputArtifact(File inputArtifact) {
                 return outputFile;
             }
+
+            @Override
+            public void visitResult(TransformationResultVisitor visitor) {
+                visitor.visitOutput(outputFile);
+            }
+        }
+    }
+
+    interface TransformationResultVisitor {
+        void visitInput();
+        void visitInput(String relativePath);
+        void visitOutput(File outputLocation);
+    }
+
+    class OutputTypeInferringBuilder {
+        private final File inputArtifact;
+        private final File outputDir;
+        private final String inputArtifactPrefix;
+        private final String outputDirPrefix;
+        private final Builder delegate = TransformationResult.builder();
+
+        public OutputTypeInferringBuilder(File inputArtifact, File outputDir) {
+            this.inputArtifact = inputArtifact;
+            this.outputDir = outputDir;
+            this.inputArtifactPrefix = inputArtifact.getPath() + File.separator;
+            this.outputDirPrefix = outputDir.getPath() + File.separator;
+        }
+
+        public void addOutput(File output, Consumer<File> workspaceAction) {
+            if (output.equals(inputArtifact)) {
+                delegate.addInputArtifact();
+            } else if (output.equals(outputDir) || output.getPath().startsWith(outputDirPrefix)) {
+                delegate.addOutput(output);
+                workspaceAction.accept(output);
+            } else if (output.getPath().startsWith(inputArtifactPrefix)) {
+                String relativePath = RelativePath.parse(true, output.getPath().substring(inputArtifactPrefix.length())).getPathString();
+                delegate.addInputArtifact(relativePath);
+            } else {
+                throw new InvalidUserDataException("Transform output " + output.getPath() + " must be a part of the input artifact or refer to a relative path.");
+            }
+        }
+
+        public TransformationResult build() {
+            return delegate.build();
         }
     }
 }
