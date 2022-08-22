@@ -84,6 +84,7 @@ const val hiddenArtifactDestination = ".teamcity/gradle-logs"
 
 fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, buildJvm: Jvm = BuildToolBuildJvm, timeout: Int = 30) {
     artifactRules = """
+        *.psoutput => $hiddenArtifactDestination
         build/*.threaddump => $hiddenArtifactDestination
         build/report-* => $hiddenArtifactDestination
         build/tmp/test files/** => $hiddenArtifactDestination/test-files
@@ -226,14 +227,12 @@ fun functionalTestParameters(os: Os): List<String> {
     )
 }
 
-fun BuildType.killProcessStep(stepName: String, daemon: Boolean) {
+fun BuildType.killProcessStep(stepName: String, os: Os, arch: Arch = Arch.AMD64) {
     steps {
-        gradleWrapper {
+        script {
             name = stepName
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            tasks = "killExistingProcessesStartedByGradle"
-            gradleParams =
-                (buildToolGradleParameters(daemon) + buildScanTag("CleanUpBuild")).joinToString(separator = " ")
+            scriptContent = "\"${javaHome(BuildToolBuildJvm, os, arch)}/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $stepName"
         }
     }
 }
