@@ -52,12 +52,19 @@ public interface TestFixturesDependenciesDsl extends DependenciesDsl {
         return dependency;
     }
 
+    default MinimalExternalModuleDependency testFixtures(MinimalExternalModuleDependency dependency) {
+        dependency.capabilities(capabilities -> {
+            capabilities.requireCapability(new ImmutableCapability(dependency.getGroup(), dependency.getName() + TEST_FIXTURES_CAPABILITY_APPENDIX, null));
+        });
+        return dependency;
+    }
+
     default ProjectDependency testFixtures(ProjectDependency dependency) {
         dependency.capabilities(new ProjectTestFixtures(dependency.getDependencyProject()));
         return dependency;
     }
 
-    default Provider<? extends ExternalModuleDependency> testFixtures(ProviderConvertible<? extends MinimalExternalModuleDependency> dependency) {
+    default Provider<? extends MinimalExternalModuleDependency> testFixtures(ProviderConvertible<? extends MinimalExternalModuleDependency> dependency) {
         return dependency.asProvider().map(this::testFixtures);
     }
 
