@@ -90,7 +90,7 @@ class FixedValueReplacingProviderCodec(
                 // TODO - should preserve information about the source, for diagnostics at execution time
                 writeByte(1)
             }
-            value.isFixedValue -> {
+            value.hasFixedValue() -> {
                 // Can serialize a fixed value and discard the provider
                 // TODO - should preserve information about the source, for diagnostics at execution time
                 writeByte(2)

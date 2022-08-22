@@ -1,6 +1,134 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.tasks.AbstractExecTask",
+            "member": "Method org.gradle.api.tasks.AbstractExecTask.getExecResult()",
+            "acceptation": "Removed for Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.AntBuilder",
+            "member": "Class org.gradle.api.AntBuilder",
+            "acceptation": "org.gradle.api.AntBuilder now extends groovy.ant.AntBuilder",
+            "changes": [
+                "Abstract method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.SourceDirectorySet",
+            "member": "Method org.gradle.api.file.SourceDirectorySet.getOutputDir()",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.SourceDirectorySet",
+            "member": "Method org.gradle.api.file.SourceDirectorySet.setOutputDir(org.gradle.api.provider.Provider)",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.SourceDirectorySet",
+            "member": "Method org.gradle.api.file.SourceDirectorySet.setOutputDir(java.io.File)",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBinResultsDir()",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.setBinResultsDir(java.io.File)",
+            "acceptation": "Deprecated method removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.DependencyArtifact",
+            "member": "Method org.gradle.api.artifacts.DependencyArtifact.getClassifier()",
+            "acceptation": "Method always could return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.DependencyArtifact",
+            "member": "Method org.gradle.api.artifacts.DependencyArtifact.getExtension()",
+            "acceptation": "Method always could return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.DependencyArtifact",
+            "member": "Method org.gradle.api.artifacts.DependencyArtifact.getUrl()",
+            "acceptation": "Method always could return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ResolvedArtifact",
+            "member": "Method org.gradle.api.artifacts.ResolvedArtifact.getExtension()",
+            "acceptation": "Method always could return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ArtifactIdentifier",
+            "member": "Method org.gradle.api.artifacts.ArtifactIdentifier.getClassifier()",
+            "acceptation": "Method always could return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ArtifactIdentifier",
+            "member": "Method org.gradle.api.artifacts.ArtifactIdentifier.getExtension()",
+            "acceptation": "Method always could return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.JavaExec",
+            "member": "Method org.gradle.api.tasks.JavaExec.setMain(java.lang.String)",
+            "acceptation": "Removed for Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.process.JavaExecSpec",
+            "member": "Method org.gradle.process.JavaExecSpec.getMain()",
+            "acceptation": "Removed for Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.process.JavaExecSpec",
+            "member": "Method org.gradle.process.JavaExecSpec.setMain(java.lang.String)",
+            "acceptation": "Default implementation added to spec for Gradle 8.0",
+            "changes": [
+                "METHOD_ABSTRACT_NOW_DEFAULT"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.incremental.IncrementalTaskInputs",
             "member": "Class org.gradle.api.tasks.incremental.IncrementalTaskInputs",
             "acceptation": "Removed with 8.0",

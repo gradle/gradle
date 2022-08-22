@@ -24,6 +24,7 @@ import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
 import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier;
 import org.gradle.integtests.fixtures.executer.UseJdk11OrLaterSampleModifier;
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputCleaner;
 import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.EmbeddedKotlinOutputNormalizer;
@@ -41,6 +42,7 @@ import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
     ArtifactResolutionOmittingOutputNormalizer.class,
     NativeComponentReportOutputNormalizer.class,
     DependencyInsightOutputNormalizer.class,
+    ConfigurationCacheOutputCleaner.class,
     ConfigurationCacheOutputNormalizer.class,
     EmbeddedKotlinOutputNormalizer.class
 })
@@ -63,4 +65,3 @@ import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
  */
 abstract class BaseSamplesTest {
 }
-

@@ -20,15 +20,13 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.provider.SetProperty;
 
-import java.io.Serializable;
-
 /**
  * Describes a Gradle plugin under development.
  *
  * @see org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  * @since 2.14
  */
-public abstract class PluginDeclaration implements Named, Serializable { // TODO: Shouldn't be serializable, remove the interface in Gradle 8.0.
+public abstract class PluginDeclaration implements Named {
     private final String name;
     private String id;
     private String implementationClass;

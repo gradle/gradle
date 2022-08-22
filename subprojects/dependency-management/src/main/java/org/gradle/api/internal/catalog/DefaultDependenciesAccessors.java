@@ -239,7 +239,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                         }
                         if (factory != null) {
                             container.create(model.getName(), factory, model);
-                            catalogs.put(model.getName(), new VersionCatalogView(model, providerFactory));
+                            catalogs.put(model.getName(), new VersionCatalogView(model, providerFactory, project.getObjects()));
                         }
                     }
                 }

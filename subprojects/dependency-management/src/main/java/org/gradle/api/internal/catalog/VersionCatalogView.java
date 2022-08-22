@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.catalog.AbstractExternalDependencyFactory.BundleFactory;
 import org.gradle.api.internal.catalog.AbstractExternalDependencyFactory.PluginFactory;
 import org.gradle.api.internal.catalog.AbstractExternalDependencyFactory.VersionFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -39,12 +40,14 @@ public class VersionCatalogView implements VersionCatalog {
     private final DefaultVersionCatalog config;
     private final ProviderFactory providerFactory;
     private final ExternalModuleDependencyFactory dependencyFactory;
+    private final ObjectFactory objects;
 
     @Inject
-    public VersionCatalogView(DefaultVersionCatalog config, ProviderFactory providerFactory) {
+    public VersionCatalogView(DefaultVersionCatalog config, ProviderFactory providerFactory, ObjectFactory objects) {
         this.config = config;
         this.providerFactory = providerFactory;
-        this.dependencyFactory = new DefaultExternalDependencyFactory(config, providerFactory);
+        this.objects = objects;
+        this.dependencyFactory = new DefaultExternalDependencyFactory(config, providerFactory, objects);
     }
 
     @Override
@@ -71,7 +74,7 @@ public class VersionCatalogView implements VersionCatalog {
     public final Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String alias) {
         String normalizedBundle = normalize(alias);
         if (config.getBundleAliases().contains(normalizedBundle)) {
-            return Optional.of(new BundleFactory(providerFactory, config).createBundle(normalizedBundle));
+            return Optional.of(new BundleFactory(objects, providerFactory, config).createBundle(normalizedBundle));
         }
         return Optional.empty();
     }

@@ -12,7 +12,7 @@ java {
 }
 
 dependencies {
-    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.10.3")
+    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.11")
 
     implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:2.4.1")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10")

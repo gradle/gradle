@@ -28,11 +28,9 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.StreamHasher;
 import org.gradle.util.internal.GFileUtils;
 
 import java.io.BufferedInputStream;
@@ -47,16 +45,14 @@ public class TarFileTree extends AbstractArchiveFileTree {
     private final Chmod chmod;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final File tmpDir;
-    private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
 
-    public TarFileTree(Provider<File> tarFileProvider, Provider<ReadableResourceInternal> resource, File tmpDir, Chmod chmod, DirectoryFileTreeFactory directoryFileTreeFactory, StreamHasher streamHasher, FileHasher fileHasher) {
+    public TarFileTree(Provider<File> tarFileProvider, Provider<ReadableResourceInternal> resource, File tmpDir, Chmod chmod, DirectoryFileTreeFactory directoryFileTreeFactory, FileHasher fileHasher) {
         this.tarFileProvider = tarFileProvider;
         this.resource = resource;
         this.chmod = chmod;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.tmpDir = tmpDir;
-        this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
     }
 
@@ -111,14 +107,13 @@ public class TarFileTree extends AbstractArchiveFileTree {
 
     @Override
     public Provider<File> getBackingFileProvider() {
-        return tarFileProvider.orElse(resource.map(ReadableResourceInternal::getBackingFile));
+        return tarFileProvider;
     }
 
     private File getExpandedDir() {
-        File tarFile = tarFileProvider.getOrNull();
-        ReadableResourceInternal resource = this.resource.getOrNull();
-        HashCode fileHash = tarFile != null ? hashFile(tarFile) : hashResource(resource);
-        String expandedDirName = resource.getBaseName() + "_" + fileHash;
+        File tarFile = tarFileProvider.get();
+        HashCode fileHash = hashFile(tarFile);
+        String expandedDirName = tarFile.getName() + "_" + fileHash;
         return new File(tmpDir, expandedDirName);
     }
 
@@ -127,18 +122,6 @@ public class TarFileTree extends AbstractArchiveFileTree {
             return fileHasher.hash(tarFile);
         } catch (Exception e) {
             throw cannotExpand(e);
-        }
-    }
-
-    private HashCode hashResource(ReadableResourceInternal resource) {
-        InputStream inputStream = null;
-        try {
-            inputStream = new BufferedInputStream(resource.read());
-            return streamHasher.hash(inputStream);
-        } catch (ResourceException e) {
-            throw cannotExpand(e);
-        } finally {
-            IoActions.closeQuietly(inputStream);
         }
     }
 
