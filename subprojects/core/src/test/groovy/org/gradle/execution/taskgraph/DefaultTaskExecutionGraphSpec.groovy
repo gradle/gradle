@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph
 
+import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
@@ -84,7 +85,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def projectStateRegistry = Stub(ProjectStateRegistry)
     def executionPlan = newExecutionPlan()
     def taskGraph = new DefaultTaskExecutionGraph(
-        new DefaultPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinator),
+        new DefaultPlanExecutor(parallelismConfiguration, executorFactory, workerLeases, cancellationToken, coordinator, Stub(StartParameter)),
         [nodeExecutor],
         buildOperationExecutor,
         listenerBuildOperationDecorator,

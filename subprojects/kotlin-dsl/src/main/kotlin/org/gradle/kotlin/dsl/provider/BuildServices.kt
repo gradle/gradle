@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService
 import org.gradle.api.internal.classpath.ModuleRegistry
@@ -56,7 +56,7 @@ object BuildServices {
         moduleRegistry: ModuleRegistry,
         classPathRegistry: ClassPathRegistry,
         classLoaderScopeRegistry: ClassLoaderScopeRegistry,
-        dependencyFactory: DependencyFactory,
+        dependencyFactory: DependencyFactoryInternal,
         jarCache: GeneratedGradleJarCache,
         temporaryFileProvider: TemporaryFileProvider,
         progressLoggerFactory: ProgressLoggerFactory

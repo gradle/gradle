@@ -883,6 +883,11 @@
             <pgp value="0191e61acbbe76323ac15c83b5ad94bdd6bdb924"/>
          </artifact>
       </component>
+      <component group="me.champeau.jmh" name="jmh-gradle-plugin" version="0.6.6">
+         <artifact name="jmh-gradle-plugin-0.6.6.jar">
+            <pgp value="0191e61acbbe76323ac15c83b5ad94bdd6bdb924"/>
+         </artifact>
+      </component>
       <component group="mysql" name="mysql-connector-java" version="8.0.17">
          <artifact name="mysql-connector-java-8.0.17.jar">
             <pgp value="a4a9406876fcbd3c456770c88c718d3b5072e1f5"/>

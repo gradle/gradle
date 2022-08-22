@@ -24,9 +24,11 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.quality.internal.PmdInvoker;
+import org.gradle.api.plugins.quality.internal.PmdAction;
+import org.gradle.api.plugins.quality.internal.PmdActionParameters;
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -45,12 +47,18 @@ import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.workers.WorkQueue;
+import org.gradle.workers.WorkerExecutor;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Runs a set of static code analysis rules on Java source code files and generates a report of problems found.
@@ -74,6 +82,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     private final Property<Integer> maxFailures;
     private final Property<Boolean> incrementalAnalysis;
     private final Property<Integer> threads;
+    private final Property<JavaLauncher> javaLauncher;
 
     public Pmd() {
         ObjectFactory objects = getObjectFactory();
@@ -82,6 +91,14 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
         this.incrementalAnalysis = objects.property(Boolean.class);
         this.maxFailures = objects.property(Integer.class);
         this.threads = objects.property(Integer.class);
+        // Set default JavaLauncher to current JVM in case
+        // PmdPlugin that sets Java launcher convention is not applied
+        this.javaLauncher = configureFromCurrentJvmLauncher(getToolchainService(), getObjectFactory());
+    }
+
+    private static Property<JavaLauncher> configureFromCurrentJvmLauncher(JavaToolchainService toolchainService, ObjectFactory objectFactory) {
+        Provider<JavaLauncher> currentJvmLauncherProvider = toolchainService.launcherFor(new CurrentJvmToolchainSpec(objectFactory));
+        return objectFactory.property(JavaLauncher.class).convention(currentJvmLauncherProvider);
     }
 
     @Inject
@@ -90,15 +107,69 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     @Inject
+    protected JavaToolchainService getToolchainService() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Deprecated
+    @Inject
     public IsolatedAntBuilder getAntBuilder() {
         throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected WorkerExecutor getWorkerExecutor() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * JavaLauncher for toolchain support
+     * @since 7.7
+     */
+    @Incubating
+    @Nested
+    public Property<JavaLauncher> getJavaLauncher() {
+        return javaLauncher;
     }
 
     @TaskAction
     public void run() {
         validate(rulesMinimumPriority.get());
         validateThreads(threads.get());
-        PmdInvoker.invoke(this);
+
+        WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
+            spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+            spec.getClasspath().from(getPmdClasspath());
+        });
+        workQueue.submit(PmdAction.class, this::setupParameters);
+    }
+
+    private void setupParameters(PmdActionParameters parameters) {
+        parameters.getPmdClasspath().setFrom(getPmdClasspath());
+        parameters.getTargetJdk().set(getTargetJdk());
+        parameters.getRuleSets().set(getRuleSets());
+        parameters.getRuleSetConfigFiles().from(getRuleSetFiles());
+        if (getRuleSetConfig() != null) {
+            parameters.getRuleSetConfigFiles().from(getRuleSetConfig().asFile());
+        }
+        parameters.getIgnoreFailures().set(getIgnoreFailures());
+        parameters.getConsoleOutput().set(isConsoleOutput());
+        parameters.getStdOutIsAttachedToTerminal().set(stdOutIsAttachedToTerminal());
+        if (getClasspath() != null) {
+            parameters.getAuxClasspath().setFrom(getClasspath());
+        }
+        parameters.getRulesMinimumPriority().set(getRulesMinimumPriority());
+        parameters.getMaxFailures().set(getMaxFailures());
+        parameters.getIncrementalAnalysis().set(getIncrementalAnalysis());
+        parameters.getIncrementalCacheFile().set(getIncrementalCacheFile());
+        parameters.getThreads().set(getThreads());
+        parameters.getSource().setFrom(getSource());
+        parameters.getEnabledReports().set(getReports().getEnabled().stream().map(report -> {
+            PmdActionParameters.EnabledReport newReport = getObjectFactory().newInstance(PmdActionParameters.EnabledReport.class);
+            newReport.getName().set(report.getName());
+            newReport.getOutputLocation().set(report.getOutputLocation());
+            return newReport;
+        }).collect(Collectors.toList()));
     }
 
     public boolean stdOutIsAttachedToTerminal() {
