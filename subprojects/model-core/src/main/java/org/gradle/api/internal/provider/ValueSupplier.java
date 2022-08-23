@@ -358,9 +358,7 @@ public interface ValueSupplier {
          * A {@link #isMissing() missing} value never carries a side effect.
          */
         @Nullable
-        default SideEffect<? super T> getSideEffect() {
-            return null;
-        }
+        SideEffect<? super T> getSideEffect();
 
         <S> Value<S> asType();
 
@@ -484,6 +482,12 @@ public interface ValueSupplier {
         }
 
         @Override
+        @Nullable
+        public SideEffect<? super T> getSideEffect() {
+            return null;
+        }
+
+        @Override
         public T get() throws IllegalStateException {
             throw new IllegalStateException();
         }
@@ -510,7 +514,7 @@ public interface ValueSupplier {
 
         @Override
         public Value<T> withSideEffect(SideEffect<? super T> sideEffect) {
-            // TODO: consider if we want to extend sideEffect contract to work with missing values
+            // Missing value never carries a side effect
             return this;
         }
 
