@@ -16,12 +16,12 @@
 
 package org.gradle.api.plugins.jvm.internal;
 
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -63,19 +63,19 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
     }
 
     @Inject
-    protected abstract ProjectFinder getProjectFinder();
+    protected abstract Project getCurrentProject();
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
     @Override
     public ProjectDependency project(String projectPath) {
-        return getDependencyFactory().create(getProjectFinder().getProject(projectPath));
+        return getDependencyFactory().create(getCurrentProject().project(projectPath));
     }
 
     @Override
     public ProjectDependency project() {
-        return getDependencyFactory().create(getProjectFinder().getBaseProject());
+        return getDependencyFactory().create(getCurrentProject());
     }
 
     public <D extends ModuleDependency> D platform(D dependency) {
