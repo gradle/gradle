@@ -64,6 +64,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.Depe
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
@@ -203,6 +204,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DefaultTransformedVariantFactory.class);
             registration.add(DefaultConfigurationFactory.class);
             registration.add(DefaultRootComponentMetadataBuilder.Factory.class);
+            registration.add(ProjectDependencyResolver.class);
         }
 
         AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport) {
@@ -499,39 +501,41 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        BuildState currentBuild,
                                                        TransformedVariantFactory transformedVariantFactory,
                                                        DependencyVerificationOverride dependencyVerificationOverride,
+                                                       ProjectDependencyResolver projectDependencyResolver,
                                                        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
                                                        WorkerLeaseService workerLeaseService) {
             return new ErrorHandlingConfigurationResolver(
-                new ShortCircuitEmptyConfigurationResolver(
-                    new DefaultConfigurationResolver(
-                        artifactDependencyResolver,
-                        repositoriesSupplier,
-                        metadataHandler,
-                        resolutionResultsStoreFactory,
-                        startParameter.isBuildProjectDependencies(),
-                        attributesSchema,
-                        new DefaultArtifactTransforms(
-                            new ConsumerProvidedVariantFinder(
-                                variantTransforms,
-                                attributesSchema,
-                                attributesFactory),
-                            attributesSchema,
-                            attributesFactory,
-                            transformedVariantFactory
-                        ),
-                        moduleIdentifierFactory,
-                        buildOperationExecutor,
-                        artifactTypeRegistry,
-                        componentSelectorConverter,
-                        attributeContainerSerializer,
-                        currentBuild.getBuildIdentifier(),
-                        new AttributeDesugaring(attributesFactory),
-                        dependencyVerificationOverride,
-                        componentSelectionDescriptorFactory,
-                        workerLeaseService),
-                    componentIdentifierFactory,
-                    moduleIdentifierFactory,
-                    currentBuild.getBuildIdentifier()));
+                    new ShortCircuitEmptyConfigurationResolver(
+                            new DefaultConfigurationResolver(
+                                    artifactDependencyResolver,
+                                    repositoriesSupplier,
+                                    metadataHandler,
+                                    resolutionResultsStoreFactory,
+                                    startParameter.isBuildProjectDependencies(),
+                                    attributesSchema,
+                                    new DefaultArtifactTransforms(
+                                            new ConsumerProvidedVariantFinder(
+                                                    variantTransforms,
+                                                    attributesSchema,
+                                                    attributesFactory),
+                                            attributesSchema,
+                                            attributesFactory,
+                                            transformedVariantFactory
+                                    ),
+                                    moduleIdentifierFactory,
+                                    buildOperationExecutor,
+                                    artifactTypeRegistry,
+                                    componentSelectorConverter,
+                                    attributeContainerSerializer,
+                                    currentBuild.getBuildIdentifier(),
+                                    new AttributeDesugaring(attributesFactory),
+                                    dependencyVerificationOverride,
+                                    projectDependencyResolver,
+                                    componentSelectionDescriptorFactory,
+                                    workerLeaseService),
+                            componentIdentifierFactory,
+                            moduleIdentifierFactory,
+                            currentBuild.getBuildIdentifier()));
         }
 
         ArtifactPublicationServices createArtifactPublicationServices(ServiceRegistry services) {
