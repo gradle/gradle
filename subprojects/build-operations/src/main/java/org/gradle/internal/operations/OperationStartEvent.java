@@ -26,4 +26,11 @@ public final class OperationStartEvent {
     public long getStartTime() {
         return startTime;
     }
+
+    @Override
+    public String toString() {
+        return "OperationStartEvent{" +
+            "startTime=" + startTime +
+            '}';
+    }
 }
