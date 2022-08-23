@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -70,7 +70,7 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
             return NO_ARTIFACTS;
         }
         ModuleComponentRepository sourceRepository = findSourceRepository(component.getSources());
-        return DefaultArtifactSet.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, availableVariants, component.getAttributesSchema(), this, sourceRepository.getArtifactCache(), artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
+        return ArtifactSetFactory.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, availableVariants, component.getAttributesSchema(), this, sourceRepository.getArtifactCache(), artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
     }
 
     @Override

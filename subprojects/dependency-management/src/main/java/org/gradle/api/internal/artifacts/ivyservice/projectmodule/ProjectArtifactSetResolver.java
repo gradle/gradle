@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -62,7 +62,7 @@ public class ProjectArtifactSetResolver {
             ResolvedVariant resolvedVariant = mapVariant(ownerId, moduleSources, exclusions, artifactTypeRegistry, variant);
             result.add(resolvedVariant);
         }
-        return DefaultArtifactSet.createFromVariants(componentIdentifier, result.build(), schema, selectionAttributes);
+        return ArtifactSetFactory.createFromVariants(componentIdentifier, result.build(), schema, selectionAttributes);
     }
 
     private ResolvedVariant mapVariant(ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactTypeRegistry artifactTypeRegistry, VariantResolveMetadata variant) {
@@ -76,10 +76,10 @@ public class ProjectArtifactSetResolver {
 
         if (exclusions.mayExcludeArtifacts()) {
             // Some artifact may be excluded, so do not reuse. It might be better to apply the exclusions and reuse if none of them apply
-            return DefaultArtifactSet.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allProjectArtifacts, variantAttributes, calculatedValueContainerFactory);
+            return ArtifactSetFactory.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allProjectArtifacts, variantAttributes, calculatedValueContainerFactory);
         }
 
         VariantWithOverloadAttributes key = new VariantWithOverloadAttributes(identifier, variantAttributes);
-        return allProjectVariants.computeIfAbsent(key, k -> DefaultArtifactSet.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allProjectArtifacts, variantAttributes, calculatedValueContainerFactory));
+        return allProjectVariants.computeIfAbsent(key, k -> ArtifactSetFactory.toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allProjectArtifacts, variantAttributes, calculatedValueContainerFactory));
     }
 }
