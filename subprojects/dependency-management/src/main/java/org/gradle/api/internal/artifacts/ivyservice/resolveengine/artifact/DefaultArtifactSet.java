@@ -38,12 +38,14 @@ public class DefaultArtifactSet implements ArtifactSet, ResolvedVariantSet, Vari
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributes selectionAttributes;
     private final Set<ResolvedVariant> variants;
+    private final Set<ResolvedVariant> legacyVariants;
 
-    DefaultArtifactSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ImmutableAttributes selectionAttributes, Set<ResolvedVariant> variants) {
+    DefaultArtifactSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ImmutableAttributes selectionAttributes, Set<ResolvedVariant> variants, Set<ResolvedVariant> legacyVariants) {
         this.componentIdentifier = componentIdentifier;
         this.schema = schema;
         this.selectionAttributes = selectionAttributes;
         this.variants = variants;
+        this.legacyVariants = legacyVariants;
     }
 
     @Override
@@ -86,7 +88,7 @@ public class DefaultArtifactSet implements ArtifactSet, ResolvedVariantSet, Vari
 
     @Override
     public Set<ResolvedVariant> getVariants() {
-        return variants;
+        return legacyVariants;
     }
 
     @Override
