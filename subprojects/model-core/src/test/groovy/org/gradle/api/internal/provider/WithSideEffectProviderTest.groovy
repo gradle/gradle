@@ -16,42 +16,55 @@
 
 package org.gradle.api.internal.provider
 
-import spock.lang.Specification
+import org.gradle.api.provider.Provider
+import org.gradle.internal.state.ManagedFactory
 
 import java.util.concurrent.atomic.AtomicInteger
 
 
-class WithSideEffectProviderTest extends Specification {
+class WithSideEffectProviderTest extends ProviderSpec<Integer> {
 
-    def "runs side effect when calling '#method' on fixed value provider"() {
-        given:
-        def sideEffect = Mock(ValueSupplier.SideEffect)
-        def parent = Providers.of(23)
-        def provider = parent.withSideEffect(sideEffect)
-
-        when:
-        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
-        provider.calculateExecutionTimeValue()
-
-        then:
-        0 * _ // no side effects when values are not unpacked
-
-        when:
-        def unpackedValue = extract(provider)
-
-        then:
-        unpackedValue == 23
-        1 * sideEffect.execute(23)
-        0 * _
-
-        where:
-        method      | extract
-        "get"       | { it.get() }
-        "getOrNull" | { it.getOrNull() }
-        "getOrElse" | { it.getOrElse(88) }
+    @Override
+    Provider providerWithNoValue() {
+        return new WithSideEffectProvider(Providers.notDefined(), Stub(ValueSupplier.SideEffect))
     }
 
-    def "runs side effect when calling '#method' on changing value provider"() {
+    @Override
+    Provider<Integer> providerWithValue(Integer value) {
+        return new WithSideEffectProvider(Providers.of(value), Stub(ValueSupplier.SideEffect))
+    }
+
+    @Override
+    Class<Integer> type() {
+        return Integer
+    }
+
+    @Override
+    Integer someValue() {
+        return 23
+    }
+
+    @Override
+    Integer someOtherValue() {
+        return 88
+    }
+
+    @Override
+    Integer someOtherValue2() {
+        return 146
+    }
+
+    @Override
+    Integer someOtherValue3() {
+        return 1024
+    }
+
+    @Override
+    ManagedFactory managedFactory() {
+        return new ManagedFactories.ProviderManagedFactory()
+    }
+
+    def "runs side effect when calling '#method' on changing provider"() {
         given:
         def sideEffect = Mock(ValueSupplier.SideEffect)
         def counter = new AtomicInteger(23)
@@ -86,87 +99,7 @@ class WithSideEffectProviderTest extends Specification {
         "getOrElse" | { it.getOrElse(88) }
     }
 
-    def "does not run side effect when calling '#method' on missing value provider"() {
-        given:
-        def sideEffect = Mock(ValueSupplier.SideEffect)
-        def parent = Providers.notDefined()
-        def provider = parent.withSideEffect(sideEffect)
-
-        when:
-        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
-        provider.calculateExecutionTimeValue()
-
-        then:
-        0 * _ // no side effects when values are not unpacked
-
-        when:
-        def unpackedValue = unpack(provider)
-
-        then:
-        unpackedValue == expectedValue
-        0 * sideEffect.execute(_)
-        0 * _
-
-        where:
-        method      | unpack               | expectedValue
-        "getOrNull" | { it.getOrNull() }   | null
-        "getOrElse" | { it.getOrElse(88) } | 88
-    }
-
-    def "does not run side effect when calling 'get' on missing value provider"() {
-        given:
-        def sideEffect = Mock(ValueSupplier.SideEffect)
-        def parent = Providers.notDefined()
-        def provider = parent.withSideEffect(sideEffect)
-
-        when:
-        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
-        provider.calculateExecutionTimeValue()
-
-        then:
-        0 * _ // no side effects when values are not unpacked
-
-        when:
-        provider.get()
-
-        then:
-        thrown(IllegalStateException)
-        0 * sideEffect.execute(_)
-        0 * _
-    }
-
-    def "chains side effects applied to the same provider when calling '#method'"() {
-        given:
-        def sideEffect1 = Mock(ValueSupplier.SideEffect)
-        def sideEffect2 = Mock(ValueSupplier.SideEffect)
-        def parent = Providers.of(23)
-        def provider = parent.withSideEffect(sideEffect1).withSideEffect(sideEffect2)
-
-        when:
-        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
-        provider.calculateExecutionTimeValue()
-
-        then:
-        0 * _ // no side effects when values are not unpacked
-
-        when:
-        extract(provider)
-
-        then:
-        1 * sideEffect1.execute(23)
-
-        then: // required to ensure invocation ordering
-        1 * sideEffect2.execute(23)
-        0 * _
-
-        where:
-        method      | extract
-        "get"       | { it.get() }
-        "getOrNull" | { it.getOrNull() }
-        "getOrElse" | { it.getOrElse(88) }
-    }
-
-    def "runs the side effect when provider is mapped with '#description'"() {
+    def "runs the side effect when changing provider is mapped with '#description'"() {
         given:
         def sideEffect = Mock(ValueSupplier.SideEffect)
         def counter = new AtomicInteger(23)
@@ -205,7 +138,7 @@ class WithSideEffectProviderTest extends Specification {
         "MappingProvider"           | { p, m -> new MappingProvider(Integer, p, m) }
     }
 
-    def "runs the side effect when provider is flat-mapped to a provider with side effect"() {
+    def "runs the side effect when changing provider is flat-mapped to a provider with side effect"() {
         given:
         def sideEffect1 = Mock(ValueSupplier.SideEffect)
         def sideEffect2 = Mock(ValueSupplier.SideEffect)
