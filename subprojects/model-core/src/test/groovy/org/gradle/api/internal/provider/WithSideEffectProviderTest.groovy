@@ -26,12 +26,12 @@ class WithSideEffectProviderTest extends ProviderSpec<Integer> {
 
     @Override
     Provider providerWithNoValue() {
-        return new WithSideEffectProvider(Providers.notDefined(), Stub(ValueSupplier.SideEffect))
+        return WithSideEffectProvider.of(Providers.notDefined(), Stub(ValueSupplier.SideEffect))
     }
 
     @Override
     Provider<Integer> providerWithValue(Integer value) {
-        return new WithSideEffectProvider(Providers.of(value), Stub(ValueSupplier.SideEffect))
+        return WithSideEffectProvider.of(Providers.of(value), Stub(ValueSupplier.SideEffect))
     }
 
     @Override

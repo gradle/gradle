@@ -26,6 +26,7 @@ import org.gradle.internal.DisplayName;
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -211,15 +212,23 @@ public interface ValueSupplier {
          * and instead always executes against the given {@code value}.
          */
         static <T, A> SideEffect<T> fixed(A value, SideEffect<A> sideEffect) {
-            return new FixedSideEffect<>(value, sideEffect);
+            return EmptySideEffect.isEmpty(sideEffect) ? EmptySideEffect.value() : new FixedSideEffect<>(value, sideEffect);
+        }
+
+        static <T, A> SideEffect<T> fixedFrom(Value<A> value) {
+            if (value.isMissing()) {
+                return EmptySideEffect.value();
+            }
+
+            SideEffect<? super A> sideEffect = value.getSideEffect();
+            return EmptySideEffect.isEmpty(sideEffect) ? EmptySideEffect.value() : fixed(value.getWithoutSideEffect(), sideEffect);
         }
 
         /**
          * Creates a new side effect that executes given side effects sequentially.
          */
-        static <T> SideEffect<T> composite(Iterable<SideEffect<? super T>> sideEffects) {
-            // TODO: optimize for empty and single-value cases
-            return new CompositeSideEffect<>(sideEffects);
+        static <T> SideEffect<T> composite(Iterable<SideEffect<T>> sideEffects) {
+            return CompositeSideEffect.of(sideEffects);
         }
 
         /**
@@ -227,18 +236,30 @@ public interface ValueSupplier {
          */
         @SafeVarargs
         static <T> SideEffect<T> composite(SideEffect<? super T>... sideEffects) {
-            ArrayList<SideEffect<? super T>> flatSideEffects = new ArrayList<>(sideEffects.length);
-            for (SideEffect<? super T> sideEffect : sideEffects) {
-                if (sideEffect instanceof CompositeSideEffect) {
-                    CompositeSideEffect<? super T> compositeSideEffect = Cast.uncheckedNonnullCast(sideEffect);
-                    flatSideEffects.addAll(compositeSideEffect.sideEffects);
-                } else {
-                    flatSideEffects.add(sideEffect);
-                }
-            }
+            @SuppressWarnings("varargs")
+            List<SideEffect<T>> sideEffectList = Cast.uncheckedNonnullCast(Arrays.asList(sideEffects));
+            return CompositeSideEffect.of(sideEffectList);
+        }
 
-            // TODO: optimize for empty and single-value cases
-            return new CompositeSideEffect<>(flatSideEffects);
+        static <T> ProviderInternal<T> attach(ProviderInternal<T> provider, @Nullable SideEffect<? super T> sideEffect) {
+            return EmptySideEffect.isEmpty(sideEffect) ? provider : provider.withSideEffect(sideEffect);
+        }
+
+        static <T> Value<T> attach(Value<T> value, @Nullable SideEffect<? super T> sideEffect) {
+            return EmptySideEffect.isEmpty(sideEffect) ? value : value.withSideEffect(sideEffect);
+        }
+
+        static <T, S> Value<T> attachFixedFrom(Value<T> value, Value<S> sideEffectSource) {
+            SideEffect<? super S> sideEffect = sideEffectSource.getSideEffect();
+            return EmptySideEffect.isEmpty(sideEffect) ? value : value.withSideEffect(SideEffect.fixed(sideEffectSource.getWithoutSideEffect(), sideEffect));
+        }
+
+        static <T> ExecutionTimeValue<T> attach(ExecutionTimeValue<T> value, @Nullable SideEffect<? super T> sideEffect) {
+            return EmptySideEffect.isEmpty(sideEffect) ? value : value.withSideEffect(sideEffect);
+        }
+
+        static <T> SideEffectBuilder<T> builder() {
+            return new SideEffectBuilder<>();
         }
     }
 
@@ -267,6 +288,32 @@ public interface ValueSupplier {
     }
 
     class CompositeSideEffect<T> implements SideEffect<T> {
+
+        private static <T> SideEffect<T> of(Iterable<SideEffect<T>> sideEffects) {
+            List<SideEffect<? super T>> flatSideEffects = new ArrayList<>();
+
+            for (SideEffect<? super T> sideEffect : sideEffects) {
+                if (EmptySideEffect.isEmpty(sideEffect)) {
+                    continue;
+                }
+
+                if (sideEffect instanceof CompositeSideEffect) {
+                    CompositeSideEffect<? super T> compositeSideEffect = Cast.uncheckedNonnullCast(sideEffect);
+                    flatSideEffects.addAll(compositeSideEffect.sideEffects);
+                } else {
+                    flatSideEffects.add(sideEffect);
+                }
+            }
+
+            if (flatSideEffects.isEmpty()) {
+                return EmptySideEffect.value();
+            } else if (flatSideEffects.size() == 1) {
+                return Cast.uncheckedNonnullCast(flatSideEffects.get(0));
+            } else {
+                return new CompositeSideEffect<>(flatSideEffects);
+            }
+        }
+
         private final List<SideEffect<? super T>> sideEffects;
 
         private CompositeSideEffect(Iterable<SideEffect<? super T>> sideEffects) {
@@ -283,6 +330,68 @@ public interface ValueSupplier {
         @Override
         public String toString() {
             return "composite(" + sideEffects + ")";
+        }
+    }
+
+    class EmptySideEffect<T> implements SideEffect<T> {
+
+        public static boolean isEmpty(@Nullable SideEffect<?> sideEffect) {
+            return sideEffect == null || sideEffect == INSTANCE;
+        }
+
+        private static <T> SideEffect<T> value() {
+            return Cast.uncheckedNonnullCast(INSTANCE);
+        }
+
+        private static final EmptySideEffect<Object> INSTANCE = new EmptySideEffect<>();
+
+        private EmptySideEffect() {}
+
+        @Override
+        public void execute(T t) {}
+
+        @Override
+        public String toString() {
+            return "empty";
+        }
+    }
+
+    class SideEffectBuilder<T> {
+
+        List<SideEffect<T>> sideEffects = new ArrayList<>();
+
+        <V> SideEffectBuilder<T> addFixedFrom(ExecutionTimeValue<V> value) {
+            if (!value.hasFixedValue()) {
+                throw new IllegalArgumentException("expected fixed value, got: " + value);
+            }
+
+            add(fixed(value.getFixedValue(), value.getSideEffect()));
+            return this;
+        }
+
+        <V> SideEffectBuilder<T> addFixedFrom(Value<V> value) {
+            if (value.isMissing()) {
+                throw new IllegalArgumentException("expected present value, got: " + value);
+            }
+
+            add(fixed(value.getWithoutSideEffect(), value.getSideEffect()));
+            return this;
+        }
+
+        private void add(SideEffect<? super T> sideEffect) {
+            if (EmptySideEffect.isEmpty(sideEffect)) {
+                return;
+            }
+
+            sideEffects.add(Cast.uncheckedCast(sideEffect));
+        }
+
+        public SideEffect<T> build() {
+            return sideEffects.isEmpty() ? EmptySideEffect.value() : SideEffect.composite(sideEffects);
+        }
+
+        private static <T, S> SideEffect<T> fixed(S value, @Nullable SideEffect<? super S> sideEffect) {
+            return EmptySideEffect.isEmpty(sideEffect) ? EmptySideEffect.value() : SideEffect.fixed(value, sideEffect);
         }
     }
 
@@ -322,7 +431,7 @@ public interface ValueSupplier {
             if (value == null) {
                 throw new IllegalArgumentException();
             }
-            return new Present<>(value, sideEffect);
+            return EmptySideEffect.isEmpty(sideEffect) ? new Present<>(value) : new Present<>(value, sideEffect);
         }
 
         T get() throws IllegalStateException;
@@ -418,6 +527,10 @@ public interface ValueSupplier {
 
         @Override
         public Value<T> withSideEffect(SideEffect<? super T> sideEffect) {
+            if (EmptySideEffect.isEmpty(sideEffect)) {
+                return this;
+            }
+
             if (this.sideEffect == null) {
                 return Value.withSideEffect(result, sideEffect);
             }
@@ -636,9 +749,7 @@ public interface ValueSupplier {
             if (value.isMissing()) {
                 return missing();
             } else {
-                SideEffect<? super T> sideEffect = value.getSideEffect();
-                ExecutionTimeValue<T> executionTimeValue = fixedValue(value.getWithoutSideEffect());
-                return sideEffect == null ? executionTimeValue : executionTimeValue.withSideEffect(sideEffect);
+                return SideEffect.attach(fixedValue(value.getWithoutSideEffect()), value.getSideEffect());
             }
         }
 
@@ -741,6 +852,10 @@ public interface ValueSupplier {
 
         @Override
         public ExecutionTimeValue<T> withSideEffect(SideEffect<? super T> sideEffect) {
+            if (EmptySideEffect.isEmpty(sideEffect)) {
+                return this;
+            }
+
             if (this.sideEffect == null) {
                 return new FixedExecutionTimeValue<>(value, changingContent, sideEffect);
             }
@@ -788,6 +903,10 @@ public interface ValueSupplier {
 
         @Override
         public ExecutionTimeValue<T> withSideEffect(SideEffect<? super T> sideEffect) {
+            if (EmptySideEffect.isEmpty(sideEffect)) {
+                return this;
+            }
+
             return new ChangingExecutionTimeValue<>(provider.withSideEffect(sideEffect));
         }
     }

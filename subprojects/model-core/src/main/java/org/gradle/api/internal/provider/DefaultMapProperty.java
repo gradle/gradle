@@ -219,7 +219,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
         } else if (value.hasFixedValue()) {
-            setSupplier(new FixedSuppler<>(Cast.uncheckedNonnullCast(value.getFixedValue())));
+            setSupplier(new FixedSupplier<>(Cast.uncheckedNonnullCast(value.getFixedValue()), Cast.uncheckedCast(value.getSideEffect())));
         } else {
             setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(value.getChangingValue())));
         }
@@ -244,8 +244,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     protected MapSupplier<K, V> finalValue(MapSupplier<K, V> value, ValueConsumer consumer) {
         Value<? extends Map<K, V>> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
-            Map<K, V> entries = result.get();
-            return new FixedSuppler<>(entries);
+            return new FixedSupplier<>(result.getWithoutSideEffect(), Cast.uncheckedCast(result.getSideEffect()));
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
@@ -369,11 +368,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
     }
 
-    private static class FixedSuppler<K, V> implements MapSupplier<K, V> {
+    private static class FixedSupplier<K, V> implements MapSupplier<K, V> {
         private final Map<K, V> entries;
+        private final SideEffect<? super Map<K, V>> sideEffect;
 
-        public FixedSuppler(Map<K, V> entries) {
+        public FixedSupplier(Map<K, V> entries, @Nullable SideEffect<? super Map<K, V>> sideEffect) {
             this.entries = entries;
+            this.sideEffect = sideEffect;
         }
 
         @Override
@@ -383,7 +384,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer) {
-            return Value.of(entries);
+            return SideEffect.attach(Value.of(entries), sideEffect);
         }
 
         @Override
@@ -398,7 +399,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue() {
-            return ExecutionTimeValue.fixedValue(entries);
+            return SideEffect.attach(ExecutionTimeValue.fixedValue(entries), sideEffect);
         }
 
         @Override
@@ -467,15 +468,17 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             }
             if (fixed) {
                 Map<K, V> entries = new LinkedHashMap<>();
+                SideEffectBuilder<? super Map<K, V>> sideEffectBuilder = SideEffect.builder();
                 for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value : values) {
                     entryCollector.addAll(value.getFixedValue().entrySet(), entries);
+                    sideEffectBuilder.addFixedFrom(value);
                 }
+
                 ExecutionTimeValue<Map<K, V>> value = ExecutionTimeValue.fixedValue(ImmutableMap.copyOf(entries));
                 if (changingContent) {
-                    return value.withChangingContent();
-                } else {
-                    return value;
+                    value = value.withChangingContent();
                 }
+                return SideEffect.attach(value, sideEffectBuilder.build());
             }
             List<ProviderInternal<? extends Map<? extends K, ? extends V>>> providers = new ArrayList<>();
             for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value : values) {
@@ -506,14 +509,18 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         protected Value<? extends Map<K, V>> calculateOwnValue(ValueConsumer consumer) {
             Map<K, V> entries = new LinkedHashMap<>();
+            SideEffectBuilder<? super Map<K, V>> sideEffectBuilder = SideEffect.builder();
             for (ProviderInternal<? extends Map<? extends K, ? extends V>> provider : providers) {
                 Value<? extends Map<? extends K, ? extends V>> value = provider.calculateValue(consumer);
                 if (value.isMissing()) {
                     return Value.missing();
                 }
-                entries.putAll(value.get());
+                entries.putAll(value.getWithoutSideEffect());
+                sideEffectBuilder.addFixedFrom(value);
             }
-            return Value.of(ImmutableMap.copyOf(entries));
+
+            Value<ImmutableMap<K, V>> resultValue = Value.of(ImmutableMap.copyOf(entries));
+            return SideEffect.attach(resultValue, sideEffectBuilder.build());
         }
     }
 
@@ -533,11 +540,18 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            Value<Void> result = left.collectEntries(consumer, collector, dest);
-            if (result.isMissing()) {
-                return result;
+            Value<Void> leftValue = left.collectEntries(consumer, collector, dest);
+            if (leftValue.isMissing()) {
+                return leftValue;
             }
-            return right.collectEntries(consumer, collector, dest);
+            Value<Void> rightValue = right.collectEntries(consumer, collector, dest);
+            if (rightValue.isMissing()) {
+                return rightValue;
+            }
+
+            return Value.present()
+                .withSideEffect(SideEffect.fixedFrom(leftValue))
+                .withSideEffect(SideEffect.fixedFrom(rightValue));
         }
 
         @Override

@@ -21,10 +21,14 @@ import org.jetbrains.annotations.Nullable;
 
 public class WithSideEffectProvider<T> extends AbstractMinimalProvider<T> {
 
+    public static <T> ProviderInternal<T> of(ProviderInternal<T> provider, SideEffect<? super T> sideEffect) {
+        return EmptySideEffect.isEmpty(sideEffect) ? provider : new WithSideEffectProvider<>(provider, sideEffect);
+    }
+
     private final ProviderInternal<T> provider;
     private final SideEffect<? super T> sideEffect;
 
-    public WithSideEffectProvider(ProviderInternal<T> provider, SideEffect<? super T> sideEffect) {
+    private WithSideEffectProvider(ProviderInternal<T> provider, SideEffect<? super T> sideEffect) {
         this.provider = provider;
         this.sideEffect = sideEffect;
     }
@@ -57,6 +61,10 @@ public class WithSideEffectProvider<T> extends AbstractMinimalProvider<T> {
 
     @Override
     public ProviderInternal<T> withSideEffect(SideEffect<? super T> sideEffect) {
+        if (EmptySideEffect.isEmpty(sideEffect)) {
+            return this;
+        }
+
         return new WithSideEffectProvider<>(provider, SideEffect.composite(this.sideEffect, sideEffect));
     }
 
