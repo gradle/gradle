@@ -340,9 +340,8 @@ public class Collectors {
             return delegate.calculatePresence(consumer);
         }
 
-        public void collectInto(ImmutableCollection.Builder<T> builder) {
-            // TODO: collectResult can contain a side effect
-            Value<Void> collectResult = collectEntries(ValueConsumer.IgnoreUnsafeRead, valueCollector, builder);
+        public Value<Void> collectInto(ImmutableCollection.Builder<T> builder) {
+            return collectEntries(ValueConsumer.IgnoreUnsafeRead, valueCollector, builder);
         }
 
         @Override

@@ -313,7 +313,9 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         public void realize() {
             if (cache == null) {
                 ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(delegate.size());
-                super.collectInto(builder);
+                Value<Void> valueWithSideEffects = super.collectInto(builder);
+                // run side effects if any
+                valueWithSideEffects.get();
                 cache = new ArrayList<>(builder.build());
                 cache.removeAll(removedValues);
                 realized = true;
@@ -329,11 +331,12 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
 
         @Override
-        public void collectInto(ImmutableCollection.Builder<T> builder) {
+        public Value<Void> collectInto(ImmutableCollection.Builder<T> builder) {
             if (!realized) {
                 realize();
             }
             builder.addAll(cache);
+            return Value.present();
         }
 
         List<T> getValues() {
