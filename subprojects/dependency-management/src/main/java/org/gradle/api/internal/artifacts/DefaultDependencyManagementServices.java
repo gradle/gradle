@@ -548,8 +548,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                             GlobalDependencyResolutionRules metadataHandler,
                                                                             ComponentTypeRegistry componentTypeRegistry,
                                                                             ImmutableAttributesFactory attributesFactory,
+                                                                            ArtifactTypeRegistry artifactTypeRegistry,
                                                                             ComponentMetadataSupplierRuleExecutor executor) {
-            return new DefaultArtifactResolutionQueryFactory(configurationContainer, repositoriesSupplier, ivyFactory, metadataHandler, componentTypeRegistry, attributesFactory, executor);
+            return new DefaultArtifactResolutionQueryFactory(configurationContainer, repositoriesSupplier, ivyFactory, metadataHandler, componentTypeRegistry, attributesFactory, artifactTypeRegistry, executor);
 
         }
 

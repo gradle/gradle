@@ -40,6 +40,7 @@ import org.gradle.api.internal.artifacts.result.DefaultComponentArtifactsResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedArtifactResult;
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedComponentResult;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ArtifactType;
@@ -74,6 +75,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final GlobalDependencyResolutionRules metadataHandler;
     private final ComponentTypeRegistry componentTypeRegistry;
     private final ImmutableAttributesFactory attributesFactory;
+    private final ArtifactTypeRegistry artifactTypeRegistry;
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
 
     private final Set<ComponentIdentifier> componentIds = Sets.newLinkedHashSet();
@@ -87,6 +89,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         GlobalDependencyResolutionRules metadataHandler,
         ComponentTypeRegistry componentTypeRegistry,
         ImmutableAttributesFactory attributesFactory,
+        ArtifactTypeRegistry artifactTypeRegistry,
         ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor
     ) {
         this.configurationContainer = configurationContainer;
@@ -95,6 +98,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         this.metadataHandler = metadataHandler;
         this.componentTypeRegistry = componentTypeRegistry;
         this.attributesFactory = attributesFactory;
+        this.artifactTypeRegistry = artifactTypeRegistry;
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
     }
 
@@ -140,7 +144,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         List<? extends ResolutionAwareRepository> repositories = repositoriesSupplier.get();
         ConfigurationInternal detachedConfiguration = configurationContainer.detachedConfiguration();
         ResolutionStrategyInternal resolutionStrategy = detachedConfiguration.getResolutionStrategy();
-        ComponentResolvers componentResolvers = ivyFactory.create(detachedConfiguration.getName(), resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessorFactory(), ImmutableAttributes.EMPTY, null, attributesFactory, componentMetadataSupplierRuleExecutor);
+        ComponentResolvers componentResolvers = ivyFactory.create(detachedConfiguration.getName(), resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessorFactory(), ImmutableAttributes.EMPTY, null, attributesFactory, artifactTypeRegistry, componentMetadataSupplierRuleExecutor);
         ComponentMetaDataResolver componentMetaDataResolver = componentResolvers.getComponentResolver();
         ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(componentResolvers.getArtifactResolver());
         return createResult(componentMetaDataResolver, artifactResolver);

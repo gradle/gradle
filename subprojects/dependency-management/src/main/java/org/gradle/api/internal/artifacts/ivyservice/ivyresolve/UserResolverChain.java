@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ImmutableModuleSources;
@@ -50,13 +51,15 @@ public class UserResolverChain implements ComponentResolvers {
                              ComponentMetadataProcessorFactory componentMetadataProcessor,
                              ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
                              CachePolicy cachePolicy,
-                             CalculatedValueContainerFactory calculatedValueContainerFactory) {
+                             CalculatedValueContainerFactory calculatedValueContainerFactory,
+                             ArtifactTypeRegistry artifactTypeRegistry
+    ) {
         this.componentSelectionRules = componentSelectionRules;
         VersionedComponentChooser componentChooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, componentSelectionRules, attributesSchema);
         ModuleTransformer metaDataFactory = new ModuleTransformer();
         componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(componentChooser, metaDataFactory, versionParser, consumerAttributes, attributesFactory, componentMetadataProcessor, componentMetadataSupplierRuleExecutor, cachePolicy);
         componentResolver = new RepositoryChainComponentMetaDataResolver(componentChooser, metaDataFactory);
-        artifactResolver = new RepositoryChainArtifactResolver(calculatedValueContainerFactory);
+        artifactResolver = new RepositoryChainArtifactResolver(calculatedValueContainerFactory, artifactTypeRegistry);
     }
 
     @Override
