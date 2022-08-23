@@ -259,6 +259,11 @@ public interface ValueSupplier {
         public void execute(T t) {
             sideEffect.execute(value);
         }
+
+        @Override
+        public String toString() {
+            return "fixed(" + value + ", " + sideEffect + ")";
+        }
     }
 
     class CompositeSideEffect<T> implements SideEffect<T> {
@@ -273,6 +278,11 @@ public interface ValueSupplier {
             for (SideEffect<? super T> sideEffect : sideEffects) {
                 sideEffect.execute(t);
             }
+        }
+
+        @Override
+        public String toString() {
+            return "composite(" + sideEffects + ")";
         }
     }
 
@@ -358,7 +368,6 @@ public interface ValueSupplier {
 
         Value<T> addPathsFrom(Value<?> rightValue);
     }
-
 
     class Present<T> implements Value<T> {
         private final T result;
