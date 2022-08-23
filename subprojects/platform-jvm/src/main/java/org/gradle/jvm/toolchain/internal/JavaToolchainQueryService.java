@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
@@ -69,6 +70,7 @@ public class JavaToolchainQueryService {
             .map(toolFunction);
     }
 
+    @VisibleForTesting
     ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
         JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) filter;
         if (!filterInternal.isValid()) {
