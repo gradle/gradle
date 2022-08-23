@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -58,11 +59,17 @@ public class JavaToolchainQueryService {
         this.matchingToolchains = new ConcurrentHashMap<>();
     }
 
-    <T> Provider<T> toolFor(JavaToolchainSpec spec, Transformer<T, JavaToolchain> toolFunction) {
-        return findMatchingToolchain(spec).map(toolFunction);
+    <T> Provider<T> toolFor(
+        JavaToolchainSpec spec,
+        Transformer<T, JavaToolchain> toolFunction,
+        DefaultJavaToolchainUsageProgressDetails.JavaTool requestedTool
+    ) {
+        return findMatchingToolchain(spec)
+            .withSideEffect(toolchain -> toolchain.emitUsageEvent(requestedTool))
+            .map(toolFunction);
     }
 
-    Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
+    ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
         JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) filter;
         if (!filterInternal.isValid()) {
             DeprecationLogger.deprecate("Using toolchain specifications without setting a language version")
