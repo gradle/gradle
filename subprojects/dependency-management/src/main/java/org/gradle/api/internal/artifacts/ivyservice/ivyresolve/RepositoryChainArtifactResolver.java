@@ -42,9 +42,11 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifac
 class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifactSelector {
     private final Map<String, ModuleComponentRepository> repositories = new LinkedHashMap<>();
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final ArtifactTypeRegistry artifactTypeRegistry;
 
-    public RepositoryChainArtifactResolver(CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public RepositoryChainArtifactResolver(CalculatedValueContainerFactory calculatedValueContainerFactory, ArtifactTypeRegistry artifactTypeRegistry) {
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.artifactTypeRegistry = artifactTypeRegistry;
     }
 
     void add(ModuleComponentRepository repository) {
