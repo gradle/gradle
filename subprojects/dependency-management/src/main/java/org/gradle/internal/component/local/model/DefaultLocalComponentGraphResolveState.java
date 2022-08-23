@@ -71,30 +71,30 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
     private static class DefaultLocalVariantArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
         private final LocalComponentMetadata component;
-        private final LocalConfigurationMetadata configuration;
+        private final LocalConfigurationMetadata graphSelectedVariant;
         private final ProjectArtifactSetResolver artifactSetResolver;
 
-        public DefaultLocalVariantArtifactResolveState(LocalComponentMetadata component, LocalConfigurationMetadata configuration, ProjectArtifactSetResolver artifactSetResolver) {
+        public DefaultLocalVariantArtifactResolveState(LocalComponentMetadata component, LocalConfigurationMetadata graphSelectedVariant, ProjectArtifactSetResolver artifactSetResolver) {
             this.component = component;
-            this.configuration = configuration;
+            this.graphSelectedVariant = graphSelectedVariant;
             this.artifactSetResolver = artifactSetResolver;
         }
 
         @Override
         public List<? extends ComponentArtifactMetadata> getArtifacts() {
-            return configuration.getArtifacts();
+            return graphSelectedVariant.getArtifacts();
         }
 
         @Override
         public ComponentArtifactMetadata resolveArtifact(IvyArtifactName artifact) {
-            configuration.prepareToResolveArtifacts();
-            return configuration.artifact(artifact);
+            graphSelectedVariant.prepareToResolveArtifacts();
+            return graphSelectedVariant.artifact(artifact);
         }
 
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            configuration.prepareToResolveArtifacts();
-            return artifactSetResolver.resolveArtifacts(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, configuration.getVariants(), component.getAttributesSchema(), artifactTypeRegistry, overriddenAttributes);
+            graphSelectedVariant.prepareToResolveArtifacts();
+            return artifactSetResolver.resolveArtifacts(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, graphSelectedVariant.getVariants(), component.getAttributesSchema(), artifactTypeRegistry, overriddenAttributes);
         }
     }
 }

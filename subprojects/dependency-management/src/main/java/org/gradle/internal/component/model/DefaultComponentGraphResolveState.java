@@ -40,21 +40,21 @@ public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadat
 
     private static class DefaultVariantArtifactResolveState implements VariantArtifactResolveState {
         private final ComponentResolveMetadata component;
-        private final ConfigurationMetadata configuration;
+        private final ConfigurationMetadata graphSelectedVariant;
 
-        public DefaultVariantArtifactResolveState(ComponentResolveMetadata componentMetadata, ConfigurationMetadata configuration) {
+        public DefaultVariantArtifactResolveState(ComponentResolveMetadata componentMetadata, ConfigurationMetadata graphSelectedVariant) {
             this.component = componentMetadata;
-            this.configuration = configuration;
+            this.graphSelectedVariant = graphSelectedVariant;
         }
 
         @Override
         public ComponentArtifactMetadata resolveArtifact(IvyArtifactName artifact) {
-            return configuration.artifact(artifact);
+            return graphSelectedVariant.artifact(artifact);
         }
 
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            return artifactSelector.resolveArtifacts(component, configuration, exclusions, overriddenAttributes);
+            return artifactSelector.resolveArtifacts(component, graphSelectedVariant, exclusions, overriddenAttributes);
         }
     }
 }
