@@ -223,4 +223,115 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: 'example2.MyOtherTest2', methodName: 'baz', task: ':secondTest')
     }
 
+    def "can select test classes from test task with filters"() {
+        setup:
+        buildFile << '''
+            secondTest {
+                filter {
+                    includeTest "example.MyTest", "foo"
+                }
+            }
+        '''
+
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withTestsFor { TestSpecs specs ->
+                specs.forTaskPath(':secondTest').includeClass('example.MyTest')
+            }
+        }
+
+        then:
+        events.testClassesAndMethods.size() == 2
+        assertTestExecuted(className: 'example.MyTest', methodName: 'foo', task: ':secondTest')
+    }
+
+    def "can select tests with patterns from test task with filters"() {
+        setup:
+        buildFile << '''
+            secondTest {
+                filter {
+                    includeTest "example.MyTest", "foo"
+                }
+            }
+        '''
+
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withTestsFor { TestSpecs specs ->
+                specs.forTaskPath(':secondTest').includePattern("example.*")
+            }
+        }
+
+        then:
+        events.testClassesAndMethods.size() == 2
+        assertTestExecuted(className: 'example.MyTest', methodName: 'foo', task: ':secondTest')
+    }
+
+    def "can select tests in a package from test task with filters"() {
+        setup:
+        buildFile << '''
+            secondTest {
+                filter {
+                    includeTest "example.MyTest", "foo"
+                }
+            }
+        '''
+
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withTestsFor { TestSpecs specs ->
+                specs.forTaskPath(':secondTest').includePackage("example")
+            }
+        }
+
+        then:
+        events.testClassesAndMethods.size() == 2
+        assertTestExecuted(className: 'example.MyTest', methodName: 'foo', task: ':secondTest')
+
+    }
+
+    def "can select test methods from test task with filters"() {
+        setup:
+        buildFile << '''
+            secondTest {
+                filter {
+                    includeTest "example.MyTest", "foo"
+                    includeTest "example.MyTest", "foo2"
+                }
+            }
+        '''
+
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withTestsFor { TestSpecs specs ->
+                specs.forTaskPath(':secondTest').includeMethod('example.MyTest', 'foo')
+            }
+        }
+
+        then:
+        events.testClassesAndMethods.size() == 2
+        assertTestExecuted(className: 'example.MyTest', methodName: 'foo', task: ':secondTest')
+    }
+
+    def "cannot bypass test filters from test task configuration"() {
+        setup:
+        buildFile << '''
+            secondTest {
+                filter {
+                    includeTest "example2.MyOtherTest2", "baz"
+                }
+            }
+        '''
+
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withTestsFor { TestSpecs specs ->
+                specs.forTaskPath(':secondTest').includeClass('example.MyTest')
+            }
+        }
+
+        then:
+        Throwable exception = thrown(TestExecutionException)
+        exception.cause.message.startsWith 'No matching tests found in any candidate test task'
+    }
 }

@@ -110,19 +110,19 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                 Set<Test> tasks = queryTestTasks(context, taskSpec.getTaskPath());
                 for (Test task : tasks) {
                     testTasksToRun.add(task);
-                    TestFilter filter = task.getFilter();
+                    DefaultTestFilter filter = (DefaultTestFilter) task.getFilter();
                     for (String cls : testSpec.getClasses()) {
-                        filter.includeTest(cls, null);
+                        filter.includeCommandLineTest(cls, null);
                     }
                     for (Map.Entry<String, List<String>> entry : testSpec.getMethods().entrySet()) {
                         String cls = entry.getKey();
                         for (String method : entry.getValue()) {
-                            filter.includeTest(cls, method);
+                            filter.includeCommandLineTest(cls, method);
                         }
                     }
-                    filter.getIncludePatterns().addAll(testSpec.getPatterns());
+                    filter.getCommandLineIncludePatterns().addAll(testSpec.getPatterns());
                     for (String pkg : testSpec.getPackages()) {
-                        filter.getIncludePatterns().add(pkg + ".*");
+                        filter.getCommandLineIncludePatterns().add(pkg + ".*");
                     }
                 }
             } else {
