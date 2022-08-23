@@ -33,8 +33,4 @@ public class DefaultProjectFinder implements ProjectFinder {
         return baseProjectSupplier.get().project(path);
     }
 
-    @Override
-    public ProjectInternal getBaseProject() {
-        return baseProjectSupplier.get();
-    }
 }
