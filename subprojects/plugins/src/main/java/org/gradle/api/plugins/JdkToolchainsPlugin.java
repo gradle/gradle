@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.initialization.Settings;
 import org.gradle.initialization.DefaultToolchainManagementSpec;
@@ -24,6 +25,11 @@ import org.gradle.jvm.toolchain.internal.DefaultJdksBlockForToolchainManagement;
 
 import javax.inject.Inject;
 
+/**
+ * TODO (#21082): javadoc
+ * @since 7.6
+ */
+@Incubating
 public abstract class JdkToolchainsPlugin implements Plugin<Settings> {
 
     @Inject
