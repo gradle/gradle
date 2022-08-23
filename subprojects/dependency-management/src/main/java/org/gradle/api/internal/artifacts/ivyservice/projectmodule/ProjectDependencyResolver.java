@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -37,6 +38,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantResolveMetadata;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -56,20 +58,23 @@ import java.util.Set;
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, OriginArtifactSelector, ComponentResolvers {
     private final LocalComponentRegistry localComponentRegistry;
     private final ComponentIdentifierFactory componentIdentifierFactory;
-    private final ProjectArtifactSetResolver artifactSetResolver;
     private final ProjectArtifactResolver artifactResolver;
     private final ArtifactTypeRegistry artifactTypeRegistry;
+    private final ProjectResolvedArtifactCache cache;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry,
                                      ComponentIdentifierFactory componentIdentifierFactory,
-                                     ProjectArtifactSetResolver artifactSetResolver,
                                      ProjectArtifactResolver artifactResolver,
-                                     ArtifactTypeRegistry artifactTypeRegistry) {
+                                     ArtifactTypeRegistry artifactTypeRegistry,
+                                     ProjectResolvedArtifactCache cache,
+                                     CalculatedValueContainerFactory calculatedValueContainerFactory) {
         this.localComponentRegistry = localComponentRegistry;
         this.componentIdentifierFactory = componentIdentifierFactory;
-        this.artifactSetResolver = artifactSetResolver;
         this.artifactResolver = artifactResolver;
         this.artifactTypeRegistry = artifactTypeRegistry;
+        this.cache = cache;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     @Override
@@ -143,7 +148,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     @Override
     public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, Set<? extends VariantResolveMetadata> availableVariants, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
         if (isProjectModule(component.getId())) {
-            return artifactSetResolver.resolveArtifacts(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, availableVariants, component.getAttributesSchema(), artifactTypeRegistry, overriddenAttributes);
+            return ArtifactSetFactory.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, availableVariants, component.getAttributesSchema(), this, cache.getAllProjectArtifacts(), artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
         } else {
             return null;
         }

@@ -61,10 +61,6 @@ public class ArtifactSetFactory {
         return new DefaultArtifactSet(componentIdentifier, schema, selectionAttributes, result.build(), result.build());
     }
 
-    public static ArtifactSet createFromVariants(ComponentIdentifier componentIdentifier, ImmutableSet<ResolvedVariant> variants, AttributesSchemaInternal schema, ImmutableAttributes selectionAttributes) {
-        return new DefaultArtifactSet(componentIdentifier, schema, selectionAttributes, variants, variants);
-    }
-
     public static ArtifactSet adHocVariant(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, Collection<? extends ComponentArtifactMetadata> artifacts, ModuleSources moduleSources, ExcludeSpec exclusions, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ImmutableAttributes variantAttributes, ImmutableAttributes selectionAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         VariantResolveMetadata.Identifier identifier = null;
         if (artifacts.size() == 1) {
@@ -75,13 +71,13 @@ public class ArtifactSetFactory {
         return new DefaultArtifactSet(componentIdentifier, schema, selectionAttributes, Collections.singleton(resolvedVariant), Collections.singleton(resolvedVariant));
     }
 
-    public static ResolvedVariant toResolvedVariant(VariantResolveMetadata variant, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    private static ResolvedVariant toResolvedVariant(VariantResolveMetadata variant, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         // Apply any artifact type mappings to the attributes of the variant
         ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variant.getAttributes().asImmutable(), variant.getArtifacts());
         return toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allResolvedArtifacts, attributes, calculatedValueContainerFactory);
     }
 
-    public static ResolvedVariant toResolvedVariant(VariantResolveMetadata variant, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ImmutableAttributes variantAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    private static ResolvedVariant toResolvedVariant(VariantResolveMetadata variant, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ImmutableAttributes variantAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         List<? extends ComponentArtifactMetadata> artifacts = variant.getArtifacts();
 
         // artifactsToResolve are those not excluded by their owning module
@@ -100,7 +96,7 @@ public class ArtifactSetFactory {
         return ArtifactBackedResolvedVariant.create(identifier, variant.asDescribable(), variantAttributes, withImplicitCapability(variant, ownerId), supplyLazilyResolvedArtifacts(ownerId, moduleSources, artifactsToResolve, artifactResolver, allResolvedArtifacts, calculatedValueContainerFactory));
     }
 
-    public static Supplier<Collection<? extends ResolvableArtifact>> supplyLazilyResolvedArtifacts(ModuleVersionIdentifier ownerId, ModuleSources moduleSources, List<? extends ComponentArtifactMetadata> artifacts, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    private static Supplier<Collection<? extends ResolvableArtifact>> supplyLazilyResolvedArtifacts(ModuleVersionIdentifier ownerId, ModuleSources moduleSources, List<? extends ComponentArtifactMetadata> artifacts, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, CalculatedValueContainerFactory calculatedValueContainerFactory) {
         return () -> {
             ImmutableSet.Builder<ResolvableArtifact> resolvedArtifacts = ImmutableSet.builder();
             for (ComponentArtifactMetadata artifact : artifacts) {
@@ -131,7 +127,7 @@ public class ArtifactSetFactory {
         };
     }
 
-    public static CapabilitiesMetadata withImplicitCapability(VariantResolveMetadata variant, ModuleVersionIdentifier identifier) {
+    private static CapabilitiesMetadata withImplicitCapability(VariantResolveMetadata variant, ModuleVersionIdentifier identifier) {
         CapabilitiesMetadata capabilities = variant.getCapabilities();
         if (capabilities.getCapabilities().isEmpty()) {
             return ImmutableCapabilities.of(ImmutableCapability.defaultCapabilityForComponent(identifier));
@@ -140,7 +136,7 @@ public class ArtifactSetFactory {
         }
     }
 
-    public static class SingleArtifactVariantIdentifier implements VariantResolveMetadata.Identifier {
+    private static class SingleArtifactVariantIdentifier implements VariantResolveMetadata.Identifier {
         private final ComponentArtifactIdentifier artifactIdentifier;
 
         public SingleArtifactVariantIdentifier(ComponentArtifactIdentifier artifactIdentifier) {
@@ -165,7 +161,7 @@ public class ArtifactSetFactory {
         }
     }
 
-    public static class LazyArtifactSupplier implements ValueCalculator<File> {
+    private static class LazyArtifactSupplier implements ValueCalculator<File> {
         private final ArtifactResolver artifactResolver;
         private final ModuleSources moduleSources;
         private final ComponentArtifactMetadata artifact;
