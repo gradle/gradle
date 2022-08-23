@@ -53,7 +53,6 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
-    @ToBeFixedForConfigurationCache(because = "Gradle.addBuildListener and TaskExecutionGraph.addTaskExecutionListener")
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
@@ -76,17 +75,17 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         then:
         runner('groovydoc')
             .expectDeprecationWarning(
-                "Internal API configureDocumentationVariantWithArtifact (no FileResolver) has been deprecated." +
-                    " This is scheduled to be removed in Gradle 8.0." +
-                    " Please use configureDocumentationVariantWithArtifact (with FileResolver) instead." +
-                    " Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#lazypublishartifact_fileresolver",
-                ""
-            )
-            .expectDeprecationWarning(
                 "The IdeaModule.testSourceDirs property has been deprecated." +
                 " This is scheduled to be removed in Gradle 8.0." +
                 " Please use the testSources property instead." +
                 " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.plugins.ide.idea.model.IdeaModule.html#org.gradle.plugins.ide.idea.model.IdeaModule:testSourceDirs for more details.",
+                ""
+            )
+            .expectDeprecationWarning(
+                "The Report.destination property has been deprecated." +
+                " This is scheduled to be removed in Gradle 9.0." +
+                " Please use the outputLocation property instead." +
+                " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:destination for more details.",
                 ""
             )
             .build()
