@@ -125,13 +125,13 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             }
 
             FileCollectionFingerprint previousFingerprint = previousFingerprints.get(propertyName);
+            FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(
+                value.getNormalizer(),
+                value.getDirectorySensitivity(),
+                value.getLineEndingNormalization());
+            FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
             try {
                 FileCollectionSnapshotter.Result result = snapshotter.snapshot(value.getFiles());
-                FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(
-                    value.getNormalizer(),
-                    value.getDirectorySensitivity(),
-                    value.getLineEndingNormalization());
-                FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
                 CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(result.getSnapshot(), previousFingerprint);
                 fingerprintsBuilder.put(propertyName, fingerprint);
                 if (result.containsArchiveTrees()) {
