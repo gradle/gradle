@@ -18,7 +18,6 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
@@ -53,7 +52,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadat
         }
 
         @Override
-        public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+        public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
             return artifactSelector.resolveArtifacts(component, graphSelectedVariant, exclusions, overriddenAttributes);
         }
     }
