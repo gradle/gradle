@@ -53,7 +53,7 @@ public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadat
 
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            return artifactSelector.resolveArtifacts(component, graphSelectedVariant, exclusions, overriddenAttributes);
+            return artifactSelector.resolveArtifacts(component, graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
         }
     }
 }
