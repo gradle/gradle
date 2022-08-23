@@ -43,7 +43,7 @@ public class TransformationResultSerializer {
         String outputDirPrefix = outputDir.getPath() + File.separator;
         List<String> resultFileContents = new ArrayList<>(result.size());
 
-        result.visitResult(new TransformationResult.TransformationResultVisitor() {
+        result.visitOutputs(new TransformationResult.TransformationOutputVisitor() {
             @Override
             public void visitEntireInputArtifact() {
                 resultFileContents.add(INPUT_FILE_PATH_PREFIX);
@@ -75,13 +75,13 @@ public class TransformationResultSerializer {
             List<String> paths = Files.readAllLines(transformerResultsPath, StandardCharsets.UTF_8);
             for (String path : paths) {
                 if (path.startsWith(OUTPUT_FILE_PATH_PREFIX)) {
-                    builder.addOutput(new File(outputDir, path.substring(2)));
+                    builder.addProducedOutput(new File(outputDir, path.substring(2)));
                 } else if (path.startsWith(INPUT_FILE_PATH_PREFIX)) {
                     String relativePathString = path.substring(2);
                     if (relativePathString.isEmpty()) {
-                        builder.addInputArtifact();
+                        builder.addEntireInputArtifact();
                     } else {
-                        builder.addInputArtifact(relativePathString);
+                        builder.addPartOfInputArtifact(relativePathString);
                     }
                 } else {
                     throw new IllegalStateException("Cannot parse result path string: " + path);
