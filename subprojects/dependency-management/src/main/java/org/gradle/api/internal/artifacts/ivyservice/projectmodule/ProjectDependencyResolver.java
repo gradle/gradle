@@ -21,6 +21,10 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -30,6 +34,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -46,16 +51,24 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
-@ServiceScope(Scopes.Build.class)
-public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, ComponentResolvers {
+@ServiceScope(Scopes.Project.class)
+public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, OriginArtifactSelector, ComponentResolvers {
     private final LocalComponentRegistry localComponentRegistry;
     private final ComponentIdentifierFactory componentIdentifierFactory;
+    private final ProjectArtifactSetResolver artifactSetResolver;
     private final ProjectArtifactResolver artifactResolver;
+    private final ArtifactTypeRegistry artifactTypeRegistry;
 
-    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ComponentIdentifierFactory componentIdentifierFactory, ProjectArtifactResolver artifactResolver) {
+    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry,
+                                     ComponentIdentifierFactory componentIdentifierFactory,
+                                     ProjectArtifactSetResolver artifactSetResolver,
+                                     ProjectArtifactResolver artifactResolver,
+                                     ArtifactTypeRegistry artifactTypeRegistry) {
         this.localComponentRegistry = localComponentRegistry;
         this.componentIdentifierFactory = componentIdentifierFactory;
+        this.artifactSetResolver = artifactSetResolver;
         this.artifactResolver = artifactResolver;
+        this.artifactTypeRegistry = artifactTypeRegistry;
     }
 
     @Override
@@ -75,7 +88,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     @Override
     public OriginArtifactSelector getArtifactSelector() {
-        return null;
+        return this;
     }
 
     @Override
@@ -122,6 +135,16 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         if (isProjectModule(component.getId())) {
             throw new UnsupportedOperationException("Resolving artifacts by type is not yet supported for project modules");
+        }
+    }
+
+    @Nullable
+    @Override
+    public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, final ConfigurationMetadata configuration, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
+        if (isProjectModule(component.getId())) {
+            return artifactSetResolver.resolveArtifacts(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, configuration.getVariants(), component.getAttributesSchema(), artifactTypeRegistry, overriddenAttributes);
+        } else {
+            return null;
         }
     }
 

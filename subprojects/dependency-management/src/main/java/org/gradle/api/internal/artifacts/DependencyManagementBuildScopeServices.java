@@ -238,7 +238,6 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 class DependencyManagementBuildScopeServices {
     void configure(ServiceRegistration registration) {
-        registration.add(ProjectDependencyResolver.class);
         registration.add(DefaultExternalResourceFileStore.Factory.class);
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
         registration.add(TransformationNodeDependencyResolver.class);
@@ -574,7 +573,6 @@ class DependencyManagementBuildScopeServices {
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 VersionComparator versionComparator,
                                                                 List<ResolverProviderFactory> resolverFactories,
-                                                                ProjectDependencyResolver projectDependencyResolver,
                                                                 ModuleExclusions moduleExclusions,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 ComponentSelectorConverter componentSelectorConverter,
@@ -588,7 +586,6 @@ class DependencyManagementBuildScopeServices {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
-            projectDependencyResolver,
             resolveIvyFactory,
             dependencyDescriptorFactory,
             versionComparator,

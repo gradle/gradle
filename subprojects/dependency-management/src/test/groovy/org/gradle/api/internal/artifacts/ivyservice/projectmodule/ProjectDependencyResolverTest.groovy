@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -39,7 +40,9 @@ class ProjectDependencyResolverTest extends Specification {
     final ComponentIdentifierFactory componentIdentifierFactory = Mock()
     final ProjectStateRegistry projectRegistry = Stub()
     final ProjectArtifactResolver projectArtifactResolver = Stub()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, componentIdentifierFactory, projectArtifactResolver)
+    final ProjectArtifactSetResolver projectArtifactSetResolver = Stub()
+    final ArtifactTypeRegistry artifactTypeRegistry = Mock()
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, componentIdentifierFactory, projectArtifactSetResolver, projectArtifactResolver, artifactTypeRegistry)
 
     def setup() {
         def projectState = Stub(ProjectState)
