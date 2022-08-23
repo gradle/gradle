@@ -52,13 +52,29 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public class ArtifactSetFactory {
-    public static ArtifactSet createFromVariantMetadata(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, Set<? extends VariantResolveMetadata> variants, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ImmutableAttributes selectionAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builder();
-        for (VariantResolveMetadata variant : variants) {
+    public static ArtifactSet createFromVariantMetadata(ComponentIdentifier componentIdentifier,
+                                                        ModuleVersionIdentifier ownerId,
+                                                        ModuleSources moduleSources,
+                                                        ExcludeSpec exclusions,
+                                                        Set<? extends VariantResolveMetadata> allVariants,
+                                                        Set<? extends VariantResolveMetadata> legacyVariants,
+                                                        AttributesSchemaInternal schema,
+                                                        ArtifactResolver artifactResolver,
+                                                        Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts,
+                                                        ArtifactTypeRegistry artifactTypeRegistry,
+                                                        ImmutableAttributes selectionAttributes,
+                                                        CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        ImmutableSet.Builder<ResolvedVariant> legacyResolvedVariants = ImmutableSet.builder();
+        for (VariantResolveMetadata variant : legacyVariants) {
             ResolvedVariant resolvedVariant = toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, calculatedValueContainerFactory);
-            result.add(resolvedVariant);
+            legacyResolvedVariants.add(resolvedVariant);
         }
-        return new DefaultArtifactSet(componentIdentifier, schema, selectionAttributes, result.build(), result.build());
+        ImmutableSet.Builder<ResolvedVariant> allResolvedVariants = ImmutableSet.builder();
+        for (VariantResolveMetadata variant : allVariants) {
+            ResolvedVariant resolvedVariant = toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, calculatedValueContainerFactory);
+            legacyResolvedVariants.add(resolvedVariant);
+        }
+        return new DefaultArtifactSet(componentIdentifier, schema, selectionAttributes, allResolvedVariants.build(), legacyResolvedVariants.build());
     }
 
     public static ArtifactSet adHocVariant(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, Collection<? extends ComponentArtifactMetadata> artifacts, ModuleSources moduleSources, ExcludeSpec exclusions, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ImmutableAttributes variantAttributes, ImmutableAttributes selectionAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
