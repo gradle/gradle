@@ -56,6 +56,16 @@ The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/pmd_plugin.html) p
 
 In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
 
+<a name="configuration"></a>
+### Configuration
+
+The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds.
+
+#### Extended configuration cache task compatibility
+
+The Maven Publish Plugin is now compatible with the configuration cache.
+
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
