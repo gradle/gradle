@@ -17,13 +17,12 @@
 package promotion
 
 import common.VersionedSettingsBranch
-import vcsroots.gradlePromotionBranches
 
 class PublishNightlySnapshotFromQuickFeedbackStepPromote(branch: VersionedSettingsBranch) : BasePublishGradleDistribution(
     promotedBranch = branch.branchName,
     prepTask = branch.prepNightlyTaskName(),
     triggerName = "QuickFeedback",
-    vcsRootId = gradlePromotionBranches,
+    vcsRootId = VersionedSettingsBranch.fromDslContext().vcsRootId(),
     cleanCheckout = false
 ) {
     init {

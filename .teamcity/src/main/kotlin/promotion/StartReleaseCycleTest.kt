@@ -20,9 +20,8 @@ import common.VersionedSettingsBranch
 import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.vcs
-import vcsroots.gradlePromotionBranches
 
-object StartReleaseCycleTest : BasePromotionBuildType(vcsRootId = gradlePromotionBranches, cleanCheckout = false) {
+object StartReleaseCycleTest : BasePromotionBuildType(vcsRootId = VersionedSettingsBranch.fromDslContext().vcsRootId(), cleanCheckout = false) {
     init {
         id("Promotion_AllBranchesStartReleaseCycleTest")
         name = "Start Release Cycle Test"
