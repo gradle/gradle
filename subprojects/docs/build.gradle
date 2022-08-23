@@ -917,9 +917,6 @@ tasks.named("docsTest") { task ->
                 "snippet-tutorial-mkdir-trap_kotlin_mkdirTrap.sample",
 
                 "snippet-tutorial-task-only-if_groovy_taskOnlyIf.sample",
-
-                "task-with-arguments_groovy_projectInfoTask.sample",
-                "task-with-arguments_kotlin_projectInfoTask.sample",
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
