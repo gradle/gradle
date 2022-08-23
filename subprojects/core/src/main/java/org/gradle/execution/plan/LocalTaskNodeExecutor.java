@@ -32,7 +32,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 import java.util.ArrayDeque;
@@ -63,7 +62,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
                 localTaskNode,
                 localTaskNode.getTaskProperties(),
                 localTaskNode.getValidationContext(),
-                (historyMaintained, typeValidationContext) -> detectMissingDependencies(localTaskNode, historyMaintained, inputHierarchy, typeValidationContext)
+                typeValidationContext -> detectMissingDependencies(localTaskNode, inputHierarchy, typeValidationContext)
             );
             TaskExecuter taskExecuter = context.getService(TaskExecuter.class);
             taskExecuter.execute(task, state, ctx);
@@ -73,7 +72,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         }
     }
 
-    private void detectMissingDependencies(LocalTaskNode node, boolean historyMaintained, ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy inputHierarchy, TypeValidationContext validationContext) {
+    private void detectMissingDependencies(LocalTaskNode node, ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy inputHierarchy, TypeValidationContext validationContext) {
         for (String outputPath : node.getMutationInfo().outputPaths) {
             inputHierarchy.getNodesAccessing(outputPath).stream()
                 .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
@@ -88,45 +87,26 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
         Set<String> taskInputs = new LinkedHashSet<>();
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
         node.getTaskProperties().getInputFileProperties()
-            .forEach(spec -> {
-                try {
-                    spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
-                        @Override
-                        public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                            contents.forEach(location -> taskInputs.add(location.getAbsolutePath()));
-                        }
+            .forEach(spec -> spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
+                @Override
+                public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+                    contents.forEach(location -> taskInputs.add(location.getAbsolutePath()));
+                }
 
-                        @Override
-                        public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                            if (patterns.isEmpty()) {
-                                taskInputs.add(root.getAbsolutePath());
-                            } else {
-                                filteredFileTreeTaskInputs.add(new FilteredTree(root.getAbsolutePath(), patterns));
-                            }
-                        }
-
-                        @Override
-                        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                            taskInputs.add(file.getAbsolutePath());
-                        }
-                    });
-                } catch (Exception e) {
-                    if (historyMaintained) {
-                        // We would later try to snapshot the inputs anyway, no need to suppress the exception
-                        throw e;
+                @Override
+                public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                    if (patterns.isEmpty()) {
+                        taskInputs.add(root.getAbsolutePath());
                     } else {
-                        validationContext.visitPropertyProblem(problem ->
-                            problem.withId(ValidationProblemId.UNRESOLVABLE_INPUT)
-                                .forProperty(spec.getPropertyName())
-                                .reportAs(Severity.WARNING)
-                                .withDescription(() -> String.format("cannot be resolved:%n%s%n", TextUtil.indent(e.getMessage(), "  ")))
-                                .happensBecause("An input file collection couldn't be resolved, making it impossible to determine task inputs")
-                                .addPossibleSolution("Consider using Task.dependsOn instead")
-                                .documentedAt("validation_problems", "unresolvable_input")
-                        );
+                        filteredFileTreeTaskInputs.add(new FilteredTree(root.getAbsolutePath(), patterns));
                     }
                 }
-            });
+
+                @Override
+                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                    taskInputs.add(file.getAbsolutePath());
+                }
+            }));
         inputHierarchy.recordNodeAccessingLocations(node, taskInputs);
         for (String locationConsumedByThisTask : taskInputs) {
             collectValidationProblemsForConsumer(node, validationContext, locationConsumedByThisTask, outputHierarchy.getNodesAccessing(locationConsumedByThisTask));
