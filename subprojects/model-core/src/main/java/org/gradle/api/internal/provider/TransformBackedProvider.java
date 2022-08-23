@@ -79,11 +79,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
         if (value.isMissing()) {
             return value.asType();
         }
-        OUT result = transformer.transform(value.get());
-        if (result == null) {
-            return Value.missing();
-        }
-        return Value.of(result);
+        return value.transform(transformer);
     }
 
     private void beforeRead() {
