@@ -53,11 +53,6 @@ import java.util.function.Supplier;
 
 public class ArtifactSetFactory {
     public static ArtifactSet createFromVariantMetadata(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, ExcludeSpec exclusions, Set<? extends VariantResolveMetadata> variants, AttributesSchemaInternal schema, ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts, ArtifactTypeRegistry artifactTypeRegistry, ImmutableAttributes selectionAttributes, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        if (variants.size() == 1) {
-            VariantResolveMetadata variantMetadata = variants.iterator().next();
-            ResolvedVariant resolvedVariant = toResolvedVariant(variantMetadata, ownerId, moduleSources, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, calculatedValueContainerFactory);
-            return new DefaultArtifactSet(componentIdentifier, schema, selectionAttributes, Collections.singleton(resolvedVariant), Collections.singleton(resolvedVariant));
-        }
         ImmutableSet.Builder<ResolvedVariant> result = ImmutableSet.builder();
         for (VariantResolveMetadata variant : variants) {
             ResolvedVariant resolvedVariant = toResolvedVariant(variant, ownerId, moduleSources, exclusions, artifactResolver, allResolvedArtifacts, artifactTypeRegistry, calculatedValueContainerFactory);
