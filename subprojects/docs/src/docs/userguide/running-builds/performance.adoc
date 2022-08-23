@@ -26,7 +26,7 @@ Inspecting provides a comparison point to better understand the impact of the ch
 To best make use of this page:
 
 . Inspect your build.
-. Make a change
+. Make a change.
 . Inspect your build again.
 
 If the change improved build times, make it permanent. If you don't see an improvement, remove the change and try another.
