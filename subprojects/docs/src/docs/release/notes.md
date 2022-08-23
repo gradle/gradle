@@ -147,11 +147,11 @@ See the [documentation](userguide/command_line_interface.html#sec:builtin_task_o
 
 The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds.
 
-#### Recovering from dependency resolution failures
+#### Improved configuration cache failure recovery
 
-In previous Gradle versions it was possible to leave a configuration cache entry in a permanently broken state after a dependency resolution failure, even though the same build would later succeed with configuration caching disabled.
+In previous Gradle versions, it was possible to leave a configuration cache entry in a permanently broken state after a dependency resolution failure. The same build would later succeed with configuration caching disabled.
 
-Starting with Gradle 7.6 this is no longer the case and Gradle will be able to recover from dependency resolution failures in exactly the same way regardless of whether configuration caching is enabled or not.
+Starting with Gradle 7.6 this is no longer the case. Gradle recovers from dependency resolution failures in exactly the same way with the configuration cache enabled.
 
 #### Extended configuration cache task compatibility
 
