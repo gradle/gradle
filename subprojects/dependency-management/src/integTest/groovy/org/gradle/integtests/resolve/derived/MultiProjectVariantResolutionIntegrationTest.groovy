@@ -67,6 +67,7 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
 
                 tasks.register('resolveJavadoc', Resolve) {
                     artifacts.from(configurations.producerArtifacts.incoming.artifactView {
+                        withVariantReselection()
                         attributes {
                             attribute(Attribute.of('shared', String), 'shared-value')
                             attribute(Attribute.of('unique', String), 'javadoc-value')
@@ -86,6 +87,7 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
                 tasks.register('resolveAll', Resolve) {
                     artifacts.from(configurations.producerArtifacts)
                     artifacts.from(configurations.producerArtifacts.incoming.artifactView {
+                        withVariantReselection()
                         attributes {
                             attribute(Attribute.of('shared', String), 'shared-value')
                             attribute(Attribute.of('unique', String), 'javadoc-value')

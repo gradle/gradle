@@ -65,7 +65,7 @@ class DefaultArtifactTransformsTest extends Specification {
         attributeMatcher.matches(variants, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1]
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("classes"), true, dependenciesResolver).select(set, factory)
+        def result = transforms.variantSelector(typeAttributes("classes"), true, selectFromAllVariants, dependenciesResolver).select(set, factory)
         result == variant1Artifacts
     }
 
@@ -89,7 +89,7 @@ class DefaultArtifactTransformsTest extends Specification {
         attributeMatcher.isMatching(_, _, _) >> true
 
         when:
-        def result = transforms.variantSelector(typeAttributes("classes"), true, dependenciesResolver).select(set, factory)
+        def result = transforms.variantSelector(typeAttributes("classes"), true, selectFromAllVariants, dependenciesResolver).select(set, factory)
         visit(result)
 
         then:
@@ -131,7 +131,7 @@ class DefaultArtifactTransformsTest extends Specification {
             match(to, Stub(TransformationStep), 1)
         }
 
-        def selector = transforms.variantSelector(typeAttributes("dll"), true, dependenciesResolver)
+        def selector = transforms.variantSelector(typeAttributes("dll"), true, selectFromAllVariants, dependenciesResolver)
 
         when:
         def result = selector.select(set, factory)
@@ -170,7 +170,7 @@ Found the following transforms:
         matchingCache.collectConsumerVariants(_, _) >> new MutableConsumerVariantMatchResult(0)
 
         expect:
-        def result = transforms.variantSelector(typeAttributes("dll"), true, dependenciesResolver).select(set, factory)
+        def result = transforms.variantSelector(typeAttributes("dll"), true, selectFromAllVariants, dependenciesResolver).select(set, factory)
         result == ResolvedArtifactSet.EMPTY
     }
 
@@ -195,7 +195,7 @@ Found the following transforms:
         matchingCache.collectConsumerVariants(_, _) >> new MutableConsumerVariantMatchResult(0)
 
         when:
-        def result = transforms.variantSelector(typeAttributes("dll"), false, dependenciesResolver).select(set, factory)
+        def result = transforms.variantSelector(typeAttributes("dll"), false, selectFromAllVariants, dependenciesResolver).select(set, factory)
         visit(result)
 
         then:

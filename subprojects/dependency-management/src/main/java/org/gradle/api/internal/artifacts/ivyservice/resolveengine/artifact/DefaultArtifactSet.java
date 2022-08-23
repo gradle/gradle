@@ -88,4 +88,9 @@ public class DefaultArtifactSet implements ArtifactSet, ResolvedVariantSet, Vari
     public Set<ResolvedVariant> getVariants() {
         return variants;
     }
+
+    @Override
+    public Set<ResolvedVariant> getAllVariants() {
+        return variants;
+    }
 }
