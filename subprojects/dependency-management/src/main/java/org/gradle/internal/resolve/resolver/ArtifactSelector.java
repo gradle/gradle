@@ -22,15 +22,16 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import java.util.Collection;
+import java.util.Set;
 
 public interface ArtifactSelector {
     /**
      * Creates a set that will resolve the artifacts of the given configuration, minus those artifacts that are excluded.
      */
-    ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
+    ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Set<? extends VariantResolveMetadata> availableVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
 
     /**
      * Creates a set that will resolve the given artifacts of the given component.

@@ -25,9 +25,9 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -39,6 +39,7 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
 /**
  * Used as a fallback when no repositories are defined for a given resolution.
@@ -81,7 +82,7 @@ public class NoRepositoriesResolver implements ComponentResolvers, DependencyToC
 
     @Nullable
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Set<? extends VariantResolveMetadata> availableVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
         throw new UnsupportedOperationException();
     }
 

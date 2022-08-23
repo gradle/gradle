@@ -23,7 +23,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -65,14 +64,13 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
 
     @Nullable
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Set<? extends VariantResolveMetadata> availableVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
         if (component.getSources() == null) {
             // virtual components have no source
             return NO_ARTIFACTS;
         }
         ModuleComponentRepository sourceRepository = findSourceRepository(component.getSources());
-        Set<? extends VariantResolveMetadata> variants = configuration.getVariants();
-        return DefaultArtifactSet.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, variants, component.getAttributesSchema(), this, sourceRepository.getArtifactCache(), artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
+        return DefaultArtifactSet.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, availableVariants, component.getAttributesSchema(), this, sourceRepository.getArtifactCache(), artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
     }
 
     @Override

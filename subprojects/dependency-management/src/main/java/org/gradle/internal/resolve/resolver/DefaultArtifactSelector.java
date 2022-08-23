@@ -29,12 +29,13 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DefaultArtifactSelector implements ArtifactSelector {
     private static final ExcludeSpec EXCLUDE_NONE = new DefaultExcludeFactory().nothing();
@@ -58,10 +59,10 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata configuration, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Set<? extends VariantResolveMetadata> availableVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
         ArtifactSet artifacts = null;
         for (OriginArtifactSelector selector : selectors) {
-            artifacts = selector.resolveArtifacts(component, configuration, exclusions, overriddenAttributes);
+            artifacts = selector.resolveArtifacts(component, availableVariants, exclusions, overriddenAttributes);
             if (artifacts != null) {
                 break;
             }

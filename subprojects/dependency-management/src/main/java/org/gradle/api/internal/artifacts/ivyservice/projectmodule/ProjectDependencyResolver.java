@@ -34,9 +34,9 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -50,6 +50,7 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 
 @ServiceScope(Scopes.Project.class)
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, OriginArtifactSelector, ComponentResolvers {
@@ -140,9 +141,9 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     @Nullable
     @Override
-    public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, final ConfigurationMetadata configuration, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, Set<? extends VariantResolveMetadata> availableVariants, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
         if (isProjectModule(component.getId())) {
-            return artifactSetResolver.resolveArtifacts(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, configuration.getVariants(), component.getAttributesSchema(), artifactTypeRegistry, overriddenAttributes);
+            return artifactSetResolver.resolveArtifacts(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, availableVariants, component.getAttributesSchema(), artifactTypeRegistry, overriddenAttributes);
         } else {
             return null;
         }
