@@ -41,7 +41,7 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SetSerializer;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.gradle.tooling.events.OperationType;
-import org.gradle.tooling.internal.consumer.DefaultTestPatternSpec;
+import org.gradle.tooling.internal.consumer.DefaultTestSpec;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
@@ -448,7 +448,7 @@ public class BuildActionSerializer {
                 List<String> method = stringListSerializer.read(decoder);
                 methods.put(cls, method);
             }
-            return new DefaultTestPatternSpec(taskPath, classes, methods, packages, patterns);
+            return new DefaultTestSpec(taskPath, classes, methods, packages, patterns);
         }
     }
 

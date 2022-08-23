@@ -25,8 +25,8 @@ import org.gradle.api.Transformer;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestExecutionException;
 import org.gradle.tooling.TestLauncher;
-import org.gradle.tooling.TestPatternSpec;
 import org.gradle.tooling.TestSpec;
+import org.gradle.tooling.TestSpecs;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultDebugOptions;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
@@ -55,7 +55,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     private final Map<String, List<InternalJvmTestRequest>> tasksAndTests = new HashMap<String, List<InternalJvmTestRequest>>();
     private boolean isRunDefaultTasks = false;
     private List<String> tasks = new ArrayList<String>();
-    private final List<TestPatternSpec> testPatternSpecs = new ArrayList<TestPatternSpec>();
+    private final List<TestSpec> testSpecs = new ArrayList<TestSpec>();
 
     public DefaultTestLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
@@ -176,7 +176,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     @Override
     public void run(final ResultHandler<? super Void> handler) {
-        if (operationDescriptors.isEmpty() && internalJvmTestRequests.isEmpty() && tasksAndTests.isEmpty() && testPatternSpecs.isEmpty()) {
+        if (operationDescriptors.isEmpty() && internalJvmTestRequests.isEmpty() && tasksAndTests.isEmpty() && testSpecs.isEmpty()) {
             throw new TestExecutionException("No test declared for execution.");
         }
         for (Map.Entry<String, List<InternalJvmTestRequest>> entry : tasksAndTests.entrySet()) {
@@ -192,7 +192,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
             debugOptions, ImmutableMap.copyOf(tasksAndTests),
             isRunDefaultTasks,
             tasks,
-            testPatternSpecs
+            testSpecs
         );
         connection.run(new ConsumerAction<Void>() {
             @Override
@@ -220,10 +220,10 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     }
 
     @Override
-    public TestLauncher withTestsFor(Action<TestSpec> testSpec) {
-        DefaultTestSpec ts = new DefaultTestSpec();
+    public TestLauncher withTestsFor(Action<TestSpecs> testSpec) {
+        DefaultTestSpecs ts = new DefaultTestSpecs();
         testSpec.execute(ts);
-        testPatternSpecs.addAll(ts.getTestPatternSpecs());
+        testSpecs.addAll(ts.getTestPatternSpecs());
         return this;
     }
 }

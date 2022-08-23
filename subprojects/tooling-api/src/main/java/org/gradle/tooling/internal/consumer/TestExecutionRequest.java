@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.Transformer;
-import org.gradle.tooling.TestPatternSpec;
+import org.gradle.tooling.TestSpec;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.OperationDescriptorWrapper;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
@@ -40,7 +40,7 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
     private final Map<String, List<InternalJvmTestRequest>> taskAndTests;
     private final boolean isRunDefaultTasks;
     private final List<String> tasks;
-    private final List<TestPatternSpec> testPatternSpecs;
+    private final List<TestSpec> testSpecs;
 
     public TestExecutionRequest(Iterable<TestOperationDescriptor> operationDescriptors,
                                 Collection<String> testClassNames,
@@ -49,7 +49,8 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
                                 Map<String, List<InternalJvmTestRequest>> testTasks,
                                 boolean isRunDefaultTasks,
                                 List<String> tasks,
-                                List<TestPatternSpec> testPatternSpecs) {
+                                List<TestSpec> testSpecs
+    ) {
         this.testDescriptors = adaptDescriptors(operationDescriptors);
         this.testClassNames = testClassNames;
         this.internalJvmTestRequests = internalJvmTestRequests;
@@ -57,7 +58,7 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
         this.taskAndTests = testTasks;
         this.isRunDefaultTasks = isRunDefaultTasks;
         this.tasks = tasks;
-        this.testPatternSpecs = testPatternSpecs;
+        this.testSpecs = testSpecs;
     }
 
     public InternalDebugOptions getDebugOptions() {
@@ -82,8 +83,8 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
         return internalJvmTestRequests;
     }
 
-    public List<TestPatternSpec> getTestPatternSpecs() {
-        return testPatternSpecs;
+    public List<TestSpec> getTestPatternSpecs() {
+        return testSpecs;
     }
 
     private Collection<InternalTestDescriptor> adaptDescriptors(Iterable<TestOperationDescriptor> operationDescriptors) {

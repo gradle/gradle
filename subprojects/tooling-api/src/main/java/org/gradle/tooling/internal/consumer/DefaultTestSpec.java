@@ -16,24 +16,107 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.TestPatternSpec;
 import org.gradle.tooling.TestSpec;
+import org.gradle.tooling.internal.protocol.test.InternalTestPatternSpec;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
-public class DefaultTestSpec implements TestSpec {
+public class DefaultTestSpec implements TestSpec, InternalTestPatternSpec {
 
-    private List<DefaultTestPatternSpec> testPatternSpecs = new ArrayList<DefaultTestPatternSpec>();
+    private final String taskPath;
+    private final List<String> classes;
+    private final Map<String, List<String>> methods;
+    private final List<String> packages;
+    private final List<String> patterns;
 
-    public List<DefaultTestPatternSpec> getTestPatternSpecs() {
-        return testPatternSpecs;
+    DefaultTestSpec(String taskPath) {
+        this(taskPath, new ArrayList<String>(), new LinkedHashMap<String, List<String>>(), new ArrayList<String>(), new ArrayList<String>());
+    }
+
+    public DefaultTestSpec(String taskPath, List<String> classes, Map<String, List<String>> methods, List<String> packages, List<String> patterns) {
+        this.taskPath = taskPath;
+        this.packages = packages;
+        this.classes = classes;
+        this.methods = methods;
+        this.patterns = patterns;
     }
 
     @Override
-    public TestPatternSpec forTaskPath(String taskPath) {
-        DefaultTestPatternSpec spec = new DefaultTestPatternSpec(taskPath);
-        testPatternSpecs.add(spec);
-        return spec;
+    public TestSpec includePackage(String pkg) {
+        return includePackages(Collections.singletonList(pkg));
+    }
+
+    @Override
+    public TestSpec includePackages(Collection<String> packages) {
+        this.packages.addAll(packages);
+        return this;
+    }
+
+    @Override
+    public TestSpec includeClass(String cls) {
+        return includeClasses(Collections.singletonList(cls));
+    }
+
+    @Override
+    public TestSpec includeClasses(Collection<String> classes) {
+        this.classes.addAll(classes);
+        return this;
+    }
+
+    @Override
+    public TestSpec includeMethod(String cls, String method) {
+        return includeMethods(cls, Collections.singletonList(method));
+    }
+
+    @Override
+    public TestSpec includeMethods(String clazz, Collection<String> newMethods) {
+        List<String> methods = this.methods.get(clazz);
+        if (methods == null) {
+            methods = new ArrayList<String>(newMethods.size());
+            this.methods.put(clazz, methods);
+        }
+        methods.addAll(newMethods);
+        return this;
+    }
+
+    @Override
+    public TestSpec includePattern(String pattern) {
+        return includePatterns(Collections.singletonList(pattern));
+    }
+
+    @Override
+    public TestSpec includePatterns(Collection<String> patterns) {
+        this.patterns.addAll(patterns);
+        return this;
+    }
+
+    @Override
+    public String getTaskPath() {
+        return taskPath;
+    }
+
+    @Override
+    public List<String> getPackages() {
+        return packages;
+    }
+
+    @Override
+    public List<String> getClasses() {
+        return classes;
+    }
+
+    @Override
+    public Map<String, List<String>> getMethods() {
+        return methods;
+    }
+
+    @Override
+    public List<String> getPatterns() {
+        return patterns;
     }
 }
