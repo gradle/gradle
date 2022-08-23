@@ -168,6 +168,6 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
      * This new "fixed" side effect will be executed when the resulting provider produces its values.
      */
     default ProviderInternal<T> withSideEffect(SideEffect<? super T> sideEffect) {
-        return new WithSideEffectProvider<>(this, sideEffect);
+        return WithSideEffectProvider.of(this, sideEffect);
     }
 }

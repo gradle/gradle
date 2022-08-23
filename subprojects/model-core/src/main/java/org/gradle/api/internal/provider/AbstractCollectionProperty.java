@@ -115,7 +115,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         if (value.isMissing()) {
             setSupplier(noValueSupplier());
         } else if (value.hasFixedValue()) {
-            setSupplier(new FixedSupplier<>(value.getFixedValue()));
+            setSupplier(new FixedSupplier<>(value.getFixedValue(), Cast.uncheckedCast(value.getSideEffect())));
         } else {
             setSupplier(new CollectingSupplier(new ElementsFromCollectionProvider<>(value.getChangingValue())));
         }
@@ -188,7 +188,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     protected CollectionSupplier<T, C> finalValue(CollectionSupplier<T, C> value, ValueConsumer consumer) {
         Value<? extends C> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
-            return new FixedSupplier<>(result.get());
+            return new FixedSupplier<>(result.getWithoutSideEffect(), Cast.uncheckedCast(result.getSideEffect()));
         } else if (result.getPathToOrigin().isEmpty()) {
             return noValueSupplier();
         } else {
@@ -287,9 +287,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     private static class FixedSupplier<T, C extends Collection<? extends T>> implements CollectionSupplier<T, C> {
         private final C value;
+        private final SideEffect<? super C> sideEffect;
 
-        public FixedSupplier(C value) {
+        public FixedSupplier(C value, @Nullable SideEffect<? super C> sideEffect) {
             this.value = value;
+            this.sideEffect = sideEffect;
         }
 
         @Override
@@ -299,7 +301,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public Value<? extends C> calculateValue(ValueConsumer consumer) {
-            return Value.of(value);
+            return SideEffect.attach(Value.of(value), sideEffect);
         }
 
         @Override
@@ -309,7 +311,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public ExecutionTimeValue<? extends C> calculateExecutionTimeValue() {
-            return ExecutionTimeValue.fixedValue(value);
+            return SideEffect.attach(ExecutionTimeValue.fixedValue(value), sideEffect);
         }
 
         @Override
@@ -338,7 +340,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             if (result.isMissing()) {
                 return result.asType();
             }
-            return Value.of(Cast.uncheckedCast(builder.build()));
+            return SideEffect.attachFixedFrom(Value.of(Cast.uncheckedCast(builder.build())), result);
         }
 
         @Override
@@ -364,15 +366,18 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
             if (fixed) {
                 ImmutableCollection.Builder<T> builder = collectionFactory.get();
+                SideEffectBuilder<C> sideEffectBuilder = SideEffect.builder();
                 for (ExecutionTimeValue<? extends Iterable<? extends T>> value : values) {
                     builder.addAll(value.getFixedValue());
+                    sideEffectBuilder.addFixedFrom(value);
                 }
+
                 ExecutionTimeValue<C> mergedValue = ExecutionTimeValue.fixedValue(Cast.uncheckedNonnullCast(builder.build()));
                 if (changingContent) {
-                    return mergedValue.withChangingContent();
-                } else {
-                    return mergedValue;
+                    mergedValue = mergedValue.withChangingContent();
                 }
+
+                return SideEffect.attach(mergedValue, sideEffectBuilder.build());
             }
 
             // At least one of the values is a changing value
@@ -415,14 +420,17 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         protected Value<? extends C> calculateOwnValue(ValueConsumer consumer) {
             ImmutableCollection.Builder<T> builder = collectionFactory.get();
+            SideEffectBuilder<? super C> sideEffectBuilder = SideEffect.builder();
             for (ProviderInternal<? extends Iterable<? extends T>> provider : providers) {
                 Value<? extends Iterable<? extends T>> value = provider.calculateValue(consumer);
                 if (value.isMissing()) {
                     return Value.missing();
                 }
-                builder.addAll(value.get());
+                builder.addAll(value.getWithoutSideEffect());
+                sideEffectBuilder.addFixedFrom(value);
             }
-            return Value.of(Cast.uncheckedNonnullCast(builder.build()));
+
+            return SideEffect.attach(Value.of(Cast.uncheckedNonnullCast(builder.build())), sideEffectBuilder.build());
         }
     }
 
@@ -447,11 +455,18 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
-            Value<Void> value = left.collectEntries(consumer, collector, dest);
-            if (value.isMissing()) {
-                return value;
+            Value<Void> leftValue = left.collectEntries(consumer, collector, dest);
+            if (leftValue.isMissing()) {
+                return leftValue;
             }
-            return right.collectEntries(consumer, collector, dest);
+            Value<Void> rightValue = right.collectEntries(consumer, collector, dest);
+            if (rightValue.isMissing()) {
+                return rightValue;
+            }
+
+            return Value.present()
+                .withSideEffect(SideEffect.fixedFrom(leftValue))
+                .withSideEffect(SideEffect.fixedFrom(rightValue));
         }
 
         @Override
