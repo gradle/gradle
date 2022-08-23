@@ -15,7 +15,7 @@ TIP: Want faster Gradle Builds? https://gradle.com/training/build-cache-deep-div
 
 == Inspect your build
 
-Before you make any changes, <<inspect.adoc#build_scans,inspect your build>> with a build scan or profiling. A proper build inspection helps
+Before you make any changes, <<inspect.adoc#build_scans,inspect your build>> with a build scan or profile report. A proper build inspection helps
 you understand:
 
 - how long it takes to build your project
@@ -299,7 +299,7 @@ Gradle provides several features to create these workflows:
 
 == Increase the heap size
 
-By default, Gradle reserves 1GB of heap space for your build. This is plenty for most projects.
+By default, Gradle reserves 512MB of heap space for your build. This is plenty for most projects.
 However, some very large builds might need more memory to hold Gradle's model and caches.
 If this is the case for you, you can check in this larger memory requirement in your `gradle.properties` file:
 
@@ -310,6 +310,8 @@ If this is the case for you, you can check in this larger memory requirement in 
 org.gradle.jvmargs=-Xmx2048M
 ----
 ====
+
+To learn more, check out the <<build_environment.adoc#sec:configuring_jvm_memory,JVM memory configuration documentation>>.
 
 == Optimize Configuration
 
