@@ -274,6 +274,43 @@ Sort by task duration on the timeline screen to highlight tasks with great time 
 The build scan above shows that `:task1` and `:task3` could be improved and made cacheable
 and shows why Gradle didn't cache them.
 
+== Create builds for specific developer workflows
+
+The fastest task is one that doesn’t execute.
+If you can find ways to skip tasks you don’t need to run, you’ll end up with a faster build overall.
+
+If your build includes multiple subprojects, create tasks to build those subprojects
+independently. This helps you get the most out of caching, since a change to one
+subproject won't force a rebuild for unrelated subprojects. And this helps reduce
+build times for teams that work on unrelated subprojects: there's no need for
+front-end developers to build the back-end subprojects every time they change the
+front-end. Documentation writers don't need to build front-end or back-end code
+even if the documentation lives in the same project as that code.
+
+Instead, create tasks that match the needs of developers. You'll still have a single
+task graph for the whole project. Each group of users suggests a restricted view of
+the task graph: turn that view into a Gradle workflow that excludes unnecessary tasks.
+
+Gradle provides several features to create these workflows:
+
+- Assign tasks to appropriate link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:group[groups]
+- Create _aggregate tasks_: tasks with no action that only depend on other tasks, such as `assemble`
+- Defer configuration via `gradle.taskGraph.whenReady()` and others, so you can perform verification only when it's necessary
+
+== Increase the heap size
+
+By default, Gradle reserves 1GB of heap space for your build. This is plenty for most projects.
+However, some very large builds might need more memory to hold Gradle's model and caches.
+If this is the case for you, you can check in this larger memory requirement in your `gradle.properties` file:
+
+====
+.gradle.properties
+[source,java]
+----
+org.gradle.jvmargs=-Xmx2048M
+----
+====
+
 == Optimize Configuration
 
 As described in <<build_lifecycle.adoc#build_lifecycle,the build lifecycle chapter>>, a
@@ -488,43 +525,6 @@ Check the download list for unexpected dependency downloads.
 For example, you might see a download caused by a dependency using a dynamic version.
 
 Eliminate these slow or unexpected downloads by switching to a different repository or dependency.
-
-== Create builds for specific developer workflows
-
-The fastest task is one that doesn’t execute.
-If you can find ways to skip tasks you don’t need to run, you’ll end up with a faster build overall.
-
-If your build includes multiple subprojects, create tasks to build those subprojects
-independently. This helps you get the most out of caching, since a change to one
-subproject won't force a rebuild for unrelated subprojects. And this helps reduce
-build times for teams that work on unrelated subprojects: there's no need for
-front-end developers to build the back-end subprojects every time they change the
-front-end. Documentation writers don't need to build front-end or back-end code
-even if the documentation lives in the same project as that code.
-
-Instead, create tasks that match the needs of developers. You'll still have a single
-task graph for the whole project. Each group of users suggests a restricted view of
-the task graph: turn that view into a Gradle workflow that excludes unnecessary tasks.
-
-Gradle provides several features to create these workflows:
-
-- Assign tasks to appropriate link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:group[groups]
-- Create _aggregate tasks_: tasks with no action that only depend on other tasks, such as `assemble`
-- Defer configuration via `gradle.taskGraph.whenReady()` and others, so you can perform verification only when it's necessary
-
-== Increase the heap size
-
-By default, Gradle reserves 1GB of heap space for your build. This is plenty for most projects.
-However, some very large builds might need more memory to hold Gradle's model and caches.
-If this is the case for you, you can check in this larger memory requirement in your `gradle.properties` file:
-
-====
-.gradle.properties
-[source,java]
-----
-org.gradle.jvmargs=-Xmx2048M
-----
-====
 
 == Optimize Java projects
 
