@@ -70,7 +70,7 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
             return NO_ARTIFACTS;
         }
         ModuleComponentRepository sourceRepository = findSourceRepository(component.getSources());
-        return ArtifactSetFactory.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, availableVariants, component.getAttributesSchema(), this, sourceRepository.getArtifactCache(), artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
+        return ArtifactSetFactory.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, availableVariants, availableVariants, component.getAttributesSchema(), this, sourceRepository.getArtifactCache(), artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
     }
 
     @Override
