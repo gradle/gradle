@@ -183,7 +183,7 @@ Artifacts
                         testType = TestSuiteType.INTEGRATION_TEST
 
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }

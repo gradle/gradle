@@ -182,7 +182,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
                         testType = TestSuiteType.INTEGRATION_TEST
                         useJUnit()
                         dependencies {
-                          implementation project
+                          implementation project()
                         }
                     }
                 }

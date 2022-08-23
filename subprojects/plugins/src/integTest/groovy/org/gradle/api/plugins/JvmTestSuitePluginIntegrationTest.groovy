@@ -79,7 +79,7 @@ Artifacts
                         testType = TestSuiteType.INTEGRATION_TEST
 
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -124,7 +124,7 @@ Artifacts
                     test {
                         useJUnit()
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -186,7 +186,7 @@ Artifacts
                     test {
                         useJUnit()
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -215,7 +215,7 @@ Artifacts
                     test {
                         useJUnit()
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -297,7 +297,7 @@ Artifacts
                     test {
                         useJUnit()
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -325,7 +325,7 @@ Artifacts
                     test {
                         useJUnit()
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
