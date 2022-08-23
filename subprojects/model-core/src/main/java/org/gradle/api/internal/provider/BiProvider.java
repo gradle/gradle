@@ -16,6 +16,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.function.BiFunction;
@@ -50,15 +51,33 @@ class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     @Override
     protected Value<? extends R> calculateOwnValue(ValueConsumer consumer) {
-        Value<? extends A> lv = left.calculateValue(consumer);
-        if (lv.isMissing()) {
-            return lv.asType();
+        Value<? extends A> leftValue = left.calculateValue(consumer);
+        if (leftValue.isMissing()) {
+            return leftValue.asType();
         }
-        Value<? extends B> rv = right.calculateValue(consumer);
-        if (rv.isMissing()) {
-            return rv.asType();
+        Value<? extends B> rightValue = right.calculateValue(consumer);
+        if (rightValue.isMissing()) {
+            return rightValue.asType();
         }
-        return Value.of(combiner.apply(lv.get(), rv.get()));
+
+        A leftUnpackedValue = leftValue.getWithoutSideEffect();
+        B rightUnpackedValue = rightValue.getWithoutSideEffect();
+        R combinedUnpackedValue = combiner.apply(leftUnpackedValue, rightUnpackedValue);
+
+        SideEffect<?> leftSideEffect = leftValue.getSideEffect();
+        SideEffect<R> fixedLeftSideEffect = leftSideEffect == null ? null : SideEffect.fixed(leftUnpackedValue, Cast.uncheckedNonnullCast(leftSideEffect));
+        SideEffect<?> rightSideEffect = rightValue.getSideEffect();
+        SideEffect<R> fixedRightSideEffect = rightSideEffect == null ? null : SideEffect.fixed(rightUnpackedValue, Cast.uncheckedNonnullCast(rightSideEffect));
+
+        Value<R> result = Value.of(combinedUnpackedValue);
+        if (leftSideEffect != null && rightSideEffect != null) {
+            result = result.withSideEffect(SideEffect.composite(fixedLeftSideEffect, fixedRightSideEffect));
+        } else if (leftSideEffect != null) {
+            result = result.withSideEffect(fixedLeftSideEffect);
+        } else if (rightSideEffect != null) {
+            result = result.withSideEffect(fixedRightSideEffect);
+        }
+        return result;
     }
 
     @Nullable

@@ -69,7 +69,8 @@ public class MappingProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
         if (value.isMissing()) {
             return value.asType();
         }
-        return Value.of(transformer.transform(value.get()));
+
+        return checkTransformedValue(value.transform(transformer));
     }
 
     @Override
@@ -80,8 +81,17 @@ public class MappingProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
         } else if (value.isMissing()) {
             return ExecutionTimeValue.missing();
         } else {
-            return ExecutionTimeValue.fixedValue(transformer.transform(value.getFixedValue()));
+            // not calling ExecutionTimeValue.fixedValue() directly, because the value may have a side effect
+            return ExecutionTimeValue.value(checkTransformedValue(value.toValue().transform(transformer)));
         }
+    }
+
+    private Value<OUT> checkTransformedValue(Value<OUT> transformedValue) {
+        // check MappingProvider contract with regard to the transform
+        if (transformedValue.isMissing()) {
+            throw new IllegalStateException("The transformer in MappingProvider must always return a value");
+        }
+        return transformedValue;
     }
 
     @Override
