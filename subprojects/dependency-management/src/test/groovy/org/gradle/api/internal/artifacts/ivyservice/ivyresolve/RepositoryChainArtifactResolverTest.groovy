@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
-import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
 import spock.lang.Specification
 
@@ -40,7 +39,7 @@ class RepositoryChainArtifactResolverTest extends Specification {
     }
     def repo2Source = new RepositoryChainModuleSource(repo2)
 
-    def resolver = new RepositoryChainArtifactResolver(Stub(CalculatedValueContainerFactory), artifactTypeRegistry)
+    def resolver = new RepositoryChainArtifactResolver()
 
     def setup() {
         resolver.add(repo1)

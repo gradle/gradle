@@ -23,8 +23,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState;
@@ -37,8 +37,6 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.VariantResolveMetadata;
-import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -59,22 +57,14 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     private final LocalComponentRegistry localComponentRegistry;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ProjectArtifactResolver artifactResolver;
-    private final ArtifactTypeRegistry artifactTypeRegistry;
-    private final ProjectResolvedArtifactCache cache;
-    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry,
                                      ComponentIdentifierFactory componentIdentifierFactory,
-                                     ProjectArtifactResolver artifactResolver,
-                                     ArtifactTypeRegistry artifactTypeRegistry,
-                                     ProjectResolvedArtifactCache cache,
-                                     CalculatedValueContainerFactory calculatedValueContainerFactory) {
+                                     ProjectArtifactResolver artifactResolver
+    ) {
         this.localComponentRegistry = localComponentRegistry;
         this.componentIdentifierFactory = componentIdentifierFactory;
         this.artifactResolver = artifactResolver;
-        this.artifactTypeRegistry = artifactTypeRegistry;
-        this.cache = cache;
-        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     @Override
@@ -146,9 +136,9 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     @Nullable
     @Override
-    public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, Set<? extends VariantResolveMetadata> availableVariants, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, Set<ResolvedVariant> allVariants, Set<ResolvedVariant> legacyVariants, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
         if (isProjectModule(component.getId())) {
-            return ArtifactSetFactory.createFromVariantMetadata(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, availableVariants, availableVariants, component.getAttributesSchema(), this, cache.getAllProjectArtifacts(), artifactTypeRegistry, overriddenAttributes, calculatedValueContainerFactory);
+            return ArtifactSetFactory.createFromVariantMetadata(component.getId(), allVariants, legacyVariants, component.getAttributesSchema(), overriddenAttributes);
         } else {
             return null;
         }
