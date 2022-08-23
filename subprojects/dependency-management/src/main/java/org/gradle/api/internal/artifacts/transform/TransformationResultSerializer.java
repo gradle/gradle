@@ -45,17 +45,17 @@ public class TransformationResultSerializer {
 
         result.visitResult(new TransformationResult.TransformationResultVisitor() {
             @Override
-            public void visitInput() {
+            public void visitEntireInputArtifact() {
                 resultFileContents.add(INPUT_FILE_PATH_PREFIX);
             }
 
             @Override
-            public void visitInput(String relativePath) {
+            public void visitPartOfInputArtifact(String relativePath) {
                 resultFileContents.add(INPUT_FILE_PATH_PREFIX + relativePath);
             }
 
             @Override
-            public void visitOutput(File outputLocation) {
+            public void visitProducedOutput(File outputLocation) {
                 if (outputLocation.equals(outputDir)) {
                     resultFileContents.add(OUTPUT_FILE_PATH_PREFIX);
                 } else {

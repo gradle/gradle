@@ -47,17 +47,17 @@ public class DefaultTransformOutputs implements TransformOutputsInternal {
         TransformationResult result = resultBuilder.build();
         result.visitResult(new TransformationResult.TransformationResultVisitor() {
             @Override
-            public void visitInput() {
+            public void visitEntireInputArtifact() {
                 validate(inputArtifact);
             }
 
             @Override
-            public void visitInput(String relativePath) {
+            public void visitPartOfInputArtifact(String relativePath) {
                 validate(new File(inputArtifact, relativePath));
             }
 
             @Override
-            public void visitOutput(File outputLocation) {
+            public void visitProducedOutput(File outputLocation) {
                 validate(outputLocation);
             }
 
