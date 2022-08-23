@@ -94,7 +94,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public T getOrElse(T defaultValue) {
-        return calculateOwnValue(ValueConsumer.IgnoreUnsafeRead).orElse(defaultValue);
+        return calculateOwnValue(ValueConsumer.IgnoreUnsafeRead).orElse(Cast.uncheckedNonnullCast(defaultValue));
     }
 
     @Override

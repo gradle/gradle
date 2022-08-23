@@ -427,6 +427,115 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         copy.getOrNull() == someValue()
     }
 
+    def "runs side effect when calling '#method' on provider with attached side effect"() {
+        given:
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def parent = providerWithValue(someValue())
+        def provider = parent.withSideEffect(sideEffect)
+
+        when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
+        def unpackedValue = extract(provider, someOtherValue())
+
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        where:
+        method      | extract
+        "get"       | { p, other -> p.get() }
+        "getOrNull" | { p, other -> p.getOrNull() }
+        "getOrElse" | { p, other -> p.getOrElse(other) }
+    }
+
+    def "does not run side effect when calling '#method' on provider with no value and attached side effect"() {
+        given:
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def parent = providerWithNoValue()
+        def provider = parent.withSideEffect(sideEffect)
+
+        when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
+        def someValue = someValue()
+        def unpackedValue = unpack(provider, someValue)
+
+        then:
+        unpackedValue == expectedValue(someValue)
+        0 * sideEffect.execute(_)
+        0 * _
+
+        where:
+        method      | unpack                             | expectedValue
+        "getOrNull" | { p, other -> p.getOrNull() }      | { null }
+        "getOrElse" | { p, other -> p.getOrElse(other) } | { it }
+    }
+
+    def "does not run side effect when calling 'get' on provider with no value and attached side effect"() {
+        given:
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def parent = providerWithNoValue()
+        def provider = parent.withSideEffect(sideEffect)
+
+        when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
+        provider.get()
+
+        then:
+        thrown(IllegalStateException)
+        0 * sideEffect.execute(_)
+        0 * _
+    }
+
+    def "can chain side effects"() {
+        given:
+        def sideEffect1 = Mock(ValueSupplier.SideEffect)
+        def sideEffect2 = Mock(ValueSupplier.SideEffect)
+        def parent = providerWithValue(someValue())
+        def provider = parent.withSideEffect(sideEffect1).withSideEffect(sideEffect2)
+
+        when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
+        extract(provider, someOtherValue())
+
+        then:
+        1 * sideEffect1.execute(someValue())
+
+        then: // required to ensure invocation ordering
+        1 * sideEffect2.execute(someValue())
+        0 * _
+
+        where:
+        method      | extract
+        "get"       | { p, other -> p.get() }
+        "getOrNull" | { p, other -> p.getOrNull() }
+        "getOrElse" | { p, other -> p.getOrElse(other) }
+    }
+
     /**
      * A test provider that always fails.
      */
