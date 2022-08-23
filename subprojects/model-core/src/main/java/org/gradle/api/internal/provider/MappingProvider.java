@@ -21,7 +21,20 @@ import org.gradle.api.Transformer;
 import javax.annotation.Nullable;
 
 /**
- * A mapping provider that uses a transform that 1. does not use the value contents and 2. always produces a value.
+ * <p>A mapping provider that uses a transform that:</p>
+ *
+ * <ul>
+ *     <li>1. does not use the value contents</li>
+ *     <li>2. always produces a non-null value.</li>
+ * </ul>
+ *
+ * <p>This implementation is used only for internal transforms where these constraints are known to be true.
+ * For user provided mappings and other internal mappings, {@link TransformBackedProvider} is used instead.</p>
+ *
+ * <p>The constraints allows certain optimizations. Currently, this is limited to skipping the transform when the provider presence is queried, but other optimizations may be added in the future.
+ * Also, because the transform does not use the value content, this provider also skips checks to verify that the content has been built when the value is queried.</p>
+ *
+ * @see ProviderInternal for a discussion of the "value" and "value contents".
  */
 public class MappingProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
     private final Class<OUT> type;
