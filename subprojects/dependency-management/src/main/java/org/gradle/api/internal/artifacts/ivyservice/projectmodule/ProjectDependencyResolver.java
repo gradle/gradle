@@ -50,13 +50,11 @@ import javax.annotation.Nullable;
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver, ComponentResolvers {
     private final LocalComponentRegistry localComponentRegistry;
     private final ComponentIdentifierFactory componentIdentifierFactory;
-    private final ProjectArtifactSetResolver artifactSetResolver;
     private final ProjectArtifactResolver artifactResolver;
 
-    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ComponentIdentifierFactory componentIdentifierFactory, ProjectArtifactSetResolver artifactSetResolver, ProjectArtifactResolver artifactResolver) {
+    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ComponentIdentifierFactory componentIdentifierFactory, ProjectArtifactResolver artifactResolver) {
         this.localComponentRegistry = localComponentRegistry;
         this.componentIdentifierFactory = componentIdentifierFactory;
-        this.artifactSetResolver = artifactSetResolver;
         this.artifactResolver = artifactResolver;
     }
 
@@ -112,7 +110,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     }
 
     public ComponentGraphResolveState resolveStateFor(LocalComponentMetadata componentMetaData) {
-        return new DefaultLocalComponentGraphResolveState(componentMetaData, artifactSetResolver);
+        return new DefaultLocalComponentGraphResolveState(componentMetaData);
     }
 
     @Override
