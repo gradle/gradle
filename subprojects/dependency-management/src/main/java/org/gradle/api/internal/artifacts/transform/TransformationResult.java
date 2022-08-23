@@ -113,7 +113,7 @@ public interface TransformationResult {
 
             @Override
             public void visitResult(TransformationResultVisitor visitor) {
-                producedOutputLocations.forEach(visitor::visitOutput);
+                producedOutputLocations.forEach(visitor::visitProducedOutput);
             }
 
             @Override
@@ -161,7 +161,7 @@ public interface TransformationResult {
 
             @Override
             public void visitResult(TransformationResultVisitor visitor) {
-                visitor.visitInput(relativePath);
+                visitor.visitPartOfInputArtifact(relativePath);
             }
         }
 
@@ -175,7 +175,7 @@ public interface TransformationResult {
 
             @Override
             public void visitResult(TransformationResultVisitor visitor) {
-                visitor.visitInput();
+                visitor.visitEntireInputArtifact();
             }
         }
 
@@ -197,17 +197,37 @@ public interface TransformationResult {
 
             @Override
             public void visitResult(TransformationResultVisitor visitor) {
-                visitor.visitOutput(outputFile);
+                visitor.visitProducedOutput(outputFile);
             }
         }
     }
 
     interface TransformationResultVisitor {
-        void visitInput();
-        void visitInput(String relativePath);
-        void visitOutput(File outputLocation);
+        /**
+         * Called when the result is the full input artifact.
+         */
+        void visitEntireInputArtifact();
+
+        /**
+         * Called when the result is inside the input artifact.
+         *
+         * @param relativePath the relative path from the input artifact to the selected location in the input artifact.
+         */
+        void visitPartOfInputArtifact(String relativePath);
+
+        /**
+         * Called when the result is a produced output in the workspace.
+         *
+         * @param outputLocation the absolute {@link File} location of the output in the workspace.
+         */
+        void visitProducedOutput(File outputLocation);
     }
 
+    /**
+     * A {@link TransformationResult} builder which accepts absolute locations of results.
+     * <p>
+     * The builder then infers if the result is (in) the input artifact or a produced output in the workspace.
+     */
     class OutputTypeInferringBuilder {
         private final File inputArtifact;
         private final File outputDir;
@@ -222,6 +242,11 @@ public interface TransformationResult {
             this.outputDirPrefix = outputDir.getPath() + File.separator;
         }
 
+        /**
+         * Adds an output location to the result.
+         *
+         * @param workspaceAction an action to run when the output is a produced output in the workspace.
+         */
         public void addOutput(File output, Consumer<File> workspaceAction) {
             if (output.equals(inputArtifact)) {
                 delegate.addInputArtifact();
