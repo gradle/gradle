@@ -689,10 +689,10 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         lib.artifact.expectGet()
 
         then:
+        executer.expectDeprecationWarning("The name of version catalogs must end with 'Libs' to reduce chances of extension conflicts - catalog names without this suffix are deprecated.")
         run ':checkDeps'
 
         then:
-        executer.expectDeprecationWarning("The name of version catalogs must end with 'Libs' to reduce chances of extension conflicts.")
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org.gradle.test:lib:1.0')
