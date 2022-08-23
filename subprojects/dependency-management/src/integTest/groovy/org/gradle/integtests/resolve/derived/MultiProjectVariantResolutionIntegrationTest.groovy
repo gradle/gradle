@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Ignore
 
-@Ignore("The functionality for these tests were removed from release")
 class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -76,6 +75,22 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
                 }
 
                 tasks.register('resolveOther', Resolve) {
+                    artifacts.from(configurations.producerArtifacts.incoming.artifactView {
+                        withVariantReselection()
+                        attributes {
+                            attribute(Attribute.of('other', String), 'foobar')
+                        }
+                    }.files)
+                }
+                
+                tasks.register('resolveAll', Resolve) {
+                    artifacts.from(configurations.producerArtifacts)
+                    artifacts.from(configurations.producerArtifacts.incoming.artifactView {
+                        attributes {
+                            attribute(Attribute.of('shared', String), 'shared-value')
+                            attribute(Attribute.of('unique', String), 'javadoc-value')
+                        }
+                    }.files)
                     artifacts.from(configurations.producerArtifacts.incoming.artifactView {
                         withVariantReselection()
                         attributes {
@@ -202,6 +217,16 @@ Artifacts
         '''
         expect:
         succeeds(':consumer:resolveOther')
+    }
+
+    def 'consumer resolves all variants of producer'() {
+        file('consumer/build.gradle') << '''
+            resolveAll {
+                expectations = [ 'producer-jar.txt', 'producer-javadoc.txt', 'producer-other.txt' ]
+            }
+        '''
+        expect:
+        succeeds(':consumer:resolveAll')
     }
 
     def 'consumer resolves jar variant of producer with dependencies'() {
