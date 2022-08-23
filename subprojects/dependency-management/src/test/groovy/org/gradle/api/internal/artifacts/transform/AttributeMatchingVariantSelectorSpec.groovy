@@ -59,7 +59,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
     def 'direct match on variant means no finder interaction'() {
         given:
         def resolvedArtifactSet = Mock(ResolvedArtifactSet)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, selectFromAllVariants, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(variantSet, factory)
@@ -77,7 +77,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             asDescribable() >> Describables.of('other mocked variant')
             getAttributes() >> otherVariantAttributes
         }
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, selectFromAllVariants, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(variantSet, factory)
@@ -98,7 +98,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def transformationStep = Mock(TransformationStep)
         def transformed = Mock(ResolvedArtifactSet)
 
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, selectFromAllVariants, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(variantSet, factory)
@@ -127,7 +127,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def transform1 = Mock(TransformationStep)
         def transform2 = Mock(TransformationStep)
 
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, selectFromAllVariants, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(multiVariantSet, factory)
@@ -160,7 +160,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         }
         def transform1 = Mock(TransformationStep)
         def transform2 = Mock(TransformationStep)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, selectFromAllVariants, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(multiVariantSet, factory)
@@ -193,7 +193,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         }
         def transform1 = Mock(TransformationStep)
         def transform2 = Mock(TransformationStep)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, selectFromAllVariants, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(multiVariantSet, factory)
@@ -231,7 +231,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def transform1 = Mock(TransformationStep)
         def transform2 = Mock(TransformationStep)
         def transform3 = Mock(TransformationStep)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, selectFromAllVariants, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(multiVariantSet, factory)
@@ -273,7 +273,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def transform1 = Mock(TransformationStep)
         def transform2 = Mock(TransformationStep)
         def transform3 = Mock(TransformationStep)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, selectFromAllVariants, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(multiVariantSet, factory)
@@ -314,7 +314,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def transform1 = Mock(TransformationStep)
         def transform2 = Mock(TransformationStep)
         def transform3 = Mock(TransformationStep)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, selectFromAllVariants, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(multiVariantSet, factory)

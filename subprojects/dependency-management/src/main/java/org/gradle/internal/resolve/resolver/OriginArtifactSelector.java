@@ -17,10 +17,10 @@
 package org.gradle.internal.resolve.resolver;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Set;
@@ -30,5 +30,5 @@ public interface OriginArtifactSelector {
      * Creates a set that will resolve the artifacts of the given configuration, minus those artifacts that are excluded.
      */
     @Nullable
-    ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Set<? extends VariantResolveMetadata> availableVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
+    ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Set<ResolvedVariant> allVariants, Set<ResolvedVariant> legacyVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
 }

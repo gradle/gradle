@@ -62,13 +62,14 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     private DefaultLocalVariantArtifactResolveState stateFor(LocalConfigurationMetadata configuration) {
-        return variants.computeIfAbsent(configuration, c -> new DefaultLocalVariantArtifactResolveState(getMetadata(), configuration));
+        return variants.computeIfAbsent(configuration, c -> {
+            return new DefaultLocalVariantArtifactResolveState(getMetadata(), configuration);
+        });
     }
 
     private static class DefaultLocalVariantArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
         private final LocalComponentMetadata component;
         private final LocalConfigurationMetadata graphSelectedVariant;
-
         public DefaultLocalVariantArtifactResolveState(LocalComponentMetadata component, LocalConfigurationMetadata graphSelectedVariant) {
             this.component = component;
             this.graphSelectedVariant = graphSelectedVariant;
@@ -88,7 +89,16 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
             graphSelectedVariant.prepareToResolveArtifacts();
-            return artifactSelector.resolveArtifacts(component, graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
+//            final Set<? extends VariantResolveMetadata> allVariants;
+//            if (component.getVariantsForGraphTraversal().isPresent()) {
+//                allVariants = component.getVariantsForGraphTraversal().get().stream().map(LocalConfigurationMetadata.class::cast).flatMap(variant -> {
+//                    variant.prepareToResolveArtifacts();
+//                    return variant.getVariants().stream();
+//                }).collect(Collectors.toSet());
+//            } else {
+//                allVariants = graphSelectedVariant.getVariants();
+//            }
+            return artifactSelector.resolveArtifacts(component, graphSelectedVariant.getVariants(), graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
         }
     }
 }

@@ -53,7 +53,13 @@ public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadat
 
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            return artifactSelector.resolveArtifacts(component, graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
+//            final Set<? extends VariantResolveMetadata> allVariants;
+//            if (component.getVariantsForGraphTraversal().isPresent()) {
+//                allVariants = component.getVariantsForGraphTraversal().get().stream().map(ModuleConfigurationMetadata.class::cast).flatMap(variant -> variant.getVariants().stream()).collect(Collectors.toSet());
+//            } else {
+//                allVariants = graphSelectedVariant.getVariants();
+//            }
+            return artifactSelector.resolveArtifacts(component, graphSelectedVariant.getVariants(), graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
         }
     }
 }

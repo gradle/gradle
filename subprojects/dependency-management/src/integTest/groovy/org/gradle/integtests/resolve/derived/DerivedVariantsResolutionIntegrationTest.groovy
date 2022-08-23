@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Ignore
 
-@Ignore("The functionality for these tests were removed from release")
+@Ignore("This is not implemented yet")
 class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     MavenHttpModule direct
     MavenHttpModule transitive
@@ -65,6 +65,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
 
             task resolveSources(type: Resolve) {
                 def artifactView = configurations.runtimeClasspath.incoming.artifactView {
+                    withVariantReselection()
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
                         attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
@@ -79,6 +80,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
 
             task resolveJavadoc(type: Resolve) {
                 def artifactView = configurations.runtimeClasspath.incoming.artifactView {
+                    withVariantReselection()
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
                         attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
