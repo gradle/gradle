@@ -64,6 +64,7 @@ public interface DependencyAdder {
      * @param group the group
      * @param name the name
      * @param version the version
+     * @see DependencyFactory#create(String, String, String)
      */
     void add(@Nullable String group, String name, @Nullable String version);
 
@@ -74,6 +75,7 @@ public interface DependencyAdder {
      * @param name the name
      * @param version the version
      * @param configuration an action to configure the dependency
+     * @see DependencyFactory#create(String, String, String)
      */
     void add(@Nullable String group, String name, @Nullable String version, Action<? super ExternalModuleDependency> configuration);
 
@@ -85,6 +87,7 @@ public interface DependencyAdder {
      * @param version the version
      * @param classifier the classifier
      * @param extension the extension
+     * @see DependencyFactory#create(String, String, String, String, String)
      */
     void add(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension);
 
@@ -97,6 +100,7 @@ public interface DependencyAdder {
      * @param classifier the classifier
      * @param extension the extension
      * @param configuration an action to configure the dependency
+     * @see DependencyFactory#create(String, String, String, String, String)
      */
     void add(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension, Action<? super ExternalModuleDependency> configuration);
 
@@ -104,6 +108,7 @@ public interface DependencyAdder {
      * Add a dependency.
      *
      * @param project project to add as a dependency
+     * @see DependencyFactory#create(Project)
      */
     void add(Project project);
 
@@ -112,6 +117,7 @@ public interface DependencyAdder {
      *
      * @param project project to add as a dependency
      * @param configuration an action to configure the dependency
+     * @see DependencyFactory#create(Project)
      */
     void add(Project project, Action<? super ProjectDependency> configuration);
 
@@ -119,6 +125,7 @@ public interface DependencyAdder {
      * Add a dependency.
      *
      * @param files files to add as a dependency
+     * @see DependencyFactory#create(FileCollection)
      */
     void add(FileCollection files);
 
@@ -127,6 +134,7 @@ public interface DependencyAdder {
      *
      * @param files files to add as a dependency
      * @param configuration an action to configure the dependency
+     * @see DependencyFactory#create(FileCollection)
      */
     void add(FileCollection files, Action<? super FileCollectionDependency> configuration);
 
