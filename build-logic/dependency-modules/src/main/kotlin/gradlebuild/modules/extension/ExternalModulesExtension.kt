@@ -18,9 +18,9 @@ package gradlebuild.modules.extension
 import gradlebuild.modules.model.License
 
 
-abstract class ExternalModulesExtension {
+abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
 
-    val groovyVersion = "4.0.5-SNAPSHOT"
+    val groovyVersion = if (isBundleGroovy4) "4.0.5-SNAPSHOT" else "3.0.12"
     val configurationCacheReportVersion = "1.1"
     val kotlinVersion = "1.7.10"
 
@@ -59,19 +59,20 @@ abstract class ExternalModulesExtension {
     val googleHttpClientJackson2 = "com.google.http-client:google-http-client-jackson2"
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
-    val groovy = "org.apache.groovy:groovy"
-    val groovyAnt = "org.apache.groovy:groovy-ant"
-    val groovyAstbuilder = "org.apache.groovy:groovy-astbuilder"
-    val groovyConsole = "org.apache.groovy:groovy-console"
-    val groovyDateUtil = "org.apache.groovy:groovy-dateutil"
-    val groovyDatetime = "org.apache.groovy:groovy-datetime"
-    val groovyDoc = "org.apache.groovy:groovy-groovydoc"
-    val groovyJson = "org.apache.groovy:groovy-json"
-    val groovyNio = "org.apache.groovy:groovy-nio"
-    val groovySql = "org.apache.groovy:groovy-sql"
-    val groovyTemplates = "org.apache.groovy:groovy-templates"
-    val groovyTest = "org.apache.groovy:groovy-test"
-    val groovyXml = "org.apache.groovy:groovy-xml"
+    val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
+    val groovy = "$groovyGroup:groovy"
+    val groovyAnt = "$groovyGroup:groovy-ant"
+    val groovyAstbuilder = "$groovyGroup:groovy-astbuilder"
+    val groovyConsole = "$groovyGroup:groovy-console"
+    val groovyDateUtil = "$groovyGroup:groovy-dateutil"
+    val groovyDatetime = "$groovyGroup:groovy-datetime"
+    val groovyDoc = "$groovyGroup:groovy-groovydoc"
+    val groovyJson = "$groovyGroup:groovy-json"
+    val groovyNio = "$groovyGroup:groovy-nio"
+    val groovySql = "$groovyGroup:groovy-sql"
+    val groovyTemplates = "$groovyGroup:groovy-templates"
+    val groovyTest = "$groovyGroup:groovy-test"
+    val groovyXml = "$groovyGroup:groovy-xml"
     val gson = "com.google.code.gson:gson"
     val guava = "com.google.guava:guava"
     val hamcrest = "org.hamcrest:hamcrest-core"
