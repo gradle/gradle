@@ -60,8 +60,10 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
                 pending.remove(collector);
                 ImmutableList.Builder<T> builder = ImmutableList.builder();
                 ValueSupplier.Value<Void> valueWithSideEffects = collector.collectInto(builder);
-                // run side effects if any
-                valueWithSideEffects.get();
+                if (!valueWithSideEffects.isMissing()) {
+                    // run side effects if any
+                    valueWithSideEffects.get();
+                }
                 List<T> realized = builder.build();
                 for (T element : realized) {
                     flushAction.execute(element);

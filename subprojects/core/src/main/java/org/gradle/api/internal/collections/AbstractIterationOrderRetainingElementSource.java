@@ -315,7 +315,9 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                 ImmutableList.Builder<T> builder = ImmutableList.builderWithExpectedSize(delegate.size());
                 Value<Void> valueWithSideEffects = super.collectInto(builder);
                 // run side effects if any
-                valueWithSideEffects.get();
+                if (!valueWithSideEffects.isMissing()) {
+                    valueWithSideEffects.get();
+                }
                 cache = new ArrayList<>(builder.build());
                 cache.removeAll(removedValues);
                 realized = true;
