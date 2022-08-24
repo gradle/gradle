@@ -964,4 +964,61 @@ The value of this property is derived from: <source>""")
     Property<String> elementProperty() {
         return new DefaultProperty<String>(host, String)
     }
+
+    def "runs side effect when calling '#getter' on property to which providers were added via 'add'"() {
+        when:
+        def sideEffect1 = Mock(ValueSupplier.SideEffect)
+        def sideEffect2 = Mock(ValueSupplier.SideEffect)
+        property.add(Providers.of("some value").withSideEffect(sideEffect1))
+        property.add(Providers.of("other value").withSideEffect(sideEffect2))
+
+        property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        property.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects until values are unpacked
+
+        when:
+        def unpackedValue = getter(property, getter, toMutable(["yet another value"]))
+
+        then:
+        unpackedValue == toImmutable(["some value", "other value"])
+        1 * sideEffect1.execute("some value")
+
+        then: // ensure ordering
+        1 * sideEffect2.execute("other value")
+        0 * _
+
+        where:
+        getter      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
+    }
+
+    def "runs side effect when calling '#getter' on property to which providers were added via 'addAll'"() {
+        when:
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        property.addAll(Providers.of(["some value", "other value"]).withSideEffect(sideEffect))
+
+        property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        property.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects until values are unpacked
+
+        when:
+        def unpackedValue = getter(property, getter, toMutable(["yet another value"]))
+
+        then:
+        unpackedValue == toImmutable(["some value", "other value"])
+        1 * sideEffect.execute(["some value", "other value"])
+        0 * _
+
+        where:
+        getter      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
+    }
 }
