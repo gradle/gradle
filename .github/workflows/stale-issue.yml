@@ -22,7 +22,7 @@ jobs:
 
           # ISSUES ------------------------------------------------------------
           days-before-issue-stale: 365
-          exempt-issue-labels: "epic"
+          exempt-issue-labels: epic
           stale-issue-label: stale
           stale-issue-message: >
             This issue has been automatically marked as stale because it has not had recent activity.
