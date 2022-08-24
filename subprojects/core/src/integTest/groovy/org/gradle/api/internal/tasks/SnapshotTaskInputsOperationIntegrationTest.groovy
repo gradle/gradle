@@ -27,14 +27,13 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 
-class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, ExecutionOptimizationDeprecationFixture {
+class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
@@ -150,15 +149,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectImplementationUnknownDeprecation {
-            implementationOfTask(':customTask')
-            unknownClassloader('CustomTask_Decorated')
-        }
-        expectImplementationUnknownDeprecation {
-            additionalTaskAction(':customTask')
-            unknownClassloader('CustomTask_Decorated')
-        }
-        succeeds('customTask', '--build-cache')
+        fails('customTask', '--build-cache')
 
         then:
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
@@ -187,11 +178,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectImplementationUnknownDeprecation {
-            additionalTaskAction(':customTask')
-            unknownClassloader('A')
-        }
-        succeeds('customTask', '--build-cache')
+        fails('customTask', '--build-cache')
 
         then:
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
@@ -489,11 +476,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectImplementationUnknownDeprecation {
-            nestedProperty('bean')
-            unknownClassloader('A')
-        }
-        succeeds('customTask', '--build-cache')
+        fails('customTask', '--build-cache')
 
         then:
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
