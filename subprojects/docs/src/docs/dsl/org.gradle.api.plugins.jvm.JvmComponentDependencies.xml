@@ -29,18 +29,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>gradleApi</td>
-            </tr>
-            <tr>
-                <td>gradleTestKit</td>
-            </tr>
-            <tr>
-                <td>localGroovy</td>
-            </tr>
-            <tr>
-                <td>testFixtures</td>
-            </tr>
         </table>
     </section>
 </section>
