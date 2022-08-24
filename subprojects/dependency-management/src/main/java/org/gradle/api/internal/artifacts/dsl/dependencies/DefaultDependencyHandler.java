@@ -330,17 +330,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public void registerTransform(Action<? super org.gradle.api.artifacts.transform.VariantTransform> registrationAction) {
-        DeprecationLogger.deprecate("Registering artifact transforms extending ArtifactTransform")
-            .withAdvice("Implement TransformAction instead.")
-            .willBeRemovedInGradle8()
-            .withUserManual("artifact_transforms")
-            .nagUser();
-        transforms.registerTransform(registrationAction);
-    }
-
-    @Override
     public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
         transforms.registerTransform(actionType, registrationAction);
     }

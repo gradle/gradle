@@ -206,8 +206,12 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         @Override
-        ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, InputChanges inputChanges) {
-            return ImmutableList.copyOf(transformationAction.apply(inputArtifactProvider.get().asFile, outputDir))
+        TransformationResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, InputChanges inputChanges) {
+            def builder = TransformationResult.builderFor(inputArtifactProvider.get().asFile, outputDir)
+            transformationAction.apply(inputArtifactProvider.get().asFile, outputDir).each {
+                builder.addOutput(it) { }
+            }
+            return builder.build()
         }
 
         @Override
