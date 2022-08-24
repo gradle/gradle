@@ -2367,10 +2367,16 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         }
 
         @Override
+        boolean hasPendingPreExecutionNodes() {
+            return !preExecuteNodes.isEmpty()
+        }
+
+        @Override
         void visitPreExecutionNodes(Consumer<? super Node> visitor) {
             for (final node in preExecuteNodes) {
                 visitor.accept(node)
             }
+            preExecuteNodes.clear()
         }
 
         @Override

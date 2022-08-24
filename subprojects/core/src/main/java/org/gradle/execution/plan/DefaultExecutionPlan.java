@@ -82,7 +82,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     private final Set<Node> producedButNotYetConsumed = newIdentityHashSet();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
     private final Set<Node> finalizers = new LinkedHashSet<>();
-    private final Set<Node> preExecutionNodesVisited = new HashSet<>();
     private final OrdinalNodeAccess ordinalNodeAccess;
     private Consumer<LocalTaskNode> completionHandler = localTaskNode -> {
     };
@@ -271,7 +270,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         producedButNotYetConsumed.clear();
         reachableCache.clear();
         finalizers.clear();
-        preExecutionNodesVisited.clear();
         ordinalNodeAccess.reset();
     }
 
@@ -419,7 +417,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
                     continue;
                 }
 
-                if (preExecutionNodesVisited.add(node)) {
+                if (node.hasPendingPreExecutionNodes()) {
                     // The node is ready to execute and its pre-execution nodes have not been scheduled, so do this now
                     executionQueue.startInsert();
                     node.visitPreExecutionNodes(prepareNode -> {
