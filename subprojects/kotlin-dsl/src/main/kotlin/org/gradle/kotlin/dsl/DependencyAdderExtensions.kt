@@ -32,6 +32,33 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
 
+/**
+ * This class is used to add extra methods to {@link DependencyAdder} for the Kotlin DSL to make the DSL more idiomatic.
+ * This is implemented as <a href="https://kotlinlang.org/docs/extensions.html">Kotlin extension functions</a>.
+ * <p>
+ * These extension methods allow an interface exposing an instance of {@code DependencyAdder} to add dependencies without explicitly calling {@code add(...)}.
+ * </p>
+ * For example:
+ * <pre>
+ * interface MyDependencies {
+ *     DependencyAdder getImplementation()
+ * }
+ * // In the build script
+ * myDependencies {
+ *     implementation("org:foo:1.0")
+ * }
+ * </pre>
+ *
+ * In this Kotlin DSL example, {@code implementation("org:foo:1.0")}
+ * <ul>
+ *     <li>is equivalent to {@code getImplementation().invoke("org:foo:1.0")} because of these extension functions</li>
+ *     <li>has the same effect as {@code getImplementation().add("org:foo:1.0")} in Java</li>
+ * </ul>
+ *
+ * There are {@code invoke(...)} equivalents for all the {@code add(...)} methods in {@code DependencyAdder}.
+ *
+ */
+
 
 /**
  * Add a dependency.
