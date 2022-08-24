@@ -36,7 +36,7 @@ import javax.annotation.Nullable;
 public interface PlatformDependencyModifiers extends Dependencies {
 
     /**
-     * Creates an {@link ExternalModuleDependency} for the given dependencyNotation and modifies it to select the Platform variant of the given module.
+     * Creates an {@link ExternalModuleDependency} for the given dependency notation and modifies it to select the Platform variant of the given module.
      *
      * @param dependencyNotation dependency notation
      * @return the modified dependency
@@ -70,26 +70,26 @@ public interface PlatformDependencyModifiers extends Dependencies {
     /**
      * Takes a given {@code Provider} to a {@link MinimalExternalModuleDependency} and modifies the dependency to select the Platform variant of the given module.
      *
-     * @param dependency the provider
+     * @param providerConvertibleToDependency the provider
      * @return a provider to the modified dependency
      */
-    default Provider<? extends MinimalExternalModuleDependency> platform(ProviderConvertible<? extends MinimalExternalModuleDependency> dependency) {
-        return dependency.asProvider().map(this::platform);
+    default Provider<? extends MinimalExternalModuleDependency> platform(ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
+        return providerConvertibleToDependency.asProvider().map(this::platform);
     }
 
     /**
      * Takes a given {@code Provider} to a {@link ExternalModuleDependency} and modifies the dependency to select the Platform variant of the given module.
      *
-     * @param dependency the provider
+     * @param providerToDependency the provider
      * @return a provider to the modified dependency
      */
-    default Provider<? extends ExternalModuleDependency> platform(Provider<? extends ExternalModuleDependency> dependency) {
-        return dependency.map(this::platform);
+    default Provider<? extends ExternalModuleDependency> platform(Provider<? extends ExternalModuleDependency> providerToDependency) {
+        return providerToDependency.map(this::platform);
     }
 
 
     /**
-     * Creates an {@link ExternalModuleDependency} for the given dependencyNotation and modifies it to select the Enforced Platform variant of the given module.
+     * Creates an {@link ExternalModuleDependency} for the given dependency notation and modifies it to select the Enforced Platform variant of the given module.
      *
      * @param dependencyNotation dependency notation
      * @return the modified dependency
@@ -131,20 +131,20 @@ public interface PlatformDependencyModifiers extends Dependencies {
     /**
      * Takes a given {@code Provider} to a {@link MinimalExternalModuleDependency} and modifies the dependency to select the Enforced Platform variant of the given module.
      *
-     * @param dependency the provider
+     * @param providerConvertibleToDependency the provider
      * @return a provider to the modified dependency
      */
-    default Provider<? extends MinimalExternalModuleDependency> enforcedPlatform(ProviderConvertible<? extends MinimalExternalModuleDependency> dependency) {
-        return dependency.asProvider().map(this::enforcedPlatform);
+    default Provider<? extends MinimalExternalModuleDependency> enforcedPlatform(ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
+        return providerConvertibleToDependency.asProvider().map(this::enforcedPlatform);
     }
 
     /**
      * Takes a given {@code Provider} to a {@link ExternalModuleDependency} and modifies the dependency to select the Enforced Platform variant of the given module.
      *
-     * @param dependency the provider
+     * @param providerToDependency the provider
      * @return a provider to the modified dependency
      */
-    default Provider<? extends ExternalModuleDependency> enforcedPlatform(Provider<? extends ExternalModuleDependency> dependency) {
-        return dependency.map(this::enforcedPlatform);
+    default Provider<? extends ExternalModuleDependency> enforcedPlatform(Provider<? extends ExternalModuleDependency> providerToDependency) {
+        return providerToDependency.map(this::enforcedPlatform);
     }
 }
