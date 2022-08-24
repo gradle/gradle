@@ -19,13 +19,10 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.model.ReplacedBy;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.OutputDirectory;
+import  org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
@@ -75,64 +72,6 @@ public abstract class AbstractCompile extends SourceTask {
     @OutputDirectory
     public DirectoryProperty getDestinationDirectory() {
         return destinationDirectory;
-    }
-
-    /**
-     * Returns the directory to generate the {@code .class} files into.
-     *
-     * @return The destination directory.
-     *
-     * @deprecated Use {@link #getDestinationDirectory()} instead. This method will be removed in Gradle 8.0.
-     */
-    @ReplacedBy("destinationDirectory")
-    @Deprecated
-    public File getDestinationDir() {
-        // Used in Kotlin plugin - needs updating there and bumping the version first. Followup with https://github.com/gradle/gradle/issues/16783
-        /*DeprecationLogger.deprecateProperty(AbstractCompile.class, "destinationDir")
-            .replaceWith("destinationDirectory")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "compile_task_wiring")
-            .nagUser();*/
-
-        return destinationDirectory.getAsFile().getOrNull();
-    }
-
-    /**
-     * Sets the directory to generate the {@code .class} files into.
-     *
-     * @param destinationDir The destination directory. Must not be null.
-     *
-     * @deprecated Use {@link #getDestinationDirectory()}.set() instead. This method will be removed in Gradle 8.0.
-     */
-    @Deprecated
-    public void setDestinationDir(File destinationDir) {
-        DeprecationLogger.deprecateProperty(AbstractCompile.class, "destinationDir")
-            .replaceWith("destinationDirectory")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "compile_task_wiring")
-            .nagUser();
-
-        this.destinationDirectory.set(destinationDir);
-    }
-
-    /**
-     * Sets the directory to generate the {@code .class} files into.
-     *
-     * @param destinationDir The destination directory. Must not be null.
-     * @since 4.0
-     *
-     * @deprecated Use {@link #getDestinationDirectory()}.set() instead. This method will be removed in Gradle 8.0.
-     */
-    @Deprecated
-    public void setDestinationDir(Provider<File> destinationDir) {
-        // Used by Android plugin. Followup with https://github.com/gradle/gradle/issues/16782
-        /*DeprecationLogger.deprecateProperty(AbstractCompile.class, "destinationDir")
-            .replaceWith("destinationDirectory")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "compile_task_wiring")
-            .nagUser();*/
-
-        this.destinationDirectory.set(getProject().getLayout().dir(destinationDir));
     }
 
     /**
@@ -201,7 +140,7 @@ public abstract class AbstractCompile extends SourceTask {
             try {
                 // This will call a subclass implementation of getDestinationDir(), which possibly will not call the overridden getter
                 // In the Kotlin plugin, the subclass manages its own field which will be used here.
-                legacyValue = getDestinationDir();
+                legacyValue = getDestinationDirectory().get().getAsFile();
             } finally {
                 recursiveCall = false;
             }

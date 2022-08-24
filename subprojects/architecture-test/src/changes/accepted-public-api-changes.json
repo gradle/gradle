@@ -463,6 +463,30 @@
             "changes": [
                 "org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate.registerTransform(org.gradle.api.Action)"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.getDestinationDir()",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.setDestinationDir(java.io.File)",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.AbstractCompile",
+            "member": "Method org.gradle.api.tasks.compile.AbstractCompile.setDestinationDir(org.gradle.api.provider.Provider)",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
