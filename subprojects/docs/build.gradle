@@ -708,9 +708,11 @@ tasks.named("docsTest") { task ->
                 "snippet-kotlin-dsl-android-single-build_kotlin_sanityCheck.sample",
                 "snippet-kotlin-dsl-android-build_kotlin_sanityCheck.sample",
                 "structuring-software-projects_groovy_aggregate-reports.sample",
+                "structuring-software-projects_groovy_build-android-app.sample",
                 "structuring-software-projects_groovy_build-server-application.sample",
                 "structuring-software-projects_groovy_umbrella-build.sample",
                 "structuring-software-projects_kotlin_aggregate-reports.sample",
+                "structuring-software-projects_kotlin_build-android-app.sample",
                 "structuring-software-projects_kotlin_build-server-application.sample",
                 "structuring-software-projects_kotlin_umbrella-build.sample",
             ]
