@@ -89,7 +89,6 @@ Method <org.gradle.api.artifacts.repositories.PasswordCredentials.getPassword()>
 Method <org.gradle.api.artifacts.repositories.PasswordCredentials.getUsername()> does not have raw return type assignable to org.gradle.api.provider.Property in (PasswordCredentials.java:0)
 Method <org.gradle.api.artifacts.repositories.UrlArtifactRepository.getUrl()> does not have raw return type assignable to org.gradle.api.provider.Property in (UrlArtifactRepository.java:0)
 Method <org.gradle.api.artifacts.repositories.UrlArtifactRepository.isAllowInsecureProtocol()> does not have raw return type assignable to org.gradle.api.provider.Property in (UrlArtifactRepository.java:0)
-Method <org.gradle.api.artifacts.transform.ArtifactTransform.getOutputDirectory()> does not have raw return type assignable to org.gradle.api.provider.Property in (ArtifactTransform.java:42)
 Method <org.gradle.api.attributes.AttributesSchema.getAttributeDisambiguationPrecedence()> does not have raw return type assignable to org.gradle.api.provider.Property in (AttributesSchema.java:0)
 Method <org.gradle.api.attributes.AttributesSchema.getAttributes()> does not have raw return type assignable to org.gradle.api.provider.Provider in (AttributesSchema.java:0)
 Method <org.gradle.api.attributes.AttributesSchema.getMatchingStrategy(org.gradle.api.attributes.Attribute)> does not have raw return type assignable to org.gradle.api.provider.Provider in (AttributesSchema.java:0)
