@@ -337,6 +337,134 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.transform.ArtifactTransformException",
+            "member": "Class org.gradle.api.artifacts.transform.ArtifactTransformException",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.ArtifactTransformException",
+            "member": "Constructor org.gradle.api.artifacts.transform.ArtifactTransformException(java.io.File,org.gradle.api.attributes.AttributeContainer,java.lang.Throwable)",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.ArtifactTransformException",
+            "member": "Constructor org.gradle.api.artifacts.transform.ArtifactTransformException(java.io.File,org.gradle.api.attributes.AttributeContainer,java.lang.Class,java.lang.Throwable)",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.ArtifactTransformException",
+            "member": "Constructor org.gradle.api.artifacts.transform.ArtifactTransformException(org.gradle.api.artifacts.component.ComponentArtifactIdentifier,org.gradle.api.attributes.AttributeContainer,java.lang.Throwable)",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.VariantTransform",
+            "member": "Class org.gradle.api.artifacts.transform.VariantTransform",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.VariantTransform",
+            "member": "Method org.gradle.api.artifacts.transform.VariantTransform.artifactTransform(java.lang.Class)",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.VariantTransform",
+            "member": "Method org.gradle.api.artifacts.transform.VariantTransform.getFrom()",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.VariantTransform",
+            "member": "Method org.gradle.api.artifacts.transform.VariantTransform.getTo()",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.VariantTransform",
+            "member": "Method org.gradle.api.artifacts.transform.VariantTransform.artifactTransform(java.lang.Class,org.gradle.api.Action)",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.DependencyHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyHandler.registerTransform(org.gradle.api.Action)",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.ArtifactTransform",
+            "member": "Class org.gradle.api.artifacts.transform.ArtifactTransform",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.ArtifactTransform",
+            "member": "Method org.gradle.api.artifacts.transform.ArtifactTransform.getOutputDirectory()",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.ArtifactTransform",
+            "member": "Method org.gradle.api.artifacts.transform.ArtifactTransform.setOutputDirectory(java.io.File)",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.ArtifactTransform",
+            "member": "Method org.gradle.api.artifacts.transform.ArtifactTransform.transform(java.io.File)",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.transform.ArtifactTransform",
+            "member": "Constructor org.gradle.api.artifacts.transform.ArtifactTransform()",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "member": "Class org.gradle.kotlin.dsl.DependencyHandlerScope",
+            "acceptation": "Legacy ArtifactTransform API has been removed",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate.registerTransform(org.gradle.api.Action)"
+            ]
+        },
+        {
             "type": "org.gradle.testing.jacoco.plugins.JacocoPluginExtension",
             "member": "Field project",
             "acceptation": "Removing deprecated field in Gradle 8.0",
