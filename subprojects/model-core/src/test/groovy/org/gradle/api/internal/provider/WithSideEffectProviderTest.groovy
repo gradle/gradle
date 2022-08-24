@@ -80,23 +80,23 @@ class WithSideEffectProviderTest extends ProviderSpec<Integer> {
 
         when:
         counter.set(23)
-        def unpackedValue = extract(provider)
+        def unpackedValue = getter(provider, method, 88)
         then:
         unpackedValue == 23
         1 * sideEffect.execute(23)
 
         when:
-        unpackedValue = extract(provider)
+        unpackedValue = getter(provider, method, 88)
         then:
         unpackedValue == 24
         1 * sideEffect.execute(24)
         0 * _
 
         where:
-        method      | extract
-        "get"       | { it.get() }
-        "getOrNull" | { it.getOrNull() }
-        "getOrElse" | { it.getOrElse(88) }
+        method      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
     }
 
     def "runs the side effect when changing provider is mapped with '#description'"() {
