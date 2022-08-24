@@ -12,6 +12,7 @@ This section offers several ways to make a build faster. Additionally, you'll fi
 build performance degradation, and how you can avoid it.
 
 TIP: Want faster Gradle Builds? https://gradle.com/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up builds by up to 90%.
+
 == Inspect your build
 
 Before you make any changes, <<inspect.adoc#build_scans,inspect your build>> with a build scan or profile report. A proper build inspection helps
