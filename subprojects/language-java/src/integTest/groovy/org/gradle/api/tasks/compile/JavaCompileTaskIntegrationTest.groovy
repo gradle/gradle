@@ -20,10 +20,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 class JavaCompileTaskIntegrationTest extends AbstractIntegrationSpec {
-    def "task does nothing when no configuration applied"() {
+    def "task does nothing when only minimal configuration applied"() {
         buildFile << """
             // No plugins applied
-            task compile(type: JavaCompile)
+            task compile(type: JavaCompile) {
+                destinationDirectory = file("build/classes")
+            }
         """
 
         when:

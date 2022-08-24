@@ -146,7 +146,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compileJava instanceof JavaCompile
         TaskDependencyMatchers.dependsOn().matches(compileJava)
         compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
-        compileJava.destinationDir == new File(project.buildDir, 'classes/java/custom')
+        compileJava.destinationDirectory.get().getAsFile() == new File(project.buildDir, 'classes/java/custom')
 
         def sources = compileJava.source
         sources.files == project.sourceSets.custom.java.files
@@ -289,7 +289,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         processResources.destinationDir == resourcesDir
 
         def compileJava = project.tasks['compileCustomJava']
-        compileJava.destinationDir == classesDir
+        compileJava.destinationDirectory.get().getAsFile() == classesDir
     }
 
     def "sourceSet reflect changes to tasks configuration"() {
