@@ -22,7 +22,7 @@ jobs:
 
           # ISSUES ------------------------------------------------------------
           days-before-issue-stale: 365
-          exempt-issue-labels: epic
+          exempt-issue-labels: "epic,from:contributor"
           stale-issue-label: stale
           stale-issue-message: >
             This issue has been automatically marked as stale because it has not had recent activity.
@@ -42,6 +42,7 @@ jobs:
 
           # PULL REQUESTS -----------------------------------------------------
           days-before-pr-stale: 60
+          exempt-pr-labels: "from:contributor"
           stale-pr-label: stale
           stale-pr-message: >
             This pull request has been automatically marked as stale because it has not had recent activity.
