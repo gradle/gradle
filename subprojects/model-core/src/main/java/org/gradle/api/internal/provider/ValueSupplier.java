@@ -531,11 +531,9 @@ public interface ValueSupplier {
                 return this;
             }
 
-            if (this.sideEffect == null) {
-                return Value.withSideEffect(result, sideEffect);
-            }
-
-            return Value.withSideEffect(result, SideEffect.composite(this.sideEffect, sideEffect));
+            SideEffect<? super T> composedSideEffect = this.sideEffect == null ? sideEffect : SideEffect.composite(this.sideEffect, sideEffect);
+            // Using the direct constructor call, because `result` can be null due to `Value.SUCCESS`
+            return new Present<>(result, composedSideEffect);
         }
 
         @Override
