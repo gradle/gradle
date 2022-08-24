@@ -116,8 +116,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         then:
-        node.executed
         result.failures.empty
+        node.executed
 
         where:
         workers << [1, manyWorkers]
@@ -143,9 +143,9 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         then:
+        result.failures.empty
         childNode.executed
         node.executed
-        result.failures.empty
 
         where:
         workers << [1, manyWorkers]
