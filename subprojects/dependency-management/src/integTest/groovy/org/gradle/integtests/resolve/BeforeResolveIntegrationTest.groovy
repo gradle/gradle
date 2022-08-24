@@ -127,6 +127,7 @@ task copyFiles(type:Copy) {
     @Requires(TestPrecondition.ONLINE)
     // This emulates the behaviour of the Spring Dependency Management plugin when applying dependency excludes from a BOM
     def "can use beforeResolve hook to modify excludes for a dependency shared with an already-resolved configuration"() {
+        given: "3 modules, where there are dependency relations such that module1 depends on module2 and module2 depends on module3"
         mavenRepo.module('org.test', 'module1', '1.0').publish()
         mavenRepo.module('org.test', 'module2', '1.0')
             .dependsOn('org.test', 'module1', '1.0')
@@ -135,14 +136,9 @@ task copyFiles(type:Copy) {
             .dependsOn('org.test', 'module2', '1.0')
             .publish()
 
-        given:
+        and: "a build where conf a and b extend shared, which deps module3, and where if module3 is going to be resolved for conf b, then module 1 is excluded via a beforeResolve hook"
         buildFile << """
-plugins {
-    id 'io.spring.dependency-management' version '1.0.3.RELEASE'
-}
-
 configurations {
-   aOnly
    shared
    a.extendsFrom shared
    b.extendsFrom shared
@@ -173,7 +169,7 @@ task resolveDependencies {
 }
 """
 
-        expect:
+        expect: "that resolving conf a, then b, then a again, succeeds"
         succeeds 'resolveDependencies'
     }
 

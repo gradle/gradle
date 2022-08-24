@@ -22,6 +22,15 @@ import org.gradle.api.Transformer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+/**
+ * <p>A mapping provider that uses a transform for which {@link MappingProvider} cannot be used.
+ * This implementation is used for user provided transforms and also for internal transforms that don't meet the constraints of {@link MappingProvider}.</p>
+ *
+ * <p>This provider checks that the contents of value have been built prior to running the transform, as the transform may use the content.
+ * This check should move further upstream in the future, closer to the producer of the content.</p>
+ *
+ * @see ProviderInternal for a discussion of the "value" and "value contents".
+ */
 public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
     private final Transformer<? extends OUT, ? super IN> transformer;
     private final ProviderInternal<? extends IN> provider;
@@ -70,11 +79,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
         if (value.isMissing()) {
             return value.asType();
         }
-        OUT result = transformer.transform(value.get());
-        if (result == null) {
-            return Value.missing();
-        }
-        return Value.of(result);
+        return value.transform(transformer);
     }
 
     private void beforeRead() {
