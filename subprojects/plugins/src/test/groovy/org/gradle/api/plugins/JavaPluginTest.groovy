@@ -290,7 +290,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/main')
         task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
         task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/main')
-        task.destinationDir == project.sourceSets.main.java.destinationDirectory.get().asFile
+        task.destinationDirectory.get().getAsFile() == project.sourceSets.main.java.destinationDirectory.get().asFile
         task.source.files == project.sourceSets.main.java.files
 
         when:
@@ -320,7 +320,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/test')
         task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
         task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/test')
-        task.destinationDir == project.sourceSets.test.java.destinationDirectory.get().asFile
+        task.destinationDirectory.get().getAsFile() == project.sourceSets.test.java.destinationDirectory.get().asFile
         task.source.files == project.sourceSets.test.java.files
 
         when:
