@@ -54,7 +54,10 @@ For more information, see <<tar_tree_no_backing_file>>.
 
 === Removed APIs
 
-TBD
+==== Legacy ArtifactTransform API
+
+The legacy `ArtifactTransform` API has been removed.
+For more information, see <<old_artifact_transforms_api>>.
 
 === Potential breaking changes
 
