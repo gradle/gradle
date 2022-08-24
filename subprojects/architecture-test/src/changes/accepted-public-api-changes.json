@@ -463,6 +463,22 @@
             "changes": [
                 "org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate.registerTransform(org.gradle.api.Action)"
             ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplication",
+            "member": "Method org.gradle.api.plugins.JavaApplication.getMainClassName()",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplication",
+            "member": "Method org.gradle.api.plugins.JavaApplication.setMainClassName(java.lang.String)",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
