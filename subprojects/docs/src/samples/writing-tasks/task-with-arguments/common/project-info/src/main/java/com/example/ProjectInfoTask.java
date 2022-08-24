@@ -15,6 +15,9 @@ class ProjectInfoTask extends DefaultTask {
 
     private Format format = Format.PLAIN;
 
+    private final String projectName = getProject().getName();
+    private final String projectVersion = getProject().getVersion().toString();
+
     public ProjectInfoTask() {
     }
 
@@ -32,12 +35,12 @@ class ProjectInfoTask extends DefaultTask {
     void projectInfo() {
         switch (format) {
             case PLAIN:
-                System.out.println(getProject().getName() + ":" + getProject().getVersion());
+                System.out.println(projectName + ":" + projectVersion);
                 break;
             case JSON:
                 System.out.println("{\n" +
-                    "    \"projectName\": \"" + getProject().getName() + "\"\n" +
-                    "    \"version\": \"" + getProject().getVersion() + "\"\n}");
+                    "    \"projectName\": \"" + projectName + "\"\n" +
+                    "    \"version\": \"" + projectVersion + "\"\n}");
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported format: " + format);

@@ -17,13 +17,12 @@ val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
 
 dependencies {
     constraints {
-        api("com.gradle:gradle-enterprise-gradle-plugin:3.10.3")
-        api("com.gradle.enterprise:test-distribution-gradle-plugin:2.3.5") // Sync with `settings.gradle.kts`
+        api("com.gradle:gradle-enterprise-gradle-plugin:3.11.1") // Sync with `settings.gradle.kts`
         api("org.gradle.guides:gradle-guides-plugin:0.20.1")
         api("com.gradle.publish:plugin-publish-plugin:1.0.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.3.0")
-        api("me.champeau.jmh:jmh-gradle-plugin:0.6.4")
+        api("me.champeau.jmh:jmh-gradle-plugin:0.6.6")
         api("org.asciidoctor:asciidoctor-gradle-jvm:3.3.2")
         api("org.gradle:test-retry-gradle-plugin:1.4.0")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
@@ -62,7 +61,7 @@ dependencies {
         api("org.codenarc:CodeNarc:3.0.1")
         api("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
         api("org.javassist:javassist:3.27.0-GA")
-        api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.4.1")
+        api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0")
         api("org.jsoup:jsoup:1.15.1")
         api("org.junit.jupiter:junit-jupiter:5.8.2")
         api("org.junit.vintage:junit-vintage-engine:5.8.2")

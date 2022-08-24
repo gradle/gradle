@@ -24,6 +24,7 @@ dependencies {
     implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false
     }
+    implementation(libs.futureKotlin("compiler-embeddable"))
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)

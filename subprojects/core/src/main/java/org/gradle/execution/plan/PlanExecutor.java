@@ -38,7 +38,10 @@ public interface PlanExecutor {
     <T> ExecutionResult<Void> process(WorkSource<T> workSource, Action<T> worker);
 
     /**
-     * Verifies that this executor and the work it is running is healthy (not stuck or deadlocked). Aborts any current work when not healthy.
+     * Verifies that this executor and the work it is running is healthy (not starved or deadlocked). Aborts any current work when not healthy, so that {@link #process(WorkSource, Action)}
+     * returns with a failure result.
+     *
+     * <p>Note that this method is intended to be called periodically, but is not guaranteed to be particularly efficient, so should not be called too frequently (say more often than every 10 seconds).</p>
      */
     void assertHealthy();
 }

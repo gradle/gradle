@@ -25,6 +25,4 @@ import javax.annotation.Nullable;
 
 public interface TransformationRegistrationFactory {
     ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject);
-    @SuppressWarnings("deprecation")
-    ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends org.gradle.api.artifacts.transform.ArtifactTransform> implementation, Object[] params);
 }

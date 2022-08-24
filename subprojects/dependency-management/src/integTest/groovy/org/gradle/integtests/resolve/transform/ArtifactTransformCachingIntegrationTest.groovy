@@ -1325,16 +1325,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     def "transform is supplied with a different output directory when transform implementation changes"() {
         given:
-        buildFile << declareAttributes() << multiProjectWithJarSizeTransform(parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform()
 
         file("lib/dir1.classes").file("child").createFile()
-        def firstBuild = true
-        executer.beforeExecute {
-            if ((firstBuild || !GradleContextualExecuter.isConfigCache()) && !useParameterObject) {
-                expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
-            }
-            firstBuild = false
-        }
 
         when:
         succeeds ":util:resolve", ":app:resolve"
@@ -1357,8 +1350,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         // change the implementation
         buildFile.text = ""
-        buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform(fileValue: "'new value'", parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
-        firstBuild = true
+        buildFile << resolveTask << declareAttributes() << multiProjectWithJarSizeTransform(fileValue: "'new value'") << withClassesSizeTransform()
         succeeds ":util:resolve", ":app:resolve"
 
         then:
@@ -1375,9 +1367,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 0
-
-        where:
-        useParameterObject << [true, false]
     }
 
     def "transform is supplied with a different output directory when parameters change"() {
@@ -1385,17 +1374,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         // Use another script to define the value, so that transform implementation does not change when the value is changed
         def otherScript = file("other.gradle")
         otherScript.text = "ext.value = 123"
-        boolean firstBuild = true
-        executer.beforeExecute {
-            if ((firstBuild || !GradleContextualExecuter.configCache) && !useParameterObject) {
-                expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
-            }
-            firstBuild = false
-        }
 
         buildFile << """
             apply from: 'other.gradle'
-        """ << declareAttributes() << multiProjectWithJarSizeTransform(paramValue: "ext.value", parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
+        """ << declareAttributes() << multiProjectWithJarSizeTransform(paramValue: "ext.value") << withClassesSizeTransform()
 
         file("lib/dir1.classes").file("child").createFile()
 
@@ -1419,7 +1401,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         when:
         otherScript.replace('123', '123.4')
-        firstBuild = true
         succeeds ":util:resolve", ":app:resolve"
 
         then:
@@ -1436,9 +1417,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("files: [dir1.classes.dir]") == 2
 
         output.count("Transformed") == 0
-
-        where:
-        useParameterObject << [true, false]
     }
 
     def "transform is supplied with a different output directory when external dependency changes"() {
@@ -1720,12 +1698,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     def multiProjectWithJarSizeTransform(Map options = [:]) {
         def paramValue = options.paramValue ?: "1"
         def fileValue = options.fileValue ?: "String.valueOf(input.length())"
-        def useParameterObject = options.parameterObject == null ? true : options.parameterObject
 
         """
             ext.paramValue = $paramValue
 
-${useParameterObject ? registerFileSizerWithParameterObject(fileValue) : registerFileSizerWithConstructorParams(fileValue)}
+            ${registerFileSizer(fileValue)}
 
             project(':util') {
                 dependencies {
@@ -1741,37 +1718,7 @@ ${useParameterObject ? registerFileSizerWithParameterObject(fileValue) : registe
         """
     }
 
-    String registerFileSizerWithConstructorParams(String fileValue) {
-        """
-            class FileSizer extends ArtifactTransform {
-                @javax.inject.Inject
-                FileSizer(Number value) {
-                }
-
-                List<File> transform(File input) {
-${getFileSizerBody(fileValue, 'new File(outputDirectory, ', 'new File(outputDirectory, ')}
-                    return [output]
-                }
-            }
-
-            allprojects {
-                dependencies {
-                    registerTransform {
-                        from.attribute(artifactType, "jar")
-                        to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer) { params(paramValue) }
-                    }
-                }
-                task resolve(type: Resolve) {
-                    artifacts = configurations.compile.incoming.artifactView {
-                        attributes { it.attribute(artifactType, 'size') }
-                    }.artifacts
-                }
-            }
-            """
-    }
-
-    String registerFileSizerWithParameterObject(String fileValue) {
+    String registerFileSizer(String fileValue) {
         """
             abstract class FileSizer implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
@@ -1788,7 +1735,26 @@ ${getFileSizerBody(fileValue, 'new File(outputDirectory, ', 'new File(outputDire
                 }
 
                 void transform(TransformOutputs outputs) {
-${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
+                    assert input.exists()
+
+                    File output
+                    if (input.file) {
+                        output = outputs.file(input.name + ".txt")
+                        def outputDirectory = output.parentFile
+                        assert outputDirectory.directory && outputDirectory.list().length == 0
+                        output.text = ${fileValue}
+                    } else {
+                        output = outputs.dir(input.name + ".dir")
+                        assert output.directory && output.list().length == 0
+                        new File(output, "child.txt").text = "transformed"
+                    }
+                    def outputDirectory = output.parentFile
+                    println "Transformed \$input.name to \$output.name into \$outputDirectory"
+
+                    if (System.getProperty("broken")) {
+                        new File(outputDirectory, "some-garbage").text = "delete-me"
+                        throw new RuntimeException("broken")
+                    }
                 }
             }
 
@@ -1811,36 +1777,6 @@ ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
             """
     }
 
-    String getFileSizerBody(String fileValue, String obtainOutputDir, String obtainOutputFile) {
-        String validateWorkspace = """
-            def outputDirectory = output.parentFile
-            assert outputDirectory.directory && outputDirectory.list().length == 0
-        """
-        """
-                    assert input.exists()
-
-                    File output
-                    if (input.file) {
-                        output = ${obtainOutputFile}input.name + ".txt")
-                        ${validateWorkspace}
-                        output.text = $fileValue
-                    } else {
-                        output = ${obtainOutputDir}input.name + ".dir")
-                        output.delete()
-                        ${validateWorkspace}
-                        output.mkdirs()
-                        new File(output, "child.txt").text = "transformed"
-                    }
-                    def outputDirectory = output.parentFile
-                    println "Transformed \$input.name to \$output.name into \$outputDirectory"
-
-                    if (System.getProperty("broken")) {
-                        new File(outputDirectory, "some-garbage").text = "delete-me"
-                        throw new RuntimeException("broken")
-                    }
-        """
-    }
-
     def withJarTasks() {
         """
             project(':lib') {
@@ -1861,14 +1797,14 @@ ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
         """
     }
 
-    def withClassesSizeTransform(boolean useParameterObject = true) {
+    def withClassesSizeTransform() {
         """
             allprojects {
                 dependencies {
-                    registerTransform${useParameterObject ? "(FileSizer)" : ""} {
+                    registerTransform(FileSizer) {
                         from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
-                        ${useParameterObject ? "parameters { value = paramValue }" : "artifactTransform(FileSizer) { params(paramValue) }"}
+                        parameters { value = paramValue }
                     }
                 }
             }

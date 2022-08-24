@@ -88,7 +88,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def executionHistoryStore = new TestExecutionHistoryStore()
     def virtualFileSystem = TestFiles.virtualFileSystem()
     def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.fileSystem())
 
     def transformationWorkspaceServices = new TestTransformationWorkspaceServices(immutableTransformsStoreDirectory, executionHistoryStore)
 
@@ -206,8 +206,12 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         @Override
-        ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, InputChanges inputChanges) {
-            return ImmutableList.copyOf(transformationAction.apply(inputArtifactProvider.get().asFile, outputDir))
+        TransformationResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, InputChanges inputChanges) {
+            def builder = TransformationResult.builderFor(inputArtifactProvider.get().asFile, outputDir)
+            transformationAction.apply(inputArtifactProvider.get().asFile, outputDir).each {
+                builder.addOutput(it) { }
+            }
+            return builder.build()
         }
 
         @Override

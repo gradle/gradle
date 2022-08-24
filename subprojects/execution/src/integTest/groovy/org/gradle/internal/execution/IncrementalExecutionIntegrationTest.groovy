@@ -101,7 +101,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
     def virtualFileSystem = TestFiles.virtualFileSystem()
     def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.fileSystem())
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, snapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
     def executionHistoryStore = new TestExecutionHistoryStore()
     def outputChangeListener = new OutputChangeListener() {

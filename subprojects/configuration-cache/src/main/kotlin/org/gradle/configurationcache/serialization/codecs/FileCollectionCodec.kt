@@ -42,7 +42,6 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
-import org.gradle.configurationcache.serialization.logPropertyProblem
 import java.io.File
 
 
@@ -54,23 +53,9 @@ class FileCollectionCodec(
 
     override suspend fun WriteContext.encode(value: FileCollectionInternal) {
         encodePreservingIdentityOf(value) {
-            runCatching {
-                val visitor = CollectingVisitor()
-                value.visitStructure(visitor)
-                visitor.elements
-            }.apply {
-                onSuccess { elements ->
-                    write(elements)
-                }
-                onFailure { ex ->
-                    logPropertyProblem("serialize", ex) {
-                        text("value ")
-                        reference(value.toString())
-                        text(" failed to visit file collection")
-                    }
-                    write(BrokenValue(ex))
-                }
-            }
+            val visitor = CollectingVisitor()
+            value.visitStructure(visitor)
+            write(visitor.elements)
         }
     }
 
@@ -181,9 +166,6 @@ class CollectingVisitor : FileCollectionStructureVisitor {
             }
         }
     }
-
-    override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) =
-        unsupportedFileTree(fileTree)
 
     override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) =
         unsupportedFileTree(fileTree)

@@ -46,7 +46,6 @@ import org.gradle.configurationcache.serialization.codecs.transform.DefaultTrans
 import org.gradle.configurationcache.serialization.codecs.transform.FinalizeTransformDependenciesNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.InitialTransformationNodeCodec
 import org.gradle.configurationcache.serialization.codecs.transform.IsolateTransformerParametersNodeCodec
-import org.gradle.configurationcache.serialization.codecs.transform.LegacyTransformerCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformStepSpecCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationChainCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationStepCodec
@@ -152,7 +151,6 @@ class Codecs(
         bind(TransformationStepCodec(inputFingerprinter))
         bind(TransformationChainCodec())
         bind(DefaultTransformerCodec(fileLookup, actionScheme))
-        bind(LegacyTransformerCodec(actionScheme))
         bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
         bind(TransformStepSpecCodec)
         bind(PublishArtifactLocalArtifactMetadataCodec)
@@ -289,11 +287,13 @@ class Codecs(
         // Only serialize certain List implementations
         bind(arrayListCodec)
         bind(linkedListCodec)
+        bind(copyOnWriteArrayListCodec)
         bind(ImmutableListCodec)
 
         // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
         bind(HashSetCodec)
         bind(treeSetCodec)
+        bind(copyOnWriteArraySetCodec)
         bind(ImmutableSetCodec)
 
         // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)

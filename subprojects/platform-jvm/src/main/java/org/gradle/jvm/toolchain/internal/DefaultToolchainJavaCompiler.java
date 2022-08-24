@@ -56,5 +56,4 @@ public class DefaultToolchainJavaCompiler implements JavaCompiler {
         final Class<T> specType = (Class<T>) spec.getClass();
         return compilerFactory.create(specType).execute(spec);
     }
-
 }

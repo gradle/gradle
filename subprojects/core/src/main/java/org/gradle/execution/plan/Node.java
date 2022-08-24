@@ -68,7 +68,7 @@ public abstract class Node {
     private DependenciesState dependenciesState = DependenciesState.NOT_COMPLETE;
     private Throwable executionFailure;
     private boolean filtered;
-    private final NavigableSet<Node> dependencySuccessors = newSortedNodeSet();
+    private final NodeDependencySet dependencySuccessors = new NodeDependencySet(this);
     private final NavigableSet<Node> dependencyPredecessors = newSortedNodeSet();
     private final MutationInfo mutationInfo = new MutationInfo(this);
     private NodeGroup group = NodeGroup.DEFAULT_GROUP;
@@ -82,16 +82,36 @@ public abstract class Node {
         if (isComplete()) {
             return this + " (state=" + state + ")";
         } else {
-            String specificState = nodeSpecificHealthDiagnostics();
-            if (!specificState.isEmpty()) {
-                specificState = ", " + specificState;
-            }
-            return this + " (state=" + state + ", dependencies=" + dependenciesState + specificState + ", group=" + group + ", successors=" + getHardSuccessors() + ")";
+            StringBuilder specificState = new StringBuilder();
+            nodeSpecificHealthDiagnostics(specificState);
+            return this + " (state=" + state
+                + ", dependencies=" + dependenciesState
+                + ", group=" + group
+                + ", dependencies=" + formatNodes(dependencySuccessors.getOrderedNodes())
+                + specificState + " )";
         }
     }
 
-    protected String nodeSpecificHealthDiagnostics() {
-        return "";
+    protected String formatNodes(Iterable<? extends Node> nodes) {
+        StringBuilder builder = new StringBuilder();
+        builder.append('[');
+        boolean first = true;
+        for (Node node : nodes) {
+            if (first) {
+                first = false;
+            } else {
+                builder.append(", ");
+            }
+            builder.append(node);
+            if (node.isComplete()) {
+                builder.append(" (complete)");
+            }
+        }
+        builder.append(']');
+        return builder.toString();
+    }
+
+    protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
     }
 
     public NodeGroup getGroup() {
@@ -210,7 +230,7 @@ public abstract class Node {
     }
 
     public boolean isCanCancel() {
-        return true;
+        return group.isCanCancel();
     }
 
     public boolean isInKnownState() {
@@ -357,27 +377,33 @@ public abstract class Node {
     }
 
     public Set<Node> getDependencySuccessors() {
-        return dependencySuccessors;
+        return dependencySuccessors.getOrderedNodes();
     }
 
     public Iterable<Node> getDependencySuccessorsInReverseOrder() {
-        return dependencySuccessors.descendingSet();
+        return dependencySuccessors.getOrderedNodes().descendingSet();
     }
 
     public void addDependencySuccessor(Node toNode) {
-        dependencySuccessors.add(toNode);
+        dependencySuccessors.addDependency(toNode);
         toNode.getDependencyPredecessors().add(this);
+    }
+
+    /**
+     * Called when a node that this node may be waiting for has completed.
+     */
+    public void onNodeComplete(Node node) {
+        dependencySuccessors.onNodeComplete(node);
+        updateAllDependenciesComplete();
     }
 
     @OverridingMethodsMustInvokeSuper
     protected DependenciesState doCheckDependenciesComplete() {
-        for (Node dependency : dependencySuccessors) {
-            if (!dependency.isComplete()) {
-                return DependenciesState.NOT_COMPLETE;
-            } else if (!shouldContinueExecution(dependency)) {
-                return DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL;
-            }
+        DependenciesState state = dependencySuccessors.getState();
+        if (state == DependenciesState.NOT_COMPLETE || state == DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL) {
+            return state;
         }
+
         // All dependencies are complete and successful, delegate to the group
         return group.checkSuccessorsCompleteFor(this);
     }
@@ -484,12 +510,12 @@ public abstract class Node {
      */
     @OverridingMethodsMustInvokeSuper
     public Iterable<Node> getHardSuccessors() {
-        return dependencySuccessors;
+        return dependencySuccessors.getOrderedNodes();
     }
 
     @OverridingMethodsMustInvokeSuper
     public Iterable<Node> getAllSuccessorsInReverseOrder() {
-        return dependencySuccessors.descendingSet();
+        return dependencySuccessors.getOrderedNodes().descendingSet();
     }
 
     public Set<Node> getFinalizers() {
@@ -504,11 +530,29 @@ public abstract class Node {
     }
 
     /**
-     * Returns a node that should be executed prior to this node, once this node is ready to execute and it dependencies complete.
+     * Visits the "pre-execution" nodes of this node. These nodes should be treated as though they are dependencies of this node.
+     * This method is called when this node is ready to execute and its other dependencies are complete,
+     * allowing some dependencies of this node to be defined dynamically.
+     *
+     * <p>Note: there is currently no cycle detection applied to these dynamically added nodes or their dependencies.
+     * Support for this is not implemented yet and will be added later.
      */
-    @Nullable
-    public Node getPrepareNode() {
-        return null;
+    public void visitPreExecutionNodes(Consumer<? super Node> visitor) {
+    }
+
+    /**
+     * Visits the "post-execution" nodes of this node. These nodes should be treated as though they also produce the outputs or
+     * results of this node. That is, all nodes that depend on this node should also depend on these nodes. This method is called when
+     * this node has executed successfully and before any of its dependents are started, allowing some work of this node to be dynamically split
+     * up into other nodes that can run in parallel or with different resource requirements.
+     *
+     * <p>Note: there is currently no cycle detection applied to these dynamically added nodes or their dependencies.
+     * Support for this is not implemented yet and will be added later.
+     *
+     * <p>Note: mustRunAfter or finalizedBy relationship on this node is not honored for these dynamically added nodes or their dependencies.
+     * Support for this is not implemented yet and will be added later.
+     */
+    public void visitPostExecutionNodes(Consumer<? super Node> visitor) {
     }
 
     public MutationInfo getMutationInfo() {

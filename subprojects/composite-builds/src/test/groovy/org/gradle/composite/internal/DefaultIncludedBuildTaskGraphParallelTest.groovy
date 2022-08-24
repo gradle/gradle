@@ -16,14 +16,26 @@
 
 package org.gradle.composite.internal
 
+import org.gradle.StartParameter
 import org.gradle.api.Action
+import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.plugins.PluginManagerInternal
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.NodeExecutionContext
+import org.gradle.api.internal.tasks.TaskDestroyablesInternal
+import org.gradle.api.internal.tasks.TaskLocalStateInternal
+import org.gradle.api.internal.tasks.properties.PropertyWalker
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.execution.plan.BuildWorkPlan
 import org.gradle.execution.plan.DefaultExecutionPlan
 import org.gradle.execution.plan.DefaultPlanExecutor
@@ -50,9 +62,13 @@ import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.resources.ResourceLock
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseService
+import org.gradle.util.Path
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.jetbrains.annotations.Nullable
 import org.junit.Rule
@@ -88,17 +104,19 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "runs scheduled work"() {
         def services = new Services(workers)
-        def build = services.build(DefaultBuildIdentifier.ROOT)
+        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def node = new TestNode()
 
         when:
         def result = scheduleAndRun(services) { builder ->
-            builder.withWorkGraph(build) { graphBuilder ->
-                def node = new TestNode()
-                graphBuilder.addNodes([node])
+            builder.withWorkGraph(build.state) { graphBuilder ->
+                def task = task(build, node)
+                graphBuilder.addEntryTasks([task])
             }
         }
 
         then:
+        node.executed
         result.failures.empty
 
         where:
@@ -107,22 +125,26 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "runs scheduled work across multiple builds"() {
         def services = new Services(workers)
-        def childBuild = services.build(new DefaultBuildIdentifier("child"))
-        def build = services.build(DefaultBuildIdentifier.ROOT)
+        def childBuild = build(services, new DefaultBuildIdentifier("child"))
+        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def childNode = new TestNode("child build node")
+        def node = new DelegateNode("main build node", [childNode])
 
         when:
         def result = scheduleAndRun(services) { builder ->
-            def childNode = new TestNode("child build node")
-            builder.withWorkGraph(build) { graphBuilder ->
-                def node = new DelegateNode("main build node", [childNode])
-                graphBuilder.addNodes([node])
+            builder.withWorkGraph(build.state) { graphBuilder ->
+                def task = task(build, node)
+                graphBuilder.addEntryTasks([task])
             }
-            builder.withWorkGraph(childBuild) { graphBuilder ->
-                graphBuilder.addNodes([childNode])
+            builder.withWorkGraph(childBuild.state) { graphBuilder ->
+                def task = task(childBuild, childNode)
+                graphBuilder.addEntryTasks([task])
             }
         }
 
         then:
+        childNode.executed
+        node.executed
         result.failures.empty
 
         where:
@@ -131,43 +153,51 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "fails when no further nodes can be selected"() {
         def services = new Services(manyWorkers)
-        def build = services.build(DefaultBuildIdentifier.ROOT)
+        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def node = new DependenciesStuckNode()
 
         when:
         def result = scheduleAndRun(services) { builder ->
-            builder.withWorkGraph(build) { graphBuilder ->
-                def node = new DependenciesStuckNode()
-                graphBuilder.addNodes([node])
+            builder.withWorkGraph(build.state) { graphBuilder ->
+                def task = task(build, node)
+                graphBuilder.addEntryTasks([task])
             }
         }
 
         then:
+        node.stuck
         result.failures.size() == 1
         result.failures.first() instanceof IllegalStateException
         result.failures.first().message == "Unable to make progress running work. There are items queued for execution but none of them can be started"
 
         stdout.stdOut.contains("Unable to make progress running work. The following items are queued for execution but none of them can be started:")
         stdout.stdOut.contains("- test node (state=SHOULD_RUN")
+        stdout.stdOut.contains("- :task (state=SHOULD_RUN")
+        stdout.stdOut.contains("- Ordinal groups for build ':': group 0 entry nodes: [:task]")
     }
 
     def "fails when no further nodes can be selected across multiple builds"() {
         def services = new Services(manyWorkers)
-        def childBuild = services.build(new DefaultBuildIdentifier("child"))
-        def build = services.build(DefaultBuildIdentifier.ROOT)
+        def childBuild = build(services, new DefaultBuildIdentifier("child"))
+        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def node = new DependenciesStuckNode("main build node")
+        def childNode = new DependenciesStuckNode("child build node")
 
         when:
         def result = scheduleAndRun(services) { builder ->
-            builder.withWorkGraph(build) { graphBuilder ->
-                def node = new DependenciesStuckNode("main build node")
-                graphBuilder.addNodes([node])
+            builder.withWorkGraph(build.state) { graphBuilder ->
+                def task = task(build, node)
+                graphBuilder.addEntryTasks([task])
             }
-            builder.withWorkGraph(childBuild) { graphBuilder ->
-                def node = new DependenciesStuckNode("child build node")
-                graphBuilder.addNodes([node])
+            builder.withWorkGraph(childBuild.state) { graphBuilder ->
+                def task = task(childBuild, childNode)
+                graphBuilder.addEntryTasks([task])
             }
         }
 
         then:
+        node.stuck
+        childNode.stuck
         result.failures.size() == 1
         result.failures.first() instanceof IllegalStateException
         result.failures.first().message == "Unable to make progress running work. There are items queued for execution but none of them can be started"
@@ -175,8 +205,11 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         stdout.stdOut.contains("Unable to make progress running work. The following items are queued for execution but none of them can be started:")
         stdout.stdOut.contains("- Queued nodes for build ':':")
         stdout.stdOut.contains("- main build node (state=SHOULD_RUN")
+        stdout.stdOut.contains("- :task (state=SHOULD_RUN")
+        stdout.stdOut.contains("- Ordinal groups for build ':': group 0 entry nodes: [:task]")
         stdout.stdOut.contains("- Queued nodes for build 'child':")
         stdout.stdOut.contains("- child build node (state=SHOULD_RUN")
+        stdout.stdOut.contains("- :child:task (state=SHOULD_RUN")
     }
 
     ExecutionResult<Void> scheduleAndRun(Services services, Action<BuildTreeWorkGraph.Builder> action) {
@@ -194,19 +227,56 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         return result
     }
 
-    private BuildWorkGraphController buildWorkGraphController(String displayName, Services services) {
+    BuildServices build(Services services, BuildIdentifier identifier) {
+        return new BuildServices(services, identifier, Stub(GradleInternal))
+    }
+
+    TaskInternal task(BuildServices services, Node dependsOn) {
+        def projectState = Stub(ProjectState)
+        def project = Stub(ProjectInternal)
+        def task = Stub(TaskInternal)
+        def dependencies = Stub(TaskDependency)
+        _ * dependencies.getDependencies(_) >> [dependsOn].toSet()
+        _ * task.taskDependencies >> dependencies
+        _ * task.project >> project
+        _ * task.identityPath >> Path.path(":${services.identifier.name}:task")
+        _ * task.taskIdentity >> TaskIdentity.create("task", DefaultTask, project)
+        _ * task.destroyables >> Stub(TaskDestroyablesInternal)
+        _ * task.localState >> Stub(TaskLocalStateInternal)
+        _ * project.gradle >> services.gradle
+        _ * project.owner >> projectState
+        def projectServices = new DefaultServiceRegistry(TestUtil.services())
+        projectServices.add(Stub(PropertyWalker))
+        projectServices.add(Stub(FileCollectionFactory))
+        _ * project.services >> projectServices
+        _ * project.pluginManager >> Stub(PluginManagerInternal)
+        def lock = Stub(ResourceLock)
+        _ * projectState.taskExecutionLock >> lock
+        _ * lock.tryLock() >> true
+        return task
+    }
+
+    private BuildWorkGraphController buildWorkGraphController(String displayName, BuildServices services) {
         def builder = Mock(BuildLifecycleController.WorkGraphBuilder)
-        def nodeFactory = new TaskNodeFactory(Stub(GradleInternal), Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), Stub(NodeValidator))
+        def nodeFactory = new TaskNodeFactory(services.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationExecutor())
         def hierarchies = new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_SENSITIVE, TestFiles.fileSystem())
-        def plan = new DefaultExecutionPlan(displayName, nodeFactory, new OrdinalGroupFactory(), Stub(TaskDependencyResolver), hierarchies.outputHierarchy, hierarchies.destroyableHierarchy, services.coordinationService)
+        def dependencyResolver = Stub(TaskDependencyResolver)
+        _ * dependencyResolver.resolveDependenciesFor(_, _) >> { TaskInternal task, Object dependencies ->
+            if (dependencies instanceof TaskDependency) {
+                dependencies.getDependencies(task)
+            } else {
+                []
+            }
+        }
+        def plan = new DefaultExecutionPlan(displayName, nodeFactory, new OrdinalGroupFactory(), dependencyResolver, hierarchies.outputHierarchy, hierarchies.destroyableHierarchy, services.services.coordinationService)
         def workPlan = Stub(BuildWorkPlan) {
             _ * stop() >> { plan.close() }
         }
 
-        def controller = new TestBuildLifecycleController(plan, workPlan, builder, services)
+        def controller = new TestBuildLifecycleController(plan, workPlan, builder, services.services)
 
-        _ * builder.addNodes(_) >> { args ->
-            plan.addNodes(args[0])
+        _ * builder.addEntryTasks(_) >> { args ->
+            plan.addEntryTasks(args[0])
         }
 
         return new DefaultBuildWorkGraphController(
@@ -246,7 +316,11 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
         @Override
         ExecutionResult<Void> executeTasks(BuildWorkPlan buildPlan) {
-            return services.planExecutor.process(plan.asWorkSource()) { node -> }
+            return services.planExecutor.process(plan.asWorkSource()) { node ->
+                if (node instanceof SelfExecutingNode) {
+                    node.execute(null)
+                }
+            }
         }
 
         @Override
@@ -299,6 +373,20 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
     }
 
+    private class BuildServices {
+        final Services services
+        final GradleInternal gradle
+        final BuildState state
+        final BuildIdentifier identifier
+
+        BuildServices(Services services, BuildIdentifier identifier, GradleInternal gradle) {
+            this.identifier = identifier
+            this.services = services
+            this.gradle = gradle
+            this.state = build(identifier, buildWorkGraphController(identifier.toString(), this))
+        }
+    }
+
     private class Services {
         final PlanExecutor planExecutor
         final DefaultIncludedBuildTaskGraph buildTaskGraph
@@ -310,7 +398,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
             def configuration = new DefaultParallelismConfiguration(true, workers)
             workerLeaseService = new DefaultWorkerLeaseService(coordinationService, configuration)
             execFactory = new DefaultExecutorFactory()
-            planExecutor = new DefaultPlanExecutor(configuration, execFactory, workerLeaseService, cancellationToken, coordinationService)
+            planExecutor = new DefaultPlanExecutor(configuration, execFactory, workerLeaseService, cancellationToken, coordinationService, new StartParameter())
             buildTaskGraph = new DefaultIncludedBuildTaskGraph(
                 execFactory,
                 new TestBuildOperationExecutor(),
@@ -322,10 +410,6 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
             )
         }
 
-        BuildState build(BuildIdentifier identifier) {
-            return build(identifier, buildWorkGraphController(identifier.toString(), this))
-        }
-
         void stop() {
             CompositeStoppable.stoppable(buildTaskGraph, planExecutor, workerLeaseService, coordinationService, execFactory).stop()
         }
@@ -334,10 +418,10 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     private static class TestNode extends Node implements SelfExecutingNode {
         private final String displayName
         private final List<Runnable> observers = []
+        boolean executed
 
         TestNode(String displayName = "test node") {
             this.displayName = displayName
-            require()
         }
 
         void addObserver(Runnable runnable) {
@@ -360,6 +444,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
         @Override
         void execute(NodeExecutionContext context) {
+            executed = true
             sleep(SLOW_NODE_EXECUTION_TIME)
         }
 
@@ -373,12 +458,15 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     }
 
     private static class DependenciesStuckNode extends TestNode {
+        boolean stuck
+
         DependenciesStuckNode(String displayName = "test node") {
             super(displayName)
         }
 
         @Override
         protected DependenciesState doCheckDependenciesComplete() {
+            stuck = true
             return DependenciesState.NOT_COMPLETE
         }
     }

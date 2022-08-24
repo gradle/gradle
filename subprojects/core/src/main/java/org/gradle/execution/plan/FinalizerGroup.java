@@ -48,7 +48,7 @@ public class FinalizerGroup extends HasFinalizers {
 
     @Override
     public String toString() {
-        return "finalizer " + node + " in " + ordinal;
+        return "finalizer " + node + " ordinal: " + ordinal + ", delegate: " + delegate;
     }
 
     public TaskNode getNode() {
@@ -145,6 +145,15 @@ public class FinalizerGroup extends HasFinalizers {
     public void visitAllMembers(Consumer<Node> visitor) {
         for (Node member : members) {
             visitor.accept(member);
+        }
+    }
+
+    @Override
+    public boolean isCanCancel() {
+        if (!isCanCancel(Collections.singletonList(this))) {
+            return false;
+        } else {
+            return delegate.isCanCancel();
         }
     }
 

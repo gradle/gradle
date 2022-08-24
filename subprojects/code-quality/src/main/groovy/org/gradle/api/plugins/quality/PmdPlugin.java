@@ -27,6 +27,10 @@ import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
@@ -75,6 +79,11 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         return Pmd.class;
     }
 
+    @Inject
+    protected JavaToolchainService getToolchainService() {
+        throw new UnsupportedOperationException();
+    }
+
     @Override
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("pmd", PmdExtension.class, project);
@@ -117,6 +126,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
+        configureToolchains(task);
     }
 
     private void configureDefaultDependencies(Configuration configuration) {
@@ -157,6 +167,15 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
                 }))
             );
         }));
+    }
+
+    private void configureToolchains(Pmd task) {
+        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(new CurrentJvmToolchainSpec(project.getObjects()));
+        task.getJavaLauncher().convention(javaLauncherProvider);
+        project.getPluginManager().withPlugin("java-base", p -> {
+            JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
+            task.getJavaLauncher().convention(getToolchainService().launcherFor(toolchain).orElse(javaLauncherProvider));
+        });
     }
 
     private String calculateDefaultDependencyNotation(VersionNumber toolVersion) {

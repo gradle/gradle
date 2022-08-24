@@ -9,61 +9,41 @@ import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
 import common.compileAllDependency
+import common.dependsOn
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildFeatures
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.ProjectFeatures
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.PullRequests
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.pullRequests
 import model.CIBuildModel
-import model.StageNames
+import model.StageName
 
-val m2CleanScriptUnixLike = """
-    REPO=%teamcity.agent.jvm.user.home%/.m2/repository
+fun checkCleanDirUnixLike(dir: String, exitOnFailure: Boolean = true) = """
+    REPO=$dir
     if [ -e ${'$'}REPO ] ; then
         tree ${'$'}REPO
         rm -rf ${'$'}REPO
         echo "${'$'}REPO was polluted during the build"
-        exit 1
+        ${if (exitOnFailure) "exit 1" else ""}
     else
         echo "${'$'}REPO does not exist"
     fi
 
 """.trimIndent()
 
-val m2CleanScriptWindows = """
-    IF exist %teamcity.agent.jvm.user.home%\.m2\repository (
-        TREE %teamcity.agent.jvm.user.home%\.m2\repository
-        RMDIR /S /Q %teamcity.agent.jvm.user.home%\.m2\repository
-        EXIT 1
+fun checkCleanDirWindows(dir: String, exitOnFailure: Boolean = true) = """
+    IF exist $dir (
+        TREE $dir
+        RMDIR /S /Q $dir
+        ${if (exitOnFailure) "EXIT 1" else ""}
     )
 
-""".trimIndent()
-
-val checkCleanAndroidUserHomeScriptUnixLike = """
-    ANDROID_USER_HOME=%teamcity.agent.jvm.user.home%/.android
-    if [ -e ${'$'}ANDROID_USER_HOME ] ; then
-        tree ${'$'}ANDROID_USER_HOME
-        rm -rf ${'$'}ANDROID_USER_HOME
-        echo "${'$'}ANDROID_USER_HOME was polluted during the build"
-        # exit 1
-    else
-        echo "${'$'}ANDROID_USER_HOME does not exist"
-    fi
-""".trimIndent()
-
-val checkCleanAndroidUserHomeScriptWindows = """
-    IF exist %teamcity.agent.jvm.user.home%\.android (
-        TREE %teamcity.agent.jvm.user.home%\.android
-        RMDIR /S /Q %teamcity.agent.jvm.user.home%\.android
-        REM EXIT 1
-    )
 """.trimIndent()
 
 fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
@@ -74,7 +54,7 @@ fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
 
 fun BuildFeatures.enablePullRequestFeature() {
     pullRequests {
-        vcsRootExtId = "GradleMaster"
+        vcsRootExtId = VersionedSettingsBranch.fromDslContext().vcsRootId()
         provider = github {
             authType = token {
                 token = "%github.bot-teamcity.token%"
@@ -87,7 +67,7 @@ fun BuildFeatures.enablePullRequestFeature() {
 
 fun BuildFeatures.publishBuildStatusToGithub() {
     commitStatusPublisher {
-        vcsRootExtId = "GradleMaster"
+        vcsRootExtId = VersionedSettingsBranch.fromDslContext().vcsRootId()
         publisher = github {
             githubUrl = "https://api.github.com"
             authType = personalToken {
@@ -128,7 +108,7 @@ fun applyDefaults(
     model: CIBuildModel,
     buildType: BaseGradleBuildType,
     gradleTasks: String,
-    notQuick: Boolean = false,
+    dependsOnQuickFeedbackLinux: Boolean = false,
     os: Os = Os.LINUX,
     extraParameters: String = "",
     timeout: Int = 90,
@@ -137,7 +117,7 @@ fun applyDefaults(
 ) {
     buildType.applyDefaultSettings(os, timeout = timeout)
 
-    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon)
+    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", os)
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
     buildType.steps {
@@ -145,14 +125,14 @@ fun applyDefaults(
         checkCleanM2AndAndroidUserHome(os)
     }
 
-    applyDefaultDependencies(model, buildType, notQuick)
+    applyDefaultDependencies(model, buildType, dependsOnQuickFeedbackLinux)
 }
 
 fun applyTestDefaults(
     model: CIBuildModel,
     buildType: BaseGradleBuildType,
     gradleTasks: String,
-    notQuick: Boolean = false,
+    dependsOnQuickFeedbackLinux: Boolean = false,
     buildJvm: Jvm = BuildToolBuildJvm,
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
@@ -168,32 +148,27 @@ fun applyTestDefaults(
         preSteps()
     }
 
-    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon)
+    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", os, arch)
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
-    buildType.killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", daemon)
+    buildType.killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", os, arch)
 
     buildType.steps {
         extraSteps()
         checkCleanM2AndAndroidUserHome(os)
     }
 
-    applyDefaultDependencies(model, buildType, notQuick)
+    applyDefaultDependencies(model, buildType, dependsOnQuickFeedbackLinux)
 }
 
 fun buildScanTag(tag: String) = """"-Dscan.tag.$tag""""
 fun buildScanCustomValue(key: String, value: String) = """"-Dscan.value.$key=$value""""
-fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick: Boolean = false) {
-    if (notQuick) {
+fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, dependsOnQuickFeedbackLinux: Boolean) {
+    if (dependsOnQuickFeedbackLinux) {
         // wait for quick feedback phase to finish successfully
         buildType.dependencies {
-            dependency(RelativeId(stageTriggerId(model, StageNames.QUICK_FEEDBACK_LINUX_ONLY))) {
-                snapshot {
-                    onDependencyFailure = FailureAction.FAIL_TO_START
-                    onDependencyCancel = FailureAction.FAIL_TO_START
-                }
-            }
+            dependsOn(RelativeId(stageTriggerId(model, StageName.QUICK_FEEDBACK_LINUX_ONLY)))
         }
     }
     if (buildType !is CompileAllProduction) {

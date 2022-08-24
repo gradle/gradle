@@ -25,3 +25,4 @@ subprojects/testing-jvm/            @gradle/ge-testing
 
 # Release notes
 subprojects/docs/src/docs/release/notes.md @hythloda
+subprojects/docs/                          @nathan-contino

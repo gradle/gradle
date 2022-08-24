@@ -21,6 +21,7 @@ import gradlebuild.basics.buildRunningOnCi
 import gradlebuild.basics.buildTimestamp
 import gradlebuild.basics.buildVersionQualifier
 import gradlebuild.basics.ignoreIncomingBuildReceipt
+import gradlebuild.basics.isPromotionBuild
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
 import gradlebuild.identity.extension.ModuleIdentityExtension
@@ -82,7 +83,7 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
     moduleIdentity.version.convention(GradleVersion.version(versionNumber))
     moduleIdentity.snapshot.convention(isSnapshot)
     moduleIdentity.buildTimestamp.convention(buildTimestamp)
-    moduleIdentity.promotionBuild.convention(isPromotionBuild())
+    moduleIdentity.promotionBuild.convention(isPromotionBuild)
 
     moduleIdentity.releasedVersions.set(
         provider {
@@ -95,11 +96,6 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
 
     return versionNumber
 }
-
-/**
- * Is a promotion build task called?
- */
-fun isPromotionBuild(): Boolean = gradle.startParameter.taskNames.contains("promotionBuild")
 
 /**
  * Returns the trimmed contents of the file at the given [path] after

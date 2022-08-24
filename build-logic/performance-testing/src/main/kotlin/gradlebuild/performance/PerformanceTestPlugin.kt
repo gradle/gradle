@@ -26,6 +26,7 @@ import gradlebuild.basics.androidStudioHome
 import gradlebuild.basics.autoDownloadAndroidStudio
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.buildCommitId
+import gradlebuild.basics.defaultPerformanceBaselines
 import gradlebuild.basics.includePerformanceTestScenarios
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.performanceBaselines
@@ -262,9 +263,8 @@ class PerformanceTestPlugin : Plugin<Project> {
         plugins.withType<IdeaPlugin> {
             configure<IdeaModel> {
                 module {
-                    testSourceDirs = testSourceDirs + performanceTestSourceSet.java.srcDirs
-                    testSourceDirs = testSourceDirs + performanceTestSourceSet.groovy.srcDirs
-                    testResourceDirs = testResourceDirs + performanceTestSourceSet.resources.srcDirs
+                    testSources.from(performanceTestSourceSet.java.srcDirs, performanceTestSourceSet.groovy.srcDirs)
+                    testResources.from(performanceTestSourceSet.resources.srcDirs)
                 }
             }
         }
@@ -329,6 +329,8 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         determineBaselines.configure {
             configuredBaselines.set(extension.baselines)
+            defaultBaselines.set(project.defaultPerformanceBaselines)
+            logicalBranch.set(project.logicalBranch)
         }
 
         buildCommitDistribution.configure {

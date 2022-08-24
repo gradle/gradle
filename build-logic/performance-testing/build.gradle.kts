@@ -21,7 +21,7 @@ dependencies {
     implementation("javax.activation:activation")
     implementation("javax.xml.bind:jaxb-api")
     implementation("org.gradle:test-retry-gradle-plugin")
-    implementation("com.gradle.enterprise:test-distribution-gradle-plugin")
+    implementation("com.gradle:gradle-enterprise-gradle-plugin")
 
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("junit:junit")
@@ -42,12 +42,4 @@ tasks.compileGroovy.configure {
 }
 tasks.compileKotlin.configure {
     classpath += files(tasks.compileGroovy)
-}
-
-tasks.withType<Test>().configureEach {
-    // PerformanceTestIntegrationTest needs a clean environment
-    val testEnv = System.getenv().toMutableMap()
-    testEnv.remove("BUILD_BRANCH")
-    testEnv.remove("BUILD_COMMIT_ID")
-    setEnvironment(testEnv)
 }

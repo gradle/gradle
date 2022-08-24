@@ -57,4 +57,9 @@ public class NullValueSnapshot implements ValueSnapshot, Isolatable<Object> {
     public <S> S coerce(Class<S> type) {
         return null;
     }
+
+    @Override
+    public String toString() {
+        return "NULL";
+    }
 }
