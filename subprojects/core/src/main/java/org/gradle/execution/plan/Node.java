@@ -530,6 +530,10 @@ public abstract class Node {
     public void visitPreExecutionNodes(Consumer<? super Node> visitor) {
     }
 
+    public boolean hasPendingPreExecutionNodes() {
+        return false;
+    }
+
     /**
      * Visits the "post-execution" nodes of this node. These nodes should be treated as though they also produce the outputs or
      * results of this node. That is, all nodes that depend on this node should also depend on these nodes. This method is called when

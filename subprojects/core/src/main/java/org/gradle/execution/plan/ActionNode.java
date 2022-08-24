@@ -32,6 +32,7 @@ public class ActionNode extends Node implements SelfExecutingNode {
     private List<Node> postExecutionNodes;
     private final ProjectInternal owningProject;
     private final ProjectInternal projectToLock;
+    private boolean hasVisitedPreExecutionNode;
 
     public ActionNode(WorkNodeAction action) {
         this.action = action;
@@ -100,10 +101,18 @@ public class ActionNode extends Node implements SelfExecutingNode {
     }
 
     @Override
+    public boolean hasPendingPreExecutionNodes() {
+        return !hasVisitedPreExecutionNode && action.getPreExecutionNode() != null;
+    }
+
+    @Override
     public void visitPreExecutionNodes(Consumer<? super Node> visitor) {
-        WorkNodeAction preExecutionNode = action.getPreExecutionNode();
-        if (preExecutionNode != null) {
-            visitor.accept(new ActionNode(preExecutionNode));
+        if (!hasVisitedPreExecutionNode) {
+            WorkNodeAction preExecutionNode = action.getPreExecutionNode();
+            if (preExecutionNode != null) {
+                visitor.accept(new ActionNode(preExecutionNode));
+            }
+            hasVisitedPreExecutionNode = true;
         }
     }
 

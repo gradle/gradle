@@ -45,6 +45,7 @@ public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
     private final WorkValidationContext validationContext;
     private final ResolveMutationsNode resolveMutationsNode;
+    private boolean hasVisitedMutationsNode;
     private Set<Node> lifecycleSuccessors;
 
     private boolean isolated;
@@ -191,8 +192,16 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
+    public boolean hasPendingPreExecutionNodes() {
+        return !hasVisitedMutationsNode;
+    }
+
+    @Override
     public void visitPreExecutionNodes(Consumer<? super Node> visitor) {
-        visitor.accept(resolveMutationsNode);
+        if (!hasVisitedMutationsNode) {
+            visitor.accept(resolveMutationsNode);
+            hasVisitedMutationsNode = true;
+        }
     }
 
     public Node getPrepareNode() {
