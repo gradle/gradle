@@ -125,7 +125,6 @@ include::sample[dir="snippets/testing/test-suite-configure-default-suite/groovy"
 include::sample[dir="snippets/testing/test-suite-configure-default-suite/kotlin",files="build.gradle.kts[tags=configure-default-suite]"]
 ====
 
-// TODO test with `./gradlew :docs:docsTest --tests "*test-suite-configure-default-suite*"`
 <1> Declare the `test` test suite uses the TestNG test framework.
 <2> Lazily configure the test task of all targets of the suite; note the return type of `testTask` is `TaskProvider<Test>`.
 <3> Configure more detailed test framework options.  The `options` will be a subclass of `org.gradle.api.tasks.testing.TestFrameworkOptions`, in this case it is `org.gradle.api.tasks.testing.testng.TestNGOptions`.
@@ -137,7 +136,6 @@ include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies/gr
 include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies/kotlin",files="build.gradle.kts[tags=configure-suite-dependencies]"]
 ====
 
-// TODO test with `./gradlew :docs:docsTest --tests "*test-suite-configure-suite-dependencies*"`
 <1> Configure the built-in `test` test suite.
 <2> Add the assertj library to the test's compile and runtime classpaths.  The `dependencies` block within a test suite is already scoped for that test suite.  Instead of having to know the global name of the configuration, test suites have a consistent name that you use in this block for declaring `implementation`, `compileOnly`, `runtimeOnly` and `annotationProcessor` dependencies.
 <3> Add the Auto Value annotation processor to the suite's annotation processor classpath so that it will be run when compiling the tests.
@@ -153,13 +151,37 @@ To use these and similar methods, you need to access the top-level dependencies 
 Though it is discouraged, as suggested by the comment in the snippet above, you can also access the configurations of a test suite in a top-level `dependencies` block after creating the test suite.  The configurations used by test suites are normal Gradle configurations, but their exact names should be considered an implementation detail subject to change.  For this reason, configuration via the suite's own `dependencies` block is recommended.
 ====
 
+=== New Strongly-typed Dependencies Block
+The `dependencies` block is using a new API to declare dependencies. This API is very similar to the old API, but it provides full
+typing which makes it easier to understand the relationship between a dependency notation and its `Dependency` sub-type, and
+easier to configure from Kotlin and Java.
+
+This API uses a new type, `DependencyAdder`, to provide more strongly-typed dependency addition. It is returned from getters for
+each configuration type. There is also a new `DependencyFactory` to create new dependencies separately from a `DependencyHandler`.
+It can be injected when needed. It is also the recommended way to create dependencies lazily if needed, as shown below.
+
+Notable differences from the old API are:
+
+- In Java, the getter and `add` must be explicitly called.
+    - Kotlin and Groovy use extensions and operator overloading to call `add` when invoked.
+    - Java: `implementation(x)` becomes `getImplementation().add(x)`
+- `Map` may not be used from Kotlin and Java to declare dependencies. Instead, there are multi-argument methods.
+    - Kotlin: `compileOnly(mapOf("group" to "foo", "name" to "bar"))` becomes `compileOnly(group = "foo", name = "bar")`
+    - Java: `compileOnly(Map.of("group", "foo", "name", "bar"))` becomes `getCompileOnly().add("foo", "bar")`
+    - Groovy still supports using `Map` because it is the way to do named arguments in Groovy.
+- Version catalog bundles cannot be added directly. Instead, use the `bundle` method on each configuration.
+    - This `bundle` method also supports using arbitrary `Collection` objects containing `Dependency` objects.
+    - DSLs: `implementation(libs.bundles.testing)` becomes `implementation.bundle(libs.bundles.testing)`
+- Providers for non-`Dependency` types cannot be used directly. Instead, map them to a `Dependency` using the new `DependencyFactory`.
+    - DSLs: `implementation(myStringProvider)` becomes `implementation(myStringProvider.map { project.dependencyFactory.create(it) })`
+    - Java: `implementation(myStringProvider)` becomes `getImplementation().add(myStringProvider.map(project.getDependencyFactory()::create)`
+
 == Configure source directories of a test suite
 ====
 include::sample[dir="snippets/testing/test-suite-configure-source-dir/groovy",files="build.gradle[tags=configure-source-dir]"]
 include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",files="build.gradle.kts[tags=configure-source-dir]"]
 ====
 
-// TODO test with `./gradlew :docs:docsTest --tests "*test-suite-configure-source-dir*"`
 <1> Declare and configure a suite named `integrationTest`.  The `SourceSet` and synthesized `Test` tasks will be based on this name.
 <2> Configure the `sources` of the test suite.
 <3> Configure the `java` SourceDirectorySet of the test suite.
