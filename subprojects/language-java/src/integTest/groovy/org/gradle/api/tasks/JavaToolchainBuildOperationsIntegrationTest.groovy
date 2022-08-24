@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
@@ -379,12 +379,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 //        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Kotlin plugin extracts metadata from the JavaLauncher and wraps it into a custom property")
     @Issue("https://github.com/gradle/gradle/issues/21368")
-    def "emits toolchain usages when configuring toolchains for Kotlin plugin '#kotlinPlugin'"() {
+    def "emits toolchain usages when configuring toolchains for #kotlinPlugin Kotlin plugin '#kotlinPluginVersion'"() {
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
-
-        def kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestKotlinPluginVersion(kotlinPlugin)
 
         // override setup
         buildFile.text = """
@@ -437,15 +434,22 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         eventsOnCompile = toolchainEvents(":compileKotlin")
         eventsOnTest = toolchainEvents(":test")
         then:
-        skipped(":compileKotlin", ":test")
+        if (!isAlwaysUpToDate && Jvm.current().javaVersion.java8 && GradleContextualExecuter.configCache) {
+            // For Kotlin 1.6 the compilation is not up-to-date with configuration caching when running on Java 8
+            executedAndNotSkipped(":compileKotlin")
+        } else {
+            skipped(":compileKotlin", ":test")
+        }
         assertToolchainUsages(eventsOnCompile, jdkMetadata, "JavaLauncher")
         assertToolchainUsages(eventsOnTest, jdkMetadata, "JavaLauncher")
 
         where:
-        kotlinPlugin | _
-        "latest"     | _
-        "1.7"        | _
-        "1.6"        | _
+        kotlinPlugin | isAlwaysUpToDate
+        "latest"     | true
+        "1.7"        | true
+        "1.6"        | false
+
+        kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestStableKotlinPluginVersion(kotlinPlugin)
     }
 
     def "emits toolchain usages when task fails for 'compileJava' task"() {
@@ -596,7 +600,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             .withTasks(tasks)
     }
 
-    private String latestKotlinPluginVersion(String major) {
-        return kgpLatestVersions.findAll { it.startsWith(major) }.last()
+    private static String latestStableKotlinPluginVersion(String major) {
+        return kgpLatestVersions.findAll { it.startsWith(major) && !it.contains("-") }.last()
     }
 }

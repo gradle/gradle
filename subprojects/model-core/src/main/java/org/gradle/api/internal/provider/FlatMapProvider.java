@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
@@ -47,15 +48,26 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
         if (value.isMissing()) {
             return value.asType();
         }
-        return doMapValue(value.get()).calculateValue(consumer);
+        return doMapValue(value).calculateValue(consumer);
     }
 
-    private ProviderInternal<? extends S> doMapValue(T value) {
-        Provider<? extends S> result = transformer.transform(value);
-        if (result == null) {
+    private ProviderInternal<? extends S> doMapValue(Value<? extends T> value) {
+        T unpackedValue = value.getWithoutSideEffect();
+        Provider<? extends S> transformedProvider = transformer.transform(unpackedValue);
+        if (transformedProvider == null) {
             return Providers.notDefined();
         }
-        return Providers.internal(result);
+
+        ProviderInternal<? extends S> result = Providers.internal(transformedProvider);
+        SideEffect<?> sideEffect = value.getSideEffect();
+        if (sideEffect != null) {
+            // Note, that the potential side effect of the transformed provider
+            // is going to be executed before this fixed side effect.
+            // It is not possible to preserve linear execution order in the general case,
+            // as the transformed provider can have side effects hidden under other wrapping providers.
+            result = result.withSideEffect(SideEffect.fixed(unpackedValue, Cast.uncheckedNonnullCast(sideEffect)));
+        }
+        return result;
     }
 
     private ProviderInternal<? extends S> backingProvider(ValueConsumer consumer) {
@@ -63,7 +75,7 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
         if (value.isMissing()) {
             return Providers.notDefined();
         }
-        return doMapValue(value.get());
+        return doMapValue(value);
     }
 
     @Override
