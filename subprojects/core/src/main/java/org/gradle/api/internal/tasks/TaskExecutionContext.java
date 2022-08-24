@@ -52,6 +52,6 @@ public interface TaskExecutionContext {
     void setSnapshotTaskInputsBuildOperationContext(BuildOperationContext operation);
 
     interface ValidationAction {
-        void validate(boolean historyMaintained, TypeValidationContext validationContext);
+        void validate(TypeValidationContext validationContext);
     }
 }
