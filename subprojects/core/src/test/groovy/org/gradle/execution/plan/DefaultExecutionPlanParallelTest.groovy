@@ -1415,7 +1415,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         executionPlan.tasks as List == [destroyer, producer]
         ordinalGroups == [1, 0]
         assertLastTaskOfGroupReady(producer)
-        assertLastTaskOfGroupReadyAndNoMoreToStart(destroyer)
+        assertTaskReadyAndNoMoreToStart(destroyer)
         assertAllWorkComplete()
     }
 
@@ -1434,7 +1434,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         executionPlan.tasks as List == [producer, destroyer]
         ordinalGroups == [1, 0]
         assertLastTaskOfGroupReady(destroyer)
-        assertLastTaskOfGroupReadyAndNoMoreToStart(producer)
+        assertTaskReadyAndNoMoreToStart(producer)
         assertAllWorkComplete()
     }
 
@@ -1454,7 +1454,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         executionPlan.tasks as List == [destroyer, producer1, producer2]
         ordinalGroups == [0, 1, 2]
         assertLastTaskOfGroupReady(destroyer)
-        assertLastTasksOfGroupReadyAndNoMoreToStart(producer1, producer2)
+        assertTasksReadyAndNoMoreToStart(producer1, producer2)
         assertAllWorkComplete()
     }
 
@@ -1499,13 +1499,6 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         when:
         node4.execute()
         finishedExecuting(node4)
-        def node5 = selectNextNode()
-
-        then:
-        node5 instanceof OrdinalNode && node5.type == OrdinalNode.Type.PRODUCER
-
-        when:
-        finishedExecuting(node5)
 
         then:
         assertNoWorkReadyToStartAfterSelect() // destroyer is still running, so producer cannot start
@@ -2151,17 +2144,6 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finishedExecuting(node)
     }
 
-    void assertLastTaskOfGroupReadyAndNoMoreToStart(Task task, boolean needToSelect = false) {
-        def node = selectNextTaskNode()
-        assert node.task == task
-        def ordinalNode = selectNextNode()
-        assert ordinalNode instanceof OrdinalNode
-        assertNoMoreWorkToStartButNotAllComplete(needToSelect)
-        finishedExecuting(node)
-        assertNoMoreWorkToStartButNotAllComplete(false)
-        finishedExecuting(ordinalNode)
-    }
-
     void assertTasksReady(Task task1, Task task2, boolean needToSelect = true) {
         def node1 = selectNextTaskNode()
         assert node1.task == task1
@@ -2201,24 +2183,6 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finishedExecuting(node1)
     }
 
-    void assertLastTasksOfGroupReadyAndNoMoreToStart(Task task1, Task task2, boolean needToSelect = false) {
-        def node1 = selectNextTaskNode()
-        assert node1.task == task1
-        def node2 = selectNextTaskNode()
-        assert node2.task == task2
-        def node3 = selectNextNode()
-        assert node3 instanceof OrdinalNode
-        assertNoWorkReadyToStartAfterSelect()
-        finishedExecuting(node2)
-        assertNoWorkReadyToStart()
-        finishedExecuting(node1)
-        assertNoWorkReadyToStart()
-        finishedExecuting(node3)
-        def node4 = selectNextNode()
-        assert node4 instanceof OrdinalNode
-        assertNoMoreWorkToStartButNotAllComplete(needToSelect)
-        finishedExecuting(node4)
-    }
 
     void assertTasksReadyAndNoMoreToStart(Task task1, Task task2, Task task3, boolean needToSelect = false) {
         def node1 = selectNextTaskNode()
@@ -2248,21 +2212,6 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finishedExecuting(node1)
     }
 
-    void assertTasksReady(Task task1, Task task2, Task task3, Task task4) {
-        def node1 = selectNextTaskNode()
-        assert node1.task == task1
-        def node2 = selectNextTaskNode()
-        assert node2.task == task2
-        def node3 = selectNextTaskNode()
-        assert node3.task == task3
-        def node4 = selectNextTaskNode()
-        assert node4.task == task4
-        assertNoWorkReadyToStartAfterSelect()
-        finishedExecuting(node4)
-        finishedExecuting(node3)
-        finishedExecuting(node2)
-        finishedExecuting(node1)
-    }
 
     private void finishedExecuting(Node node) {
         coordinator.withStateLock {
