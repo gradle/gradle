@@ -276,7 +276,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             if (result.isMissing()) {
                 return result.asType();
             }
-            return Value.ofNullable(result.get().get(key));
+            return SideEffect.attachFixedFrom(Value.ofNullable(result.getWithoutSideEffect().get(key)), result);
         }
     }
 
