@@ -22,7 +22,6 @@ import org.gradle.exemplar.test.normalizer.JavaObjectSerializationOutputNormaliz
 import org.gradle.exemplar.test.runner.SampleModifiers;
 import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
 import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier;
-import org.gradle.integtests.fixtures.executer.UseJdk11OrLaterSampleModifier;
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputCleaner;
 import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer;
@@ -48,8 +47,7 @@ import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,
-    MoreMemorySampleModifier.class,
-    UseJdk11OrLaterSampleModifier.class
+    MoreMemorySampleModifier.class
 })
 /*
  * To run the samples tests:

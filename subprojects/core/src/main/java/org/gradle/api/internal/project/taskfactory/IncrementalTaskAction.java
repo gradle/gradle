@@ -23,10 +23,10 @@ import org.gradle.work.InputChanges;
 
 import java.lang.reflect.Method;
 
-public class IncrementalInputsTaskAction extends StandardTaskAction {
+public class IncrementalTaskAction extends StandardTaskAction {
     private InputChangesInternal inputChanges;
 
-    public IncrementalInputsTaskAction(Class<? extends Task> type, Method method) {
+    public IncrementalTaskAction(Class<? extends Task> type, Method method) {
         super(type, method);
     }
 

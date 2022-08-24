@@ -57,7 +57,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
             .map(UntrackedTask::because);
         Map<String, Class<?>> processedMethods = Maps.newHashMap();
         ImmutableList.Builder<TaskActionFactory> taskActionFactoriesBuilder = ImmutableList.builder();
-        IncrementalInputsTaskActionFactory foundIncrementalTaskActionFactory = null;
+        IncrementalTaskActionFactory foundIncrementalTaskActionFactory = null;
         for (Class current = type; current != null; current = current.getSuperclass()) {
             for (Method method : current.getDeclaredMethods()) {
                 TaskActionFactory taskActionFactory = createTaskAction(type, method);
@@ -66,7 +66,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
                 }
                 Class<?> declaringClass = method.getDeclaringClass();
                 Class<?> previousDeclaringClass = processedMethods.put(method.getName(), declaringClass);
-                if (taskActionFactory instanceof IncrementalInputsTaskActionFactory
+                if (taskActionFactory instanceof IncrementalTaskActionFactory
                     && foundIncrementalTaskActionFactory != null
                     && method.getName().equals(foundIncrementalTaskActionFactory.getMethod().getName())
                 ) {
@@ -83,11 +83,11 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
                 } else if (previousDeclaringClass != null) {
                     continue;
                 }
-                if (taskActionFactory instanceof IncrementalInputsTaskActionFactory) {
+                if (taskActionFactory instanceof IncrementalTaskActionFactory) {
                     if (foundIncrementalTaskActionFactory != null) {
                         throw new GradleException(String.format("Cannot have multiple @TaskAction methods accepting an %s parameter.", InputChanges.class.getSimpleName()));
                     }
-                    foundIncrementalTaskActionFactory = (IncrementalInputsTaskActionFactory) taskActionFactory;
+                    foundIncrementalTaskActionFactory = (IncrementalTaskActionFactory) taskActionFactory;
                     continue;
                 }
                 taskActionFactoriesBuilder.add(taskActionFactory);
@@ -121,7 +121,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         if (parameterTypes.length == 1) {
             Class<?> parameterType = parameterTypes[0];
             if (parameterType.equals(InputChanges.class)) {
-                taskActionFactory = new IncrementalInputsTaskActionFactory(taskType, method);
+                taskActionFactory = new IncrementalTaskActionFactory(taskType, method);
             } else {
                 throw new GradleException(String.format(
                     "Cannot use @TaskAction annotation on method %s.%s() because %s is not a valid parameter to an action method.",
@@ -149,11 +149,11 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         }
     }
 
-    private static class IncrementalInputsTaskActionFactory implements TaskActionFactory {
+    private static class IncrementalTaskActionFactory implements TaskActionFactory {
         private final Class<? extends Task> taskType;
         private final Method method;
 
-        public IncrementalInputsTaskActionFactory(Class<? extends Task> taskType, Method method) {
+        public IncrementalTaskActionFactory(Class<? extends Task> taskType, Method method) {
             this.taskType = taskType;
             this.method = method;
         }
@@ -164,7 +164,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
         @Override
         public Action<? super Task> create(Instantiator instantiator) {
-            return new IncrementalInputsTaskAction(taskType, method);
+            return new IncrementalTaskAction(taskType, method);
         }
     }
 }
