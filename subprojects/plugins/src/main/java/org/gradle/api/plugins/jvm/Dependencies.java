@@ -29,8 +29,32 @@ import javax.inject.Inject;
  */
 @Incubating
 public interface Dependencies {
+
+    /**
+     * A dependency factory is used to convert supported dependency notations into {@link org.gradle.api.artifacts.Dependency} instances.
+     *
+     * @return a dependency factory
+     * @see DependencyFactory
+     */
     @Inject
     DependencyFactory getDependencyFactory();
+
+    /**
+     * Converts an absolute or relative path to a project into a {@link ProjectDependency}. Project paths are separated by colons.
+     *
+     * This method fails if the project cannot be found.
+     *
+     * @param projectPath an absolute or relative path (from the current project) to a project
+     * @return a {@link ProjectDependency} for the given path
+     *
+     * @see org.gradle.api.Project#project(String)
+     */
     ProjectDependency project(String projectPath);
+
+    /**
+     * Returns the current project as a {@link ProjectDependency}.
+     *
+     * @return the current project as a dependency
+     */
     ProjectDependency project();
 }
