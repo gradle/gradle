@@ -35,6 +35,35 @@ import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * This class is used to add extra methods to {@link DependencyAdder} for the Groovy DSL to make the DSL more idiomatic.
+ * This is implemented as a <a href="https://groovy-lang.org/metaprogramming.html#_extension_modules">Groovy Extension Module</a>.
+ * <p>
+ * These extension methods allow an interface exposing an instance of {@code DependencyAdder} to add dependencies without explicitly calling {@code add(...)}.
+ * </p>
+ * For example:
+ * <pre>
+ * interface MyDependencies {
+ *     DependencyAdder getImplementation()
+ * }
+ * // In the build script
+ * myDependencies {
+ *     implementation "org:foo:1.0"
+ * }
+ * </pre>
+ *
+ * In this Groovy DSL example, {@code implementation "org:foo:1.0"}
+ * <ul>
+ *     <li>is equivalent to {@code getImplementation().call("org:foo:1.0")} because of this extension</li>
+ *     <li>has the same effect as {@code getImplementation().add("org:foo:1.0")} in Java</li>
+ * </ul>
+ *
+ * There are {@code call(...)} equivalents for all the {@code add(...)} methods in {@code DependencyAdder}.
+ *
+ * @see DependencyAdder
+ * @see DependencyFactory
+ */
+@SuppressWarnings("unused")
 public class DependencyAdderExtensionModule {
     /**
      * Add a dependency.
