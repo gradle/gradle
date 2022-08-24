@@ -421,6 +421,7 @@ dependencies {
 
     @ToBeFixedForConfigurationCache
     @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(TestPrecondition.STABLE_GROOVY) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached when using gradleTestKit()"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
