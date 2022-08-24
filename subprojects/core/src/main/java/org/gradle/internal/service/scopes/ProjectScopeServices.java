@@ -31,7 +31,6 @@ import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
-import org.gradle.api.internal.file.DefaultSourceDirectorySetFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -138,12 +137,6 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     protected DeferredProjectConfiguration createDeferredProjectConfiguration() {
         return new DeferredProjectConfiguration(project);
     }
-
-    @SuppressWarnings("deprecation")
-    protected org.gradle.api.internal.file.SourceDirectorySetFactory createSourceDirectorySetFactory(ObjectFactory objectFactory) {
-        return new DefaultSourceDirectorySetFactory(objectFactory);
-    }
-
     protected LoggingManagerInternal createLoggingManager() {
         return loggingManagerInternalFactory.create();
     }

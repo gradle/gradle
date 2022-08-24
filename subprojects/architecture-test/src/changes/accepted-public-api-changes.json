@@ -465,6 +465,22 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.JavaApplication",
+            "member": "Method org.gradle.api.plugins.JavaApplication.getMainClassName()",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplication",
+            "member": "Method org.gradle.api.plugins.JavaApplication.setMainClassName(java.lang.String)",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.compile.AbstractCompile",
             "member": "Method org.gradle.api.tasks.compile.AbstractCompile.getDestinationDir()",
             "acceptation": "Deprecated method removed in Gradle 8.0",
