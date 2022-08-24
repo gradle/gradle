@@ -258,9 +258,12 @@ Related issues:
 
 Gradle 7.6 supports compiling, testing and running on Java 19.
 
-#### TODO: Introduced support for map notation in JVM `dependencies` block
+#### Introduced strongly-typed JVM test suites `dependencies` block
 
-[Issue](https://github.com/gradle/gradle/issues/19192)
+The test suites' `dependencies` block is now strongly-typed. This means that the type of added dependencies is now
+strongly-typed. For example, using a `String` will provide an `ExternalModuleDependency`, whereas using a `FileCollection` will
+provide a `FileCollectionDependency`. This allows Java and Kotlin to properly configure all types of dependencies, and improves
+IDE support for Groovy.
 
 #### Introduced support for Java 9+ network debugging  
 
