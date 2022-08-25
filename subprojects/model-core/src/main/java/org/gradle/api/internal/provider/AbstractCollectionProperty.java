@@ -92,6 +92,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         addCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
     }
 
+    @Override
+    public int size() {
+        return calculateOwnPresentValue().getWithoutSideEffect().size();
+    }
+
     private void addCollector(Collector<T> collector) {
         assertCanMutate();
         setSupplier(getExplicitValue(defaultValue).plus(collector));
