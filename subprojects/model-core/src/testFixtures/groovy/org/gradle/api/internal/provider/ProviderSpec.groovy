@@ -427,7 +427,7 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         copy.getOrNull() == someValue()
     }
 
-    def "runs side effect when calling '#method' on provider with attached side effect"() {
+    def "runs side effect when calling '#method' on provider with value and attached side effect"() {
         given:
         def sideEffect = Mock(ValueSupplier.SideEffect)
         def parent = providerWithValue(someValue())
@@ -441,7 +441,7 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         0 * _ // no side effects when values are not unpacked
 
         when:
-        def unpackedValue = extract(provider, someOtherValue())
+        def unpackedValue = getter(provider, method, someOtherValue())
 
         then:
         unpackedValue == someValue()
@@ -449,10 +449,10 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         0 * _
 
         where:
-        method      | extract
-        "get"       | { p, other -> p.get() }
-        "getOrNull" | { p, other -> p.getOrNull() }
-        "getOrElse" | { p, other -> p.getOrElse(other) }
+        method      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
     }
 
     def "does not run side effect when calling '#method' on provider with no value and attached side effect"() {
@@ -470,7 +470,7 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
 
         when:
         def someValue = someValue()
-        def unpackedValue = unpack(provider, someValue)
+        def unpackedValue = getter(provider, method, someValue)
 
         then:
         unpackedValue == expectedValue(someValue)
@@ -478,9 +478,9 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         0 * _
 
         where:
-        method      | unpack                             | expectedValue
-        "getOrNull" | { p, other -> p.getOrNull() }      | { null }
-        "getOrElse" | { p, other -> p.getOrElse(other) } | { it }
+        method      | expectedValue
+        "getOrNull" | { null }
+        "getOrElse" | { it }
     }
 
     def "does not run side effect when calling 'get' on provider with no value and attached side effect"() {
@@ -505,7 +505,7 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         0 * _
     }
 
-    def "can chain side effects"() {
+    def "runs chained side effects when calling '#method' on provider with value"() {
         given:
         def sideEffect1 = Mock(ValueSupplier.SideEffect)
         def sideEffect2 = Mock(ValueSupplier.SideEffect)
@@ -520,7 +520,7 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         0 * _ // no side effects when values are not unpacked
 
         when:
-        extract(provider, someOtherValue())
+        getter(provider, method, someOtherValue())
 
         then:
         1 * sideEffect1.execute(someValue())
@@ -530,10 +530,30 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         0 * _
 
         where:
-        method      | extract
-        "get"       | { p, other -> p.get() }
-        "getOrNull" | { p, other -> p.getOrNull() }
-        "getOrElse" | { p, other -> p.getOrElse(other) }
+        method      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
+    }
+
+    /**
+     * Convenience method to call getters on a provider by the getter name.
+     * <p>
+     * The expected usage is:
+     * <pre>
+     * getter(provider, method, someOtherValue())
+     * </pre>
+     *
+     * @param provider to call a getter on
+     * @param getter is either 'get', 'getOrNull' or 'getOrElse'
+     * @param orElse is passed to the getter only when it is 'getOrElse'
+     * @return the value that the provider returned for the getter
+     */
+    static <T> T getter(Provider<T> provider, String getter, T orElse) {
+        assert getter in ["get", "getOrNull", "getOrElse"]
+        return getter == "getOrElse"
+            ? provider."$getter"(orElse)
+            : provider."$getter"()
     }
 
     /**

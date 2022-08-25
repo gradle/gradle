@@ -579,6 +579,95 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         FILE_FILTER_FLAG        | "ignore '**/ignored.txt'"                                                 | 'ignore rule'
     }
 
+    def "treats '#extension' as archive"() {
+        def archive = file("archive.${extension}")
+        def contents = file("archiveContents").createDir()
+        def ignoredFile = contents.file("ignored.txt")
+        ignoredFile << "this file is ignored"
+        def nonIgnoredFile = contents.file("not-ignored.txt")
+        nonIgnoredFile << "this file is not ignored"
+        contents.zipTo(archive)
+        buildFile << """
+            normalization {
+                runtimeClasspath {
+                    ignore 'ignored.txt'
+                }
+            }
+
+            task customTask {
+                def outputFile = file("build/output.txt")
+                inputs.file("${archive.name}")
+                    .withPropertyName("classpath")
+                    .withNormalizer(ClasspathNormalizer)
+                outputs.file(outputFile)
+                    .withPropertyName("outputFile")
+                outputs.cacheIf { true }
+
+                doLast {
+                    outputFile.text = "done"
+                }
+            }
+        """
+        when:
+        run "customTask"
+        then:
+        executedAndNotSkipped(":customTask")
+
+        when:
+        ignoredFile.text = "changed"
+        archive.delete()
+        contents.zipTo(archive)
+        run "customTask"
+        then:
+        skipped(":customTask")
+
+        where:
+        extension << ["zip", "jar", "war", "rar", "ear", "apk", "aar", "klib"]
+    }
+
+    def "does not treat 'any' extension as archive"() {
+        def archive = file("archive.any")
+        def contents = file("archiveContents").createDir()
+        def ignoredFile = contents.file("ignored.txt")
+        ignoredFile << "this file is ignored"
+        def nonIgnoredFile = contents.file("not-ignored.txt")
+        nonIgnoredFile << "this file is not ignored"
+        contents.zipTo(archive)
+        buildFile << """
+            normalization {
+                runtimeClasspath {
+                    ignore 'ignored.txt'
+                }
+            }
+
+            task customTask {
+                def outputFile = file("build/output.txt")
+                inputs.file("${archive.name}")
+                    .withPropertyName("classpath")
+                    .withNormalizer(ClasspathNormalizer)
+                outputs.file(outputFile)
+                    .withPropertyName("outputFile")
+                outputs.cacheIf { true }
+
+                doLast {
+                    outputFile.text = "done"
+                }
+            }
+        """
+        when:
+        run "customTask"
+        then:
+        executedAndNotSkipped(":customTask")
+
+        when:
+        ignoredFile.text = "changed"
+        archive.delete()
+        contents.zipTo(archive)
+        run "customTask"
+        then:
+        executedAndNotSkipped(":customTask")
+    }
+
     static final String IGNORE_ME = 'ignore-me'
     static final String ALSO_IGNORE_ME = 'also-ignore-me'
     static final String IGNORE_ME_TOO = 'ignore-me-too'
