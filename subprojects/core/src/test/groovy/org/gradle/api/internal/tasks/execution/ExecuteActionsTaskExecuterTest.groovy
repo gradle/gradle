@@ -212,7 +212,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         executionContext.getTaskExecutionMode() >> TaskExecutionMode.INCREMENTAL
         executionContext.getTaskProperties() >> taskProperties
         executionContext.getValidationContext() >> validationContext
-        executionContext.getValidationAction() >> { { historyMaintained, c -> } as TaskExecutionContext.ValidationAction }
+        executionContext.getValidationAction() >> { { c -> } as TaskExecutionContext.ValidationAction }
         executionHistoryStore.load("task") >> Optional.of(previousState)
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
     }
