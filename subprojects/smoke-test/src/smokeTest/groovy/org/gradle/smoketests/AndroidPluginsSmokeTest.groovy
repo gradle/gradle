@@ -86,7 +86,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         def result = runner.deprecations(AndroidDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
-            expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
             expectReportDestinationPropertyDeprecation()
         }.build()
 
@@ -104,7 +103,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'up-to-date build'
         result = runner.deprecations(AndroidDeprecations) {
             expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
-            expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
             if (!GradleContextualExecuter.isConfigCache()) {
                 expectReportDestinationPropertyDeprecation()
             }
@@ -124,7 +122,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result = runner.deprecations(AndroidDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
-            expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
             if (!GradleContextualExecuter.isConfigCache()) {
                 expectReportDestinationPropertyDeprecation()
             }
@@ -144,7 +141,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result = runner.deprecations(AndroidDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
             expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
-            expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
             if (!GradleContextualExecuter.isConfigCache()) {
                 expectReportDestinationPropertyDeprecation()
             }

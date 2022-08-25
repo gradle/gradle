@@ -48,8 +48,6 @@ class KotlinPluginAndroidKotlinDSLSmokeTest extends AbstractSmokeTest {
                 expectKotlinConfigurationAsDependencyDeprecation(kotlinPluginVersion)
                 expectAndroidOrKotlinWorkerSubmitDeprecation(androidPluginVersion, workers, kotlinPluginVersion)
                 expectAndroidFileTreeForEmptySourcesDeprecationWarnings(androidPluginVersion, "sourceFiles", "sourceDirs")
-                expectKotlinIncrementalTaskInputsDeprecation(kotlinPluginVersion)
-                expectAndroidIncrementalTaskInputsDeprecation(androidPluginVersion)
                 expectReportDestinationPropertyDeprecation()
             }.build()
 
