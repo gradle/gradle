@@ -41,7 +41,6 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             .deprecations(KotlinDeprecations) {
                 expectKotlinWorkerSubmitDeprecation(workers, version)
                 expectKotlinArchiveNameDeprecation(version)
-                expectKotlinIncrementalTaskInputsDeprecation(version)
             }.build()
 
         then:
@@ -49,11 +48,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         assert result.output.contains("Hello world!")
 
         when:
-        result = runner(workers, versionNumber, 'run')
-            .deprecations(KotlinDeprecations) {
-                expectKotlinIncrementalTaskInputsDeprecation(version)
-            }.build()
-
+        result = runner(workers, versionNumber, 'run').build()
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE
@@ -86,7 +81,6 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 expectKotlinParallelTasksDeprecation(version)
                 expectKotlinCompileDestinationDirPropertyDeprecation(version)
                 expectKotlinArchiveNameDeprecation(version)
-                expectKotlinIncrementalTaskInputsDeprecation(version)
             }.build()
 
         then:
@@ -133,7 +127,6 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def result = runner(false, versionNumber, 'compileJava')
             .deprecations(KotlinDeprecations) {
                 expectKotlinArchiveNameDeprecation(kotlinVersion)
-                expectKotlinIncrementalTaskInputsDeprecation(kotlinVersion)
             }.build()
 
         then:
@@ -170,19 +163,13 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def versionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
-        def result = runner(false, versionNumber, 'build')
-            .deprecations(KotlinDeprecations) {
-                expectKotlinIncrementalTaskInputsDeprecation(kotlinVersion)
-            }.build()
+        def result = runner(false, versionNumber, 'build').build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
 
         when:
-        result = runner(false, versionNumber, 'build')
-            .deprecations(KotlinDeprecations) {
-                expectKotlinIncrementalTaskInputsDeprecation(kotlinVersion)
-            }.build()
+        result = runner(false, versionNumber, 'build').build()
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE

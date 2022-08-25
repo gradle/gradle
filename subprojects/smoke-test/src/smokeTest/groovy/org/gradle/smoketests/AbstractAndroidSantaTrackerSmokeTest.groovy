@@ -55,7 +55,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug")
             .deprecations(SantaTrackerDeprecations) {
                 expectAllFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
-                expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
             }.build()
     }
 
@@ -64,7 +63,6 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             .deprecations(SantaTrackerDeprecations) {
                 expectAllFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
                 expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-                expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
             }.build()
     }
 

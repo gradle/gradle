@@ -39,12 +39,6 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
         kotlinVersionNumber < KOTLIN_VERSION_USING_NEW_WORKERS_API
     }
 
-    void expectKotlinIncrementalTaskInputsDeprecation(String kotlinVersion) {
-        VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
-        runner.expectLegacyDeprecationWarningIf(kotlinVersionNumber < KOTLIN_VERSION_USING_INPUT_CHANGES_API,
-            getIncrementalTaskInputsDeprecationWarning('AbstractKotlinCompile.execute'))
-    }
-
     void expectKotlinCompileDestinationDirPropertyDeprecation(String version) {
         VersionNumber versionNumber = VersionNumber.parse(version)
         runner.expectLegacyDeprecationWarningIf(
