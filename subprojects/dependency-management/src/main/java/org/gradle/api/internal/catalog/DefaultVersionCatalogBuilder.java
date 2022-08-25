@@ -320,18 +320,6 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         return alias;
     }
 
-    @Deprecated
-    @Override
-    public AliasBuilder alias(String alias) {
-        DeprecationLogger.deprecateMethod(VersionCatalogBuilder.class, "alias(String)")
-            .withAdvice("Use one of the more specifically named methods (library or plugin) instead")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "version_catalog_deprecations")
-            .nagUser();
-        validateAlias(AliasType.ALIAS, alias);
-        return new DefaultAliasBuilder(alias);
-    }
-
     // Currently, the below are implemented in terms of DefaultAliasBuilder to avoid code duplication.
     // When #alias is removed, the 3 methods below should be re-implemented.
 
