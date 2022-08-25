@@ -106,8 +106,10 @@
          </trusted-key>
          <trusted-key id="31fae244a81d64507b47182e1b2718089ce964b8" group="com.thoughtworks.qdox"/>
          <trusted-key id="34441e504a937f43eb0daef96a65176a0fb1cd0b">
-            <trusting group="org.codehaus.groovy"/>
+            <trusting group="org.apache.groovy"/>
             <trusting group="org.codehaus.groovy" name="groovy"/>
+            <trusting group="org.codehaus.groovy"/>
+            <trusting group="org.apache.groovy" name="groovy"/>
          </trusted-key>
          <trusted-key id="34d6ff19930adf43ac127792a50569c7ca7fa1f0" group="com.jcraft"/>
          <trusted-key id="36390de6a0e61ee4c7b4ba02c1d3063467f1ebd1" group="org.asciidoctor"/>
