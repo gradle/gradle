@@ -151,29 +151,31 @@ To use these and similar methods, you need to access the top-level dependencies 
 Though it is discouraged, as suggested by the comment in the snippet above, you can also access the configurations of a test suite in a top-level `dependencies` block after creating the test suite.  The configurations used by test suites are normal Gradle configurations, but their exact names should be considered an implementation detail subject to change.  For this reason, configuration via the suite's own `dependencies` block is recommended.
 ====
 
-=== New Strongly-typed Dependencies Block
-The `dependencies` block is using a new API to declare dependencies. This API is very similar to the old API, but it provides full
-typing which makes it easier to understand the relationship between a dependency notation and its `Dependency` sub-type, and
-easier to configure from Kotlin and Java.
+=== Strongly Typed Dependencies Block
+Gradle 7.6 changed the API of the test suite's `dependencies` block to be more strongly typed.
 
-This API uses a new type, `DependencyAdder`, to provide more strongly-typed dependency addition. It is returned from getters for
-each configuration type. There is also a new `DependencyFactory` to create new dependencies separately from a `DependencyHandler`.
-It can be injected when needed. It is also the recommended way to create dependencies lazily if needed, as shown below.
+Each configuration returns a `DependencyAdder`, to provide more strongly-typed dependency addition. This features multiple `add`
+and `bundle` methods to add dependencies to a particular configuration.
 
-Notable differences from the old API are:
+There is also a `DependencyFactory` to create new dependencies separately from a `DependencyHandler`. It can be injected when
+needed. It is also the recommended way to create dependencies lazily, as shown below for Providers.
 
-- In Java, the getter and `add` must be explicitly called.
-    - Kotlin and Groovy use extensions and operator overloading to call `add` when invoked.
+This API differs from the previous API in the following ways:
+
+- You must explicitly call accessors and `add` from Java.
+    - Kotlin and Groovy: extensions and operator overloading avoid explicit calls.
     - Java: `implementation(x)` becomes `getImplementation().add(x)`
-- `Map` may not be used from Kotlin and Java to declare dependencies. Instead, there are multi-argument methods.
+- You cannot declare dependencies from Kotlin and Java with `Map`.
+  Use multi-argument methods instead.
     - Kotlin: `compileOnly(mapOf("group" to "foo", "name" to "bar"))` becomes `compileOnly(group = "foo", name = "bar")`
-    - Java: `compileOnly(Map.of("group", "foo", "name", "bar"))` becomes `getCompileOnly().add("foo", "bar")`
-    - Groovy still supports using `Map` because it is the way to do named arguments in Groovy.
-- Version catalog bundles cannot be added directly. Instead, use the `bundle` method on each configuration.
-    - This `bundle` method also supports using arbitrary `Collection` objects containing `Dependency` objects.
-    - DSLs: `implementation(libs.bundles.testing)` becomes `implementation.bundle(libs.bundles.testing)`
-- Providers for non-`Dependency` types cannot be used directly. Instead, map them to a `Dependency` using the new `DependencyFactory`.
-    - DSLs: `implementation(myStringProvider)` becomes `implementation(myStringProvider.map { project.dependencyFactory.create(it) })`
+    - Groovy: use `Map` as before -- it is a built-in language feature.
+    - Java: `compileOnly(Map.of("group", "foo", "name", "bar"))` becomes `getCompileOnly().add("foo", "bar", null)`
+- You cannot add version catalog bundles directly.
+  Instead, use the `bundle` method on each configuration.
+    - Kotlin and Groovy: `implementation(libs.bundles.testing)` becomes `implementation.bundle(libs.bundles.testing)`
+- You cannot use providers for non-`Dependency` types directly.
+  Instead, map them to a `Dependency` using the `DependencyFactory`.
+    - Kotlin and Groovy: `implementation(myStringProvider)` becomes `implementation(myStringProvider.map { project.dependencyFactory.create(it) })`
     - Java: `implementation(myStringProvider)` becomes `getImplementation().add(myStringProvider.map(project.getDependencyFactory()::create)`
 
 == Configure source directories of a test suite
