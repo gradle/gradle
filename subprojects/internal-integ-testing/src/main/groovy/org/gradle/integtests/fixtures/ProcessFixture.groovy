@@ -50,7 +50,8 @@ class ProcessFixture {
         if (!(OperatingSystem.current().unix)) {
             throw new RuntimeException("This implementation does not know how to get child processes on os: " + OperatingSystem.current())
         }
-        return bash("ps -o pid,ppid -ax | awk '{ if ( \$2 == ${pid} ) { print \$1 }}'").split("\\n")
+        String result = bash("ps -o pid,ppid -ax | awk '{ if ( \$2 == ${pid} ) { print \$1 }}'").trim()
+        return result == "" ? [] : result.split("\\n")
     }
 
     // Only supported on *nix platforms
