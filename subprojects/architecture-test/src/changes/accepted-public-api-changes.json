@@ -465,6 +465,54 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.JavaApplication",
+            "member": "Method org.gradle.api.plugins.JavaApplication.getMainClassName()",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.JavaApplication",
+            "member": "Method org.gradle.api.plugins.JavaApplication.setMainClassName(java.lang.String)",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoPluginExtension",
+            "member": "Field project",
+            "acceptation": "Removing deprecated field in Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoPluginExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoPluginExtension.getReportsDir()",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoPluginExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoPluginExtension.setReportsDir(org.gradle.api.provider.Provider)",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoPluginExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoPluginExtension.setReportsDir(java.io.File)",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.javadoc.Groovydoc",
             "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.isIncludePrivate()",
             "acceptation": "Deprecated method removed in Gradle 8.0",
