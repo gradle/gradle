@@ -1120,28 +1120,6 @@ The value of this property is derived from: <source>""")
         "getOrElse" | _
     }
 
-    def "runs only own side effect when calling '#getter' on property's 'keySet'"() {
-        given:
-        def ownSideEffect = Mock(ValueSupplier.SideEffect)
-        def valueSideEffect = Mock(ValueSupplier.SideEffect)
-        property.withSideEffect(ownSideEffect)
-
-        when:
-        property.put("some key", Providers.of("some value").withSideEffect(valueSideEffect))
-        def keySetValue = property.keySet().get()
-
-        then:
-        keySetValue == ["some key"].toSet()
-        0 * ownSideEffect.execute(["some key": "some value"])
-        0 * _
-
-        where:
-        getter      | _
-        "get"       | _
-        "getOrNull" | _
-        "getOrElse" | _
-    }
-
     def "runs side effect when getting #description"() {
         given:
         def valueSideEffect = Mock(ValueSupplier.SideEffect)
