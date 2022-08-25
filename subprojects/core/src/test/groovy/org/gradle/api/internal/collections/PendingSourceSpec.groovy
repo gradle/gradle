@@ -26,7 +26,7 @@ abstract class PendingSourceSpec extends Specification {
 
     abstract PendingSource<CharSequence> getSource()
 
-    def "runs side effects of pending providers when realizing pending elements"() {
+    def "does not run side effects of pending providers when realizing pending elements"() {
         given:
         def sideEffect1 = Mock(ValueSupplier.SideEffect)
         def sideEffect2 = Mock(ValueSupplier.SideEffect)
@@ -68,13 +68,13 @@ abstract class PendingSourceSpec extends Specification {
         source.realizePending()
 
         then:
-        1 * sideEffect1.execute("v1")
+        0 * sideEffect1.execute("v1")
 
         then: // ensure ordering
-        1 * sideEffect3.execute("v3")
+        0 * sideEffect3.execute("v3")
 
         then: // ensure ordering
-        1 * sideEffect5.execute("v5")
+        0 * sideEffect5.execute("v5")
 
         // side effects of removed providers do not execute
         0 * sideEffect2.execute(_)
