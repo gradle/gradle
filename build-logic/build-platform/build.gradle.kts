@@ -1,4 +1,5 @@
 import groovy.lang.GroovySystem
+import org.gradle.util.internal.VersionNumber
 
 plugins {
     `java-platform`
@@ -8,7 +9,10 @@ description = "Provides a platform that constrains versions of external dependen
 
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
 val javaParserVersion = "3.18.0"
-val groovyVersion = "3.0.12"
+val groovyVersion = GroovySystem.getVersion()
+val isGroovy4 = VersionNumber.parse(groovyVersion) >= VersionNumber.version(4)
+val codenarcVersion = if (isGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
+val spockVersion = if (isGroovy4) "2.2-M3-groovy-4.0" else "2.1-groovy-3.0"
 val asmVersion = "9.2"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
@@ -51,14 +55,14 @@ dependencies {
         api("com.sun.xml.bind:jaxb-core:2.2.11")
         api("com.sun.xml.bind:jaxb-impl:2.2.11")
         api("junit:junit:4.13.2")
-        api("org.spockframework:spock-core:2.1-groovy-3.0") // TODO bump to 2.2-M3-groovy-4.0 after publishing a nightly built with Groovy 4
-        api("org.spockframework:spock-junit4:2.1-groovy-3.0") // TODO bump to 2.2-M3-groovy-4.0 after publishing a nightly built with Groovy 4
+        api("org.spockframework:spock-core:$spockVersion") // TODO bump to 2.2-M3-groovy-4.0 after publishing a nightly built with Groovy 4
+        api("org.spockframework:spock-junit4:$spockVersion") // TODO bump to 2.2-M3-groovy-4.0 after publishing a nightly built with Groovy 4
         api("org.asciidoctor:asciidoctorj:2.4.3")
         api("org.asciidoctor:asciidoctorj-pdf:1.5.4")
         api("com.beust:jcommander:1.78")
         api("org.codehaus.groovy:$groovyVersion") // TODO bump to Groovy 4
         api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2") // TODO maybe change group name when upgrading to Groovy 4
-        api("org.codenarc:CodeNarc:3.0.1") // TODO bump to org.codenarc:CodeNarc-Groovy4:3.1.0
+        api("org.codenarc:CodeNarc:$codenarcVersion") // TODO bump to org.codenarc:CodeNarc-Groovy4:3.1.0
         api("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
         api("org.javassist:javassist:3.27.0-GA")
         api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0")
