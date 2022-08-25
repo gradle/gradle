@@ -280,7 +280,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     WorkerRequirement getWorkerRequirement(Class<?> executionClass, WorkerSpec configuration, WorkParameters parameters) {
         if (configuration instanceof ProcessWorkerSpec) {
             DaemonForkOptionsBuilder builder = new DaemonForkOptionsBuilder(forkOptionsFactory)
-                .keepAliveMode(KeepAliveMode.DAEMON);
+                .keepAliveMode(KeepAliveMode.SESSION);
             ProcessWorkerSpec processConfiguration = (ProcessWorkerSpec) configuration;
             JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
             processConfiguration.getForkOptions().copyTo(forkOptions);
