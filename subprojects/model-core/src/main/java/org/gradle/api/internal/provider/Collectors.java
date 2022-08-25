@@ -325,8 +325,8 @@ public class Collectors {
             return delegate.calculatePresence(consumer);
         }
 
-        public Value<Void> collectInto(ImmutableCollection.Builder<T> builder) {
-            return collectEntries(ValueConsumer.IgnoreUnsafeRead, valueCollector, builder);
+        public void collectInto(ImmutableCollection.Builder<T> builder) {
+            collectEntries(ValueConsumer.IgnoreUnsafeRead, valueCollector, builder);
         }
 
         @Override
