@@ -103,7 +103,7 @@ public class Collectors {
             }
 
             collector.add(value.getWithoutSideEffect(), collection);
-            return SideEffect.attachFixedFrom(Value.present(), value);
+            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
         }
 
         @Override

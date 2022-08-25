@@ -276,7 +276,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             if (result.isMissing()) {
                 return result.asType();
             }
-            return SideEffect.attachFixedFrom(Value.ofNullable(result.getWithoutSideEffect().get(key)), result);
+            Value<? extends V> resultValue = Value.ofNullable(result.getWithoutSideEffect().get(key));
+            return resultValue.withSideEffect(SideEffect.fixedFrom(result));
         }
     }
 
@@ -384,7 +385,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer) {
-            return SideEffect.attach(Value.of(entries), sideEffect);
+            return Value.of(entries).withSideEffect(sideEffect);
         }
 
         @Override
@@ -399,7 +400,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue() {
-            return SideEffect.attach(ExecutionTimeValue.fixedValue(entries), sideEffect);
+            return ExecutionTimeValue.fixedValue(entries).withSideEffect(sideEffect);
         }
 
         @Override
@@ -442,7 +443,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             if (result.isMissing()) {
                 return result.asType();
             }
-            return SideEffect.attachFixedFrom(Value.of(ImmutableMap.copyOf(entries)), result);
+            return Value.of(ImmutableMap.copyOf(entries)).withSideEffect(SideEffect.fixedFrom(result));
         }
 
         @Override
@@ -471,14 +472,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                 SideEffectBuilder<? super Map<K, V>> sideEffectBuilder = SideEffect.builder();
                 for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value : values) {
                     entryCollector.addAll(value.getFixedValue().entrySet(), entries);
-                    sideEffectBuilder.addFixedFrom(value);
+                    sideEffectBuilder.add(SideEffect.fixedFrom(value));
                 }
 
                 ExecutionTimeValue<Map<K, V>> value = ExecutionTimeValue.fixedValue(ImmutableMap.copyOf(entries));
                 if (changingContent) {
                     value = value.withChangingContent();
                 }
-                return SideEffect.attach(value, sideEffectBuilder.build());
+                return value.withSideEffect(sideEffectBuilder.build());
             }
             List<ProviderInternal<? extends Map<? extends K, ? extends V>>> providers = new ArrayList<>();
             for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value : values) {
@@ -516,11 +517,10 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
                     return Value.missing();
                 }
                 entries.putAll(value.getWithoutSideEffect());
-                sideEffectBuilder.addFixedFrom(value);
+                sideEffectBuilder.add(SideEffect.fixedFrom(value));
             }
 
-            Value<ImmutableMap<K, V>> resultValue = Value.of(ImmutableMap.copyOf(entries));
-            return SideEffect.attach(resultValue, sideEffectBuilder.build());
+            return Value.of(ImmutableMap.copyOf(entries)).withSideEffect(sideEffectBuilder.build());
         }
     }
 
