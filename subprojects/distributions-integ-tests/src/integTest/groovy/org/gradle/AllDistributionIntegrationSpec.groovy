@@ -17,6 +17,8 @@
 package org.gradle
 
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Shared
 
 class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
@@ -37,6 +39,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
         return 161 * 1024 * 1024
     }
 
+    @Requires(TestPrecondition.STABLE_GROOVY) // cannot link to public javadocs of Groovy snapshots like https://docs.groovy-lang.org/docs/groovy-4.0.5-SNAPSHOT/html/gapi/
     def allZipContents() {
         given:
         TestFile contentsDir = unpackDistribution()
