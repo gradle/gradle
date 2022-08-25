@@ -17,7 +17,6 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 
 /**
@@ -62,23 +61,6 @@ public interface JavaApplication {
      * @since 6.4
      */
     Property<String> getMainClass();
-
-    /**
-     * The fully qualified name of the application's main class.
-     *
-     * @deprecated Use {@link #getMainClass()} instead.
-     */
-    @Deprecated
-    @ReplacedBy("mainClass")
-    String getMainClassName();
-
-    /**
-     * The fully qualified name of the application's main class.
-     *
-     * @deprecated Set via {@link #getMainClass()} instead.
-     */
-    @Deprecated
-    void setMainClassName(String mainClassName);
 
     /**
      * Array of string arguments to pass to the JVM when running the application

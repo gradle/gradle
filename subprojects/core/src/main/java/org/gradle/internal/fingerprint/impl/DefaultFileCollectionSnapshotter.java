@@ -47,17 +47,11 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         SnapshottingVisitor visitor = new SnapshottingVisitor();
         ((FileCollectionInternal) fileCollection).visitStructure(visitor);
         FileSystemSnapshot snapshot = CompositeFileSystemSnapshot.of(visitor.getRoots());
-        boolean fileTreeOnly = visitor.isFileTreeOnly();
         boolean containsArchiveTrees = visitor.containsArchiveTrees();
         return new Result() {
             @Override
             public FileSystemSnapshot getSnapshot() {
                 return snapshot;
-            }
-
-            @Override
-            public boolean isFileTreeOnly() {
-                return fileTreeOnly;
             }
 
             @Override
@@ -69,7 +63,6 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
     private class SnapshottingVisitor implements FileCollectionStructureVisitor {
         private final List<FileSystemSnapshot> roots = new ArrayList<>();
-        private Boolean fileTreeOnly;
         private boolean containsArchiveTrees;
 
         @Override
@@ -77,7 +70,6 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             for (File file : contents) {
                 fileSystemAccess.read(file.getAbsolutePath(), roots::add);
             }
-            fileTreeOnly = false;
         }
 
         @Override
@@ -91,24 +83,16 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                     }
                 }
             );
-            if (fileTreeOnly == null) {
-                fileTreeOnly = true;
-            }
         }
 
         @Override
         public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             fileSystemAccess.read(file.getAbsolutePath(), roots::add);
-            fileTreeOnly = false;
             containsArchiveTrees = true;
         }
 
         public List<FileSystemSnapshot> getRoots() {
             return roots;
-        }
-
-        public boolean isFileTreeOnly() {
-            return fileTreeOnly != null && fileTreeOnly;
         }
 
         public boolean containsArchiveTrees() {

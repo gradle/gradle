@@ -27,13 +27,6 @@ public interface FileCollectionSnapshotter {
         FileSystemSnapshot getSnapshot();
 
         /**
-         * Whether the snapshot file collection consists only of file trees.
-         *
-         * If the file collection does not contain any file trees, then this will return {@code false}.
-         */
-        boolean isFileTreeOnly();
-
-        /**
          * Whether any of the snapshot file collections is an archive tree backed by a file.
          */
         boolean containsArchiveTrees();
