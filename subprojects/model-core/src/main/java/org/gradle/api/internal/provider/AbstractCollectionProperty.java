@@ -306,7 +306,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public Value<? extends C> calculateValue(ValueConsumer consumer) {
-            return SideEffect.attach(Value.of(value), sideEffect);
+            return Value.of(value).withSideEffect(sideEffect);
         }
 
         @Override
@@ -316,7 +316,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public ExecutionTimeValue<? extends C> calculateExecutionTimeValue() {
-            return SideEffect.attach(ExecutionTimeValue.fixedValue(value), sideEffect);
+            return ExecutionTimeValue.fixedValue(value).withSideEffect(sideEffect);
         }
 
         @Override
@@ -345,7 +345,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             if (result.isMissing()) {
                 return result.asType();
             }
-            return SideEffect.attachFixedFrom(Value.of(Cast.uncheckedCast(builder.build())), result);
+            return Value.of(Cast.<C>uncheckedNonnullCast(builder.build())).withSideEffect(SideEffect.fixedFrom(result));
         }
 
         @Override
@@ -374,7 +374,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 SideEffectBuilder<C> sideEffectBuilder = SideEffect.builder();
                 for (ExecutionTimeValue<? extends Iterable<? extends T>> value : values) {
                     builder.addAll(value.getFixedValue());
-                    sideEffectBuilder.addFixedFrom(value);
+                    sideEffectBuilder.add(SideEffect.fixedFrom(value));
                 }
 
                 ExecutionTimeValue<C> mergedValue = ExecutionTimeValue.fixedValue(Cast.uncheckedNonnullCast(builder.build()));
@@ -382,7 +382,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                     mergedValue = mergedValue.withChangingContent();
                 }
 
-                return SideEffect.attach(mergedValue, sideEffectBuilder.build());
+                return mergedValue.withSideEffect(sideEffectBuilder.build());
             }
 
             // At least one of the values is a changing value
@@ -432,10 +432,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                     return Value.missing();
                 }
                 builder.addAll(value.getWithoutSideEffect());
-                sideEffectBuilder.addFixedFrom(value);
+                sideEffectBuilder.add(SideEffect.fixedFrom(value));
             }
 
-            return SideEffect.attach(Value.of(Cast.uncheckedNonnullCast(builder.build())), sideEffectBuilder.build());
+            Value<? extends C> resultValue = Value.of(Cast.uncheckedNonnullCast(builder.build()));
+            return resultValue.withSideEffect(sideEffectBuilder.build());
         }
     }
 
