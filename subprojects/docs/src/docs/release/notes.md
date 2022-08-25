@@ -258,12 +258,70 @@ Related issues:
 
 Gradle 7.6 supports compiling, testing and running on Java 19.
 
-#### Introduced strongly-typed JVM test suites `dependencies` block
+#### Introduced strongly typed JVM test suites `dependencies` block
 
-The test suites' `dependencies` block is now strongly-typed. This means that the type of added dependencies is now
-strongly-typed. For example, using a `String` will provide an `ExternalModuleDependency`, whereas using a `FileCollection` will
-provide a `FileCollectionDependency`. This allows Java and Kotlin to properly configure all types of dependencies, and improves
-IDE support for Groovy.
+The test suite `dependencies` block is now [strongly typed](https://en.wikipedia.org/wiki/Strong_and_weak_typing).
+
+Previously, dependencies were only accepted as a generic `Object`, and in Kotlin DSL this made it harder to configure:
+
+```kotlin
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnitJupiter()
+            dependencies {
+                implementation(project(":foo")) {
+                    // Type of the receiver (`this`) here is Dependency, but `project(...)` gives a ProjectDependency.
+                    // In order to access ProjectDependency-specific methods, it must be smart-cast:
+                    this as ProjectDependency
+                    // Now it can be used as a ProjectDependency
+                    println(dependencyProject)
+                }
+            }
+        }
+    }
+}
+```
+
+Now, the configurations are designed in such a way that a particular notation now provides its `Dependency` subtype:
+
+```kotlin
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnitJupiter()
+            dependencies {
+                implementation(project(":foo")) {
+                    // `this` is already a ProjectDependency
+                    println(dependencyProject)
+                }
+            }
+        }
+    }
+}
+```
+
+For example, using a `String` provides an `ExternalModuleDependency`.
+Using a `FileCollection` provides a `FileCollectionDependency`.
+This allows Java and Kotlin to properly configure all types of dependencies and improves Groovy IDE support.
+
+In addition, Kotlin DSL now supports using named arguments for external modules:
+
+```kotlin
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnitJupiter()
+            dependencies {
+                implementation(group = "org.junit.jupiter", name = "junit-jupiter", version = "5.8.2")
+                runtimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = "5.8.2")
+            }
+        }
+    }
+}
+```
+
+Groovy DSL still supports using `Map` notation for this same purpose, however using `Map` from other languages is not possible.
 
 #### Introduced support for Java 9+ network debugging  
 
