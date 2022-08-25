@@ -31,10 +31,9 @@ import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningServic
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 public class JavaToolchainQueryService {
 
@@ -43,7 +42,7 @@ public class JavaToolchainQueryService {
     private final JavaToolchainProvisioningService installService;
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
-    private final Map<JavaToolchainSpec, JavaToolchain> matchingToolchains;
+    private final Map<JavaToolchainSpec, Object> matchingToolchains;
 
     @Inject
     public JavaToolchainQueryService(
@@ -57,7 +56,7 @@ public class JavaToolchainQueryService {
         this.installService = provisioningService;
         this.detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).map(Boolean::parseBoolean);
         this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).map(Boolean::parseBoolean);
-        this.matchingToolchains = new ConcurrentHashMap<>();
+        this.matchingToolchains = new HashMap<>();
     }
 
     <T> Provider<T> toolFor(
@@ -86,8 +85,34 @@ public class JavaToolchainQueryService {
                 return null;
             }
 
-            return matchingToolchains.computeIfAbsent(filterInternal, this::query);
+            synchronized (matchingToolchains) {
+                if (matchingToolchains.containsKey(filter)) {
+                    return handleMatchingToolchainCached(filter);
+                } else {
+                    return handleMatchingToolchainUnknown(filter);
+                }
+            }
         });
+    }
+
+    private JavaToolchain handleMatchingToolchainCached(JavaToolchainSpec filter) throws Exception {
+        Object previousResult = matchingToolchains.get(filter);
+        if (previousResult instanceof Exception) {
+            throw (Exception) previousResult;
+        } else {
+            return (JavaToolchain) previousResult;
+        }
+    }
+
+    private JavaToolchain handleMatchingToolchainUnknown(JavaToolchainSpec filter) {
+        try {
+            JavaToolchain toolchain = query(filter);
+            matchingToolchains.put(filter, toolchain);
+            return toolchain;
+        } catch (Exception e) {
+            matchingToolchains.put(filter, e);
+            throw e;
+        }
     }
 
     private JavaToolchain query(JavaToolchainSpec filter) {
@@ -109,18 +134,16 @@ public class JavaToolchainQueryService {
 
     private JavaToolchain downloadToolchain(JavaToolchainSpec spec) {
         final Optional<File> installation = installService.tryInstall(spec);
-        final Optional<JavaToolchain> toolchain = installation
-            .map(home -> asToolchain(new InstallationLocation(home, "provisioned toolchain"), spec))
-            .orElseThrow(noToolchainAvailable(spec));
-        return toolchain.orElseThrow(provisionedToolchainIsInvalid(installation::get));
-    }
+        if (!installation.isPresent()) {
+            throw new NoToolchainAvailableException(spec, detectEnabled.getOrElse(true), downloadEnabled.getOrElse(true));
+        }
 
-    private Supplier<GradleException> noToolchainAvailable(JavaToolchainSpec spec) {
-        return () -> new NoToolchainAvailableException(spec, detectEnabled.getOrElse(true), downloadEnabled.getOrElse(true));
-    }
+        Optional<JavaToolchain> toolchain = asToolchain(new InstallationLocation(installation.get(), "provisioned toolchain"), spec);
+        if (!toolchain.isPresent()) {
+            throw new GradleException("Provisioned toolchain '" + installation.get() + "' could not be probed.");
+        }
 
-    private Supplier<GradleException> provisionedToolchainIsInvalid(Supplier<File> javaHome) {
-        return () -> new GradleException("Provisioned toolchain '" + javaHome.get() + "' could not be probed.");
+        return toolchain.get();
     }
 
     private Optional<JavaToolchain> asToolchain(InstallationLocation javaHome, JavaToolchainSpec spec) {

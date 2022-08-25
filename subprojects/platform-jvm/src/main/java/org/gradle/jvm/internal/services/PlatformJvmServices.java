@@ -19,9 +19,11 @@ package org.gradle.jvm.internal.services;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.initialization.DefaultToolchainManagementSpec;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.inspection.ConditionalInvalidation;
 import org.gradle.internal.jvm.inspection.InvalidJvmInstallationCacheInvalidator;
@@ -29,6 +31,7 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
@@ -63,9 +66,15 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
 
     protected static class BuildServices {
 
-        protected DefaultJavaToolchainRepositoryRegistry createJavaToolchainRepositoryRegistry(ObjectFactory objectFactory, Gradle gradle, ListenerManager listenerManager) {
+        protected DefaultJavaToolchainRepositoryRegistry createJavaToolchainRepositoryRegistry(
+                Gradle gradle,
+                ListenerManager listenerManager,
+                Instantiator instantiator,
+                ObjectFactory objectFactory,
+                ProviderFactory providerFactory,
+                AuthenticationSchemeRegistry authenticationSchemeRegistry) {
             JavaToolchainRepositoryRegistrationListener registrationBroadcaster = listenerManager.getBroadcaster(JavaToolchainRepositoryRegistrationListener.class);
-            return objectFactory.newInstance(DefaultJavaToolchainRepositoryRegistry.class, gradle, registrationBroadcaster);
+            return objectFactory.newInstance(DefaultJavaToolchainRepositoryRegistry.class, gradle, registrationBroadcaster, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
         }
 
         protected DefaultJdksBlockForToolchainManagement createToolchainManagementSpec(ObjectFactory objectFactory, JavaToolchainRepositoryRegistry registry, ListenerManager listenerManager) {

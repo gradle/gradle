@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain.internal.install;
 
 import com.google.common.io.Files;
 import org.apache.commons.io.FilenameUtils;
+import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
@@ -119,7 +120,11 @@ public class JdkCacheDirectory {
         File markedLocation = markedLocation(unpackFolder);
         markAsReady(markedLocation);
         File javaHome = getJavaHome(markedLocation);
+
         JvmInstallationMetadata metadata = detector.getMetadata(new InstallationLocation(javaHome, "provisioned toolchain"));
+        if (!metadata.isValidInstallation()) {
+            throw new GradleException("Provisioned toolchain '" + javaHome + "' could not be probed.");
+        }
 
         File installFolder = new File(jdkDirectory, toDirectoryName(metadata));
         operations.copy(copySpec -> {

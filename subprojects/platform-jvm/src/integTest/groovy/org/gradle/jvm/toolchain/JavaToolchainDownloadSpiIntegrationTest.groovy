@@ -16,11 +16,11 @@
 
 package org.gradle.jvm.toolchain
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 
-class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
+class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownloadSpiIntegrationTest {
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can inject custom toolchain registry via settings plugin"() {
@@ -277,26 +277,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.getOutput().contains("Explicitly requested toolchains: [uselessRegistry3, uselessRegistry1]")
-    }
-
-    private static String applyToolchainRegistryPlugin(String name, String className, String code) {
-        """
-            public abstract class ${className}Plugin implements Plugin<Settings> {
-                @Inject
-                protected abstract JavaToolchainRepositoryRegistry getToolchainRepositoryRegistry();
-            
-                void apply(Settings settings) {
-                    settings.getPlugins().apply("jdk-toolchains");
-                
-                    JavaToolchainRepositoryRegistry registry = getToolchainRepositoryRegistry();
-                    registry.register("${name}", ${className}.class)
-                }
-            }
-            
-            ${code}
-
-            apply plugin: ${className}Plugin
-        """
     }
 
     private static String customToolchainRegistryCode() {

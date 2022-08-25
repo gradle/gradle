@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.resources.MissingResourceException;
+import org.gradle.authentication.Authentication;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
@@ -39,7 +40,7 @@ import java.net.URISyntaxException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.Collections;
+import java.util.Collection;
 
 public class FileDownloader {
 
@@ -51,8 +52,8 @@ public class FileDownloader {
         this.repositoryTransportFactory = repositoryTransportFactory;
     }
 
-    public ExternalResource getResourceFor(URI source) {
-        return createExternalResource(source);
+    public ExternalResource getResourceFor(URI source, Collection<Authentication> authentications) {
+        return createExternalResource(source, authentications);
     }
 
     public void download(URI source, File destination, ExternalResource resource) {
@@ -63,14 +64,14 @@ public class FileDownloader {
         }
     }
 
-    private ExternalResource createExternalResource(URI source) {
+    private ExternalResource createExternalResource(URI source, Collection<Authentication> authentications) {
         final ExternalResourceName resourceName = new ExternalResourceName(source) {
             @Override
             public String getShortDisplayName() {
                 return source.toString();
             }
         };
-        return getTransport(source).getRepository().withProgressLogging().resource(resourceName);
+        return getTransport(source, authentications).getRepository().withProgressLogging().resource(resourceName);
     }
 
     private void downloadResource(URI source, File targetFile, ExternalResource resource) {
@@ -106,7 +107,7 @@ public class FileDownloader {
         }
     }
 
-    private RepositoryTransport getTransport(URI source) {
+    private RepositoryTransport getTransport(URI source, Collection<Authentication> authentications) {
         final HttpRedirectVerifier redirectVerifier;
         try {
             redirectVerifier = HttpRedirectVerifierFactory.create(new URI(source.getScheme(), source.getAuthority(), null, null, null), false, () -> {
@@ -117,7 +118,7 @@ public class FileDownloader {
         } catch (URISyntaxException e) {
             throw new InvalidUserCodeException("Cannot extract host information from specified URI " + source);
         }
-        return repositoryTransportFactory.createTransport("https", "jdk toolchains", Collections.emptyList(), redirectVerifier);
+        return repositoryTransportFactory.createTransport("https", "jdk toolchains", authentications, redirectVerifier);
     }
 
 

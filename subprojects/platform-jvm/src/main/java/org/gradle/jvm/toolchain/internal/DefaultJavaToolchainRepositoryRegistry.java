@@ -18,12 +18,21 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.repositories.AuthenticationSupported;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.artifacts.repositories.AuthenticationSupporter;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.services.BuildServiceSpec;
 import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
+import org.gradle.authentication.Authentication;
+import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
+import org.gradle.internal.authentication.DefaultAuthenticationContainer;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
 
 import javax.inject.Inject;
@@ -42,14 +51,33 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
 
     private final JavaToolchainRepositoryRegistrationListener registrationBroadcaster;
 
+    private final Instantiator instantiator;
+
+    private final ObjectFactory objectFactory;
+
+    private final ProviderFactory providerFactory;
+
+    private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
+
     private final Map<String, JavaToolchainRepositoryRegistrationInternal> registrations = new HashMap<>();
 
-    private final List<JavaToolchainRepositoryRegistrationInternal> requests = new ArrayList<>();
+    private final List<JavaToolchainRepositoryRequest> requests = new ArrayList<>();
 
     @Inject
-    public DefaultJavaToolchainRepositoryRegistry(Gradle gradle, JavaToolchainRepositoryRegistrationListener registrationBroadcaster) {
+    public DefaultJavaToolchainRepositoryRegistry(
+            Gradle gradle,
+            JavaToolchainRepositoryRegistrationListener registrationBroadcaster,
+            Instantiator instantiator,
+            ObjectFactory objectFactory,
+            ProviderFactory providerFactory,
+            AuthenticationSchemeRegistry authenticationSchemeRegistry
+    ) {
         this.sharedServices = gradle.getSharedServices();
         this.registrationBroadcaster = registrationBroadcaster;
+        this.instantiator = instantiator;
+        this.objectFactory = objectFactory;
+        this.providerFactory = providerFactory;
+        this.authenticationSchemeRegistry = authenticationSchemeRegistry;
     }
 
     @Override
@@ -67,29 +95,52 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
 
     @Override
     public void request(String registrationName) {
-        JavaToolchainRepositoryRegistrationInternal registration = registrations.get(registrationName);
-        if (registration == null) {
-            throw new GradleException("Unknown Java Toolchain registry: " + registrationName);
-        }
-        request(registration);
+        request(findRegistrationByName(registrationName));
+    }
+
+    @Override
+    public void request(String registrationName, Action<? super AuthenticationSupported> authentication) {
+        request(findRegistrationByName(registrationName), authentication);
     }
 
     @Override
     public void request(JavaToolchainRepositoryRegistration registration) {
-        requests.add((JavaToolchainRepositoryRegistrationInternal) registration);
+        requests.add(createRequest((JavaToolchainRepositoryRegistrationInternal) registration));
     }
 
     @Override
-    public List<? extends JavaToolchainRepositoryRegistration> allRegistrations() {
+    public void request(JavaToolchainRepositoryRegistration registration, Action<? super AuthenticationSupported> authentication) {
+        JavaToolchainRepositoryRequest request = createRequest((JavaToolchainRepositoryRegistrationInternal) registration);
+        authentication.execute(request);
+        requests.add(request);
+    }
+
+    private JavaToolchainRepositoryRequest createRequest(JavaToolchainRepositoryRegistrationInternal registration) {
+        DefaultAuthenticationContainer authenticationContainer = new DefaultAuthenticationContainer(instantiator, CollectionCallbackActionDecorator.NOOP);
+        for (Map.Entry<Class<Authentication>, Class<? extends Authentication>> e : authenticationSchemeRegistry.getRegisteredSchemes().entrySet()) {
+            authenticationContainer.registerBinding(e.getKey(), e.getValue());
+        }
+
+        AuthenticationSupporter authenticationSupporter = new AuthenticationSupporter(instantiator, objectFactory, authenticationContainer, providerFactory);
+        return objectFactory.newInstance(JavaToolchainRepositoryRequest.class, registration, authenticationSupporter, providerFactory);
+    }
+
+    @Override
+    public List<? extends JavaToolchainRepositoryRegistration> allRequestedRegistrations() {
+        return requests.stream().map(JavaToolchainRepositoryRequest::getRegistration).collect(Collectors.toList()); //TODO (#21082): do we need to create a defensive copy here?
+    }
+
+    @Override
+    public List<JavaToolchainRepositoryRequest> requestedRepositories() {
         return requests; //TODO (#21082): do we need to create a defensive copy here?
     }
 
-    @Override
-    public List<JavaToolchainRepository> requestedRepositories() {
-        return requests.stream()
-                .map(JavaToolchainRepositoryRegistrationInternal::getProvider)
-                .map(Provider::get)
-                .collect(Collectors.toList());
+    private JavaToolchainRepositoryRegistrationInternal findRegistrationByName(String registrationName) {
+        JavaToolchainRepositoryRegistrationInternal registration = registrations.get(registrationName);
+        if (registration == null) {
+            throw new GradleException("Unknown Java Toolchain registry: " + registrationName);
+        }
+        return registration;
     }
 
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 import org.gradle.internal.concurrent.Stoppable;
@@ -45,13 +47,23 @@ public abstract class DefaultJdksBlockForToolchainManagement implements JdksBloc
     }
 
     @Override
+    public void add(String registrationName, Action<? super AuthenticationSupported> authentication) {
+        registry.request(registrationName, authentication);
+    }
+
+    @Override
     public void add(JavaToolchainRepositoryRegistration registration) {
         registry.request(registration);
     }
 
     @Override
+    public void add(JavaToolchainRepositoryRegistration registration, Action<? super AuthenticationSupported> authentication) {
+        registry.request(registration, authentication);
+    }
+
+    @Override
     public List<? extends JavaToolchainRepositoryRegistration> getAll() {
-        return registry.allRegistrations();
+        return registry.allRequestedRegistrations();
     }
 
     @Override
