@@ -559,8 +559,9 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         then:
         executionPlan.tasks as List == [a, finalizerDep, b, finalizer]
-        assertTaskReady(a)
-        assertTaskReady(finalizerDep)
+        ordinalGroups == [0, null, 1, 1]
+        reachableFromEntryPoint == [true, true, true, false]
+        assertTasksReady(a, finalizerDep)
         assertTaskReady(b)
         assertTaskReadyAndNoMoreToStart(finalizer)
         assertAllWorkComplete()
