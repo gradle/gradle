@@ -51,7 +51,7 @@ public interface ExecutionPlan extends Describable, Closeable {
         }
 
         @Override
-        public void addNodes(Collection<? extends Node> nodes) {
+        public void setScheduledNodes(Collection<? extends Node> nodes) {
             throw new IllegalStateException();
         }
 
@@ -130,7 +130,7 @@ public interface ExecutionPlan extends Describable, Closeable {
      */
     TaskNode getNode(Task task);
 
-    void addNodes(Collection<? extends Node> nodes);
+    void setScheduledNodes(Collection<? extends Node> nodes);
 
     void addEntryTasks(Collection<? extends Task> tasks);
 

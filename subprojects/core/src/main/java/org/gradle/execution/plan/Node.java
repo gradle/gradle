@@ -470,7 +470,7 @@ public abstract class Node {
     }
 
     /**
-     * Called when this node is added to the work graph, prior to resolving its dependencies.
+     * Called when the graph containing this node is about to start execution.
      *
      * @param monitor An action that should be called when this node is ready to execute, when the dependencies for this node are executed outside
      * the work graph that contains this node (for example, when the node represents a task in an included build).

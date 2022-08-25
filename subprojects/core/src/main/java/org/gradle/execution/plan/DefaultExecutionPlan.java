@@ -125,16 +125,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     }
 
     @Override
-    public void addNodes(Collection<? extends Node> nodes) {
-        Deque<Node> queue = new ArrayDeque<>(nodes.size());
-        for (Node node : nodes) {
-            assert node.isInKnownState();
-            if (node.isRequired()) {
-                entryNodes.add(node);
-                queue.add(node);
-            }
+    public void setScheduledNodes(Collection<? extends Node> nodes) {
+        if (!nodeMapping.isEmpty()) {
+            throw new IllegalStateException("This execution plan already has nodes scheduled.");
         }
-        doAddNodes(queue);
+        entryNodes.addAll(nodes);
     }
 
     @Override
@@ -188,8 +183,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
             if (visiting.add(node)) {
                 // Have not seen this node before - add its dependencies to the head of the queue and leave this
                 // node in the queue
-                // Make sure it has been configured
-                node.prepareForExecution(this::monitoredNodeReady);
                 node.resolveDependencies(dependencyResolver);
                 for (Node successor : node.getHardSuccessors()) {
                     successor.maybeInheritOrdinalAsDependency(node.getGroup());
@@ -239,6 +232,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         executionQueue.restart();
         while (executionQueue.hasNext()) {
             Node node = executionQueue.next();
+            node.prepareForExecution(this::monitoredNodeReady);
             node.updateAllDependenciesComplete();
             maybeNodeReady(node);
         }
@@ -310,7 +304,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         ImmutableList.Builder<Node> builder = ImmutableList.builderWithExpectedSize(nodeMapping.nodes.size());
         for (Node node : nodeMapping.nodes) {
             // Do not include a task from another build when that task has already executed
-            // Most nodes that have already executed are filtered in `doAddNodes()` but these particular nodes are node
+            // Most nodes that have already executed are filtered in `doAddNodes()` but these particular nodes are not
             // It would be better to also remove these nodes in `doAddNodes()`
             if (node instanceof TaskInAnotherBuild && ((TaskInAnotherBuild) node).getTask().getState().getExecuted()) {
                 continue;
@@ -888,7 +882,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
         private int nextPos = 0;
         private int insertPos;
 
-        public void setNodes(Collection<Node> nodes) {
+        public void setNodes(Collection<? extends Node> nodes) {
             this.nodes.clear();
             this.nodes.addAll(nodes);
             nextPos = 0;

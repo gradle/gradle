@@ -971,7 +971,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         def node1 = requiredNode()
         def node2 = requiredNode(node1)
         def node3 = requiredNode(node2)
-        executionPlan.addNodes([node3, node1, node2])
+        executionPlan.setScheduledNodes([node3, node1, node2])
 
         when:
         populateGraph()

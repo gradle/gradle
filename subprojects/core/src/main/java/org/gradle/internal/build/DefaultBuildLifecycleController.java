@@ -250,8 +250,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
-        public void addNodes(List<? extends Node> nodes) {
-            plan.addNodes(nodes);
+        public void setScheduledNodes(List<? extends Node> nodes) {
+            plan.setScheduledNodes(nodes);
         }
     }
 }

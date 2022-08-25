@@ -36,7 +36,6 @@ import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeGroup
 import org.gradle.execution.plan.OrdinalGroup
 import org.gradle.execution.plan.OrdinalGroupFactory
-import org.gradle.execution.plan.TaskInAnotherBuild
 import org.gradle.execution.plan.TaskNode
 
 
@@ -95,10 +94,7 @@ class WorkNodeCodec(
     suspend fun ReadContext.readNode(): Node {
         val node = readNonNull<Node>()
         node.require()
-        if (node !is TaskInAnotherBuild) {
-            // we want TaskInAnotherBuild dependencies to be processed later, so that the node is connected to its target task
-            node.dependenciesProcessed()
-        }
+        node.dependenciesProcessed()
         return node
     }
 

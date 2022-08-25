@@ -95,4 +95,12 @@ public class OrdinalGroup extends NodeGroup {
     public String diagnostics() {
         return "group " + ordinal + " entry nodes: " + entryNodes;
     }
+
+    public OrdinalNode locationsNode(OrdinalNode.Type ordinalType) {
+        if (ordinalType == OrdinalNode.Type.PRODUCER) {
+            return getProducerLocationsNode();
+        } else {
+            return getDestroyerLocationsNode();
+        }
+    }
 }
