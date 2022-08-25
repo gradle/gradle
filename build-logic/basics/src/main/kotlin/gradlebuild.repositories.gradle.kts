@@ -43,7 +43,7 @@ repositories {
         name = "Apache Snapshots"
         url = uri("https://repository.apache.org/content/repositories/snapshots/")
         content {
-            includeGroup("org.apache.groovy")
+            includeVersionByRegex("org\\.apache\\.groovy", ".*", "4.*-SNAPSHOT")
         }
     }
     mavenCentral()
