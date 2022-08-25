@@ -68,6 +68,15 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     protected abstract ValueSupplier.Value<? extends T> calculateOwnValue(ValueConsumer consumer);
 
+    protected Value<? extends T> calculateOwnPresentValue() {
+        Value<? extends T> value = calculateOwnValue(ValueConsumer.IgnoreUnsafeRead);
+        if (value.isMissing()) {
+            throw new MissingValueException(cannotQueryValueOf(value));
+        }
+
+        return value;
+    }
+
     @Override
     public boolean isPresent() {
         return calculatePresence(ValueConsumer.IgnoreUnsafeRead);
@@ -80,11 +89,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public T get() {
-        Value<? extends T> value = calculateOwnValue(ValueConsumer.IgnoreUnsafeRead);
-        if (value.isMissing()) {
-            throw new MissingValueException(cannotQueryValueOf(value));
-        }
-        return value.get();
+        return calculateOwnPresentValue().get();
     }
 
     @Override

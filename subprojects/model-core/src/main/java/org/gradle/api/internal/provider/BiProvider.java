@@ -16,7 +16,6 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.function.BiFunction;
@@ -60,24 +59,11 @@ class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
             return rightValue.asType();
         }
 
-        A leftUnpackedValue = leftValue.getWithoutSideEffect();
-        B rightUnpackedValue = rightValue.getWithoutSideEffect();
-        R combinedUnpackedValue = combiner.apply(leftUnpackedValue, rightUnpackedValue);
+        R combinedUnpackedValue = combiner.apply(leftValue.getWithoutSideEffect(), rightValue.getWithoutSideEffect());
 
-        SideEffect<?> leftSideEffect = leftValue.getSideEffect();
-        SideEffect<R> fixedLeftSideEffect = leftSideEffect == null ? null : SideEffect.fixed(leftUnpackedValue, Cast.uncheckedNonnullCast(leftSideEffect));
-        SideEffect<?> rightSideEffect = rightValue.getSideEffect();
-        SideEffect<R> fixedRightSideEffect = rightSideEffect == null ? null : SideEffect.fixed(rightUnpackedValue, Cast.uncheckedNonnullCast(rightSideEffect));
-
-        Value<R> result = Value.of(combinedUnpackedValue);
-        if (leftSideEffect != null && rightSideEffect != null) {
-            result = result.withSideEffect(SideEffect.composite(fixedLeftSideEffect, fixedRightSideEffect));
-        } else if (leftSideEffect != null) {
-            result = result.withSideEffect(fixedLeftSideEffect);
-        } else if (rightSideEffect != null) {
-            result = result.withSideEffect(fixedRightSideEffect);
-        }
-        return result;
+        return Value.of(combinedUnpackedValue)
+            .withSideEffect(SideEffect.fixedFrom(leftValue))
+            .withSideEffect(SideEffect.fixedFrom(rightValue));
     }
 
     @Nullable
