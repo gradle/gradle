@@ -966,26 +966,43 @@ The value of this property is derived from: <source>""")
     }
 
     def "runs side effect when calling '#getter' on property to which providers were added via 'add'"() {
-        when:
         def sideEffect1 = Mock(ValueSupplier.SideEffect)
         def sideEffect2 = Mock(ValueSupplier.SideEffect)
+        def expectedUnpackedValue = ["some value", "simple value", "other value"]
+
+        when:
         property.add(Providers.of("some value").withSideEffect(sideEffect1))
         property.add(Providers.of("simple value"))
         property.add(Providers.of("other value").withSideEffect(sideEffect2))
 
-        property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
-        property.calculateExecutionTimeValue()
-
+        def value = property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        def executionTimeValue = property.calculateExecutionTimeValue()
         then:
         0 * _ // no side effects until values are unpacked
 
         when:
-        def unpackedValue = getter(property, getter, toMutable(["yet another value"]))
-
+        def unpackedValue = value.get()
         then:
-        unpackedValue == toImmutable(["some value", "simple value", "other value"])
+        unpackedValue == toImmutable(expectedUnpackedValue)
         1 * sideEffect1.execute("some value")
+        then: // ensure ordering
+        1 * sideEffect2.execute("other value")
+        0 * _
 
+        when:
+        unpackedValue = executionTimeValue.toValue().get()
+        then:
+        unpackedValue == toImmutable(expectedUnpackedValue)
+        1 * sideEffect1.execute("some value")
+        then: // ensure ordering
+        1 * sideEffect2.execute("other value")
+        0 * _
+
+        when:
+        unpackedValue = getter(property, getter, toMutable(["yet another value"]))
+        then:
+        unpackedValue == toImmutable(expectedUnpackedValue)
+        1 * sideEffect1.execute("some value")
         then: // ensure ordering
         1 * sideEffect2.execute("other value")
         0 * _
@@ -998,22 +1015,36 @@ The value of this property is derived from: <source>""")
     }
 
     def "runs side effect when calling '#getter' on property to which providers were added via 'addAll'"() {
-        when:
         def sideEffect = Mock(ValueSupplier.SideEffect)
+        def expectedUnpackedValue = ["some value", "other value"]
+
+        when:
         property.addAll(Providers.of(["some value", "other value"]).withSideEffect(sideEffect))
 
-        property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
-        property.calculateExecutionTimeValue()
-
+        def value = property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        def executionTimeValue = property.calculateExecutionTimeValue()
         then:
         0 * _ // no side effects until values are unpacked
 
         when:
-        def unpackedValue = getter(property, getter, toMutable(["yet another value"]))
-
+        def unpackedValue = value.get()
         then:
-        unpackedValue == toImmutable(["some value", "other value"])
-        1 * sideEffect.execute(["some value", "other value"])
+        unpackedValue == toImmutable(expectedUnpackedValue)
+        1 * sideEffect.execute(expectedUnpackedValue)
+        0 * _
+
+        when:
+        unpackedValue = executionTimeValue.toValue().get()
+        then:
+        unpackedValue == toImmutable(expectedUnpackedValue)
+        1 * sideEffect.execute(expectedUnpackedValue)
+        0 * _
+
+        when:
+        unpackedValue = getter(property, getter, toMutable(["yet another value"]))
+        then:
+        unpackedValue == toImmutable(expectedUnpackedValue)
+        1 * sideEffect.execute(expectedUnpackedValue)
         0 * _
 
         where:

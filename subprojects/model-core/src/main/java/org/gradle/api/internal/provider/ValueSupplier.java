@@ -241,7 +241,7 @@ public interface ValueSupplier {
          */
         @Nullable
         static <T, A> SideEffect<T> fixedFrom(ExecutionTimeValue<A> value) {
-            if (value.hasFixedValue()) {
+            if (!value.hasFixedValue()) {
                 return null;
             }
 
