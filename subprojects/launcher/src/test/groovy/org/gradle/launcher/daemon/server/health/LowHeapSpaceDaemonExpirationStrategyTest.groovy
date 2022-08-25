@@ -17,10 +17,12 @@
 package org.gradle.launcher.daemon.server.health
 
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE
 
+@Ignore
 class LowHeapSpaceDaemonExpirationStrategyTest extends Specification {
     private final DaemonMemoryStatus status = Mock(DaemonMemoryStatus)
 
