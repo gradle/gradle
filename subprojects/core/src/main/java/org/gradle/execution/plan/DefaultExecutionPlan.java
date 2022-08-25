@@ -57,7 +57,7 @@ import static java.lang.String.format;
  * The mutation methods on this implementation are NOT threadsafe, and callers must synchronize access to these methods.
  */
 @NonNullApi
-public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
+public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node>, QueryableExecutionPlan, FinalizedExecutionPlan {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExecutionPlan.class);
 
     private final Set<Node> entryNodes = new LinkedHashSet<>();
@@ -117,6 +117,12 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     @Override
     public String getDisplayName() {
         return displayName;
+    }
+
+    @Override
+    public QueryableExecutionPlan getContents() {
+        // For now
+        return this;
     }
 
     @Override
@@ -228,7 +234,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
     }
 
     @Override
-    public void finalizePlan() {
+    public FinalizedExecutionPlan finalizePlan() {
         executionQueue.restart();
         while (executionQueue.hasNext()) {
             Node node = executionQueue.next();
@@ -237,6 +243,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, WorkSource<Node> {
             maybeNodeReady(node);
         }
         lockCoordinator.addLockReleaseListener(resourceUnlockListener);
+        // For now
+        return this;
     }
 
     @Override
