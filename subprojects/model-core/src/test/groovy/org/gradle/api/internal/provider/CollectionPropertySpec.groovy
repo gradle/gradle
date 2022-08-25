@@ -1021,4 +1021,17 @@ The value of this property is derived from: <source>""")
         "getOrNull" | _
         "getOrElse" | _
     }
+
+    def "does not run side effect when calling 'size'"() {
+        def sideEffect1 = Mock(ValueSupplier.SideEffect)
+        def sideEffect2 = Mock(ValueSupplier.SideEffect)
+
+        when:
+        property.add(Providers.of("some value").withSideEffect(sideEffect1))
+        property.addAll(Providers.of(["other value"]).withSideEffect(sideEffect2))
+        property.size()
+
+        then:
+        0 * _
+    }
 }
