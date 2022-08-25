@@ -398,6 +398,7 @@ val Project.isPromotionBuild: Boolean
             taskNames.any { it.contains("updateReleasedVersions") }
     }
 
+
 /**
  * If `-PbundleGroovy4=true` is specified, create a distribution using Groovy 4 libs.  Otherwise use Groovy 3 classic libs.
  */
