@@ -22,7 +22,7 @@ import static org.gradle.internal.reflect.validation.Severity.ERROR
 
 class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
-    private static final String ANDROID_PLUGIN_VERSION_FOR_TESTS = TestedVersions.androidGradle.latestStartsWith("7.0")
+    private static final String ANDROID_PLUGIN_VERSION_FOR_TESTS = TestedVersions.androidGradle.latestStartsWith("7.3")
 
     private static final String DAGGER_HILT_ANDROID_PLUGIN_ID = 'dagger.hilt.android.plugin'
     private static final String TRIPLET_PLAY_PLUGIN_ID = 'com.github.triplet.play'

@@ -101,7 +101,7 @@ abstract class AbstractSmokeTest extends Specification {
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "30.0.2"
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle = Versions.of(*AGP_VERSIONS.getLatestsFromMinorPlusNightly("4.0"))
+        static androidGradle = Versions.of(*AGP_VERSIONS.getLatestsFromMinorPlusNightly("7.0"))
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         static kotlin = Versions.of(*KOTLIN_VERSIONS.latests.findAll {
@@ -170,7 +170,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0", "1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.20-Beta")
+        static kotlinPlugins = Versions.of("1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.20-Beta")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp
