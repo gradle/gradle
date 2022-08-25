@@ -45,6 +45,18 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
             checkstyle {
                 configProperties["some"] = new URL("https://gradle.org/")
             }
+
+            checkstyleMain {
+                workerOptions {
+                    systemProperties {
+                        systemProperty("gradletest.string", "string")
+                        systemProperty("gradletest.ignored", ignoredValue(project.provider { "string" }))
+                        systemProperty("gradletest.value", value("string"))
+                        systemProperty("gradletest.inputFile", inputFile(project.layout.buildDirectory.file("foo")))
+                        systemProperty("gradletest.inputDir", inputDirectory(project.layout.buildDirectory.dir("foo")))
+                    }
+                }
+            }
         """
         file('src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
         file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()

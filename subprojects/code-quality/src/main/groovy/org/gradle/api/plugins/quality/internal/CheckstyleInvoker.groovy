@@ -39,6 +39,7 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
 
     CheckstyleInvoker(CheckstyleActionParameters parameters) {
         this.parameters = parameters
+        System.out.println(System.getProperties().findAll { k, v -> k.startsWith("gradletest.") })
     }
 
     @SuppressWarnings("UnusedDeclaration")

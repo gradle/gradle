@@ -47,6 +47,8 @@ import org.gradle.api.tasks.VerificationTask;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
+import org.gradle.process.jvm.JvmWorkerOptions;
+import org.gradle.process.jvm.SystemProperties;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
@@ -199,6 +201,17 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
             spec.getForkOptions().setMaxHeapSize(maxHeapSize.getOrNull());
             spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
             spec.getClasspath().from(getCheckstyleClasspath());
+
+            // TODO: All the workerOptions need to be set by the plugin?
+            // TODO: Add a spec.getForkOptions().from(workerOptions) method to copy everything
+            Map<String, SystemProperties.SystemPropertyValue> systemProperties = getWorkerOptions().getSystemProperties().getSystemProperties().get();
+            for (Map.Entry<String, SystemProperties.SystemPropertyValue> e : systemProperties.entrySet()) {
+                String name = e.getKey();
+                // TODO: maybe this needs a conversion per-type and not just String.valueOf
+                String value = String.valueOf(e.getValue().getValue().get());
+                // TODO: Also need to support system properties that are just flags with no value
+                spec.getForkOptions().systemProperty(name, value);
+            }
         });
         workQueue.submit(CheckstyleAction.class, this::setupParameters);
     }
@@ -445,5 +458,18 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     @Input
     public Property<String> getMaxHeapSize() {
         return maxHeapSize;
+    }
+
+    // TODO: Extract this to a "HasWorkerProcess" interface?
+    // TODO: Add this to every task that has worker processes
+    // TODO: Figure out how to bridge between old and new APIs for tasks that expose worker options in other ways
+    private final JvmWorkerOptions workerOptions = getObjectFactory().newInstance(JvmWorkerOptions.class);
+
+    @Nested
+    public JvmWorkerOptions getWorkerOptions() {
+        return workerOptions;
+    }
+    public void workerOptions(Action<JvmWorkerOptions> action) {
+        action.execute(getWorkerOptions());
     }
 }
