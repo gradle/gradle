@@ -112,6 +112,20 @@ public final class BuildOperationDescriptor {
         return new Builder(displayName);
     }
 
+    @Override
+    public String toString() {
+        return "BuildOperationDescriptor{" +
+            "id=" + id +
+            ", parentId=" + parentId +
+            ", displayName='" + displayName + '\'' +
+            ", name='" + name + '\'' +
+            ", progressDisplayName='" + progressDisplayName + '\'' +
+            ", details=" + details +
+            ", metadata=" + metadata +
+            ", totalProgress=" + totalProgress +
+            '}';
+    }
+
     public static final class Builder {
         private final String displayName;
         private String name;

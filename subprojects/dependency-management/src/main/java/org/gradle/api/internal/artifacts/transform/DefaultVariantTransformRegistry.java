@@ -18,14 +18,12 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.DefaultActionConfiguration;
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -41,7 +39,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
-    private static final Object[] NO_PARAMETERS = new Object[0];
     private final List<ArtifactTransformRegistration> transforms = Lists.newArrayList();
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final ServiceRegistry services;
@@ -60,43 +57,12 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public void registerTransform(Action<? super org.gradle.api.artifacts.transform.VariantTransform> registrationAction) {
-        try {
-            UntypedRegistration registration = instantiatorFactory.decorateLenient().newInstance(UntypedRegistration.class, immutableAttributesFactory, instantiatorFactory);
-            registrationAction.execute(registration);
-
-            validateActionType(registration.actionType);
-            try {
-                validateAttributes(registration);
-
-                Object[] parameters = registration.getTransformParameters();
-                ArtifactTransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), registration.actionType, parameters);
-                transforms.add(finalizedRegistration);
-            } catch (Exception e) {
-                TreeFormatter formatter = new TreeFormatter();
-                formatter.node("Could not register artifact transform ");
-                formatter.appendType(registration.actionType);
-                formatter.append(" (from ");
-                formatter.appendValue(registration.from);
-                formatter.append(" to ");
-                formatter.appendValue(registration.to);
-                formatter.append(").");
-                throw new VariantTransformConfigurationException(formatter.toString(), e);
-            }
-        } catch (VariantTransformConfigurationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new VariantTransformConfigurationException("Could not register artifact transform.", e);
-        }
-    }
-
-    @Override
     public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
+        TypedRegistration<T> registration = null;
         try {
             Class<T> parameterType = isolationScheme.parameterTypeFor(actionType);
             T parameterObject = parameterType == null ? null : parametersInstantiationScheme.withServices(services).instantiator().newInstance(parameterType);
-            TypedRegistration<T> registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, immutableAttributesFactory));
+            registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient().newInstance(TypedRegistration.class, parameterObject, immutableAttributesFactory));
             registrationAction.execute(registration);
             register(registration, actionType, parameterObject);
         } catch (VariantTransformConfigurationException e) {
@@ -105,6 +71,21 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Could not register artifact transform ");
             formatter.appendType(actionType);
+            if (registration != null && !(registration.from.isEmpty() && registration.to.isEmpty())) {
+                formatter.append(" (");
+                if (!registration.from.isEmpty()) {
+                    formatter.append("from ");
+                    formatter.appendValue(registration.from);
+                }
+                if (!registration.to.isEmpty()) {
+                    if (!registration.from.isEmpty()) {
+                        formatter.append(" ");
+                    }
+                    formatter.append("to ");
+                    formatter.appendValue(registration.to);
+                }
+                formatter.append(")");
+            }
             formatter.append(".");
             throw new VariantTransformConfigurationException(formatter.toString(), e);
         }
@@ -167,42 +148,6 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
         public AttributeContainer getTo() {
             return to;
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    @NonExtensible
-    public static class UntypedRegistration extends RecordingRegistration implements org.gradle.api.artifacts.transform.VariantTransform {
-        private Action<? super ActionConfiguration> configAction;
-        private final InstantiatorFactory instantiatorFactory;
-        Class<? extends org.gradle.api.artifacts.transform.ArtifactTransform> actionType;
-
-        public UntypedRegistration(ImmutableAttributesFactory immutableAttributesFactory, InstantiatorFactory instantiatorFactory) {
-            super(immutableAttributesFactory);
-            this.instantiatorFactory = instantiatorFactory;
-        }
-
-        @Override
-        public void artifactTransform(Class<? extends org.gradle.api.artifacts.transform.ArtifactTransform> type) {
-            artifactTransform(type, null);
-        }
-
-        @Override
-        public void artifactTransform(Class<? extends org.gradle.api.artifacts.transform.ArtifactTransform> type, @Nullable Action<? super ActionConfiguration> config) {
-            if (this.actionType != null) {
-                throw new IllegalStateException("Only one ArtifactTransform may be provided for registration.");
-            }
-            this.actionType = type;
-            this.configAction = config;
-        }
-
-        Object[] getTransformParameters() {
-            if (configAction == null) {
-                return NO_PARAMETERS;
-            }
-            ActionConfiguration config = instantiatorFactory.decorateLenient().newInstance(DefaultActionConfiguration.class);
-            configAction.execute(config);
-            return config.getParams();
         }
     }
 

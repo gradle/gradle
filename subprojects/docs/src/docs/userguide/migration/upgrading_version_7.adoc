@@ -54,7 +54,10 @@ For more information, see <<tar_tree_no_backing_file>>.
 
 === Removed APIs
 
-TBD
+==== Legacy ArtifactTransform API
+
+The legacy `ArtifactTransform` API has been removed.
+For more information, see <<old_artifact_transforms_api>>.
 
 === Potential breaking changes
 
@@ -71,6 +74,15 @@ If you need to serialize it, you can convert it into your own, serializable clas
 
 Gradle now does not try to use equals when comparing serialized values in up-to-date checks.
 For more information see <<equals_up_to_date_deprecation>>.
+
+==== Task validation warnings introduced in Gradle 7.x are now errors
+
+Gradle introduced additional task validation warnings in the Gradle 7.x series.
+Those warnings are now errors in Gradle 8.0 and will fail the build.
+
+Warnings which became errors:
+
+- An input file collection which can't be resolved.
 
 ==== Gradle does not ignore empty directories for file-trees with SkipWhenEmpty
 
