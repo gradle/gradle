@@ -24,7 +24,6 @@ import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvider;
 import org.gradle.api.internal.provider.Collectors.TypedCollector;
 import org.gradle.api.internal.provider.ProviderInternal;
-import org.gradle.api.internal.provider.ValueSupplier;
 
 import java.util.Iterator;
 import java.util.List;
@@ -59,11 +58,8 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
             if (flushAction != null) {
                 pending.remove(collector);
                 ImmutableList.Builder<T> builder = ImmutableList.builder();
-                ValueSupplier.Value<Void> valueWithSideEffects = collector.collectInto(builder);
-                if (!valueWithSideEffects.isMissing()) {
-                    // run side effects if any
-                    valueWithSideEffects.get();
-                }
+                // Collect elements discarding potential side effects aggregated in the returned value
+                collector.collectInto(builder);
                 List<T> realized = builder.build();
                 for (T element : realized) {
                     flushAction.execute(element);
