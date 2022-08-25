@@ -11,12 +11,6 @@
                 <td>destinationDir</td>
             </tr>
             <tr>
-                <td>destinationDirectory</td>
-            </tr>
-            <tr>
-                <td>testResultDirs</td>
-            </tr>
-            <tr>
                 <td>testResults</td>
             </tr>
         </table>
@@ -29,9 +23,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>reportOn</td>
-            </tr>
         </table>
     </section>
 </section>
