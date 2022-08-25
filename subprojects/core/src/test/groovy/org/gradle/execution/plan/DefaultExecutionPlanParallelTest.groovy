@@ -2020,11 +2020,9 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     private void addToGraph(Node... nodes) {
-        nodes.each {
-            it.require()
-            it.dependenciesProcessed()
+        for (final def node in nodes) {
+            executionPlan.addEntryNodes([node])
         }
-        executionPlan.setScheduledNodes(nodes as List)
     }
 
     private void addToGraphAndPopulate(Task... tasks) {
