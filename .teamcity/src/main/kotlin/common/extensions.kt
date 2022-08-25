@@ -128,6 +128,14 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
                 stopBuildOnFailure = true
             }
         }
+        add {
+            failOnText {
+                conditionType = BuildFailureOnText.ConditionType.CONTAINS
+                pattern = "Expiring Daemon because JVM heap space is exhausted"
+                failureMessage = "This daemon has GC problems"
+                stopBuildOnFailure = false
+            }
+        }
     }
 }
 

@@ -52,14 +52,6 @@ class FunctionalTest(
         extraSteps = extraBuildSteps,
         preSteps = preBuildSteps
     )
-
-    if (testCoverage.testType == TestType.soak || testTasks.contains("plugins:")) {
-        failureConditions {
-            // JavaExecDebugIntegrationTest.debug session fails without debugger might cause JVM crash
-            // Some soak tests produce OOM exceptions
-            javaCrash = false
-        }
-    }
 })
 
 private fun determineFlakyTestStrategy(stage: Stage): String {
@@ -74,6 +66,7 @@ fun getTestTaskName(testCoverage: TestCoverage, subprojects: List<String>): Stri
         subprojects.isEmpty() -> {
             testTaskName
         }
+
         else -> {
             subprojects.joinToString(" ") { "$it:$testTaskName" }
         }
