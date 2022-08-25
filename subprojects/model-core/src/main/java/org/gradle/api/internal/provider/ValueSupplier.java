@@ -212,7 +212,7 @@ public interface ValueSupplier {
          * and instead always executes against the given {@code value}.
          */
         static <T, A> SideEffect<T> fixed(A value, SideEffect<A> sideEffect) {
-            return EmptySideEffect.isEmpty(sideEffect) ? EmptySideEffect.value() : new FixedSideEffect<>(value, sideEffect);
+            return EmptySideEffect.isEmpty(sideEffect) ? EmptySideEffect.value() : FixedSideEffect.of(value, sideEffect);
         }
 
         static <T, A> SideEffect<T> fixedFrom(Value<A> value) {
@@ -267,6 +267,15 @@ public interface ValueSupplier {
      * A side effect that ignores its argument and always runs on a fixed value instead.
      */
     class FixedSideEffect<T, A> implements SideEffect<T> {
+
+        private static <T, A> FixedSideEffect<T, A> of(A value, SideEffect<? super A> sideEffect) {
+            if (sideEffect instanceof FixedSideEffect) {
+                // Optimization to not nest fixed side effect, since they ignore the argument
+                return Cast.uncheckedNonnullCast(sideEffect);
+            }
+
+            return new FixedSideEffect<>(value, sideEffect);
+        }
 
         private final A value;
         private final SideEffect<? super A> sideEffect;
