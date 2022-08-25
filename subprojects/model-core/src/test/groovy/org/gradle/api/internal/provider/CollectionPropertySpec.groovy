@@ -970,6 +970,7 @@ The value of this property is derived from: <source>""")
         def sideEffect1 = Mock(ValueSupplier.SideEffect)
         def sideEffect2 = Mock(ValueSupplier.SideEffect)
         property.add(Providers.of("some value").withSideEffect(sideEffect1))
+        property.add(Providers.of("simple value"))
         property.add(Providers.of("other value").withSideEffect(sideEffect2))
 
         property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
@@ -982,7 +983,7 @@ The value of this property is derived from: <source>""")
         def unpackedValue = getter(property, getter, toMutable(["yet another value"]))
 
         then:
-        unpackedValue == toImmutable(["some value", "other value"])
+        unpackedValue == toImmutable(["some value", "simple value", "other value"])
         1 * sideEffect1.execute("some value")
 
         then: // ensure ordering
