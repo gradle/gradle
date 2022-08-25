@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain.install.internal
 
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.authentication.Authentication
 import org.gradle.cache.FileLock
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -51,7 +52,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         registry.requestedRepositories() >> Collections.emptyList()
 
         ExternalResource downloadResource = Mock(ExternalResource)
-        downloader.getResourceFor(_ as URI) >> downloadResource
+        downloader.getResourceFor(_ as URI, _ as Collection<Authentication>) >> downloadResource //TODO (#21082): test with non-empty authentication?
         ExternalResourceMetaData downloadResourceMetadata = Mock(ExternalResourceMetaData)
         downloadResource.getMetaData() >> downloadResourceMetadata
         downloadResourceMetadata.getFilename() >> ARCHIVE_NAME

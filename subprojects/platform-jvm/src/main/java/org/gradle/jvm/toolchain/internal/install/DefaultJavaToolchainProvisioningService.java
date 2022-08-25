@@ -19,25 +19,28 @@ package org.gradle.jvm.toolchain.internal.install;
 import org.gradle.api.GradleException;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.ResourceExceptions;
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.jvm.toolchain.JavaToolchainRepository;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.authentication.Authentication;
 import org.gradle.cache.FileLock;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ResourceExceptions;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchainRepositoryRegistryInternal;
+import org.gradle.jvm.toolchain.internal.JavaToolchainRepositoryRequest;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -86,22 +89,23 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             return Optional.empty();
         }
 
-        List<? extends JavaToolchainRepository> repositories = toolchainRepositoryRegistry.requestedRepositories();
+        List<? extends JavaToolchainRepositoryRequest> requestedRepositories = toolchainRepositoryRegistry.requestedRepositories();
 
-        if (repositories.isEmpty()) {
+        if (requestedRepositories.isEmpty()) {
             DeprecationLogger.warnOfChangedBehaviour("Starting from Gradle 8.0 there will be no default Java Toolchain Registry.",
                             "Need to inject such registries via settings plugins and explicitly request them via the 'toolchainManagement' block.")
                     .undocumented() //TODO (#21082): needs to be documented properly
                     .nagUser();
             Optional<URI> uri = openJdkBinary.toUri(spec);
             if (uri.isPresent()) {
-                return Optional.of(provisionInstallation(spec, uri.get()));
+                return Optional.of(provisionInstallation(spec, uri.get(), Collections.emptyList()));
             }
         } else {
-            for (JavaToolchainRepository toolchainRepository : repositories) {
-                Optional<URI> uri = toolchainRepository.toUri(spec);
+            for (JavaToolchainRepositoryRequest request : requestedRepositories) {
+                Optional<URI> uri = request.getRepository().toUri(spec);
                 if (uri.isPresent()) {
-                    return Optional.of(provisionInstallation(spec, uri.get()));
+                    Collection<Authentication> authentications = request.getAuthentications(uri.get());
+                    return Optional.of(provisionInstallation(spec, uri.get(), authentications));
                 }
             }
         }
@@ -109,11 +113,11 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         return Optional.empty();
     }
 
-    private File provisionInstallation(JavaToolchainSpec spec, URI uri) {
+    private File provisionInstallation(JavaToolchainSpec spec, URI uri, Collection<Authentication> authentications) {
         synchronized (PROVISIONING_PROCESS_LOCK) {
             try {
                 File downloadFolder = cacheDirProvider.getDownloadLocation();
-                ExternalResource resource = wrapInOperation("Examining toolchain URI " + uri, () -> downloader.getResourceFor(uri));
+                ExternalResource resource = wrapInOperation("Examining toolchain URI " + uri, () -> downloader.getResourceFor(uri, authentications));
                 File archiveFile = new File(downloadFolder, getFileName(uri, resource));
                 final FileLock fileLock = cacheDirProvider.acquireWriteLock(archiveFile, "Downloading toolchain");
                 try {

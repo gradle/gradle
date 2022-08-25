@@ -16,8 +16,9 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
-import org.gradle.jvm.toolchain.JavaToolchainRepository;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
 
 import java.util.List;
@@ -26,17 +27,26 @@ public interface JavaToolchainRepositoryRegistryInternal extends JavaToolchainRe
 
     /**
      * Look up a registration by name and, if found, add it to the ordered list of explicitly requested registrations.
-     *
      * If not found, throw a GradleException.
      */
     void request(String registrationName);
+
+    /**
+     * TODO (#21082): javadoc
+     */
+    void request(String registrationName, Action<? super AuthenticationSupported> authentication);
 
     /**
      * Add a registration to the ordered list of explicitly requested ones.
      */
     void request(JavaToolchainRepositoryRegistration registration);
 
-    List<? extends JavaToolchainRepository> requestedRepositories();
+    /**
+     * TODO (#21082): javadoc
+     */
+    void request(JavaToolchainRepositoryRegistration registration, Action<? super AuthenticationSupported> authentication);
 
-    List<? extends JavaToolchainRepositoryRegistration> allRegistrations();
+    List<? extends JavaToolchainRepositoryRequest> requestedRepositories();
+
+    List<? extends JavaToolchainRepositoryRegistration> allRequestedRegistrations();
 }

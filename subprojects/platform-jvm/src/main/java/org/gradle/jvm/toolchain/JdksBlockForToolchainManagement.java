@@ -16,7 +16,9 @@
 
 package org.gradle.jvm.toolchain;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 
 import java.util.List;
@@ -31,7 +33,13 @@ public interface JdksBlockForToolchainManagement {
 
     void add(String registrationName);
 
-    void add(JavaToolchainRepositoryRegistration registration); // TODO (#21082): hide the accessors for now behind an internal flag
+    void add(String registrationName, Action<? super AuthenticationSupported> authenticationSupported);
+
+    // TODO (#21082): hide the accessors for now behind an internal flag
+
+    void add(JavaToolchainRepositoryRegistration registration);
+
+    void add(JavaToolchainRepositoryRegistration registration, Action<? super AuthenticationSupported> authenticationSupported);
 
     List<? extends JavaToolchainRepositoryRegistration> getAll();
 

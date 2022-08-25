@@ -36,71 +36,71 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractAuthenticationSupportedRepository extends AbstractResolutionAwareArtifactRepository implements AuthenticationSupportedInternal {
-    private final AuthenticationSupporter delegate;
+    private final AuthenticationSupporter authenticationSupporter;
     private final ProviderFactory providerFactory;
 
     AbstractAuthenticationSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer, ObjectFactory objectFactory, ProviderFactory providerFactory, VersionParser versionParser) {
         super(objectFactory, versionParser);
-        this.delegate = new AuthenticationSupporter(instantiator, objectFactory, authenticationContainer, providerFactory);
+        this.authenticationSupporter = new AuthenticationSupporter(instantiator, objectFactory, authenticationContainer, providerFactory);
         this.providerFactory = providerFactory;
     }
 
     @Override
     public PasswordCredentials getCredentials() {
         invalidateDescriptor();
-        return delegate.getCredentials();
+        return authenticationSupporter.getCredentials();
     }
 
     @Override
     public <T extends Credentials> T getCredentials(Class<T> credentialsType) {
         invalidateDescriptor();
-        return delegate.getCredentials(credentialsType);
+        return authenticationSupporter.getCredentials(credentialsType);
     }
 
     @Override
     public Property<Credentials> getConfiguredCredentials() {
-        return delegate.getConfiguredCredentials();
+        return authenticationSupporter.getConfiguredCredentials();
     }
 
     @Override
     public void setConfiguredCredentials(Credentials credentials) {
         invalidateDescriptor();
-        delegate.setConfiguredCredentials(credentials);
+        authenticationSupporter.setConfiguredCredentials(credentials);
     }
 
     @Override
     public void credentials(Action<? super PasswordCredentials> action) {
         invalidateDescriptor();
-        delegate.credentials(action);
+        authenticationSupporter.credentials(action);
     }
 
     @Override
     public <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action) throws IllegalStateException {
         invalidateDescriptor();
-        delegate.credentials(credentialsType, action);
+        authenticationSupporter.credentials(credentialsType, action);
     }
 
     @Override
     public void credentials(Class<? extends Credentials> credentialsType) {
         invalidateDescriptor();
-        delegate.credentials(credentialsType, providerFactory.provider(this::getName));
+        authenticationSupporter.credentials(credentialsType, providerFactory.provider(this::getName));
     }
 
     @Override
     public void authentication(Action<? super AuthenticationContainer> action) {
         invalidateDescriptor();
-        delegate.authentication(action);
+        authenticationSupporter.authentication(action);
     }
 
     @Override
     public AuthenticationContainer getAuthentication() {
         invalidateDescriptor();
-        return delegate.getAuthentication();
+        return authenticationSupporter.getAuthentication();
     }
 
     @Override
     public Collection<Authentication> getConfiguredAuthentication() {
-        Collection<Authentication> configuredAuthentication = delegate.getConfiguredAuthentication();
+        Collection<Authentication> configuredAuthentication = authenticationSupporter.getConfiguredAuthentication();
 
         for (Authentication authentication : configuredAuthentication) {
             AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;
@@ -123,6 +123,6 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     }
 
     boolean usesCredentials() {
-        return delegate.usesCredentials();
+        return authenticationSupporter.usesCredentials();
     }
 }
