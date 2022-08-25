@@ -3,8 +3,8 @@
 name: 'Close stale issues and PRs'
 on:
   schedule:
-    # Execute every day 4:00 UTC
-    - cron: '0 4 * * *'
+    # Execute every hour
+    - cron: '0 * * * *'
 
 permissions:
   issues: write
@@ -17,7 +17,7 @@ jobs:
       - uses: actions/stale@v5
         with:
           # GLOBAL ------------------------------------------------------------
-          operations-per-run: 100
+          operations-per-run: 30
           exempt-all-milestones: true
 
           # ISSUES ------------------------------------------------------------
@@ -61,7 +61,7 @@ jobs:
       - uses: actions/stale@v5
         with:
           # GLOBAL ------------------------------------------------------------
-          operations-per-run: 100
+          operations-per-run: 30
           only-labels: 'from:contributor'
 
           # ISSUES (deactivated) ----------------------------------------------
