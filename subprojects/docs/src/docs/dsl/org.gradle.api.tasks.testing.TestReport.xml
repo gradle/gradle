@@ -8,7 +8,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>destinationDir</td>
+                <td>destinationDirectory</td>
             </tr>
             <tr>
                 <td>testResults</td>
