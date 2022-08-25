@@ -84,6 +84,12 @@ Warnings which became errors:
 
 - An input file collection which can't be resolved.
 
+==== Gradle does not ignore empty directories for file-trees with `@SkipWhenEmpty`
+
+Previously Gradle used to detect if an input file collection annotated with `@SkipWhenEmpty` consisted only of file trees and then ignored directories automatically.
+To ignore directories in Gradle 8.0 and later, the input property needs to be explicitly annotated with `@IgnoreEmptyDirectories`.
+For more information see <<empty_directories_file_tree>>.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
