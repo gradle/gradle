@@ -18,7 +18,6 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
@@ -58,16 +57,11 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
             return Providers.notDefined();
         }
 
-        ProviderInternal<? extends S> result = Providers.internal(transformedProvider);
-        SideEffect<?> sideEffect = value.getSideEffect();
-        if (sideEffect != null) {
-            // Note, that the potential side effect of the transformed provider
-            // is going to be executed before this fixed side effect.
-            // It is not possible to preserve linear execution order in the general case,
-            // as the transformed provider can have side effects hidden under other wrapping providers.
-            result = result.withSideEffect(SideEffect.fixed(unpackedValue, Cast.uncheckedNonnullCast(sideEffect)));
-        }
-        return result;
+        // Note, that the potential side effect of the transformed provider
+        // is going to be executed before this fixed side effect.
+        // It is not possible to preserve linear execution order in the general case,
+        // as the transformed provider can have side effects hidden under other wrapping providers.
+        return Providers.internal(transformedProvider).withSideEffect(SideEffect.fixedFrom(value));
     }
 
     private ProviderInternal<? extends S> backingProvider(ValueConsumer consumer) {
