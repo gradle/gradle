@@ -37,6 +37,7 @@ import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.TaskCacheabilityResolver;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
+import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -85,8 +86,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return new DefaultReservedFileSystemLocationRegistry(reservedFileSystemLocations);
     }
 
-    ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy createInputNodeAccessHierarchy(ExecutionNodeAccessHierarchies hierarchies) {
-        return hierarchies.createInputHierarchy();
+    public MissingTaskDependencyDetector createMissingTaskDependencyDetector(ExecutionNodeAccessHierarchies hierarchies) {
+        return new MissingTaskDependencyDetector(hierarchies.getOutputHierarchy(), hierarchies.createInputHierarchy());
     }
 
     TaskExecuter createTaskExecuter(
