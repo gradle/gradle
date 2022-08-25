@@ -330,12 +330,11 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
 
         @Override
-        public Value<Void> collectInto(ImmutableCollection.Builder<T> builder) {
+        public void collectInto(ImmutableCollection.Builder<T> builder) {
             if (!realized) {
                 realize();
             }
             builder.addAll(cache);
-            return Value.present();
         }
 
         List<T> getValues() {
