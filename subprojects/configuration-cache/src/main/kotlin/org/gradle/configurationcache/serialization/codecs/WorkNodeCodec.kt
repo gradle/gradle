@@ -32,6 +32,7 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.execution.plan.ActionNode
 import org.gradle.execution.plan.CompositeNodeGroup
 import org.gradle.execution.plan.FinalizerGroup
+import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeGroup
 import org.gradle.execution.plan.OrdinalGroup
@@ -63,9 +64,12 @@ class WorkNodeCodec(
         val nodeCount = nodes.size
         writeSmallInt(nodeCount)
         val scheduledNodeIds = HashMap<Node, Int>(nodeCount)
-        nodes.forEachIndexed { nodeId, node ->
+        nodes.forEach { node ->
             write(node)
-            scheduledNodeIds[node] = nodeId
+            scheduledNodeIds[node] = scheduledNodeIds.size
+            if (node is LocalTaskNode) {
+                scheduledNodeIds[node.prepareNode] = scheduledNodeIds.size
+            }
         }
         nodes.forEach { node ->
             writeSuccessorReferencesOf(node, scheduledNodeIds)
@@ -78,9 +82,13 @@ class WorkNodeCodec(
         val nodeCount = readSmallInt()
         val nodes = ArrayList<Node>(nodeCount)
         val nodesById = HashMap<Int, Node>(nodeCount)
-        for (nodeId in 0 until nodeCount) {
+        for (i in 0 until nodeCount) {
             val node = readNode()
-            nodesById[nodeId] = node
+            nodesById[nodesById.size] = node
+            if (node is LocalTaskNode) {
+                node.prepareNode.require()
+                nodesById[nodesById.size] = node.prepareNode
+            }
             nodes.add(node)
         }
         nodes.forEach { node ->

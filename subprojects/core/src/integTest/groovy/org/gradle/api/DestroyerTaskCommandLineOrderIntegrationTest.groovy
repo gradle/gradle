@@ -17,7 +17,9 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.TaskOrderSpecs
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrderTaskIntegrationTest {
@@ -388,6 +390,8 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         type << ProductionType.values()
     }
 
+    // Currently flaky with CC enabled
+    @IgnoreIf({ GradleContextualExecuter.isConfigCache() })
     @Issue("https://github.com/gradle/gradle/issues/20195")
     def "destroyer task that is a finalizer of a producer task and also a dependency will run after the producer even when ordered first (type: #type)"() {
         def foo = subproject(':foo')

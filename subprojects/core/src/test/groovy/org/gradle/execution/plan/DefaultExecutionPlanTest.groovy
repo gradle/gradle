@@ -416,7 +416,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
         //tasks that depends on finalized, we will execute them
         Task df1 = task("df1", dependsOn: [finalized1])
-        Task df2 = task("df1", dependsOn: [finalized2])
+        Task df2 = task("df2", dependsOn: [finalized2])
 
         when:
         addToGraphAndPopulate([df1, df2])

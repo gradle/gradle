@@ -28,16 +28,15 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 
 import java.util.AbstractCollection;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 
 import static com.google.common.collect.Sets.newIdentityHashSet;
@@ -57,7 +56,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     private final ResourceLockCoordinationService lockCoordinator;
     private Spec<? super Task> filter = Specs.satisfyAll();
     private int order = 0;
-
+    private boolean requiresScheduling;
     private boolean continueOnFailure;
 
     private final Set<Node> filteredNodes = newIdentityHashSet();
@@ -103,10 +102,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
 
     @Override
     public void setScheduledNodes(Collection<? extends Node> nodes) {
-        if (!nodeMapping.isEmpty()) {
+        if (requiresScheduling) {
             throw new IllegalStateException("This execution plan already has nodes scheduled.");
         }
         entryNodes.addAll(nodes);
+        nodeMapping.addAll(nodes);
     }
 
     @Override
@@ -116,27 +116,39 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
 
     @Override
     public void addEntryTasks(Collection<? extends Task> tasks, int ordinal) {
+        SortedSet<Node> nodes = new TreeSet<>(NodeComparator.INSTANCE);
+        for (Task task : tasks) {
+            nodes.add(taskNodeFactory.getOrCreateNode(task));
+        }
+        doAddEntryNodes(nodes, ordinal);
+    }
+
+    public void addEntryNodes(Collection<? extends Node> nodes) {
+        addEntryNodes(nodes, order++);
+    }
+
+    public void addEntryNodes(Collection<? extends Node> nodes, int ordinal) {
+        SortedSet<Node> sorted = new TreeSet<>(NodeComparator.INSTANCE);
+        sorted.addAll(nodes);
+        doAddEntryNodes(sorted, ordinal);
+    }
+
+    private void doAddEntryNodes(SortedSet<? extends Node> nodes, int ordinal) {
+        requiresScheduling = true;
         final Deque<Node> queue = new ArrayDeque<>();
         final OrdinalGroup group = ordinalNodeAccess.group(ordinal);
 
-        for (Task task : sorted(tasks)) {
-            TaskNode node = taskNodeFactory.getOrCreateNode(task);
+        for (Node node : nodes) {
             node.maybeInheritOrdinalAsDependency(group);
             group.addEntryNode(node);
             entryNodes.add(node);
             queue.add(node);
         }
 
-        doAddNodes(queue);
+        discoverNodeRelationships(queue);
     }
 
-    private List<Task> sorted(Collection<? extends Task> tasks) {
-        List<Task> sortedTasks = new ArrayList<>(tasks);
-        Collections.sort(sortedTasks);
-        return sortedTasks;
-    }
-
-    private void doAddNodes(Deque<Node> queue) {
+    private void discoverNodeRelationships(Deque<Node> queue) {
         Set<Node> visiting = new HashSet<>();
         while (!queue.isEmpty()) {
             Node node = queue.getFirst();
@@ -194,12 +206,15 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
 
     @Override
     public void determineExecutionPlan() {
-        new DetermineExecutionPlanAction(
-            nodeMapping,
-            ordinalNodeAccess,
-            entryNodes,
-            finalizers
-        ).run();
+        if (requiresScheduling) {
+            new DetermineExecutionPlanAction(
+                nodeMapping,
+                ordinalNodeAccess,
+                entryNodes,
+                finalizers
+            ).run();
+            requiresScheduling = true;
+        }
     }
 
     @Override
