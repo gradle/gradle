@@ -27,7 +27,7 @@ import org.gradle.tooling.events.OperationType
 import org.gradle.util.GradleVersion
 
 @ToolingApiVersion('>=5.1')
-@TargetGradleVersion('>=5.3')
+@TargetGradleVersion('>=5.4')
 class TransformProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
     def events = ProgressEvents.create()
