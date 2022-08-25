@@ -579,7 +579,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         FILE_FILTER_FLAG        | "ignore '**/ignored.txt'"                                                 | 'ignore rule'
     }
 
-    def "treats #extension as archive"() {
+    def "treats '#extension' as archive"() {
         def archive = file("archive.${extension}")
         def contents = file("archiveContents").createDir()
         def ignoredFile = contents.file("ignored.txt")
@@ -625,7 +625,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         extension << ["zip", "jar", "war", "rar", "ear", "apk", "aar", "klib"]
     }
 
-    def "does not treat any extension as archive"() {
+    def "does not treat 'any' extension as archive"() {
         def archive = file("archive.any")
         def contents = file("archiveContents").createDir()
         def ignoredFile = contents.file("ignored.txt")
