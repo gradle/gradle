@@ -41,6 +41,7 @@ import org.gradle.execution.plan.DefaultExecutionPlan
 import org.gradle.execution.plan.DefaultPlanExecutor
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies
 import org.gradle.execution.plan.ExecutionPlan
+import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeValidator
 import org.gradle.execution.plan.OrdinalGroupFactory
@@ -287,6 +288,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     private class TestBuildLifecycleController implements BuildLifecycleController {
         final ExecutionPlan plan
+        FinalizedExecutionPlan finalizedPlan
         final BuildWorkPlan workPlan
         final WorkGraphBuilder builder
         final Services services
@@ -311,12 +313,12 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         @Override
         void finalizeWorkGraph(BuildWorkPlan workPlan) {
             plan.determineExecutionPlan()
-            plan.finalizePlan()
+            finalizedPlan = plan.finalizePlan()
         }
 
         @Override
         ExecutionResult<Void> executeTasks(BuildWorkPlan buildPlan) {
-            return services.planExecutor.process(plan.asWorkSource()) { node ->
+            return services.planExecutor.process(finalizedPlan.asWorkSource()) { node ->
                 if (node instanceof SelfExecutingNode) {
                     node.execute(null)
                 }

@@ -53,6 +53,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     FileSystem fs = NativeServicesTestFixture.instance.get(FileSystem)
 
     DefaultExecutionPlan executionPlan
+    DefaultFinalizedExecutionPlan finalizedPlan
 
     def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor())
 
@@ -1669,7 +1670,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         when:
         def failures = []
         coordinator.withStateLock {
-            executionPlan.collectFailures(failures)
+            finalizedPlan.collectFailures(failures)
         }
 
         then:
@@ -1679,8 +1680,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         then:
         coordinator.withStateLock {
-            executionPlan.getNode(finalized).isSuccessful()
-            executionPlan.getNode(finalizer).state == Node.ExecutionState.FAILED_DEPENDENCY
+            finalizedPlan.contents.getNode(finalized).isSuccessful()
+            finalizedPlan.contents.getNode(finalizer).state == Node.ExecutionState.FAILED_DEPENDENCY
         }
     }
 
@@ -2033,7 +2034,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     private void populateGraph() {
         executionPlan.determineExecutionPlan()
-        executionPlan.finalizePlan()
+        finalizedPlan = executionPlan.finalizePlan()
     }
 
     TestFile file(String path) {
@@ -2215,7 +2216,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     private void finishedExecuting(Node node) {
         coordinator.withStateLock {
-            executionPlan.finishedExecuting(node, null)
+            finalizedPlan.finishedExecuting(node, null)
         }
     }
 
@@ -2240,7 +2241,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
                 if (node instanceof SelfExecutingNode) {
                     node.execute(null)
                 }
-                executionPlan.finishedExecuting(node, null)
+                finalizedPlan.finishedExecuting(node, null)
                 result = selectNextTaskNode()
                 return
             }
@@ -2253,13 +2254,13 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def result = null
         coordinator.withStateLock {
             WorkSource.Selection selection
-            assert !executionPlan.allExecutionComplete()
-            assert executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
+            assert !finalizedPlan.allExecutionComplete()
+            assert finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
             recordLocks {
-                selection = executionPlan.selectNext()
+                selection = finalizedPlan.selectNext()
             }
             assert !selection.noMoreWorkToStart && !selection.noWorkReadyToStart
-            assert !executionPlan.allExecutionComplete()
+            assert !finalizedPlan.allExecutionComplete()
             def nextNode = selection.item
             if (nextNode instanceof LocalTaskNode && nextNode.task instanceof Async) {
                 nextNode.projectToLock.unlock()
@@ -2271,8 +2272,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     void assertNoTaskReadyToStart() {
         coordinator.withStateLock {
-            while (executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart) {
-                def selection = executionPlan.selectNext()
+            while (finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart) {
+                def selection = finalizedPlan.selectNext()
                 if (selection.noWorkReadyToStart) {
                     break
                 }
@@ -2282,60 +2283,60 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
                 if (node instanceof SelfExecutingNode) {
                     node.execute(null)
                 }
-                executionPlan.finishedExecuting(node, null)
+                finalizedPlan.finishedExecuting(node, null)
             }
-            assert executionPlan.executionState() == WorkSource.State.NoWorkReadyToStart
-            assert executionPlan.selectNext().noWorkReadyToStart
-            assert executionPlan.executionState() == WorkSource.State.NoWorkReadyToStart
+            assert finalizedPlan.executionState() == WorkSource.State.NoWorkReadyToStart
+            assert finalizedPlan.selectNext().noWorkReadyToStart
+            assert finalizedPlan.executionState() == WorkSource.State.NoWorkReadyToStart
         }
     }
 
     void assertNoMoreWorkToStartButNotAllComplete(boolean needToSelect = false) {
         coordinator.withStateLock {
             if (needToSelect) {
-                assert executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
+                assert finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
             } else {
-                assert executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
+                assert finalizedPlan.executionState() == WorkSource.State.NoMoreWorkToStart
             }
-            assert executionPlan.selectNext().noMoreWorkToStart
-            assert executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
-            assert !executionPlan.allExecutionComplete()
+            assert finalizedPlan.selectNext().noMoreWorkToStart
+            assert finalizedPlan.executionState() == WorkSource.State.NoMoreWorkToStart
+            assert !finalizedPlan.allExecutionComplete()
         }
     }
 
     void assertAllWorkComplete(boolean needToSelect = false) {
         coordinator.withStateLock {
             if (needToSelect) {
-                assert executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
+                assert finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
             } else {
-                assert executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
+                assert finalizedPlan.executionState() == WorkSource.State.NoMoreWorkToStart
             }
-            assert executionPlan.selectNext().noMoreWorkToStart
-            assert executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
-            assert executionPlan.allExecutionComplete()
+            assert finalizedPlan.selectNext().noMoreWorkToStart
+            assert finalizedPlan.executionState() == WorkSource.State.NoMoreWorkToStart
+            assert finalizedPlan.allExecutionComplete()
         }
     }
 
     void assertNoWorkReadyToStart() {
         coordinator.withStateLock {
-            assert executionPlan.executionState() == WorkSource.State.NoWorkReadyToStart
-            assert executionPlan.selectNext().noWorkReadyToStart
-            assert executionPlan.executionState() == WorkSource.State.NoWorkReadyToStart
+            assert finalizedPlan.executionState() == WorkSource.State.NoWorkReadyToStart
+            assert finalizedPlan.selectNext().noWorkReadyToStart
+            assert finalizedPlan.executionState() == WorkSource.State.NoWorkReadyToStart
         }
     }
 
     void assertNoWorkReadyToStartAfterSelect() {
         coordinator.withStateLock {
             // In some cases, a call to selectNext() is required to calculate that nothing is ready
-            assert executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
-            assert executionPlan.selectNext().noWorkReadyToStart
-            assert executionPlan.executionState() == WorkSource.State.NoWorkReadyToStart
+            assert finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
+            assert finalizedPlan.selectNext().noWorkReadyToStart
+            assert finalizedPlan.executionState() == WorkSource.State.NoWorkReadyToStart
         }
     }
 
     void assertWorkReadyToStart() {
         coordinator.withStateLock {
-            assert executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
+            assert finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
         }
     }
 
