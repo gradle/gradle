@@ -400,7 +400,7 @@ val Project.isPromotionBuild: Boolean
 
 
 /**
- * If `-PbundleGroovy4=true` is specified, create a distribution using Groovy 4 libs.  Otherwise use Groovy 3 classic libs.
+ * If `-DbundleGroovy4=true` is specified, create a distribution using Groovy 4 libs.  Otherwise use Groovy 3 classic libs.
  */
 val Project.isBundleGroovy4: Boolean
-    get() = gradleProperty(BUNDLE_GROOVY_4).orNull.toBoolean()
+    get() = systemProperty(BUNDLE_GROOVY_4).orNull.toBoolean()
