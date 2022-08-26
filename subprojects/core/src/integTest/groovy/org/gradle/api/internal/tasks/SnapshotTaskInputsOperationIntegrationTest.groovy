@@ -27,16 +27,19 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 
-class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, ExecutionOptimizationDeprecationFixture {
+class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
+
+    def setup() {
+        expectReindentedValidationMessage()
+    }
 
     def "task output caching key is exposed when build cache is enabled"() {
         given:
@@ -150,17 +153,18 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectImplementationUnknownDeprecation {
-            implementationOfTask(':customTask')
-            unknownClassloader('CustomTask_Decorated')
-        }
-        expectImplementationUnknownDeprecation {
-            additionalTaskAction(':customTask')
-            unknownClassloader('CustomTask_Decorated')
-        }
-        succeeds('customTask', '--build-cache')
+        fails('customTask', '--build-cache')
 
         then:
+        failureDescriptionStartsWith("Some problems were found with the configuration of task ':customTask' (type 'CustomTask').")
+        failureDescriptionContains(implementationUnknown {
+            implementationOfTask(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+        })
+        failureDescriptionContains(implementationUnknown {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+        })
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
         result.classLoaderHash == null
@@ -187,13 +191,14 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectImplementationUnknownDeprecation {
-            additionalTaskAction(':customTask')
-            unknownClassloader('A')
-        }
-        succeeds('customTask', '--build-cache')
+        fails('customTask', '--build-cache')
 
         then:
+        failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
+        failureDescriptionContains(implementationUnknown {
+            additionalTaskAction(':customTask')
+            unknownClassloader('A')
+        })
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
         result.classLoaderHash == null
@@ -489,13 +494,14 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectImplementationUnknownDeprecation {
-            nestedProperty('bean')
-            unknownClassloader('A')
-        }
-        succeeds('customTask', '--build-cache')
+        fails('customTask', '--build-cache')
 
         then:
+        failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
+        failureDescriptionContains(implementationUnknown {
+            nestedProperty('bean')
+            unknownClassloader('A')
+        })
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
         result.classLoaderHash == null
