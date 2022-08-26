@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.Flaky
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -326,6 +327,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3566")
     @Issue("https://github.com/gradle/gradle/issues/21325")
     def "finalizer can have dependencies that are not reachable from first discovered finalized task and reachable from second discovered finalized task"() {
         buildFile '''
