@@ -85,12 +85,9 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
     }
 
     public <D extends ModuleDependency> D enforcedPlatform(D dependency) {
-        dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.ENFORCED_PLATFORM)));
-        return dependency;
-    }
-
-    public <D extends ExternalDependency> D enforcedPlatform(D dependency) {
-        DeprecationLogger.whileDisabled(() -> dependency.setForce(true));
+        if (dependency instanceof ExternalDependency) {
+            DeprecationLogger.whileDisabled(() -> ((ExternalDependency)dependency).setForce(true));
+        }
         dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.ENFORCED_PLATFORM)));
         return dependency;
     }

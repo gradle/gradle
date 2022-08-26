@@ -38,7 +38,7 @@ import javax.annotation.Nullable;
 @NonExtensible
 public interface DependencyAdder {
     /*
-    NOTE: If you add new dependency notations, you also need to consider how this affects these classes:
+    NOTE: If you add new dependency notations, you also need to consider how this affects these files:
     - DependencyAdderExtensionModule.java
     - DependencyAdderExtensions.kt
     - Any DependencyModifiers

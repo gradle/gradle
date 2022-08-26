@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -78,14 +77,15 @@ public interface PlatformDependencyModifiers extends Dependencies {
     }
 
     /**
-     * Takes a given {@code Provider} to a {@link ExternalModuleDependency} and modifies the dependency to select the Platform variant of the given module.
+     * Takes a given {@code Provider} to a {@link ModuleDependency} and modifies the dependency to select the Platform variant of the given module.
      *
      * @param providerToDependency the provider
      * @return a provider to the modified dependency
      */
-    default Provider<? extends ExternalModuleDependency> platform(Provider<? extends ExternalModuleDependency> providerToDependency) {
+    default <D extends ModuleDependency> Provider<D> platform(Provider<D> providerToDependency) {
         return providerToDependency.map(this::platform);
     }
+
 
 
     /**
@@ -121,14 +121,6 @@ public interface PlatformDependencyModifiers extends Dependencies {
     <D extends ModuleDependency> D enforcedPlatform(D dependency);
 
     /**
-     * Takes a given {@link ExternalDependency} and modifies it to select the Enforced Platform variant of the given module.
-     *
-     * @param dependency the dependency
-     * @return the modified dependency
-     */
-    <D extends ExternalDependency> D enforcedPlatform(D dependency);
-
-    /**
      * Takes a given {@code Provider} to a {@link MinimalExternalModuleDependency} and modifies the dependency to select the Enforced Platform variant of the given module.
      *
      * @param providerConvertibleToDependency the provider
@@ -139,12 +131,12 @@ public interface PlatformDependencyModifiers extends Dependencies {
     }
 
     /**
-     * Takes a given {@code Provider} to a {@link ExternalModuleDependency} and modifies the dependency to select the Enforced Platform variant of the given module.
+     * Takes a given {@code Provider} to a {@link ModuleDependency} and modifies the dependency to select the Enforced Platform variant of the given module.
      *
      * @param providerToDependency the provider
      * @return a provider to the modified dependency
      */
-    default Provider<? extends ExternalModuleDependency> enforcedPlatform(Provider<? extends ExternalModuleDependency> providerToDependency) {
+    default <D extends ModuleDependency> Provider<D> enforcedPlatform(Provider<D> providerToDependency) {
         return providerToDependency.map(this::enforcedPlatform);
     }
 }
