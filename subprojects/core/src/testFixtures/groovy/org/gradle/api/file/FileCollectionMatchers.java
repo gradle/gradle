@@ -61,11 +61,6 @@ public class FileCollectionMatchers {
                         }
 
                         @Override
-                        public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                            collections.add(fileTree);
-                        }
-
-                        @Override
                         public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                             collections.add(fileTree);
                         }

@@ -54,7 +54,7 @@ fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
 
 fun BuildFeatures.enablePullRequestFeature() {
     pullRequests {
-        vcsRootExtId = "GradleMaster"
+        vcsRootExtId = VersionedSettingsBranch.fromDslContext().vcsRootId()
         provider = github {
             authType = token {
                 token = "%github.bot-teamcity.token%"
@@ -67,7 +67,7 @@ fun BuildFeatures.enablePullRequestFeature() {
 
 fun BuildFeatures.publishBuildStatusToGithub() {
     commitStatusPublisher {
-        vcsRootExtId = "GradleMaster"
+        vcsRootExtId = VersionedSettingsBranch.fromDslContext().vcsRootId()
         publisher = github {
             githubUrl = "https://api.github.com"
             authType = personalToken {
@@ -117,7 +117,7 @@ fun applyDefaults(
 ) {
     buildType.applyDefaultSettings(os, timeout = timeout)
 
-    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon)
+    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", os)
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
     buildType.steps {
@@ -148,11 +148,11 @@ fun applyTestDefaults(
         preSteps()
     }
 
-    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon)
+    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", os, arch)
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
-    buildType.killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", daemon)
+    buildType.killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", os, arch)
 
     buildType.steps {
         extraSteps()

@@ -559,8 +559,9 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         then:
         executionPlan.tasks as List == [a, finalizerDep, b, finalizer]
-        assertTaskReady(a)
-        assertTaskReady(finalizerDep)
+        ordinalGroups == [0, null, 1, 1]
+        reachableFromEntryPoint == [true, true, true, false]
+        assertTasksReady(a, finalizerDep)
         assertTaskReady(b)
         assertTaskReadyAndNoMoreToStart(finalizer)
         assertAllWorkComplete()
@@ -625,6 +626,30 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assertTaskReady(c)
         assertTaskReadyAndNoMoreToStart(finalizer3)
         assertAllWorkComplete()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21542")
+    def "finalizer and its dependencies run after finalized entry task when the entry task fails"() {
+        given:
+        TaskInternal finalizer = createTask("finalizer")
+        TaskInternal finalizerDep = task("finalizerDep", type: Async, finalizedBy: [finalizer])
+        // Name must be ordered after the other tasks to trigger the issue
+        TaskInternal entryPoint = task("thing", type: Async, finalizedBy: [finalizer], failure: new RuntimeException())
+        relationships(finalizer, dependsOn: [finalizerDep])
+
+        when:
+        executionPlan.continueOnFailure = continueOnFailure
+        addToGraphAndPopulate(entryPoint)
+
+        then:
+        executionPlan.tasks as List == [entryPoint, finalizerDep, finalizer]
+        assertTaskReady(entryPoint)
+        assertTaskReady(finalizerDep)
+        assertTaskReadyAndNoMoreToStart(finalizer)
+        assertAllWorkComplete()
+
+        where:
+        continueOnFailure << [false, true]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21000")

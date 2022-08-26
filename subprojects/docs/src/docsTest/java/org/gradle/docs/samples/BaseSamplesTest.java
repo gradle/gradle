@@ -18,6 +18,7 @@ package org.gradle.docs.samples;
 
 import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier;
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputCleaner;
 import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.EmbeddedKotlinOutputNormalizer;
@@ -40,6 +41,7 @@ import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
     ArtifactResolutionOmittingOutputNormalizer.class,
     NativeComponentReportOutputNormalizer.class,
     DependencyInsightOutputNormalizer.class,
+    ConfigurationCacheOutputCleaner.class,
     ConfigurationCacheOutputNormalizer.class,
     EmbeddedKotlinOutputNormalizer.class
 })
@@ -61,4 +63,3 @@ import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
  */
 abstract class BaseSamplesTest {
 }
-

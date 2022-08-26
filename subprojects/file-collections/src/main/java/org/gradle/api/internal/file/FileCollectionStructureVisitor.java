@@ -72,11 +72,6 @@ public interface FileCollectionStructureVisitor {
     void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents);
 
     /**
-     * Visits a file tree whose content is generated from some opaque source.
-     */
-    void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree);
-
-    /**
      * Visits a file tree at a root file on the file system (potentially filtered).
      */
     void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree);

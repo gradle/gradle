@@ -272,7 +272,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return The name of the associated upload task
      * @see org.gradle.api.tasks.Upload
      */
-    @Deprecated
+    @Deprecated // TODO:Finalize Upload Removal - Issue #21439
     String getUploadTaskName();
 
     /**
