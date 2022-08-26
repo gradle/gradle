@@ -294,18 +294,18 @@
       </trusted-keys>
    </configuration>
    <components>
-      <component group="android-studio" name="android-studio" version="2021.1.1.19">
-         <artifact name="android-studio-2021.1.1.19.linux.tar.gz">
-            <sha256 value="dc2334357c5026ba7afee7a9ac61c97c127e3d01d1c13e5d125df4df4ac3b4c0" origin="Artifact is not signed"/>
+      <component group="android-studio" name="android-studio" version="2022.1.1.9">
+         <artifact name="android-studio-2022.1.1.9.linux.tar.gz">
+            <sha256 value="fcd8308ba3fb5864a16950628511bc3c7a55bc130be497fc0af1fd746ad5d7f9" origin="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2021.1.1.19.mac.zip">
-            <sha256 value="32a0e81d1de412601ef2d7a1d177d4a5830bb513c46674502bdd833253c69e50" origin="Artifact is not signed"/>
+         <artifact name="android-studio-2022.1.1.9.mac.zip">
+            <sha256 value="75078236fe0bd9fc8224356763b25701fbffe7958a5ac8dd272ca478f27592b9" origin="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2021.1.1.19.mac_arm.zip">
-            <sha256 value="66e75b427155ba5b07cfa0e7eefc5c3864269411e16674b300a5f475f026a64f" origin="Artifact is not signed"/>
+         <artifact name="android-studio-2022.1.1.9.mac_arm.zip">
+            <sha256 value="dea4623a3b837b5068a2c4cbf10598f722e69f21f7c6ec5320c7e9ca9f8d06b9" origin="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2021.1.1.19.windows.zip">
-            <sha256 value="27015ad5e1abb2586de52bc77a0b2b40e902db5dea718a4e2565b2d498e44cbb" origin="Artifact is not signed"/>
+         <artifact name="android-studio-2022.1.1.9.windows.zip">
+            <sha256 value="0955b9fde84a458dddef9cfca0ccca5a6384dd2352f45f48c1f006cafdfa0806" origin="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="antlr" name="antlr" version="2.7.7">

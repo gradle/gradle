@@ -166,12 +166,16 @@ trait ValidationMessageChecker {
     )
     String incorrectUseOfInputAnnotation(@DelegatesTo(value = IncorrectUseOfInputAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(IncorrectUseOfInputAnnotation, 'incorrect_use_of_input_annotation', spec)
-        config.description("has @Input annotation used on property of type '${config.propertyType}'")
+        def incorrectUseOfInputAnnotation = config.description("has @Input annotation used on property of type '${config.propertyType}'")
             .reason("A property of type '${config.propertyType}' annotated with @Input cannot determine how to interpret the file")
-            .solution("Annotate with @InputFile for regular files")
-            .solution("Annotate with @InputFiles for collections of files")
-            .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
-            .render()
+        if (config.propertyType == "DirectoryProperty" || config.propertyType == "Directory") {
+            return incorrectUseOfInputAnnotation.solution("Annotate with @InputDirectory for directories").render()
+        } else {
+            return incorrectUseOfInputAnnotation.solution("Annotate with @InputFile for regular files")
+                .solution("Annotate with @InputFiles for collections of files")
+                .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
+                .render()
+        }
     }
 
     @ValidationTestFor(

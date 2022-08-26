@@ -170,7 +170,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0", "1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.20-Beta")
+        static kotlinPlugins = Versions.of("1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.20-Beta")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp
@@ -210,6 +210,22 @@ abstract class AbstractSmokeTest extends Specification {
                 !version.containsIgnoreCase("beta") &&
                 !version.containsIgnoreCase("alpha") &&
                 !version.containsIgnoreCase("milestone")
+            }
+        }
+
+        /**
+         * Since Android 7.3.0 is not yet stable we have to use that.
+         * One stable version is released we should remove this.
+         */
+        String latestStableOrRc() {
+            def stableVersion = latestStable()
+            if (stableVersion != null) {
+                return stableVersion
+            }
+            return versions.reverse().find { version ->
+                    !version.containsIgnoreCase("beta") &&
+                    !version.containsIgnoreCase("alpha") &&
+                    !version.containsIgnoreCase("milestone")
             }
         }
 
