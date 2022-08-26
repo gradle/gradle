@@ -52,17 +52,13 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected BuildResult buildLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug")
-            .deprecations(SantaTrackerDeprecations) {
-                expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
-            }.build()
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
     }
 
     protected BuildResult buildLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
         return runnerForLocation(location, agpVersion,"assembleDebug")
             .deprecations(SantaTrackerDeprecations) {
                 expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-                expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
             }.build()
     }
 

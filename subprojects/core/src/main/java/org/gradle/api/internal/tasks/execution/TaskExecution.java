@@ -27,8 +27,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
-import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
-import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
+import org.gradle.api.internal.project.taskfactory.IncrementalTaskAction;
 import org.gradle.api.internal.tasks.DefaultTaskValidationContext;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
@@ -420,11 +419,8 @@ public class TaskExecution implements UnitOfWork {
     @Override
     public InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
         for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
-            if (taskAction instanceof IncrementalInputsTaskAction) {
+            if (taskAction instanceof IncrementalTaskAction) {
                 return InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS;
-            }
-            if (taskAction instanceof IncrementalTaskInputsTaskAction) {
-                return InputChangeTrackingStrategy.ALL_PARAMETERS;
             }
         }
         return InputChangeTrackingStrategy.NONE;
