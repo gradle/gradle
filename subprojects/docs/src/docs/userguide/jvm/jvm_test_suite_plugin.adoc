@@ -243,13 +243,11 @@ This API differs from the top-level `dependencies` block in the following ways:
     ** Kotlin and Groovy: `implementation(libs.bundles.testing)` becomes `implementation.bundle(libs.bundles.testing)`
 * You cannot use providers for non-`Dependency` types directly.
   Instead, map them to a `Dependency` using the `DependencyFactory`.
-    ** Kotlin and Groovy: `implementation(myStringProvider)` becomes `implementation(myStringProvider.map { project.dependencyFactory.create(it) })`
-    ** Java: `implementation(myStringProvider)` becomes `getImplementation().add(myStringProvider.map(project.getDependencyFactory()::create)`
+    ** Kotlin and Groovy: `implementation(myStringProvider)` becomes `implementation(myStringProvider.map { dependencyFactory.create(it) })`
+    ** Java: `implementation(myStringProvider)` becomes `getImplementation().add(myStringProvider.map(getDependencyFactory()::create)`
 
-The `dependencies` block within a test suite does not provide access to the same methods as the top-level `dependencies` block.
-For instance, the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:platform(java.lang.Object)[platform()] and link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:platform(java.lang.Object)[enforcedPlatform()] methods are not available.
-
-To use these and similar methods, you need to access the top-level dependencies handler directly with `project.dependencies.platform(...)` or `project.dependencies.enforcedPlatform(...)`.
+The `dependencies` block within a test suite does not provide access to the same methods as the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[top-level `dependencies` block].
+To access these methods, you need to use the top-level `dependencies` block.
 
 [NOTE]
 ====
