@@ -85,7 +85,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'first build'
         def result = runner.deprecations(AndroidDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
             expectReportDestinationPropertyDeprecation()
         }.build()
 
@@ -102,7 +101,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'up-to-date build'
         result = runner.deprecations(AndroidDeprecations) {
-            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
             if (!GradleContextualExecuter.isConfigCache()) {
                 expectReportDestinationPropertyDeprecation()
             }
@@ -121,7 +119,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         abiChange.run()
         result = runner.deprecations(AndroidDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
             if (!GradleContextualExecuter.isConfigCache()) {
                 expectReportDestinationPropertyDeprecation()
             }
@@ -140,7 +137,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         useAgpVersion(agpVersion, this.runner('clean')).build()
         result = runner.deprecations(AndroidDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
             if (!GradleContextualExecuter.isConfigCache()) {
                 expectReportDestinationPropertyDeprecation()
             }
@@ -164,10 +160,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     static class AndroidDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
         AndroidDeprecations(SmokeTestGradleRunner runner) {
             super(runner)
-        }
-
-        void expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(String agpVersion) {
-            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "resources", "projectNativeLibs")
         }
     }
 
