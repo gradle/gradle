@@ -48,4 +48,14 @@ public final class OperationFinishEvent {
     public Object getResult() {
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "OperationFinishEvent{" +
+            "startTime=" + startTime +
+            ", endTime=" + endTime +
+            ", failure=" + failure +
+            ", result=" + result +
+            '}';
+    }
 }

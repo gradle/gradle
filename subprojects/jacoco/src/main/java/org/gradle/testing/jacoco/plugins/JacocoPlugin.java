@@ -36,7 +36,6 @@ import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
@@ -55,7 +54,6 @@ import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification;
 import org.gradle.testing.jacoco.tasks.JacocoReport;
 
 import javax.inject.Inject;
-import java.io.File;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
@@ -100,7 +98,6 @@ public class JacocoPlugin implements Plugin<Project> {
         configureAgentDependencies(agent, extension);
         configureTaskClasspathDefaults(extension);
         applyToDefaultTasks(extension);
-        configureDefaultOutputPathForJacocoMerge();
         configureJacocoReportsDefaults(extension);
         addDefaultReportAndCoverageVerificationTasks(extension);
         configureCoverageDataElementsVariants(project);
@@ -194,14 +191,6 @@ public class JacocoPlugin implements Plugin<Project> {
      */
     private void applyToDefaultTasks(final JacocoPluginExtension extension) {
         project.getTasks().withType(Test.class).configureEach(extension::applyTo);
-    }
-
-    @SuppressWarnings("deprecation")
-    private void configureDefaultOutputPathForJacocoMerge() {
-        Provider<File> buildDirectory = project.getLayout().getBuildDirectory().getAsFile();
-        project.getTasks().withType(org.gradle.testing.jacoco.tasks.JacocoMerge.class).configureEach(task ->
-            task.setDestinationFile(buildDirectory.map(buildDir -> new File(buildDir, "jacoco/" + task.getName() + ".exec")))
-        );
     }
 
     private void configureJacocoReportsDefaults(final JacocoPluginExtension extension) {
