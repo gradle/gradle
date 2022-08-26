@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal
 
+import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.component.BuildIdentifier
@@ -115,8 +116,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         then:
-        node.executed
         result.failures.empty
+        node.executed
 
         where:
         workers << [1, manyWorkers]
@@ -142,9 +143,9 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         then:
+        result.failures.empty
         childNode.executed
         node.executed
-        result.failures.empty
 
         where:
         workers << [1, manyWorkers]
@@ -397,7 +398,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
             def configuration = new DefaultParallelismConfiguration(true, workers)
             workerLeaseService = new DefaultWorkerLeaseService(coordinationService, configuration)
             execFactory = new DefaultExecutorFactory()
-            planExecutor = new DefaultPlanExecutor(configuration, execFactory, workerLeaseService, cancellationToken, coordinationService)
+            planExecutor = new DefaultPlanExecutor(configuration, execFactory, workerLeaseService, cancellationToken, coordinationService, new StartParameter())
             buildTaskGraph = new DefaultIncludedBuildTaskGraph(
                 execFactory,
                 new TestBuildOperationExecutor(),

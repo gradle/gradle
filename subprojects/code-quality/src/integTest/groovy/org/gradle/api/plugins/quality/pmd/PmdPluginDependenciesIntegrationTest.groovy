@@ -70,9 +70,23 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
             }
         """.stripIndent()
 
-        expect:
-        fails("check")
+        when:
+        fails("pmdMain")
+
+        then:
         failure.assertHasCause("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD 5.1.1 or disable incremental analysis.")
+
+        when:
+        fails("pmdTest")
+
+        then:
+        failure.assertHasCause("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD 5.1.1 or disable incremental analysis.")
+
+        when:
+        fails("check")
+
+        then:
+        failure.assertHasFailures(2)
     }
 
 

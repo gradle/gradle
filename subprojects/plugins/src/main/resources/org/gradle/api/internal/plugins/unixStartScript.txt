@@ -113,10 +113,10 @@ do
     esac
 done
 
-APP_HOME=\$( cd "\${APP_HOME:-./}${appHomeRelativePath}" && pwd -P ) || exit
-
-APP_NAME="${applicationName}"
+# This is normally unused
+# shellcheck disable=SC2034
 APP_BASE_NAME=\${0##*/}
+APP_HOME=\$( cd "\${APP_HOME:-./}${appHomeRelativePath}" && pwd -P ) || exit
 
 # Add default JVM options here. You can also use JAVA_OPTS and ${optsEnvironmentVar} to pass JVM options to this script.
 DEFAULT_JVM_OPTS=${defaultJvmOpts}
@@ -178,12 +178,16 @@ fi
 if ! "\$cygwin" && ! "\$darwin" && ! "\$nonstop" ; then
     case \$MAX_FD in #(
       max*)
+        # In POSIX sh, ulimit -H is undefined. That's why the result is checked to see if it worked.
+        # shellcheck disable=SC3045
         MAX_FD=\$( ulimit -H -n ) ||
             warn "Could not query maximum file descriptor limit"
     esac
     case \$MAX_FD in  #(
       '' | soft) :;; #(
       *)
+        # In POSIX sh, ulimit -n is undefined. That's why the result is checked to see if it worked.
+        # shellcheck disable=SC3045
         ulimit -n "\$MAX_FD" ||
             warn "Could not set maximum file descriptor limit to \$MAX_FD"
     esac

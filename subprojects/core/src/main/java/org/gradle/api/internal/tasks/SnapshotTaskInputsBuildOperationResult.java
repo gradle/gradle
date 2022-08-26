@@ -619,10 +619,8 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             .put(IgnoredPathInputNormalizer.class, FINGERPRINTING_STRATEGY_IGNORED_PATH)
             .build();
 
-        @SuppressWarnings("deprecation")
         private static final Map<DirectorySensitivity, FilePropertyAttribute> BY_DIRECTORY_SENSITIVITY = Maps.immutableEnumMap(ImmutableMap.<DirectorySensitivity, FilePropertyAttribute>builder()
             .put(DirectorySensitivity.DEFAULT, DIRECTORY_SENSITIVITY_DEFAULT)
-            .put(DirectorySensitivity.UNSPECIFIED, DIRECTORY_SENSITIVITY_DEFAULT)
             .put(DirectorySensitivity.IGNORE_DIRECTORIES, DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES)
             .build());
 

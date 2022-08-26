@@ -36,6 +36,11 @@ public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
         return true;
     }
 
+    @Override
+    public boolean isValid() {
+        return true;
+    }
+
     public File getJavaHome() {
         return javaHome;
     }

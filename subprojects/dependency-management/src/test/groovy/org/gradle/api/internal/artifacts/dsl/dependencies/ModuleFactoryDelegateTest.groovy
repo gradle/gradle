@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class ModuleFactoryDelegateTest extends Specification {
 
-    private DependencyFactory dependencyFactoryStub = Mock()
+    private DependencyFactoryInternal dependencyFactoryStub = Mock()
     private ClientModule clientModule = new DefaultClientModule("junit", "junit", "4.4")
 
     private ModuleFactoryDelegate moduleFactoryDelegate = new ModuleFactoryDelegate(clientModule, dependencyFactoryStub)

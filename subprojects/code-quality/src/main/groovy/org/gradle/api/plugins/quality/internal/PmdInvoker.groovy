@@ -16,155 +16,148 @@
 
 package org.gradle.api.plugins.quality.internal
 
+import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.project.IsolatedAntBuilder
-import org.gradle.api.plugins.quality.Pmd
+import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Cast
 import org.gradle.internal.Factory
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.util.internal.VersionNumber
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import java.lang.reflect.Field
 
-abstract class PmdInvoker {
-    static void invoke(Pmd pmdTask) {
-        def pmdClasspath = pmdTask.pmdClasspath.filter(new FileExistFilter())
-        def targetJdk = pmdTask.targetJdk
-        def ruleSets = pmdTask.ruleSets
-        def rulePriority = pmdTask.rulesMinimumPriority.get()
-        def antBuilder = pmdTask.antBuilder
-        def source = pmdTask.source
-        def ruleSetFiles = pmdTask.ruleSetFiles
-        def ruleSetConfig = pmdTask.ruleSetConfig
-        def classpath = pmdTask.classpath?.filter(new FileExistFilter())
-        def reports = pmdTask.reports
-        def consoleOutput = pmdTask.consoleOutput
-        def stdOutIsAttachedToTerminal = consoleOutput ? pmdTask.stdOutIsAttachedToTerminal() : false
-        def ignoreFailures = pmdTask.ignoreFailures
-        def maxFailures = pmdTask.maxFailures.get()
-        def logger = pmdTask.logger
-        def incrementalAnalysis = pmdTask.incrementalAnalysis.get()
-        def incrementalCacheFile = pmdTask.incrementalCacheFile
-        def threads = pmdTask.threads.get()
+class PmdInvoker implements Action<AntBuilderDelegate> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PmdInvoker.class)
+
+    private final PmdActionParameters parameters
+
+    PmdInvoker(PmdActionParameters parameters) {
+        this.parameters = parameters
+    }
+
+    void execute(AntBuilderDelegate ant) {
+        FileCollection pmdClasspath = parameters.getPmdClasspath().filter(new FileExistFilter())
 
         // PMD uses java.class.path to determine it's implementation classpath for incremental analysis
         // Since we run PMD inside the Gradle daemon, this pulls in all of Gradle's runtime.
         // To hide this from PMD, we override the java.class.path to just the PMD classpath from Gradle's POV.
-        if (incrementalAnalysis) {
+        if (parameters.incrementalAnalysis.get()) {
+            // TODO: Can we get rid of this now that we're running in a worker?
             SystemProperties.instance.withSystemProperty("java.class.path", pmdClasspath.files.join(File.pathSeparator), new Factory<Void>() {
                 @Override
                 Void create() {
-                    runPmd(antBuilder, pmdClasspath, rulePriority, targetJdk, ruleSets, incrementalAnalysis, incrementalCacheFile, maxFailures, source, ruleSetFiles, ruleSetConfig, classpath, reports, consoleOutput, stdOutIsAttachedToTerminal, ignoreFailures, logger, threads)
+                    runPmd(ant, parameters)
                     return null
                 }
             })
         } else {
-            runPmd(antBuilder, pmdClasspath, rulePriority, targetJdk, ruleSets, incrementalAnalysis, incrementalCacheFile, maxFailures, source, ruleSetFiles, ruleSetConfig, classpath, reports, consoleOutput, stdOutIsAttachedToTerminal, ignoreFailures, logger, threads)
+            runPmd(ant, parameters)
         }
     }
 
-    private static runPmd(IsolatedAntBuilder antBuilder, FileCollection pmdClasspath, rulePriority, targetJdk, ruleSets, incrementalAnalysis, incrementalCacheFile, maxFailures, source, ruleSetFiles, ruleSetConfig, classpath, reports, consoleOutput, stdOutIsAttachedToTerminal, ignoreFailures, logger, threads) {
-        antBuilder.withClasspath(pmdClasspath).execute { a ->
-            VersionNumber version = determinePmdVersion(Thread.currentThread().getContextClassLoader())
+    private static runPmd(AntBuilderDelegate ant, PmdActionParameters parameters) {
+        VersionNumber version = determinePmdVersion(Thread.currentThread().getContextClassLoader())
 
-            def antPmdArgs = [
-                    failOnRuleViolation: false,
-                    failuresPropertyName: "pmdFailureCount",
-                    minimumPriority: rulePriority,
-            ]
+        def antPmdArgs = [
+            failOnRuleViolation: false,
+            failuresPropertyName: "pmdFailureCount",
+            minimumPriority: parameters.rulesMinimumPriority.get(),
+        ]
 
-            String htmlFormat = "html"
-            if (version < VersionNumber.parse("5.0.0")) {
-                // <5.x
-                // NOTE: PMD 5.0.2 apparently introduces an element called "language" that serves the same purpose
-                // http://sourceforge.net/p/pmd/bugs/1004/
-                // http://java-pmd.30631.n5.nabble.com/pmd-pmd-db05bc-pmd-AntTask-support-for-language-td5710041.html
-                antPmdArgs["targetjdk"] = targetJdk.name
+        List<String> ruleSets = parameters.ruleSets.get()
+        String htmlFormat = "html"
+        if (version < VersionNumber.parse("5.0.0")) {
+            // <5.x
+            // NOTE: PMD 5.0.2 apparently introduces an element called "language" that serves the same purpose
+            // http://sourceforge.net/p/pmd/bugs/1004/
+            // http://java-pmd.30631.n5.nabble.com/pmd-pmd-db05bc-pmd-AntTask-support-for-language-td5710041.html
+            antPmdArgs["targetjdk"] = parameters.targetJdk.get().name
 
-                htmlFormat = "betterhtml"
+            htmlFormat = "betterhtml"
 
-                // fallback to basic on pre 5.0 for backwards compatible
-                if (ruleSets == ["java-basic"] || ruleSets == ["category/java/errorprone.xml"]) {
-                    ruleSets = ['basic']
-                }
-                if (incrementalAnalysis) {
-                    assertUnsupportedIncrementalAnalysis(version)
-                }
-            } else if (version < VersionNumber.parse("6.0.0")) {
-                // 5.x
-                if (ruleSets == ["category/java/errorprone.xml"]) {
-                    ruleSets = ['java-basic']
-                }
-                if (incrementalAnalysis) {
-                    assertUnsupportedIncrementalAnalysis(version)
-                }
-                antPmdArgs['threads'] = threads
+            // fallback to basic on pre 5.0 for backwards compatible
+            if (ruleSets == ["java-basic"] || ruleSets == ["category/java/errorprone.xml"]) {
+                ruleSets = ['basic']
+            }
+            if (parameters.incrementalAnalysis.get()) {
+                assertUnsupportedIncrementalAnalysis(version)
+            }
+        } else if (version < VersionNumber.parse("6.0.0")) {
+            // 5.x
+            if (ruleSets == ["category/java/errorprone.xml"]) {
+                ruleSets = ['java-basic']
+            }
+            if (parameters.incrementalAnalysis.get()) {
+                assertUnsupportedIncrementalAnalysis(version)
+            }
+            antPmdArgs['threads'] = parameters.threads.get()
+        } else {
+            // 6.+
+            if (parameters.incrementalAnalysis.get()) {
+                antPmdArgs["cacheLocation"] = parameters.incrementalCacheFile.get().asFile
             } else {
-                // 6.+
-                if (incrementalAnalysis) {
-                    antPmdArgs["cacheLocation"] = incrementalCacheFile
-                } else {
-                    if (version >= VersionNumber.parse("6.2.0")) {
-                        antPmdArgs['noCache'] = true
-                    }
-                }
-                antPmdArgs['threads'] = threads
-            }
-
-            if (maxFailures < 0) {
-                throw new GradleException("Invalid maxFailures $maxFailures. Valid range is >= 0.")
-            }
-
-            ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
-            ant.pmd(antPmdArgs) {
-                source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
-                ruleSets.each {
-                    ruleset(it)
-                }
-                ruleSetFiles.each {
-                    ruleset(it)
-                }
-                if (ruleSetConfig != null) {
-                    ruleset(ruleSetConfig.asFile())
-                }
-
-                if (classpath != null) {
-                    classpath.addToAntBuilder(ant, 'auxclasspath', FileCollection.AntType.ResourceCollection)
-                }
-
-                if (reports.html.required.get()) {
-                    assert reports.html.outputLocation.asFile.get().parentFile.exists()
-                    formatter(type: htmlFormat, toFile: reports.html.outputLocation.asFile.get())
-                }
-                if (reports.xml.required.get()) {
-                    formatter(type: 'xml', toFile: reports.xml.outputLocation.asFile.get())
-                }
-
-                if (consoleOutput) {
-                    def consoleOutputType = 'text'
-                    if (stdOutIsAttachedToTerminal) {
-                        consoleOutputType = 'textcolor'
-                    }
-                    a.builder.saveStreams = false
-                    formatter(type: consoleOutputType, toConsole: true)
+                if (version >= VersionNumber.parse("6.2.0")) {
+                    antPmdArgs['noCache'] = true
                 }
             }
-            def failureCount = ant.project.properties["pmdFailureCount"]
-            if (failureCount) {
-                def message = "$failureCount PMD rule violations were found."
-                def report = reports.firstEnabled
-                if (report) {
-                    def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.outputLocation.asFile.get())
-                    message += " See the report at: $reportUrl"
+            antPmdArgs['threads'] = parameters.threads.get()
+        }
+
+        int maxFailures = parameters.maxFailures.get()
+        if (maxFailures < 0) {
+            throw new GradleException("Invalid maxFailures $maxFailures. Valid range is >= 0.")
+        }
+
+        List<PmdActionParameters.EnabledReport> reports = parameters.enabledReports.get()
+        ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask')
+        ant.pmd(antPmdArgs) {
+            parameters.source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+            ruleSets.each {
+                ruleset(it)
+            }
+            parameters.ruleSetConfigFiles.each {
+                ruleset(it)
+            }
+
+            FileCollection auxClasspath = parameters.auxClasspath.filter(new FileExistFilter())
+            if (!auxClasspath.isEmpty()) {
+                auxClasspath.addToAntBuilder(ant, 'auxclasspath', FileCollection.AntType.ResourceCollection)
+            }
+
+            reports.each { report ->
+                File file = report.outputLocation.asFile.get()
+                assert file.parentFile.exists()
+                String type = report.name.get() == "html" ? htmlFormat : report.name.get()
+                formatter(type: type, toFile: file)
+            }
+
+            if (parameters.consoleOutput.get()) {
+                def consoleOutputType = 'text'
+                if (parameters.stdOutIsAttachedToTerminal.get()) {
+                    consoleOutputType = 'textcolor'
                 }
-                if (ignoreFailures || ((failureCount as Integer) <= maxFailures)) {
-                    logger.warn(message)
-                } else {
-                    throw new GradleException(message)
-                }
+                ant.builder.saveStreams = false
+                formatter(type: consoleOutputType, toConsole: true)
+            }
+        }
+        def failureCount = ant.builder.project.properties["pmdFailureCount"]
+        if (failureCount) {
+            def message = "$failureCount PMD rule violations were found."
+            def report = reports.isEmpty() ? null : reports.get(0)
+            if (report) {
+                def reportUrl = new ConsoleRenderer().asClickableFileUrl(report.outputLocation.asFile.get())
+                message += " See the report at: $reportUrl"
+            }
+            if (parameters.ignoreFailures.get() || ((failureCount as Integer) <= maxFailures)) {
+                LOGGER.warn(message)
+            } else {
+                throw new GradleException(message)
             }
         }
     }

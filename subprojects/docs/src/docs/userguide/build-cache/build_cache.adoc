@@ -15,7 +15,7 @@
 [[build_cache]]
 = Build Cache
 
-TIP: Want to learn the tips and tricks top engineering teams use to keep builds fast and performant? https://gradle.com/training/build-cache-deep-dive/?bid=docs-build-cache[Register here] for our Build Cache Training.
+TIP: Want to learn the tips and tricks top engineering teams use to keep builds fast and performant? https://gradle.com/training/#build-cache-deep-dive[Register here] for our Build Cache Training.
 
 [[sec:build_cache_intro]]
 == Overview
@@ -150,7 +150,6 @@ Currently, the following built-in Gradle tasks are cacheable:
     link:{groovyDslPath}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc],
     link:{groovyDslPath}/org.gradle.api.plugins.quality.Pmd.html[Pmd]
 * JaCoCo:
-    link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoMerge.html[JacocoMerge],
     link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html[JacocoReport]
 * Other tasks:
     link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask],

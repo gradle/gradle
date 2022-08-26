@@ -25,12 +25,10 @@ import org.gradle.internal.instantiation.InstantiationScheme;
 public class ArtifactTransformActionScheme implements TypeScheme {
     private final InstantiationScheme instantiationScheme;
     private final InspectionScheme inspectionScheme;
-    private final InstantiationScheme legacyInstantiationScheme;
 
-    public ArtifactTransformActionScheme(InstantiationScheme instantiationScheme, InspectionScheme inspectionScheme, InstantiationScheme legacyInstantiationScheme) {
+    public ArtifactTransformActionScheme(InstantiationScheme instantiationScheme, InspectionScheme inspectionScheme) {
         this.instantiationScheme = instantiationScheme;
         this.inspectionScheme = inspectionScheme;
-        this.legacyInstantiationScheme = legacyInstantiationScheme;
     }
 
     @Override
@@ -49,10 +47,6 @@ public class ArtifactTransformActionScheme implements TypeScheme {
 
     public InstantiationScheme getInstantiationScheme() {
         return instantiationScheme;
-    }
-
-    public InstantiationScheme getLegacyInstantiationScheme() {
-        return legacyInstantiationScheme;
     }
 }
 
