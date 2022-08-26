@@ -288,7 +288,7 @@ public abstract class Node {
     public abstract Throwable getNodeFailure();
 
     public void startExecution(Consumer<Node> nodeStartAction) {
-        assert allDependenciesComplete() && allDependenciesSuccessful();
+        assert state == ExecutionState.SHOULD_RUN && allDependenciesComplete() && allDependenciesSuccessful();
         state = ExecutionState.EXECUTING;
         nodeStartAction.accept(this);
     }
@@ -306,7 +306,7 @@ public abstract class Node {
     }
 
     public void cancelExecution(Consumer<Node> completionAction) {
-        if (isCannotRunInAnyPlan()) {
+        if (state != ExecutionState.SHOULD_RUN && state != ExecutionState.NOT_SCHEDULED) {
             throw new IllegalStateException("Cannot cancel node " + this);
         }
         state = ExecutionState.NOT_SCHEDULED;

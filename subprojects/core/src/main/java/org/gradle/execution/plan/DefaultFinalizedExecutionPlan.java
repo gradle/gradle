@@ -488,7 +488,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
                 node.setExecutionFailure(failure);
             }
             if (!node.isExecuting()) {
-                throw new IllegalStateException(format("Cannot finish executing %s as it is in an unexpected state.", node));
+                throw new IllegalStateException(format("Cannot finish executing %s as it is in an unexpected state %s.", node, node.getState()));
             }
 
             if (maybeNodesReady) {
