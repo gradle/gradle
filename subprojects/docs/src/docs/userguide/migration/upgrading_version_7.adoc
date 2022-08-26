@@ -59,6 +59,10 @@ For more information, see <<tar_tree_no_backing_file>>.
 The legacy `ArtifactTransform` API has been removed.
 For more information, see <<old_artifact_transforms_api>>.
 
+==== Legacy IncrementalTaskInputs API
+
+The legacy `IncrementalTaskInputs` API has been removed. For more information, see <<incremental_task_inputs_deprecation>>. This change also affects Kotlin Gradle Plugin and Android Gradle Plugin. With Gradle 8.0 you should use Kotlin Gradle Plugin 1.6.10 or later and Android Gradle Plugin 7.3.0 or later.
+
 === Potential breaking changes
 
 ==== Change to `AntBuilder` parent class
