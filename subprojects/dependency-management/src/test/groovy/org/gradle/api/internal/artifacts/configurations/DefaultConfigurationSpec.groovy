@@ -119,7 +119,6 @@ class DefaultConfigurationSpec extends Specification {
         configuration.description == null
         configuration.state == UNRESOLVED
         configuration.displayName == "configuration ':project:name'"
-        configuration.uploadTaskName == "uploadName"
         configuration.attributes.isEmpty()
         configuration.canBeResolved
         configuration.canBeConsumed

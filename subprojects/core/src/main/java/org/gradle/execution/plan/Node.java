@@ -17,7 +17,6 @@
 package org.gradle.execution.plan;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.VerificationException;
@@ -175,20 +174,11 @@ public abstract class Node {
         if (current == finalizers || current == NodeGroup.DEFAULT_GROUP) {
             return finalizers;
         }
-
         if (current instanceof OrdinalGroup) {
-            return new CompositeNodeGroup(current, finalizers.getFinalizerGroups());
+            return CompositeNodeGroup.mergeInto((OrdinalGroup) current, finalizers);
+        } else {
+            return CompositeNodeGroup.mergeInto((HasFinalizers) current, finalizers);
         }
-
-        HasFinalizers currentFinalizers = (HasFinalizers) current;
-        if (currentFinalizers.isReachableFromEntryPoint() == finalizers.isReachableFromEntryPoint() && currentFinalizers.getFinalizerGroups().containsAll(finalizers.getFinalizerGroups())) {
-            return currentFinalizers;
-        }
-
-        ImmutableSet.Builder<FinalizerGroup> builder = ImmutableSet.builder();
-        builder.addAll(currentFinalizers.getFinalizerGroups());
-        builder.addAll(finalizers.getFinalizerGroups());
-        return new CompositeNodeGroup(currentFinalizers.getOrdinalGroup(), builder.build());
     }
 
     public void maybeUpdateOrdinalGroup() {

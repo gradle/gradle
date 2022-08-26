@@ -105,7 +105,7 @@ fun Project.extractCiData() {
             tag("CODEQL")
         }
     }
-    if (isTeamCity && !isKillLeakingProcessesStep() && !isPromotionBuild) {
+    if (isTeamCity && !isPromotionBuild) {
         // don't overwrite the nightly version in promotion build
         buildScan {
             buildScanPublished {
@@ -114,8 +114,6 @@ fun Project.extractCiData() {
         }
     }
 }
-
-fun Project.isKillLeakingProcessesStep() = gradle.startParameter.taskNames.contains("killExistingProcessesStartedByGradle")
 
 fun BuildScanExtension.whenEnvIsSet(envName: String, action: BuildScanExtension.(envValue: String) -> Unit) {
     val envValue: String? = environmentVariable(envName).orNull

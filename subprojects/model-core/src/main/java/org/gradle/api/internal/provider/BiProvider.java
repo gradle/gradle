@@ -50,15 +50,20 @@ class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     @Override
     protected Value<? extends R> calculateOwnValue(ValueConsumer consumer) {
-        Value<? extends A> lv = left.calculateValue(consumer);
-        if (lv.isMissing()) {
-            return lv.asType();
+        Value<? extends A> leftValue = left.calculateValue(consumer);
+        if (leftValue.isMissing()) {
+            return leftValue.asType();
         }
-        Value<? extends B> rv = right.calculateValue(consumer);
-        if (rv.isMissing()) {
-            return rv.asType();
+        Value<? extends B> rightValue = right.calculateValue(consumer);
+        if (rightValue.isMissing()) {
+            return rightValue.asType();
         }
-        return Value.of(combiner.apply(lv.get(), rv.get()));
+
+        R combinedUnpackedValue = combiner.apply(leftValue.getWithoutSideEffect(), rightValue.getWithoutSideEffect());
+
+        return Value.of(combinedUnpackedValue)
+            .withSideEffect(SideEffect.fixedFrom(leftValue))
+            .withSideEffect(SideEffect.fixedFrom(rightValue));
     }
 
     @Nullable

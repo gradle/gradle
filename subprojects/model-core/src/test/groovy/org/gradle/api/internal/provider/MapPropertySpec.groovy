@@ -1063,6 +1063,114 @@ The value of this property is derived from: <source>""")
         return new DefaultProperty<String>(host, String)
     }
 
+    def "runs side effect when calling '#getter' on property to which providers were added via 'put'"() {
+        def sideEffect1 = Mock(ValueSupplier.SideEffect)
+        def sideEffect2 = Mock(ValueSupplier.SideEffect)
+        def expectedUnpackedValue = ["some key": "some value", "other key": "other value"]
+
+        when:
+        property.put("some key", Providers.of("some value").withSideEffect(sideEffect1))
+        property.put("other key", Providers.of("other value").withSideEffect(sideEffect2))
+
+        def value = property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        def executionTimeValue = property.calculateExecutionTimeValue()
+        then:
+        0 * _ // no side effects until values are unpacked
+
+        when:
+        def unpackedValue = value.get()
+        then:
+        unpackedValue == expectedUnpackedValue
+        1 * sideEffect1.execute("some value")
+        then: // ensure ordering
+        1 * sideEffect2.execute("other value")
+        0 * _
+
+        when:
+        unpackedValue = executionTimeValue.toValue().get()
+        then:
+        unpackedValue == expectedUnpackedValue
+        1 * sideEffect1.execute("some value")
+        then: // ensure ordering
+        1 * sideEffect2.execute("other value")
+        0 * _
+
+        when:
+        unpackedValue = getter(property, getter, ["yet another key": "yet another value"])
+        then:
+        unpackedValue == expectedUnpackedValue
+        1 * sideEffect1.execute("some value")
+        then: // ensure ordering
+        1 * sideEffect2.execute("other value")
+        0 * _
+
+        where:
+        getter      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
+    }
+
+    def "runs side effect when calling '#getter' on property to which providers were added via 'putAll'"() {
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+
+        when:
+        property.putAll(Providers.of(someValue()).withSideEffect(sideEffect))
+
+        def value = property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        def executionTimeValue = property.calculateExecutionTimeValue()
+        then:
+        0 * _ // no side effects until values are unpacked
+
+        when:
+        def unpackedValue = value.get()
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        when:
+        unpackedValue = executionTimeValue.toValue().get()
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        when:
+        unpackedValue = getter(property, getter, ["yet another key": "yet another value"])
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        where:
+        getter      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
+    }
+
+    def "runs side effect when getting #description"() {
+        def valueSideEffect = Mock(ValueSupplier.SideEffect)
+
+        when:
+        property.put("some key", Providers.of("some value").withSideEffect(valueSideEffect))
+        def valueProvider = property.getting(key)
+        then:
+        0 * _ // no side effects until values are unpacked
+
+        when:
+        valueProvider.getOrNull()
+        then:
+        expectSideEffect * valueSideEffect.execute("some value")
+        0 * _
+
+        where:
+        description        | key        | expectSideEffect
+        "existing key"     | "some key" | 1
+        "non-existing key" | "oops key" | 0
+    }
+
     private ProviderInternal<String> brokenValueSupplier() {
         return brokenSupplier(String)
     }
