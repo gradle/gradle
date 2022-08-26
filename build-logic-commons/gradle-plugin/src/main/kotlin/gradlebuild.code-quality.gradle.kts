@@ -1,3 +1,6 @@
+import groovy.lang.GroovySystem
+import org.gradle.util.internal.VersionNumber
+
 /*
  * Copyright 2022 the original author or authors.
  *
@@ -42,6 +45,10 @@ val rules by configurations.creating {
     }
 }
 
+val isBundleGroovy4 = System.getProperty("bundleGroovy4", "false") == "true"
+val groovyVersion = if (isBundleGroovy4) "4.0.5-SNAPSHOT" else GroovySystem.getVersion()
+val codenarcVersion = if (isBundleGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
+
 dependencies {
     rules("gradlebuild:code-quality-rules") {
         because("Provides rules defined in XML files")
@@ -49,11 +56,13 @@ dependencies {
     codenarc("gradlebuild:code-quality-rules") {
         because("Provides the IntegrationTestFixturesRule implementation")
     }
-    codenarc("org.codenarc:CodeNarc:3.0.1") // TODO bump to org.codenarc:CodeNarc-Groovy4:3.1.0
+    codenarc("org.codenarc:CodeNarc:$codenarcVersion") // TODO Why not read from dependency-modules ?
     codenarc(embeddedKotlin("stdlib"))
 
     components {
-        withModule<CodeNarcRule>("org.codenarc:CodeNarc") // TODO bump to org.codenarc:CodeNarc-Groovy4
+        withModule<CodeNarcRule>("org.codenarc:CodeNarc") {
+            params(groovyVersion)
+        }
     }
 }
 
@@ -91,14 +100,15 @@ tasks.withType<CodeNarc>().configureEach {
 val SourceSet.allGroovy: SourceDirectorySet
     get() = withConvention(GroovySourceSet::class) { allGroovy }
 
-abstract class CodeNarcRule : ComponentMetadataRule {
+abstract class CodeNarcRule @Inject constructor(
+    private val groovyVersion: String
+): ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
             withDependencies {
-                val groovyVersion = groovy.lang.GroovySystem.getVersion()
-                val isAtLeastGroovy4 = org.gradle.util.internal.VersionNumber.parse(groovyVersion).major >= 4
+                val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
                 val groovyGroup = if(isAtLeastGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
-                removeAll { it.group == groovyGroup }
+                removeAll { listOf("org.apache.groovy", "org.codehaus.groovy").contains(it.group) }
                 add("$groovyGroup:groovy") {
                     version { prefer(groovyVersion) }
                     because("We use the packaged groovy")
