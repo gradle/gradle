@@ -60,9 +60,9 @@ public class JavaToolchainRepositoryRequest implements AuthenticationSupported {
 
         for (Authentication authentication : configuredAuthentication) {
             AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;
-            if (uri.getScheme().startsWith("http")) { //TODO (#21082): do we allow http? or just https?
+            if (uri.getScheme().startsWith("http")) {
                 authenticationInternal.addHost(uri.getHost(), uri.getPort());
-            } //TODO (#21082): do we allow anything else? throw exception here? or somewhere else?
+            }
         }
         return configuredAuthentication;
     }
