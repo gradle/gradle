@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm;
+package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Dependency;
