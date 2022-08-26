@@ -25,5 +25,4 @@ public interface ProjectFinder {
      * @return The project belonging to the path, never null.
      */
     ProjectInternal getProject(String path);
-
 }

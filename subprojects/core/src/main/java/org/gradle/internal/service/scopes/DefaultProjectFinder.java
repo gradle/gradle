@@ -32,5 +32,4 @@ public class DefaultProjectFinder implements ProjectFinder {
     public ProjectInternal getProject(String path) {
         return baseProjectSupplier.get().project(path);
     }
-
 }
