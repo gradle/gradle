@@ -177,7 +177,6 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         "-s",
         "--no-configuration-cache",
         "%additional.gradle.parameters%",
-        "%reverse.dep.*.additional.gradle.parameters%",
         if (daemon) "--daemon" else "--no-daemon",
         if (isContinue) "--continue" else ""
     )
