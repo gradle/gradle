@@ -48,7 +48,7 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
             if (details.consumerValue == null) {
                 details.compatible()
             } else {
-                if (details.producerValue in ["best", "compatible"]) {
+                if (details.consumerValue in ["requested", "best", "compatible"] && details.producerValue in ["best", "compatible"]) {
                     details.compatible()
                 }
             }
@@ -109,10 +109,25 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         matcher.match(selectionSchema, [candidate6], requested, null, explanationBuilder) == [candidate6]
     }
 
+    def "disambiguates extra attributes in precedence order"() {
+        def candidate1 = candidate("best", null, "a")
+        def candidate2 = candidate("another", "best", "b")
+        def candidate3 = candidate("another", "another", "c")
+
+        expect:
+        matcher.match(selectionSchema, [candidate1, candidate2, candidate3], requested("best", null, null), null, explanationBuilder) == [candidate1]
+        matcher.match(selectionSchema, [candidate1, candidate2, candidate3], requested("another", null, null), null, explanationBuilder) == [candidate2]
+        matcher.match(selectionSchema, [candidate1, candidate2, candidate3], requested("another", "another", null), null, explanationBuilder) == [candidate3]
+    }
+
     private static AttributeContainerInternal requested(String highestValue, String middleValue, String lowestValue) {
         return candidate(highestValue, middleValue, lowestValue)
     }
     private static AttributeContainerInternal candidate(String highestValue, String middleValue, String lowestValue) {
-        return AttributeTestUtil.attributes([highest: highestValue, middle: middleValue, lowest: lowestValue])
+        return AttributeTestUtil.attributes(
+            (highestValue != null ? [highest: highestValue] : [:]) +
+            (middleValue  != null ? [middle:  middleValue]  : [:]) +
+            (lowestValue  != null ? [lowest:  lowestValue]  : [:])
+        )
     }
 }
