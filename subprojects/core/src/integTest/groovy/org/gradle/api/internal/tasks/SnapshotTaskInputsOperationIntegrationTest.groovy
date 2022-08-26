@@ -37,6 +37,10 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
+    def setup() {
+        expectReindentedValidationMessage()
+    }
+
     def "task output caching key is exposed when build cache is enabled"() {
         given:
         executer.withBuildCacheEnabled()
@@ -152,6 +156,15 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         fails('customTask', '--build-cache')
 
         then:
+        failureDescriptionStartsWith("Some problems were found with the configuration of task ':customTask' (type 'CustomTask').")
+        failureDescriptionContains(implementationUnknown {
+            implementationOfTask(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+        })
+        failureDescriptionContains(implementationUnknown {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+        })
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
         result.classLoaderHash == null
@@ -181,6 +194,11 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         fails('customTask', '--build-cache')
 
         then:
+        failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
+        failureDescriptionContains(implementationUnknown {
+            additionalTaskAction(':customTask')
+            unknownClassloader('A')
+        })
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
         result.classLoaderHash == null
@@ -479,6 +497,11 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         fails('customTask', '--build-cache')
 
         then:
+        failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
+        failureDescriptionContains(implementationUnknown {
+            nestedProperty('bean')
+            unknownClassloader('A')
+        })
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
         result.classLoaderHash == null
