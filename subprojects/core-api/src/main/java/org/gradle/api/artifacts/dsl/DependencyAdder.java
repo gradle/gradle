@@ -19,12 +19,10 @@ package org.gradle.api.artifacts.dsl;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
@@ -108,23 +106,6 @@ public interface DependencyAdder {
      * @see DependencyFactory#create(String, String, String, String, String)
      */
     void add(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension, Action<? super ExternalModuleDependency> configuration);
-
-    /**
-     * Add a dependency.
-     *
-     * @param project project to add as a dependency
-     * @see DependencyFactory#create(Project)
-     */
-    void add(Project project);
-
-    /**
-     * Add a dependency and configure it.
-     *
-     * @param project project to add as a dependency
-     * @param configuration an action to configure the dependency
-     * @see DependencyFactory#create(Project)
-     */
-    void add(Project project, Action<? super ProjectDependency> configuration);
 
     /**
      * Add a dependency.
