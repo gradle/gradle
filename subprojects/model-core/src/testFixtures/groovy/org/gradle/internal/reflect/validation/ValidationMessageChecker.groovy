@@ -190,17 +190,6 @@ trait ValidationMessageChecker {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.UNRESOLVABLE_INPUT
-    )
-    String unresolvableInput(@DelegatesTo(value = UnresolvableInput, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}, boolean renderSolutions = true) {
-        def config = display(UnresolvableInput, 'unresolvable_input', spec)
-        config.description("cannot be resolved: ${config.conversionProblem}")
-            .reason("An input file collection couldn't be resolved, making it impossible to determine task inputs")
-            .solution("Consider using Task.dependsOn instead")
-            .render(renderSolutions)
-    }
-
-    @ValidationTestFor(
         ValidationProblemId.IMPLICIT_DEPENDENCY
     )
     String implicitDependency(@DelegatesTo(value = ImplicitDependency, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}, boolean renderSolutions = true) {
