@@ -57,7 +57,7 @@ import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
-import org.gradle.jvm.toolchain.internal.install.FileDownloader;
+import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
 
 import java.util.List;
@@ -122,7 +122,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(JavaToolchainFactory.class);
         registration.add(DefaultJavaToolchainProvisioningService.class);
         registration.add(AdoptOpenJdkRemoteBinary.class);
-        registration.add(FileDownloader.class);
+        registration.add(SecureFileDownloader.class);
         registration.add(JavaToolchainQueryService.class);
         registration.add(DefaultJavaToolchainService.class);
     }

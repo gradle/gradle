@@ -25,13 +25,13 @@ import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.verifier.HttpRedirectVerifier
-import org.gradle.jvm.toolchain.internal.install.FileDownloader
+import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
 import spock.lang.Specification
 import spock.lang.TempDir
 
 import java.nio.file.Files
 
-class FileDownloaderTest extends Specification {
+class SecureFileDownloaderTest extends Specification {
 
     @TempDir
     public File temporaryFolder
@@ -40,7 +40,7 @@ class FileDownloaderTest extends Specification {
         RepositoryTransportFactory transportFactory = newTransportFactory()
 
         given:
-        def downloader = new FileDownloader(transportFactory)
+        def downloader = new SecureFileDownloader(transportFactory)
         def destinationFile = new File(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "target")
 
         when:
@@ -57,7 +57,7 @@ class FileDownloaderTest extends Specification {
         RepositoryTransportFactory transportFactory = newTransportFactory({ throw new BuildCancelledException() })
 
         given:
-        def downloader = new FileDownloader(transportFactory)
+        def downloader = new SecureFileDownloader(transportFactory)
         def destinationFile = new File(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "target")
 
         when:

@@ -61,7 +61,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     private final JavaToolchainRepositoryRegistryInternal toolchainRepositoryRegistry;
     private final AdoptOpenJdkRemoteBinary openJdkBinary;
 
-    private final FileDownloader downloader;
+    private final SecureFileDownloader downloader;
     private final JdkCacheDirectory cacheDirProvider;
     private final Provider<Boolean> downloadEnabled;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -71,7 +71,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     public DefaultJavaToolchainProvisioningService(
             JavaToolchainRepositoryRegistry toolchainRepositoryRegistry,
             AdoptOpenJdkRemoteBinary openJdkBinary,
-            FileDownloader downloader,
+            SecureFileDownloader downloader,
             JdkCacheDirectory cacheDirProvider,
             ProviderFactory factory,
             BuildOperationExecutor executor
