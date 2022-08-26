@@ -1,7 +1,7 @@
 [[variant_attributes]]
 = Working with Variant Attributes
 
-As explained in the section on <<variant_model.adoc#sec:variant-aware-matching,variant aware matching>>, attributes give semantics to variants and are used by Gradle's dependency management engine to select the best matching variant. 
+As explained in the section on <<variant_model.adoc#sec:variant-aware-matching,variant aware matching>>, attributes give semantics to variants and are used by Gradle's dependency management engine to select the best matching variant.
 
 As a user of Gradle, attributes are often hidden as implementation details.
 But it might be useful to understand the _standard attributes_ defined by Gradle and its core plugins.
@@ -224,7 +224,7 @@ Attribute compatibility rules have to be registered via the link:{javadocPath}/o
 
 Since multiple values for an attribute can be _compatible_, Gradle needs to choose the "best" candidate between all compatible candidates. This is called "disambiguation".
 
-This is done by implementing an link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[attribute disambiguation rule]. 
+This is done by implementing an link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[attribute disambiguation rule].
 
 Attribute disambiguation rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].
 [[sec:abm_algorithm]]
@@ -239,11 +239,13 @@ Finding the best variant can get complicated when there are many different varia
     a. For each requested attribute, if a candidate does not have a value matching the disambiguation rule, it's eliminated from consideration.
     b. If the attribute has a known precedence, Gradle will stop as soon as there is a single candidate remaining.
     c. If the attribute does not have a known precedence, Gradle must consider all attributes.
-5. If several candidates still remain, Gradle will start to consider "extra" attributes to disambiguate between multiple candidates. Extra attributes are attributes that were not requested by the consumer. A candidate can be chosen if it is compatible with all of the disambiguation rules.
+5. If several candidates still remain, Gradle will start to consider "extra" attributes to disambiguate between multiple candidates. Extra attributes are attributes that were not requested by the consumer but are present on at least one candidate. These extra attributes are considered in precedence order.
+    a. If the attribute has a known precedence, Gradle will stop as soon as there is a single candidate remaining.
+    b. After all extra attributes with precedence are considered, the remaining candidates can be chosen if they are compatible with all of the non-ordered disambiguation rules.
 6. If several candidates still remain, Gradle will consider extra attributes again. A candidate can be chosen if it has the fewest number of extra attributes.
 
-If at any step no candidates remain compatible, resolution will fail and list all compatible candidates from step 1. 
+If at any step no candidates remain compatible, resolution will fail and list all compatible candidates from step 1.
 
-Plugins and ecosystems can influence the selection algorithm by implementing compatibility rules, disambiguation rules and telling Gradle the precedence of attributes. Attributes with a higher precedence are used to eliminate compatible matches in order. 
+Plugins and ecosystems can influence the selection algorithm by implementing compatibility rules, disambiguation rules and telling Gradle the precedence of attributes. Attributes with a higher precedence are used to eliminate compatible matches in order.
 
-For example, in the Java ecosystem, the `org.gradle.usage` attribute has a higher precedence than `org.gradle.libraryelements`. This means that if two candidates were available with compatible values for both `org.gradle.usage` and `org.gradle.libraryelements`, Gradle will choose the candidate that passes the disambiguation rule for `org.gradle.usage`. 
+For example, in the Java ecosystem, the `org.gradle.usage` attribute has a higher precedence than `org.gradle.libraryelements`. This means that if two candidates were available with compatible values for both `org.gradle.usage` and `org.gradle.libraryelements`, Gradle will choose the candidate that passes the disambiguation rule for `org.gradle.usage`.
