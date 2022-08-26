@@ -33,6 +33,8 @@ class PropertyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains 'version: 1.2.3'
         outputContains 'group: org.gradle.api'
+        // Groovy 4 exposes static fields as properties, which we filter in BeanDynamicObject and should not see in the report.
+        outputDoesNotContain 'DEFAULT_BUILD_DIR_NAME'
     }
 
     def "lists selected project property"() {

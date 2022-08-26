@@ -427,7 +427,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             Map<String, Object> properties = new HashMap<String, Object>();
             List<MetaProperty> classProperties = getMetaClass().getProperties();
             for (MetaProperty metaProperty : classProperties) {
-                if (!Modifier.isPublic(metaProperty.getModifiers())) {
+                if (isStatic(metaProperty) || !isPublic(metaProperty)) {
                     // Work around https://issues.apache.org/jira/browse/GROOVY-10555
                     continue;
                 }
@@ -449,6 +449,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
             getOpaqueProperties(properties);
             return properties;
+        }
+
+        private boolean isPublic(MetaProperty mp) {
+            return Modifier.isPublic(mp.getModifiers());
+        }
+
+        private boolean isStatic(MetaProperty mp) {
+            return Modifier.isStatic(mp.getModifiers());
         }
 
         protected void getOpaqueProperties(Map<String, Object> properties) {
