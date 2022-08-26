@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm;
+package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 

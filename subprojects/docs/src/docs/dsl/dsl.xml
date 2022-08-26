@@ -583,16 +583,16 @@
                 <td>org.gradle.api.tasks.testing.Test</td>
             </tr>
             <tr>
-                <td>org.gradle.api.plugins.jvm.Dependencies</td>
+                <td>org.gradle.api.artifacts.dsl.Dependencies</td>
             </tr>
             <tr>
-                <td>org.gradle.api.plugins.jvm.GradleDependencies</td>
+                <td>org.gradle.api.artifacts.dsl.GradleDependencies</td>
             </tr>
             <tr>
-                <td>org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers</td>
+                <td>org.gradle.api.artifacts.dsl.TestFixturesDependencyModifiers</td>
             </tr>
             <tr>
-                <td>org.gradle.api.plugins.jvm.PlatformDependencyModifiers</td>
+                <td>org.gradle.api.artifacts.dsl.PlatformDependencyModifiers</td>
             </tr>
             <tr>
                 <td>org.gradle.api.plugins.jvm.JvmComponentDependencies</td>

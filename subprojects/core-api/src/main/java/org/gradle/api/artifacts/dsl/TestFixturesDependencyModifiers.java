@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.jvm;
+package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-import org.gradle.internal.component.external.model.ImmutableCapability;
-import org.gradle.internal.component.external.model.ProjectTestFixtures;
 
 import javax.annotation.Nullable;
-
-import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
 
 /**
  * Dependency APIs for using <a href="https://docs.gradle.org/current/userguide/java_testing.html#sec:java_test_fixtures">Test Fixtures</a> in {@code dependencies} blocks.
@@ -68,25 +63,7 @@ public interface TestFixturesDependencyModifiers extends Dependencies {
      * @param dependency the dependency
      * @return the modified dependency
      */
-    default ExternalModuleDependency testFixtures(ExternalModuleDependency dependency) {
-        dependency.capabilities(capabilities -> {
-            capabilities.requireCapability(new ImmutableCapability(dependency.getGroup(), dependency.getName() + TEST_FIXTURES_CAPABILITY_APPENDIX, null));
-        });
-        return dependency;
-    }
-
-    /**
-     * Takes a given {@link MinimalExternalModuleDependency} and modifies it to select the Test Fixtures variant of the given module.
-     *
-     * @param dependency the dependency
-     * @return the modified dependency
-     */
-    default MinimalExternalModuleDependency testFixtures(MinimalExternalModuleDependency dependency) {
-        dependency.capabilities(capabilities -> {
-            capabilities.requireCapability(new ImmutableCapability(dependency.getGroup(), dependency.getName() + TEST_FIXTURES_CAPABILITY_APPENDIX, null));
-        });
-        return dependency;
-    }
+    <D extends ExternalModuleDependency> D testFixtures(D dependency);
 
     /**
      * Takes a given {@link ProjectDependency} and modifies it to select the Test Fixtures variant of the given module.
@@ -94,10 +71,7 @@ public interface TestFixturesDependencyModifiers extends Dependencies {
      * @param projectDependency the dependency
      * @return the modified dependency
      */
-    default ProjectDependency testFixtures(ProjectDependency projectDependency) {
-        projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
-        return projectDependency;
-    }
+    ProjectDependency testFixtures(ProjectDependency projectDependency);
 
     /**
      * Takes a given {@code Provider} to a {@link MinimalExternalModuleDependency} and modifies the dependency to select the Test Fixtures variant of the given module.

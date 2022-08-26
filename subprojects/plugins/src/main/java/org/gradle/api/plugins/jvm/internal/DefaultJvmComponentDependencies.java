@@ -18,12 +18,17 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
+import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.ProjectTestFixtures;
+import org.gradle.internal.component.external.model.TestFixturesSupport;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.inject.Inject;
@@ -78,17 +83,33 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
         return getDependencyFactory().create(getCurrentProject());
     }
 
+    @Override
     public <D extends ModuleDependency> D platform(D dependency) {
         dependency.endorseStrictVersions();
         dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.REGULAR_PLATFORM)));
         return dependency;
     }
 
+    @Override
     public <D extends ModuleDependency> D enforcedPlatform(D dependency) {
         if (dependency instanceof ExternalDependency) {
             DeprecationLogger.whileDisabled(() -> ((ExternalDependency)dependency).setForce(true));
         }
         dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.ENFORCED_PLATFORM)));
         return dependency;
+    }
+
+    @Override
+    public <D extends ExternalModuleDependency> D testFixtures(D dependency) {
+        dependency.capabilities(capabilities -> {
+            capabilities.requireCapability(new ImmutableCapability(dependency.getGroup(), dependency.getName() + TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX, null));
+        });
+        return dependency;
+    }
+
+    @Override
+    public ProjectDependency testFixtures(ProjectDependency projectDependency) {
+        projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
+        return projectDependency;
     }
 }

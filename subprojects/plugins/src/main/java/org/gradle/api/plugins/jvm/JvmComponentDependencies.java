@@ -18,6 +18,9 @@ package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
+import org.gradle.api.artifacts.dsl.GradleDependencies;
+import org.gradle.api.artifacts.dsl.PlatformDependencyModifiers;
+import org.gradle.api.artifacts.dsl.TestFixturesDependencyModifiers;
 
 /**
  * This DSL element is used to add dependencies to a component, like {@link JvmTestSuite}.
