@@ -192,6 +192,7 @@ class JdkCacheDirectoryTest extends Specification {
 
     JvmMetadataDetector mockDetector() {
         JvmInstallationMetadata metadata = Mock(JvmInstallationMetadata)
+        metadata.isValidInstallation() >> true
         metadata.getVendor() >> JvmVendor.fromString("vendor")
         metadata.getLanguageVersion() >> JavaVersion.VERSION_11
         metadata.getArchitecture() >> "arch"
