@@ -28,7 +28,7 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.internal.JavaToolchainRepositoryRegistryInternal
 import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService
-import org.gradle.jvm.toolchain.internal.install.FileDownloader
+import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -44,7 +44,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
     def binary = Mock(AdoptOpenJdkRemoteBinary)
     def registry = Mock(JavaToolchainRepositoryRegistryInternal)
-    def downloader = Mock(FileDownloader)
+    def downloader = Mock(SecureFileDownloader)
     def cache = Mock(JdkCacheDirectory)
     def archiveFileLock = Mock(FileLock)
 

@@ -149,7 +149,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
             .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from: http://example.com/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/hotspot/normal/eclipse")
-            .assertHasCause("Attempting to download a JDK from an insecure URI http://example.com/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/hotspot/normal/eclipse. This is not supported, use a secure URI instead.")
+            .assertHasCause("Attempting to download a file from an insecure URI http://example.com/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/hotspot/normal/eclipse. This is not supported, use a secure URI instead.")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")

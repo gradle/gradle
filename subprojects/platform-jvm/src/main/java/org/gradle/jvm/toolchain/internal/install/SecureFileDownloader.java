@@ -42,13 +42,13 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 
-public class FileDownloader {
+public class SecureFileDownloader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileDownloader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SecureFileDownloader.class);
 
     private final RepositoryTransportFactory repositoryTransportFactory;
 
-    public FileDownloader(RepositoryTransportFactory repositoryTransportFactory) {
+    public SecureFileDownloader(RepositoryTransportFactory repositoryTransportFactory) {
         this.repositoryTransportFactory = repositoryTransportFactory;
     }
 
@@ -84,7 +84,7 @@ public class FileDownloader {
             try {
                 moveFile(targetFile, downloadFile);
             } catch (IOException e) {
-                throw new GradleException("Unable to move downloaded toolchain to target destination", e);
+                throw new GradleException("Unable to move downloaded file to target destination", e);
             }
         } finally {
             downloadFile.delete();
@@ -110,11 +110,15 @@ public class FileDownloader {
     private RepositoryTransport getTransport(URI source, Collection<Authentication> authentications) {
         final HttpRedirectVerifier redirectVerifier;
         try {
-            redirectVerifier = HttpRedirectVerifierFactory.create(new URI(source.getScheme(), source.getAuthority(), null, null, null), false, () -> {
-                throw new InvalidUserCodeException("Attempting to download a JDK from an insecure URI " + source + ". This is not supported, use a secure URI instead.");
-            }, uri -> {
-                throw new InvalidUserCodeException("Attempting to download a JDK from an insecure URI " + uri + ". This URI was reached as a redirect from " + source + ". This is not supported, make sure no insecure URIs appear in the redirect");
-            });
+            redirectVerifier = HttpRedirectVerifierFactory.create(new URI(source.getScheme(), source.getAuthority(), null, null, null), false,
+                    () -> {
+                        throw new InvalidUserCodeException("Attempting to download a file from an insecure URI " + source +
+                                ". This is not supported, use a secure URI instead.");
+                    },
+                    uri -> {
+                        throw new InvalidUserCodeException("Attempting to download a file from an insecure URI " + uri +
+                                ". This URI was reached as a redirect from " + source + ". This is not supported, make sure no insecure URIs appear in the redirect");
+                    });
         } catch (URISyntaxException e) {
             throw new InvalidUserCodeException("Cannot extract host information from specified URI " + source);
         }
