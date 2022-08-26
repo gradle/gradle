@@ -103,16 +103,20 @@ class GradleMetadataJavaLibraryCrossVersionIntegrationTest extends CrossVersionI
     }
 
     def "can consume library published with previous version of Gradle"() {
-        expect:
-        version previous withTasks ':producer:publish' run()
-        version current withTasks ':consumer:resolve' run()
+        when:
+        version(previous).withTasks(':producer:publish').run()
+        def result = version(current).withTasks(":consumer:resolve").run()
+
+        then:
+        result.output.contains("producer-1.0.jar")
     }
 
     def "previous Gradle can consume library published with current version of Gradle"() {
         expect:
-        version current withTasks ':producer:publish' run()
-        if (previous.version.compareTo(STABLE_METADATA_VERSION) >= 0) {
-            version previous withTasks ':consumer:resolve' run()
+        version(current).withTasks(':producer:publish').run()
+        if (previous.version >= STABLE_METADATA_VERSION) {
+            def result = version(previous).withTasks (':consumer:resolve').run()
+            assert result.output.contains("producer-1.0.jar")
         }
     }
 
