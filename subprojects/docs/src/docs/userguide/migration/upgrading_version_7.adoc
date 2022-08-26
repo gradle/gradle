@@ -83,6 +83,7 @@ Those warnings are now errors in Gradle 8.0 and will fail the build.
 Warnings which became errors:
 
 - An input file collection which can't be resolved.
+- Using an input with an unknown implementation. See <<validation_problems.adoc#implementation_unknown,Cannot use an input with an unknown implementation>>.
 
 ==== Gradle does not ignore empty directories for file-trees with `@SkipWhenEmpty`
 
