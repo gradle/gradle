@@ -141,43 +141,6 @@ include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies/ko
 <3> Add the Auto Value annotation processor to the suite's annotation processor classpath so that it will be run when compiling the tests.
 
 
-The `dependencies` block within a test suite does not provide access to the same methods as the top-level `dependencies` block.
-For instance, the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:platform(java.lang.Object)[platform()] and link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:platform(java.lang.Object)[enforcedPlatform()] methods are not available.
-
-To use these and similar methods, you need to access the top-level dependencies handler directly with `project.dependencies.platform(...)` or `project.dependencies.enforcedPlatform(...)`.
-
-[NOTE]
-====
-Though it is discouraged, as suggested by the comment in the snippet above, you can also access the configurations of a test suite in a top-level `dependencies` block after creating the test suite.  The configurations used by test suites are normal Gradle configurations, but their exact names should be considered an implementation detail subject to change.  For this reason, configuration via the suite's own `dependencies` block is recommended.
-====
-
-=== Strongly Typed Dependencies Block
-Gradle 7.6 changed the API of the test suite's `dependencies` block to be more strongly typed.
-
-Each configuration returns a `DependencyAdder`, to provide more strongly-typed dependency addition. This features multiple `add`
-and `bundle` methods to add dependencies to a particular configuration.
-
-There is also a `DependencyFactory` to create new dependencies separately from a `DependencyHandler`. It can be injected when
-needed. It is also the recommended way to create dependencies lazily, as shown below for Providers.
-
-This API differs from the previous API in the following ways:
-
-- You must explicitly call accessors and `add` from Java.
-    - Kotlin and Groovy: extensions and operator overloading avoid explicit calls.
-    - Java: `implementation(x)` becomes `getImplementation().add(x)`
-- You cannot declare dependencies from Kotlin and Java with `Map`.
-  Use multi-argument methods instead.
-    - Kotlin: `compileOnly(mapOf("group" to "foo", "name" to "bar"))` becomes `compileOnly(group = "foo", name = "bar")`
-    - Groovy: use `Map` as before -- it is a built-in language feature.
-    - Java: `compileOnly(Map.of("group", "foo", "name", "bar"))` becomes `getCompileOnly().add("foo", "bar", null)`
-- You cannot add version catalog bundles directly.
-  Instead, use the `bundle` method on each configuration.
-    - Kotlin and Groovy: `implementation(libs.bundles.testing)` becomes `implementation.bundle(libs.bundles.testing)`
-- You cannot use providers for non-`Dependency` types directly.
-  Instead, map them to a `Dependency` using the `DependencyFactory`.
-    - Kotlin and Groovy: `implementation(myStringProvider)` becomes `implementation(myStringProvider.map { project.dependencyFactory.create(it) })`
-    - Java: `implementation(myStringProvider)` becomes `getImplementation().add(myStringProvider.map(project.getDependencyFactory()::create)`
-
 == Configure source directories of a test suite
 ====
 include::sample[dir="snippets/testing/test-suite-configure-source-dir/groovy",files="build.gradle[tags=configure-source-dir]"]
@@ -257,6 +220,41 @@ include::sample[dir="snippets/testing/test-suite-multi-configure-each-extracted/
 <1> Define a closure which takes a single `JvmTestSuite` parameter and configures it
 <2> Apply the closure to a test suite, using the default (`test`) test suite
 <3> Alternate means of applying a configuration closure to a test suite outside of its declaration, using the `integrationTest` test suite
+
+== Differences between the test suite `dependencies` and the top-level `dependencies` blocks
+
+Gradle 7.6 changed the API of the test suite's `dependencies` block to be more strongly-typed.
+
+Each dependency bucket returns a link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyAdder.html[`DependencyAdder`] that provides strongly-typed methods to add and configure dependencies.
+
+There is also a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[`DependencyFactory`] with factory methods to create new dependencies from different notations.
+Dependencies can be created lazily using these factory methods, as shown below.
+
+This API differs from the top-level `dependencies` block in the following ways:
+
+* You must explicitly call a getter and `add` outside Gradle build scripts.
+    ** `dependencies.add("implementation", x)` becomes `getImplementation().add(x)`
+* You cannot declare dependencies with the `Map` notation from Kotlin and Java.
+  Use multi-argument methods instead in Kotlin and Java.
+    ** Kotlin: `compileOnly(mapOf("group" to "foo", "name" to "bar"))` becomes `compileOnly(group = "foo", name = "bar")`
+    ** Java: `compileOnly(Map.of("group", "foo", "name", "bar"))` becomes `getCompileOnly().add("foo", "bar", null)`
+* You cannot add version catalog bundles directly.
+  Instead, use the `bundle` method on each configuration.
+    ** Kotlin and Groovy: `implementation(libs.bundles.testing)` becomes `implementation.bundle(libs.bundles.testing)`
+* You cannot use providers for non-`Dependency` types directly.
+  Instead, map them to a `Dependency` using the `DependencyFactory`.
+    ** Kotlin and Groovy: `implementation(myStringProvider)` becomes `implementation(myStringProvider.map { project.dependencyFactory.create(it) })`
+    ** Java: `implementation(myStringProvider)` becomes `getImplementation().add(myStringProvider.map(project.getDependencyFactory()::create)`
+
+The `dependencies` block within a test suite does not provide access to the same methods as the top-level `dependencies` block.
+For instance, the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:platform(java.lang.Object)[platform()] and link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:platform(java.lang.Object)[enforcedPlatform()] methods are not available.
+
+To use these and similar methods, you need to access the top-level dependencies handler directly with `project.dependencies.platform(...)` or `project.dependencies.enforcedPlatform(...)`.
+
+[NOTE]
+====
+Adding dependencies via the test suite's own `dependencies` block is the preferred and recommended way. You can also access the configurations of a test suite in a top-level `dependencies` block after creating the test suite, but the exact names of the configurations used by test suites should be considered an implementation detail subject to change.
+====
 
 == Differences between similar methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] and link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task types
 
