@@ -36,6 +36,6 @@ class OrdinalNodeCodec(
     override suspend fun ReadContext.decode(): OrdinalNode {
         val ordinalType = readEnum<OrdinalNode.Type>()
         val ordinal = readInt()
-        return OrdinalNode(ordinalType, ordinalGroups.group(ordinal))
+        return ordinalGroups.group(ordinal).locationsNode(ordinalType)
     }
 }

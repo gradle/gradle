@@ -428,21 +428,32 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
     }
 
     def "runs side effect when calling '#method' on provider with value and attached side effect"() {
-        given:
         def sideEffect = Mock(ValueSupplier.SideEffect)
         def parent = providerWithValue(someValue())
-        def provider = parent.withSideEffect(sideEffect)
 
         when:
-        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
-        provider.calculateExecutionTimeValue()
-
+        def provider = parent.withSideEffect(sideEffect)
+        def value = provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        def executionTimeValue = provider.calculateExecutionTimeValue()
         then:
         0 * _ // no side effects when values are not unpacked
 
         when:
-        def unpackedValue = getter(provider, method, someOtherValue())
+        def unpackedValue = value.get()
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
 
+        when:
+        unpackedValue = executionTimeValue.toValue().get()
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        when:
+        unpackedValue = getter(provider, method, someOtherValue())
         then:
         unpackedValue == someValue()
         1 * sideEffect.execute(someValue())
