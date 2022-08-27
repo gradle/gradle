@@ -60,6 +60,17 @@ public interface Dependencies {
     ProjectDependency project();
 
     /**
+     * Create a dependency on the current project's internal view. During compile-time, this dependency will
+     * resolve the current project's implementation in addition to its API. During runtime, this dependency
+     * behaves as a usual project dependency.
+     *
+     * @return the current project, including implementation details, as a dependency
+     *
+     * @since 8.0
+     */
+    ProjectDependency projectInternalView();
+
+    /**
      * Create an {@link ExternalModuleDependency} from the given notation.
      *
      * @param dependencyNotation dependency to add
