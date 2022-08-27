@@ -1,9 +1,11 @@
 import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.BuildParams
 import gradlebuild.basics.accessors.groovy
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
 import gradlebuild.basics.buildCommitId
+import gradlebuild.basics.isBundleGroovy4
 
 plugins {
     id("gradlebuild.internal.java")
@@ -163,6 +165,12 @@ tasks {
             filter {
                 includeTestsMatching(santaTrackerTestPattern)
             }
+        }
+    }
+
+    withType<SmokeTest>().configureEach {
+        if (isBundleGroovy4) {
+            systemProperty(BuildParams.BUNDLE_GROOVY_4, "true")
         }
     }
 }
