@@ -289,7 +289,7 @@ public abstract class JavaEcosystemSupport {
                     details.closestMatch(jar);
                 }
             } else if (candidateValues.contains(consumerValue)) {
-                // Classes or resources requested, some Jars found, let's prefer these
+                // Use what they requested, if available
                 details.closestMatch(consumerValue);
             }
         }

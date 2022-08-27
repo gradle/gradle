@@ -3,7 +3,7 @@ Execution failed for task ':failRuntimeClasspathResolve'.
    > Could not resolve org.lwjgl:lwjgl:3.2.3.
      Required by:
          project :
-     > The consumer was configured to find a library for use during runtime compatible with Java 11, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows'. However we cannot choose between the following variants of org.lwjgl:lwjgl:3.2.3:
+      > The consumer was configured to find a library for use during runtime, compatible with Java 11, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows'. However we cannot choose between the following variants of org.lwjgl:lwjgl:3.2.3:
           - natives-windows-runtime
           - natives-windows-x86-runtime
         All of them match the consumer attributes:
@@ -52,7 +52,7 @@ Execution failed for task ':failRuntimeClasspathResolve'.
                   - Doesn't say anything about its target Java version (required compatibility with Java 11)
                   - Doesn't say anything about its elements (required them packaged as a jar)
                   - Doesn't say anything about org.gradle.native.operatingSystem (required 'windows')
-         - Variant 'natives-linux-arm32-runtime' capability org.lwjgl:lwjgl:3.2.3 declares a library for use during runtime, packaged as a jar:
+          - Variant 'natives-linux-arm32-runtime' capability org.lwjgl:lwjgl:3.2.3 declares a library for use during runtime, packaged as a jar:
               - Incompatible because this component declares a component, as well as attribute 'org.gradle.native.operatingSystem' with value 'linux' and the consumer needed a component, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows'
               - Other compatible attributes:
                   - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
