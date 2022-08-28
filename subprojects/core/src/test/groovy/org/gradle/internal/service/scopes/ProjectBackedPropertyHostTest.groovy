@@ -34,7 +34,7 @@ class ProjectBackedPropertyHostTest extends Specification {
         _ * project.state >> state
     }
 
-    def "disallows read before before completion when property has no producer"() {
+    def "disallows read before completion when property has no producer"() {
         expect:
         host.beforeRead(null) == "configuration of <project> has not completed yet"
         state.toBeforeEvaluate()
@@ -47,7 +47,7 @@ class ProjectBackedPropertyHostTest extends Specification {
         host.beforeRead() == null
     }
 
-    def "disallows read before before producer task starts when property has producer"() {
+    def "disallows read before producer task starts when property has producer"() {
         def producer = Stub(ModelObject)
         def task = Stub(TaskInternal)
         def taskState = new TaskStateInternal()

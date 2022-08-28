@@ -58,7 +58,7 @@ class UniquePathKeyFileStoreTest extends Specification {
         0 * action.execute(_)
     }
 
-    def "move returns existing file it it already exists"() {
+    def "move returns existing file if it already exists"() {
         setup:
         def source = temporaryFolder.createFile("some-file")
         def file = temporaryFolder.createFile("fsbase/a/a");
@@ -73,7 +73,7 @@ class UniquePathKeyFileStoreTest extends Specification {
         !source.exists()
     }
 
-    def "move adds file it it does not exist"() {
+    def "move adds file if it does not exist"() {
         setup:
         def source = temporaryFolder.createFile("some-file")
         def file = temporaryFolder.file("fsbase/a/a");
