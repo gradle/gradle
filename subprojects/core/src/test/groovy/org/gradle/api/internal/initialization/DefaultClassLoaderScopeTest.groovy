@@ -142,7 +142,7 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.exportClassLoader.is root.exportClassLoader
     }
 
-    def "locked scope with local and exports exports custom ClassLoader to children"() {
+    def "locked scope with local and exports custom ClassLoader to children"() {
         when:
         file("local/local") << "bar"
         file("export/export") << "bar"

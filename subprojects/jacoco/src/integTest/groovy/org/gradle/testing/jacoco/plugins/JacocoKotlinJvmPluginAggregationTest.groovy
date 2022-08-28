@@ -25,7 +25,7 @@ import spock.lang.Issue
  * and has no actual tests but is still included on the jacoco aggregation classpath transitively,
  * it will cause the report aggregation to fail.
  *
- * This is due that that plugin adding attributes to the legacy `default` variant which cause it to match
+ * This is due to that plugin adding attributes to the legacy `default` variant which cause it to match
  * the variant selection performed by the plugin when looking for aggregation data.  Without the fix for this issue (check file signature of
  * all files to be added to the jacoco report to ensure none are zip), this test will fail.
  */
