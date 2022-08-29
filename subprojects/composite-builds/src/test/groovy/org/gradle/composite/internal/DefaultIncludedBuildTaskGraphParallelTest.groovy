@@ -68,6 +68,7 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseService
+import org.gradle.test.fixtures.Flaky
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.RedirectStdOutAndErr
@@ -124,6 +125,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         workers << [1, manyWorkers]
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3567")
     def "runs scheduled unrelated work across multiple builds"() {
         def services = new TreeServices(workers)
         def childBuild = build(services, new DefaultBuildIdentifier("child"))
