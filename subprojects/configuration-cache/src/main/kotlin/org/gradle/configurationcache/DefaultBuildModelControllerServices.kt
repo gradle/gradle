@@ -149,10 +149,13 @@ class DefaultBuildModelControllerServices(
             projectRegistry: ProjectRegistry<ProjectInternal>,
             problemsListener: ProblemsListener,
             userCodeApplicationContext: UserCodeApplicationContext,
-            listenerManager: ListenerManager
+            listenerManager: ListenerManager,
+            gradleFactory: CrossProjectConfigurationReportingGradle.ConsistentReferencesFactory
         ): CrossProjectModelAccess {
             val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry)
-            return ProblemReportingCrossProjectModelAccess(delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), userCodeApplicationContext)
+            return ProblemReportingCrossProjectModelAccess(
+                delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), userCodeApplicationContext, gradleFactory
+            )
         }
     }
 
