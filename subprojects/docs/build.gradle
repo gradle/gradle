@@ -737,9 +737,7 @@ tasks.named("docsTest") { task ->
 
                 // TODO(https://github.com/gradle/gradle/issues/21027) The test expects the build to fail, but the failure looks slightly different when the configuration cache is enabled.
                 //  We need to improve the test harness to work with such tests.
-                "snippet-dependency-management-customizing-resolution-deactivate-global-substitution_groovy_sanityCheck.sample",
                 "snippet-dependency-management-customizing-resolution-deactivate-global-substitution_kotlin_resolve.sample",
-                "snippet-dependency-management-customizing-resolution-deactivate-global-substitution_kotlin_sanityCheck.sample",
 
                 // TODO(https://github.com/gradle/gradle/issues/14880)
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_groovy_iterating-dependencies.sample",
@@ -760,7 +758,6 @@ tasks.named("docsTest") { task ->
                 "snippet-init-scripts-configuration-injection_kotlin_initScriptConfiguration.kotlin.sample",
                 "snippet-init-scripts-plugins_groovy_usePluginsInInitScripts.groovy.sample",
                 "snippet-init-scripts-plugins_kotlin_usePluginsInInitScripts.kotlin.sample",
-
 
                 // TODO(https://github.com/gradle/gradle/issues/13469) Ivy Publish plugin support
                 "snippet-ivy-publish-conditional-publishing_groovy_publishingIvyConditionally.sample",
@@ -801,7 +798,6 @@ tasks.named("docsTest") { task ->
                 "snippet-signing-maven-publish_kotlin_signingPluginSignPublication.sample",
                 "snippet-signing-tasks_groovy_signingTaskOutput.sample",
                 "snippet-signing-tasks_kotlin_signingTaskOutput.sample",
-
 
                 // TODO(https://github.com/gradle/gradle/issues/16080) Kotlin lambdas capture the script object when accessing top-level vals
                 "snippet-tasks-custom-task-with-file-property_kotlin_lazyFileProperties.sample",
