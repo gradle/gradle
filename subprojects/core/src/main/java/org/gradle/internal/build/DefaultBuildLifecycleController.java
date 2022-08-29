@@ -23,6 +23,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.initialization.exception.ExceptionAnalyser;
@@ -150,7 +151,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
             for (Consumer<LocalTaskNode> handler : workPlan.handlers) {
                 workPlan.plan.onComplete(handler);
             }
-            workPreparer.finalizeWorkGraph(gradle, workPlan.plan);
+            workPlan.finalizedPlan = workPreparer.finalizeWorkGraph(gradle, workPlan.plan);
         });
     }
 
@@ -158,7 +159,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     public ExecutionResult<Void> executeTasks(BuildWorkPlan plan) {
         // Execute tasks and transition back to "configure", as this build may run more tasks;
         DefaultBuildWorkPlan workPlan = unpack(plan);
-        return state.tryTransition(State.ReadyToRun, State.Configure, () -> workExecutor.execute(gradle, workPlan.plan));
+        return state.tryTransition(State.ReadyToRun, State.Configure, () -> workExecutor.execute(gradle, workPlan.finalizedPlan));
     }
 
     private DefaultBuildWorkPlan unpack(BuildWorkPlan plan) {
@@ -213,6 +214,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         private final DefaultBuildLifecycleController owner;
         private final ExecutionPlan plan;
         private final List<Consumer<LocalTaskNode>> handlers = new ArrayList<>();
+        private FinalizedExecutionPlan finalizedPlan;
 
         public DefaultBuildWorkPlan(DefaultBuildLifecycleController owner, ExecutionPlan plan) {
             this.owner = owner;
@@ -250,8 +252,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
-        public void addNodes(List<? extends Node> nodes) {
-            plan.addNodes(nodes);
+        public void setScheduledNodes(List<? extends Node> nodes) {
+            plan.setScheduledNodes(nodes);
         }
     }
 }

@@ -396,7 +396,7 @@ Hello, World!
         groupedOutput.task(':helloWorld').output == 'Hello, World!'
     }
 
-    def "does not fail with with stack overflow error"() {
+    def "does not fail with stack overflow error"() {
         def consoleOutput = """
  [1m> Task :xx:
  [3A [1m< [0;32;1;0;39;1m-------------> build\\tmp\\test files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp... 'C\\tcagent1\\work\\4b92f910977a653d\\subprojects\\logging\\build\\tmp\\test files\\ConsoleBuildSrcFunctionalTest\\can_group_task_outp..._buildSrc\\j2q4s\\build.gradle' to cross build script cache [m [420D [2B
