@@ -125,7 +125,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasScript(":core", scripts)
         hasScript(":module1", scripts)
         eachScriptIsUnique(scripts)
-        scriptCacheSize() == 4 // classpath and body for for settings and for the 2 identical scripts
+        scriptCacheSize() == 4 // classpath and body for settings and for the 2 identical scripts
     }
 
     def "can have two build files with different contents and same file name"() {

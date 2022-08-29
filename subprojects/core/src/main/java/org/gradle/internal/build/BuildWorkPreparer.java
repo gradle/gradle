@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.FinalizedExecutionPlan;
 
 import java.util.function.Consumer;
 
@@ -35,5 +36,5 @@ public interface BuildWorkPreparer {
     /**
      * Finalises the given execution plan once all work has been scheduled.
      */
-    void finalizeWorkGraph(GradleInternal gradle, ExecutionPlan plan);
+    FinalizedExecutionPlan finalizeWorkGraph(GradleInternal gradle, ExecutionPlan plan);
 }

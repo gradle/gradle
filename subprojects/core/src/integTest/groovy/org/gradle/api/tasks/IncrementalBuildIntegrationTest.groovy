@@ -17,7 +17,6 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
@@ -26,7 +25,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture, ExecutionOptimizationDeprecationFixture {
+class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture {
 
     def setup() {
         expectReindentedValidationMessage()
@@ -1085,8 +1084,7 @@ task b(dependsOn: a)
     @ValidationTestFor(
         ValidationProblemId.UNKNOWN_IMPLEMENTATION
     )
-    @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: CustomTask")
-    def "task loaded with custom classloader disables execution optimizations"() {
+    def "task loaded with custom classloader fails the build"() {
         file("input.txt").text = "data"
         buildFile << """
             def CustomTask = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
@@ -1109,117 +1107,23 @@ task b(dependsOn: a)
             }
         """
         when:
-        expectImplementationUnknownDeprecation {
+        fails "customTask"
+        then:
+        failureDescriptionStartsWith("Some problems were found with the configuration of task ':customTask' (type 'CustomTask').")
+        failureDescriptionContains(implementationUnknown {
             implementationOfTask(':customTask')
             unknownClassloader('CustomTask_Decorated')
-        }
-        expectImplementationUnknownDeprecation {
+        })
+        failureDescriptionContains(implementationUnknown {
             additionalTaskAction(':customTask')
             unknownClassloader('CustomTask_Decorated')
-        }
-        succeeds "customTask"
-        then:
-        noneSkipped()
-
-        when:
-        expectImplementationUnknownDeprecation {
-            implementationOfTask(':customTask')
-            unknownClassloader('CustomTask_Decorated')
-        }
-        expectImplementationUnknownDeprecation {
-            additionalTaskAction(':customTask')
-            unknownClassloader('CustomTask_Decorated')
-        }
-        succeeds "customTask"
-        then:
-        noneSkipped()
+        })
     }
 
     @ValidationTestFor(
         ValidationProblemId.UNKNOWN_IMPLEMENTATION
     )
-    def "can switch between task with implementation from unknown classloader and from known classloader"() {
-        file("input.txt").text = "data"
-        buildFile << """
-            ${customTaskImplementation("CustomTaskFromBuildFile")}
-
-            def CustomTaskFromUnknownClassloader = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
-                import org.gradle.api.*
-                import org.gradle.api.tasks.*
-
-                ${customTaskImplementation("CustomTaskFromUnknownClassloader")}
-            '''
-
-            def customTaskClass = providers.gradleProperty("unknownClassloader").isPresent()
-                    ? CustomTaskFromUnknownClassloader
-                    : CustomTaskFromBuildFile
-
-            task customTask(type: customTaskClass) {
-                outputs.cacheIf { true }
-                input = file("input.txt")
-                output = file("build/output.txt")
-            }
-        """
-        when:
-        expectImplementationUnknownDeprecation {
-            implementationOfTask(':customTask')
-            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
-        }
-        expectImplementationUnknownDeprecation {
-            additionalTaskAction(':customTask')
-            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
-        }
-        withBuildCache().run "customTask", "-PunknownClassloader"
-        then:
-        executedAndNotSkipped(":customTask")
-
-        when:
-        withBuildCache().run "customTask"
-        then:
-        executedAndNotSkipped(":customTask")
-
-        when:
-        withBuildCache().run "customTask"
-        then:
-        skipped(":customTask")
-
-        when:
-        expectImplementationUnknownDeprecation {
-            implementationOfTask(':customTask')
-            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
-        }
-        expectImplementationUnknownDeprecation {
-            additionalTaskAction(':customTask')
-            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
-        }
-        withBuildCache().run "customTask", "-PunknownClassloader"
-        then:
-        executedAndNotSkipped(":customTask")
-
-        when:
-        withBuildCache().run "customTask"
-        then:
-        skipped(":customTask")
-    }
-
-    private static String customTaskImplementation(String className) {
-        """
-            class ${className} extends DefaultTask {
-                @InputFile File input
-                @OutputFile File output
-                @TaskAction action() {
-                    output.parentFile.mkdirs()
-                    output.text = input.text
-                }
-            }
-        """
-    }
-
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
-    @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: CustomTaskAction")
-    def "task with custom action loaded with custom classloader is never up-to-date"() {
+    def "task with custom action loaded with custom classloader fails the build"() {
         file("input.txt").text = "data"
         buildFile << """
             import org.gradle.api.*
@@ -1255,22 +1159,13 @@ task b(dependsOn: a)
             }
         """
         when:
-        expectImplementationUnknownDeprecation {
+        fails "customTask"
+        then:
+        failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
+        failureDescriptionContains(implementationUnknown {
             additionalTaskAction(':customTask')
             unknownClassloader('CustomTaskAction')
-        }
-        succeeds "customTask"
-        then:
-        noneSkipped()
-
-        when:
-        expectImplementationUnknownDeprecation {
-            additionalTaskAction(':customTask')
-            unknownClassloader('CustomTaskAction')
-        }
-        succeeds "customTask"
-        then:
-        noneSkipped()
+        })
     }
 
     @Issue("gradle/gradle#1168")

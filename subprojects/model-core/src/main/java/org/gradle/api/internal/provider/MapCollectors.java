@@ -100,8 +100,8 @@ public class MapCollectors {
             if (value.isMissing()) {
                 return value.asType();
             }
-            collector.add(key, value.get(), dest);
-            return Value.present();
+            collector.add(key, value.getWithoutSideEffect(), dest);
+            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
         }
 
         @Override
@@ -120,7 +120,8 @@ public class MapCollectors {
             if (value.isMissing()) {
                 visitor.execute(ExecutionTimeValue.missing());
             } else if (value.hasFixedValue()) {
-                visitor.execute(ExecutionTimeValue.fixedValue(ImmutableMap.of(key, value.getFixedValue())));
+                // transform preserving side effects
+                visitor.execute(ExecutionTimeValue.value(value.toValue().transform(v -> ImmutableMap.of(key, v))));
             } else {
                 visitor.execute(ExecutionTimeValue.changingValue(value.getChangingValue().map(v -> ImmutableMap.of(key, v))));
             }
@@ -187,8 +188,8 @@ public class MapCollectors {
             if (value.isMissing()) {
                 return value.asType();
             }
-            collector.addAll(value.get().entrySet(), dest);
-            return Value.present();
+            collector.addAll(value.getWithoutSideEffect().entrySet(), dest);
+            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
         }
 
         @Override
@@ -197,8 +198,8 @@ public class MapCollectors {
             if (value.isMissing()) {
                 return value.asType();
             }
-            collector.addAll(value.get().keySet(), dest);
-            return Value.present();
+            collector.addAll(value.getWithoutSideEffect().keySet(), dest);
+            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
         }
 
         @Override

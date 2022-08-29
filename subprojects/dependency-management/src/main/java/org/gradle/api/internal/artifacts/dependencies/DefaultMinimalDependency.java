@@ -41,7 +41,13 @@ public class DefaultMinimalDependency extends DefaultExternalModuleDependency im
         validateMutation();
     }
 
-    // copy() intentionally not overridden because we use it to go to a mutable version
+    // Intentionally changes to the mutable version.
+    @Override
+    public DefaultMutableMinimalDependency copy() {
+        DefaultMutableMinimalDependency dependency = new DefaultMutableMinimalDependency(getModule(), new DefaultMutableVersionConstraint(getVersionConstraint()));
+        copyTo(dependency);
+        return dependency;
+    }
 
     public String toString() {
         String versionConstraintAsString = getVersionConstraint().toString();

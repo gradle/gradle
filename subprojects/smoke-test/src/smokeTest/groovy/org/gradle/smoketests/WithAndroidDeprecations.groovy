@@ -22,7 +22,6 @@ import org.gradle.util.internal.VersionNumber
 
 @SelfType(BaseDeprecations)
 trait WithAndroidDeprecations implements WithReportDeprecations {
-    private static final VersionNumber AGP_VERSION_WITH_FIXED_SKIP_WHEN_EMPTY = VersionNumber.parse('7.1.1')
     private static final VersionNumber AGP_VERSION_WITH_FIXED_NEW_WORKERS_API = VersionNumber.parse('4.2')
 
     boolean androidPluginUsesOldWorkerApi(String agpVersion) {
@@ -32,19 +31,6 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
 
     void expectAndroidWorkerExecutionSubmitDeprecationWarning(String agpVersion) {
         runner.expectLegacyDeprecationWarningIf(androidPluginUsesOldWorkerApi(agpVersion), WORKER_SUBMIT_DEPRECATION)
-    }
-
-    void expectAndroidFileTreeForEmptySourcesDeprecationWarnings(String agpVersion, String... properties) {
-        VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
-        properties.each {
-            if (it == "sourceFiles" || it == "sourceDirs" || it == "inputFiles") {
-                runner.expectDeprecationWarningIf(agpVersionNumber.getBaseVersion() < AGP_VERSION_WITH_FIXED_SKIP_WHEN_EMPTY, getFileTreeForEmptySourcesDeprecationForProperty(it), "https://issuetracker.google.com/issues/205285261")
-            } else if (it == "resources") {
-                runner.expectDeprecationWarningIf(agpVersionNumber.getBaseVersion() < AGP_VERSION_WITH_FIXED_SKIP_WHEN_EMPTY, getFileTreeForEmptySourcesDeprecationForProperty(it), "https://issuetracker.google.com/issues/204425803")
-            } else if (it == "projectNativeLibs") {
-                runner.expectLegacyDeprecationWarningIf(agpVersionNumber.getMajor() == 4, getFileTreeForEmptySourcesDeprecationForProperty(it))
-            }
-        }
     }
 
     void expectAndroidIncrementalTaskInputsDeprecation(String agpVersion) {

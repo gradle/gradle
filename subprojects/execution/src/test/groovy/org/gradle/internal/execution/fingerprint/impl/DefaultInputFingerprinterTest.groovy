@@ -69,7 +69,6 @@ class DefaultInputFingerprinterTest extends Specification {
         then:
         1 * valueSnapshotter.snapshot(input) >> inputSnapshot
         1 * snapshotter.snapshot(fileInput) >> fileInputSnapshotResult
-        _ * fileInputSnapshotResult.fileTreeOnly >> false
         _ * fileInputSnapshotResult.containsArchiveTrees() >> false
         1 * fileInputSnapshotResult.snapshot >> fileInputSnapshot
         1 * fingerprinter.fingerprint(fileInputSnapshot, null) >> fileInputFingerprint

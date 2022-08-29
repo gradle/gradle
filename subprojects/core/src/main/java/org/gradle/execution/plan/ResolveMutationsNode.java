@@ -56,6 +56,11 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
     }
 
     @Override
+    public boolean isCanCancel() {
+        return node.isCanCancel();
+    }
+
+    @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
     }
 

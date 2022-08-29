@@ -19,51 +19,144 @@ package org.gradle.api.internal.notations;
 import com.google.common.collect.Interner;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableMinimalDependency;
 import org.gradle.api.internal.artifacts.dependencies.DependencyVariant;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.typeconversion.MapNotationConverter;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
+import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
+import java.util.Map;
+
 public class DependencyNotationParser {
-    public static NotationParser<Object, Dependency> parser(Instantiator instantiator,
-                                                            DefaultProjectDependencyFactory dependencyFactory,
-                                                            ClassPathRegistry classPathRegistry,
-                                                            FileCollectionFactory fileCollectionFactory,
-                                                            RuntimeShadedJarFactory runtimeShadedJarFactory,
-                                                            CurrentGradleInstallation currentGradleInstallation,
-                                                            Interner<String> stringInterner,
-                                                            ImmutableAttributesFactory attributesFactory,
-                                                            NotationParser<Object, Capability> capabilityNotationParser) {
-        return NotationParserBuilder
+    public static DependencyNotationParser create(Instantiator instantiator,
+                                                  DefaultProjectDependencyFactory dependencyFactory,
+                                                  ClassPathRegistry classPathRegistry,
+                                                  FileCollectionFactory fileCollectionFactory,
+                                                  RuntimeShadedJarFactory runtimeShadedJarFactory,
+                                                  CurrentGradleInstallation currentGradleInstallation,
+                                                  Interner<String> stringInterner,
+                                                  ImmutableAttributesFactory attributesFactory,
+                                                  NotationParser<Object, Capability> capabilityNotationParser) {
+        NotationConverter<String, ? extends ExternalModuleDependency> stringNotationConverter =
+            new DependencyStringNotationConverter<>(instantiator, DefaultExternalModuleDependency.class, stringInterner);
+        NotationConverter<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> minimalExternalDependencyNotationConverter =
+            new MinimalExternalDependencyNotationConverter(instantiator, attributesFactory, capabilityNotationParser);
+        MapNotationConverter<? extends ExternalModuleDependency> mapNotationConverter =
+            new DependencyMapNotationConverter<>(instantiator, DefaultExternalModuleDependency.class);
+        NotationConverter<FileCollection, ? extends FileCollectionDependency> filesNotationConverter =
+            new DependencyFilesNotationConverter(instantiator);
+        NotationConverter<Project, ? extends ProjectDependency> projectNotationConverter =
+            new DependencyProjectNotationConverter(dependencyFactory);
+        DependencyClassPathNotationConverter dependencyClassPathNotationConverter = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation);
+        NotationParser<Object, Dependency> notationParser = NotationParserBuilder
             .toType(Dependency.class)
             .noImplicitConverters()
-            .fromCharSequence(new DependencyStringNotationConverter<>(instantiator, DefaultExternalModuleDependency.class, stringInterner))
-            .fromType(MinimalExternalModuleDependency.class, new MinimalExternalDependencyNotationConverter(instantiator, attributesFactory, capabilityNotationParser))
-            .converter(new DependencyMapNotationConverter<>(instantiator, DefaultExternalModuleDependency.class))
-            .fromType(FileCollection.class, new DependencyFilesNotationConverter(instantiator))
-            .fromType(Project.class, new DependencyProjectNotationConverter(dependencyFactory))
-            .fromType(DependencyFactory.ClassPathNotation.class, new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation))
+            .fromCharSequence(stringNotationConverter)
+            .fromType(MinimalExternalModuleDependency.class, minimalExternalDependencyNotationConverter)
+            .converter(mapNotationConverter)
+            .fromType(FileCollection.class, filesNotationConverter)
+            .fromType(Project.class, projectNotationConverter)
+            .fromType(DependencyFactory.ClassPathNotation.class, new NotationConverter<DependencyFactory.ClassPathNotation, Dependency>() {
+                @Override
+                public void convert(DependencyFactory.ClassPathNotation notation, NotationConvertResult<? super Dependency> result) throws TypeConversionException {
+                    DeprecationLogger.deprecateInternalApi("DependencyFactory.ClassPathNotation")
+                        .replaceWith("an appropriate call to DependencyHandler")
+                        .willBeRemovedInGradle8()
+                        .withUpgradeGuideSection(7, "dependency_factory_renamed")
+                        .nagUser();
+                    dependencyClassPathNotationConverter.convert(DependencyFactoryInternal.ClassPathNotation.valueOf(
+                        notation.name()
+                    ), result);
+                }
+
+                @Override
+                public void describe(DiagnosticsVisitor visitor) {
+                    dependencyClassPathNotationConverter.describe(visitor);
+                }
+            })
+            .fromType(DependencyFactoryInternal.ClassPathNotation.class, dependencyClassPathNotationConverter)
             .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
             .toComposite();
+        return new DependencyNotationParser(
+            notationParser,
+            new NotationConverterToNotationParserAdapter<>(stringNotationConverter),
+            new NotationConverterToNotationParserAdapter<>(minimalExternalDependencyNotationConverter),
+            new NotationConverterToNotationParserAdapter<>(mapNotationConverter),
+            new NotationConverterToNotationParserAdapter<>(filesNotationConverter),
+            new NotationConverterToNotationParserAdapter<>(projectNotationConverter)
+        );
     }
 
-    private static class MinimalExternalDependencyNotationConverter implements NotationConverter<MinimalExternalModuleDependency, DefaultExternalModuleDependency> {
+    private final NotationParser<Object, Dependency> notationParser;
+    private final NotationParser<String, ? extends ExternalModuleDependency> stringNotationParser;
+    private final NotationParser<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> minimalExternalModuleDependencyNotationParser;
+    private final NotationParser<Map<String, ?>, ? extends ExternalModuleDependency> mapNotationParser;
+    private final NotationParser<FileCollection, ? extends FileCollectionDependency> fileCollectionNotationParser;
+    private final NotationParser<Project, ? extends ProjectDependency> projectNotationParser;
+
+    private DependencyNotationParser(NotationParser<Object, Dependency> notationParser,
+                                     NotationParser<String, ? extends ExternalModuleDependency> stringNotationParser,
+                                     NotationParser<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> minimalExternalModuleDependencyNotationParser,
+                                     NotationParser<Map<String, ?>, ? extends ExternalModuleDependency> mapNotationParser,
+                                     NotationParser<FileCollection, ? extends FileCollectionDependency> fileCollectionNotationParser,
+                                     NotationParser<Project, ? extends ProjectDependency> projectNotationParser
+    ) {
+        this.notationParser = notationParser;
+        this.stringNotationParser = stringNotationParser;
+        this.minimalExternalModuleDependencyNotationParser = minimalExternalModuleDependencyNotationParser;
+        this.mapNotationParser = mapNotationParser;
+        this.fileCollectionNotationParser = fileCollectionNotationParser;
+        this.projectNotationParser = projectNotationParser;
+    }
+
+    public NotationParser<Object, Dependency> getNotationParser() {
+        return notationParser;
+    }
+
+    public NotationParser<String, ? extends ExternalModuleDependency> getStringNotationParser() {
+        return stringNotationParser;
+    }
+
+    public NotationParser<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> getMinimalExternalModuleDependencyNotationParser() {
+        return minimalExternalModuleDependencyNotationParser;
+    }
+
+    public NotationParser<Map<String, ?>, ? extends ExternalModuleDependency> getMapNotationParser() {
+        return mapNotationParser;
+    }
+
+    public NotationParser<FileCollection, ? extends FileCollectionDependency> getFileCollectionNotationParser() {
+        return fileCollectionNotationParser;
+    }
+
+    public NotationParser<Project, ? extends ProjectDependency> getProjectNotationParser() {
+        return projectNotationParser;
+    }
+
+    private static class MinimalExternalDependencyNotationConverter implements NotationConverter<MinimalExternalModuleDependency, MinimalExternalModuleDependency> {
         private final Instantiator instantiator;
         private final ImmutableAttributesFactory attributesFactory;
         private final NotationParser<Object, Capability> capabilityNotationParser;
@@ -75,8 +168,8 @@ public class DependencyNotationParser {
         }
 
         @Override
-        public void convert(MinimalExternalModuleDependency notation, NotationConvertResult<? super DefaultExternalModuleDependency> result) throws TypeConversionException {
-            DefaultExternalModuleDependency moduleDependency = instantiator.newInstance(DefaultExternalModuleDependency.class, notation.getModule(), notation.getVersionConstraint());
+        public void convert(MinimalExternalModuleDependency notation, NotationConvertResult<? super MinimalExternalModuleDependency> result) throws TypeConversionException {
+            DefaultMutableMinimalDependency moduleDependency = instantiator.newInstance(DefaultMutableMinimalDependency.class, notation.getModule(), notation.getVersionConstraint());
             if (notation instanceof DependencyVariant) {
                 moduleDependency.setAttributesFactory(attributesFactory);
                 moduleDependency.setCapabilityNotationParser(capabilityNotationParser);

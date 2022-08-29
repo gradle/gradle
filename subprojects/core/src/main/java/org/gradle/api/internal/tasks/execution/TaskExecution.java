@@ -468,7 +468,7 @@ public class TaskExecution implements UnitOfWork {
             reservedFileSystemLocationRegistry,
             typeValidationContext
         ));
-        context.getValidationAction().validate(context.getTaskExecutionMode().isTaskHistoryMaintained(), typeValidationContext);
+        context.getValidationAction().validate(typeValidationContext);
     }
 
     @Override

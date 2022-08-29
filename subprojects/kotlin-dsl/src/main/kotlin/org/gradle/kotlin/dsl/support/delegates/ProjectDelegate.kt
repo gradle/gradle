@@ -27,6 +27,7 @@ import org.gradle.api.ProjectState
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
+import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -258,6 +259,9 @@ abstract class ProjectDelegate : Project {
 
     override fun getDependencies(): DependencyHandler =
         delegate.dependencies
+
+    override fun getDependencyFactory(): DependencyFactory =
+        delegate.dependencyFactory
 
     override fun getResources(): ResourceHandler =
         delegate.resources
