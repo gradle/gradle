@@ -22,7 +22,7 @@ import org.gradle.api.Incubating;
  * The purpose of versions on {@link JavaToolchainSpec} is to allow
  * for the extension of the field set contained by them, i.e. to
  * enable more and more detailed ways of specifying toolchains.
- *
+ * <p>
  * The version of a {@code JavaToolchainSpec} is as high as the
  * newest type of toolchain specification criteria it employs, so
  * it's less about code versions being used and more about the

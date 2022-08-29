@@ -19,7 +19,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.initialization.Settings;
-import org.gradle.initialization.DefaultToolchainManagementSpec;
+import org.gradle.api.toolchain.management.ToolchainManagementSpec;
 import org.gradle.jvm.toolchain.JdksBlockForToolchainManagement;
 import org.gradle.jvm.toolchain.internal.DefaultJdksBlockForToolchainManagement;
 
@@ -37,7 +37,7 @@ public abstract class JdkToolchainsPlugin implements Plugin<Settings> {
 
     @Override
     public void apply(Settings settings) {
-        DefaultToolchainManagementSpec toolchainManagement = (DefaultToolchainManagementSpec) settings.getToolchainManagement();
+        ToolchainManagementSpec toolchainManagement = settings.getToolchainManagement();
         toolchainManagement.getExtensions()
                 .add(JdksBlockForToolchainManagement.class, "jdks", getDefaultJdksBlockForToolchainManagement());
     }

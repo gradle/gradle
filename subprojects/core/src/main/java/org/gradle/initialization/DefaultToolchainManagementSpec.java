@@ -16,8 +16,7 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.toolchain.management.ToolchainManagementSpec;
 
-public abstract class DefaultToolchainManagementSpec implements ToolchainManagementSpec, ExtensionAware {
+public abstract class DefaultToolchainManagementSpec implements ToolchainManagementSpec {
 }
