@@ -118,9 +118,7 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
 
     @Override
     public void prepareForExecution(Action<Node> monitor) {
-        IncludedBuildTaskResource target = getTarget();
-        target.queueForExecution();
-        target.onComplete(() -> monitor.execute(this));
+        getTarget().onComplete(() -> monitor.execute(this));
     }
 
     @Nullable
@@ -150,6 +148,7 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
 
     @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
+        getTarget().queueForExecution();
     }
 
     @Override

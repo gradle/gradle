@@ -29,8 +29,4 @@ trait ExecutionOptimizationDeprecationFixture extends ValidationMessageChecker {
             'implicit_dependency'
         )
     }
-
-    void expectImplementationUnknownDeprecation(@DelegatesTo(value = UnknownImplementation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown(spec), 'validation_problems', 'implementation_unknown')
-    }
 }
