@@ -38,13 +38,13 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
     Map<String, Versions> getPluginsToValidate() {
         [
             (GOOGLE_SERVICES_PLUGIN_ID): Versions.of('4.3.5'),
-            (CRASHLYTICS_PLUGIN_ID): Versions.of('2.5.1'),
-            (FIREBASE_PERF_PLUGIN_ID): Versions.of('1.3.5'),
-            (BUGSNAG_PLUGIN_ID): Versions.of('7.2.0'),
-            (FLADLE_PLUGIN_ID): Versions.of('0.14.1'),
-            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.3.0-agp4.2'),
-            (SAFEARGS_PLUGIN_ID): Versions.of('2.3.5'),
-            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.38.1'),
+            (CRASHLYTICS_PLUGIN_ID): Versions.of('2.9.1'),
+            (FIREBASE_PERF_PLUGIN_ID): Versions.of('1.4.1'),
+            (BUGSNAG_PLUGIN_ID): Versions.of('7.3.0'),
+            (FLADLE_PLUGIN_ID): Versions.of('0.17.4'),
+            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.7.0'),
+            (SAFEARGS_PLUGIN_ID): Versions.of('2.5.1'),
+            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.43.2'),
             (SENTRY_PLUGIN_ID): Versions.of('1.7.36'),
         ]
     }
