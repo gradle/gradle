@@ -23,8 +23,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 
-import javax.annotation.Nullable;
-
 /**
  * Dependency APIs for using <a href="https://docs.gradle.org/current/userguide/java_testing.html#sec:java_test_fixtures">Test Fixtures</a> in {@code dependencies} blocks.
  *
@@ -32,31 +30,6 @@ import javax.annotation.Nullable;
  */
 @Incubating
 public interface TestFixturesDependencyModifiers extends Dependencies {
-
-    /**
-     * Creates an {@link ExternalModuleDependency} for the given dependency notation and modifies it to select the Test Fixtures variant of the given module.
-     *
-     * @param dependencyNotation dependency notation
-     * @return the modified dependency
-     * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
-     */
-    default ExternalModuleDependency testFixtures(CharSequence dependencyNotation) {
-        return testFixtures(getDependencyFactory().create(dependencyNotation));
-    }
-
-    /**
-     * Creates an {@link ExternalModuleDependency} for the given group, name and version and modifies it to select the Test Fixtures variant of the given module.
-     *
-     * @param group the group
-     * @param name the name
-     * @param version the version
-     * @return the modified dependency
-     * @see DependencyFactory#create(String, String, String)
-     */
-    default ExternalModuleDependency testFixtures(@Nullable String group, String name, @Nullable String version) {
-        return testFixtures(getDependencyFactory().create(group, name, version));
-    }
-
     /**
      * Takes a given {@link ModuleDependency} and modifies it to select the Test Fixtures variant of the given module.
      *

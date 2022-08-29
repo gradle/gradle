@@ -17,13 +17,10 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-
-import javax.annotation.Nullable;
 
 /**
  * Dependency APIs for using <a href="https://docs.gradle.org/current/userguide/java_platform_plugin.html#java_platform_plugin">Platforms</a> in {@code dependencies} blocks.
@@ -32,31 +29,6 @@ import javax.annotation.Nullable;
  */
 @Incubating
 public interface PlatformDependencyModifiers extends Dependencies {
-
-    /**
-     * Creates an {@link ExternalModuleDependency} for the given dependency notation and modifies it to select the Platform variant of the given module.
-     *
-     * @param dependencyNotation dependency notation
-     * @return the modified dependency
-     * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
-     */
-    default ExternalModuleDependency platform(CharSequence dependencyNotation) {
-        return platform(getDependencyFactory().create(dependencyNotation));
-    }
-
-    /**
-     * Creates an {@link ExternalModuleDependency} for the given group, name and version and modifies it to select the Platform variant of the given module.
-     *
-     * @param group the group
-     * @param name the name
-     * @param version the version
-     * @return the modified dependency
-     * @see DependencyFactory#create(String, String, String)
-     */
-    default ExternalModuleDependency platform(@Nullable String group, String name, @Nullable String version) {
-        return platform(getDependencyFactory().create(group, name, version));
-    }
-
     /**
      * Takes a given {@link ModuleDependency} and modifies it to select the Platform variant of the given module.
      *
@@ -83,32 +55,6 @@ public interface PlatformDependencyModifiers extends Dependencies {
      */
     default <D extends ModuleDependency> Provider<D> platform(Provider<D> providerToDependency) {
         return providerToDependency.map(this::platform);
-    }
-
-
-
-    /**
-     * Creates an {@link ExternalModuleDependency} for the given dependency notation and modifies it to select the Enforced Platform variant of the given module.
-     *
-     * @param dependencyNotation dependency notation
-     * @return the modified dependency
-     * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
-     */
-    default ExternalModuleDependency enforcedPlatform(CharSequence dependencyNotation) {
-        return enforcedPlatform(getDependencyFactory().create(dependencyNotation));
-    }
-
-    /**
-     * Creates an {@link ExternalModuleDependency} for the given group, name and version and modifies it to select the Enforced Platform variant of the given module.
-     *
-     * @param group the group
-     * @param name the name
-     * @param version the version
-     * @return the modified dependency
-     * @see DependencyFactory#create(String, String, String)
-     */
-    default ExternalModuleDependency enforcedPlatform(@Nullable String group, String name, @Nullable String version) {
-        return enforcedPlatform(getDependencyFactory().create(group, name, version));
     }
 
     /**

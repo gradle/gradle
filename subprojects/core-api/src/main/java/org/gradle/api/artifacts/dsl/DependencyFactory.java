@@ -61,9 +61,9 @@ public interface DependencyFactory {
     /**
      * Create an {@link ExternalModuleDependency} from a series of strings.
      *
-     * @param group the group
+     * @param group the group (optional)
      * @param name the name
-     * @param version the version
+     * @param version the version (optional)
      * @return the new dependency
      */
     ExternalModuleDependency create(@Nullable String group, String name, @Nullable String version);
@@ -71,11 +71,11 @@ public interface DependencyFactory {
     /**
      * Create an {@link ExternalModuleDependency} from a series of strings.
      *
-     * @param group the group
+     * @param group the group (optional)
      * @param name the name
-     * @param version the version
-     * @param classifier the classifier
-     * @param extension the extension
+     * @param version the version (optional)
+     * @param classifier the classifier (optional)
+     * @param extension the extension (optional)
      * @return the new dependency
      */
     ExternalModuleDependency create(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension);

@@ -420,18 +420,18 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             suites {
                 test {
                     dependencies {
-                        implementation([group: 'com.google.guava', name: 'guava', version: '30.1.1-jre'])
-                        compileOnly([group: 'javax.servlet', name: 'servlet-api', version: '3.0-alpha-1'])
-                        runtimeOnly([group: 'mysql', name: 'mysql-connector-java', version: '8.0.26'])
+                        implementation(module(group: 'com.google.guava', name: 'guava', version: '30.1.1-jre'))
+                        compileOnly(module(group: 'javax.servlet', name: 'servlet-api', version: '3.0-alpha-1'))
+                        runtimeOnly(module(group: 'mysql', name: 'mysql-connector-java', version: '8.0.26'))
                     }
                 }
                 integTest(JvmTestSuite) {
                     // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                     dependencies {
                         implementation project()
-                        implementation([group: 'com.google.guava', name: 'guava', version: '29.0-jre'])
-                        compileOnly([group: 'javax.servlet', name: 'servlet-api', version: '2.5'])
-                        runtimeOnly([group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'])
+                        implementation(module(group: 'com.google.guava', name: 'guava', version: '29.0-jre'))
+                        compileOnly(module(group: 'javax.servlet', name: 'servlet-api', version: '2.5'))
+                        runtimeOnly(module(group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'))
                     }
                 }
             }
@@ -486,18 +486,18 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             suites {
                 test {
                     dependencies {
-                        implementation(group: 'com.google.guava', name: 'guava', version: '30.1.1-jre')
-                        compileOnly(group: 'javax.servlet', name: 'servlet-api', version: '3.0-alpha-1')
-                        runtimeOnly(group: 'mysql', name: 'mysql-connector-java', version: '8.0.26')
+                        implementation(module(group: 'com.google.guava', name: 'guava', version: '30.1.1-jre'))
+                        compileOnly(module(group: 'javax.servlet', name: 'servlet-api', version: '3.0-alpha-1'))
+                        runtimeOnly(module(group: 'mysql', name: 'mysql-connector-java', version: '8.0.26'))
                     }
                 }
                 integTest(JvmTestSuite) {
                     // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                     dependencies {
                         implementation project()
-                        implementation(group: 'com.google.guava', name: 'guava', version: '29.0-jre')
-                        compileOnly(group: 'javax.servlet', name: 'servlet-api', version: '2.5')
-                        runtimeOnly(group: 'mysql', name: 'mysql-connector-java', version: '6.0.6')
+                        implementation(module(group: 'com.google.guava', name: 'guava', version: '29.0-jre'))
+                        compileOnly(module(group: 'javax.servlet', name: 'servlet-api', version: '2.5'))
+                        runtimeOnly(module(group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'))
                     }
                 }
             }
@@ -754,8 +754,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         where:
         desc                | dependencyNotation
         'GAV string'        | "'commons-beanutils:commons-beanutils:1.9.4'"
-        'GAV map'           | "[group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4']" // TODO: we will probably remove this map-based overload in favor of named arguments, breaking this test in the future
-        'named args'        | "group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4'"
+        'GAV map'           | "module(group: 'commons-beanutils', name: 'commons-beanutils', version: '1.9.4')"
     }
 
     def "can add dependencies using a non-String CharSequence: #type"() {
