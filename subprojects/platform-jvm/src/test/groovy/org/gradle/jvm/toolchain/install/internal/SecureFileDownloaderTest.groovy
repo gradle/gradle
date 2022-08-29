@@ -45,7 +45,7 @@ class SecureFileDownloaderTest extends Specification {
 
         when:
         URI uri = URI.create("https://foo")
-        downloader.download(uri, destinationFile, downloader.getResourceFor(uri, Collections.emptyList())) //TODO (#21082): test with non-empty authentication?
+        downloader.download(uri, destinationFile, downloader.getResourceFor(uri, Collections.emptyList()))
 
         then:
         noExceptionThrown()
@@ -62,7 +62,7 @@ class SecureFileDownloaderTest extends Specification {
 
         when:
         URI uri = URI.create("https://foo")
-        downloader.download(uri, destinationFile, downloader.getResourceFor(uri, Collections.emptyList())) //TODO (#21082): test with non-empty authentication?
+        downloader.download(uri, destinationFile, downloader.getResourceFor(uri, Collections.emptyList()))
 
         then:
         thrown(BuildCancelledException)

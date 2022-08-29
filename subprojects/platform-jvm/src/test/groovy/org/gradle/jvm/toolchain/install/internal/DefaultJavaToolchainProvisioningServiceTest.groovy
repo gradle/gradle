@@ -52,7 +52,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         registry.requestedRepositories() >> Collections.emptyList()
 
         ExternalResource downloadResource = Mock(ExternalResource)
-        downloader.getResourceFor(_ as URI, _ as Collection<Authentication>) >> downloadResource //TODO (#21082): test with non-empty authentication?
+        downloader.getResourceFor(_ as URI, _ as Collection<Authentication>) >> downloadResource
         ExternalResourceMetaData downloadResourceMetadata = Mock(ExternalResourceMetaData)
         downloadResource.getMetaData() >> downloadResourceMetadata
         downloadResourceMetadata.getFilename() >> ARCHIVE_NAME

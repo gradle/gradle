@@ -26,7 +26,12 @@ import org.gradle.jvm.toolchain.internal.DefaultJdksBlockForToolchainManagement;
 import javax.inject.Inject;
 
 /**
- * TODO (#21082): javadoc
+ * Base plugin that needs to be applied if Java toolchain auto-provisioning is needed in the build.
+ * <p>
+ * Add a dynamic extension to <code>ToolchainManagementSpec</code>, a <code>jdks</code> block with methods
+ * to specify which <code>JavaToolchainRepository</code> implementations to use and in what order
+ * for Java toolchain provisioning. These repositories are in turn provided by Toolchain Provisioning SPI plugins.
+ *
  * @since 7.6
  */
 @Incubating
