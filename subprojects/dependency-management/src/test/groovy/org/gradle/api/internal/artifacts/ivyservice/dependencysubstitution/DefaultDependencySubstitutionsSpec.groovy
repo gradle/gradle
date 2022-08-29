@@ -165,7 +165,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
 
     def "cannot substitute with unversioned module selector"() {
         when:
-        with(substitutions) {
+        substitutions.with {
             substitute project("foo") using module('group:name')
         }
 
