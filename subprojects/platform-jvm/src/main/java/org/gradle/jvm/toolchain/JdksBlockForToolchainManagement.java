@@ -24,22 +24,79 @@ import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 import java.util.List;
 
 /**
- * //TODO (#21082): docs
+ * Dynamic extension added to <code>ToolchainManagementSpec</code> at runtime,by the
+ * <code>jdk-toolchains</code> plugin. Provides a <code>jdks</code> block with methods
+ * to specify which <code>JavaToolchainRepository</code> implementations to use
+ * and in what order for Java toolchain provisioning.
  *
  * @since 7.6
  */
 @Incubating
 public interface JdksBlockForToolchainManagement {
 
+    /**
+     * Look up a registration by name and, if found, add it to the ordered list of explicitly requested registrations.
+     * If not found, throw a <code>GradleException</code>.
+     */
     void add(String registrationName);
 
+    /**
+     * Look up a registration by name and, if found, add it to the ordered list of explicitly requested registrations.
+     * If not found, throw a <code>GradleException</code>.
+     * <p>
+     * Configures the authentication to be used when the requested registration ends up being used for Java
+     * toolchain provisioning. The authentication mechanism employed are the same as the ones for artifact
+     * repositories, and they need to be configured in exactly the same way:
+     *
+     * <pre class='autoTested'>
+     * toolchainManagement {
+     *   jdks {
+     *     add("customRegistry") {
+     *       credentials {
+     *         username "user"
+     *         password "password"
+     *       }
+     *       authentication {
+     *         digest(DigestAuthentication)
+     *       }
+     *     }
+     *   }
+     * }
+     * </pre>
+     */
     void add(String registrationName, Action<? super AuthenticationSupported> authenticationSupported);
 
-    // TODO (#21082): hide the accessors for now behind an internal flag
-
+    /**
+     * Add a registration to the ordered list of explicitly requested ones.
+     */
     void add(JavaToolchainRepositoryRegistration registration);
 
+    /**
+     * Add a registration to the ordered list of explicitly requested ones.
+     * <p>
+     * Configures the authentication to be used when the requested registration ends up being used for Java
+     * toolchain provisioning. The authentication mechanism employed are the same as the ones for artifact
+     * repositories, and they need to be configured in exactly the same way:
+     *
+     * <pre class='autoTested'>
+     * toolchainManagement {
+     *   jdks {
+     *     add("customRegistry") {
+     *       credentials {
+     *         username "user"
+     *         password "password"
+     *       }
+     *       authentication {
+     *         digest(DigestAuthentication)
+     *       }
+     *     }
+     *   }
+     * }
+     * </pre>
+     */
     void add(JavaToolchainRepositoryRegistration registration, Action<? super AuthenticationSupported> authenticationSupported);
+
+    // TODO (#21082): hide the accessors for now behind an internal flag
 
     List<? extends JavaToolchainRepositoryRegistration> getAll();
 

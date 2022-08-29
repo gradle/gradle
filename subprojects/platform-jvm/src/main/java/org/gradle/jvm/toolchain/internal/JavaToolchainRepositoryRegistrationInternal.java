@@ -21,9 +21,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
 
-/**
- * //TODO (#21082): docs
- */
 @Incubating
 public interface JavaToolchainRepositoryRegistrationInternal extends JavaToolchainRepositoryRegistration {
 

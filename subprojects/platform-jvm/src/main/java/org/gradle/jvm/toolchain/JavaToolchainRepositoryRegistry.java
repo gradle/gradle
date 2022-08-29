@@ -20,9 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * The build level object/service provided by Gradle which Java Toolchain SPI plugins can access
- * and register their JavaToolchainRepository implementations/build services into.
- * //TODO (#21082): more/better docs
+ * The build level object/service provided by Gradle which Java Toolchain Provisioning SPI plugins can access
+ * and register their <code>JavaToolchainRepository</code> implementations/build services into.
  *
  * @since 7.6
  */
@@ -31,11 +30,13 @@ import org.gradle.internal.HasInternalProtocol;
 public interface JavaToolchainRepositoryRegistry {
 
     /**
-     * TODO (#21082): docs
-     *
+     * Registers a <code>JavaToolchainRepository</code> implementation with a specific name. Fails if
+     * any other repository has been already registered with that name (throws a <code>GradleException</code>).
+     * <p>
+     * In order to avoid name collisions we recommend this name to be set to the plugin ID that's doing
+     * the registration. Since plugin IDs are already forced to be unique by the Plugin Portal, this
+     * will ensure that any combination of Java Toolchain Provisioning SPI plugins will work in any build.
      */
     <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType);
-    //TODO (#21082): do we also need a configure action, like we have in BuildServiceRegistry
-    //TODO (#21082): should this be a "registerIfAbsent" instead of throwing an exception on name collisions? I would say not, but let's think about it
 
 }
