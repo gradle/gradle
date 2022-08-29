@@ -208,7 +208,6 @@ Method <org.gradle.api.tasks.testing.Test.getSystemProperties()> does not have r
 Method <org.gradle.api.tasks.testing.Test.getTestFramework()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Test.java:915)
 Method <org.gradle.api.tasks.testing.Test.getWorkingDir()> does not have raw return type assignable to org.gradle.api.provider.Property in (Test.java:243)
 Method <org.gradle.api.tasks.testing.Test.isScanForTestClasses()> does not have raw return type assignable to org.gradle.api.provider.Property in (Test.java:1137)
-Method <org.gradle.api.tasks.testing.TestReport.getDestinationDir()> does not have raw return type assignable to org.gradle.api.provider.Property in (TestReport.java:75)
 Method <org.gradle.api.tasks.wrapper.Wrapper.getArchiveBase()> does not have raw return type assignable to org.gradle.api.provider.Property in (Wrapper.java:426)
 Method <org.gradle.api.tasks.wrapper.Wrapper.getArchivePath()> does not have raw return type assignable to org.gradle.api.provider.Property in (Wrapper.java:409)
 Method <org.gradle.api.tasks.wrapper.Wrapper.getAvailableDistributionTypes()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Wrapper.java:309)
