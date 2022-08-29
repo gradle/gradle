@@ -512,6 +512,7 @@
                 "Method has been removed"
             ]
         },
+
         {
             "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.setLegacyShowSinglePathToDependency(boolean)",
@@ -521,25 +522,17 @@
             ]
         },
         {
-            "type": "org.gradle.api.artifacts.VersionCatalog",
-            "member": "Method org.gradle.api.artifacts.VersionCatalog.findDependency(java.lang.String)",
-            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.isIncludePrivate()",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
         },
         {
-            "type": "org.gradle.api.artifacts.VersionCatalog",
-            "member": "Method org.gradle.api.artifacts.VersionCatalog.getDependencyAliases()",
-            "acceptation": "Removing deprecated method in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.initialization.dsl.VersionCatalogBuilder",
-            "member": "Method org.gradle.api.initialization.dsl.VersionCatalogBuilder.alias(java.lang.String)",
-            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.setIncludePrivate(boolean)",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]

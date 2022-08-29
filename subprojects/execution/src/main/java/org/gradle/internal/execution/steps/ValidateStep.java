@@ -209,7 +209,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         return problem
             .typeIsIrrelevantInErrorMessage()
             .withId(ValidationProblemId.UNKNOWN_IMPLEMENTATION)
-            .reportAs(Severity.WARNING)
+            .reportAs(Severity.ERROR)
             .documentedAt("validation_problems", "implementation_unknown");
     }
 

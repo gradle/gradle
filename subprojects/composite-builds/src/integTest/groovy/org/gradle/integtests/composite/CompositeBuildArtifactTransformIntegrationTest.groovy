@@ -82,7 +82,7 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
         output.count("Transforming") == 2
     }
 
-    def "cross-build dependency with with transform in another build"() {
+    def "cross-build dependency with transform in another build"() {
         given:
         def buildB = multiProjectBuild('buildB', ['app', 'lib'])
         buildB.buildFile << """
