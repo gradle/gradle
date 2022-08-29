@@ -17,14 +17,19 @@
 package org.gradle.api.toolchain.management;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.plugins.ExtensionAware;
 
 /**
- * TODO (#21082): docs
+ * Configures how toolchains are resolved. Is extended at runtime to support both
+ * currently existing toolchains (Java) and future ones.
+ * <p>
+ * One option available at present is using the <code>jdk-toolchains</code> plugin, which
+ * add a <code>jdks</code> block to it. This block allows for specifying which
+ * <code>JavaToolchainRepository</code>s to use and in what order, if java toolchain
+ * auto-provisioning is needed.
  *
  * @since 7.6
  */
 @Incubating
-public interface ToolchainManagementSpec {
-
-    // TODO (#21082): should this really be empty? feels weird...
+public interface ToolchainManagementSpec extends ExtensionAware {
 }

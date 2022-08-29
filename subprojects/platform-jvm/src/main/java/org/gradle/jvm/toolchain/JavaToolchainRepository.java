@@ -25,9 +25,7 @@ import java.util.Optional;
 
 /**
  * Interface that needs to be implemented by Toolchain SPI plugins, in order to
- * extend Gradle with their spec-to-URI logic.
- *
- * //TODO (#21082): more/better docs
+ * extend Gradle with the spec-to-URI logic required by Java toolchain auto-provisioning.
  *
  * @since 7.6
  */
@@ -36,15 +34,16 @@ public interface JavaToolchainRepository extends BuildService<BuildServiceParame
 
     /**
      * Returns the URI from which a Java Toolchain matching the provided specification can be downloaded.
-     * The URI must point to either a ZIP or a TAR archive file.
-     *
+     * The URI must point to either a ZIP or a TAR archive file and has to be secure (so simple HTTP is
+     * not allowed, only HTTPS).
+     * <p>
      * Returns an empty Optional if and only if the provided specification can't be matched.
      */
     Optional<URI> toUri(JavaToolchainSpec spec);
 
     /**
      * Returns the highest version of {@link JavaToolchainSpec} this repository implementation can handle.
-     *
+     * <p>
      * All versions lower than the upper limit must also be handled by the repository.
      */
     JavaToolchainSpecVersion getToolchainSpecCompatibility();
