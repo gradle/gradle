@@ -1,28 +1,25 @@
-import com.android.build.api.dsl.ApplicationBaseFlavor
-import com.android.build.api.dsl.ApplicationVariantDimension
-
 plugins {
     id("com.android.library")
 }
 
 android {
-    compileSdk = 30
+    compileSdkVersion(30)
     buildToolsVersion = "30.0.2"
     defaultConfig {
-        minSdk = 16
-        targetSdk = 30
-        (this as ApplicationBaseFlavor).versionCode = 1
-        (this as ApplicationBaseFlavor).versionName = "1.0"
+        minSdkVersion(16)
+        targetSdkVersion(30)
+        versionCode = 1
+        versionName = "1.0"
     }
-    flavorDimensions.add("org.gradle.example.my-own-flavor")
+    flavorDimensions("org.gradle.example.my-own-flavor")
     productFlavors {
         create("demo") {
-            dimension = "org.gradle.example.my-own-flavor"
-            (this as ApplicationVariantDimension).versionNameSuffix = "-demo"
+            setDimension("org.gradle.example.my-own-flavor")
+            versionNameSuffix = "-demo"
         }
         create("full") {
-            dimension = "org.gradle.example.my-own-flavor"
-            (this as ApplicationVariantDimension).versionNameSuffix = "-full"
+            setDimension("org.gradle.example.my-own-flavor")
+            versionNameSuffix = "-full"
         }
     }
 

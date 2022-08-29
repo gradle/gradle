@@ -10,26 +10,25 @@
   },
   "createdBy": {
     "gradle": {
-      "version": "7.7-20220815220000+0000"
+      "version": "7.1"
     }
   },
   "variants": [
     {
-      "name": "metadataApiElements",
+      "name": "metadataApiElements-published",
       "attributes": {
-        "org.gradle.category": "library",
-        "org.gradle.usage": "kotlin-metadata",
+        "org.gradle.usage": "kotlin-api",
         "org.jetbrains.kotlin.platform.type": "common"
       },
       "files": [
         {
           "name": "kotlin-multiplatform-android-library-metadata-1.0.jar",
           "url": "kotlin-multiplatform-android-library-1.0.jar",
-          "size": 3001,
-          "sha512": "a0dc64ff490d027c69db524c49fcee170d6c938a28ba99b0029ade53613f7e8fa018b921f9675f6892783e111354c87a7b146de987ed7a089558f313b0ae4b39",
-          "sha256": "c5c076146fab88eb1e4802a2a8f434f64260b1471fc9c1e479a8dade5f9de85a",
-          "sha1": "005806287bfd07edb6d0b580d3532d60a0525927",
-          "md5": "ac181beb924692bbc278fb58b4b10700"
+          "size": 1096,
+          "sha512": "8521c2f0acd9a0026c3225f35e735874f4a9e9e521ca17fb51ff05f2a9a1cc7d74a560c62a3215504c59ba70bd49fc69ea7332fb0bab19b20b172c2017603d5d",
+          "sha256": "d0afaa260187935b851f4510ccf7ddb98a88c7a594e5b5af78966011aa2b859e",
+          "sha1": "2438124313565116a4ccbd7adae94f2619c889c6",
+          "md5": "b7d07612b92573c052f946c6c61dabe6"
         }
       ]
     },
@@ -37,8 +36,7 @@
       "name": "demoDebugApiElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "debug",
-        "com.android.build.api.attributes.ProductFlavor:org.gradle.example.my-own-flavor": "demo",
-        "org.gradle.category": "library",
+        "com.android.build.api.attributes.VariantAttr": "demoDebug",
         "org.gradle.example.my-own-flavor": "demo",
         "org.gradle.usage": "java-api",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -54,8 +52,7 @@
       "name": "demoDebugRuntimeElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "debug",
-        "com.android.build.api.attributes.ProductFlavor:org.gradle.example.my-own-flavor": "demo",
-        "org.gradle.category": "library",
+        "com.android.build.api.attributes.VariantAttr": "demoDebug",
         "org.gradle.example.my-own-flavor": "demo",
         "org.gradle.usage": "java-runtime",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -71,8 +68,7 @@
       "name": "fullDebugApiElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "debug",
-        "com.android.build.api.attributes.ProductFlavor:org.gradle.example.my-own-flavor": "full",
-        "org.gradle.category": "library",
+        "com.android.build.api.attributes.VariantAttr": "fullDebug",
         "org.gradle.example.my-own-flavor": "full",
         "org.gradle.usage": "java-api",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -88,8 +84,7 @@
       "name": "fullDebugRuntimeElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "debug",
-        "com.android.build.api.attributes.ProductFlavor:org.gradle.example.my-own-flavor": "full",
-        "org.gradle.category": "library",
+        "com.android.build.api.attributes.VariantAttr": "fullDebug",
         "org.gradle.example.my-own-flavor": "full",
         "org.gradle.usage": "java-runtime",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -105,8 +100,7 @@
       "name": "demoReleaseApiElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "release",
-        "com.android.build.api.attributes.ProductFlavor:org.gradle.example.my-own-flavor": "demo",
-        "org.gradle.category": "library",
+        "com.android.build.api.attributes.VariantAttr": "demoRelease",
         "org.gradle.example.my-own-flavor": "demo",
         "org.gradle.usage": "java-api",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -122,8 +116,7 @@
       "name": "demoReleaseRuntimeElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "release",
-        "com.android.build.api.attributes.ProductFlavor:org.gradle.example.my-own-flavor": "demo",
-        "org.gradle.category": "library",
+        "com.android.build.api.attributes.VariantAttr": "demoRelease",
         "org.gradle.example.my-own-flavor": "demo",
         "org.gradle.usage": "java-runtime",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -139,8 +132,7 @@
       "name": "fullReleaseApiElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "release",
-        "com.android.build.api.attributes.ProductFlavor:org.gradle.example.my-own-flavor": "full",
-        "org.gradle.category": "library",
+        "com.android.build.api.attributes.VariantAttr": "fullRelease",
         "org.gradle.example.my-own-flavor": "full",
         "org.gradle.usage": "java-api",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -156,8 +148,7 @@
       "name": "fullReleaseRuntimeElements-published",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "release",
-        "com.android.build.api.attributes.ProductFlavor:org.gradle.example.my-own-flavor": "full",
-        "org.gradle.category": "library",
+        "com.android.build.api.attributes.VariantAttr": "fullRelease",
         "org.gradle.example.my-own-flavor": "full",
         "org.gradle.usage": "java-runtime",
         "org.jetbrains.kotlin.platform.type": "androidJvm"
@@ -172,7 +163,6 @@
     {
       "name": "jsApiElements-published",
       "attributes": {
-        "org.gradle.category": "library",
         "org.gradle.usage": "kotlin-api",
         "org.jetbrains.kotlin.js.compiler": "legacy",
         "org.jetbrains.kotlin.platform.type": "js"
@@ -187,7 +177,6 @@
     {
       "name": "jsRuntimeElements-published",
       "attributes": {
-        "org.gradle.category": "library",
         "org.gradle.usage": "kotlin-runtime",
         "org.jetbrains.kotlin.js.compiler": "legacy",
         "org.jetbrains.kotlin.platform.type": "js"
@@ -203,7 +192,6 @@
       "name": "linuxX64ApiElements-published",
       "attributes": {
         "artifactType": "org.jetbrains.kotlin.klib",
-        "org.gradle.category": "library",
         "org.gradle.usage": "kotlin-api",
         "org.jetbrains.kotlin.native.target": "linux_x64",
         "org.jetbrains.kotlin.platform.type": "native"
@@ -218,25 +206,7 @@
     {
       "name": "macosX64ApiElements-published",
       "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
-        "org.gradle.category": "library",
         "org.gradle.usage": "kotlin-api",
-        "org.jetbrains.kotlin.native.target": "macos_x64",
-        "org.jetbrains.kotlin.platform.type": "native"
-      },
-      "available-at": {
-        "url": "../../kotlin-multiplatform-android-library-macosx64/1.0/kotlin-multiplatform-android-library-macosx64-1.0.module",
-        "group": "example",
-        "module": "kotlin-multiplatform-android-library-macosx64",
-        "version": "1.0"
-      }
-    },
-    {
-      "name": "macosX64MetadataElements-published",
-      "attributes": {
-        "artifactType": "org.jetbrains.kotlin.klib",
-        "org.gradle.category": "library",
-        "org.gradle.usage": "kotlin-metadata",
         "org.jetbrains.kotlin.native.target": "macos_x64",
         "org.jetbrains.kotlin.platform.type": "native"
       },

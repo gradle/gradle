@@ -3,15 +3,15 @@ plugins {
 }
 
 android {
-    compileSdk = 30
+    compileSdkVersion(30)
     buildToolsVersion = "30.0.2"
     defaultConfig {
-        minSdk = 16
-        targetSdk = 30
+        minSdkVersion(16)
+        targetSdkVersion(30)
         versionCode = 1
         versionName = "1.0"
     }
-    flavorDimensions.add("org.gradle.example.my-own-flavor")
+    flavorDimensions("org.gradle.example.my-own-flavor")
     productFlavors {
         create("full") {
             dimension = "org.gradle.example.my-own-flavor"
