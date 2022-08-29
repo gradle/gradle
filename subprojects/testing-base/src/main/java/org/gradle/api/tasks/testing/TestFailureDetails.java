@@ -74,7 +74,7 @@ public interface TestFailureDetails {
      * <p>
      * If the current instance does not represent an assertion failure, or the test failure doesn't provide any information about expected and actual values then the method returns {@code null}.
      *
-     * @return The actual value value
+     * @return The actual value
      */
     @Nullable
     String getActual();

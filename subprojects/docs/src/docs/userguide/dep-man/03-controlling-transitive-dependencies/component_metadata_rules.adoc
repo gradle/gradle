@@ -212,7 +212,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 
 == Making variants encoded in versions explicit  ==
 
-Another solution to publish multiple alternatives for the same library is the usage of a a versioning pattern as done by the popular Guava library.
+Another solution to publish multiple alternatives for the same library is the usage of a versioning pattern as done by the popular Guava library.
 Here, each new version is published twice by appending the classifier to the version instead of the jar artifact.
 In the case of Guava 28 for example, we can find a _28.0-jre_ (Java 8) and _28.0-android_ (Java 6) version on link:https://repo1.maven.org/maven2/com/google/guava/guava[Maven central].
 The advantage of using this pattern when working only with pom metadata is that both variants are discoverable through the version.

@@ -151,7 +151,7 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
     ExecutionTimeValue<? extends T> calculateExecutionTimeValue();
 
     default <U, R> Provider<R> zip(Provider<U> right, BiFunction<? super T, ? super U, ? extends R> combiner) {
-        return new BiProvider<>(this, right, combiner);
+        return new BiProvider<>(null, this, right, combiner);
     }
 
     /**
@@ -167,7 +167,7 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
      * The new side effect for the captured value is then attached to the transformed provider.
      * This new "fixed" side effect will be executed when the resulting provider produces its values.
      */
-    default ProviderInternal<T> withSideEffect(SideEffect<? super T> sideEffect) {
-        return new WithSideEffectProvider<>(this, sideEffect);
+    default ProviderInternal<T> withSideEffect(@Nullable SideEffect<? super T> sideEffect) {
+        return WithSideEffectProvider.of(this, sideEffect);
     }
 }
