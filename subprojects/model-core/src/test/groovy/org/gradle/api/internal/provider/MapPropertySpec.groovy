@@ -1171,6 +1171,34 @@ The value of this property is derived from: <source>""")
         "non-existing key" | "oops key" | 0
     }
 
+    def "runs side effect when calling '#getter' on property's 'keySet'"() {
+        def sideEffect1 = Mock(ValueSupplier.SideEffect)
+        def sideEffect2 = Mock(ValueSupplier.SideEffect)
+
+        when:
+        property.put("some key", Providers.of("some value").withSideEffect(sideEffect1))
+        property.putAll(Providers.of(["other key": "other value"]).withSideEffect(sideEffect2))
+        def keySetProvider = property.keySet()
+        then:
+        0 * _
+
+        when:
+        def keySetValue = keySetProvider.get()
+        then:
+        keySetValue == ["some key", "other key"].toSet()
+        // provider of the value in the Map entry does not need to be unpacked
+        0 * sideEffect1.execute("some value")
+        // provider of the whole map on the other hand must be unpacked and propagates the side effect
+        1 * sideEffect2.execute(["other key": "other value"])
+        0 * _
+
+        where:
+        getter      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
+    }
+
     private ProviderInternal<String> brokenValueSupplier() {
         return brokenSupplier(String)
     }

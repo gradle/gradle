@@ -258,9 +258,72 @@ Related issues:
 
 Gradle 7.6 supports compiling, testing and running on Java 19.
 
-#### TODO: Introduced support for map notation in JVM `dependencies` block
+#### Introduced strongly-typed `dependencies` block for JVM test suites
 
-[Issue](https://github.com/gradle/gradle/issues/19192)
+The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now uses a [strongly-typed API](dsl/org.gradle.api.plugins.jvm.JvmComponentDependencies.html).
+
+Previously, dependencies were only accepted as an untyped `Object`, and this made it harder to configure a dependency in Java and the Kotlin DSL:
+
+```kotlin
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnitJupiter()
+            dependencies {
+                implementation(project(":foo")) {
+                    // Type of the receiver (`this`) is Dependency
+                    // To access ProjectDependency methods,
+                    // `this` must be smart-cast:
+                    this as ProjectDependency
+                    // Now it can be used as a ProjectDependency
+                    println(dependencyProject)
+                }
+            }
+        }
+    }
+}
+```
+
+Now, the API is designed in such a way that a particular notation provides its `Dependency` subtype:
+
+```kotlin
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnitJupiter()
+            dependencies {
+                implementation(project(":foo")) {
+                    // `this` is already a ProjectDependency
+                    println(dependencyProject)
+                }
+            }
+        }
+    }
+}
+```
+
+For example, using a `String` provides an `ExternalModuleDependency`.
+Using a `FileCollection` provides a `FileCollectionDependency`.
+This allows Java and Kotlin to properly configure all types of dependencies and improves IDE support for Groovy DSL.
+
+In addition, Kotlin DSL now supports using named arguments for external modules:
+
+```kotlin
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnitJupiter()
+            dependencies {
+                implementation(group = "com.google.guava", 
+                               name = "guava", 
+                               version = "31.1-jre")
+            }
+        }
+    }
+}
+```
+
+See the [user manual](userguide/jvm_test_suite_plugin.html#differences_between_the_test_suite_dependencies_and_the_top_level_dependencies_blocks) for other differences between the test suite `dependencies` and top-level `dependencies` blocks.
 
 #### Introduced support for Java 9+ network debugging  
 

@@ -410,6 +410,9 @@ public interface ValueSupplier {
             return SUCCESS;
         }
 
+        /**
+         * Creates a value attaching the given side effect.
+         */
         static <T> Value<T> withSideEffect(T value, SideEffect<? super T> sideEffect) {
             if (value == null) {
                 throw new IllegalArgumentException();
@@ -417,15 +420,42 @@ public interface ValueSupplier {
             return new Present<>(value, sideEffect);
         }
 
+        /**
+         * Returns the value if present and throws an {@code IllegalStateException} otherwise.
+         * <p>
+         * <b>Runs</b> a {@link #getSideEffect() side effect} if one is attached to the value and the value is present.
+         * <p>
+         * If the value needs to be transformed, instead of unpacking consider using {@link #transform(Transformer)}
+         * which automatically keeps track of side effects.
+         */
         T get() throws IllegalStateException;
 
+        /**
+         * Returns the value if present or null otherwise.
+         * <p>
+         * <b>Runs</b> a {@link #getSideEffect() side effect} if one is attached to the value and the value is present.
+         * <p>
+         * If the value needs to be transformed, instead of unpacking consider using {@link #transform(Transformer)}
+         * which automatically keeps track of side effects.
+         */
         @Nullable
         T orNull();
 
+        /**
+         * Returns the value if present or the {@code defaultValue} otherwise.
+         * <p>
+         * <b>Runs</b> a {@link #getSideEffect() side effect} if one is attached to the value and the value is present.
+         * <p>
+         * If the value needs to be transformed, instead of unpacking consider using {@link #transform(Transformer)}
+         * which automatically keeps track of side effects.
+         */
         T orElse(T defaultValue);
 
         /**
          * Behaves like {@link #get()}, but does not execute a side effect if present.
+         * <p>
+         * If the value needs to be transformed, instead of unpacking consider using {@link #transform(Transformer)}
+         * which automatically keeps track of side effects.
          * <p>
          * This method should only be used when the side effect is {@link #getSideEffect() extracted} separately
          * to be passed further.
@@ -437,6 +467,13 @@ public interface ValueSupplier {
          */
         <R> Value<R> transform(Transformer<? extends R, ? super T> transformer);
 
+        /**
+         * Returns a value attaching the given side effect.
+         * <p>
+         * A {@link #isMissing() missing} value never carries a side effect.
+         * If the value is present and already has a side effect, then side effects are composed
+         * to be executed in the order of attachment.
+         */
         Value<T> withSideEffect(@Nullable SideEffect<? super T> sideEffect);
 
         // Only populated when value is missing

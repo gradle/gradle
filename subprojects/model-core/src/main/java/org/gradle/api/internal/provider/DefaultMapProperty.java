@@ -429,7 +429,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             if (result.isMissing()) {
                 return result.asType();
             }
-            return Value.of(ImmutableSet.copyOf(builder.build()));
+            return Value.of(ImmutableSet.copyOf(builder.build())).withSideEffect(SideEffect.fixedFrom(result));
         }
 
         @Override
