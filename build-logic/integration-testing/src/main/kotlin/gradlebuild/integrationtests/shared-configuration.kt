@@ -163,10 +163,14 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
 //                    logger.lifecycle(a)
 //                }
 //            }
+//            logger.lifecycle("*** CLASSPATH ***")
+//            classpath.forEach {
+//                logger.lifecycle(it.absolutePath)
+//            }
 //
 //            throw RuntimeException("I got you! - at runtime")
 //        }
-        //throw RuntimeException("I got you configuring!")
+        // throw RuntimeException("I got you configuring!")
     }
 
 

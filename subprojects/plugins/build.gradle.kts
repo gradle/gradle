@@ -92,9 +92,41 @@ pitest {
     verbose.set(true)
 
     excludedTestClasses.set(setOf(
+            // random examples
             "org.gradle.jvm.GeneratedSourcesDirectorySetContributorIntegrationTest",
             "org.gradle.java.compile.NonIncrementalJavaCompileAvoidanceAgainstJarIntegrationSpec",
-            "org.gradle.java.JavaCrossCompilationIntegrationTest"
+            "org.gradle.java.JavaCrossCompilationIntegrationTest",
+
+            // known failures
+            "org.gradle.api.plugins.BuildSrcPluginIntegrationTest",
+            "org.gradle.api.plugins.JavaPluginIntegrationTest",
+            "org.gradle.api.plugins.BuildSrcPluginIntegrationTest" ,
+            "org.gradle.api.plugins.JavaPluginIntegrationTest" ,
+            "org.gradle.api.plugins.JvmTestSuitePluginIntegrationTest",
+            "org.gradle.api.plugins.TestReportAggregationPluginIntegrationTest",
+            "org.gradle.api.tasks.JavaExecDebugIntegrationTest",
+            "org.gradle.compile.daemon.ParallelCompilerDaemonIntegrationTest",
+            "org.gradle.groovy.GroovyJavaLibraryInteractionIntegrationTest",
+            "org.gradle.groovy.GroovyLibraryIntegrationTest",
+            "org.gradle.groovy.compile.CachedGroovyCompileIntegrationTest",
+            "org.gradle.groovy.compile.DaemonGroovyCompilerIntegrationTest",
+            "org.gradle.groovy.compile.GroovyJavaJointCompileSourceOrderIntegrationTest",
+            "org.gradle.groovy.compile.IncrementalGroovyCompileIntegrationTest",
+            "org.gradle.groovy.compile.InvokeDynamicGroovyCompilerSpec",
+            "org.gradle.groovy.environment.JreJavaHomeGroovyIntegrationTest",
+            "org.gradle.java.JavaLibraryFeatureCompilationIntegrationTest",
+            "org.gradle.java.compile.IncrementalGroovyCompileAvoidanceAgainstClassDirIntegrationSpec",
+            "org.gradle.java.compile.IncrementalGroovyCompileAvoidanceAgainstJarIntegrationSpec",
+            "org.gradle.java.compile.NonIncrementalGroovyCompileAvoidanceAgainstClassDirIntegrationSpec",
+            "org.gradle.java.compile.NonIncrementalGroovyCompileAvoidanceAgainstJarIntegrationSpec",
+            "org.gradle.java.compile.daemon.DaemonJavaCompilerIntegrationTest",
+            "org.gradle.java.environment.JreJavaHomeJavaIntegrationTest",
+            "org.gradle.java.fixtures.JavaLibraryTestFixturesIntegrationTest",
+            "org.gradle.java.fixtures.JavaTestFixturesIntegrationTest",
+            "org.gradle.jvm.JvmVariantBuilderIntegrationTest",
+            "org.gradle.jvm.JvmVariantBuilderIntegrationTest",
+            "org.gradle.groovy.compile.SameToolchainGroovyCompileIntegrationTest",
+            "org.gradle.java.compile.GroovyIncrementalCompileIntegrationTest"
     ))
 
 //  It's NOT this    jvmArgs.set(setOf("-Dorg.gradle.integtest.executer=embedded"))
@@ -104,9 +136,11 @@ pitest {
             "-DintegTest.gradleUserHomeDir=/Users/ttresansky/Projects/gradle/intTestHomeDir/distributions-jvm",
             "-DintegTest.samplesdir=/Users/ttresansky/Projects/gradle/subprojects/docs/src/snippets",
             "-Dorg.gradle.integtest.daemon.registry=/Users/ttresansky/Projects/gradle/build/daemon/distributions-jvm",
-            "-DintegTest.distZipVersion=7.6-20220801040000+0000"
+            "-DintegTest.distZipVersion=7.6-20220826040000+0000",
+            "-DdeclaredSampleInputs=/Users/ttresansky/Projects/gradle/subprojects/plugins/src/main"
+            //,"-{agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5006}" // for debuggign inner process
     ))
-    mainProcessJvmArgs.set(setOf("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"))
+    //mainProcessJvmArgs.set(setOf("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")) // debugging pitest process
 
     //testSourceSets.set(setOf(sourceSets.getByName("test")))
     testSourceSets.set(setOf(sourceSets.getByName("integTest")))
