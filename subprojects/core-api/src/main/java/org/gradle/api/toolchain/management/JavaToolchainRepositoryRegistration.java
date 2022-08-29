@@ -20,8 +20,12 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Toolchain management extensions created when a setting plugin registers JavaToolchainRepository build services.
- * //TODO (#21082): more/better docs
+ * Object created when a Java Toolchain Provisioning SPI plugin registers a <code>JavaToolchainRepository</code>
+ * with the <code>JavaToolchainRepositoryRegistry</code> service.
+ * <p>
+ * Can also be used to interact with the <code>toolchainManagement.jdks</code> block provided by the
+ * <code>jdk-toolchains</code> plugin. In fact the <code>jdks</code> block will have generated accessors
+ * for these registrations.
  *
  * @since 7.6
  */
