@@ -17,8 +17,10 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 /**
@@ -56,4 +58,27 @@ public interface Dependencies {
      * @return the current project as a dependency
      */
     ProjectDependency project();
+
+    /**
+     * Create an {@link ExternalModuleDependency} from the given notation.
+     *
+     * @param dependencyNotation dependency to add
+     * @return the new dependency
+     * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
+     */
+    default ExternalModuleDependency module(CharSequence dependencyNotation) {
+        return getDependencyFactory().create(dependencyNotation);
+    }
+
+    /**
+     * Create an {@link ExternalModuleDependency} from a series of strings.
+     *
+     * @param group the group (optional)
+     * @param name the name
+     * @param version the version (optional)
+     * @return the new dependency
+     */
+    default ExternalModuleDependency module(@Nullable String group, String name, @Nullable String version) {
+        return getDependencyFactory().create(group, name, version);
+    }
 }

@@ -27,8 +27,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 
-import javax.annotation.Nullable;
-
 /**
  * <p>A {@code DependencyAdder} is used to add dependencies to a specific configuration.</p>
  *
@@ -41,7 +39,6 @@ public interface DependencyAdder {
     NOTE: If you add new dependency notations, you also need to consider how this affects these files:
     - DependencyAdderExtensionModule.java
     - DependencyAdderExtensions.kt
-    - Any DependencyModifiers
     */
 
     /**
@@ -60,52 +57,6 @@ public interface DependencyAdder {
      * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
      */
     void add(CharSequence dependencyNotation, Action<? super ExternalModuleDependency> configuration);
-
-    /**
-     * Add a dependency.
-     *
-     * @param group the group
-     * @param name the name
-     * @param version the version
-     * @see DependencyFactory#create(String, String, String)
-     */
-    void add(@Nullable String group, String name, @Nullable String version);
-
-    /**
-     * Add a dependency and configure it.
-     *
-     * @param group the group
-     * @param name the name
-     * @param version the version
-     * @param configuration an action to configure the dependency
-     * @see DependencyFactory#create(String, String, String)
-     */
-    void add(@Nullable String group, String name, @Nullable String version, Action<? super ExternalModuleDependency> configuration);
-
-    /**
-     * Add a dependency.
-     *
-     * @param group the group
-     * @param name the name
-     * @param version the version
-     * @param classifier the classifier
-     * @param extension the extension
-     * @see DependencyFactory#create(String, String, String, String, String)
-     */
-    void add(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension);
-
-    /**
-     * Add a dependency and configure it.
-     *
-     * @param group the group
-     * @param name the name
-     * @param version the version
-     * @param classifier the classifier
-     * @param extension the extension
-     * @param configuration an action to configure the dependency
-     * @see DependencyFactory#create(String, String, String, String, String)
-     */
-    void add(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension, Action<? super ExternalModuleDependency> configuration);
 
     /**
      * Add a dependency.

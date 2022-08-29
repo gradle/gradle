@@ -22,12 +22,16 @@ import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SecondParam;
 import groovy.transform.stc.SimpleType;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.dsl.Dependencies;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.internal.Transformers;
+import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -61,9 +65,52 @@ import java.util.Set;
  *
  * @see DependencyAdder
  * @see DependencyFactory
+ * @see Dependencies
  */
 @SuppressWarnings("unused")
 public class DependencyAdderExtensionModule {
+    private static final String GROUP = "group";
+    private static final String NAME = "name";
+    private static final String VERSION = "version";
+    private static final Set<String> MODULE_LEGAL_MAP_KEYS = ImmutableSet.of(GROUP, NAME, VERSION);
+
+    /**
+     * Creates an {@link ExternalModuleDependency} from the given Map notation. This emulates named parameters in Groovy DSL.
+     * <p>
+     * The map may contain:
+     * <ul>
+     *   <li>{@code group}</li>
+     *   <li>{@code version}</li>
+     * </ul>
+     *
+     * It must contain at least the following keys:
+     * <ul>
+     *   <li>{@code name}</li>
+     * </ul>
+     *
+     * @param map a map of configuration parameters for the dependency
+     *
+     * @return the dependency
+     */
+    public static ExternalModuleDependency module(Dependencies self, Map<String, CharSequence> map) {
+        if (!MODULE_LEGAL_MAP_KEYS.containsAll(map.keySet())) {
+            CollectionUtils.SetDiff<String> diff = CollectionUtils.diffSetsBy(MODULE_LEGAL_MAP_KEYS, map.keySet(), Transformers.noOpTransformer());
+            throw new IllegalArgumentException("The map must not contain the following keys: " + diff.rightOnly);
+        }
+        if (!map.containsKey(NAME)) {
+            throw new IllegalArgumentException("The map must contain a name key.");
+        }
+        String group = extract(map, GROUP);
+        String name = extract(map, NAME);
+        String version = extract(map, VERSION);
+        return self.module(group, name, version);
+    }
+
+    @Nullable
+    private static String extract(Map<String, CharSequence> map, String key) {
+        return (map.containsKey(key)) ? map.get(key).toString() : null;
+    }
+
     /**
      * Add a dependency.
      *
@@ -83,99 +130,6 @@ public class DependencyAdderExtensionModule {
      */
     public static void call(DependencyAdder self, CharSequence dependencyNotation, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
         self.add(dependencyNotation, ConfigureUtil.configureUsing(configuration));
-    }
-
-    /**
-     * Add a dependency.
-     *
-     * @param group the group
-     * @param name the name
-     * @param version the version
-     */
-    public static void call(DependencyAdder self, @Nullable String group, String name, @Nullable String version) {
-        self.add(group, name, version);
-    }
-
-    /**
-     * Add a dependency.
-     *
-     * @param group the group
-     * @param name the name
-     * @param version the version
-     * @param configuration an action to configure the dependency
-     */
-    public static void call(DependencyAdder self, @Nullable String group, String name, @Nullable String version, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
-        self.add(group, name, version, ConfigureUtil.configureUsing(configuration));
-    }
-
-    /**
-     * Add a dependency.
-     *
-     * @param group the group
-     * @param name the name
-     * @param version the version
-     * @param classifier the classifier
-     * @param extension the extension
-     */
-    public static void call(DependencyAdder self, @Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension) {
-        self.add(group, name, version, classifier, extension);
-    }
-
-    /**
-     * Add a dependency.
-     *
-     * @param group the group
-     * @param name the name
-     * @param version the version
-     * @param classifier the classifier
-     * @param extension the extension
-     * @param configuration an action to configure the dependency
-     */
-    public static void call(DependencyAdder self, @Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
-        self.add(group, name, version, classifier, extension, ConfigureUtil.configureUsing(configuration));
-    }
-
-    /**
-     * Add a dependency. The map may contain the following keys:
-     * <ul>
-     *   <li>{@code group}</li>
-     *   <li>{@code name}</li>
-     *   <li>{@code version}</li>
-     *   <li>{@code classifier}</li>
-     *   <li>{@code ext}</li>
-     * </ul>
-     *
-     * @param map a map of configuration parameters for the dependency
-     */
-    public static void call(DependencyAdder self, Map<String, CharSequence> map) {
-        call(self, map, null);
-    }
-
-    private static final Set<String> LEGAL_MAP_KEYS = ImmutableSet.of("group", "name", "version", "classifier", "ext");
-
-    /**
-     * Add a dependency. The map may contain the following keys:
-     * <ul>
-     *   <li>{@code group}</li>
-     *   <li>{@code name}</li>
-     *   <li>{@code version}</li>
-     *   <li>{@code classifier}</li>
-     *   <li>{@code ext}</li>
-     * </ul>
-     *
-     * @param map a map of configuration parameters for the dependency
-     * @param configuration an action to configure the dependency
-     */
-    public static void call(DependencyAdder self, Map<String, CharSequence> map, @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.ExternalModuleDependency") Closure<?> configuration) {
-        if (!LEGAL_MAP_KEYS.containsAll(map.keySet())) {
-            throw new IllegalArgumentException("The map must contain only the following keys: " + LEGAL_MAP_KEYS);
-        }
-        String group = (map.containsKey("group")) ? map.get("group").toString() : null;
-        String name = (map.containsKey("name")) ? map.get("name").toString() : null;
-        String version = (map.containsKey("version")) ? map.get("version").toString() : null;
-        String classifier = (map.containsKey("classifier")) ? map.get("classifier").toString() : null;
-        String extension = (map.containsKey("ext")) ? map.get("ext").toString() : null;
-        self.add(group, name, version, classifier, extension, ConfigureUtil.configureUsing(configuration));
     }
 
     /**
