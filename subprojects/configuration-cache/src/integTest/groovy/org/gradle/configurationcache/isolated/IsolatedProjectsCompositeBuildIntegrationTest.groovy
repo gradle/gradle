@@ -47,4 +47,41 @@ class IsolatedProjectsCompositeBuildIntegrationTest extends AbstractIsolatedProj
         then:
         fixture.assertStateLoaded()
     }
+
+    def "getGradle() references are equal across projects in one build"() {
+        settingsFile << """
+            include("a")
+            includeBuild("include")
+        """
+        file("build.gradle") << """
+            def g = gradle
+            assert(g.gradle === g)
+            allprojects {
+                assert(it.gradle === g)
+            }
+            g.projectsEvaluated {
+                assert(it === g)
+            }
+        """
+        file("include/build.gradle") << """
+            def root = gradle.root
+            assert(gradle != root)
+            assert(gradle.parent === root)
+            root.allprojects {
+                assert(it.gradle === root)
+            }
+            root.projectsEvaluated {
+                assert(it === root)
+            }
+        """
+
+        when:
+        configurationCacheRun(":a:help", ":include:help")
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a", ":include")
+        }
+    }
+
 }
