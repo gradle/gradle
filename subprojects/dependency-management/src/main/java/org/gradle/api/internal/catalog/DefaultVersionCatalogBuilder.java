@@ -30,7 +30,6 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
@@ -47,7 +46,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.classpath.Instrumented;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
 
@@ -66,7 +64,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.internal.catalog.AliasNormalizer.normalize;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.buildProblem;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
 import static org.gradle.problems.internal.RenderingUtils.oxfordListOf;
@@ -290,7 +287,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     @Override
     public String version(String alias, Action<? super MutableVersionConstraint> versionSpec) {
         validateAlias(AliasType.VERSION, alias);
-        alias = intern(normalize(alias));
+        alias = intern(AliasNormalizer.normalize(alias));
         if (versionConstraints.containsKey(alias)) {
             // For versions, in order to allow overriding whatever is declared by
             // a platform, we want to silence overrides
@@ -320,25 +317,44 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         return alias;
     }
 
-    // Currently, the below are implemented in terms of DefaultAliasBuilder to avoid code duplication.
-    // When #alias is removed, the 3 methods below should be re-implemented.
-
     @Override
     public LibraryAliasBuilder library(String alias, String group, String artifact) {
         validateAlias(AliasType.LIBRARY, alias);
-        return new DefaultAliasBuilder(alias).to(group, artifact);
+
+        String normalizedAlias = AliasNormalizer.normalize(alias);
+        ensureUniqueNormalization(normalizedAlias);
+
+        return objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, group, artifact);
     }
 
     @Override
     public void library(String alias, String groupArtifactVersion) {
         validateAlias(AliasType.LIBRARY, alias);
-        new DefaultAliasBuilder(alias).to(groupArtifactVersion);
+
+        String normalizedAlias = AliasNormalizer.normalize(alias);
+        ensureUniqueNormalization(normalizedAlias);
+
+        String[] coordinates = groupArtifactVersion.split(":");
+        if (coordinates.length == 3) {
+            objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, coordinates[0], coordinates[1]).version(coordinates[2]);
+        } else {
+            throwVersionCatalogProblem(VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION, spec ->
+                    spec.withShortDescription(() -> "On alias '" + alias + "' notation '" + groupArtifactVersion + "' is not a valid dependency notation")
+                            .happensBecause(() -> "The 'to(String)' method only supports 'group:artifact:version' coordinates")
+                            .addSolution("Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2")
+                            .addSolution("Use the to(group, name) method instead")
+                            .documented());
+        }
     }
 
     @Override
     public PluginAliasBuilder plugin(String alias, String id) {
         validateAlias(AliasType.PLUGIN, alias);
-        return new DefaultAliasBuilder(alias).toPluginId(id);
+
+        String normalizedAlias = AliasNormalizer.normalize(alias);
+        ensureUniqueNormalization(normalizedAlias);
+
+        return objects.newInstance(DefaultPluginAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, id);
     }
 
     private void validateAlias(AliasType type, String value) {
@@ -366,7 +382,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
             .map(AliasNormalizer::normalize)
             .map(this::intern)
             .collect(Collectors.toList()));
-        BundleModel previous = bundles.put(normalize(intern(alias)), new BundleModel(components, currentContext));
+        BundleModel previous = bundles.put(AliasNormalizer.normalize(intern(alias)), new BundleModel(components, currentContext));
         if (previous != null) {
             LOGGER.warn("Duplicate entry for bundle '{}': {} is replaced with {}", alias, previous.getComponents(), components);
         }
@@ -382,6 +398,12 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     public boolean containsLibraryAlias(String name) {
         return libraries.containsKey(name);
+    }
+
+    private void ensureUniqueNormalization(String normalizedAlias) {
+        if (!aliasesInProgress.add(normalizedAlias)) {
+            LOGGER.warn("Duplicate alias builder registered for {}", normalizedAlias);
+        }
     }
 
     @Override
@@ -449,71 +471,6 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
                 );
             } else {
                 return new PluginModel(id, versionRef, model.getVersion(), context);
-            }
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    private class DefaultAliasBuilder implements AliasBuilder {
-        private final String alias;
-        private final String normalizedAlias;
-
-        public DefaultAliasBuilder(String alias) {
-            this.alias = alias;
-            this.normalizedAlias = normalize(alias);
-            if (!aliasesInProgress.add(normalizedAlias)) {
-                LOGGER.warn("Duplicate alias builder registered for {}", normalizedAlias);
-            }
-        }
-
-        @Override
-        public void to(String gavCoordinates) {
-            validateAlias(AliasType.LIBRARY);
-            String[] coordinates = gavCoordinates.split(":");
-            if (coordinates.length == 3) {
-                objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, coordinates[0], coordinates[1]).version(coordinates[2]);
-            } else {
-                throwVersionCatalogProblem(VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION, spec ->
-                    spec.withShortDescription(() -> "On alias '" + alias + "' notation '" + gavCoordinates + "' is not a valid dependency notation")
-                        .happensBecause(() -> "The 'to(String)' method only supports 'group:artifact:version' coordinates")
-                        .addSolution("Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2")
-                        .addSolution("Use the to(group, name) method instead")
-                        .documented());
-            }
-        }
-
-        @Override
-        public LibraryAliasBuilder to(String group, String name) {
-            validateAlias(AliasType.LIBRARY);
-            return objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, group, name);
-        }
-
-        @Override
-        public PluginAliasBuilder toPluginId(String id) {
-            validateAlias(AliasType.PLUGIN);
-            return objects.newInstance(DefaultPluginAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, id);
-        }
-
-        private void validateAlias(AliasType type) {
-            if (type == AliasType.LIBRARY) {
-                for (String prefix : FORBIDDEN_LIBRARY_ALIAS_PREFIX) {
-                    if (normalizedAlias.equals(prefix) || normalizedAlias.startsWith(prefix + ".")) {
-                        throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
-                            spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
-                                .happensBecause(() -> "Prefix for dependency shouldn't be equal to '" + prefix + "'")
-                                .addSolution(() -> "Use a different alias which prefix is not equal to " + oxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or"))
-                                .documented()
-                        );
-                    }
-                }
-            }
-            if (RESERVED_ALIAS_NAMES.contains(normalizedAlias)) {
-                throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
-                    spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
-                        .happensBecause(() -> "Alias '" + alias + "' is a reserved name in Gradle which prevents generation of accessors")
-                        .addSolution(() -> "Use a different alias which isn't in the reserved names " + oxfordListOf(RESERVED_ALIAS_NAMES, "or"))
-                        .documented()
-                );
             }
         }
     }
@@ -624,14 +581,14 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     }
 
     private void createAliasWithVersionRef(String alias, String group, String name, String versionRef) {
-        Supplier<DependencyModel> previous = libraries.put(intern(normalize(alias)), new VersionReferencingDependencyModel(group, name, normalize(versionRef)));
+        Supplier<DependencyModel> previous = libraries.put(intern(AliasNormalizer.normalize(alias)), new VersionReferencingDependencyModel(group, name, AliasNormalizer.normalize(versionRef)));
         if (previous != null) {
             LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);
         }
     }
 
     private void createPluginAliasWithVersionRef(String alias, String id, String versionRef) {
-        Supplier<PluginModel> previous = plugins.put(intern(normalize(alias)), new VersionReferencingPluginModel(id, normalize(versionRef)));
+        Supplier<PluginModel> previous = plugins.put(intern(AliasNormalizer.normalize(alias)), new VersionReferencingPluginModel(id, AliasNormalizer.normalize(versionRef)));
         if (previous != null) {
             LOGGER.warn("Duplicate entry for plugin '{}': {} is replaced with {}", alias, previous.get(), model);
         }
