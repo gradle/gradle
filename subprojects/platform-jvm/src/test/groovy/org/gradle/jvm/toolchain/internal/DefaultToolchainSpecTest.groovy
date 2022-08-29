@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class DefaultToolchainSpecTest extends Specification {
 
-    def "implements equals"() {
+    def "spec key implements equals"() {
         given:
         def spec11 = new DefaultToolchainSpec(TestUtil.objectFactory())
         def spec12 = new DefaultToolchainSpec(TestUtil.objectFactory())
@@ -49,13 +49,13 @@ class DefaultToolchainSpecTest extends Specification {
         spec12.languageVersion.set(JavaLanguageVersion.of(12))
 
         then:
-        Matchers.strictlyEquals(spec11, spec11)
-        Matchers.strictlyEquals(spec11, spec11Impl1)
-        Matchers.strictlyEquals(spec11Vendor1, spec11Vendor1)
-        !Matchers.strictlyEquals(spec11Vendor1, spec11Vendor2)
-        !Matchers.strictlyEquals(spec11, spec12)
-        Matchers.strictlyEquals(spec11Impl1, spec11Impl1)
-        !Matchers.strictlyEquals(spec11Impl1, spec11Impl2)
-        !Matchers.strictlyEquals(spec11Vendor1, spec11Vendor2)
+        Matchers.strictlyEquals(spec11.toKey(), spec11.toKey())
+        Matchers.strictlyEquals(spec11.toKey(), spec11Impl1.toKey())
+        Matchers.strictlyEquals(spec11Vendor1.toKey(), spec11Vendor1.toKey())
+        !Matchers.strictlyEquals(spec11Vendor1.toKey(), spec11Vendor2.toKey())
+        !Matchers.strictlyEquals(spec11.toKey(), spec12.toKey())
+        Matchers.strictlyEquals(spec11Impl1.toKey(), spec11Impl1.toKey())
+        !Matchers.strictlyEquals(spec11Impl1.toKey(), spec11Impl2.toKey())
+        !Matchers.strictlyEquals(spec11Vendor1.toKey(), spec11Vendor2.toKey())
     }
 }
