@@ -41,7 +41,6 @@ import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.api.attributes.DocsType.JAVADOC;
