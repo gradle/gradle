@@ -280,7 +280,7 @@ Eclipse 4.8 introduced the concept of link:https://www.eclipse.org/eclipse/news/
 This feature allows the Eclipse plugin to define better separation between test and non-test sources.
 
 The Eclipse classpath consists of classpath entries: source directories, jar files, project dependencies, etc.
-Each classpath entry can have a a list of classpath attributes, where the attributes are string key-value pairs.
+Each classpath entry can have a list of classpath attributes, where the attributes are string key-value pairs.
 There are two classpath attribute relevant for test sources: `test` and `without_test_code`, both of which can have `true` or `false` as values.
 
 If a source directory has the `test=true` classpath attribute then the contents are considered test sources.

@@ -20,23 +20,33 @@ import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.ClasspathNormalizer
+import org.gradle.api.tasks.CompileClasspathNormalizer
+import org.gradle.api.tasks.FileNormalizer
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 
-class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, ExecutionOptimizationDeprecationFixture {
+import static com.google.common.base.CaseFormat.UPPER_CAMEL
+import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE
+
+class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
+
+    def setup() {
+        expectReindentedValidationMessage()
+    }
 
     def "task output caching key is exposed when build cache is enabled"() {
         given:
@@ -150,17 +160,18 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectImplementationUnknownDeprecation {
-            implementationOfTask(':customTask')
-            unknownClassloader('CustomTask_Decorated')
-        }
-        expectImplementationUnknownDeprecation {
-            additionalTaskAction(':customTask')
-            unknownClassloader('CustomTask_Decorated')
-        }
-        succeeds('customTask', '--build-cache')
+        fails('customTask', '--build-cache')
 
         then:
+        failureDescriptionStartsWith("Some problems were found with the configuration of task ':customTask' (type 'CustomTask').")
+        failureDescriptionContains(implementationUnknown {
+            implementationOfTask(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+        })
+        failureDescriptionContains(implementationUnknown {
+            additionalTaskAction(':customTask')
+            unknownClassloader('CustomTask_Decorated')
+        })
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
         result.classLoaderHash == null
@@ -187,13 +198,14 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectImplementationUnknownDeprecation {
-            additionalTaskAction(':customTask')
-            unknownClassloader('A')
-        }
-        succeeds('customTask', '--build-cache')
+        fails('customTask', '--build-cache')
 
         then:
+        failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
+        failureDescriptionContains(implementationUnknown {
+            additionalTaskAction(':customTask')
+            unknownClassloader('A')
+        })
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
         result.classLoaderHash == null
@@ -489,13 +501,14 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        expectImplementationUnknownDeprecation {
-            nestedProperty('bean')
-            unknownClassloader('A')
-        }
-        succeeds('customTask', '--build-cache')
+        fails('customTask', '--build-cache')
 
         then:
+        failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
+        failureDescriptionContains(implementationUnknown {
+            nestedProperty('bean')
+            unknownClassloader('A')
+        })
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
         result.classLoaderHash == null
@@ -503,6 +516,40 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         result.actionClassNames == null
         result.inputValueHashes == null
         result.outputPropertyNames == null
+    }
+
+    def "properly captures all attributes"() {
+        given:
+        withBuildCache()
+        buildFile << """
+            task customTask {
+                inputs.dir('foo')
+                    .withPropertyName('inputDir')
+                    .withPathSensitivity(PathSensitivity.$pathSensitivity)
+                    .ignoreEmptyDirectories($ignoreEmptyDirectories)
+                    .normalizeLineEndings($ignoreLineEndings)
+                    ${normalizer ? ".withNormalizer(${normalizer.name})" : ''}
+                outputs.file('outputDir')
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+        createDir('foo')
+
+        when:
+        succeeds("customTask")
+        then:
+        with(snapshotResults(":customTask").inputFileProperties.inputDir) {
+            attributes == [
+                directorySensitivity(ignoreEmptyDirectories, pathSensitivity, normalizer),
+                attributeFromPathSensitivity(pathSensitivity, normalizer),
+                ignoreLineEndings ? "LINE_ENDING_SENSITIVITY_NORMALIZE_LINE_ENDINGS" : "LINE_ENDING_SENSITIVITY_DEFAULT"
+            ]
+        }
+
+        where:
+        [pathSensitivity, normalizer, ignoreEmptyDirectories, ignoreLineEndings] << [PathSensitivity.values(), [null, ClasspathNormalizer, CompileClasspathNormalizer], [true, false], [true, false]].combinations()
     }
 
     private static String customTaskCode(String input1, String input2) {
@@ -555,4 +602,23 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         results.first().result
     }
 
+    static String directorySensitivity(boolean ignoreEmptyDirectories, PathSensitivity pathSensitivity, Class<? extends FileNormalizer> normalizer) {
+        ignoreEmptyDirectories && !normalizer && pathSensitivity != PathSensitivity.NONE ? "DIRECTORY_SENSITIVITY_IGNORE_DIRECTORIES" : "DIRECTORY_SENSITIVITY_DEFAULT"
+    }
+
+    static String attributeFromPathSensitivity(PathSensitivity pathSensitivity, Class<? extends FileNormalizer> normalizer) {
+        if (normalizer) {
+            return "FINGERPRINTING_STRATEGY_${UPPER_CAMEL.to(UPPER_UNDERSCORE, normalizer.simpleName - 'Normalizer')}"
+        }
+        switch (pathSensitivity) {
+            case PathSensitivity.ABSOLUTE:
+                return "FINGERPRINTING_STRATEGY_ABSOLUTE_PATH"
+            case PathSensitivity.RELATIVE:
+                return "FINGERPRINTING_STRATEGY_RELATIVE_PATH"
+            case PathSensitivity.NAME_ONLY:
+                return "FINGERPRINTING_STRATEGY_NAME_ONLY"
+            case PathSensitivity.NONE:
+                return "FINGERPRINTING_STRATEGY_IGNORED_PATH"
+        }
+    }
 }

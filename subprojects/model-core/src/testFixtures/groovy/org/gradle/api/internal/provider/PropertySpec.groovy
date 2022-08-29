@@ -2710,6 +2710,143 @@ The value of this provider is derived from:
         copy2.get() == someValue()
     }
 
+    def "runs side effect when calling '#getter' when empty property value is set via '#setter'"() {
+        given:
+        def property = providerWithNoValue()
+
+        when:
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def providerWithSideEffect = Providers.of(someValue()).withSideEffect(sideEffect)
+        // `PropertyInternal` does not directly provide these setters,
+        // but all user-facing interfaces and their implementations do.
+        property."$setter"(providerWithSideEffect)
+
+        property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        property.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when calling setter or calculated values are not unpacked
+
+        when:
+        def unpackedValue = getter(property, getter, someOtherValue())
+
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        where:
+        setter  | getter
+        "set"   | "get"
+        "set"   | "getOrNull"
+        "set"   | "getOrElse"
+        "value" | "get"
+        "value" | "getOrNull"
+        "value" | "getOrElse"
+    }
+
+    def "runs side effect when calling '#getter' when property's value is overridden via '#setter'"() {
+        given:
+        def property = providerWithValue(someOtherValue())
+
+        when:
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def providerWithSideEffect = Providers.of(someValue()).withSideEffect(sideEffect)
+        // `PropertyInternal` does not directly provide these setters,
+        // but all user-facing interfaces and their implementations do.
+        property."$setter"(providerWithSideEffect)
+
+        property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        property.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when calling setter or calculated values are not unpacked
+
+        when:
+        def unpackedValue = getter(property, getter, someOtherValue2())
+
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        where:
+        setter  | getter
+        "set"   | "get"
+        "set"   | "getOrNull"
+        "set"   | "getOrElse"
+        "value" | "get"
+        "value" | "getOrNull"
+        "value" | "getOrElse"
+    }
+
+    def "runs side effect when calling '#getter' on default property with convention with side effect"() {
+        given:
+        def property = providerWithNoValue()
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def providerWithSideEffect = Providers.of(someValue()).withSideEffect(sideEffect)
+
+        when:
+        // `PropertyInternal` does not directly provide `convention` method,
+        // but all user-facing interfaces and their implementations do.
+        property.convention(providerWithSideEffect)
+
+        property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        property.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when setting convention or calculated values are not unpacked
+
+        when:
+        def unpackedValue = getter(property, getter, someOtherValue())
+
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        where:
+        getter      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
+    }
+
+    def "does not run side effect from convention when calling '#getter' when property's value is explicitly set"() {
+        given:
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def providerWithSideEffect = Providers.of(someValue()).withSideEffect(sideEffect)
+        def property = providerWithNoValue()
+
+        when:
+        // `PropertyInternal` does not directly provide `convention` nor setter methods,
+        // but all user-facing interfaces and their implementations do.
+        property.convention(providerWithSideEffect)
+        property."$setter"(someOtherValue())
+
+        property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        property.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when calling convention, setter or calculated values are not unpacked
+
+        when:
+        def unpackedValue = getter(property, getter, someOtherValue2())
+
+        then:
+        unpackedValue == someOtherValue()
+        0 * _
+
+        where:
+        setter  | getter
+        "set"   | "get"
+        "set"   | "getOrNull"
+        "set"   | "getOrElse"
+        "value" | "get"
+        "value" | "getOrNull"
+        "value" | "getOrElse"
+    }
+
     ModelObject owner() {
         return Stub(ModelObject)
     }
