@@ -1,4 +1,3 @@
-import org.gradle.api.attributes.LibraryElements
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.util.zip.ZipFile
@@ -9,7 +8,7 @@ plugins {
 
 val artifactType = Attribute.of("artifactType", String::class.java)
 val buildType = Attribute.of("com.android.build.api.attributes.BuildTypeAttr", String::class.java)
-val flavor = Attribute.of("com.android.build.api.attributes.ProductFlavor:org.gradle.example.my-own-flavor", String::class.java)
+val flavor = Attribute.of("org.gradle.example.my-own-flavor", String::class.java)
 
 configurations.all {
     if (isCanBeResolved && !isCanBeConsumed) {

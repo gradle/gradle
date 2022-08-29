@@ -21,6 +21,15 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 abstract class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
+    static class AndroidLintDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
+        AndroidLintDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
+
+        void expectAndroidLintDeprecations(String agpVersion) {
+            expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+        }
+    }
 }
 
 class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTest {
@@ -99,7 +108,10 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         def runner = runnerForLocation(
             checkoutDir, agpVersion,
             "common:lintDebug", "playgames:lintDebug", "doodles-lib:lintDebug"
-        )
+        ).deprecations(AndroidLintDeprecations) {
+            expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+            expectAndroidLintDeprecations(agpVersion)
+        }
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
         def result = runner.buildAndFail()
@@ -112,7 +124,9 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         runner = runnerForLocation(
             checkoutDir, agpVersion,
             "common:lintDebug", "playgames:lintDebug", "doodles-lib:lintDebug"
-        )
+        ).deprecations(AndroidLintDeprecations) {
+            expectAndroidLintDeprecations(agpVersion)
+        }
         runner.withArguments(runner.arguments + "--continue")
         result = runner.buildAndFail()
 

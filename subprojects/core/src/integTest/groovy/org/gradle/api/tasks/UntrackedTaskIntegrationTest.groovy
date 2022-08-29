@@ -16,11 +16,13 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.work.InputChanges
 
 class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
 
@@ -61,7 +63,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
 
     def "fails when incremental task is marked as untracked"() {
         file("input/input.txt") << "Content"
-        buildFile(generateUntrackedIncrementalConsumerTask())
+        buildFile(generateUntrackedIncrementalConsumerTask(inputChangesType))
         buildFile("""
             tasks.register("consumer", IncrementalConsumer) {
                 inputDir = file("input")
@@ -71,9 +73,16 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         file("input.txt").text = "input"
 
         when:
+        if (inputChangesType == IncrementalTaskInputs) {
+            executer.expectDocumentedDeprecationWarning """IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method 'IncrementalConsumer.execute' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"""
+        }
         fails("consumer", "--info")
         then:
         failureHasCause("Changes are not tracked, unable determine incremental changes.")
+
+        where:
+        //noinspection UnnecessaryQualifiedReference, GrDeprecatedAPIUsage
+        inputChangesType << [InputChanges, org.gradle.api.tasks.incremental.IncrementalTaskInputs]
     }
 
     def "can register untracked tasks via the runtime API"() {
@@ -540,7 +549,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         """
     }
 
-    static generateUntrackedIncrementalConsumerTask() {
+    static generateUntrackedIncrementalConsumerTask(Class<?> inputChangesType) {
         """
             @UntrackedTask(because = "For testing")
             abstract class IncrementalConsumer extends DefaultTask {
@@ -552,7 +561,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
                 abstract RegularFileProperty getOutputFile()
 
                 @TaskAction
-                void execute(InputChanges changes) {
+                void execute(${inputChangesType.name} changes) {
                     assert changes != null
                     def unreadableDir = inputDir.get().dir("unreadable").asFile
                     assert !unreadableDir.canRead()
