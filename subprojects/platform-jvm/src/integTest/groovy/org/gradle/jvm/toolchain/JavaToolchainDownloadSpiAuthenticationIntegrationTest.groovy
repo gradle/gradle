@@ -23,6 +23,8 @@ import org.junit.Rule
 
 class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJavaToolchainDownloadSpiIntegrationTest {
 
+    public static final char FS = File.separatorChar
+
     @Rule
     HttpServer server
 
@@ -78,7 +80,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
                 .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
                 .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from: " + archiveUri)
-                .assertHasCause("Provisioned toolchain '" + temporaryFolder.testDirectory + "/user-home/jdks/toolchain' could not be probed.")
+                .assertHasCause("Provisioned toolchain '" + temporaryFolder.testDirectory + FS + "user-home" + FS + "jdks" + FS + "toolchain' could not be probed.")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -125,7 +127,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
                 .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
                 .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from: " + archiveUri)
-                .assertHasCause("Provisioned toolchain '" + temporaryFolder.testDirectory + "/user-home/jdks/toolchain' could not be probed.")
+                .assertHasCause("Provisioned toolchain '" + temporaryFolder.testDirectory + FS + "user-home" + FS + "jdks" + FS + "toolchain' could not be probed.")
     }
 
     private static String customToolchainRegistryCode(String uri) {
