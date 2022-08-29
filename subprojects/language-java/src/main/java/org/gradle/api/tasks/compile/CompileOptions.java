@@ -519,7 +519,6 @@ public class CompileOptions extends AbstractOptions {
      */
     @Deprecated
     public void setAnnotationProcessorGeneratedSourcesDirectory(@Nullable File file) {
-        // Used by Android plugin. Followup with https://github.com/gradle/gradle/issues/16782
         DeprecationLogger.deprecateProperty(CompileOptions.class, "annotationProcessorGeneratedSourcesDirectory")
             .replaceWith("generatedSourceOutputDirectory")
             .willBeRemovedInGradle9()

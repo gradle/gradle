@@ -110,10 +110,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
             "common:lintDebug", "playgames:lintDebug", "doodles-lib:lintDebug"
         ).deprecations(AndroidLintDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-            expectAndroidLintDeprecations(agpVersion, [
-                "kotlin-android-extensions-runtime-${kotlinVersion}.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:${kotlinVersion})",
-                "appcompat-1.0.2.aar (androidx.appcompat:appcompat:1.0.2)"
-            ])
+            expectAndroidLintDeprecations(agpVersion)
             expectCompileOptionsAnnotationProcessorGeneratedSourcesDirectoryDeprecation(agpVersion)
         }
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
@@ -129,10 +126,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
             checkoutDir, agpVersion,
             "common:lintDebug", "playgames:lintDebug", "doodles-lib:lintDebug"
         ).deprecations(AndroidLintDeprecations) {
-            expectAndroidLintDeprecations(agpVersion, [
-                "kotlin-android-extensions-runtime-${kotlinVersion}.jar (org.jetbrains.kotlin:kotlin-android-extensions-runtime:${kotlinVersion})",
-                "appcompat-1.0.2.aar (androidx.appcompat:appcompat:1.0.2)"
-            ])
+            expectAndroidLintDeprecations(agpVersion)
             expectCompileOptionsAnnotationProcessorGeneratedSourcesDirectoryDeprecation(agpVersion)
         }
         runner.withArguments(runner.arguments + "--continue")
