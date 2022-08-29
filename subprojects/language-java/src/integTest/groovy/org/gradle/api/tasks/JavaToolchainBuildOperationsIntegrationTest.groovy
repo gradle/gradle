@@ -330,7 +330,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events, jdkMetadata2, "JavaCompiler")
     }
 
-    @ToBeImplemented("finding a used toolchain by the path of the launcher executable")
     @Issue("https://github.com/gradle/gradle/issues/21367")
     def "emits toolchain usages for test that configures executable path"() {
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
@@ -365,18 +364,14 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         def events = toolchainEvents(task)
         then:
         executedAndNotSkipped(task)
-        // TODO: replace when fixed
-        events.size() == 0
-//        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
+        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
 
         when:
         runWithInstallation(jdkMetadata, task)
         events = toolchainEvents(task)
         then:
         skipped(task)
-        // TODO: replace when fixed
-        events.size() == 0
-//        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
+        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21368")
