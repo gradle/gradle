@@ -163,7 +163,6 @@ Method <org.gradle.api.tasks.javadoc.Groovydoc.getFooter()> does not have raw re
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getHeader()> does not have raw return type assignable to org.gradle.api.provider.Property in (Groovydoc.java:301)
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getLinks()> does not have raw return type assignable to org.gradle.api.provider.Property in (Groovydoc.java:443)
 Method <org.gradle.api.tasks.javadoc.Groovydoc.getWindowTitle()> does not have raw return type assignable to org.gradle.api.provider.Property in (Groovydoc.java:263)
-Method <org.gradle.api.tasks.javadoc.Groovydoc.isIncludePrivate()> does not have raw return type assignable to org.gradle.api.provider.Property in (Groovydoc.java:359)
 Method <org.gradle.api.tasks.javadoc.Groovydoc.isNoTimestamp()> does not have raw return type assignable to org.gradle.api.provider.Property in (Groovydoc.java:231)
 Method <org.gradle.api.tasks.javadoc.Groovydoc.isNoVersionStamp()> does not have raw return type assignable to org.gradle.api.provider.Property in (Groovydoc.java:246)
 Method <org.gradle.api.tasks.javadoc.Groovydoc.isUse()> does not have raw return type assignable to org.gradle.api.provider.Property in (Groovydoc.java:216)

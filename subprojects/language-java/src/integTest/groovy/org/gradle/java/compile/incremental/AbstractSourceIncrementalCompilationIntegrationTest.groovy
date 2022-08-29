@@ -520,7 +520,7 @@ sourceSets {
         outputs.recompiledClasses("Class\$Name1", "Main")
     }
 
-    def "old classes are are restored after the compile failure"() {
+    def "old classes are restored after the compile failure"() {
         source("class A {}", "class B {}")
         outputs.snapshot { run language.compileTaskName }
 
