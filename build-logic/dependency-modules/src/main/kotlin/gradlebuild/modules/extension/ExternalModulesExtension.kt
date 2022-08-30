@@ -206,6 +206,8 @@ abstract class ExternalModulesExtension {
         gcs to License.Apache2,
         googleApiClient to License.Apache2,
         googleHttpClient to License.Apache2,
+        googleHttpClientGson to License.Apache2,
+        googleHttpClientApacheV2 to License.Apache2,
         googleOauthClient to License.Apache2,
         gradleProfiler to License.Apache2,
         groovy to License.Apache2,
