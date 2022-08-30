@@ -48,7 +48,6 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.Path
 import java.io.File
 import java.util.Objects
-import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Supplier
 
 
@@ -58,17 +57,13 @@ class CrossProjectConfigurationReportingGradle private constructor(
     private val crossProjectModelAccess: CrossProjectModelAccess,
     private val projectConfigurator: CrossProjectConfigurator
 ) : GradleInternal {
-    init {
-        require(delegate !is CrossProjectConfigurationReportingGradle) { "A delegate should not be a CrossProjectConfigurationReportingGradle wrapper" }
-    }
-
     override fun getParent(): GradleInternal? =
-        delegate.parent?.let { delegateParent -> crossProjectModelAccess.gradleInstanceForProject(referrerProject, delegateParent) }
+        delegate.parent?.let { delegateParent -> from(delegateParent, referrerProject) }
 
     override fun getRoot(): GradleInternal =
         when (val root = delegate.root) {
             delegate -> this
-            else -> crossProjectModelAccess.gradleInstanceForProject(referrerProject, root)
+            else -> from(root, referrerProject)
         }
 
     override fun getRootProject(): ProjectInternal =
@@ -140,25 +135,12 @@ class CrossProjectConfigurationReportingGradle private constructor(
 
     override fun toString(): String = "CrossProjectConfigurationReportingGradle($delegate)"
 
-    class ConsistentReferencesFactory {
-        fun instanceForProject(referrer: ProjectInternal, gradle: GradleInternal): GradleInternal {
-            val delegate = when (gradle) {
-                is CrossProjectConfigurationReportingGradle -> gradle.delegate
-                else -> gradle
-            }
-            return mapping.computeIfAbsent(Pair(referrer, delegate)) { createFrom(delegate, referrer) }
-        }
-
-        private
-        val mapping = ConcurrentHashMap<Pair<ProjectInternal, GradleInternal>, CrossProjectConfigurationReportingGradle>()
-
-        private
-        fun createFrom(gradle: GradleInternal, referrerProject: ProjectInternal): CrossProjectConfigurationReportingGradle {
-            require(gradle !is CrossProjectConfigurationReportingGradle) { "The Gradle instance to wrap into CrossProjectConfigurationReportingGradle should not be already wrapped" }
-
-            val crossProjectModelAccess = gradle.services.get(CrossProjectModelAccess::class.java)
-            val crossProjectConfigurator = gradle.services.get(CrossProjectConfigurator::class.java)
-            return CrossProjectConfigurationReportingGradle(gradle, referrerProject, crossProjectModelAccess, crossProjectConfigurator)
+    internal
+    companion object {
+        fun from(gradle: GradleInternal, referrerProject: ProjectInternal): CrossProjectConfigurationReportingGradle {
+            val parentCrossProjectModelAccess = gradle.services.get(CrossProjectModelAccess::class.java)
+            val parentCrossProjectConfigurator = gradle.services.get(CrossProjectConfigurator::class.java)
+            return CrossProjectConfigurationReportingGradle(gradle, referrerProject, parentCrossProjectModelAccess, parentCrossProjectConfigurator)
         }
     }
 

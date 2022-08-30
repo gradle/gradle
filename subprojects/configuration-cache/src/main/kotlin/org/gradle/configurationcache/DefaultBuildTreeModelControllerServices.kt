@@ -71,11 +71,6 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
 
         return BuildTreeModelControllerServices.Supplier { registration ->
             val buildType = if (requirements.isRunsTasks) BuildType.TASKS else BuildType.MODEL
-
-            if (modelParameters.isIsolatedProjects) {
-                registration.add(CrossProjectConfigurationReportingGradle.ConsistentReferencesFactory::class.java)
-            }
-
             registration.add(BuildType::class.java, buildType)
             registerServices(registration, modelParameters, requirements)
         }
