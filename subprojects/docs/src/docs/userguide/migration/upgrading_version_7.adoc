@@ -74,7 +74,9 @@ You can use a lower Kotlin language version by modifying the language version an
 Gradle 7.x supports Android Gradle Plugin (AGP) 4.1 and above. AGP versions above 7.3 are not tested with Gradle 7.x.
 Gradle 8.x supports AGP 8 and above.
 Gradle 8.x supports AGP 7.3 and above if you configure the following property:
-`android.experimental.legacyTransform.forceNonIncremental=true`
+```
+android.experimental.legacyTransform.forceNonIncremental=true
+```
 
 ==== Change to `AntBuilder` parent class
 
