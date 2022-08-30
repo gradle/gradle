@@ -1280,6 +1280,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
                 // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
                 File parentJavaHome = executable.getParentFile().getParentFile();
                 return new SpecificInstallationToolchainSpec(getObjectFactory(), parentJavaHome);
+            } else {
+                getLogger().warn("Property `executable` on `ForkOptions` points to a non-existing file: {}", executable);
             }
         }
 

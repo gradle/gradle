@@ -258,6 +258,8 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
                     // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
                     File parentJavaHome = executable.getParentFile().getParentFile();
                     return new SpecificInstallationToolchainSpec(objectFactory, parentJavaHome);
+                } else {
+                    getLogger().warn("Property `executable` on `Test` points to a non-existing file: {}", executable);
                 }
             }
         }
