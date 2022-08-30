@@ -758,7 +758,7 @@
       </component>
       <component group="io.github.detekt.sarif4k" name="sarif4k" version="0.0.1">
          <artifact name="sarif4k-0.0.1.jar">
-            <pgp value="8569c95cadc508b09fe90f3002216ed811210daa"/>
+            <sha256 value="41ec72cf2521783224581c76aaa7e97d4a50f396a66d642500ff4777b395a376" origin="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.7.6">
