@@ -44,7 +44,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "does not nag when service is used by task without a corresponding usesService call and feature preview is NOT enabled"() {
         given:
         serviceImplementation()
-        taskUsingUndeclaredService()
+        adhocTaskUsingUndeclaredService()
 
         when:
         succeeds 'broken'
@@ -56,7 +56,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "does nag when service is used by task without a corresponding usesService call and feature preview is enabled"() {
         given:
         serviceImplementation()
-        taskUsingUndeclaredService()
+        adhocTaskUsingUndeclaredService()
         settingsFile '''
             enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
         '''
@@ -71,33 +71,62 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'broken'
     }
 
-    private taskUsingUndeclaredService() {
+    def "does not nag when service is used by task with an explicit usesService call and feature preview is enabled"() {
+        given:
+        serviceImplementation()
+        customTaskUsingServiceViaProperty()
         buildFile """
-            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+            def serviceProvider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 42
             }
 
-            tasks.register("broken") {
+            tasks.register("explicit") {
+                it.usesService(serviceProvider)
                 doFirst {
-                    provider.get().increment()
+                    serviceProvider.get().increment()
                 }
             }
         """
+        settingsFile '''
+            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+        '''
+
+        when:
+        succeeds 'explicit'
+
+        then:
+        outputDoesNotContain "'Task#usesService'"
+    }
+
+    def "does not nag when service is annotated with @ServiceReference and feature preview is enabled"() {
+        given:
+        serviceImplementation()
+        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}(name = 'foobar')")
+        buildFile """
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+                maxParallelUsages = 1
+            }
+
+            task implicit(type: Consumer) {
+                counter = provider
+            }
+        """
+        settingsFile '''
+            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+        '''
+
+        when:
+        succeeds 'implicit',"--stacktrace"
+
+        then:
+        outputDoesNotContain "'Task#usesService'"
     }
 
     def "service is created once per build on first use and stopped at the end of the build"() {
         serviceImplementation()
+        customTaskUsingServiceViaProperty()
         buildFile """
-            abstract class Consumer extends DefaultTask {
-                @Internal
-                abstract Property<CountingService> getCounter()
-
-                @TaskAction
-                def go() {
-                    counter.get().increment()
-                }
-            }
-
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
@@ -652,22 +681,11 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         dest.file
     }
 
+
     def "task cannot use build service for #annotationType property"() {
         serviceImplementation()
+        customTaskUsingServiceViaProperty(annotationType)
         buildFile << """
-            abstract class Consumer extends DefaultTask {
-                @${annotationType}
-                abstract Property<CountingService> getCounter()
-
-                @OutputFile
-                abstract RegularFileProperty getOutputFile()
-
-                @TaskAction
-                def go() {
-                    outputFile.get().asFile.text = counter.get().increment()
-                }
-            }
-
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
@@ -820,6 +838,35 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("broken")
         failure.assertHasCause("Failed to stop service 'counter2'.")
         failure.assertHasCause("broken")
+    }
+
+    private void adhocTaskUsingUndeclaredService() {
+        buildFile """
+            def serviceProvider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 42
+                maxParallelUsages = 1
+            }
+
+            tasks.register("broken") {
+                doFirst {
+                    serviceProvider.get().increment()
+                }
+            }
+        """
+    }
+
+    private void customTaskUsingServiceViaProperty(String annotationSnippet = "@Internal") {
+        buildFile << """
+            abstract class Consumer extends DefaultTask {
+                ${annotationSnippet}
+                abstract Property<CountingService> getCounter()
+
+                @TaskAction
+                def go() {
+                    counter.get().increment()
+                }
+            }
+        """
     }
 
     def serviceImplementation() {

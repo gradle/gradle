@@ -47,10 +47,12 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoryPrope
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.annotations.ServiceReferencePropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.UntrackedTaskTypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
+import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
@@ -118,7 +120,8 @@ public class ExecutionGlobalServices {
     @VisibleForTesting
     public static final ImmutableSet<Class<? extends Annotation>> IGNORED_METHOD_ANNOTATIONS = ImmutableSet.of(
         Internal.class,
-        ReplacedBy.class
+        ReplacedBy.class,
+        ServiceReference.class
     );
 
     TaskExecutionTracker createTaskExecutionTracker(BuildOperationAncestryTracker ancestryTracker, BuildOperationListenerManager operationListenerManager) {
@@ -196,6 +199,7 @@ public class ExecutionGlobalServices {
             Console.class,
             ReplacedBy.class,
             Internal.class,
+            ServiceReference.class,
             OptionValues.class
         ));
         annotationRegistry.registerPropertyTypeAnnotations(allPropertyTypes);
@@ -241,6 +245,10 @@ public class ExecutionGlobalServices {
 
     PropertyAnnotationHandler createInternalAnnotationHandler() {
         return new NoOpPropertyAnnotationHandler(Internal.class);
+    }
+
+    PropertyAnnotationHandler createServiceReferenceAnnotationHandler() {
+        return new ServiceReferencePropertyAnnotationHandler();
     }
 
     PropertyAnnotationHandler createReplacedByAnnotationHandler() {

@@ -88,6 +88,16 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
         return !details.locks.isEmpty();
     }
 
+    public boolean holdsLock(ResourceLock.Kind kind, String name) {
+        ThreadLockDetails<T> details = detailsForCurrentThread();
+        for (T locked: details.locks) {
+            if (locked.getKind() == kind && locked.getDisplayName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private ThreadLockDetails<T> detailsForCurrentThread() {
         long id = Thread.currentThread().getId();
         ThreadLockDetails<T> lockDetails = threadLocks.get(id);

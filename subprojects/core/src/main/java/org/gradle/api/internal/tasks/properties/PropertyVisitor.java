@@ -36,6 +36,8 @@ public interface PropertyVisitor {
 
     void visitLocalStateProperty(Object value);
 
+    void visitServiceReference(Object value);
+
     class Adapter implements PropertyVisitor {
         @Override
         public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
@@ -55,6 +57,10 @@ public interface PropertyVisitor {
 
         @Override
         public void visitLocalStateProperty(Object value) {
+        }
+
+        @Override
+        public void visitServiceReference(Object value) {
         }
     }
 }

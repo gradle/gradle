@@ -173,6 +173,19 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         private Set<ResourceLock> unlockedResources;
         boolean rollback;
 
+
+        @Override
+        public boolean hasLock(String name, ResourceLock.Kind kind) {
+            if (lockedResources == null || lockedResources.isEmpty()) {
+                return false;
+            }
+            for (ResourceLock locked: lockedResources) {
+                if (locked.getKind() == kind && locked.getDisplayName().equals(name)) {
+                    return true;
+                }
+            }
+            return false;
+        }
         @Override
         public void registerLocked(ResourceLock resourceLock) {
             if (!rollback && (unlockedResources == null || !unlockedResources.remove(resourceLock))) {
@@ -196,7 +209,6 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         Collection<ResourceLock> getUnlockedResources() {
             return unlockedResources == null ? Collections.<ResourceLock>emptyList() : unlockedResources;
         }
-
         @Override
         public void releaseLocks() {
             if (lockedResources != null) {

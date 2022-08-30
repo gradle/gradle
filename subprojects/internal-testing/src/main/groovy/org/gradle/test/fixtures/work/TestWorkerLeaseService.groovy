@@ -175,6 +175,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     private WorkerLease workerLease() {
         return new WorkerLease() {
             @Override
+            ResourceLock.Kind getKind() {
+                return Kind.UNDEFINED
+            }
+
+            @Override
             boolean isLocked() {
                 return false
             }

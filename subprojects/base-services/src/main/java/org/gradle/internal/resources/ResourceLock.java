@@ -23,6 +23,14 @@ import org.gradle.api.Describable;
  * outside of a {@link ResourceLockCoordinationService#withStateLock(Transformer)} transform.
  */
 public interface ResourceLock extends Describable {
+    enum Kind {
+        SHARED_SERVICE,
+        WORKER,
+        UNDEFINED
+    }
+
+    ResourceLock.Kind getKind();
+
     /**
      * Returns true if this resource is locked by any thread.
      *

@@ -46,6 +46,7 @@ import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
@@ -166,7 +167,8 @@ class DependencyManagementGlobalScopeServices {
                 InputFiles.class,
                 Internal.class,
                 Nested.class,
-                ReplacedBy.class
+                ReplacedBy.class,
+                ServiceReference.class
             ),
             ImmutableSet.of(
                 Classpath.class,
