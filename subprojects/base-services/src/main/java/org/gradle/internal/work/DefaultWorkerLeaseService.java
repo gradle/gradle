@@ -385,7 +385,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
         acquireLocks(allLocks);
     }
 
-    public boolean allLockedByCurrentThread(final Iterable<? extends ResourceLock> locks) {
+    private boolean allLockedByCurrentThread(final Iterable<? extends ResourceLock> locks) {
         return coordinationService.withStateLock(new Supplier<Boolean>() {
             @Override
             public Boolean get() {
@@ -407,17 +407,17 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
         }
 
         DefaultWorkerLease newResourceLock() {
-            return new DefaultWorkerLease("managed", coordinationService, this, root);
+            return new DefaultWorkerLease("worker lease", coordinationService, this, root);
         }
 
         DefaultWorkerLease newUnmanagedLease() {
-            return new DefaultWorkerLease("unmanaged", coordinationService, this, new LeaseHolder(1));
+            return new DefaultWorkerLease("unmanaged lease", coordinationService, this, new LeaseHolder(1));
         }
     }
 
     private class DefaultWorkerLease extends DefaultLease implements WorkerLeaseCompletion, WorkerLease {
         public DefaultWorkerLease(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, LeaseHolder parent) {
-            super(displayName, coordinationService, owner, parent, Kind.WORKER);
+            super(displayName, coordinationService, owner, parent);
         }
 
         @Override
