@@ -19,6 +19,8 @@ package org.gradle.internal.deprecation;
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.DocumentationRegistry;
 
+import javax.annotation.Nullable;
+
 public abstract class Documentation {
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
@@ -40,8 +42,10 @@ public abstract class Documentation {
         return new DslReference(targetClass, property);
     }
 
+    @Nullable
     abstract String documentationUrl();
 
+    @Nullable
     public String consultDocumentationMessage() {
         return String.format("See %s for more details.", documentationUrl());
     }
@@ -66,7 +70,7 @@ public abstract class Documentation {
         private final String id;
         private final String section;
 
-        private UserGuide(String id, String section) {
+        private UserGuide(String id, @Nullable String section) {
             this.id = Preconditions.checkNotNull(id);
             this.section = section;
         }
