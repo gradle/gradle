@@ -16,9 +16,8 @@
 
 package org.gradle.smoketests
 
+import org.gradle.internal.reflect.validation.Severity
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-
-import static org.gradle.internal.reflect.validation.Severity.ERROR
 
 class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
@@ -45,7 +44,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
             (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.7.0'),
             (SAFEARGS_PLUGIN_ID): Versions.of('2.5.1'),
             (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.43.2'),
-            (SENTRY_PLUGIN_ID): Versions.of('1.7.36'),
+            (SENTRY_PLUGIN_ID): Versions.of('3.1.4'),
         ]
     }
 
@@ -61,8 +60,10 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
                         it !in [SENTRY_PLUGIN_ID]
                     }
                     onPlugins([SENTRY_PLUGIN_ID]) {
+                        // https://github.com/getsentry/sentry-android-gradle-plugin/issues/370
                         failsWith([
-                            (missingAnnotationMessage { type('io.sentry.android.gradle.SentryProguardConfigTask').property('applicationVariant').missingInputOrOutput().includeLink() }): ERROR,
+                            (incorrectUseOfInputAnnotation { type('io.sentry.android.gradle.tasks.SentryUploadNativeSymbolsTask').property('buildDir').propertyType('DirectoryProperty').includeLink() }): Severity.ERROR,
+                            (incorrectUseOfInputAnnotation { type('io.sentry.android.gradle.tasks.SentryUploadProguardMappingsTask').property('uuidDirectory').propertyType('DirectoryProperty').includeLink() }): Severity.ERROR
                         ])
                     }
                     break
@@ -147,8 +148,8 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
             case DAGGER_HILT_ANDROID_PLUGIN_ID:
                 buildFile << """
                     dependencies {
-                        implementation "com.google.dagger:hilt-android:2.38.1"
-                        implementation "com.google.dagger:hilt-compiler:2.38.1"
+                        implementation "com.google.dagger:hilt-android:2.43.2"
+                        implementation "com.google.dagger:hilt-compiler:2.43.2"
                     }
                 """
                 break

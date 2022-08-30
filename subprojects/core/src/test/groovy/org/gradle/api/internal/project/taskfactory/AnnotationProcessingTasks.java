@@ -34,7 +34,6 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.work.InputChanges;
 
 import javax.annotation.Nullable;
@@ -121,50 +120,6 @@ public class AnnotationProcessingTasks {
         public void doStuff() {}
     }
 
-    public static class TaskWithIncrementalAction extends DefaultTask {
-        private final Action<IncrementalTaskInputs> action;
-
-        public TaskWithIncrementalAction(Action<IncrementalTaskInputs> action) {
-            this.action = action;
-        }
-
-        @TaskAction
-        public void doStuff(IncrementalTaskInputs changes) {
-            action.execute(changes);
-        }
-
-        @Optional
-        @OutputFile
-        @Nullable
-        public File getOutputFile() {
-            return null;
-        }
-    }
-
-    @SuppressWarnings("GrDeprecatedAPIUsage")
-    public static class TaskWithOverriddenIncrementalAction extends TaskWithIncrementalAction {
-        private final Action<IncrementalTaskInputs> action;
-
-        public TaskWithOverriddenIncrementalAction(Action<IncrementalTaskInputs> action, Action<IncrementalTaskInputs> superAction) {
-            super(superAction);
-            this.action = action;
-        }
-
-        @Override
-        @TaskAction
-        public void doStuff(IncrementalTaskInputs changes) {
-            action.execute(changes);
-        }
-    }
-
-    public static class TaskWithOverloadedActions extends DefaultTask {
-        @TaskAction
-        public void doStuff() {}
-
-        @TaskAction
-        public void doStuff(IncrementalTaskInputs changes) {}
-    }
-
     public static class TaskUsingInputChanges extends DefaultTask {
         private final Action<InputChanges> action;
 
@@ -211,91 +166,12 @@ public class AnnotationProcessingTasks {
         }
     }
 
-    public static class TaskWithMultipleIncrementalActions extends DefaultTask {
-
-        @TaskAction
-        public void doStuff(IncrementalTaskInputs changes) {
-        }
-
-        @TaskAction
-        public void doStuff2(IncrementalTaskInputs changes) {
-        }
-    }
-
-    public static class TaskWithMixedMultipleIncrementalActions extends DefaultTask {
-
-        @TaskAction
-        public void doStuff(IncrementalTaskInputs changes) {
-        }
-
-        @TaskAction
-        public void doStuff2(InputChanges changes) {
-        }
-    }
-
     public static class TaskWithOverloadedInputChangesActions extends DefaultTask {
         @TaskAction
         public void doStuff() {}
 
         @TaskAction
         public void doStuff(InputChanges changes) {}
-    }
-
-    public static class TaskWithOverloadedIncrementalAndInputChangesActions extends DefaultTask {
-        @TaskAction
-        public void doStuff(IncrementalTaskInputs changes) {}
-
-        @TaskAction
-        public void doStuff(InputChanges changes) {}
-    }
-
-    public static class TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions extends DefaultTask {
-        private final Action<Object> changesAction;
-
-        public TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions(Action<Object> changesAction) {
-            this.changesAction = changesAction;
-        }
-
-        @TaskAction
-        @Deprecated
-        public void doStuff(IncrementalTaskInputs changes) {
-            changesAction.execute(changes);
-            doStuff((InputChanges) changes);
-        }
-
-        @TaskAction
-        public void doStuff(InputChanges changes) {
-            changesAction.execute(changes);
-        }
-
-        @Optional
-        @OutputDirectory
-        @Nullable
-        public File getOutputDirectory() {
-            return null;
-        }
-    }
-
-    public static class TaskOverridingDeprecatedIncrementalChangesActions extends TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions {
-        public TaskOverridingDeprecatedIncrementalChangesActions(Action<Object> changesAction) {
-            super(changesAction);
-        }
-
-        @Override
-        public void doStuff(IncrementalTaskInputs changes) {
-            super.doStuff(changes);
-        }
-    }
-
-    public static class TaskOverridingInputChangesActions extends TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions {
-        public TaskOverridingInputChangesActions(Action<Object> changesAction) {
-            super(changesAction);
-        }
-
-        @Override
-        public void doStuff(InputChanges changes) {
-            super.doStuff(changes);
-        }
     }
 
     public static class TaskWithSingleParamAction extends DefaultTask {
