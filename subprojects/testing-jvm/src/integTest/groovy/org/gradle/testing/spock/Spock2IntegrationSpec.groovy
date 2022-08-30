@@ -30,6 +30,12 @@ class Spock2IntegrationSpec extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation("org.spockframework:spock-core:$SPOCK_VERSION")
+
+                constraints {
+                    implementation("org.codehaus.groovy:groovy:${GroovySystem.version}") {
+                        because("needs to support the same JDKs as Gradle")
+                    }
+                }
             }
             test {
                 useJUnitPlatform()
