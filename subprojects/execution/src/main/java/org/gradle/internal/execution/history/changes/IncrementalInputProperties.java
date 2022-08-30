@@ -42,21 +42,4 @@ public interface IncrementalInputProperties {
             return InputFileChanges.EMPTY;
         }
     };
-
-    IncrementalInputProperties ALL = new IncrementalInputProperties() {
-        @Override
-        public String getPropertyNameFor(Object value) {
-            throw new InvalidUserDataException("Cannot query incremental changes for property " + value + ": Requires using 'InputChanges'.");
-        }
-
-        @Override
-        public InputFileChanges nonIncrementalChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
-            return InputFileChanges.EMPTY;
-        }
-
-        @Override
-        public InputFileChanges incrementalChanges(ImmutableSortedMap<String, FileCollectionFingerprint> previous, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> current) {
-            return new DefaultInputFileChanges(previous, current);
-        }
-    };
 }
