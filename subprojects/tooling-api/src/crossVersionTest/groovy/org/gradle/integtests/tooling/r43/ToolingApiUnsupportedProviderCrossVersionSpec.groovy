@@ -53,7 +53,7 @@ class ToolingApiUnsupportedProviderCrossVersionSpec extends ToolingApiVersionSpe
     }
 
     @TargetGradleVersion("<2.6")
-    def "fail in test execution execution for <2.6 providers"() {
+    def "fail in test execution for <2.6 providers"() {
         when:
         testExecution()
 

@@ -140,7 +140,7 @@ class ConfigurationCacheState(
     fun calculateRootTaskGraph(state: CachedBuildState, graph: BuildTreeWorkGraph) {
         graph.scheduleWork { builder ->
             builder.withWorkGraph(state.build.state) {
-                it.addNodes(state.workGraph)
+                it.setScheduledNodes(state.workGraph)
             }
             for (child in state.children) {
                 addNodesForChildBuilds(child, builder)
@@ -151,7 +151,7 @@ class ConfigurationCacheState(
     private
     fun addNodesForChildBuilds(state: CachedBuildState, builder: BuildTreeWorkGraph.Builder) {
         builder.withWorkGraph(state.build.state) {
-            it.addNodes(state.workGraph)
+            it.setScheduledNodes(state.workGraph)
         }
         for (child in state.children) {
             addNodesForChildBuilds(child, builder)

@@ -16,7 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -45,6 +44,7 @@ public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
     private final WorkValidationContext validationContext;
     private final ResolveMutationsNode resolveMutationsNode;
+    private boolean hasVisitedMutationsNode;
     private Set<Node> lifecycleSuccessors;
 
     private boolean isolated;
@@ -114,12 +114,10 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    public void prepareForExecution(Action<Node> monitor) {
-        ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
-    }
-
-    @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
+        // Make sure it has been configured
+        ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
+
         for (Node targetNode : getDependencies(dependencyResolver)) {
             addDependencySuccessor(targetNode);
         }
@@ -191,8 +189,16 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
+    public boolean hasPendingPreExecutionNodes() {
+        return !hasVisitedMutationsNode;
+    }
+
+    @Override
     public void visitPreExecutionNodes(Consumer<? super Node> visitor) {
-        visitor.accept(resolveMutationsNode);
+        if (!hasVisitedMutationsNode) {
+            visitor.accept(resolveMutationsNode);
+            hasVisitedMutationsNode = true;
+        }
     }
 
     public Node getPrepareNode() {
@@ -210,7 +216,7 @@ public class LocalTaskNode extends TaskNode {
     @Override
     public void cancelExecution(Consumer<Node> completionAction) {
         super.cancelExecution(completionAction);
-        if (!resolveMutationsNode.isComplete()) {
+        if (!resolveMutationsNode.isComplete() && !resolveMutationsNode.isExecuting()) {
             resolveMutationsNode.cancelExecution(completionAction);
         }
     }

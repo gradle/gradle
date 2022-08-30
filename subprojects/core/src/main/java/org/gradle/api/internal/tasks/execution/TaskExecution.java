@@ -27,8 +27,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
-import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
-import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
+import org.gradle.api.internal.project.taskfactory.IncrementalTaskAction;
 import org.gradle.api.internal.tasks.DefaultTaskValidationContext;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
@@ -45,8 +44,7 @@ import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.Sync;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.deprecation.DeprecationMessageBuilder;
+import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -362,23 +360,23 @@ public class TaskExecution implements UnitOfWork {
         }
         LOGGER.info("Cannot access {} property '{}' of {}", propertyType, propertyName, getDisplayName(), cause);
         boolean isDestinationDir = propertyName.equals("destinationDir");
-        DeprecationMessageBuilder<?> builder;
+        DocumentedFailure.Builder builder = DocumentedFailure.builder();
         if (isDestinationDir && task instanceof Copy) {
-            builder = DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Copying to a directory which contains unreadable content")
+            builder.withSummary("Cannot access a file in the destination directory (see --info log for details).")
+                .withContext("Copying to a directory which contains unreadable content is not supported.")
                 .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
         } else if (isDestinationDir && task instanceof Sync) {
-            builder = DeprecationLogger.deprecateAction("Cannot access a file in the destination directory (see --info log for details). Syncing to a directory which contains unreadable content")
+            builder.withSummary("Cannot access a file in the destination directory (see --info log for details).")
+                .withContext("Syncing to a directory which contains unreadable content is not supported.")
                 .withAdvice("Use a Copy task with Task.doNotTrackState() instead.");
         } else {
-            builder = DeprecationLogger.deprecateAction(String.format("Cannot access %s property '%s' of %s (see --info log for details). Accessing unreadable inputs or outputs",
+            builder.withSummary(String.format("Cannot access %s property '%s' of %s (see --info log for details).",
                     propertyType, propertyName, getDisplayName()))
+                .withContext("Accessing unreadable inputs or outputs is not supported.")
                 .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
-
         }
-        builder
-            .willBecomeAnErrorInGradle8()
-            .withUpgradeGuideSection(7, "declare_unreadable_input_output")
-            .nagUser();
+        throw builder.withUserManual("more_about_tasks", "disable-state-tracking")
+            .build();
     }
 
     @Override
@@ -420,11 +418,8 @@ public class TaskExecution implements UnitOfWork {
     @Override
     public InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
         for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
-            if (taskAction instanceof IncrementalInputsTaskAction) {
+            if (taskAction instanceof IncrementalTaskAction) {
                 return InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS;
-            }
-            if (taskAction instanceof IncrementalTaskInputsTaskAction) {
-                return InputChangeTrackingStrategy.ALL_PARAMETERS;
             }
         }
         return InputChangeTrackingStrategy.NONE;

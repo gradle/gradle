@@ -151,7 +151,7 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
     ExecutionTimeValue<? extends T> calculateExecutionTimeValue();
 
     default <U, R> Provider<R> zip(Provider<U> right, BiFunction<? super T, ? super U, ? extends R> combiner) {
-        return new BiProvider<>(this, right, combiner);
+        return new BiProvider<>(null, this, right, combiner);
     }
 
     /**

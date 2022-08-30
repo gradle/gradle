@@ -59,7 +59,24 @@ For more information, see <<tar_tree_no_backing_file>>.
 The legacy `ArtifactTransform` API has been removed.
 For more information, see <<old_artifact_transforms_api>>.
 
+==== Legacy IncrementalTaskInputs API
+
+The legacy `IncrementalTaskInputs` API has been removed. For more information, see <<incremental_task_inputs_deprecation>>. This change also affects Kotlin Gradle Plugin and Android Gradle Plugin. With Gradle 8.0 you should use Kotlin Gradle Plugin 1.6.10 or later and Android Gradle Plugin 7.3.0 with `android.experimental.legacyTransform.forceNonIncremental=true` property or later.
+
 === Potential breaking changes
+
+==== Minimal supported Kotlin Gradle Plugin version changed
+Gradle 7.x supports Kotlin Gradle Plugin 1.3.72 and above. Kotlin Gradle Plugin versions above 1.6.21 are not tested with Gradle 7.x.
+Gradle 8.x supports Kotlin Gradle Plugin 1.6.10 and above.
+You can use a lower Kotlin language version by modifying the language version and api version setting in the Kotlin `compile` task.
+
+==== Minimal supported Android Gradle Plugin version changed
+Gradle 7.x supports Android Gradle Plugin (AGP) 4.1 and above. AGP versions above 7.3 are not tested with Gradle 7.x.
+Gradle 8.x supports AGP 8 and above.
+Gradle 8.x supports AGP 7.3 and above if you configure the following property:
+```
+android.experimental.legacyTransform.forceNonIncremental=true
+```
 
 ==== Change to `AntBuilder` parent class
 
@@ -83,6 +100,7 @@ Those warnings are now errors in Gradle 8.0 and will fail the build.
 Warnings which became errors:
 
 - An input file collection which can't be resolved.
+- Using an input with an unknown implementation. See <<validation_problems.adoc#implementation_unknown,Cannot use an input with an unknown implementation>>.
 
 ==== Gradle does not ignore empty directories for file-trees with `@SkipWhenEmpty`
 

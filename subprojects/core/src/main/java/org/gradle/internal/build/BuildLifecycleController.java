@@ -133,8 +133,8 @@ public interface BuildLifecycleController {
         void addEntryTasks(List<? extends Task> tasks);
 
         /**
-         * Adds the given nodes to the work graph for this build.
+         * Sets the set of scheduled node to the work graph for this build. Short-circuits dependency discovery and any sorting. Nodes must be restored in the same order they were scheduled.
          */
-        void addNodes(List<? extends Node> nodes);
+        void setScheduledNodes(List<? extends Node> nodes);
     }
 }
