@@ -132,7 +132,7 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
                 try {
                     unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
                 } catch (OutputFileSnapshottingException e) {
-                    throw work.handleUnreadableOutputs(e);
+                    throw work.decorateOutputFileSnapshottingException(e);
                 }
 
                 try {
@@ -142,7 +142,7 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
                 } catch (InputFileFingerprintingException e) {
                     // Note that we let InputFingerprintException fall through as we've already
                     // been failing for non-file value fingerprinting problems even for tasks
-                    throw work.handleUnreadableInputs(e);
+                    throw work.decorateInputFileFingerprintingException(e);
                 }
             },
             BuildOperationDescriptor

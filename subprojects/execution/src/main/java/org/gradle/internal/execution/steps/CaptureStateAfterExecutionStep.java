@@ -144,7 +144,7 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
                     operationContext.setResult(Operation.Result.INSTANCE);
                     return afterExecutionState;
                 } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
-                    throw work.handleUnreadableOutputs(e);
+                    throw work.decorateOutputFileSnapshottingException(e);
                 }
             },
             BuildOperationDescriptor

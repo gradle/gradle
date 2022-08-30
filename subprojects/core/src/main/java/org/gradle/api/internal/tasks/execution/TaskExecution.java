@@ -345,16 +345,16 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public RuntimeException handleUnreadableInputs(InputFingerprinter.InputFileFingerprintingException ex) {
-        return nagUserAboutUnreadableInputsOrOutputs("input", ex.getPropertyName(), ex.getCause());
+    public RuntimeException decorateInputFileFingerprintingException(InputFingerprinter.InputFileFingerprintingException ex) {
+        throw decorateSnapshottingException("input", ex.getPropertyName(), ex.getCause());
     }
 
     @Override
-    public RuntimeException handleUnreadableOutputs(OutputSnapshotter.OutputFileSnapshottingException ex) {
-        return nagUserAboutUnreadableInputsOrOutputs("output", ex.getPropertyName(), ex.getCause());
+    public RuntimeException decorateOutputFileSnapshottingException(OutputSnapshotter.OutputFileSnapshottingException ex) {
+        throw decorateSnapshottingException("output", ex.getPropertyName(), ex.getCause());
     }
 
-    private RuntimeException nagUserAboutUnreadableInputsOrOutputs(String propertyType, String propertyName, Throwable cause) {
+    private RuntimeException decorateSnapshottingException(String propertyType, String propertyName, Throwable cause) {
         if (!(cause instanceof UncheckedIOException || cause instanceof org.gradle.api.UncheckedIOException)) {
             throw UncheckedException.throwAsUncheckedException(cause);
         }
