@@ -759,7 +759,6 @@
       <component group="io.github.detekt.sarif4k" name="sarif4k" version="0.0.1">
          <artifact name="sarif4k-0.0.1.jar">
             <pgp value="8569c95cadc508b09fe90f3002216ed811210daa"/>
-            <sha256 value="41ec72cf2521783224581c76aaa7e97d4a50f396a66d642500ff4777b395a376" origin="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.7.6">
@@ -770,11 +769,6 @@
       <component group="io.github.microutils" name="kotlin-logging-jvm" version="2.1.21">
          <artifact name="kotlin-logging-jvm-2.1.21.jar">
             <pgp value="47eb6836245d2d40e89dfb4136d4e9618f3adab5"/>
-         </artifact>
-      </component>
-      <component group="io.grpc" name="grpc-context" version="1.19.0">
-         <artifact name="grpc-context-1.19.0.jar">
-            <pgp value="b02335aa54ccf21e52bbf9abd9c565aa72ba2fdd"/>
          </artifact>
       </component>
       <component group="io.netty" name="netty-all" version="4.1.63.Final">
