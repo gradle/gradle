@@ -58,9 +58,7 @@ class IncubatingInternalInterfaceAddedRule extends AbstractSuperClassChangesRule
     private void collect(Map<String, CtClass> result, CtClass c) {
         c.interfaces.each { result.put(it.name, it) }
 
-        // Only check Gradle-related superclasses since those are the only ones that can be internal/incubating
-        def superclassName = c.classFile.superclass
-        if (superclassName != null && superclassName.startsWith('org.gradle') && c.superclass != null) {
+        if (c.superclass != null) {
             collect(result, c.superclass)
         }
     }
