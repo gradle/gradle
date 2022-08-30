@@ -1260,41 +1260,6 @@ task b(dependsOn: a)
         skipped(':taskWithInputs')
     }
 
-    @Issue('https://github.com/gradle/gradle/issues/1224')
-    def 'can change input properties dynamically'() {
-        given:
-        file('inputDir1').createDir()
-        file('inputDir2').createDir()
-        buildFile << '''
-    class MyTask extends DefaultTask {
-        @TaskAction
-        void processFiles(IncrementalTaskInputs inputs) {
-            inputs.outOfDate { }
-        }
-    }
-
-    task myTask (type: MyTask){
-        project.ext.inputDirs.split(',').each { inputs.dir(it) }
-        outputs.upToDateWhen { true }
-    }
-'''
-
-        when:
-        args('-PinputDirs=inputDir1,inputDir2')
-
-        then:
-        executer.beforeExecute {
-            expectDocumentedDeprecationWarning """IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method 'MyTask.processFiles' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"""
-        }
-        succeeds('myTask')
-
-        when:
-        args('-PinputDirs=inputDir1')
-
-        then:
-        succeeds('myTask')
-    }
-
     @ToBeImplemented("Private getters should be ignored")
     @ValidationTestFor(
         ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
