@@ -92,6 +92,9 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
                             username "user"
                             password "password"
                         }
+                        authentication {
+                            digest(BasicAuthentication)
+                        }
                     }
                 }
             }
