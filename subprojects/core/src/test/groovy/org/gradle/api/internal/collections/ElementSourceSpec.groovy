@@ -22,9 +22,10 @@ import org.gradle.api.internal.provider.ChangingValue
 import org.gradle.api.internal.provider.ChangingValueHandler
 import org.gradle.api.internal.provider.CollectionProviderInternal
 import org.gradle.api.internal.provider.ProviderInternal
-import spock.lang.Specification
 
-abstract class AbstractElementSourceTest extends Specification {
+abstract class ElementSourceSpec extends PendingSourceSpec {
+
+    @Override
     abstract ElementSource<CharSequence> getSource()
 
     abstract List<CharSequence> iterationOrder(CharSequence... values)

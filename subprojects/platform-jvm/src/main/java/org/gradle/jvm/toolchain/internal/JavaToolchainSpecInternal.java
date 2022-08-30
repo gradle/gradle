@@ -18,8 +18,21 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
-public interface ToolchainSpecInternal extends JavaToolchainSpec {
+public interface JavaToolchainSpecInternal extends JavaToolchainSpec {
 
+    /**
+     * A spec is considered configured when at least {@link #getLanguageVersion() language version} is set.
+     * <p>
+     * A spec that is not configured always directly matches the toolchain of the current JVM.
+     */
     boolean isConfigured();
+
+    /**
+     * A spec is valid when {@link #getLanguageVersion() language version} is set (along with any other properties)
+     * or when no properties are set.
+     * <p>
+     * A {@link #isConfigured() non-configured} spec is always valid.
+     */
+    boolean isValid();
 
 }

@@ -19,7 +19,6 @@ package gradlebuild.cleanup.services;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -60,23 +59,34 @@ public class KillLeakingJavaProcesses {
     }
 
     public static void main(String[] args) {
-        cleanPsOutputFilesFromPreviousRun(args);
+        File rootProjectDir = new File(System.getProperty("user.dir"));
 
-        forEachLeakingJavaProcess(new File(System.getProperty("user.dir")), pid -> {
+        cleanPsOutputFilesFromPreviousRun(rootProjectDir, args);
+
+        List<String> psOutput = ps(rootProjectDir);
+
+        writePsOutputToFile(rootProjectDir, psOutput);
+
+        forEachLeakingJavaProcess(psOutput, rootProjectDir, pid -> {
             System.out.println("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID " + pid);
             pkill(pid);
         });
     }
 
-    private static void cleanPsOutputFilesFromPreviousRun(String[] args) {
-        File rootProjectDir = new File(System.getProperty("user.dir"));
+    private static void writePsOutputToFile(File rootProjectDir, List<String> psOutput) {
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"));
+        File psOutFile = new File(rootProjectDir, timestamp + ".psoutput");
+
+        try {
+            Files.write(psOutFile.toPath(), psOutput);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void cleanPsOutputFilesFromPreviousRun(File rootProjectDir, String[] args) {
         if (args.length > 1 && "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS".equals(args[0])) {
-            File[] psOutputs = rootProjectDir.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.endsWith(".psoutput");
-                }
-            });
+            File[] psOutputs = rootProjectDir.listFiles((__, name) -> name.endsWith(".psoutput"));
             if (psOutputs != null) {
                 Stream.of(psOutputs).forEach(File::delete);
             }
@@ -91,10 +101,14 @@ public class KillLeakingJavaProcesses {
     }
 
     static void forEachLeakingJavaProcess(File rootProjectDir, Consumer<String> action) {
+        forEachLeakingJavaProcess(ps(rootProjectDir), rootProjectDir, action);
+    }
+
+    private static void forEachLeakingJavaProcess(List<String> psOutput, File rootProjectDir, Consumer<String> action) {
         Pattern commandLineArgsPattern = Pattern.compile(generateLeakingProcessKillPattern(rootProjectDir.getPath()));
         Pattern pidPattern = isWindows() ? WINDOWS_PID_PATTERN : UNIX_PID_PATTERN;
 
-        ps(rootProjectDir).forEach(line -> {
+        psOutput.forEach(line -> {
             Matcher commandLineArgsMatcher = commandLineArgsPattern.matcher(line);
             Matcher pidMatcher = pidPattern.matcher(line);
             if (commandLineArgsMatcher.find() && pidMatcher.find()) {
@@ -107,18 +121,7 @@ public class KillLeakingJavaProcesses {
     }
 
     private static List<String> ps(File rootProjectDir) {
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"));
-        File psOutFile = new File(rootProjectDir, timestamp + ".psoutput");
-
-        ExecResult result = run(determinePsCommand()).assertZeroExit();
-
-        List<String> lines = result.stdout.lines().collect(Collectors.toList());
-        try {
-            Files.write(psOutFile.toPath(), lines);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return lines;
+        return run(determinePsCommand()).assertZeroExit().stdout.lines().collect(Collectors.toList());
     }
 
     private static String[] determinePsCommand() {

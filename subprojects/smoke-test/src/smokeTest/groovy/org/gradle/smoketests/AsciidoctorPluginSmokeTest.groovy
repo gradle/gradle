@@ -84,7 +84,6 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         }
 
         void expectAsciiDocDeprecationWarnings() {
-            runner.expectDeprecationWarning(getFileTreeForEmptySourcesDeprecationForProperty("sourceFileTree"), "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/629")
             runner.expectDeprecationWarning("The JavaExecSpec.main property has been deprecated." +
                     " This is scheduled to be removed in Gradle 9.0." +
                     " Please use the mainClass property instead." +

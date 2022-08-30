@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
@@ -37,6 +38,9 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
 
         then:
         execute(buildA, 'help')
+
+        and:
+        canRunFromCache(buildA, 'help')
     }
 
     def "included build can include root build"() {
@@ -46,6 +50,9 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
 
         then:
         execute(buildA, 'help')
+
+        and:
+        canRunFromCache(buildA, 'help')
     }
 
     def "nested build can include root build"() {
@@ -55,6 +62,9 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
 
         then:
         execute(buildA, 'help')
+
+        and:
+        canRunFromCache(buildA, 'help')
     }
 
     def "included build can see included root build"() {
@@ -69,6 +79,9 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
 
         then:
         execute(buildA, 'help')
+
+        and:
+        canRunFromCache(buildA, 'help')
     }
 
     def "the root build cannot be renamed"() {
@@ -83,6 +96,9 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
 
         then:
         execute(buildA, 'help')
+
+        and:
+        canRunFromCache(buildA, 'help')
     }
 
     def "included root build is only configured one time"() {
@@ -122,7 +138,10 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         execute(buildA, 'task1')
 
         then:
-        result.assertTasksExecuted(':task3',':buildB:task2', ':task1')
+        result.assertTasksExecuted(':task3', ':buildB:task2', ':task1')
+
+        and:
+        canRunFromCache(buildA, 'task1')
     }
 
     def "can indirectly depend on root build task"() {
@@ -150,7 +169,10 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         execute(buildA, 'task1')
 
         then:
-        result.assertTasksExecuted(':task4',':buildB:task3' ,':buildB:task2', ':task1')
+        result.assertTasksExecuted(':task4', ':buildB:task3', ':buildB:task2', ':task1')
+
+        and:
+        canRunFromCache(buildA, 'task1')
     }
 
     def "can depend back on root build"() {
@@ -181,6 +203,9 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
 
         then:
         result.assertTasksExecuted(':root2:compileJava', ':buildA:compileJava', ':root1:compileJava')
+
+        and:
+        canRunFromCache(rootBuild, ':root1:compileJava')
     }
 
     def "can depend back on root build and back on an included build"() {
@@ -222,5 +247,16 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
 
         then:
         result.assertTasksExecuted(':x3:compileJava', ':buildB:compileJava', ':root2:compileJava', ':buildA:compileJava', ':root1:compileJava')
+
+        and:
+        canRunFromCache(rootBuild, ':root1:compileJava')
+    }
+
+    void canRunFromCache(BuildTestFile build, String task) {
+        if (GradleContextualExecuter.configCache) {
+            succeeds(build, task).assertHasPostBuildOutput(
+                'Configuration cache entry reused.'
+            )
+        }
     }
 }

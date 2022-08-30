@@ -235,8 +235,8 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
     private Provider<JavaCompiler> getCompilerTool() {
         JavaToolchainSpec explicitToolchain = determineExplicitToolchain();
-        if(explicitToolchain == null) {
-            if(javaCompiler.isPresent()) {
+        if (explicitToolchain == null) {
+            if (javaCompiler.isPresent()) {
                 return this.javaCompiler;
             } else {
                 explicitToolchain = new CurrentJvmToolchainSpec(objectFactory);
@@ -254,7 +254,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
             final String customExecutable = getOptions().getForkOptions().getExecutable();
             if (customExecutable != null) {
                 final File executable = new File(customExecutable);
-                if(executable.exists()) {
+                if (executable.exists()) {
                     return new SpecificInstallationToolchainSpec(objectFactory, executable.getParentFile().getParentFile());
                 }
             }

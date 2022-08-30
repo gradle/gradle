@@ -57,7 +57,6 @@ import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
 import org.gradle.execution.TaskSelector;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
-import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.LocalTaskNodeExecutor;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
@@ -139,10 +138,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectFinder(gradle::getRootProject);
     }
 
-    LocalTaskNodeExecutor createLocalTaskNodeExecutor(ExecutionNodeAccessHierarchies executionNodeAccessHierarchies) {
-        return new LocalTaskNodeExecutor(
-            executionNodeAccessHierarchies.getOutputHierarchy()
-        );
+    LocalTaskNodeExecutor createLocalTaskNodeExecutor() {
+        return new LocalTaskNodeExecutor();
     }
 
     WorkNodeExecutor createWorkNodeExecutor() {

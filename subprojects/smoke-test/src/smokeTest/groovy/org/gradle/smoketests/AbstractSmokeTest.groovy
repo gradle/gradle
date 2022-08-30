@@ -61,7 +61,7 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaDependencyRecommender = "11.0.0"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "16.0.1"
+        static nebulaPluginPlugin = "17.0.1"
 
         // https://plugins.gradle.org/plugin/nebula.lint
         static nebulaLint = "17.2.3"
@@ -84,7 +84,7 @@ abstract class AbstractSmokeTest extends Specification {
         static asciidoctor = Versions.of("3.3.2")
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
-        static spotbugs = "5.0.6"
+        static spotbugs = "5.0.10"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
         static docker = "7.1.0"
@@ -93,10 +93,10 @@ abstract class AbstractSmokeTest extends Specification {
         static tomcat = "2.7.0"
 
         // https://plugins.gradle.org/plugin/io.spring.dependency-management
-        static springDependencyManagement = "1.0.11.RELEASE"
+        static springDependencyManagement = "1.0.13.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "2.5.5"
+        static springBoot = "2.7.3"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "30.0.2"
@@ -170,7 +170,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0", "1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.20-Beta")
+        static kotlinPlugins = Versions.of("1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.20-Beta")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp
@@ -210,6 +210,22 @@ abstract class AbstractSmokeTest extends Specification {
                 !version.containsIgnoreCase("beta") &&
                 !version.containsIgnoreCase("alpha") &&
                 !version.containsIgnoreCase("milestone")
+            }
+        }
+
+        /**
+         * Since Android 7.3.0 is not yet stable we have to use that.
+         * One stable version is released we should remove this.
+         */
+        String latestStableOrRc() {
+            def stableVersion = latestStable()
+            if (stableVersion != null) {
+                return stableVersion
+            }
+            return versions.reverse().find { version ->
+                    !version.containsIgnoreCase("beta") &&
+                    !version.containsIgnoreCase("alpha") &&
+                    !version.containsIgnoreCase("milestone")
             }
         }
 

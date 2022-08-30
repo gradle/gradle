@@ -41,6 +41,7 @@ import org.gradle.execution.plan.DefaultExecutionPlan
 import org.gradle.execution.plan.DefaultPlanExecutor
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies
 import org.gradle.execution.plan.ExecutionPlan
+import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeValidator
 import org.gradle.execution.plan.OrdinalGroupFactory
@@ -67,6 +68,7 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseService
+import org.gradle.test.fixtures.Flaky
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.RedirectStdOutAndErr
@@ -94,7 +96,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "does nothing when nothing scheduled"() {
         when:
-        def result = scheduleAndRun(new Services(manyWorkers)) {
+        def result = scheduleAndRun(new TreeServices(manyWorkers)) {
             // Nothing
         }
 
@@ -103,7 +105,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     }
 
     def "runs scheduled work"() {
-        def services = new Services(workers)
+        def services = new TreeServices(workers)
         def build = build(services, DefaultBuildIdentifier.ROOT)
         def node = new TestNode()
 
@@ -116,15 +118,16 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         then:
-        node.executed
         result.failures.empty
+        node.executed
 
         where:
         workers << [1, manyWorkers]
     }
 
-    def "runs scheduled work across multiple builds"() {
-        def services = new Services(workers)
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3567")
+    def "runs scheduled unrelated work across multiple builds"() {
+        def services = new TreeServices(workers)
         def childBuild = build(services, new DefaultBuildIdentifier("child"))
         def build = build(services, DefaultBuildIdentifier.ROOT)
         def childNode = new TestNode("child build node")
@@ -143,16 +146,16 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         then:
+        result.failures.empty
         childNode.executed
         node.executed
-        result.failures.empty
 
         where:
         workers << [1, manyWorkers]
     }
 
     def "fails when no further nodes can be selected"() {
-        def services = new Services(manyWorkers)
+        def services = new TreeServices(manyWorkers)
         def build = build(services, DefaultBuildIdentifier.ROOT)
         def node = new DependenciesStuckNode()
 
@@ -177,7 +180,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     }
 
     def "fails when no further nodes can be selected across multiple builds"() {
-        def services = new Services(manyWorkers)
+        def services = new TreeServices(manyWorkers)
         def childBuild = build(services, new DefaultBuildIdentifier("child"))
         def build = build(services, DefaultBuildIdentifier.ROOT)
         def node = new DependenciesStuckNode("main build node")
@@ -212,7 +215,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         stdout.stdOut.contains("- :child:task (state=SHOULD_RUN")
     }
 
-    ExecutionResult<Void> scheduleAndRun(Services services, Action<BuildTreeWorkGraph.Builder> action) {
+    ExecutionResult<Void> scheduleAndRun(TreeServices services, Action<BuildTreeWorkGraph.Builder> action) {
         def result = null
         services.workerLeaseService.runAsWorkerThread {
             services.buildTaskGraph.withNewWorkGraph { graph ->
@@ -227,7 +230,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         return result
     }
 
-    BuildServices build(Services services, BuildIdentifier identifier) {
+    BuildServices build(TreeServices services, BuildIdentifier identifier) {
         def identityPath = Stub(Path)
         def gradle = Stub(GradleInternal) {
             getIdentityPath() >> identityPath
@@ -291,11 +294,12 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     private class TestBuildLifecycleController implements BuildLifecycleController {
         final ExecutionPlan plan
+        FinalizedExecutionPlan finalizedPlan
         final BuildWorkPlan workPlan
         final WorkGraphBuilder builder
-        final Services services
+        final TreeServices services
 
-        TestBuildLifecycleController(ExecutionPlan plan, BuildWorkPlan workPlan, WorkGraphBuilder builder, Services services) {
+        TestBuildLifecycleController(ExecutionPlan plan, BuildWorkPlan workPlan, WorkGraphBuilder builder, TreeServices services) {
             this.workPlan = workPlan
             this.plan = plan
             this.builder = builder
@@ -315,12 +319,12 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         @Override
         void finalizeWorkGraph(BuildWorkPlan workPlan) {
             plan.determineExecutionPlan()
-            plan.finalizePlan()
+            finalizedPlan = plan.finalizePlan()
         }
 
         @Override
         ExecutionResult<Void> executeTasks(BuildWorkPlan buildPlan) {
-            return services.planExecutor.process(plan.asWorkSource()) { node ->
+            return services.planExecutor.process(finalizedPlan.asWorkSource()) { node ->
                 if (node instanceof SelfExecutingNode) {
                     node.execute(null)
                 }
@@ -378,12 +382,12 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     }
 
     private class BuildServices {
-        final Services services
+        final TreeServices services
         final GradleInternal gradle
         final BuildState state
         final BuildIdentifier identifier
 
-        BuildServices(Services services, BuildIdentifier identifier, GradleInternal gradle) {
+        BuildServices(TreeServices services, BuildIdentifier identifier, GradleInternal gradle) {
             this.identifier = identifier
             this.services = services
             this.gradle = gradle
@@ -391,14 +395,14 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
     }
 
-    private class Services {
+    private class TreeServices {
         final PlanExecutor planExecutor
         final DefaultIncludedBuildTaskGraph buildTaskGraph
         final WorkerLeaseService workerLeaseService
         final ExecutorFactory execFactory
         final coordinationService = new DefaultResourceLockCoordinationService()
 
-        Services(int workers) {
+        TreeServices(int workers) {
             def configuration = new DefaultParallelismConfiguration(true, workers)
             workerLeaseService = new DefaultWorkerLeaseService(coordinationService, configuration)
             execFactory = new DefaultExecutorFactory()

@@ -218,15 +218,7 @@ public interface UnitOfWork extends Describable {
         /**
          * Only the incremental parameters should be tracked for input changes.
          */
-        INCREMENTAL_PARAMETERS(true),
-        /**
-         * All parameters are considered incremental.
-         *
-         * @deprecated Only used for {@code IncrementalTaskInputs}. Should be removed once {@code IncrementalTaskInputs} is gone.
-         */
-        @SuppressWarnings("DeprecatedIsStillUsed")
-        @Deprecated
-        ALL_PARAMETERS(true);
+        INCREMENTAL_PARAMETERS(true);
 
         private final boolean requiresInputChanges;
 

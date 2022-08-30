@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemLocationProperty;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -57,29 +56,15 @@ public abstract class SimpleReport implements ConfigurableReport {
     public abstract FileSystemLocationProperty<? extends FileSystemLocation> getOutputLocation();
 
     @Override
-    @Deprecated
-    public File getDestination() {
-        DeprecationLogger.deprecateProperty(Report.class, "destination")
-            .replaceWith("outputLocation")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        return getOutputLocation().getAsFile().getOrNull();
-    }
-
-    @Deprecated
-    @Override
     public void setDestination(File file) {
+        DeprecationLogger.deprecateProperty(Report.class, "destination")
+                .replaceWith("outputLocation")
+                .willBeRemovedInGradle9()
+                .withDslReference()
+                .nagUser();
+
         getOutputLocation().fileValue(file);
     }
-
-    @Override
-    @Deprecated
-    public void setDestination(Provider<File> provider) {
-        getOutputLocation().fileProvider(provider);
-    }
-
     @Override
     public OutputType getOutputType() {
         return outputType;
@@ -88,35 +73,5 @@ public abstract class SimpleReport implements ConfigurableReport {
     @Override
     public Report configure(Closure configure) {
         return ConfigureUtil.configureSelf(configure, this);
-    }
-
-    @Override
-    @Deprecated
-    public boolean isEnabled() {
-        DeprecationLogger.deprecateProperty(Report.class, "enabled")
-            .replaceWith("required")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        return getRequired().get();
-    }
-
-    @Override
-    @Deprecated
-    public void setEnabled(boolean enabled) {
-        DeprecationLogger.deprecateProperty(Report.class, "enabled")
-            .replaceWith("required")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        getRequired().set(enabled);
-    }
-
-    @Override
-    @Deprecated
-    public void setEnabled(Provider<Boolean> enabled) {
-        getRequired().set(enabled);
     }
 }

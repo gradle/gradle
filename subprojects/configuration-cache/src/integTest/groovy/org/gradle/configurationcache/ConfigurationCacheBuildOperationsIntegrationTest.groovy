@@ -73,7 +73,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         operations.all(ConfigurationCacheStoreBuildOperationType).empty
     }
 
-    def "emits single load/store build operations of each type per build-tree when configuration cache is used - included build build logic"() {
+    def "emits single load/store build operations of each type per build-tree when configuration cache is used - included build logic"() {
         given:
         withLibBuild(true)
         file('settings.gradle') << """

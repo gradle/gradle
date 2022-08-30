@@ -385,29 +385,6 @@ Please refer to https://docs.gradle.org/current/userguide/validation_problems.ht
     }
 
     @ValidationTestFor(
-        ValidationProblemId.UNRESOLVABLE_INPUT
-    )
-    def "tests output of unresolvableInput"() {
-        when:
-        render unresolvableInput {
-            type('Task').property("inputFiles")
-            conversionProblem("cannot convert butter into gold")
-            includeLink()
-        }
-
-        then:
-        outputEquals """
-Type 'Task' property 'inputFiles' cannot be resolved: cannot convert butter into gold.
-
-Reason: An input file collection couldn't be resolved, making it impossible to determine task inputs.
-
-Possible solution: Consider using Task.dependsOn instead.
-
-Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#unresolvable_input for more details about this problem.
-"""
-    }
-
-    @ValidationTestFor(
         ValidationProblemId.IMPLICIT_DEPENDENCY
     )
     def "tests output of implicitDependency"() {
