@@ -103,8 +103,7 @@ class ProblemReportingCrossProjectModelAccess(
     private val delegate: CrossProjectModelAccess,
     private val problems: ProblemsListener,
     private val coupledProjectsListener: CoupledProjectsListener,
-    private val userCodeContext: UserCodeApplicationContext,
-    private val gradleReferences: CrossProjectConfigurationReportingGradle.ConsistentReferencesFactory
+    private val userCodeContext: UserCodeApplicationContext
 ) : CrossProjectModelAccess {
     override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
         return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer)
@@ -123,7 +122,7 @@ class ProblemReportingCrossProjectModelAccess(
     }
 
     override fun gradleInstanceForProject(referrerProject: ProjectInternal, gradle: GradleInternal): GradleInternal {
-        return gradleReferences.instanceForProject(referrerProject, gradle)
+        return CrossProjectConfigurationReportingGradle.from(gradle, referrerProject)
     }
 
     private
@@ -131,7 +130,7 @@ class ProblemReportingCrossProjectModelAccess(
         return if (this == referrer) {
             this
         } else {
-            ProblemReportingProject(this, referrer, problems, coupledProjectsListener, userCodeContext, this@ProblemReportingCrossProjectModelAccess)
+            ProblemReportingProject(this, referrer, problems, coupledProjectsListener, userCodeContext)
         }
     }
 
@@ -141,14 +140,8 @@ class ProblemReportingCrossProjectModelAccess(
         val referrer: ProjectInternal,
         val problems: ProblemsListener,
         val coupledProjectsListener: CoupledProjectsListener,
-        val userCodeContext: UserCodeApplicationContext,
-        val crossProjectModelAccess: CrossProjectModelAccess
+        val userCodeContext: UserCodeApplicationContext
     ) : ProjectInternal, GroovyObjectSupport() {
-
-        init {
-            require(referrer !is ProblemReportingProject) { "A referrer should not be wrapped into a ProblemReportingProject" }
-            require(delegate !is ProblemReportingProject) { "A delegate should not be wrapped into a ProblemReportingProject" }
-        }
 
         override fun toString(): String {
             return delegate.toString()
@@ -901,7 +894,8 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getGradle(): GradleInternal {
-            return crossProjectModelAccess.gradleInstanceForProject(referrer, delegate.gradle)
+            onAccess()
+            return delegate.gradle
         }
 
         override fun getProjectEvaluationBroadcaster(): ProjectEvaluationListener {
