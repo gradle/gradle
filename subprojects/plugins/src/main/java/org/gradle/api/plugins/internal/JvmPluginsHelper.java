@@ -57,7 +57,6 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
@@ -169,43 +168,6 @@ public class JvmPluginsHelper {
                 }
             });
         }
-    }
-
-    /**
-     * @deprecated Use {@link #configureDocumentationVariantWithArtifact(String, String, String, List, String, Object, AdhocComponentWithVariants, ConfigurationContainer, TaskContainer, ObjectFactory, FileResolver)}
-     * instead. Passing {@code null} for the FileResolver will not be legal after this is removed, please provide one.
-     */
-    @Deprecated
-    public static void configureDocumentationVariantWithArtifact(
-        String variantName,
-        @Nullable String featureName,
-        String docsType,
-        List<Capability> capabilities,
-        String jarTaskName,
-        Object artifactSource,
-        @Nullable AdhocComponentWithVariants component,
-        ConfigurationContainer configurations,
-        TaskContainer tasks,
-        ObjectFactory objectFactory
-    ) {
-        DeprecationLogger.deprecateInternalApi("configureDocumentationVariantWithArtifact (no FileResolver)")
-            .replaceWith("configureDocumentationVariantWithArtifact (with FileResolver)")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
-            .nagUser();
-        configureDocumentationVariantWithArtifact(
-            variantName,
-            featureName,
-            docsType,
-            capabilities,
-            jarTaskName,
-            artifactSource,
-            component,
-            configurations,
-            tasks,
-            objectFactory,
-            null
-        );
     }
 
     public static void configureDocumentationVariantWithArtifact(

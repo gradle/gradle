@@ -27,22 +27,22 @@ class TestReportTest extends AbstractProjectBuilderSpec {
         def test3 = test("test3")
 
         when:
-        reportTask.reportOn test1
-        reportTask.reportOn([[test2], test3])
+        reportTask.testResults.from(test1.binaryResultsDirectory)
+        reportTask.testResults.from([[test2.binaryResultsDirectory], test3.binaryResultsDirectory])
 
         then:
-        reportTask.testResultDirs.files as List == [test1, test2, test3]*.binaryResultsDirectory*.getAsFile()*.get()
-        reportTask.testResultDirs.buildDependencies.getDependencies(reportTask) == [test1, test2, test3] as Set
+        reportTask.testResults.files as List == [test1, test2, test3]*.binaryResultsDirectory*.getAsFile()*.get()
+        reportTask.testResults.buildDependencies.getDependencies(reportTask) == [test1, test2, test3] as Set
     }
 
     def "can attach result dirs"() {
         def binDir = temporaryFolder.file("other")
 
         when:
-        reportTask.reportOn binDir
+        reportTask.testResults.from(binDir)
 
         then:
-        reportTask.testResultDirs.files as List == [binDir]
+        reportTask.testResults.files as List == [binDir]
     }
 
     def test(String name) {

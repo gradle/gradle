@@ -36,7 +36,6 @@ Method <org.gradle.api.tasks.scala.ScalaDoc.getSource()> does not have raw retur
 Method <org.gradle.api.tasks.testing.Test.getBootstrapClasspath()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (Test.java:355)
 Method <org.gradle.api.tasks.testing.Test.getClasspath()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (Test.java:1124)
 Method <org.gradle.api.tasks.testing.Test.getTestClassesDirs()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (Test.java:823)
-Method <org.gradle.api.tasks.testing.TestReport.getTestResultDirs()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (TestReport.java:114)
 Method <org.gradle.ide.xcode.tasks.GenerateXcodeWorkspaceFileTask.getXcodeProjectLocations()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (GenerateXcodeWorkspaceFileTask.java:60)
 Method <org.gradle.jvm.application.tasks.CreateStartScripts.getClasspath()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (CreateStartScripts.java:320)
 Method <org.gradle.language.scala.tasks.AbstractScalaCompile.getSource()> does not have raw return type assignable to org.gradle.api.file.ConfigurableFileCollection in (AbstractScalaCompile.java:280)
