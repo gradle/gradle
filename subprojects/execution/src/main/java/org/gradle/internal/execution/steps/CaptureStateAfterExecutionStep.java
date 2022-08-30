@@ -80,7 +80,7 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
         Result result = executeDelegateBroadcastingChanges(work, context);
         Duration duration = result.getDuration();
         Optional<AfterExecutionState> afterExecutionState = context.getBeforeExecutionState()
-            .flatMap(beforeExecutionState -> captureStateAfterExecution(work, context, beforeExecutionState, duration));
+            .map(beforeExecutionState -> captureStateAfterExecution(work, context, beforeExecutionState, duration));
 
         return new AfterExecutionResult() {
             @Override
@@ -127,7 +127,7 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
         }
     }
 
-    private Optional<AfterExecutionState> captureStateAfterExecution(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState, Duration duration) {
+    private AfterExecutionState captureStateAfterExecution(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState, Duration duration) {
         return operation(
             operationContext -> {
                 try {
@@ -142,11 +142,9 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
                     OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), originExecutionTime);
                     AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(beforeExecutionState, outputsProducedByWork, originMetadata, false);
                     operationContext.setResult(Operation.Result.INSTANCE);
-                    return Optional.of(afterExecutionState);
+                    return afterExecutionState;
                 } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
-                    work.handleUnreadableOutputs(e);
-                    operationContext.setResult(Operation.Result.INSTANCE);
-                    return Optional.empty();
+                    throw work.handleUnreadableOutputs(e);
                 }
             },
             BuildOperationDescriptor
