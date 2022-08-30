@@ -36,7 +36,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.GUtil;
 
@@ -183,17 +183,17 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             .collect(Collectors.toList());
         if (!filesAsPaths.isEmpty()) {
             String displayedFilePaths = filesAsPaths.stream().map(path -> "'" + path + "'").collect(Collectors.joining(","));
-            DeprecationLogger.deprecateBehaviour(String.format(
-                    "Converting files to a classpath string when their paths contain the path separator '%s' has been deprecated." +
-                        " The path separator is not a valid element of a file path. Problematic paths in '%s' are: %s.",
-                    File.pathSeparator,
+            throw DocumentedFailure.builder()
+                .withSummary(String.format(
+                    "Converting files to a classpath string when their paths contain the path separator '%s' is not supported. " +
+                        "The path separator is not a valid element of a file path.", File.pathSeparator))
+                .withContext(String.format("Problematic paths in '%s' are: %s.",
                     getDisplayName(),
                     displayedFilePaths
                 ))
                 .withAdvice("Add the individual files to the file collection instead.")
-                .willBecomeAnErrorInGradle8()
-                .withUpgradeGuideSection(7, "file_collection_to_classpath")
-                .nagUser();
+                .undocumented()
+                .build();
         }
     }
 
