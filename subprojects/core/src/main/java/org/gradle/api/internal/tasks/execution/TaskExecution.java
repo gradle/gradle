@@ -345,16 +345,16 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public void handleUnreadableInputs(InputFingerprinter.InputFileFingerprintingException ex) {
-        nagUserAboutUnreadableInputsOrOutputs("input", ex.getPropertyName(), ex.getCause());
+    public RuntimeException handleUnreadableInputs(InputFingerprinter.InputFileFingerprintingException ex) {
+        return nagUserAboutUnreadableInputsOrOutputs("input", ex.getPropertyName(), ex.getCause());
     }
 
     @Override
-    public void handleUnreadableOutputs(OutputSnapshotter.OutputFileSnapshottingException ex) {
-        nagUserAboutUnreadableInputsOrOutputs("output", ex.getPropertyName(), ex.getCause());
+    public RuntimeException handleUnreadableOutputs(OutputSnapshotter.OutputFileSnapshottingException ex) {
+        return nagUserAboutUnreadableInputsOrOutputs("output", ex.getPropertyName(), ex.getCause());
     }
 
-    private void nagUserAboutUnreadableInputsOrOutputs(String propertyType, String propertyName, Throwable cause) {
+    private RuntimeException nagUserAboutUnreadableInputsOrOutputs(String propertyType, String propertyName, Throwable cause) {
         if (!(cause instanceof UncheckedIOException || cause instanceof org.gradle.api.UncheckedIOException)) {
             throw UncheckedException.throwAsUncheckedException(cause);
         }
@@ -414,7 +414,6 @@ public class TaskExecution implements UnitOfWork {
         return Optional.ofNullable(task.getTimeout().getOrNull());
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
         for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {

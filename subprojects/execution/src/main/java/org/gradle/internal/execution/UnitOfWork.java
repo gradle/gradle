@@ -152,14 +152,14 @@ public interface UnitOfWork extends Describable {
     /**
      * Handles when an input cannot be read while fingerprinting.
      */
-    default void handleUnreadableInputs(InputFileFingerprintingException ex) {
+    default RuntimeException handleUnreadableInputs(InputFileFingerprintingException ex) {
         throw ex;
     }
 
     /**
      * Handles when an output cannot be read while snapshotting.
      */
-    default void handleUnreadableOutputs(OutputFileSnapshottingException ex) {
+    default RuntimeException handleUnreadableOutputs(OutputFileSnapshottingException ex) {
         throw ex;
     }
 
