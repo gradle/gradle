@@ -109,7 +109,7 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec {
             }
 
             test {
-                executable = "${pathString(jdk11.javaHome, "bin/javac")}"
+                executable = "${pathString(jdk11.javaHome, "bin/java")}"
             }
         """
 
