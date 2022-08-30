@@ -93,7 +93,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
                     languageVersion = JavaLanguageVersion.of(99)
                 }
             }
-"""
+        """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
 
@@ -145,12 +145,12 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
         """
 
         file("src/main/java/Foo.java") << """
-public class Foo {
-    public void foo() {
-        java.util.function.Function<String, String> append = (var string) -> string + " ";
-    }
-}
-"""
+            public class Foo {
+                public void foo() {
+                    java.util.function.Function<String, String> append = (var string) -> string + " ";
+                }
+            }
+        """
 
         when:
         runWithToolchainConfigured(jdk11)
@@ -240,7 +240,7 @@ public class Foo {
                     languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
                 }
             }
-"""
+        """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
 
@@ -280,7 +280,7 @@ public class Foo {
                     logger.lifecycle("task.targetCompatibility = \$targetCompatibility")
                 }
             }
-"""
+        """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
 
@@ -320,7 +320,7 @@ public class Foo {
                     logger.lifecycle("task.targetCompatibility = \$targetCompatibility")
                 }
             }
-"""
+        """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
 
@@ -338,10 +338,9 @@ public class Foo {
         '9'    | '10'   | '1.9'     | '1.10'
         '9'    | 'none' | '1.9'     | '11'
         'none' | 'none' | '11'      | '11'
-
     }
 
-    def "can compile Java using different JDKs"() {
+    def "can compile Java using JDK #javaVersion"() {
         def jdk = AvailableJavaHomes.getJdk(javaVersion)
         assumeNotNull(jdk)
 
@@ -380,11 +379,11 @@ public class Foo {
         ]
     }
 
-    /*
-    This test covers the case where in Java8 the class name becomes fully qualified in the deprecation message which is
-    somehow caused by invoking javacTask.getElements() in the IncrementalCompileTask of the incremental compiler plugin.
+    /**
+     * This test covers the case where in Java8 the class name becomes fully qualified in the deprecation message which is
+     * somehow caused by invoking javacTask.getElements() in the IncrementalCompileTask of the incremental compiler plugin.
      */
-    def "Java deprecation messages with different JDKs"() {
+    def "Java deprecation messages with JDK #javaVersion"() {
         def jdk = AvailableJavaHomes.getJdk(javaVersion)
         assumeNotNull(jdk)
 
