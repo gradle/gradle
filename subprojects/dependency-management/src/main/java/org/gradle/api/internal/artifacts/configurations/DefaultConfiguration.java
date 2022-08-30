@@ -562,9 +562,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void markAsObserved(InternalState requestedState) {
+    public Configuration markAsObserved(InternalState requestedState) {
         markThisObserved(requestedState);
         markParentsObserved(requestedState);
+        return this;
     }
 
     private void markThisObserved(InternalState requestedState) {
@@ -1094,7 +1095,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void preventFromFurtherMutation() {
+    public Configuration preventFromFurtherMutation() {
         // TODO This should use the same `MutationValidator` infrastructure that we use for other mutation types
         if (canBeMutated) {
             if (beforeLocking != null) {
@@ -1111,6 +1112,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 ensureUniqueAttributes();
             }
         }
+        return this;
     }
 
     private void ensureUniqueAttributes() {
@@ -1294,11 +1296,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void setReturnAllVariants(boolean returnAllVariants) {
+    public Configuration setReturnAllVariants(boolean returnAllVariants) {
         if (!canBeMutated) {
             throw new IllegalStateException("Configuration is unmodifiable");
         }
         this.returnAllVariants = returnAllVariants;
+        return this;
     }
 
     @Override
@@ -1556,9 +1559,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void setCanBeConsumed(boolean allowed) {
+    public Configuration setCanBeConsumed(boolean allowed) {
         validateMutation(MutationType.ROLE);
         canBeConsumed = allowed;
+        return this;
     }
 
     @Override
@@ -1567,9 +1571,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void setCanBeResolved(boolean allowed) {
+    public Configuration setCanBeResolved(boolean allowed) {
         validateMutation(MutationType.ROLE);
         canBeResolved = allowed;
+        return this;
     }
 
     @VisibleForTesting

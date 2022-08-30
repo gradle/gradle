@@ -54,7 +54,7 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     Path getIdentityPath();
 
-    void setReturnAllVariants(boolean returnAllVariants);
+    Configuration setReturnAllVariants(boolean returnAllVariants);
 
     boolean getReturnAllVariants();
 
@@ -65,7 +65,7 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      */
     void runDependencyActions();
 
-    void markAsObserved(InternalState requestedState);
+    Configuration markAsObserved(InternalState requestedState);
 
     void addMutationValidator(MutationValidator validator);
 
@@ -88,7 +88,7 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     boolean isCanBeMutated();
 
-    void preventFromFurtherMutation();
+    Configuration preventFromFurtherMutation();
 
     /**
      * Reports whether this configuration uses {@link org.gradle.api.Incubating Incubating} attributes types, such as {@link org.gradle.api.attributes.Category#VERIFICATION}.

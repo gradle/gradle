@@ -516,9 +516,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Configures if a configuration can be consumed.
      *
+     * @return copy of this configuration
      * @since 3.3
      */
-    void setCanBeConsumed(boolean allowed);
+    Configuration setCanBeConsumed(boolean allowed);
 
     /**
      * Returns true if this configuration can be consumed from another project, or published. Defaults to true.
@@ -530,9 +531,10 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     /**
      * Configures if a configuration can be resolved.
      *
+     * @return copy of this configuration
      * @since 3.3
      */
-    void setCanBeResolved(boolean allowed);
+    Configuration setCanBeResolved(boolean allowed);
 
     /**
      * Returns true if it is allowed to query or resolve this configuration. Defaults to true.

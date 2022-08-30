@@ -608,6 +608,22 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.Configuration",
+            "member": "Method org.gradle.api.artifacts.Configuration.setCanBeConsumed(boolean)",
+            "acceptation": "Made setter return this for consistency with other setters in Gradle 8.0",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.Configuration",
+            "member": "Method org.gradle.api.artifacts.Configuration.setCanBeResolved(boolean)",
+            "acceptation": "Made setter return this for consistency with other setters in Gradle 8.0",
+            "changes": [
+                "Method return type has changed"
+            ]
         }
     ]
 }
