@@ -187,7 +187,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     // Add to this after adding support for a JDK version.
     // If the existing version still works, increase its range to include the next version.
     // If it doesn't, add a new one at the top with the release/rc version.
-    static def GRADLE_VERSION_BY_JDK
+    static final def GRADLE_VERSION_BY_JDK
     static {
         def rangeMap = TreeRangeMap.create()
         rangeMap.put(Range.atMost(JavaVersion.VERSION_18), "7.3")
