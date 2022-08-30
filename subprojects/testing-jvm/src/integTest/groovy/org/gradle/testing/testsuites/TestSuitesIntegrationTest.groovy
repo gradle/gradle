@@ -480,8 +480,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("checkConfiguration")
     }
 
-    // TODO: Test Framework Selection - Revert this to may NOT in Gradle 8
-    def "test framework MAY be changed once options have been used with test suites"() {
+    def "test framework can not be changed once options have been used with test suites"() {
         buildFile << """
             plugins {
                 id 'java'
@@ -511,14 +510,14 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             check.dependsOn testing.suites
         """
 
-        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
+        when:
+        fails("check")
 
-        expect:
-        succeeds("check")
+        then:
+        failure.assertHasErrorOutput("Cannot set test framework after accessing test options.  Framework was previously: JUnitTestFramework, attempting to set: TestNGTestFramework.")
     }
 
-    // This checks for backwards compatibility with builds that may rely on this
-    def "can change the test framework multiple times before execution when not using test suites"() {
+    def "can change not the test framework multiple times before execution when not using test suites"() {
         given:
         buildFile << """
             plugins {
@@ -550,16 +549,11 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
-        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated. This is scheduled to be removed in Gradle 8.0.")
-
         when:
-        succeeds("test")
+        fails("test")
 
         then:
-        executedAndNotSkipped(":test")
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("SomeTest")
+        failure.assertHasErrorOutput("Cannot set test framework after accessing test options.  Framework was previously: JUnitTestFramework, attempting to set: JUnitPlatformTestFramework.")
     }
 
     // This is not the behavior we want in the long term because this makes build configuration sensitive to the order

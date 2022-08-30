@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
@@ -69,7 +70,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
@@ -172,6 +172,12 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private FileCollection classpath;
     private final ConfigurableFileCollection stableClasspath;
     private final Property<TestFramework> testFramework;
+
+    /*
+     * These fields are status variables that are used to keep track of the state of the test task
+     * to prevent potential errors or unexpected behavior caused by setting the test framework
+     * after setting options.
+     */
     private boolean userHasConfiguredTestFramework;
     private boolean optionsAccessed;
 
@@ -920,31 +926,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
             useJUnit(testFrameworkConfigure);
         }
 
-        // To maintain backwards compatibility with builds that may configure the test framework
-        // multiple times for a single task--either switching between frameworks or overwriting
-        // the existing configuration for a test framework--we need to keep track if the user has
-        // explicitly set a test framework
-        // With test suites, users should never need to call the useXXX methods, so we can warn if
-        // them from doing something like this (for now, in order to preserve existing builds).
-        // This behavior should be restored to fail fast once again with the next major version.
-        //
-        // testTask.configure {
-        //      options {
-        //          /* configure JUnit Platform */
-        //      }
-        // }
-        // testTask.configure {
-        //      useJUnit()
-        //      options {
-        //          /* configure JUnit */
-        //      }
-        // }
-
-        // TODO: Test Framework Selection - Restore this to re-enable fail-fast behavior for Gradle 8
-//        if (!userHasConfiguredTestFramework) {
-//            testFramework.finalizeValue();
-//        }
-
         return testFramework.get();
     }
 
@@ -988,16 +969,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, @Nullable Action<? super T> testFrameworkConfigure) {
-        if (optionsAccessed) {
-            DeprecationLogger.deprecateAction("Accessing test options prior to setting test framework")
-                .withContext("\nTest options have already been accessed for task: '" + getProject().getName() + ":" + getName() + "' prior to setting the test framework to: '" + testFramework.getClass().getSimpleName() + "'. Any previous configuration will be discarded.\n")
-                .willBeRemovedInGradle8()
-                .withDslReference(Test.class, "options")
-                .nagUser();
+        final TestFramework oldFramework = Test.this.testFramework.get();
 
-            if (!this.testFramework.get().getClass().equals(testFramework.getClass())) {
-                getLogger().warn("Test framework is changing from '{}', previous option configuration would not be applicable.", this.testFramework.get().getClass().getSimpleName());
-            }
+        if (optionsAccessed) {
+            throw new GradleException("Cannot set test framework after accessing test options.  Framework was previously: " + oldFramework.getClass().getSimpleName() + ", attempting to set: " + testFramework.getClass().getSimpleName() + "." );
         }
 
         userHasConfiguredTestFramework = true;

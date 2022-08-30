@@ -16,6 +16,7 @@
 
 package org.gradle.testing
 
+import org.gradle.api.GradleException
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.fixtures.file.TestFile
@@ -282,7 +283,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         extraArgs << [[], ["--tests", "MyTest"]]
     }
 
-    def "options set prior to setting same test framework will warn and have no effect"() {
+    def "options set prior to setting same test framework will remain in effect and not cause error"() {
         ignoreWhenJUnitPlatform()
 
         given:
@@ -302,22 +303,16 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 }
                 useJUnit()
             }
-
-            tasks.register('verifyTestOptions') {
-                doLast {
-                    assert tasks.getByName("test").getOptions().getClass() == JUnitOptions
-                    assert !tasks.getByName("test").getOptions().getExcludeCategories().contains("Slow")
-                }
-            }
         """.stripIndent()
 
-        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
+        when:
+        fails("test")
 
-        expect:
-        succeeds("test", "verifyTestOptions", "--warn")
+        then:
+        failure.assertHasErrorOutput("Cannot set test framework after accessing test options.  Framework was previously: JUnitTestFramework, attempting to set: JUnitTestFramework.")
     }
 
-    def "options set prior to changing test framework will produce additional warning and have no effect"() {
+    def "options set prior to changing test framework will cause error"() {
         ignoreWhenJUnitPlatform()
 
         given:
@@ -340,21 +335,13 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             test {
                 useJUnitPlatform()
             }
-
-            tasks.register('verifyTestOptions') {
-                doLast {
-                    assert tasks.getByName("test").getOptions().getClass() == JUnitPlatformOptions
-                }
-            }
         """.stripIndent()
 
-        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
-
         when:
-        succeeds("test", "verifyTestOptions", "--warn")
+        fails("test")
 
         then:
-        outputContains("Test framework is changing from 'JUnitTestFramework', previous option configuration would not be applicable.")
+        failure.assertHasErrorOutput("Cannot set test framework after accessing test options.  Framework was previously: JUnitTestFramework, attempting to set: JUnitPlatformTestFramework.")
     }
 
     def "options accessed and not explicitly configured prior to setting test framework will also warn"() {
@@ -377,19 +364,13 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             test {
                 useJUnitPlatform()
             }
-
-            tasks.register('verifyTestOptions') {
-                doLast {
-                    assert options.getClass() == JUnitOptions
-                    assert tasks.getByName("test").getOptions().getClass() == JUnitPlatformOptions
-                }
-            }
         """.stripIndent()
 
-        executer.expectDeprecationWarning("Accessing test options prior to setting test framework has been deprecated.")
+        when:
+        fails("test")
 
-        expect:
-        succeeds("test", "verifyTestOptions", "--warn")
+        then:
+        failure.assertHasErrorOutput("Cannot set test framework after accessing test options.  Framework was previously: JUnitTestFramework, attempting to set: JUnitPlatformTestFramework.")
     }
 
     def "options configured after setting test framework works"() {
