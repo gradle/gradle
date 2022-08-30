@@ -54,7 +54,10 @@ For more information, see <<tar_tree_no_backing_file>>.
 
 === Removed APIs
 
-TBD
+==== Legacy ArtifactTransform API
+
+The legacy `ArtifactTransform` API has been removed.
+For more information, see <<old_artifact_transforms_api>>.
 
 === Potential breaking changes
 
@@ -66,6 +69,27 @@ Previously, `org.gradle.api.AntBuilder` extended the deprecated `groovy.util.Ant
 
 `org.gradle.plugin.devel.PluginDeclaration` is not serializable anymore.
 If you need to serialize it, you can convert it into your own, serializable class.
+
+==== Gradle does not use equals for serialized values in up-to-date checks
+
+Gradle now does not try to use equals when comparing serialized values in up-to-date checks.
+For more information see <<equals_up_to_date_deprecation>>.
+
+==== Task validation warnings introduced in Gradle 7.x are now errors
+
+Gradle introduced additional task validation warnings in the Gradle 7.x series.
+Those warnings are now errors in Gradle 8.0 and will fail the build.
+
+Warnings which became errors:
+
+- An input file collection which can't be resolved.
+- Using an input with an unknown implementation. See <<validation_problems.adoc#implementation_unknown,Cannot use an input with an unknown implementation>>.
+
+==== Gradle does not ignore empty directories for file-trees with `@SkipWhenEmpty`
+
+Previously Gradle used to detect if an input file collection annotated with `@SkipWhenEmpty` consisted only of file trees and then ignored directories automatically.
+To ignore directories in Gradle 8.0 and later, the input property needs to be explicitly annotated with `@IgnoreEmptyDirectories`.
+For more information see <<empty_directories_file_tree>>.
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
@@ -99,6 +123,15 @@ This can be achieved persistently in the `gradle.properties` file in your build 
 ```properties
 systemProp.org.gradle.kotlin.dsl.precompiled.accessors.strict=true
 ```
+
+[[invalid_toolchain_specification_deprecation]]
+=== Usage of invalid Java toolchain specifications is now deprecated
+
+Along with the Java language version, the <<toolchains#toolchains, Java toolchain>> DSL allows configuring other criteria such as specific vendors or VM implementations.
+Starting with Gradle 7.6, toolchain specifications that configure other properties without specifying the language version are considered _invalid_.
+Invalid specifications are deprecated and will become build errors in Gradle 8.0.
+
+See more details about toolchain configuration in the <<toolchains#sec:configuring_toolchain_specifications,user manual>>.
 
 === Potential breaking changes
 

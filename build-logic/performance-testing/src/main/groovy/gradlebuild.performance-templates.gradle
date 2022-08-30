@@ -396,14 +396,14 @@ performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
 // === Android ===
 performanceTest.registerAndroidTestProject("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
-    // From android-41 branch
-    ref = "b3964ffea18ef5d280b5b493c5c7b8d8b986056c"
+    // From android-73 branch
+    ref = "ba684f8f6015d86f117e5839dec0986d7e9ef5d0"
 }
 
 performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large-2.git'
-    // Pinned from main branch
-    ref = "6c03b676971a3f383350b9684cc2aa0b28857c5f"
+    // Pinned from android-73-kotlin-16 branch
+    ref = "f5c8e98e9f577e419a0d7c84fd555004bc383c5f"
 }
 
 performanceTest.registerAndroidTestProject("santaTrackerAndroidBuild", RemoteProject) {

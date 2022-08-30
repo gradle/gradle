@@ -844,53 +844,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         targetType << ["FileCollection", "Iterable<File>"]
     }
 
-    def "old style transform cannot use @#annotation.name"() {
-        settingsFile << """
-            include 'a', 'b', 'c'
-        """
-        setupBuildWithColorAttributes()
-        buildFile << """
-            allprojects {
-                dependencies {
-                    registerTransform {
-                        from.attribute(color, 'blue')
-                        to.attribute(color, 'green')
-                        artifactTransform(MakeGreen)
-                    }
-                }
-            }
-
-            project(':a') {
-                dependencies {
-                    implementation project(':b')
-                    implementation project(':c')
-                }
-            }
-
-            abstract class MakeGreen extends ArtifactTransform {
-                @${annotation.name}
-                abstract File getInputFile()
-
-                List<File> transform(File input) {
-                    println "processing \${input.name}"
-                    def output = new File(outputDirectory, input.name + ".green")
-                    output.text = "ok"
-                    return [output]
-                }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
-        fails(":a:resolve")
-
-        then:
-        failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MakeGreen.getInputFile().")
-
-        where:
-        annotation << [InputArtifact, InputArtifactDependencies]
-    }
-
     def "transform can receive parameter object via constructor parameter"() {
         settingsFile << """
             include 'a', 'b', 'c'

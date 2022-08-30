@@ -93,9 +93,6 @@ class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationS
         }
 
         when:
-        if (deprecation) {
-            executer.expectDocumentedDeprecationWarning("The JavaApplication.setMainClassName(String) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Use #getMainClass().set(...) instead. See https://docs.gradle.org/current/dsl/org.gradle.api.plugins.JavaApplication.html#org.gradle.api.plugins.JavaApplication:mainClass for more details.")
-        }
         run("installDist")
 
         def out = new ByteArrayOutputStream()
@@ -109,10 +106,9 @@ class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationS
         out.toString() == TextUtil.toPlatformLineSeparators("Module: $expectedModule\n")
 
         where:
-        configClass                   | configModule                  | expectedModule | deprecation
-        "mainClassName = 'test.Main'" | ''                            | 'null'         | true
-        "mainClass.set('test.Main')"  | ''                            | 'null'         | false
-        "mainClass.set('test.Main')"  | "mainModule.set('test.main')" | 'test.main'    | false
-        ''                            | "mainModule.set('test.main')" | 'test.main'    | false
+        configClass                  | configModule                  | expectedModule
+        "mainClass.set('test.Main')" | ''                            | 'null'
+        "mainClass.set('test.Main')" | "mainModule.set('test.main')" | 'test.main'
+        ''                           | "mainModule.set('test.main')" | 'test.main'
     }
 }

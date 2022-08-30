@@ -11,11 +11,11 @@ All this means that it’s worth investing some time and effort into making your
 This section offers several ways to make a build faster. Additionally, you'll find details about what leads to
 build performance degradation, and how you can avoid it.
 
-TIP: Want faster Gradle Builds? https://gradle.com/training/build-cache-deep-dive/?bid=guides-performance[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up builds by up to 90%.
+TIP: Want faster Gradle Builds? https://gradle.com/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up builds by up to 90%.
 
 == Inspect your build
 
-Before you make any changes, <<inspect.adoc#build_scans,inspect your build>>. A proper build inspection helps
+Before you make any changes, <<inspect.adoc#build_scans,inspect your build>> with a build scan or profile report. A proper build inspection helps
 you understand:
 
 - how long it takes to build your project
@@ -26,25 +26,27 @@ Inspecting provides a comparison point to better understand the impact of the ch
 To best make use of this page:
 
 . Inspect your build.
-. Make a change
+. Make a change.
 . Inspect your build again.
 
 If the change improved build times, make it permanent. If you don't see an improvement, remove the change and try another.
 
+== Update versions
+
 [[update_gradle]]
-== Update to the latest Gradle version
+=== Gradle
 
 The Gradle team continuously improves the performance of Gradle builds.
 If you’re using an old version of Gradle, you’re missing out on the benefits of that work.
 Keeping up with Gradle version upgrades is low risk because the Gradle team ensures backwards compatibility between minor versions of Gradle.
 Staying up-to-date also makes transitioning to the next major version easier, since you'll get early deprecation warnings.
 
-== Upgrade to the latest Java version
+=== Java
 
 Gradle runs on the Java Virtual Machine (JVM). Java performance improvements often benefit Gradle.
 For the best Gradle performance, use the latest version of Java.
 
-== Upgrade to the latest version of plugins
+=== Plugins
 
 Plugin writers continuously improve the performance of their plugins.
 If you're using an old version of a plugin, you're missing out on the benefits of that work.
@@ -84,8 +86,20 @@ But most multi-subproject builds see a reduction in build times.
 For more information about parallel builds, check out the
 <<multi_project_configuration_and_execution.adoc#sec:parallel_execution,parallel builds documentation>>.
 
+=== Visualize parallelism with build scans
+
+Build scans give you a visual timeline of task execution. In the following
+example build, you can see long-running tasks at the beginning and end of the build:
+
+image::performance/parallel-task-slow.png[title="Bottleneck in parallel execution"]
+
+Tweaking the build configuration to run the two slow tasks early on and in parallel
+reduces the overall build time from 8 seconds to 5 seconds:
+
+image::performance/parallel-task-fast.png[title="Optimized parallel execution"]
+
 [[enable_daemon]]
-=== Enable the Gradle daemon
+== Re-enable the Gradle daemon
 
 The Gradle daemon reduces build times by:
 
@@ -121,18 +135,6 @@ org.gradle.daemon=true
 On developer machines, you should see a significant performance improvement.
 On CI machines, long-lived agents benefit from the daemon. But short-lived machines don't benefit much.
 Daemons automatically shut down on memory pressure in Gradle 3.0 and above, so it's always safe to leave the daemon enabled.
-
-=== Visualize parallelism with build scans
-
-Build scans give you a visual timeline of task execution. In the following
-example build, you can see long-running tasks at the beginning and end of the build:
-
-image::performance/parallel-task-slow.png[title="Bottleneck in parallel execution"]
-
-Tweaking the build configuration to run the two slow tasks early on and in parallel
-reduces the overall build time from 8 seconds to 5 seconds:
-
-image::performance/parallel-task-fast.png[title="Optimized parallel execution"]
 
 [[enable_configuration_cache]]
 == Enable the configuration cache
@@ -272,7 +274,46 @@ Sort by task duration on the timeline screen to highlight tasks with great time 
 The build scan above shows that `:task1` and `:task3` could be improved and made cacheable
 and shows why Gradle didn't cache them.
 
-== Configuration
+== Create builds for specific developer workflows
+
+The fastest task is one that doesn’t execute.
+If you can find ways to skip tasks you don’t need to run, you’ll end up with a faster build overall.
+
+If your build includes multiple subprojects, create tasks to build those subprojects
+independently. This helps you get the most out of caching, since a change to one
+subproject won't force a rebuild for unrelated subprojects. And this helps reduce
+build times for teams that work on unrelated subprojects: there's no need for
+front-end developers to build the back-end subprojects every time they change the
+front-end. Documentation writers don't need to build front-end or back-end code
+even if the documentation lives in the same project as that code.
+
+Instead, create tasks that match the needs of developers. You'll still have a single
+task graph for the whole project. Each group of users suggests a restricted view of
+the task graph: turn that view into a Gradle workflow that excludes unnecessary tasks.
+
+Gradle provides several features to create these workflows:
+
+- Assign tasks to appropriate link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:group[groups]
+- Create _aggregate tasks_: tasks with no action that only depend on other tasks, such as `assemble`
+- Defer configuration via `gradle.taskGraph.whenReady()` and others, so you can perform verification only when it's necessary
+
+== Increase the heap size
+
+By default, Gradle reserves 512MB of heap space for your build. This is plenty for most projects.
+However, some very large builds might need more memory to hold Gradle's model and caches.
+If this is the case for you, you can check in this larger memory requirement in your `gradle.properties` file:
+
+====
+.gradle.properties
+[source,java]
+----
+org.gradle.jvmargs=-Xmx2048M
+----
+====
+
+To learn more, check out the <<build_environment.adoc#sec:configuring_jvm_memory,JVM memory configuration documentation>>.
+
+== Optimize Configuration
 
 As described in <<build_lifecycle.adoc#build_lifecycle,the build lifecycle chapter>>, a
 Gradle build goes through 3 phases: initialization, configuration, and execution.
@@ -353,7 +394,7 @@ When you use static compilation, an IDE can:
 - auto-complete method names
 
 [[dependency_resolution]]
-== Dependency resolution
+== Optimize Dependency resolution
 
 Dependency resolution simplifies integrating third-party libraries and other dependencies into your projects.
 Gradle contacts remote servers to discover and download dependencies. You can optimize the way you reference
@@ -487,47 +528,7 @@ For example, you might see a download caused by a dependency using a dynamic ver
 
 Eliminate these slow or unexpected downloads by switching to a different repository or dependency.
 
-== Execution
-
-The fastest task is one that doesn’t execute.
-If you can find ways to skip tasks you don’t need to run, you’ll end up with a faster build overall.
-This section discusses task avoidance in your Gradle build.
-
-=== Create builds for specific developer workflows
-
-If your build includes multiple subprojects, create tasks to build those subprojects
-independently. This helps you get the most out of caching, since a change to one
-subproject won't force a rebuild for unrelated subprojects. And this helps reduce
-build times for teams that work on unrelated subprojects: there's no need for
-front-end developers to build the back-end subprojects every time they change the
-front-end. Documentation writers don't need to build front-end or back-end code
-even if the documentation lives in the same project as that code.
-
-Instead, create tasks that match the needs of developers. You'll still have a single
-task graph for the whole project. Each group of users suggests a restricted view of
-the task graph: turn that view into a Gradle workflow that excludes unnecessary tasks.
-
-Gradle provides several features to create these workflows:
-
-- Assign tasks to appropriate link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:group[groups]
-- Create _aggregate tasks_: tasks with no action that only depend on other tasks, such as `assemble`
-- Defer configuration via `gradle.taskGraph.whenReady()` and others, so you can perform verification only when it's necessary
-
-=== Increase the heap size
-
-By default, Gradle reserves 1GB of heap space for your build. This is plenty for most projects.
-However, some very large builds might need more memory to hold Gradle's model and caches.
-If this is the case for you, you can check in this larger memory requirement in your `gradle.properties` file:
-
-====
-.gradle.properties
-[source,java]
-----
-org.gradle.jvmargs=-Xmx2048M
-----
-====
-
-== Java projects
+== Optimize Java projects
 
 The following sections apply only to projects that use the `java` plugin or another JVM language.
 
@@ -720,13 +721,13 @@ always upgrade Gradle to a recent version when possible, we recognize that it is
 feasible for certain niche situations. In those select cases, check out these recommendations
 to optimize older versions of Gradle.
 
-=== Gradle daemon
+=== Enable the Daemon
 
 Gradle 3.0 and above enable the daemon by default. If you are using an older version,
 you should <<update_gradle,update to the latest version of Gradle>>.
 If you cannot update your Gradle version, you can <<enable_daemon,enable the daemon manually>>.
 
-=== Incremental compilation
+=== Use incremental compilation
 
 Gradle can analyze dependencies down to the individual class level
 to recompile only the classes affected by a change.
@@ -751,7 +752,7 @@ tasks.withType<JavaCompile>().configureEach {
 ----
 ====
 
-=== Compile avoidance
+=== Use compile avoidance
 
 Often, updates only change internal implementation details of your code, like the body of a method.
 These updates are known as _ABI-compatible_ changes: they have no impact on the binary interface of your project.
@@ -763,11 +764,11 @@ Upgrade to a Gradle version above 3.4 to benefit from compile avoidance.
 NOTE: If you use annotation processors, you need to explicitly declare them in order for compilation avoidance to work.
 To learn more, check out the <<java_plugin.adoc#sec:java_compile_avoidance,compile avoidance documentation>>.
 
-== Android projects
+== Optimize Android projects
 
 Everything on this page applies to Android builds, since Android builds use Gradle.
 Yet Android introduces unique opportunities for optimization.
-For more information, check out the the
+For more information, check out the
 https://developer.android.com/studio/build/optimize-your-build.html[Android team performance guide].
 You can also https://www.youtube.com/watch?v=7ll-rkLCtyk[watch the accompanying talk]
 from Google IO 2017.
