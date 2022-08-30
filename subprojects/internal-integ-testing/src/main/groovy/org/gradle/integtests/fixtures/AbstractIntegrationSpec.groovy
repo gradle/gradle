@@ -41,6 +41,7 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
+import org.gradle.util.internal.TextUtil
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.intellij.lang.annotations.Language
@@ -668,5 +669,34 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     void resetExecuter() {
         this.ignoreCleanupAssertions = false
         recreateExecuter()
+    }
+
+    /**
+     * Creates a file-system specific path string suitable for embedding in build scripts.
+     * <p>
+     * Any additional {@code relative} paths are added to the initial path before being converted
+     * to the file-system specific string.
+     * <p>
+     * Example:
+     * <pre>
+     * buildFile << """
+     *     test {
+     *         executable = "${pathString(jdk11.javaHome.absolutePath, "bin/javac")}"
+     *     }
+     * """
+     * </pre>
+     */
+    String pathString(String path, String... relative) {
+        def combinedPath = ([path] + relative.toList()).join("/")
+        TextUtil.normaliseFileSeparators(combinedPath)
+    }
+
+    /**
+     * Convenience method that accepts the initial path as {@code File}.
+     *
+     * @see #pathString(String, String...)
+     */
+    String pathString(File path, String... relative) {
+        pathString(path.toString(), relative)
     }
 }

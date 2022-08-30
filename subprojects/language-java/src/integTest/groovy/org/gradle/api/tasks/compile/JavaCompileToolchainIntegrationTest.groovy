@@ -439,6 +439,121 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
         JavaVersion.VERSION_17  | "[deprecation] foo() in Foo has been deprecated"
     }
 
+    def "uses toolchain compiler when nothing is explicitly configured"() {
+        def jdk = Jvm.current()
+
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        runWithToolchainConfigured(jdk)
+
+        then:
+        outputContains("Compiling with toolchain '${jdk.javaHome}'.")
+        javaClassFile("Foo.class").exists()
+    }
+
+    def "uses toolchain compiler when setting java home on fork options"() {
+        def jdk = AvailableJavaHomes.getDifferentVersion()
+
+        buildFile << """
+            apply plugin: "java"
+
+            compileJava {
+                options.forkOptions.javaHome = file("${pathString(jdk.javaHome)}")
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        runWithToolchainConfigured(jdk)
+
+        then:
+        outputContains("Compiling with toolchain '${jdk.javaHome}'.")
+        javaClassFile("Foo.class").exists()
+    }
+
+    def "uses toolchain compiler when setting executable path on fork options"() {
+        def jdk = AvailableJavaHomes.getDifferentVersion()
+
+        buildFile << """
+            apply plugin: "java"
+
+            compileJava {
+                options.forkOptions.executable = "${pathString(jdk.javaHome, "bin/javac")}"
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        runWithToolchainConfigured(jdk)
+
+        then:
+        outputContains("Compiling with toolchain '${jdk.javaHome}'.")
+        javaClassFile("Foo.class").exists()
+    }
+
+    def "cannot configure both toolchain and java home on fork options"() {
+        def jdk = Jvm.current()
+        def otherJdk = AvailableJavaHomes.getDifferentVersion()
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+            }
+
+            compileJava {
+                options.forkOptions.javaHome = file("${pathString(otherJdk.javaHome)}")
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        executer.withArgument("-Porg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath + "," + otherJdk.javaHome.absolutePath)
+        fails("compileJava")
+
+        then:
+        failureHasCause("Must not use `javaHome` property on `ForkOptions` together with `javaCompiler` property")
+    }
+
+    def "cannot configure both toolchain and executable path on fork options"() {
+        def jdk = Jvm.current()
+        def otherJdk = AvailableJavaHomes.getDifferentVersion()
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+            }
+
+            compileJava {
+                options.forkOptions.executable = "${pathString(otherJdk.javaHome, "bin/javac")}"
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        executer.withArgument("-Porg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath + "," + otherJdk.javaHome.absolutePath)
+        fails("compileJava")
+
+        then:
+        failureHasCause("Must not use `executable` property on `ForkOptions` together with `javaCompiler` property")
+    }
+
     def runWithToolchainConfigured(Jvm jvm) {
         result = executer
             .withArgument("-Porg.gradle.java.installations.paths=" + jvm.javaHome.absolutePath)
