@@ -127,50 +127,16 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType);
     }
 
-    public static class WithDeprecationTimeline {
+    public static class WithDeprecationTimeline extends Documentation.AbstractBuilder<WithDocumentation> {
         private final DeprecationMessageBuilder<?> builder;
 
         public WithDeprecationTimeline(DeprecationMessageBuilder<?> builder) {
             this.builder = builder;
         }
 
-        /**
-         * Allows proceeding to terminal {@link WithDocumentation#nagUser()} operation without including any documentation reference.
-         * Consider using one of the documentation providing methods instead.
-         */
-        public WithDocumentation undocumented() {
-            return new WithDocumentation(builder);
-        }
-
-        /**
-         * Output: See USER_MANUAL_URL for more details.
-         */
-        public WithDocumentation withUserManual(String documentationId) {
-            builder.setDocumentation(Documentation.userManual(documentationId));
-            return new WithDocumentation(builder);
-        }
-
-        /**
-         * Output: See USER_MANUAL_URL for more details.
-         */
-        public WithDocumentation withUserManual(String documentationId, String section) {
-            builder.setDocumentation(Documentation.userManual(documentationId, section));
-            return new WithDocumentation(builder);
-        }
-
-        /**
-         * Output: See DSL_REFERENCE_URL for more details.
-         */
-        public WithDocumentation withDslReference(Class<?> targetClass, String property) {
-            builder.setDocumentation(Documentation.dslReference(targetClass, property));
-            return new WithDocumentation(builder);
-        }
-
-        /**
-         * Output: Consult the upgrading guide for further information: UPGRADE_GUIDE_URL
-         */
-        public WithDocumentation withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
-            builder.setDocumentation(Documentation.upgradeGuide(majorVersion, upgradeGuideSection));
+        @Override
+        protected WithDocumentation withDocumentation(Documentation documentation) {
+            builder.setDocumentation(documentation);
             return new WithDocumentation(builder);
         }
     }
