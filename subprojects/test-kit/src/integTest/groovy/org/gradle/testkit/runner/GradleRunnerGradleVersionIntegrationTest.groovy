@@ -30,20 +30,18 @@ import spock.lang.Shared
 import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleasedGradleVersion
 
 @NonCrossVersion
-@Requires(TestPrecondition.ONLINE)
+@Requires(value = TestPrecondition.ONLINE, adhoc = { BaseGradleRunnerIntegrationTest.findMinimumSupportedGradleVersion() != null })
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, count = 2)
 class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrationTest {
-    public static final String VERSION = determineMinimumVersionThatRunsOnCurrentJavaVersion("4.1")
-
     @Shared
     DistributionLocator locator = new DistributionLocator()
 
     String getReleasedGradleVersion() {
-        VERSION
+        minimumSupportedGradleVersion
     }
 
     DaemonsFixture getDaemonsFixture() {
-        testKitDaemons(GradleVersion.version(VERSION))
+        testKitDaemons(GradleVersion.version(minimumSupportedGradleVersion))
     }
 
     def "execute build with different distribution types #type"(String version, Action<GradleRunner> configurer) {
@@ -72,10 +70,10 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
         killDaemons(version)
 
         where:
-        type         | version                      | configurer
-        "embedded"   | buildContext.version.version | { if (!GradleContextualExecuter.embedded) { it.withGradleInstallation(buildContext.gradleHomeDir) } }
-        "locator"    | VERSION                      | { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version(VERSION))) }
-        "production" | VERSION                      | { it.withGradleVersion(VERSION) }
+        type         | version                       | configurer
+        "embedded"   | buildContext.version.version  | { if (!GradleContextualExecuter.embedded) { it.withGradleInstallation(buildContext.gradleHomeDir) } }
+        "locator"    | minimumSupportedGradleVersion | { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version(minimumSupportedGradleVersion))) }
+        "production" | minimumSupportedGradleVersion | { it.withGradleVersion(minimumSupportedGradleVersion) }
     }
 
     def "distributions are not stored in the test kit dir"() {
@@ -91,11 +89,11 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
 
         when:
         runner('v')
-            .withGradleVersion(VERSION)
+            .withGradleVersion(minimumSupportedGradleVersion)
             .build()
 
         then:
-        file("gradleVersion.txt").text == VERSION
+        file("gradleVersion.txt").text == minimumSupportedGradleVersion
 
         and:
         // Note: AbstractGradleRunnerIntegTest configures the test env to use this gradle user home dir
@@ -103,11 +101,11 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
 
         and:
         testKitDir.eachFileRecurse {
-            assert !it.name.contains("gradle-$VERSION-bin.zip")
+            assert !it.name.contains("gradle-$minimumSupportedGradleVersion-bin.zip")
         }
 
         cleanup:
-        killDaemons(VERSION)
+        killDaemons(minimumSupportedGradleVersion)
     }
 
     private void killDaemons(String version) {
