@@ -239,7 +239,7 @@ class DefaultDependencyHandlerTest extends Specification {
 
         then:
         def t = thrown(GradleException)
-        t.message.contains("Adding a Configuration as a dependency is a confusing behavior is no longer allowed as of Gradle 8.0.")
+        t.message.contains("Adding a Configuration as a dependency is a confusing behavior that is no longer allowed as of Gradle 8.0.")
     }
 
     void "cannot create project dependency for configuration from different project"() {
@@ -253,7 +253,7 @@ class DefaultDependencyHandlerTest extends Specification {
 
         then:
         def t = thrown(GradleException)
-        t.message.contains("Adding a Configuration as a dependency is a confusing behavior is no longer allowed as of Gradle 8.0.")
+        t.message.contains("Adding a Configuration as a dependency is a confusing behavior that is no longer allowed as of Gradle 8.0.")
     }
 
     void "creates client module dependency"() {

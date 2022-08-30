@@ -175,7 +175,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Nullable
     private Dependency doAdd(Configuration configuration, Object dependencyNotation, @Nullable Closure configureClosure) {
         if (dependencyNotation instanceof Configuration) {
-            throw new GradleException("Adding a Configuration as a dependency is a confusing behavior is no longer allowed as of Gradle 8.0.");
+            throw new GradleException("Adding a Configuration as a dependency is a confusing behavior that is no longer allowed as of Gradle 8.0.");
         } else if (dependencyNotation instanceof ProviderConvertible<?>) {
             return doAdd(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
         } else if (dependencyNotation instanceof ProviderInternal<?>) {
