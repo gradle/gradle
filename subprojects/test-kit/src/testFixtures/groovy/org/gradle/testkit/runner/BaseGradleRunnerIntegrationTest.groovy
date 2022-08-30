@@ -16,6 +16,9 @@
 
 package org.gradle.testkit.runner
 
+import com.google.common.collect.ImmutableRangeMap
+import com.google.common.collect.Range
+import com.google.common.collect.TreeRangeMap
 import groovy.transform.Sortable
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -52,6 +55,7 @@ import org.gradle.testkit.runner.internal.feature.TestKitFeature
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.gradle.wrapper.GradleUserHomeLookup
+import org.junit.AssumptionViolatedException
 import org.junit.Rule
 import org.spockframework.runtime.extension.IMethodInvocation
 import spock.lang.Retry
@@ -180,31 +184,32 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         OutputScrapingExecutionFailure.from(buildResult.output, buildResult.output)
     }
 
-    static String determineMinimumVersionThatRunsOnCurrentJavaVersion(String desiredGradleVersion) {
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
-            def compatibleVersion = GradleVersion.version("7.3-rc-2")
-            if (GradleVersion.version(desiredGradleVersion) < compatibleVersion) {
-                return compatibleVersion.version
-            }
+    // Add to this after adding support for a JDK version.
+    // If the existing version still works, increase its range to include the next version.
+    // If it doesn't, add a new one at the top with the release/rc version.
+    static def GRADLE_VERSION_BY_JDK
+    static {
+        def rangeMap = TreeRangeMap.create()
+        rangeMap.put(Range.atMost(JavaVersion.VERSION_18), "7.3")
+        rangeMap.put(Range.atMost(JavaVersion.VERSION_16), "7.0")
+        // see https://github.com/gradle/gradle/issues/4860
+        rangeMap.put(Range.atMost(JavaVersion.VERSION_15), "4.8.1")
+        // see https://github.com/gradle/gradle/issues/2992
+        rangeMap.put(Range.atMost(JavaVersion.VERSION_1_10), "4.3.1")
+        rangeMap.put(Range.atMost(JavaVersion.VERSION_1_8), "4.1")
+        GRADLE_VERSION_BY_JDK = ImmutableRangeMap.copyOf(rangeMap)
+    }
+
+    static String findMinimumSupportedGradleVersion() {
+        GRADLE_VERSION_BY_JDK.get(JavaVersion.current())
+    }
+
+    static String getMinimumSupportedGradleVersion() {
+        def gradleVersion = findMinimumSupportedGradleVersion()
+        if (gradleVersion == null) {
+            throw new AssumptionViolatedException("No version of Gradle supports Java ${JavaVersion.current()}")
         }
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
-            def compatibleVersion = GradleVersion.version("7.0")
-            if (GradleVersion.version(desiredGradleVersion) < compatibleVersion) {
-                return compatibleVersion.version
-            }
-        }
-        if (JavaVersion.current().isJava11Compatible()) {
-            def compatibleVersion = GradleVersion.version("4.8.1") // see https://github.com/gradle/gradle/issues/4860
-            if (GradleVersion.version(desiredGradleVersion) < compatibleVersion) {
-                return compatibleVersion.version
-            }
-        } else if (JavaVersion.current().isJava9Compatible()) {
-            def compatibleVersion = GradleVersion.version("4.3.1") // see https://github.com/gradle/gradle/issues/2992
-            if (GradleVersion.version(desiredGradleVersion) < compatibleVersion) {
-                return compatibleVersion.version
-            }
-        }
-        return desiredGradleVersion
+        return gradleVersion
     }
 
     static class Interceptor extends AbstractMultiTestInterceptor {
