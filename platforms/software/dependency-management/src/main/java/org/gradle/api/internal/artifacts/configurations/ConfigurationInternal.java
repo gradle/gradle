@@ -69,7 +69,7 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
      *
      * @param reason Describes the external operation that observed this configuration
      */
-    void markAsObserved(String reason);
+    Configuration markAsObserved(String reason);
 
     /**
      * Marks the dependencies of a configuration observed, after which the dependencies,

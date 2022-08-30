@@ -1005,9 +1005,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public void markAsObserved(String reason) {
+    public Configuration markAsObserved(String reason) {
         if (isObserved()) {
-            return;
+            return this;
         }
 
         runActionInHierarchy(conf -> {
@@ -1025,6 +1025,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 conf.preventUsageMutation();
             }
         });
+        return this;
     }
 
     @Override
@@ -1558,12 +1559,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public void setCanBeConsumed(boolean allowed) {
+    public Configuration setCanBeConsumed(boolean allowed) {
         checkChangingUsage("setCanBeConsumed", canBeConsumed, allowed);
         if (canBeConsumed != allowed) {
             validateMutation(MutationType.USAGE);
             canBeConsumed = allowed;
         }
+        return this;
     }
 
     @Override
@@ -1572,12 +1574,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public void setCanBeResolved(boolean allowed) {
+    public Configuration setCanBeResolved(boolean allowed) {
         checkChangingUsage("setCanBeResolved", canBeResolved, allowed);
         if (canBeResolved != allowed) {
             validateMutation(MutationType.USAGE);
             canBeResolved = allowed;
         }
+        return this;
     }
 
     @Override
