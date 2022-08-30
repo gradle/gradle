@@ -43,7 +43,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.lazy.Lazy;
@@ -91,7 +90,6 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
     private final Interner<String> strings;
     private final Interner<ImmutableVersionConstraint> versionConstraintInterner;
     private final ObjectFactory objects;
-    private final ProviderFactory providers;
     private final String name;
     private final Map<String, VersionModel> versionConstraints = Maps.newLinkedHashMap();
     private final Map<String, Supplier<DependencyModel>> libraries = Maps.newLinkedHashMap();
@@ -115,14 +113,12 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
         Interner<String> strings,
         Interner<ImmutableVersionConstraint> versionConstraintInterner,
         ObjectFactory objects,
-        ProviderFactory providers,
         Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier
     ) {
         this.name = name;
         this.strings = strings;
         this.versionConstraintInterner = versionConstraintInterner;
         this.objects = objects;
-        this.providers = providers;
         this.dependencyResolutionServicesSupplier = dependencyResolutionServicesSupplier;
         this.strictVersionParser = new StrictVersionParser(strings);
         this.description = objects.property(String.class).convention("A catalog of dependencies accessible via the `" + name + "` extension.");
@@ -319,20 +315,13 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     @Override
     public LibraryAliasBuilder library(String alias, String group, String artifact) {
-        validateAlias(AliasType.LIBRARY, alias);
-
-        String normalizedAlias = AliasNormalizer.normalize(alias);
-        ensureUniqueNormalization(normalizedAlias);
-
+        String normalizedAlias = normalizeAndValidateAlias(AliasType.LIBRARY, alias);
         return objects.newInstance(DefaultLibraryAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, group, artifact);
     }
 
     @Override
     public void library(String alias, String groupArtifactVersion) {
-        validateAlias(AliasType.LIBRARY, alias);
-
-        String normalizedAlias = AliasNormalizer.normalize(alias);
-        ensureUniqueNormalization(normalizedAlias);
+        String normalizedAlias = normalizeAndValidateAlias(AliasType.LIBRARY, alias);
 
         String[] coordinates = groupArtifactVersion.split(":");
         if (coordinates.length == 3) {
@@ -349,12 +338,42 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     @Override
     public PluginAliasBuilder plugin(String alias, String id) {
-        validateAlias(AliasType.PLUGIN, alias);
-
-        String normalizedAlias = AliasNormalizer.normalize(alias);
-        ensureUniqueNormalization(normalizedAlias);
-
+        String normalizedAlias = normalizeAndValidateAlias(AliasType.PLUGIN, alias);
         return objects.newInstance(DefaultPluginAliasBuilder.class, DefaultVersionCatalogBuilder.this, normalizedAlias, id);
+    }
+
+    private String normalizeAndValidateAlias(AliasType type, String alias) {
+        validateAlias(type, alias);
+        String normalizedAlias = AliasNormalizer.normalize(alias);
+        validateNormalizedAlias(type, alias, normalizedAlias);
+        return normalizedAlias;
+    }
+
+    private void validateNormalizedAlias(AliasType type, String alias, String normalizedAlias) {
+        if (!aliasesInProgress.add(normalizedAlias)) {
+            LOGGER.warn("Duplicate alias builder registered for {}", normalizedAlias);
+        }
+
+        if (type == AliasType.LIBRARY) {
+            for (String prefix : FORBIDDEN_LIBRARY_ALIAS_PREFIX) {
+                if (normalizedAlias.equals(prefix) || normalizedAlias.startsWith(prefix + ".")) {
+                    throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
+                            spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
+                                    .happensBecause(() -> "Prefix for dependency shouldn't be equal to '" + prefix + "'")
+                                    .addSolution(() -> "Use a different alias which prefix is not equal to " + oxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or"))
+                                    .documented()
+                    );
+                }
+            }
+        }
+        if (RESERVED_ALIAS_NAMES.contains(normalizedAlias)) {
+            throwVersionCatalogProblem(VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec ->
+                    spec.withShortDescription(() -> "Alias '" + alias + "' is not a valid alias")
+                            .happensBecause(() -> "Alias '" + alias + "' is a reserved name in Gradle which prevents generation of accessors")
+                            .addSolution(() -> "Use a different alias which isn't in the reserved names " + oxfordListOf(RESERVED_ALIAS_NAMES, "or"))
+                            .documented()
+            );
+        }
     }
 
     private void validateAlias(AliasType type, String value) {
@@ -398,12 +417,6 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
 
     public boolean containsLibraryAlias(String name) {
         return libraries.containsKey(name);
-    }
-
-    private void ensureUniqueNormalization(String normalizedAlias) {
-        if (!aliasesInProgress.add(normalizedAlias)) {
-            LOGGER.warn("Duplicate alias builder registered for {}", normalizedAlias);
-        }
     }
 
     @Override
