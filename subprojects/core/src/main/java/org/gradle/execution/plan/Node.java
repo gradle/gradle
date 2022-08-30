@@ -288,7 +288,7 @@ public abstract class Node {
     public abstract Throwable getNodeFailure();
 
     public void startExecution(Consumer<Node> nodeStartAction) {
-        assert allDependenciesComplete() && allDependenciesSuccessful();
+        assert state == ExecutionState.SHOULD_RUN && allDependenciesComplete() && allDependenciesSuccessful();
         state = ExecutionState.EXECUTING;
         nodeStartAction.accept(this);
     }
@@ -306,7 +306,7 @@ public abstract class Node {
     }
 
     public void cancelExecution(Consumer<Node> completionAction) {
-        if (isCannotRunInAnyPlan()) {
+        if (state != ExecutionState.SHOULD_RUN && state != ExecutionState.NOT_SCHEDULED) {
             throw new IllegalStateException("Cannot cancel node " + this);
         }
         state = ExecutionState.NOT_SCHEDULED;
@@ -470,7 +470,7 @@ public abstract class Node {
     }
 
     /**
-     * Called when this node is added to the work graph, prior to resolving its dependencies.
+     * Called when the graph containing this node is about to start execution.
      *
      * @param monitor An action that should be called when this node is ready to execute, when the dependencies for this node are executed outside
      * the work graph that contains this node (for example, when the node represents a task in an included build).
@@ -528,6 +528,10 @@ public abstract class Node {
      * Support for this is not implemented yet and will be added later.
      */
     public void visitPreExecutionNodes(Consumer<? super Node> visitor) {
+    }
+
+    public boolean hasPendingPreExecutionNodes() {
+        return false;
     }
 
     /**

@@ -55,6 +55,16 @@ public interface ExecutionFailure extends ExecutionResult {
      * Asserts that there is a failure present with the given cause (ie the bit after the description).
      *
      * <p>Error messages are normalized to use new-line char as line separator.
+     * They are also required to contain a link to documentation.
+     */
+    default ExecutionFailure assertHasDocumentedCause(String description) {
+        return assertHasCause(DocumentationUtils.normalizeDocumentationLink(description));
+    }
+
+    /**
+     * Asserts that there is a failure present with the given cause (ie the bit after the description).
+     *
+     * <p>Error messages are normalized to use new-line char as line separator.
      */
     ExecutionFailure assertThatCause(Matcher<? super String> matcher);
 

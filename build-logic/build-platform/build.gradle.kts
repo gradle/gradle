@@ -26,7 +26,7 @@ dependencies {
         api("com.gradle.publish:plugin-publish-plugin:1.0.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.3.0")
-        api("me.champeau.jmh:jmh-gradle-plugin:0.6.6")
+        api("me.champeau.jmh:jmh-gradle-plugin:0.6.7")
         api("org.asciidoctor:asciidoctor-gradle-jvm:3.3.2")
         api("org.gradle:test-retry-gradle-plugin:1.4.0")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }

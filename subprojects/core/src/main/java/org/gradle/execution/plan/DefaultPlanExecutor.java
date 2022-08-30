@@ -384,8 +384,10 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
                     // Else there may be items ready, acquire a worker lease
                     if (!workerLease.tryLock()) {
-                        stats.startWaitingForNextItem();
                         // Cannot get a lease to run work
+                        // Do not call `startWaitingForNextItem()` as there is work available but this worker cannot start it
+                        // The health monitoring is currently only concerned with whether work can be started.
+                        // At some point it could be improved to track the health of all worker threads, not just the plan executor threads
                         return RETRY;
                     }
 
@@ -604,9 +606,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
             @Override
             public void finishWaitingForNextItem() {
                 if (state.get() == ExecutionState.Stopped) {
-                    if (!state.compareAndSet(ExecutionState.Waiting, ExecutionState.Running)) {
-                        throw new IllegalStateException("Unexpected state for worker.");
-                    }
+                    throw new IllegalStateException("Unexpected state for worker.");
                 }
                 state.set(ExecutionState.Running);
             }

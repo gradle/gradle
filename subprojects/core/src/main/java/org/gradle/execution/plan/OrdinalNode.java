@@ -51,7 +51,6 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    // TODO is there a better term to use here than "task group"
     public String toString() {
         return type.name().toLowerCase() + " locations for " + getGroup();
     }

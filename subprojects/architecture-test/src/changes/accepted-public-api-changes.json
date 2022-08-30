@@ -528,6 +528,118 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.isIncludePrivate()",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.setIncludePrivate(boolean)",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.TestReport",
+            "member": "Method org.gradle.api.tasks.testing.TestReport.getDestinationDir()",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.TestReport",
+            "member": "Method org.gradle.api.tasks.testing.TestReport.getTestResultDirs()",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.TestReport",
+            "member": "Method org.gradle.api.tasks.testing.TestReport.reportOn(java.lang.Object[])",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.TestReport",
+            "member": "Method org.gradle.api.tasks.testing.TestReport.setDestinationDir(java.io.File)",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.TestReport",
+            "member": "Method org.gradle.api.tasks.testing.TestReport.setTestResultDirs(java.lang.Iterable)",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.incremental.IncrementalTaskInputs",
+            "member": "Class org.gradle.api.tasks.incremental.IncrementalTaskInputs",
+            "acceptation": "Removed with 8.0",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.incremental.IncrementalTaskInputs",
+            "member": "Method org.gradle.api.tasks.incremental.IncrementalTaskInputs.isIncremental()",
+            "acceptation": "Removed IncrementalTaskInputs with 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.incremental.IncrementalTaskInputs",
+            "member": "Method org.gradle.api.tasks.incremental.IncrementalTaskInputs.outOfDate(org.gradle.api.Action)",
+            "acceptation": "Removed IncrementalTaskInputs with 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.incremental.IncrementalTaskInputs",
+            "member": "Method org.gradle.api.tasks.incremental.IncrementalTaskInputs.removed(org.gradle.api.Action)",
+            "acceptation": "Removed IncrementalTaskInputs with 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.VersionCatalog",
+            "member": "Method org.gradle.api.artifacts.VersionCatalog.findDependency(java.lang.String)",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.VersionCatalog",
+            "member": "Method org.gradle.api.artifacts.VersionCatalog.getDependencyAliases()",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.initialization.dsl.VersionCatalogBuilder",
+            "member": "Method org.gradle.api.initialization.dsl.VersionCatalogBuilder.alias(java.lang.String)",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

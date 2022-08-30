@@ -198,8 +198,8 @@ public class MapCollectors {
             if (value.isMissing()) {
                 return value.asType();
             }
-            collector.addAll(value.get().keySet(), dest);
-            return Value.present();
+            collector.addAll(value.getWithoutSideEffect().keySet(), dest);
+            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
         }
 
         @Override

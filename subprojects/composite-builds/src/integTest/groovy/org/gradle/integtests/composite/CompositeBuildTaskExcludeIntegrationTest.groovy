@@ -118,7 +118,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractIntegrationSpec {
         result.assertTaskNotExecuted(":sub:test")
     }
 
-    def "cannot use unqualified absolute paths to to exclude task from included build root"() {
+    def "cannot use unqualified absolute paths to exclude task from included build root"() {
         expect:
         runAndFail("build", "-x", "included:test")
     }

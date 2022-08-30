@@ -768,7 +768,7 @@ To learn more, check out the <<java_plugin.adoc#sec:java_compile_avoidance,compi
 
 Everything on this page applies to Android builds, since Android builds use Gradle.
 Yet Android introduces unique opportunities for optimization.
-For more information, check out the the
+For more information, check out the
 https://developer.android.com/studio/build/optimize-your-build.html[Android team performance guide].
 You can also https://www.youtube.com/watch?v=7ll-rkLCtyk[watch the accompanying talk]
 from Google IO 2017.

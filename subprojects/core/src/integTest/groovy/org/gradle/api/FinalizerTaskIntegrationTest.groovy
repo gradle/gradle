@@ -368,7 +368,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         2.times {
             succeeds 'entry'
             result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo', ':entry'
-            result.assertTaskOrder ':jarOne', ':shadowJar', ':jar', ':copyJars'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
         }
         2.times {
             fails 'entry', '-PjarOne.broken'
@@ -378,34 +378,34 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
             result.assertTaskExecuted(':jar')
             result.assertTaskExecuted(':copyJars')
             // lifecycleTwo may or may not run
-            result.assertTaskOrder ':jarOne', ':shadowJar', ':jar', ':copyJars'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
         }
         2.times {
             fails 'entry', '-PjarOne.broken', '--continue'
             result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
-            result.assertTaskOrder ':jarOne', ':shadowJar', ':jar', ':copyJars'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
         }
         2.times {
             fails 'entry', '-PlifecycleTwo.broken'
             result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
-            result.assertTaskOrder ':jarOne', ':shadowJar', ':jar', ':copyJars'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
         }
         2.times {
             fails 'entry', '-PshadowJar.broken'
             // TODO - should not run jar as finalizer will not run
             result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar'
-            result.assertTaskOrder ':jarOne', ':shadowJar', ':jar'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar'
         }
 
         2.times {
             succeeds 'jarOne', 'lifecycleTwo'
             result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
-            result.assertTaskOrder ':jarOne', ':shadowJar', ':jar', ':copyJars'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
         }
         2.times {
             fails 'jarOne', 'lifecycleTwo', '-PjarOne.broken', '--continue'
             result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
-            result.assertTaskOrder ':jarOne', ':shadowJar', ':jar', ':copyJars'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
         }
     }
 

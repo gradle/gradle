@@ -161,7 +161,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         when:
         succeeds(":a:resolve")
 
-        then: // have already seen these artifacts before, but the transform outputs have been been overwritten
+        then: // have already seen these artifacts before, but the transform outputs have been overwritten
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
         transformed("b.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
@@ -295,7 +295,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         when:
         succeeds(":a:resolve")
 
-        then: // have already seen these artifacts before, but the transform outputs have been been overwritten
+        then: // have already seen these artifacts before, but the transform outputs have been overwritten
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
         transformed("b-dir")
         outputContains("result = [b-dir.green, c-dir.green]")

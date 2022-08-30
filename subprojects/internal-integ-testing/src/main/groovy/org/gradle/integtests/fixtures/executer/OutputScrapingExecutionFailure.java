@@ -150,7 +150,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
                 }
             }
         }
-        return new Problem(description, causes);
+        return new Problem(normalizeLambdaIds(description), causes);
     }
 
     private String toPrefixPattern(int prefix) {
