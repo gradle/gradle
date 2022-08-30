@@ -50,6 +50,46 @@ public abstract class Documentation {
         return String.format("See %s for more details.", documentationUrl());
     }
 
+    public static abstract class AbstractBuilder<T> {
+        protected abstract T withDocumentation(Documentation documentation);
+
+        /**
+         * Allows proceeding without including any documentation reference.
+         * Consider using one of the documentation providing methods instead.
+         */
+        public T undocumented() {
+            return withDocumentation(Documentation.NO_DOCUMENTATION);
+        }
+
+        /**
+         * Output: See USER_MANUAL_URL for more details.
+         */
+        public T withUserManual(String documentationId) {
+            return withDocumentation(Documentation.userManual(documentationId));
+        }
+
+        /**
+         * Output: See USER_MANUAL_URL for more details.
+         */
+        public T withUserManual(String documentationId, String section) {
+            return withDocumentation(Documentation.userManual(documentationId, section));
+        }
+
+        /**
+         * Output: See DSL_REFERENCE_URL for more details.
+         */
+        public T withDslReference(Class<?> targetClass, String property) {
+            return withDocumentation(Documentation.dslReference(targetClass, property));
+        }
+
+        /**
+         * Output: Consult the upgrading guide for further information: UPGRADE_GUIDE_URL
+         */
+        public T withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
+            return withDocumentation(Documentation.upgradeGuide(majorVersion, upgradeGuideSection));
+        }
+    }
+
     private static class NullDocumentation extends Documentation {
 
         private NullDocumentation() {
