@@ -24,15 +24,19 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.AbstractComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantArtifactGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentMetadata> implements LocalComponentGraphResolveState {
     private final ConcurrentMap<LocalConfigurationMetadata, DefaultLocalVariantArtifactResolveState> variants = new ConcurrentHashMap<>();
@@ -89,16 +93,18 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
             graphSelectedVariant.prepareToResolveArtifacts();
-//            final Set<? extends VariantResolveMetadata> allVariants;
-//            if (component.getVariantsForGraphTraversal().isPresent()) {
-//                allVariants = component.getVariantsForGraphTraversal().get().stream().map(LocalConfigurationMetadata.class::cast).flatMap(variant -> {
-//                    variant.prepareToResolveArtifacts();
-//                    return variant.getVariants().stream();
-//                }).collect(Collectors.toSet());
-//            } else {
-//                allVariants = graphSelectedVariant.getVariants();
-//            }
-            return artifactSelector.resolveArtifacts(component, graphSelectedVariant.getVariants(), graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
+            final Set<? extends VariantResolveMetadata> allVariants;
+            if (component.getVariantsForGraphTraversal().isPresent()) {
+                allVariants = component.getVariantsForGraphTraversal().get().stream().
+                        map(LocalConfigurationMetadata.class::cast).
+                        filter(ConfigurationMetadata::isCanBeConsumed).
+                        peek(LocalConfigurationMetadata::prepareToResolveArtifacts).
+                        flatMap(variant -> variant.getVariants().stream()).
+                        collect(Collectors.toSet());
+            } else {
+                allVariants = graphSelectedVariant.getVariants();
+            }
+            return artifactSelector.resolveArtifacts(component, allVariants, graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
         }
     }
 }

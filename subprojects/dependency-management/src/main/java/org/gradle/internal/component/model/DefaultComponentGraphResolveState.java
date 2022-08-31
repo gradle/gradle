@@ -21,6 +21,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadata> extends AbstractComponentGraphResolveState<T> {
     public DefaultComponentGraphResolveState(T metadata) {
         super(metadata);
@@ -53,13 +56,13 @@ public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadat
 
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-//            final Set<? extends VariantResolveMetadata> allVariants;
-//            if (component.getVariantsForGraphTraversal().isPresent()) {
-//                allVariants = component.getVariantsForGraphTraversal().get().stream().map(ModuleConfigurationMetadata.class::cast).flatMap(variant -> variant.getVariants().stream()).collect(Collectors.toSet());
-//            } else {
-//                allVariants = graphSelectedVariant.getVariants();
-//            }
-            return artifactSelector.resolveArtifacts(component, graphSelectedVariant.getVariants(), graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
+            final Set<? extends VariantResolveMetadata> allVariants;
+            if (component.getVariantsForGraphTraversal().isPresent()) {
+                allVariants = component.getVariantsForGraphTraversal().get().stream().map(ModuleConfigurationMetadata.class::cast).flatMap(variant -> variant.getVariants().stream()).collect(Collectors.toSet());
+            } else {
+                allVariants = graphSelectedVariant.getVariants();
+            }
+            return artifactSelector.resolveArtifacts(component, allVariants, graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
         }
     }
 }

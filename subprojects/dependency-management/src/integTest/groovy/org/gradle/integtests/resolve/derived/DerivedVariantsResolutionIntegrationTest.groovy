@@ -18,9 +18,7 @@ package org.gradle.integtests.resolve.derived
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import spock.lang.Ignore
 
-@Ignore("This is not implemented yet")
 class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     MavenHttpModule direct
     MavenHttpModule transitive
