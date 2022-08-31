@@ -36,6 +36,7 @@ public interface ExternalResourceMetaData {
      * If there is a file associated with the resource and its name can be determined, return it.
      * Otherwise, return null.
      */
+    @Nullable
     String getFilename();
 
     /**
