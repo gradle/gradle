@@ -19,6 +19,8 @@ package org.gradle.plugins.ide.tooling.r33
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.util.GradleVersion
+import org.gradle.util.internal.DefaultGradleVersion
 import spock.lang.Issue
 
 @ToolingApiVersion('>=3.3')
@@ -49,7 +51,7 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
             settingsFile << """
                 includeBuild('includedBuild') {
                     dependencySubstitution {
-                        substitute module('group:name') with project(':')
+                        substitute module('group:name') ${targetSpecificationMethod()} project(':')
                     }
                 }
             """
@@ -90,7 +92,7 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
             settingsFile << """
                 includeBuild('includedBuild') {
                     dependencySubstitution {
-                        substitute module('group:name') with project(':')
+                        substitute module('group:name') ${targetSpecificationMethod()} project(':')
                     }
                 }
             """
@@ -131,7 +133,7 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
             settingsFile << """
                 includeBuild('includedBuild') {
                     dependencySubstitution {
-                        substitute module('group:name') using project(':')
+                        substitute module('group:name') ${targetSpecificationMethod()} project(':')
                     }
                 }
             """
@@ -145,5 +147,9 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
 
         then:
         eclipseProjects*.name == ['root', 'a', 'b', 'includedBuild', 'c', 'd']
+    }
+
+    private targetSpecificationMethod() {
+        return (GradleVersion.current() >= DefaultGradleVersion.version("6.6")) ? "using" : "with"
     }
 }
