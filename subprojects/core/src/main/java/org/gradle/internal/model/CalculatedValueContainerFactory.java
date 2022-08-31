@@ -32,7 +32,7 @@ public class CalculatedValueContainerFactory {
 
     public CalculatedValueContainerFactory(ProjectLeaseRegistry projectLeaseRegistry, ServiceRegistry buildScopeServices) {
         this.projectLeaseRegistry = projectLeaseRegistry;
-        globalContext = buildScopeServices::get;
+        this.globalContext = buildScopeServices::get;
     }
 
     /**

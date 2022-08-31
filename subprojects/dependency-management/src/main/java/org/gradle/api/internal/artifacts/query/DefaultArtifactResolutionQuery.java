@@ -75,7 +75,6 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
     private final GlobalDependencyResolutionRules metadataHandler;
     private final ComponentTypeRegistry componentTypeRegistry;
     private final ImmutableAttributesFactory attributesFactory;
-    private final ArtifactTypeRegistry artifactTypeRegistry;
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
 
     private final Set<ComponentIdentifier> componentIds = Sets.newLinkedHashSet();
@@ -98,7 +97,6 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         this.metadataHandler = metadataHandler;
         this.componentTypeRegistry = componentTypeRegistry;
         this.attributesFactory = attributesFactory;
-        this.artifactTypeRegistry = artifactTypeRegistry;
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
     }
 
@@ -144,7 +142,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         List<? extends ResolutionAwareRepository> repositories = repositoriesSupplier.get();
         ConfigurationInternal detachedConfiguration = configurationContainer.detachedConfiguration();
         ResolutionStrategyInternal resolutionStrategy = detachedConfiguration.getResolutionStrategy();
-        ComponentResolvers componentResolvers = ivyFactory.create(detachedConfiguration.getName(), resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessorFactory(), ImmutableAttributes.EMPTY, null, attributesFactory, artifactTypeRegistry, componentMetadataSupplierRuleExecutor);
+        ComponentResolvers componentResolvers = ivyFactory.create(detachedConfiguration.getName(), resolutionStrategy, repositories, metadataHandler.getComponentMetadataProcessorFactory(), ImmutableAttributes.EMPTY, null, attributesFactory, componentMetadataSupplierRuleExecutor);
         ComponentMetaDataResolver componentMetaDataResolver = componentResolvers.getComponentResolver();
         ArtifactResolver artifactResolver = new ErrorHandlingArtifactResolver(componentResolvers.getArtifactResolver());
         return createResult(componentMetaDataResolver, artifactResolver);
@@ -193,11 +191,11 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
 
         for (ComponentArtifactMetadata artifactMetaData : artifactSetResolveResult.getResult()) {
             BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
-            artifactResolver.resolveArtifact(artifactMetaData, componentState.getSources(), resolveResult);
-            if (resolveResult.getFailure() != null) {
-                artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, resolveResult.getFailure()));
-            } else {
-                artifacts.addArtifact(ivyFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, Collections.emptyList(), Describables.of(componentState.getId().getDisplayName()), type, resolveResult.getResult())));
+            artifactResolver.resolveArtifact(null, artifactMetaData, componentState.getSources(), resolveResult);
+            try {
+                artifacts.addArtifact(ivyFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, Collections.emptyList(), Describables.of(componentState.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
+            } catch (Exception e) {
+                artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, e));
             }
         }
     }

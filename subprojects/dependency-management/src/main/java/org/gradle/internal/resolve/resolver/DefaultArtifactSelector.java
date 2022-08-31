@@ -18,15 +18,12 @@ package org.gradle.internal.resolve.resolver;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.FileDependencyArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
@@ -44,12 +41,9 @@ import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class DefaultArtifactSelector implements ArtifactSelector {
-    private final Map<ComponentArtifactIdentifier, ResolvableArtifact> allResolvedArtifacts = Maps.newHashMap();
-    private final Map<VariantResolveMetadata.Identifier, ResolvedVariant> allResolvedVariants = Maps.newHashMap();
     private final List<OriginArtifactSelector> selectors;
     private final ArtifactTypeRegistry artifactTypeRegistry;
     private final ArtifactResolver artifactResolver;
@@ -110,17 +104,17 @@ public class DefaultArtifactSelector implements ArtifactSelector {
 
         boolean hasExcludedArtifact = artifactsToResolve.size() < artifacts.size();
 
-        if (hasExcludedArtifact || identifier == null) {
+        if (hasExcludedArtifact) {
             // An ad hoc variant, has no identifier
-            return createResolvedVariant(displayName, variantAttributes, artifacts, capabilities, ownerId, moduleSources, artifactsToResolve, null);
+            return createResolvedVariant(null, displayName, variantAttributes, artifacts, capabilities, ownerId, moduleSources, artifactsToResolve);
         } else {
-            return allResolvedVariants.computeIfAbsent(identifier, id -> createResolvedVariant(displayName, variantAttributes, artifacts, capabilities, ownerId, moduleSources, artifactsToResolve, identifier));
+            return createResolvedVariant(identifier, displayName, variantAttributes, artifacts, capabilities, ownerId, moduleSources, artifactsToResolve);
         }
     }
 
-    private ResolvedVariant createResolvedVariant(DisplayName displayName, ImmutableAttributes variantAttributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, CapabilitiesMetadata capabilities, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, List<? extends ComponentArtifactMetadata> artifactsToResolve, VariantResolveMetadata.Identifier resolvedIdentifier) {
+    private ResolvedVariant createResolvedVariant(VariantResolveMetadata.Identifier resolvedIdentifier, DisplayName displayName, ImmutableAttributes variantAttributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, CapabilitiesMetadata capabilities, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, List<? extends ComponentArtifactMetadata> artifactsToResolve) {
         ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variantAttributes, artifacts);
-        return ArtifactSetFactory.toResolvedVariant(resolvedIdentifier, displayName, attributes, artifactsToResolve, withImplicitCapability(capabilities.getCapabilities(), ownerId), ownerId, moduleSources, allResolvedArtifacts, artifactResolver, calculatedValueContainerFactory);
+        return ArtifactSetFactory.toResolvedVariant(resolvedIdentifier, displayName, attributes, artifactsToResolve, withImplicitCapability(capabilities.getCapabilities(), ownerId), ownerId, moduleSources, artifactResolver);
     }
 
     private static ImmutableCapabilities withImplicitCapability(Collection<? extends Capability> capabilities, ModuleVersionIdentifier identifier) {
@@ -135,6 +129,6 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     @Override
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
         ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(component.getAttributes(), artifacts);
-        return ArtifactSetFactory.adHocVariant(component.getId(), component.getModuleVersionId(), artifacts, component.getSources(), component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, attributes, overriddenAttributes, calculatedValueContainerFactory);
+        return ArtifactSetFactory.adHocVariant(component.getId(), component.getModuleVersionId(), artifacts, component.getSources(), component.getAttributesSchema(), artifactResolver, attributes, overriddenAttributes);
     }
 }
