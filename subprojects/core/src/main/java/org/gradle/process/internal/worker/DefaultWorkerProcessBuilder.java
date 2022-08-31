@@ -72,8 +72,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private List<URL> implementationModulePath;
     private boolean shouldPublishJvmMemoryInfo;
 
-    private boolean useLegacyAddOpens = true;
-
     DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<Long> idGenerator, ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory, OutputEventListener outputEventListener, MemoryManager memoryManager, JvmVersionDetector jvmVersionDetector) {
         this.javaCommand = execHandleFactory.newJavaExec();
         this.javaCommand.setExecutable(Jvm.current().getJavaExecutable());
@@ -195,13 +193,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         this.shouldPublishJvmMemoryInfo = shouldPublish;
     }
 
-    @Deprecated
-    @Override
-    public WorkerProcessBuilder setUseLegacyAddOpens(boolean useLegacyAddOpens) {
-        this.useLegacyAddOpens = useLegacyAddOpens;
-        return this;
-    }
-
     @Override
     public WorkerProcess build() {
         final WorkerJvmMemoryStatus memoryStatus = shouldPublishJvmMemoryInfo ? new WorkerJvmMemoryStatus() : null;
@@ -240,10 +231,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         javaCommand.setDisplayName(displayName);
 
         boolean java9Compatible = jvmVersionDetector.getJavaVersion(javaCommand.getExecutable()).isJava9Compatible();
-        if (java9Compatible && useLegacyAddOpens) {
-            javaCommand.jvmArgs(JpmsConfiguration.GRADLE_WORKER_JPMS_ARGS);
-        }
-
         workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, implementationModulePath, localAddress, javaCommand, shouldPublishJvmMemoryInfo, java9Compatible);
 
         javaCommand.args("'" + displayName + "'");
