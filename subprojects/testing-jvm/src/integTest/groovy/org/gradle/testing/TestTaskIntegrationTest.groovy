@@ -16,7 +16,6 @@
 
 package org.gradle.testing
 
-import org.gradle.api.GradleException
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.fixtures.file.TestFile
