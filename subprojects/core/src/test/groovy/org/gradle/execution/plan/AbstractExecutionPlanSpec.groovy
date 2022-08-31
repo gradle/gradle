@@ -165,6 +165,11 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         }
 
         @Override
+        Kind getKind() {
+            return Kind.UNDEFINED
+        }
+
+        @Override
         boolean isLockedByCurrentThread() {
             return locked && Thread.currentThread() == owner
         }

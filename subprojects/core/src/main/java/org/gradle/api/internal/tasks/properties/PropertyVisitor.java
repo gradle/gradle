@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.api.provider.Provider;
+import org.gradle.api.services.BuildService;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
@@ -37,6 +39,8 @@ public interface PropertyVisitor {
 
     void visitLocalStateProperty(Object value);
 
+    void visitServiceReference(Provider<BuildService<?>> value, String serviceName);
+
     class Adapter implements PropertyVisitor {
         @Override
         public void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
@@ -56,6 +60,10 @@ public interface PropertyVisitor {
 
         @Override
         public void visitLocalStateProperty(Object value) {
+        }
+
+        @Override
+        public void visitServiceReference(Provider<BuildService<?>> value, String serviceName) {
         }
     }
 }

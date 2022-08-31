@@ -39,6 +39,11 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
     }
 
     @Override
+    public Kind getKind() {
+        return Kind.UNDEFINED;
+    }
+
+    @Override
     public boolean tryLock() {
         if (!isLockedByCurrentThread()) {
             if (acquireLock()) {

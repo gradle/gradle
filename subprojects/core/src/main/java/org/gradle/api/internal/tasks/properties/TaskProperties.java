@@ -24,6 +24,8 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
+import java.util.Collection;
+
 /**
  * A view of the properties of a task.
  *
@@ -73,6 +75,8 @@ public interface TaskProperties {
      * The files that are destroyed.
      */
     FileCollection getDestroyableFiles();
+
+    Collection<ServiceReferenceSpec> getServiceReferences();
 
     /**
      * Validate the task type.

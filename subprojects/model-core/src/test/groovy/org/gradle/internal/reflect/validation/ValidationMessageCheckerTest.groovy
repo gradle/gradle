@@ -213,7 +213,7 @@ Reason: The '@Invalid' annotation cannot be used in this context.
 
 Possible solutions:
   1. Remove the property.
-  2. Use a different annotation, e.g one of @Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested or @ReplacedBy.
+  2. Use a different annotation, e.g one of @Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference.
 """
 
         when:
@@ -231,7 +231,7 @@ Reason: The '@Invalid' annotation cannot be used in this context.
 
 Possible solutions:
   1. Remove the property.
-  2. Use a different annotation, e.g one of @Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles or @ReplacedBy.
+  2. Use a different annotation, e.g one of @Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles, @ReplacedBy or @ServiceReference.
 """
     }
 

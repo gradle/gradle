@@ -17,6 +17,8 @@
 package org.gradle.internal.resources;
 
 public interface ResourceLockState {
+    boolean hasLock(String name, ResourceLock.Kind sharedService);
+
     /**
      * Possible results from a resource lock state transform.
      */

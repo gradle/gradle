@@ -24,6 +24,8 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.StaticValue;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.services.BuildService;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.execution.UnitOfWork;
@@ -34,6 +36,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @NonNullApi
@@ -47,7 +50,8 @@ public class DefaultTaskProperties implements TaskProperties {
     private final FileCollection localStateFiles;
     private final FileCollection destroyableFiles;
     private final List<ValidatingProperty> validatingProperties;
-
+    private final Collection<ServiceReferenceSpec> serviceReferences;
+    private final Collection<String> namedServicesDeclared = null;
     public static TaskProperties resolve(PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory, TaskInternal task) {
         String beanName = task.toString();
         GetInputPropertiesVisitor inputPropertiesVisitor = new GetInputPropertiesVisitor();
@@ -63,6 +67,7 @@ public class DefaultTaskProperties implements TaskProperties {
         );
         GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, fileCollectionFactory);
         GetDestroyablesVisitor destroyablesVisitor = new GetDestroyablesVisitor(beanName, fileCollectionFactory);
+        GetServiceReferenceVisitor serviceReferenceVisitor = new GetServiceReferenceVisitor(beanName);
         ReplayingTypeValidationContext validationContext = new ReplayingTypeValidationContext();
         try {
             TaskPropertyUtils.visitProperties(propertyWalker, task, validationContext, new CompositePropertyVisitor(
@@ -71,7 +76,8 @@ public class DefaultTaskProperties implements TaskProperties {
                 outputUnpacker,
                 validationVisitor,
                 destroyablesVisitor,
-                localStateVisitor
+                localStateVisitor,
+                serviceReferenceVisitor
             ));
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
@@ -84,6 +90,7 @@ public class DefaultTaskProperties implements TaskProperties {
             outputUnpacker.hasDeclaredOutputs(),
             localStateVisitor.getFiles(),
             destroyablesVisitor.getFiles(),
+            serviceReferenceVisitor.getServiceReferences(),
             validationVisitor.getTaskPropertySpecs(),
             validationContext);
     }
@@ -95,6 +102,7 @@ public class DefaultTaskProperties implements TaskProperties {
         boolean hasDeclaredOutputs,
         FileCollection localStateFiles,
         FileCollection destroyableFiles,
+        Collection<ServiceReferenceSpec> serviceReferences,
         List<ValidatingProperty> validatingProperties,
         ReplayingTypeValidationContext validationProblems
     ) {
@@ -107,6 +115,7 @@ public class DefaultTaskProperties implements TaskProperties {
         this.hasDeclaredOutputs = hasDeclaredOutputs;
         this.localStateFiles = localStateFiles;
         this.destroyableFiles = destroyableFiles;
+        this.serviceReferences = serviceReferences;
     }
 
     @Override
@@ -152,6 +161,10 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     @Override
+    public Collection<ServiceReferenceSpec> getServiceReferences() {
+        return serviceReferences;
+    }
+    @Override
     public FileCollection getDestroyableFiles() {
         return destroyableFiles;
     }
@@ -173,6 +186,43 @@ public class DefaultTaskProperties implements TaskProperties {
 
         public FileCollection getFiles() {
             return fileCollectionFactory.resolvingLeniently(beanName + " local state", localState);
+        }
+    }
+
+    private static class GetServiceReferenceVisitor extends PropertyVisitor.Adapter {
+        class NamedServiceReference implements ServiceReferenceSpec {
+            private String name;
+            private Provider<BuildService<?>> value;
+
+            NamedServiceReference(String name, Provider<BuildService<?>> value) {
+                this.name = name;
+                this.value = value;
+            }
+
+            @Override
+            public String getServiceName() {
+                return name;
+            }
+            public Provider<BuildService<?>> getValue() {
+                return value;
+            }
+        }
+
+        //TODO-RC not needed so far
+        private final String beanName;
+        private final List<ServiceReferenceSpec> services = new ArrayList<>();
+
+        public GetServiceReferenceVisitor(String beanName) {
+            this.beanName = beanName;
+        }
+
+        @Override
+        public void visitServiceReference(Provider<BuildService<?>> value, String serviceName) {
+            services.add(new NamedServiceReference(serviceName, value));
+        }
+
+        public Collection<ServiceReferenceSpec> getServiceReferences() {
+            return services;
         }
     }
 
