@@ -327,7 +327,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         given:
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
-        1 * buildModelController.scheduleRequestedTasks(executionPlan) >> { throw failure }
+        1 * buildModelController.scheduleRequestedTasks(null, executionPlan) >> { throw failure }
 
         when:
         def controller = this.controller()
@@ -512,7 +512,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         1 * buildModelController.prepareToScheduleTasks()
         1 * buildModelController.initializeWorkGraph(executionPlan)
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
-        1 * buildModelController.scheduleRequestedTasks(executionPlan)
+        1 * buildModelController.scheduleRequestedTasks(null, executionPlan)
         1 * workPreparer.finalizeWorkGraph(gradleMock, executionPlan) >> finalizedPlan
     }
 

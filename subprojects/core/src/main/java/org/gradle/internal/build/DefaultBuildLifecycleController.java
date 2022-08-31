@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.BuildWorkExecutor;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
@@ -240,8 +241,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
-        public void addRequestedTasks() {
-            modelController.scheduleRequestedTasks(plan);
+        public void addRequestedTasks(@Nullable EntryTaskSelector selector) {
+            modelController.scheduleRequestedTasks(selector, plan);
         }
 
         @Override

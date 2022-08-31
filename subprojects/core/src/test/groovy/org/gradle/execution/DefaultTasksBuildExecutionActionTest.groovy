@@ -20,59 +20,73 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configuration.project.BuiltInCommand
+import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.internal.DefaultTaskExecutionRequest
+import org.gradle.internal.RunDefaultTasksExecutionRequest
 import spock.lang.Specification
 
 class DefaultTasksBuildExecutionActionTest extends Specification {
     final projectConfigurer = Mock(ProjectConfigurer)
     final buildInCommand = Mock(BuiltInCommand)
-    final action = new DefaultTasksBuildExecutionAction(projectConfigurer, [buildInCommand])
-    final context = Mock(BuildExecutionContext)
+    final delegate = Mock(BuildConfigurationAction)
+    final action = new DefaultTasksBuildExecutionAction(projectConfigurer, [buildInCommand], delegate)
     final startParameter = Mock(StartParameterInternal)
     final defaultProject = Mock(ProjectInternal)
+    final gradle = Mock(GradleInternal)
+    final selector = Mock(EntryTaskSelector)
+    final plan = Mock(ExecutionPlan)
 
     def setup() {
-        GradleInternal gradle = Mock()
-        _ * context.gradle >> gradle
         _ * gradle.startParameter >> startParameter
         _ * gradle.defaultProject >> defaultProject
     }
 
-    def "proceeds when task names specified in StartParameter"() {
+    def "proceeds when task request specified in StartParameter"() {
         given:
-        _ * startParameter.taskRequests >> [ new DefaultTaskExecutionRequest(['a']) ]
+        _ * startParameter.taskRequests >> [new DefaultTaskExecutionRequest(['a'])]
 
         when:
-        action.configure(context)
+        action.scheduleRequestedTasks(gradle, selector, plan)
 
         then:
-        1 * context.proceed()
+        1 * delegate.scheduleRequestedTasks(gradle, selector, plan)
     }
 
-    def "sets task names to project defaults when no requests specified in StartParameter"() {
+    def "proceeds when no task requests specified in StartParameter"() {
         given:
         _ * startParameter.taskRequests >> []
+
+        when:
+        action.scheduleRequestedTasks(gradle, selector, plan)
+
+        then:
+        1 * delegate.scheduleRequestedTasks(gradle, selector, plan)
+    }
+
+    def "sets task names to project defaults when single task requests specified in StartParameter"() {
+        given:
+        _ * startParameter.taskRequests >> [new RunDefaultTasksExecutionRequest()]
         _ * defaultProject.defaultTasks >> ['a', 'b']
 
         when:
-        action.configure(context)
+        action.scheduleRequestedTasks(gradle, selector, plan)
 
         then:
         1 * startParameter.setTaskNames(['a', 'b'])
-        1 * context.proceed()
+        1 * delegate.scheduleRequestedTasks(gradle, selector, plan)
     }
 
     def "uses default build-in tasks if no tasks specified in StartParameter or project"() {
         given:
-        _ * startParameter.taskRequests >> []
+        _ * startParameter.taskRequests >> [new RunDefaultTasksExecutionRequest()]
         _ * defaultProject.defaultTasks >> []
         _ * buildInCommand.asDefaultTask() >> ['default1', 'default2']
 
         when:
-        action.configure(context)
+        action.scheduleRequestedTasks(gradle, selector, plan)
 
         then:
         1 * startParameter.setTaskNames(['default1', 'default2'])
-        1 * context.proceed()
+        1 * delegate.scheduleRequestedTasks(gradle, selector, plan)
     }
 }

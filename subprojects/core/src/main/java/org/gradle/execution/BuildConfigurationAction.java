@@ -15,6 +15,11 @@
  */
 package org.gradle.execution;
 
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.execution.plan.ExecutionPlan;
+
+import javax.annotation.Nullable;
+
 public interface BuildConfigurationAction {
-    void configure(BuildExecutionContext context);
+    void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan);
 }

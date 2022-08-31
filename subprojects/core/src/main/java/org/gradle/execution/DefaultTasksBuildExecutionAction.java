@@ -16,13 +16,16 @@
 package org.gradle.execution;
 
 import org.gradle.StartParameter;
-import org.gradle.TaskExecutionRequest;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.project.BuiltInCommand;
+import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,41 +36,39 @@ public class DefaultTasksBuildExecutionAction implements BuildConfigurationActio
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTasksBuildExecutionAction.class);
     private final ProjectConfigurer projectConfigurer;
     private final List<BuiltInCommand> builtInCommands;
+    private final BuildConfigurationAction delegate;
 
-    public DefaultTasksBuildExecutionAction(ProjectConfigurer projectConfigurer, List<BuiltInCommand> builtInCommands) {
+    public DefaultTasksBuildExecutionAction(ProjectConfigurer projectConfigurer, List<BuiltInCommand> builtInCommands, BuildConfigurationAction delegate) {
         this.projectConfigurer = projectConfigurer;
         this.builtInCommands = builtInCommands;
+        this.delegate = delegate;
     }
 
     @Override
-    public void configure(BuildExecutionContext context) {
-        StartParameter startParameter = context.getGradle().getStartParameter();
+    public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
+        StartParameter startParameter = gradle.getStartParameter();
 
-        for (TaskExecutionRequest request : startParameter.getTaskRequests()) {
-            if (!request.getArgs().isEmpty()) {
-                context.proceed();
-                return;
+        if (startParameter.getTaskRequests().size() == 1 && startParameter.getTaskRequests().get(0) instanceof RunDefaultTasksExecutionRequest) {
+            // Gather the default tasks from this first group project
+            ProjectInternal project = gradle.getDefaultProject();
+
+            //so that we don't miss out default tasks
+            projectConfigurer.configure(project);
+
+            List<String> defaultTasks = project.getDefaultTasks();
+            if (defaultTasks.size() == 0) {
+                defaultTasks = new ArrayList<>();
+                for (BuiltInCommand command : builtInCommands) {
+                    defaultTasks.addAll(command.asDefaultTask());
+                }
+                LOGGER.info("No tasks specified. Using default task {}", GUtil.toString(defaultTasks));
+            } else {
+                LOGGER.info("No tasks specified. Using project default tasks {}", GUtil.toString(defaultTasks));
             }
+
+            startParameter.setTaskNames(defaultTasks);
         }
 
-        // Gather the default tasks from this first group project
-        ProjectInternal project = context.getGradle().getDefaultProject();
-
-        //so that we don't miss out default tasks
-        projectConfigurer.configure(project);
-
-        List<String> defaultTasks = project.getDefaultTasks();
-        if (defaultTasks.size() == 0) {
-            defaultTasks = new ArrayList<>();
-            for (BuiltInCommand command : builtInCommands) {
-                defaultTasks.addAll(command.asDefaultTask());
-            }
-            LOGGER.info("No tasks specified. Using default task {}", GUtil.toString(defaultTasks));
-        } else {
-            LOGGER.info("No tasks specified. Using project default tasks {}", GUtil.toString(defaultTasks));
-        }
-
-        startParameter.setTaskNames(defaultTasks);
-        context.proceed();
+        delegate.scheduleRequestedTasks(gradle, selector, plan);
     }
 }

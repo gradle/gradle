@@ -50,7 +50,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
 
         and:
-        1 * workPreparer.scheduleRequestedTasks(workGraph)
+        1 * workPreparer.scheduleRequestedTasks(workGraph, null)
         1 * workExecutor.execute(workGraph) >> ExecutionResult.succeeded()
 
         and:
@@ -71,7 +71,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
 
         and:
-        1 * workPreparer.scheduleRequestedTasks(workGraph) >> { throw failure }
+        1 * workPreparer.scheduleRequestedTasks(workGraph, null) >> { throw failure }
 
         and:
         1 * finishExecutor.finishBuildTree([failure]) >> reportableFailure
@@ -91,7 +91,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
 
         and:
-        1 * workPreparer.scheduleRequestedTasks(workGraph)
+        1 * workPreparer.scheduleRequestedTasks(workGraph, null)
         1 * workExecutor.execute(workGraph) >> ExecutionResult.failed(failure)
 
         and:
@@ -110,7 +110,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
 
         and:
-        1 * workPreparer.scheduleRequestedTasks(workGraph)
+        1 * workPreparer.scheduleRequestedTasks(workGraph, null)
         1 * workExecutor.execute(workGraph) >> ExecutionResult.succeeded()
 
         and:
@@ -128,7 +128,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
 
         and:
         1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
-        1 * workPreparer.scheduleRequestedTasks(workGraph)
+        1 * workPreparer.scheduleRequestedTasks(workGraph, null)
         1 * workExecutor.execute(workGraph) >> ExecutionResult.succeeded()
 
         and:
@@ -151,7 +151,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
 
         and:
         1 * taskGraph.withNewWorkGraph(_) >> { Function supplier -> supplier.apply(workGraph) }
-        1 * workPreparer.scheduleRequestedTasks(workGraph)
+        1 * workPreparer.scheduleRequestedTasks(workGraph, null)
         1 * workExecutor.execute(workGraph) >> ExecutionResult.failed(failure)
         0 * action._
 

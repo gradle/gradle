@@ -40,8 +40,6 @@ public interface ExecutionPlan extends Describable, Closeable {
 
     void addEntryTasks(Collection<? extends Task> tasks);
 
-    void addEntryTasks(Collection<? extends Task> tasks, int ordinal);
-
     /**
      * Returns the current contents of this plan. Note that this may change.
      */

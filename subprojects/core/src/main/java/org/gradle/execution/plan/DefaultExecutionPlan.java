@@ -114,8 +114,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         addEntryTasks(tasks, order++);
     }
 
-    @Override
-    public void addEntryTasks(Collection<? extends Task> tasks, int ordinal) {
+    private void addEntryTasks(Collection<? extends Task> tasks, int ordinal) {
         SortedSet<Node> nodes = new TreeSet<>(NodeComparator.INSTANCE);
         for (Task task : tasks) {
             nodes.add(taskNodeFactory.getOrCreateNode(task));

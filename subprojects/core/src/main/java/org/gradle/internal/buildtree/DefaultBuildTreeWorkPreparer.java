@@ -16,8 +16,11 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildState;
+
+import javax.annotation.Nullable;
 
 public class DefaultBuildTreeWorkPreparer implements BuildTreeWorkPreparer {
     private final BuildState targetBuild;
@@ -29,8 +32,8 @@ public class DefaultBuildTreeWorkPreparer implements BuildTreeWorkPreparer {
     }
 
     @Override
-    public void scheduleRequestedTasks(BuildTreeWorkGraph graph) {
+    public void scheduleRequestedTasks(BuildTreeWorkGraph graph, @Nullable EntryTaskSelector selector) {
         buildController.prepareToScheduleTasks();
-        graph.scheduleWork(builder -> builder.withWorkGraph(targetBuild, BuildLifecycleController.WorkGraphBuilder::addRequestedTasks));
+        graph.scheduleWork(graphBuilder -> graphBuilder.withWorkGraph(targetBuild, builder -> builder.addRequestedTasks(selector)));
     }
 }
