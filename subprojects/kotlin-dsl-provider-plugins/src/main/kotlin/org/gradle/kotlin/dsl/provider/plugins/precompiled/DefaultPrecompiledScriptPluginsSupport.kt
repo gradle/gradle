@@ -57,7 +57,6 @@ import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import java.io.File
-import java.util.function.Consumer
 import javax.inject.Inject
 
 
@@ -129,7 +128,7 @@ import javax.inject.Inject
 class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
 
     companion object {
-        val PRECOMPILED_SCRIPT_MANUAL = Documentation.userManual("custom_plugins", "sec:precompiled_plugins")!!
+        val PRECOMPILED_SCRIPT_MANUAL = Documentation.userManual("custom_plugins", "sec:precompiled_plugins")
     }
 
     override fun enableOn(target: PrecompiledScriptPluginsSupport.Target): Boolean = target.project.run {
@@ -152,30 +151,6 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
             )
         }
         return true
-    }
-
-    @Deprecated("Use enableOn(Target)")
-    override fun enableOn(
-        project: Project,
-        kotlinSourceDirectorySet: SourceDirectorySet,
-        kotlinCompileTask: TaskProvider<out Task>,
-        kotlinCompilerArgsConsumer: Consumer<List<String>>
-    ) {
-        enableOn(object : PrecompiledScriptPluginsSupport.Target {
-            override val project
-                get() = project
-
-            override val kotlinSourceDirectorySet
-                get() = kotlinSourceDirectorySet
-
-            @Deprecated("No longer used.", ReplaceWith(""))
-            override val kotlinCompileTask
-                get() = error("No longer used.")
-
-            @Deprecated("No longer used.", ReplaceWith(""))
-            override fun applyKotlinCompilerArgs(args: List<String>) =
-                error("No longer used.")
-        })
     }
 
     override fun collectScriptPluginFilesOf(project: Project): List<File> =
