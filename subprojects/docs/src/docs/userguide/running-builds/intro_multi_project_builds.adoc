@@ -69,7 +69,7 @@ The next section shows how this can be achieved directly from the project's root
 [[sec:executing_tasks_by_fully_qualified_name]]
 == Executing tasks by fully qualified name
 
-You can use task's fully qualified name to execute a specific task in a specific subproject.
+You can use a task's fully qualified name to execute a specific task in a specific subproject.
 For example: `gradle :services:webservice:build` will run the `build` task of the _webservice_ subproject.
 The fully qualified name of a task is simply its project path plus the task name.
 
