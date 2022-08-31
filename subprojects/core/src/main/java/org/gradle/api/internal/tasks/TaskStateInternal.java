@@ -28,6 +28,7 @@ public class TaskStateInternal implements TaskState {
     private boolean executing;
     private boolean actionable = true;
     private boolean didWork;
+    private boolean computingSkip;
     private RuntimeException failure;
     private TaskExecutionOutcome outcome;
 
@@ -160,5 +161,13 @@ public class TaskStateInternal implements TaskState {
 
     public void setActionable(boolean actionable) {
         this.actionable = actionable;
+    }
+
+    public boolean isComputingSkip() {
+        return computingSkip;
+    }
+
+    public void setComputingSkip(boolean computingSkip) {
+        this.computingSkip = computingSkip;
     }
 }

@@ -807,6 +807,72 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         'Task.taskDependencies' | 'taskDependencies'
     }
 
+    def "reports invocation in onlyIf"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            class MySpec implements Spec<Task> {
+                @Override boolean isSatisfiedBy(Task task) {
+                    !task.project.name == 'root'
+                }
+            }
+
+            tasks.register("a") {
+                onlyIf(new MySpec())
+            }
+
+            tasks.register("b") {
+                onlyIf {
+                    !it.project.name == 'root'
+                }
+            }
+        """
+
+        when:
+        configurationCacheFails "a", "b"
+
+        then:
+        configurationCache.assertStateStored()
+        result.assertTaskSkipped(":a")
+        result.assertTaskSkipped(":b")
+        outputContains("Configuration cache entry discarded with 2 problems.")
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Task `:a` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Task `:b` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withTotalProblemsCount(2)
+        }
+
+        when:
+        configurationCacheRunLenient "a", "b"
+
+        then:
+        configurationCache.assertStateStored()
+        result.assertTaskSkipped(":a")
+        result.assertTaskSkipped(":b")
+        postBuildOutputContains("Configuration cache entry stored with 2 problems.")
+        problems.assertResultHasProblems(result) {
+            withProblem("Task `:a` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Task `:b` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withTotalProblemsCount(2)
+        }
+
+        when:
+        configurationCacheRunLenient "a", "b"
+
+        then:
+        configurationCache.assertStateLoaded()
+        result.assertTaskSkipped(":a")
+        result.assertTaskSkipped(":b")
+        postBuildOutputContains("Configuration cache entry reused with 2 problems.")
+        problems.assertResultHasProblems(result) {
+            withProblem("Task `:a` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Task `:b` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withTotalProblemsCount(2)
+        }
+    }
+
     def "reports build listener registration on #registrationPoint"() {
 
         given:

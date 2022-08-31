@@ -30,6 +30,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -46,6 +47,7 @@ import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskRequiredServices;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
+import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.logging.Logger;
@@ -56,6 +58,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
+import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
@@ -136,6 +139,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final Property<Duration> timeout;
 
+    private final TaskStateInternal state = new TaskStateInternal();
+
     private DescribingAndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
 
     private String reasonNotToTrackState;
@@ -143,8 +148,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private String reasonIncompatibleWithConfigurationCache;
 
     private final ServiceRegistry services;
-
-    private final TaskStateInternal state;
 
     private final ContextAwareTaskLogger logger = new DefaultContextAwareTaskLogger(BUILD_LOGGER);
 
@@ -177,7 +180,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.project = taskInfo.project;
         assert project != null;
         assert identity.name != null;
-        this.state = new TaskStateInternal();
         final TaskDependencyFactory taskDependencyFactory = project.getTaskDependencyFactory();
         this.mustRunAfter = taskDependencyFactory.configurableDependency();
         this.finalizedBy = taskDependencyFactory.configurableDependency();
@@ -376,12 +378,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private DescribingAndSpec<Task> createNewOnlyIfSpec() {
-        return new DescribingAndSpec<>(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return element == AbstractTask.this && enabled;
-            }
-        }, "Task is enabled");
+        return new OnlyIfAndSpec(SerializableLambdas.spec(task -> task == AbstractTask.this && enabled), "Task is enabled");
     }
 
     @Override
@@ -1045,18 +1042,54 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private void notifyProjectAccess() {
-        if (state.getExecuting()) {
+        if (state.getExecuting() || state.isComputingSkip()) {
             getTaskExecutionAccessBroadcaster().onProjectAccess("Task.project", this);
         }
     }
 
     private void notifyTaskDependenciesAccess(String invocationDescription) {
-        if (state.getExecuting()) {
+        if (state.getExecuting() || state.isComputingSkip()) {
             getTaskExecutionAccessBroadcaster().onTaskDependenciesAccess(invocationDescription, this);
         }
     }
 
     private TaskExecutionAccessListener getTaskExecutionAccessBroadcaster() {
         return services.get(ListenerManager.class).getBroadcaster(TaskExecutionAccessListener.class);
+    }
+
+    private class OnlyIfAndSpec extends DescribingAndSpec<Task> {
+        public OnlyIfAndSpec(Spec<? super Task> spec, String description) {
+            super(spec, description);
+        }
+
+        private OnlyIfAndSpec(AndSpec<Task> specHolder) {
+            super(specHolder);
+        }
+
+        @Override
+        public boolean isSatisfiedBy(Task element) {
+            state.setComputingSkip(true);
+            try {
+                return super.isSatisfiedBy(element);
+            } finally {
+                state.setComputingSkip(false);
+            }
+        }
+
+        @Nullable
+        @Override
+        public SelfDescribingSpec<? super Task> findUnsatisfiedSpec(Task element) {
+            state.setComputingSkip(true);
+            try {
+                return super.findUnsatisfiedSpec(element);
+            } finally {
+                state.setComputingSkip(false);
+            }
+        }
+
+        @Override
+        protected DescribingAndSpec<Task> newSpec(AndSpec<Task> specHolder) {
+            return new OnlyIfAndSpec(specHolder);
+        }
     }
 }

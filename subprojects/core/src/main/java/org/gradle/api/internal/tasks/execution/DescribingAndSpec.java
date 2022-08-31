@@ -35,8 +35,8 @@ public class DescribingAndSpec<T> extends CompositeSpec<T> {
     private static final DescribingAndSpec<?> EMPTY = new DescribingAndSpec<>();
     private final AndSpec<T> specHolder;
 
-    private DescribingAndSpec(AndSpec<T> specHolder) {
-        super(specHolder.getSpecs().toArray(Cast.uncheckedCast(new Spec[0])));
+    protected DescribingAndSpec(AndSpec<T> specHolder) {
+        super(specHolder.getSpecs().toArray(Cast.<Spec<? super T>[]>uncheckedCast(new Spec[0])));
         this.specHolder = specHolder;
     }
 
@@ -58,8 +58,12 @@ public class DescribingAndSpec<T> extends CompositeSpec<T> {
         return Cast.uncheckedCast(specHolder.findUnsatisfiedSpec(element));
     }
 
+    protected DescribingAndSpec<T> newSpec(AndSpec<T> specHolder) {
+        return new DescribingAndSpec<>(specHolder);
+    }
+
     public DescribingAndSpec<T> and(Spec<? super T> spec, String description) {
-        return new DescribingAndSpec<>(specHolder.and(new SelfDescribingSpec<>(spec, description)));
+        return newSpec(specHolder.and(new SelfDescribingSpec<>(spec, description)));
     }
 
     @SuppressWarnings("rawtypes")
