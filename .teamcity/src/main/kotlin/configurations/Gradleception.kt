@@ -30,10 +30,6 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
         publishBuildStatusToGithub(model)
     }
 
-    failureConditions {
-        javaCrash = false
-    }
-
     dependencies {
         // If SanityCheck fails, Gradleception will definitely fail because the last build step is also sanityCheck
         dependsOn(RelativeId(SanityCheck.buildTypeId(model)))
