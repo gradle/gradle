@@ -26,12 +26,13 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public interface ArtifactSelector {
     /**
      * Creates a set that will resolve the artifacts of the given configuration, minus those artifacts that are excluded.
      */
-    ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Set<? extends VariantResolveMetadata> allVariants, Set<? extends VariantResolveMetadata> legacyVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
+    ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Supplier<Set<? extends VariantResolveMetadata>> allVariants, Set<? extends VariantResolveMetadata> legacyVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
 
     /**
      * Creates a set that will resolve the given artifacts of the given component.

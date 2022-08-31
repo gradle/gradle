@@ -27,6 +27,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
+import org.gradle.internal.component.model.ComponentArtifactResolveVariantState;
 
 import java.util.Set;
 
@@ -37,14 +38,14 @@ public class DefaultArtifactSet implements ArtifactSet, ResolvedVariantSet, Vari
     private final ComponentIdentifier componentIdentifier;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributes selectionAttributes;
-    private final Set<ResolvedVariant> variants;
+    private final ComponentArtifactResolveVariantState componentArtifactResolveVariantState;
     private final Set<ResolvedVariant> legacyVariants;
 
-    DefaultArtifactSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ImmutableAttributes selectionAttributes, Set<ResolvedVariant> variants, Set<ResolvedVariant> legacyVariants) {
+    DefaultArtifactSet(ComponentIdentifier componentIdentifier, AttributesSchemaInternal schema, ImmutableAttributes selectionAttributes, ComponentArtifactResolveVariantState componentArtifactResolveVariantState, Set<ResolvedVariant> legacyVariants) {
         this.componentIdentifier = componentIdentifier;
         this.schema = schema;
         this.selectionAttributes = selectionAttributes;
-        this.variants = variants;
+        this.componentArtifactResolveVariantState = componentArtifactResolveVariantState;
         this.legacyVariants = legacyVariants;
     }
 
@@ -93,6 +94,6 @@ public class DefaultArtifactSet implements ArtifactSet, ResolvedVariantSet, Vari
 
     @Override
     public Set<ResolvedVariant> getAllVariants() {
-        return variants;
+        return componentArtifactResolveVariantState.getAllVariants();
     }
 }

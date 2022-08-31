@@ -29,6 +29,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveVariantState;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -42,7 +43,7 @@ import java.util.function.Supplier;
 
 public class ArtifactSetFactory {
     public static ArtifactSet createFromVariantMetadata(ComponentIdentifier componentIdentifier,
-                                                        Set<ResolvedVariant> allVariants,
+                                                        ComponentArtifactResolveVariantState allVariants,
                                                         Set<ResolvedVariant> legacyVariants,
                                                         AttributesSchemaInternal schema,
                                                         ImmutableAttributes selectionAttributes
@@ -55,7 +56,7 @@ public class ArtifactSetFactory {
             identifier = new SingleArtifactVariantIdentifier(artifacts.iterator().next().getId());
         }
         ResolvedVariant resolvedVariant = toResolvedVariant(identifier, Describables.of(componentIdentifier), variantAttributes, ImmutableList.copyOf(artifacts), ImmutableCapabilities.of(ImmutableCapability.defaultCapabilityForComponent(ownerId)), ownerId, moduleSources, artifactResolver);
-        return new DefaultArtifactSet(componentIdentifier, schema, selectionAttributes, Collections.singleton(resolvedVariant), Collections.singleton(resolvedVariant));
+        return new DefaultArtifactSet(componentIdentifier, schema, selectionAttributes, () -> Collections.singleton(resolvedVariant), Collections.singleton(resolvedVariant));
     }
 
     public static ResolvedVariant toResolvedVariant(VariantResolveMetadata.Identifier identifier,

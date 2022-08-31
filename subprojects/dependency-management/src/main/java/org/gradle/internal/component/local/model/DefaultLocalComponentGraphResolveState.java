@@ -74,6 +74,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     private static class DefaultLocalVariantArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
         private final LocalComponentMetadata component;
         private final LocalConfigurationMetadata graphSelectedVariant;
+
         public DefaultLocalVariantArtifactResolveState(LocalComponentMetadata component, LocalConfigurationMetadata graphSelectedVariant) {
             this.component = component;
             this.graphSelectedVariant = graphSelectedVariant;
@@ -93,6 +94,10 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
             graphSelectedVariant.prepareToResolveArtifacts();
+            return artifactSelector.resolveArtifacts(component, () -> buildAllVariants(), graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
+        }
+
+        private Set<? extends VariantResolveMetadata> buildAllVariants() {
             final Set<? extends VariantResolveMetadata> allVariants;
             if (component.getVariantsForGraphTraversal().isPresent()) {
                 allVariants = component.getVariantsForGraphTraversal().get().stream().
@@ -104,7 +109,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             } else {
                 allVariants = graphSelectedVariant.getVariants();
             }
-            return artifactSelector.resolveArtifacts(component, allVariants, graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
+            return allVariants;
         }
     }
 }

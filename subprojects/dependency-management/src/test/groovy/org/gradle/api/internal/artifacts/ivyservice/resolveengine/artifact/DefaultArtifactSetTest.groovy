@@ -31,14 +31,12 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.external.model.ImmutableCapability
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.model.CalculatedValueContainerFactory
 import spock.lang.Specification
 
 class DefaultArtifactSetTest extends Specification {
     def componentId = Stub(ComponentIdentifier)
     def schema = Stub(AttributesSchemaInternal)
     def artifactTypeRegistry = Stub(ArtifactTypeRegistry)
-    def calculatedValueContainerFactory = Stub(CalculatedValueContainerFactory)
 
     def setup() {
         artifactTypeRegistry.mapAttributesFor(_) >> ImmutableAttributes.EMPTY
@@ -50,8 +48,8 @@ class DefaultArtifactSetTest extends Specification {
         def ownerId = Stub(ModuleVersionIdentifier)
 
         given:
-        def artifacts1 = ArtifactSetFactory.createFromVariantMetadata(componentId, [variant1, variant2] as Set, [variant1, variant2] as Set, schema, ImmutableAttributes.EMPTY)
-        def artifacts2 = ArtifactSetFactory.createFromVariantMetadata(componentId, [variant1] as Set, [variant1] as Set, schema, ImmutableAttributes.EMPTY)
+        def artifacts1 = ArtifactSetFactory.createFromVariantMetadata(componentId, () -> ([variant1, variant2] as Set), [variant1, variant2] as Set, schema, ImmutableAttributes.EMPTY)
+        def artifacts2 = ArtifactSetFactory.createFromVariantMetadata(componentId, () -> ([variant1] as Set), [variant1] as Set, schema, ImmutableAttributes.EMPTY)
         def artifacts3 = ArtifactSetFactory.adHocVariant(componentId, ownerId, [] as Set, null, schema, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
 
         ownerId.group >> "group"
@@ -71,7 +69,7 @@ class DefaultArtifactSetTest extends Specification {
         def variant2 = makeVariantNamed("variant2", ownerId)
 
         when:
-        def artifactSet = ArtifactSetFactory.createFromVariantMetadata(componentId, [variant1, variant2] as Set, [variant1, variant2] as Set, schema, ImmutableAttributes.EMPTY)
+        def artifactSet = ArtifactSetFactory.createFromVariantMetadata(componentId, () -> ([variant1, variant2] as Set), [variant1, variant2] as Set, schema, ImmutableAttributes.EMPTY)
         artifactSet.select({ true }, new VariantSelector() {
             @Override
             ResolvedArtifactSet select(ResolvedVariantSet candidates, VariantSelector.Factory factory) {
@@ -107,8 +105,8 @@ class DefaultArtifactSetTest extends Specification {
         def ownerId = Stub(ModuleVersionIdentifier)
 
         given:
-        def artifacts1 = ArtifactSetFactory.createFromVariantMetadata(componentId, [variant1, variant2] as Set, [variant1, variant2] as Set, schema, ImmutableAttributes.EMPTY)
-        def artifacts2 = ArtifactSetFactory.createFromVariantMetadata(componentId, [variant1] as Set, [variant1] as Set, schema, ImmutableAttributes.EMPTY)
+        def artifacts1 = ArtifactSetFactory.createFromVariantMetadata(componentId, () -> ([variant1, variant2] as Set), [variant1, variant2] as Set, schema, ImmutableAttributes.EMPTY)
+        def artifacts2 = ArtifactSetFactory.createFromVariantMetadata(componentId, () -> ([variant1] as Set), [variant1] as Set, schema, ImmutableAttributes.EMPTY)
         def artifacts3 = ArtifactSetFactory.adHocVariant(componentId, ownerId, [] as Set, null, schema, null, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY)
 
         selector.select(_, _) >> resolvedVariant1

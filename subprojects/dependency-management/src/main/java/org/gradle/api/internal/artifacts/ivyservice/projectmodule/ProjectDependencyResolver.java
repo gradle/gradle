@@ -33,6 +33,7 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifactResolveVariantState;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -137,7 +138,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     @Nullable
     @Override
-    public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, Set<ResolvedVariant> allVariants, Set<ResolvedVariant> legacyVariants, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(final ComponentResolveMetadata component, ComponentArtifactResolveVariantState allVariants, Set<ResolvedVariant> legacyVariants, final ExcludeSpec exclusions, final ImmutableAttributes overriddenAttributes) {
         if (isProjectModule(component.getId())) {
             return ArtifactSetFactory.createFromVariantMetadata(component.getId(), allVariants, legacyVariants, component.getAttributesSchema(), overriddenAttributes);
         } else {
