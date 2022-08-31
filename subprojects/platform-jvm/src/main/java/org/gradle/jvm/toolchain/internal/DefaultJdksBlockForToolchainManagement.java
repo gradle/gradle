@@ -51,12 +51,12 @@ public abstract class DefaultJdksBlockForToolchainManagement implements JdksBloc
         registry.request(registrationName, authentication);
     }
 
-    @Override
+    //@Override TODO: method intentionally not part of the public API, due to lacks in Kotlin accessor generation
     public void add(JavaToolchainRepositoryRegistration registration) {
         registry.request(registration);
     }
 
-    @Override
+    //@Override TODO: method intentionally not part of the public API, due to lacks in Kotlin accessor generation
     public void add(JavaToolchainRepositoryRegistration registration, Action<? super AuthenticationSupported> authentication) {
         registry.request(registration, authentication);
     }

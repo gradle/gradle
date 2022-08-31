@@ -39,7 +39,7 @@ public interface JavaToolchainRepository extends BuildService<BuildServiceParame
      * <p>
      * Returns an empty Optional if and only if the provided specification can't be matched.
      */
-    Optional<URI> toUri(JavaToolchainSpec spec);
+    Optional<URI> toUri(JavaToolchainSpec spec); //TODO (#21082): provide not just the spec, but also build environment information
 
     /**
      * Returns the highest version of {@link JavaToolchainSpec} this repository implementation can handle.

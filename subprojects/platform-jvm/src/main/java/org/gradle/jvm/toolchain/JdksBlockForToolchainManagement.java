@@ -66,37 +66,7 @@ public interface JdksBlockForToolchainManagement {
      */
     void add(String registrationName, Action<? super AuthenticationSupported> authenticationSupported);
 
-    /**
-     * Add a registration to the ordered list of explicitly requested ones.
-     */
-    void add(JavaToolchainRepositoryRegistration registration);
-
-    /**
-     * Add a registration to the ordered list of explicitly requested ones.
-     * <p>
-     * Configures the authentication to be used when the requested registration ends up being used for Java
-     * toolchain provisioning. The authentication mechanism employed are the same as the ones for artifact
-     * repositories, and they need to be configured in exactly the same way:
-     *
-     * <pre class='autoTested'>
-     * toolchainManagement {
-     *   jdks {
-     *     add("customRegistry") {
-     *       credentials {
-     *         username "user"
-     *         password "password"
-     *       }
-     *       authentication {
-     *         digest(DigestAuthentication)
-     *       }
-     *     }
-     *   }
-     * }
-     * </pre>
-     */
-    void add(JavaToolchainRepositoryRegistration registration, Action<? super AuthenticationSupported> authenticationSupported);
-
-    // TODO (#21082): hide the accessors for now behind an internal flag
+    //TODO (#21082): action -> own type which is extensible in the future (NOT authentication specific)
 
     List<? extends JavaToolchainRepositoryRegistration> getAll();
 

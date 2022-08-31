@@ -36,7 +36,14 @@ public interface JavaToolchainRepositoryRegistry {
      * In order to avoid name collisions we recommend this name to be set to the plugin ID that's doing
      * the registration. Since plugin IDs are already forced to be unique by the Plugin Portal, this
      * will ensure that any combination of Java Toolchain Provisioning SPI plugins will work in any build.
+     *
+     * //TODO (#21082): dot and dash can't be used in the names
+     *
      */
     <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType);
+
+    //TODO (#21082): remove spec versioning from repository, move it to registration (param of the register method)
+
+    //TODO (#21082): check this user provided name for the conventions we require
 
 }

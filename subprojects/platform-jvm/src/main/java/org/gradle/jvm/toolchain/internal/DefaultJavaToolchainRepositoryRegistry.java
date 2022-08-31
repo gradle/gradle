@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.repositories.AuthenticationSupported;
@@ -40,7 +41,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaToolchainRepositoryRegistryInternal {
 
@@ -127,7 +127,10 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
 
     @Override
     public List<? extends JavaToolchainRepositoryRegistration> allRequestedRegistrations() {
-        return requests.stream().map(JavaToolchainRepositoryRequest::getRegistration).collect(Collectors.toList()); //TODO (#21082): do we need to create a defensive copy here?
+        return requests.stream()
+                .map(JavaToolchainRepositoryRequest::getRegistration)
+                .map(r -> new ViewOnlyJavaToolchainRepositoryRegistration(r.getName(), r.getType()))
+                .collect(ImmutableList.toImmutableList());
     }
 
     @Override
@@ -141,6 +144,28 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
             throw new GradleException("Unknown Java Toolchain registry: " + registrationName);
         }
         return registration;
+    }
+
+    private static final class ViewOnlyJavaToolchainRepositoryRegistration implements JavaToolchainRepositoryRegistration {
+
+        private final String name;
+
+        private final String type;
+
+        public ViewOnlyJavaToolchainRepositoryRegistration(String name, String type) {
+            this.name = name;
+            this.type = type;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String getType() {
+            return type;
+        }
     }
 
 }
