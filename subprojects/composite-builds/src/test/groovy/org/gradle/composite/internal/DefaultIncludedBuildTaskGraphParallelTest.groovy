@@ -129,6 +129,34 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def childBuild = build(services, new DefaultBuildIdentifier("child"))
         def build = build(services, DefaultBuildIdentifier.ROOT)
         def childNode = new TestNode("child build node")
+        def node = new TestNode("main build node")
+
+        when:
+        def result = scheduleAndRun(services) { builder ->
+            builder.withWorkGraph(build.state) { graphBuilder ->
+                def task = task(build, node)
+                graphBuilder.addEntryTasks([task])
+            }
+            builder.withWorkGraph(childBuild.state) { graphBuilder ->
+                def task = task(childBuild, childNode)
+                graphBuilder.addEntryTasks([task])
+            }
+        }
+
+        then:
+        result.failures.empty
+        childNode.executed
+        node.executed
+
+        where:
+        workers << [1, manyWorkers]
+    }
+
+    def "runs scheduled related work across multiple builds"() {
+        def services = new TreeServices(workers)
+        def childBuild = build(services, new DefaultBuildIdentifier("child"))
+        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def childNode = new TestNode("child build node")
         def node = new DelegateNode("main build node", [childNode])
 
         when:
@@ -452,9 +480,12 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
         @Override
         void finishExecution(Consumer<Node> completionAction) {
-            super.finishExecution(completionAction)
-            for (final def action in observers) {
-                action.run()
+            try {
+                super.finishExecution(completionAction)
+            } finally {
+                for (final def action in observers) {
+                    action.run()
+                }
             }
         }
     }
