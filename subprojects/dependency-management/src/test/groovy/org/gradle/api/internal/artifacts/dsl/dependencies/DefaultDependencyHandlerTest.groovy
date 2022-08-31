@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies
 
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
+import org.gradle.api.GradleException
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
@@ -227,20 +228,18 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencyFactory.createProjectDependencyFromMap(projectFinder, [:]) >> projectDependency
     }
 
-    void "attaches configuration from same project to target configuration"() {
+    void "cannot create project dependency for configuration from same project"() {
         Configuration other = Mock()
 
         given:
         configurationContainer.contains(other) >> true
 
         when:
-        def result = dependencyHandler.add(TEST_CONF_NAME, other)
+        dependencyHandler.add(TEST_CONF_NAME, other)
 
         then:
-        result == null
-
-        and:
-        1 * configuration.extendsFrom(other)
+        def t = thrown(GradleException)
+        t.message.contains("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.")
     }
 
     void "cannot create project dependency for configuration from different project"() {
@@ -253,8 +252,8 @@ class DefaultDependencyHandlerTest extends Specification {
         dependencyHandler.add(TEST_CONF_NAME, other)
 
         then:
-        UnsupportedOperationException e = thrown()
-        e.message == 'Currently you can only declare dependencies on configurations from the same project.'
+        def t = thrown(GradleException)
+        t.message.contains("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.")
     }
 
     void "creates client module dependency"() {
