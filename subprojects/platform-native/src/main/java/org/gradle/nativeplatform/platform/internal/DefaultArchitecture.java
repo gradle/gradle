@@ -58,6 +58,11 @@ public class DefaultArchitecture implements ArchitectureInternal {
     }
 
     @Override
+    public boolean isArm64() {
+        return Architectures.AARCH64.isAlias(name);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
