@@ -36,7 +36,7 @@ class BinaryBreakingSuperclassChangeRule extends AbstractSuperClassChangesRule {
 
     @Override
     protected boolean changed(JApiCompatibility member) {
-        return member instanceof JApiClass && !member.superclass.binaryCompatible && !member.superclass.compatibilityChanges.isEmpty()
+        return member instanceof JApiClass && !member.superclass.binaryCompatible && !member.superclass.compatibilityChanges.empty
     }
 
     @Override
