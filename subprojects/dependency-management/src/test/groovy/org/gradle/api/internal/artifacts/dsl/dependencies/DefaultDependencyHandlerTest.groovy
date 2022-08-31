@@ -235,7 +235,7 @@ class DefaultDependencyHandlerTest extends Specification {
         configurationContainer.contains(other) >> true
 
         when:
-        def result = dependencyHandler.add(TEST_CONF_NAME, other)
+        dependencyHandler.add(TEST_CONF_NAME, other)
 
         then:
         def t = thrown(GradleException)
