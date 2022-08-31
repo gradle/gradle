@@ -490,9 +490,10 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         when:
         runAndFail "getAsPath"
         then:
-        failure.assertHasCause("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' is not supported." +
+        failure.assertHasDocumentedCause("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' is not supported." +
             " The path separator is not a valid element of a file path." +
             " Problematic paths in 'file collection' are: '$path'." +
-            " Add the individual files to the file collection instead.")
+            " Add the individual files to the file collection instead." +
+            " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
     }
 }
