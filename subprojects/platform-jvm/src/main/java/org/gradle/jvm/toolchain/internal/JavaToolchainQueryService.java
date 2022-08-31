@@ -42,7 +42,7 @@ public class JavaToolchainQueryService {
     private final JavaToolchainProvisioningService installService;
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
-    private final Map<JavaToolchainSpec, Object> matchingToolchains;
+    private final Map<JavaToolchainSpecInternal.Key, Object> matchingToolchains;
 
     @Inject
     public JavaToolchainQueryService(
@@ -86,17 +86,17 @@ public class JavaToolchainQueryService {
             }
 
             synchronized (matchingToolchains) {
-                if (matchingToolchains.containsKey(filter)) {
-                    return handleMatchingToolchainCached(filter);
+                if (matchingToolchains.containsKey(filterInternal.toKey())) {
+                    return handleMatchingToolchainCached(filterInternal);
                 } else {
-                    return handleMatchingToolchainUnknown(filter);
+                    return handleMatchingToolchainUnknown(filterInternal);
                 }
             }
         });
     }
 
-    private JavaToolchain handleMatchingToolchainCached(JavaToolchainSpec filter) throws Exception {
-        Object previousResult = matchingToolchains.get(filter);
+    private JavaToolchain handleMatchingToolchainCached(JavaToolchainSpecInternal filterInternal) throws Exception {
+        Object previousResult = matchingToolchains.get(filterInternal.toKey());
         if (previousResult instanceof Exception) {
             throw (Exception) previousResult;
         } else {
@@ -104,13 +104,13 @@ public class JavaToolchainQueryService {
         }
     }
 
-    private JavaToolchain handleMatchingToolchainUnknown(JavaToolchainSpec filter) {
+    private JavaToolchain handleMatchingToolchainUnknown(JavaToolchainSpecInternal filterInternal) {
         try {
-            JavaToolchain toolchain = query(filter);
-            matchingToolchains.put(filter, toolchain);
+            JavaToolchain toolchain = query(filterInternal);
+            matchingToolchains.put(filterInternal.toKey(), toolchain);
             return toolchain;
         } catch (Exception e) {
-            matchingToolchains.put(filter, e);
+            matchingToolchains.put(filterInternal.toKey(), e);
             throw e;
         }
     }
