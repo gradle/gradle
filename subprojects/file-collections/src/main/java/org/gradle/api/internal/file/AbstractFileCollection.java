@@ -192,7 +192,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
                     displayedFilePaths
                 ))
                 .withAdvice("Add the individual files to the file collection instead.")
-                .undocumented()
+                .withUpgradeGuideSection(7, "file_collection_to_classpath")
                 .build();
         }
     }
