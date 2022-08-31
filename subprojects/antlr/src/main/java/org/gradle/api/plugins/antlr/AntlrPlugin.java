@@ -28,7 +28,6 @@ import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -55,10 +54,9 @@ public class AntlrPlugin implements Plugin<Project> {
         // set up a configuration named 'antlr' for the user to specify the antlr libs to use in case
         // they want a specific version etc.
         final Configuration antlrConfiguration = project.getConfigurations().create(ANTLR_CONFIGURATION_NAME)
-            .setVisible(false)
-            .setDescription("The Antlr libraries to be used for this project.");
-        ((DeprecatableConfiguration) antlrConfiguration).deprecateForConsumption(deprecation -> deprecation.willBecomeAnErrorInGradle8()
-            .withUpgradeGuideSection(7, "plugin_configuration_consumption"));
+            .setVisible(false);
+        antlrConfiguration.setCanBeResolved(true);
+        antlrConfiguration.setCanBeConsumed(false);
 
         antlrConfiguration.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("antlr:antlr:2.7.7@jar")));
 
