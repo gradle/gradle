@@ -61,7 +61,7 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
 
     @Override
     public boolean add(final Dependency o) {
-        ensureValidConfigurationForDeclaration((DeprecatableConfiguration) clientConfiguration);
+        ensureValidConfigurationForDeclaration(clientConfiguration.getName(), (DeprecatableConfiguration) clientConfiguration);
         if (o instanceof AbstractModuleDependency) {
             ((AbstractModuleDependency) o).addMutationValidator(mutationValidator);
         }

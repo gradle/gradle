@@ -1055,7 +1055,7 @@ compileClasspath - Compile classpath for source set 'main'.
         fails ':a:dependencies'
 
         then:
-        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` and `runtime` configurations.")
+        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` configuration.")
     }
 
     void "treats a configuration that is deprecated for resolving as not resolvable"() {

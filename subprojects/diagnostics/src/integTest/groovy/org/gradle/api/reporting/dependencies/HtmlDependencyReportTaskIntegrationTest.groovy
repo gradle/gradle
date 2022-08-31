@@ -628,7 +628,7 @@ rootProject.name = 'root'
         fails "htmlDependencyReport"
 
         then:
-        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` and `runtime` configurations.")
+        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` configuration.")
     }
 
     private def readGeneratedJson(fileNameWithoutExtension) {

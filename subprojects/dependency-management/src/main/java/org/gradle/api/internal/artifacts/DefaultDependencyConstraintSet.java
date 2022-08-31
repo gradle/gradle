@@ -44,7 +44,7 @@ public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<De
 
     @Override
     public boolean add(final DependencyConstraint dependencyConstraint) {
-        ensureValidConfigurationForDeclaration((DeprecatableConfiguration) clientConfiguration);
+        ensureValidConfigurationForDeclaration(clientConfiguration.getName(), (DeprecatableConfiguration) clientConfiguration);
         return addInternalDependencyConstraint(dependencyConstraint);
     }
 

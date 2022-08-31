@@ -589,7 +589,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private ResolveState resolveToStateOrLater(final InternalState requestedState) {
         assertIsResolvable();
-        ensureValidConfigurationForDeclaration(resolutionAlternatives);
+        ensureValidConfigurationForDeclaration(name, resolutionAlternatives);
 
         ResolveState currentState = currentResolveState.get();
         if (currentState.state.compareTo(requestedState) >= 0) {
