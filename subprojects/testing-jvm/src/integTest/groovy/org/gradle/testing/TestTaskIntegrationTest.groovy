@@ -282,7 +282,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         extraArgs << [[], ["--tests", "MyTest"]]
     }
 
-    def "options set prior to setting same test framework will remain in effect and not cause error"() {
+    def "options set prior to setting same test framework will cause error"() {
         ignoreWhenJUnitPlatform()
 
         given:
