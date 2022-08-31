@@ -28,6 +28,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -48,6 +49,7 @@ public class UserResolverChain implements ComponentResolvers {
                              ImmutableAttributesFactory attributesFactory,
                              ComponentMetadataProcessorFactory componentMetadataProcessor,
                              ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
+                             CalculatedValueContainerFactory calculatedValueContainerFactory,
                              CachePolicy cachePolicy
     ) {
         this.componentSelectionRules = componentSelectionRules;
@@ -55,7 +57,7 @@ public class UserResolverChain implements ComponentResolvers {
         ModuleTransformer metaDataFactory = new ModuleTransformer();
         componentIdResolver = new RepositoryChainDependencyToComponentIdResolver(componentChooser, metaDataFactory, versionParser, consumerAttributes, attributesFactory, componentMetadataProcessor, componentMetadataSupplierRuleExecutor, cachePolicy);
         componentResolver = new RepositoryChainComponentMetaDataResolver(componentChooser, metaDataFactory);
-        artifactResolver = new RepositoryChainArtifactResolver();
+        artifactResolver = new RepositoryChainArtifactResolver(calculatedValueContainerFactory);
     }
 
     @Override

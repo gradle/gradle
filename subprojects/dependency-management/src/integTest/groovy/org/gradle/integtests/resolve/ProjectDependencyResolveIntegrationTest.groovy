@@ -394,7 +394,7 @@ project(":b") {
         fails ':b:test'
 
         and:
-        failure.assertHasCause("Could not resolve all files for configuration ':b:compile'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':b:compile'.")
         failure.assertHasCause("Could not find b.jar (project :a).")
     }
 
