@@ -18,6 +18,9 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+/**
+ * As of Gradle 8.0 these are no longer merely deprecated, but fully invalid.
+ */
 class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -64,12 +67,10 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 8.0. " +
-            "Please use the implementation configuration instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        fails 'help'
 
         then:
-        succeeds 'help'
+        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` and `runtime` configurations.")
     }
 
     def "warn if a dependency constraint is declared on a deprecated configuration"() {
@@ -83,12 +84,10 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 8.0. " +
-            "Please use the implementation configuration instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        fails 'help'
 
         then:
-        succeeds 'help'
+        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` and `runtime` configurations.")
     }
 
     def "warn if an artifact is declared on a configuration that is fully deprecated"() {
@@ -100,12 +99,10 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 8.0. " +
-            "Please use the implementation configuration instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        fails 'help'
 
         then:
-        succeeds 'help'
+        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` and `runtime` configurations.")
     }
 
     def "warn if a deprecated configuration is resolved"() {
@@ -119,12 +116,9 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for resolution. This will fail with an error in Gradle 8.0. " +
-            "Please resolve the compileClasspath configuration instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+        fails 'resolve'
 
         then:
-        succeeds 'resolve'
+        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` and `runtime` configurations.")
     }
-
 }

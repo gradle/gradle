@@ -1029,9 +1029,7 @@ compileClasspath - Compile classpath for source set 'main'.
 """
     }
 
-    def "excludes fully deprecated configurations"() {
-        executer.expectDeprecationWarning()
-
+    def "fully deprecated configurations can no longer be used and will produce an error"() {
         given:
         file("settings.gradle") << "include 'a', 'b'"
 
@@ -1054,10 +1052,10 @@ compileClasspath - Compile classpath for source set 'main'.
         """
 
         when:
-        run ":a:dependencies"
+        fails ':a:dependencies'
 
         then:
-        !output.contains("\ncompile\n")
+        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` and `runtime` configurations.")
     }
 
     void "treats a configuration that is deprecated for resolving as not resolvable"() {
