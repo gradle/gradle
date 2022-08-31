@@ -32,4 +32,7 @@ public interface ArchitectureInternal extends Architecture {
 
     @Internal
     boolean isArm();
+
+    @Internal
+    boolean isArm64();
 }
