@@ -92,14 +92,17 @@ If you need to serialize it, you can convert it into your own, serializable clas
 Gradle now does not try to use equals when comparing serialized values in up-to-date checks.
 For more information see <<equals_up_to_date_deprecation>>.
 
-==== Task validation warnings introduced in Gradle 7.x are now errors
+==== Task and transform validation warnings introduced in Gradle 7.x are now errors
 
-Gradle introduced additional task validation warnings in the Gradle 7.x series.
+Gradle introduced additional task and artifact transform validation warnings in the Gradle 7.x series.
 Those warnings are now errors in Gradle 8.0 and will fail the build.
 
-Warnings which became errors:
+Warnings that became errors:
 
-- An input file collection which can't be resolved.
+- An input file collection that can't be resolved.
+- An input that cannot be read.
+- An output produced that cannot be read.
+- Using a `java.io.File` as the `@InputArtifact` of an artifact transform.
 - Using an input with an unknown implementation. See <<validation_problems.adoc#implementation_unknown,Cannot use an input with an unknown implementation>>.
 
 ==== Gradle does not ignore empty directories for file-trees with `@SkipWhenEmpty`
