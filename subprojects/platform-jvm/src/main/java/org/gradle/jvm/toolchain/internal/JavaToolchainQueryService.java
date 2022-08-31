@@ -43,7 +43,7 @@ public class JavaToolchainQueryService {
     private final JavaToolchainProvisioningService installService;
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
-    private final Map<JavaToolchainSpec, JavaToolchain> matchingToolchains;
+    private final Map<JavaToolchainSpecInternal.Key, JavaToolchain> matchingToolchains;
 
     @Inject
     public JavaToolchainQueryService(
@@ -86,7 +86,7 @@ public class JavaToolchainQueryService {
                 return null;
             }
 
-            return matchingToolchains.computeIfAbsent(filterInternal, this::query);
+            return matchingToolchains.computeIfAbsent(filterInternal.toKey(), k -> query(filterInternal));
         });
     }
 

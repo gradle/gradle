@@ -17,7 +17,6 @@
 package promotion
 
 import common.VersionedSettingsBranch
-import configurations.branchFilter
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 import vcsroots.gradlePromotionBranches
 
@@ -42,7 +41,7 @@ class PublishNightlySnapshot(branch: VersionedSettingsBranch) : PublishGradleDis
                     triggerBuild = always()
                     withPendingChangesOnly = true
                     enabled = branch.enableTriggers
-                    branchFilter = branch.branchFilter()
+                    branchFilter = "+:master"
                 }
             }
         }
