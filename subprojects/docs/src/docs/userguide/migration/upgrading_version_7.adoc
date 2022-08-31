@@ -101,6 +101,7 @@ Warnings which became errors:
 
 - An input file collection which can't be resolved.
 - Using an input with an unknown implementation. See <<validation_problems.adoc#implementation_unknown,Cannot use an input with an unknown implementation>>.
+- Converting files to a classpath where paths contain file separator.
 
 ==== Gradle does not ignore empty directories for file-trees with `@SkipWhenEmpty`
 
