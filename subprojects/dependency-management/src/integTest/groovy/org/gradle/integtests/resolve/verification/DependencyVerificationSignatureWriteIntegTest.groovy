@@ -59,10 +59,59 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
          <key-server uri="${keyServerFixture.uri}"/>
       </key-servers>
       <trusted-keys>
-         <trusted-key id="${SigningFixtures.validPublicKeyHexString}" group="org" name="foo" version="1.0"/>
+         <trusted-key id="${SigningFixtures.validPublicKeyHexString}" group="org" name="foo"/>
       </trusted-keys>
    </configuration>
    <components/>
+</verification-metadata>
+"""
+    }
+
+
+    def "new PGP entries do not have versions but existing entries may"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            addTrustedKey("existingGroup:existingName:1.0", "trustedKey1")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+        writeVerificationMetadata()
+        succeeds ":help"
+
+        then:
+        assertXmlContents """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+      <key-servers>
+         <key-server uri="${keyServerFixture.uri}"/>
+      </key-servers>
+      <trusted-keys>
+         <trusted-key id="${SigningFixtures.validPublicKeyHexString}" group="org" name="foo"/>
+      </trusted-keys>
+   </configuration>
+   <components>
+      <component group="existingGroup" name="existingName" version="1.0">
+         <artifact name="existingName-1.0.jar">
+            <pgp value="trustedKey1"/>
+         </artifact>
+      </component>
+   </components>
 </verification-metadata>
 """
     }
@@ -309,8 +358,8 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
          <key-server uri="${keyServerFixture.uri}"/>
       </key-servers>
       <trusted-keys>
-         <trusted-key id="${SigningFixtures.validPublicKeyHexString}" group="org" name="foo" version="1.0"/>
-         <trusted-key id="$pkId" group="org" name="foo" version="1.0"/>
+         <trusted-key id="${SigningFixtures.validPublicKeyHexString}" group="org" name="foo"/>
+         <trusted-key id="$pkId" group="org" name="foo"/>
       </trusted-keys>
    </configuration>
    <components/>
@@ -371,7 +420,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
          <key-server uri="${keyServerFixture.uri}"/>
       </key-servers>
       <trusted-keys>
-         <trusted-key id="${SigningFixtures.validPublicKeyHexString}" group="org" name="foo" version="1.0"/>
+         <trusted-key id="${SigningFixtures.validPublicKeyHexString}" group="org" name="foo"/>
       </trusted-keys>
    </configuration>
    <components/>

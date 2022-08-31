@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.verification.serializer
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
+import org.gradle.api.internal.artifacts.verification.verifier.DefaultDependencyVerifierBuilder
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -27,7 +28,7 @@ import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
 class DependencyVerificationsXmlWriterTest extends Specification {
-    private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
+    private final DependencyVerifierBuilder builder = new DefaultDependencyVerifierBuilder()
     private String rawContents
     private String contents
 

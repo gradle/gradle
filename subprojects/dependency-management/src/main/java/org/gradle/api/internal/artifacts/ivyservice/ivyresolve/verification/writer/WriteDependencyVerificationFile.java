@@ -43,9 +43,11 @@ import org.gradle.api.internal.artifacts.verification.signatures.BuildTreeDefine
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationResultBuilder;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationService;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
+import org.gradle.api.internal.artifacts.verification.verifier.DefaultDependencyVerifierBuilder;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder;
+import org.gradle.api.internal.artifacts.verification.verifier.VersionRemovingDependencyVerifierBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
@@ -105,7 +107,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private static final String PGP_VERIFICATION_FAILED = "PGP verification failed";
     private static final String KEY_NOT_DOWNLOADED = "Key couldn't be downloaded from any key server";
 
-    private final DependencyVerifierBuilder verificationsBuilder = new DependencyVerifierBuilder();
+    private final DependencyVerifierBuilder verificationsBuilder = new DefaultDependencyVerifierBuilder();
     private final BuildOperationExecutor buildOperationExecutor;
     private final List<String> checksums;
     private final Set<VerificationEntry> entriesToBeWritten = Sets.newLinkedHashSetWithExpectedSize(512);
@@ -394,6 +396,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         for (String ignoredKey : collectedIgnoredKeys) {
             verificationsBuilder.addIgnoredKey(new IgnoredKey(ignoredKey, KEY_NOT_DOWNLOADED));
         }
+       
+        DependencyVerifierBuilder verificationsBuilder = new VersionRemovingDependencyVerifierBuilder(this.verificationsBuilder);
         PgpKeyGrouper grouper = new PgpKeyGrouper(verificationsBuilder, entriesToBeWritten);
         grouper.performPgpKeyGrouping();
     }

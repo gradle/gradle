@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.verification.model.ComponentVerificatio
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlWriter
+import org.gradle.api.internal.artifacts.verification.verifier.DefaultDependencyVerifierBuilder
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
@@ -222,7 +223,7 @@ class DependencyVerificationFixture {
     }
 
     static class Builder {
-        private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
+        private final DependencyVerifierBuilder builder = new DefaultDependencyVerifierBuilder()
 
         void disableKeyServers() {
             builder.useKeyServers = false

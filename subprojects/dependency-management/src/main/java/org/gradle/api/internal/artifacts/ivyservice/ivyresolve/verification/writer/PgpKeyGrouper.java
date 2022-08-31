@@ -34,7 +34,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * This class is responsible for "normalizing" trusted PGP keys.
+ * This class is responsible for "normalizing" trusted PGP keys and
+ * adding them to a DependencyVerifierBuilder.
  * It tries to identify common super modules/groups/etc... which can
  * then be moved globally.
  *

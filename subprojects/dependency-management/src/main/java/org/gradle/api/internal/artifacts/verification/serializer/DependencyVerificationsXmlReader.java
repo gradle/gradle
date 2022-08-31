@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.verification.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
+import org.gradle.api.internal.artifacts.verification.verifier.DefaultDependencyVerifierBuilder;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder;
 import org.gradle.internal.UncheckedException;
@@ -94,7 +95,7 @@ public class DependencyVerificationsXmlReader {
     }
 
     public static DependencyVerifier readFromXml(InputStream in) {
-        DependencyVerifierBuilder builder = new DependencyVerifierBuilder();
+        DependencyVerifierBuilder builder = new DefaultDependencyVerifierBuilder();
         readFromXml(in, builder);
         return builder.build();
     }
