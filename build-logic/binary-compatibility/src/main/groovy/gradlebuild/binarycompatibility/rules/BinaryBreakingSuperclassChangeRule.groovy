@@ -25,8 +25,8 @@ import me.champeau.gradle.japicmp.report.Violation
  * Workaround for <a href="https://github.com/melix/japicmp-gradle-plugin/issues/56">japicmp issue w.r.t. superclass breakage</a>.
  *
  * <p>
- * Reports simple superclass changes as a breaking change, as it affects what methods can be called with the given type, even if
- * the methods don't change.
+ * Reports simple superclass changes (e.g. the removal of a superclass) as a breaking change, as it affects what methods can be
+ * called with the given type, even if the methods and fields inherited don't change.
  * </p>
  */
 class BinaryBreakingSuperclassChangeRule extends AbstractSuperClassChangesRule {
