@@ -282,6 +282,6 @@ task checkDeps
         fails "dependencies", '--configuration', 'conf'
 
         then:
-        result.hasErrorOutput("Adding a Configuration as a dependency is a confusing behavior that is no longer allowed as of Gradle 8.0.")
+        result.hasErrorOutput("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.")
     }
 }
