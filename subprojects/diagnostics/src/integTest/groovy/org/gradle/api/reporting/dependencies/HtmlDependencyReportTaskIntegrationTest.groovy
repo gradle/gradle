@@ -602,8 +602,8 @@ rootProject.name = 'root'
     }
 
     @ToBeFixedForConfigurationCache
-    void "excludes fully deprecated configurations"() {
-        executer.expectDeprecationWarning()
+    void "fails if attempting to use fully deprecated configurations"() {
+        given:
         mavenRepo.module("foo", "foo", '1.0').publish()
 
         file("build.gradle") << """
@@ -625,12 +625,10 @@ rootProject.name = 'root'
         """
 
         when:
-        run "htmlDependencyReport"
-        def json = readGeneratedJson("root")
-        def compileConfiguration = json.project.configurations.find { it.name == "compile" }
+        fails "htmlDependencyReport"
 
         then:
-        !compileConfiguration
+        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` and `runtime` configurations.")
     }
 
     private def readGeneratedJson(fileNameWithoutExtension) {
