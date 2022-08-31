@@ -100,8 +100,7 @@ Those warnings are now errors in Gradle 8.0 and will fail the build.
 Warnings that became errors:
 
 - An input file collection that can't be resolved.
-- An input that cannot be read.
-- An output produced that cannot be read.
+- An input or output file or directory that cannot be read. See <<#declare_unreadable_input_output,Declaring input or output directories which contain unreadable content>>.
 - Using a `java.io.File` as the `@InputArtifact` of an artifact transform.
 - Using an input with an unknown implementation. See <<validation_problems.adoc#implementation_unknown,Cannot use an input with an unknown implementation>>.
 
