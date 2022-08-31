@@ -796,6 +796,81 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         succeeds("clean")
     }
 
+    def "can use worker action class that uses external dependencies in #isolationMode"() {
+
+        given:
+        file('ext-lib/settings.gradle') << "rootProject.name = 'ext'"
+        file('ext-lib/build.gradle') << """
+            plugins { id 'java' }
+            group = 'com.acme'
+        """
+        file('ext-lib/src/main/java/ext/External.java') << '''
+            package ext;
+            public class External {
+                public static String getMessage() { return "External Message"; }
+            }
+        '''
+
+        and:
+        file('build-logic/settings.gradle') << "rootProject.name = 'build-logic'"
+        file('build-logic/build.gradle') << """
+            plugins { id 'groovy-gradle-plugin' }
+            dependencies {
+                compileOnly 'com.acme:ext:latest'
+            }
+        """
+        file('build-logic/src/main/groovy/MyTask.groovy') << """
+            import org.gradle.api.*
+            import org.gradle.api.file.*
+            import org.gradle.api.tasks.*
+            import org.gradle.workers.*
+            import javax.inject.Inject
+
+            abstract class MyTask extends DefaultTask {
+                @Classpath abstract ConfigurableFileCollection getActionClasspath();
+                @Inject abstract WorkerExecutor getWorkerExecutor();
+                @TaskAction void action() {
+                    workerExecutor.processIsolation { spec ->
+                        spec.getClasspath().from(actionClasspath)
+                    }.submit(TestAction.class) {}
+                }
+            }
+
+            abstract class TestAction implements WorkAction<WorkParameters.None> {
+                void execute() { assert ext.External.getMessage() == 'External Message' }
+            }
+        """
+        file('build-logic/src/main/groovy/my-plugin.gradle') << """
+            configurations.create('workImplementation')
+            dependencies {
+                workImplementation 'com.acme:ext:latest'
+            }
+            tasks.register('runAction', MyTask) {
+                actionClasspath.from(configurations.workImplementation)
+            }
+        """
+
+
+        and:
+        settingsScript """
+            includeBuild 'ext-lib'
+            includeBuild 'build-logic'
+        """
+        buildScript "plugins { id 'my-plugin' }"
+
+        when:
+        succeeds 'buildEnvironment'
+
+        then: "build logic classpath doesn't contain external dependency"
+        outputDoesNotContain('com.acme:ext')
+
+        and: "worker action uses external dependency"
+        succeeds 'runAction'
+
+        where:
+        isolationMode << ['classLoaderIsolation', 'processIsolation']
+    }
+
     void withParameterClassReferencingClassInAnotherPackage() {
         file("buildSrc/src/main/java/org/gradle/another/Bar.java").text = """
             package org.gradle.another;
