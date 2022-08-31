@@ -56,7 +56,7 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
     }
 
     private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
-        ensureValidConfigurationForDeclaration(!((DeprecatableConfiguration) configuration).isFullyDeprecated());
+        ensureValidConfigurationForDeclaration(configuration.getName(), !((DeprecatableConfiguration) configuration).isFullyDeprecated());
         ConfigurablePublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
         configuration.getArtifacts().add(publishArtifact);
         configureAction.execute(publishArtifact);

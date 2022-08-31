@@ -30,18 +30,18 @@ import java.util.List;
 public abstract class ValidDependencyDeclarationHelper {
     private ValidDependencyDeclarationHelper() {}
 
-    public static void ensureValidConfigurationForDeclaration(DeprecatableConfiguration conf) {
-        ensureValidConfigurationForDeclaration(conf.getDeclarationAlternatives());
+    public static void ensureValidConfigurationForDeclaration(String configurationName, DeprecatableConfiguration conf) {
+        ensureValidConfigurationForDeclaration(configurationName, conf.getDeclarationAlternatives());
     }
 
-    public static void ensureValidConfigurationForDeclaration(@Nullable List<String> alternatives) {
+    public static void ensureValidConfigurationForDeclaration(String configurationName, @Nullable List<String> alternatives) {
         boolean alternativesExist = alternatives != null;
-        ensureValidConfigurationForDeclaration(!alternativesExist);
+        ensureValidConfigurationForDeclaration(configurationName, !alternativesExist);
     }
 
-    public static void ensureValidConfigurationForDeclaration(boolean isValid) {
+    public static void ensureValidConfigurationForDeclaration(String configurationName, boolean isValid) {
         if (!isValid) {
-            throw new GradleException("Dependencies can no longer be declared using the `compile` and `runtime` configurations.");
+            throw new GradleException("Dependencies can no longer be declared using the `" + configurationName + "` configuration.");
         }
     }
 }

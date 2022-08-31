@@ -70,7 +70,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         fails 'help'
 
         then:
-        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` and `runtime` configurations.")
+        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` configuration.")
     }
 
     def "warn if a dependency constraint is declared on a deprecated configuration"() {
@@ -87,7 +87,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         fails 'help'
 
         then:
-        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` and `runtime` configurations.")
+        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` configuration.")
     }
 
     def "warn if an artifact is declared on a configuration that is fully deprecated"() {
@@ -102,7 +102,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         fails 'help'
 
         then:
-        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` and `runtime` configurations.")
+        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` configuration.")
     }
 
     def "warn if a deprecated configuration is resolved"() {
@@ -119,6 +119,6 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         fails 'resolve'
 
         then:
-        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` and `runtime` configurations.")
+        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` and `runtime` configuration.")
     }
 }
