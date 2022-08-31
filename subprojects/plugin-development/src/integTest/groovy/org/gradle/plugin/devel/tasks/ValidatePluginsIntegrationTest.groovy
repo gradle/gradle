@@ -22,6 +22,7 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 
+import static org.gradle.integtests.fixtures.executer.DocumentationUtils.normalizeDocumentationLink
 import static org.hamcrest.Matchers.containsString
 
 class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
@@ -493,8 +494,25 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            warning(notCacheableWithoutReason { type('MyTask').noReasonOnTask().includeLink() }),
-            warning(notCacheableWithoutReason { type('MyTransformAction').noReasonOnArtifactTransform().includeLink() })
+            warning(normalizeDocumentationLink("""Type 'MyTask' must be annotated either with @CacheableTask or with @DisableCachingByDefault.
+
+Reason: The task author should make clear why a task is not cacheable.
+
+Possible solutions:
+  1. Add @DisableCachingByDefault(because = ...).
+  2. Add @CacheableTask.
+  3. Add @UntrackedTask(because = ...).
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#disable_caching_by_default for more details about this problem.""")),
+            warning(normalizeDocumentationLink("""Type 'MyTransformAction' must be annotated either with @CacheableTransform or with @DisableCachingByDefault.
+
+Reason: The transform action author should make clear why a transform action is not cacheable.
+
+Possible solutions:
+  1. Add @DisableCachingByDefault(because = ...).
+  2. Add @CacheableTransform.
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#disable_caching_by_default for more details about this problem."""))
         ])
     }
 
