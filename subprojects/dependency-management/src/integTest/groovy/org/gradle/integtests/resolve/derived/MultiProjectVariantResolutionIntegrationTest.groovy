@@ -18,9 +18,7 @@ package org.gradle.integtests.resolve.derived
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 
-@Ignore("This is not implemented yet")
 class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
