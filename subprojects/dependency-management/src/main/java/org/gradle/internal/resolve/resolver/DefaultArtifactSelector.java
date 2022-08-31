@@ -42,6 +42,7 @@ import org.gradle.util.internal.CollectionUtils;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class DefaultArtifactSelector implements ArtifactSelector {
     private final List<OriginArtifactSelector> selectors;
@@ -62,14 +63,13 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Set<? extends VariantResolveMetadata> allVariants, Set<? extends VariantResolveMetadata> legacyVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Supplier<Set<? extends VariantResolveMetadata>> allVariants, Set<? extends VariantResolveMetadata> legacyVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
 
-        ImmutableSet<ResolvedVariant> allResolvedVariants = buildResolvedVariants(component, allVariants, exclusions);
         ImmutableSet<ResolvedVariant> legacyResolvedVariants = buildResolvedVariants(component, legacyVariants, exclusions);
 
         ArtifactSet artifacts = null;
         for (OriginArtifactSelector selector : selectors) {
-            artifacts = selector.resolveArtifacts(component, allResolvedVariants, legacyResolvedVariants, exclusions, overriddenAttributes);
+            artifacts = selector.resolveArtifacts(component, () -> buildResolvedVariants(component, allVariants.get(), exclusions), legacyResolvedVariants, exclusions, overriddenAttributes);
             if (artifacts != null) {
                 break;
             }
