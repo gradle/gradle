@@ -18,11 +18,14 @@ package org.gradle.initialization;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.configuration.ProjectsPreparer;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildModelController;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
+
+import javax.annotation.Nullable;
 
 public class VintageBuildModelController implements BuildModelController {
     private enum Stage implements StateTransitionController.State {
@@ -77,8 +80,8 @@ public class VintageBuildModelController implements BuildModelController {
     }
 
     @Override
-    public void scheduleRequestedTasks(ExecutionPlan plan) {
-        state.inState(Stage.Configured, () -> taskExecutionPreparer.prepareForTaskExecution(gradle, plan));
+    public void scheduleRequestedTasks(@Nullable EntryTaskSelector selector, ExecutionPlan plan) {
+        state.inState(Stage.Configured, () -> taskExecutionPreparer.scheduleRequestedTasks(gradle, selector, plan));
     }
 
     private void prepareSettings() {

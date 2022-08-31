@@ -19,6 +19,7 @@ package org.gradle.composite.internal
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.execution.EntryTaskSelector
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor
@@ -108,6 +109,11 @@ class TestBuildTreeLifecycleControllerFactory implements BuildTreeLifecycleContr
 
         @Override
         def <T> T withEmptyBuild(Function<? super SettingsInternal, T> action) {
+            throw new UnsupportedOperationException()
+        }
+
+        @Override
+        void scheduleAndRunTasks(EntryTaskSelector selector) {
             throw new UnsupportedOperationException()
         }
 

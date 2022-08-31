@@ -25,16 +25,14 @@ import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.TestFilter
-import org.gradle.execution.BuildExecutionContext
+import org.gradle.execution.EntryTaskSelector
 import org.gradle.execution.TaskNameResolver
 import org.gradle.execution.TaskSelection
-import org.gradle.execution.TaskSelector
 import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.event.types.DefaultTestDescriptor
 import org.gradle.internal.operations.OperationIdentifier
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction
@@ -50,8 +48,6 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
 
     ProjectInternal projectInternal = Mock()
     ProjectState projectState = Mock()
-    ServiceRegistry serviceRegistry = Mock()
-    TaskSelector taskSelector = Mock()
     Test testTask
     TaskContainerInternal tasksContainerInternal
     TestFilter testFilter
@@ -59,19 +55,19 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     GradleInternal gradleInternal = Mock()
     BuildState buildState = Mock()
     BuildProjectRegistry buildProjectRegistry = Mock()
-    BuildExecutionContext buildContext
     ExecutionPlan executionPlan
+    EntryTaskSelector.Context context
     TestExecutionRequestAction testExecutionRequest
     InternalDebugOptions debugOptions
 
     def setup() {
         outputsInternal = Mock()
-        buildContext = Mock()
         tasksContainerInternal = Mock()
         executionPlan = Mock()
         testExecutionRequest = Mock()
         testTask = Mock()
         testFilter = Mock()
+        context = Stub()
 
         debugOptions = Mock()
         debugOptions.isDebugMode() >> false
@@ -83,27 +79,22 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     }
 
     private void setupProject() {
-        1 * buildContext.getExecutionPlan() >> executionPlan
-        1 * buildContext.getGradle() >> gradleInternal
         _ * gradleInternal.owner >> buildState
         _ * buildState.projects >> buildProjectRegistry
         _ * buildProjectRegistry.allProjects >> [projectState]
         _ * projectState.applyToMutableState(_) >> { Consumer consumer -> consumer.accept(projectInternal) }
-        _ * gradleInternal.getServices() >> serviceRegistry
-        _ * serviceRegistry.get(TaskSelector) >> taskSelector
+        _ * context.gradle >> gradleInternal
     }
 
     def "empty test execution request configures no tasks"() {
         1 * testExecutionRequest.getTestExecutionDescriptors() >> []
         1 * testExecutionRequest.getInternalJvmTestRequests() >> []
         1 * testExecutionRequest.getTaskAndTests() >> [:]
-        1 * testExecutionRequest.isRunDefaultTasks() >> false
-        1 * testExecutionRequest.getTasks() >> []
 
         setup:
-        def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest, gradleInternal);
+        def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest);
         when:
-        buildConfigurationAction.configure(buildContext)
+        buildConfigurationAction.applyTasksTo(context, executionPlan)
         then:
         0 * buildProjectRegistry.allProjects
         _ * executionPlan.addEntryTasks({ args -> assert args.size() == 0 })
@@ -115,12 +106,10 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         1 * testExecutionRequest.getTestExecutionDescriptors() >> descriptors
         1 * testExecutionRequest.getInternalJvmTestRequests() >> internalJvmRequests
         1 * testExecutionRequest.getTaskAndTests() >> tasksAndTests
-        1 * testExecutionRequest.isRunDefaultTasks() >> false
-        1 * testExecutionRequest.getTasks() >> []
 
-        def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest, gradleInternal);
+        def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest);
         when:
-        buildConfigurationAction.configure(buildContext)
+        buildConfigurationAction.applyTasksTo(context, executionPlan)
         then:
         1 * testFilter.includeTest(expectedClassFilter, expectedMethodFilter)
 
@@ -151,7 +140,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         _ * testTaskCollection.toArray() >> [testTask].toArray()
         _ * tasksContainerInternal.withType(Test) >> testTaskCollection
         _ * testTask.getOutputs() >> outputsInternal
-        _ * taskSelector.getSelection(TEST_TASK_NAME) >> new TaskSelection(null, null, new TaskNameResolver.FixedTaskSelectionResult(testTaskCollection))
+        _ * context.getSelection(TEST_TASK_NAME) >> new TaskSelection(null, null, new TaskNameResolver.FixedTaskSelectionResult(testTaskCollection))
     }
 
     private DefaultTestDescriptor testDescriptor() {

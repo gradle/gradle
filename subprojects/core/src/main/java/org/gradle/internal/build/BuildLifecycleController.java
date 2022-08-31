@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.Node;
 
@@ -125,7 +126,7 @@ public interface BuildLifecycleController {
         /**
          * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build.
          */
-        void addRequestedTasks();
+        void addRequestedTasks(@Nullable EntryTaskSelector selector);
 
         /**
          * Adds the given tasks and their dependencies to the work graph for this build.

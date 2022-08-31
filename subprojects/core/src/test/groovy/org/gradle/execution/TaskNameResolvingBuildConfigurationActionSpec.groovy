@@ -27,16 +27,16 @@ import spock.lang.Specification
 class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
     GradleInternal gradle
     ExecutionPlan executionPlan
-    BuildExecutionContext context
     CommandLineTaskParser parser
+    EntryTaskSelector selector
     TaskNameResolvingBuildConfigurationAction action
 
     def setup() {
         gradle = Mock(GradleInternal)
         executionPlan = Mock(ExecutionPlan)
-        context = Mock(BuildExecutionContext)
         parser = Mock(CommandLineTaskParser)
-        action = new TaskNameResolvingBuildConfigurationAction(parser)
+        selector = Mock(EntryTaskSelector)
+        action = new TaskNameResolvingBuildConfigurationAction(parser, Stub(TaskSelector))
     }
 
     def "empty task parameters are no-op action"() {
@@ -44,16 +44,13 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
         def startParameters = Mock(StartParameterInternal)
 
         when:
-        _ * context.getGradle() >> gradle
         _ * gradle.getStartParameter() >> startParameters
         _ * startParameters.getTaskRequests() >> []
 
-        action.configure(context)
+        action.scheduleRequestedTasks(gradle, null, executionPlan)
 
         then:
-        1 * context.proceed()
-        0 * context._()
-        0 * startParameters._()
+        0 * executionPlan._
     }
 
     def "expand task parameters to tasks"() {
@@ -77,16 +74,28 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
         _ * selection2.tasks >> tasks2
 
         when:
-        action.configure(context)
+        action.scheduleRequestedTasks(gradle, null, executionPlan)
 
         then:
         1 * parser.parseTasks(request1) >> [selection1]
         1 * parser.parseTasks(request2) >> [selection2]
         1 * executionPlan.addEntryTasks(tasks1)
         1 * executionPlan.addEntryTasks(tasks2)
-        1 * context.proceed()
-        _ * context.gradle >> gradle
-        _ * context.executionPlan >> executionPlan
-        0 * context._()
     }
+
+    def "invokes given selector"() {
+        given:
+        def startParameters = Mock(StartParameterInternal)
+
+        when:
+        _ * gradle.getStartParameter() >> startParameters
+        _ * startParameters.getTaskRequests() >> []
+
+        action.scheduleRequestedTasks(gradle, selector, executionPlan)
+
+        then:
+        1 * selector.applyTasksTo(_, executionPlan)
+        0 * executionPlan._
+    }
+
 }

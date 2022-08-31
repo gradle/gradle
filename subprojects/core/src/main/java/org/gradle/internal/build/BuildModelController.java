@@ -18,8 +18,11 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+
+import javax.annotation.Nullable;
 
 /**
  * Transitions the model of an individual build in the build tree through its lifecycle.
@@ -53,5 +56,5 @@ public interface BuildModelController {
     /**
      * Schedules the user requested tasks for this build into the given plan. Must call {@link  #initializeWorkGraph(ExecutionPlan)} prior to calling this method.
      */
-    void scheduleRequestedTasks(ExecutionPlan plan);
+    void scheduleRequestedTasks(@Nullable EntryTaskSelector selector, ExecutionPlan plan);
 }

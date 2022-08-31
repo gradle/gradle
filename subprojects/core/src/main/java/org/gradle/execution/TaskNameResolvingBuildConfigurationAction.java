@@ -18,9 +18,11 @@ package org.gradle.execution;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.commandline.CommandLineTaskParser;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -30,25 +32,43 @@ import java.util.List;
 public class TaskNameResolvingBuildConfigurationAction implements BuildConfigurationAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskNameResolvingBuildConfigurationAction.class);
     private final CommandLineTaskParser commandLineTaskParser;
+    private final TaskSelector taskSelector;
 
-    public TaskNameResolvingBuildConfigurationAction(CommandLineTaskParser commandLineTaskParser) {
+    public TaskNameResolvingBuildConfigurationAction(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector) {
         this.commandLineTaskParser = commandLineTaskParser;
+        this.taskSelector = taskSelector;
     }
 
     @Override
-    public void configure(BuildExecutionContext context) {
-        GradleInternal gradle = context.getGradle();
-
+    public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
+        if (selector != null) {
+            selector.applyTasksTo(new ContextImpl(gradle), plan);
+        }
         List<TaskExecutionRequest> taskParameters = gradle.getStartParameter().getTaskRequests();
         for (TaskExecutionRequest taskParameter : taskParameters) {
             List<TaskSelection> taskSelections = commandLineTaskParser.parseTasks(taskParameter);
             for (TaskSelection taskSelection : taskSelections) {
                 LOGGER.info("Selected primary task '{}' from project {}", taskSelection.getTaskName(), taskSelection.getProjectPath());
-                context.getExecutionPlan().addEntryTasks(taskSelection.getTasks());
+                plan.addEntryTasks(taskSelection.getTasks());
             }
         }
-
-        context.proceed();
     }
 
+    private class ContextImpl implements EntryTaskSelector.Context {
+        final GradleInternal gradle;
+
+        public ContextImpl(GradleInternal gradle) {
+            this.gradle = gradle;
+        }
+
+        @Override
+        public TaskSelection getSelection(String taskPath) {
+            return taskSelector.getSelection(taskPath);
+        }
+
+        @Override
+        public GradleInternal getGradle() {
+            return gradle;
+        }
+    }
 }
