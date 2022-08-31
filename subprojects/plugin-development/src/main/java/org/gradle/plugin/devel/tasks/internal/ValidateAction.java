@@ -39,7 +39,6 @@ import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
-import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeProblemBuilder;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.workers.WorkAction;
@@ -147,7 +146,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             String untrackedTaskAnnotation = "@" + UntrackedTask.class.getSimpleName();
             String workType = isTask ? "task" : "transform action";
             validationContext.visitTypeProblem(problem -> {
-                    TypeProblemBuilder builder = problem.reportAs(Severity.WARNING)
+                    TypeProblemBuilder builder = problem.reportAs(ERROR)
                         .withId(ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON)
                         .forType(topLevelBean)
                         .withDescription("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)

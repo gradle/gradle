@@ -493,8 +493,8 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            warning(notCacheableWithoutReason { type('MyTask').noReasonOnTask().includeLink() }),
-            warning(notCacheableWithoutReason { type('MyTransformAction').noReasonOnArtifactTransform().includeLink() })
+            error(notCacheableWithoutReason { type('MyTask').noReasonOnTask().includeLink() }),
+            error(notCacheableWithoutReason { type('MyTransformAction').noReasonOnArtifactTransform().includeLink() })
         ])
     }
 
