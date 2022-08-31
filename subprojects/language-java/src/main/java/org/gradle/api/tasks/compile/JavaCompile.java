@@ -255,7 +255,9 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
             if (customExecutable != null) {
                 final File executable = new File(customExecutable);
                 if (executable.exists()) {
-                    return new SpecificInstallationToolchainSpec(objectFactory, executable.getParentFile().getParentFile());
+                    // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
+                    File parentJavaHome = executable.getParentFile().getParentFile();
+                    return new SpecificInstallationToolchainSpec(objectFactory, parentJavaHome);
                 }
             }
         }
