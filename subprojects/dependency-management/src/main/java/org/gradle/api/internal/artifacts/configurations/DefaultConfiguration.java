@@ -149,6 +149,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.internal.artifacts.ValidDependencyDeclarationHelper.ensureValidConfigurationForDeclaration;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
@@ -182,7 +183,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
-    private ProjectDependencyObservedListener dependencyObservedBroadcast;
+    private final ProjectDependencyObservedListener dependencyObservedBroadcast;
     private final BuildOperationExecutor buildOperationExecutor;
     private final Instantiator instantiator;
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
@@ -588,7 +589,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private ResolveState resolveToStateOrLater(final InternalState requestedState) {
         assertIsResolvable();
-        warnIfConfigurationIsDeprecatedForResolving();
+        ensureValidConfigurationForDeclaration(resolutionAlternatives);
 
         ResolveState currentState = currentResolveState.get();
         if (currentState.state.compareTo(requestedState) >= 0) {
@@ -609,15 +610,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
         }
         return resolveExclusively(requestedState);
-    }
-
-    private void warnIfConfigurationIsDeprecatedForResolving() {
-        if (resolutionAlternatives != null) {
-            DeprecationLogger.deprecateConfiguration(this.name).forResolution().replaceWith(resolutionAlternatives)
-                .willBecomeAnErrorInGradle8()
-                .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
-                .nagUser();
-        }
     }
 
     private ResolveState resolveExclusively(InternalState requestedState) {
@@ -920,7 +912,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return allDependencies;
     }
 
-    @SuppressWarnings("unchecked")
     private synchronized void initAllDependencies() {
         if (allDependencies != null) {
             return;
@@ -945,7 +936,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return allDependencyConstraints;
     }
 
-    @SuppressWarnings("unchecked")
     private synchronized void initAllDependencyConstraints() {
         if (allDependencyConstraints != null) {
             return;
@@ -968,7 +958,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return allArtifacts;
     }
 
-    @SuppressWarnings("unchecked")
     private synchronized void initAllArtifacts() {
         if (allArtifacts != null) {
             return;
