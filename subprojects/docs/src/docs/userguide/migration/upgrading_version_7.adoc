@@ -109,11 +109,11 @@ To ignore directories in Gradle 8.0 and later, the input property needs to be ex
 For more information see <<empty_directories_file_tree>>.
 
 [[strict-kotlin-dsl-precompiled-scripts-accessors-by-default]]
-=== Strict Kotlin DSL precompiled script plugins accessors generation by default
+=== Precompiled script plugins use strict Kotlin DSL accessor generation by default
 
-Type safe Kotlin DSL accessors generation for precompiled script plugins now does fail the build by default if a plugin requested in such precompiled scripts fails to be applied.
+In precompiled script plugins, type safe Kotlin DSL accessor generation now fails the build if a plugin fails to apply.
 
-The `org.gradle.kotlin.dsl.precompiled.accessors.strict` system property is now deprecated and its usage should be removed. You can find more information <<upgrading_version_7.adoc#strict-kotlin-dsl-precompiled-scripts-accessors, below>> about the introduction of this system property in Gradle 7.6.
+Starting in Gradle 7.6, builds could enable this behavior with the `org.gradle.kotlin.dsl.precompiled.accessors.strict` system property. This behavior is now default. The property has been deprecated and its usage should be removed. You can find more information about this property <<upgrading_version_7.adoc#strict-kotlin-dsl-precompiled-scripts-accessors, below>>.
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
