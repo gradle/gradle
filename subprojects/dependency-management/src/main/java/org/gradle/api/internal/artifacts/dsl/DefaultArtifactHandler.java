@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
@@ -35,6 +34,8 @@ import org.gradle.util.internal.GUtil;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static org.gradle.api.internal.artifacts.ValidDependencyDeclarationHelper.ensureValidConfigurationForDeclaration;
 
 public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
 
@@ -55,21 +56,11 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
     }
 
     private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
-        warnIfConfigurationIsDeprecated((DeprecatableConfiguration) configuration);
+        ensureValidConfigurationForDeclaration(((DeprecatableConfiguration) configuration).isFullyDeprecated());
         ConfigurablePublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
         configuration.getArtifacts().add(publishArtifact);
         configureAction.execute(publishArtifact);
         return publishArtifact;
-    }
-
-    private void warnIfConfigurationIsDeprecated(DeprecatableConfiguration configuration) {
-        if (configuration.isFullyDeprecated()) {
-            DeprecationLogger.deprecateConfiguration(configuration.getName()).forArtifactDeclaration()
-                .replaceWith(configuration.getDeclarationAlternatives())
-                .willBecomeAnErrorInGradle8()
-                .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
-                .nagUser();
-        }
     }
 
     @Override
@@ -110,7 +101,7 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
             }
             List<Object> normalizedArgs = GUtil.flatten(Arrays.asList(arguments), false);
             if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
-                return DynamicInvokeResult.found(pushArtifact(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1)));
+                return DynamicInvokeResult.found(pushArtifact(configuration, normalizedArgs.get(0), (Closure<?>) normalizedArgs.get(1)));
             } else {
                 for (Object notation : normalizedArgs) {
                     pushArtifact(configuration, notation, Actions.doNothing());
