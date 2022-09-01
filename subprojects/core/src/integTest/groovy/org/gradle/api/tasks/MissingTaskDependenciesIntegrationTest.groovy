@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -27,7 +28,7 @@ import spock.lang.Issue
 @ValidationTestFor(
     ValidationProblemId.IMPLICIT_DEPENDENCY
 )
-class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec {
+class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
