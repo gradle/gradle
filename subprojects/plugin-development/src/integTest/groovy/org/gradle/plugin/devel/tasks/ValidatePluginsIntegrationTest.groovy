@@ -487,9 +487,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             public abstract class MyTransformAction implements TransformAction<TransformParameters.None> {
             }
         """
-        buildFile << """
-            validatePlugins.enableStricterValidation = true
-        """
 
         expect:
         assertValidationFailsWith([
@@ -507,9 +504,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             @UntrackedTask(because = "untracked for validation test")
             public abstract class MyTask extends DefaultTask {
             }
-        """
-        buildFile << """
-            validatePlugins.enableStricterValidation = true
         """
 
         expect:

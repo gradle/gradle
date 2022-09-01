@@ -126,6 +126,10 @@ Warnings that became errors:
 - Using an input with an unknown implementation. See <<validation_problems.adoc#implementation_unknown,Cannot use an input with an unknown implementation>>.
 - Converting files to a classpath where paths contain file separator.
 
+Warnings that were previously only enabled in strict mode, but are now checked always:
+
+- Task types without explicit cacheability annotations. See <<build_cache.adoc#sec:task_output_caching_details,Cacheable tasks>>.
+
 ==== Gradle does not ignore empty directories for file-trees with `@SkipWhenEmpty`
 
 Previously Gradle used to detect if an input file collection annotated with `@SkipWhenEmpty` consisted only of file trees and then ignored directories automatically.
