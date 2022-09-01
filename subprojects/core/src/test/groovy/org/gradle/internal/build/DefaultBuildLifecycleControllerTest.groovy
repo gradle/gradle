@@ -510,7 +510,6 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     private void expectRequestedTasksScheduled() {
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * buildModelController.prepareToScheduleTasks()
-        1 * buildModelController.initializeWorkGraph(executionPlan)
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
         1 * buildModelController.scheduleRequestedTasks(null, executionPlan)
         1 * workPreparer.finalizeWorkGraph(gradleMock, executionPlan) >> finalizedPlan
@@ -519,7 +518,6 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     private void expectTasksScheduled() {
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * buildModelController.prepareToScheduleTasks()
-        1 * buildModelController.initializeWorkGraph(executionPlan)
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
         1 * workPreparer.finalizeWorkGraph(gradleMock, executionPlan) >> finalizedPlan
     }

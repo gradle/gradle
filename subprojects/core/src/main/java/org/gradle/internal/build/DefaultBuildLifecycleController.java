@@ -20,6 +20,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
@@ -134,7 +135,6 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     public BuildWorkPlan newWorkGraph() {
         return state.inState(State.TaskSchedule, () -> {
             ExecutionPlan plan = workPreparer.newExecutionPlan();
-            modelController.initializeWorkGraph(plan);
             return new DefaultBuildWorkPlan(this, plan);
         });
     }
@@ -250,6 +250,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
             for (Task task : tasks) {
                 plan.addEntryTasks(Collections.singletonList(task));
             }
+        }
+
+        @Override
+        public void addFilter(Spec<Task> filter) {
+            plan.useFilter(filter);
         }
 
         @Override

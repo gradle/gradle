@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.internal.buildtree;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.internal.build.BuildState;
 
-public interface TaskSchedulingPreparer {
-    void prepareForTaskScheduling(GradleInternal gradle, ExecutionPlan executionPlan);
+import java.util.Set;
+
+/**
+ * Performs any initial setup that needs to happen to a build tree work graph prior to scheduling the requested tasks.
+ */
+public interface BuildTreeWorkGraphPreparer {
+    void prepareToScheduleTasks(Set<String> excludedTaskNames, BuildState targetBuild, BuildTreeWorkGraph.Builder workGraph);
 }

@@ -24,16 +24,21 @@ import javax.annotation.Nullable;
 
 public class DefaultBuildTreeWorkPreparer implements BuildTreeWorkPreparer {
     private final BuildState targetBuild;
-    private final BuildLifecycleController buildController;
+    private final BuildLifecycleController targetBuildController;
+    private final BuildTreeWorkGraphPreparer workGraphPreparer;
 
-    public DefaultBuildTreeWorkPreparer(BuildState targetBuild, BuildLifecycleController buildLifecycleController) {
+    public DefaultBuildTreeWorkPreparer(BuildState targetBuild, BuildLifecycleController buildLifecycleController, BuildTreeWorkGraphPreparer workGraphPreparer) {
         this.targetBuild = targetBuild;
-        this.buildController = buildLifecycleController;
+        this.targetBuildController = buildLifecycleController;
+        this.workGraphPreparer = workGraphPreparer;
     }
 
     @Override
     public void scheduleRequestedTasks(BuildTreeWorkGraph graph, @Nullable EntryTaskSelector selector) {
-        buildController.prepareToScheduleTasks();
-        graph.scheduleWork(graphBuilder -> graphBuilder.withWorkGraph(targetBuild, builder -> builder.addRequestedTasks(selector)));
+        targetBuildController.prepareToScheduleTasks();
+        graph.scheduleWork(graphBuilder -> {
+            workGraphPreparer.prepareToScheduleTasks(targetBuildController.getGradle().getStartParameter().getExcludedTaskNames(), targetBuild, graphBuilder);
+            graphBuilder.withWorkGraph(targetBuild, builder -> builder.addRequestedTasks(selector));
+        });
     }
 }
