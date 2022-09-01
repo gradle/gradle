@@ -44,14 +44,14 @@ import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.project.BuiltInCommand;
-import org.gradle.execution.BuildConfigurationAction;
+import org.gradle.execution.BuildTaskScheduler;
 import org.gradle.execution.BuildOperationFiringBuildWorkerExecutor;
 import org.gradle.execution.BuildWorkExecutor;
-import org.gradle.execution.DefaultTasksBuildExecutionAction;
+import org.gradle.execution.DefaultTasksBuildTaskScheduler;
 import org.gradle.execution.DryRunBuildExecutionAction;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.SelectedTaskExecutionAction;
-import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
+import org.gradle.execution.TaskNameResolvingBuildTaskScheduler;
 import org.gradle.execution.TaskSelector;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
@@ -121,12 +121,12 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             buildOperationExecutor);
     }
 
-    BuildConfigurationAction createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, TaskSelector selector, List<BuiltInCommand> builtInCommands) {
-        return new DefaultTasksBuildExecutionAction(projectConfigurer, builtInCommands, new TaskNameResolvingBuildConfigurationAction(commandLineTaskParser, selector));
+    BuildTaskScheduler createBuildConfigurationActionExecuter(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, TaskSelector selector, List<BuiltInCommand> builtInCommands) {
+        return new DefaultTasksBuildTaskScheduler(projectConfigurer, builtInCommands, new TaskNameResolvingBuildTaskScheduler(commandLineTaskParser, selector));
     }
 
-    TaskExecutionPreparer createTaskExecutionPreparer(BuildConfigurationAction buildConfigurationAction, BuildOperationExecutor buildOperationExecutor, BuildModelParameters buildModelParameters) {
-        return new DefaultTaskExecutionPreparer(buildConfigurationAction, buildOperationExecutor, buildModelParameters);
+    TaskExecutionPreparer createTaskExecutionPreparer(BuildTaskScheduler buildTaskScheduler, BuildOperationExecutor buildOperationExecutor, BuildModelParameters buildModelParameters) {
+        return new DefaultTaskExecutionPreparer(buildTaskScheduler, buildOperationExecutor, buildModelParameters);
     }
 
     ProjectFinder createProjectFinder(final GradleInternal gradle) {

@@ -30,15 +30,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A {@link BuildConfigurationAction} that selects the default tasks for a project, or if none are defined, the 'help' task.
+ * A {@link BuildTaskScheduler} that selects the default tasks for a project, or if none are defined, the 'help' task.
  */
-public class DefaultTasksBuildExecutionAction implements BuildConfigurationAction {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTasksBuildExecutionAction.class);
+public class DefaultTasksBuildTaskScheduler implements BuildTaskScheduler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTasksBuildTaskScheduler.class);
     private final ProjectConfigurer projectConfigurer;
     private final List<BuiltInCommand> builtInCommands;
-    private final BuildConfigurationAction delegate;
+    private final BuildTaskScheduler delegate;
 
-    public DefaultTasksBuildExecutionAction(ProjectConfigurer projectConfigurer, List<BuiltInCommand> builtInCommands, BuildConfigurationAction delegate) {
+    public DefaultTasksBuildTaskScheduler(ProjectConfigurer projectConfigurer, List<BuiltInCommand> builtInCommands, BuildTaskScheduler delegate) {
         this.projectConfigurer = projectConfigurer;
         this.builtInCommands = builtInCommands;
         this.delegate = delegate;

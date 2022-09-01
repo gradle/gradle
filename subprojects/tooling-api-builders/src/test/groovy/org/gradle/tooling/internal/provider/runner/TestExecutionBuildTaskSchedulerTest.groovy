@@ -40,7 +40,7 @@ import spock.lang.Specification
 
 import java.util.function.Consumer
 
-class TestExecutionBuildConfigurationActionTest extends Specification {
+class TestExecutionBuildTaskSchedulerTest extends Specification {
 
     public static final String TEST_CLASS_NAME = "TestClass"
     public static final String TEST_METHOD_NAME = "testMethod"

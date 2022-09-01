@@ -20,6 +20,6 @@ import org.gradle.execution.plan.ExecutionPlan;
 
 import javax.annotation.Nullable;
 
-public interface BuildConfigurationAction {
+public interface BuildTaskScheduler {
     void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan);
 }

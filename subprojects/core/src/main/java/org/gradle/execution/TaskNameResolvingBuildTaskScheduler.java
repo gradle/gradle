@@ -26,15 +26,15 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * A {@link BuildConfigurationAction} which selects tasks which match the provided names. For each name, selects all tasks in all
+ * A {@link BuildTaskScheduler} which selects tasks which match the provided names. For each name, selects all tasks in all
  * projects whose name is the given name.
  */
-public class TaskNameResolvingBuildConfigurationAction implements BuildConfigurationAction {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaskNameResolvingBuildConfigurationAction.class);
+public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaskNameResolvingBuildTaskScheduler.class);
     private final CommandLineTaskParser commandLineTaskParser;
     private final TaskSelector taskSelector;
 
-    public TaskNameResolvingBuildConfigurationAction(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector) {
+    public TaskNameResolvingBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector) {
         this.commandLineTaskParser = commandLineTaskParser;
         this.taskSelector = taskSelector;
     }
