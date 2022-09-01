@@ -63,6 +63,12 @@ For more information, see <<old_artifact_transforms_api>>.
 
 The legacy `IncrementalTaskInputs` API has been removed. For more information, see <<incremental_task_inputs_deprecation>>. This change also affects Kotlin Gradle Plugin and Android Gradle Plugin. With Gradle 8.0 you should use Kotlin Gradle Plugin 1.6.10 or later and Android Gradle Plugin 7.3.0 with `android.experimental.legacyTransform.forceNonIncremental=true` property or later.
 
+==== Legacy AntlrSourceVirtualDirectory API
+
+The legacy `AntlrSourceVirtualDirectory` API has been removed.
+This change affects the `antlr` plugin.
+With Gradle 8.0 you should use the already existing `AntlrSourceDirectorySet` source set extension instead.
+
 === Potential breaking changes
 
 === Remove implicit `--add-opens` for Gradle workers
