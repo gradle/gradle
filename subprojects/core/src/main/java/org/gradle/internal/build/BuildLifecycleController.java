@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.Node;
@@ -70,7 +71,7 @@ public interface BuildLifecycleController {
      * Configures the build, if not already done.
      * This may fail with an error, if this build is loaded from cache rather than configured.
      *
-     * Note: You should not use this method as no thread safety is applied to the return value.
+     * <p>Note: You should not use this method as no thread safety is applied to the return value.
      *
      * @return The configured Gradle build instance.
      */
@@ -137,5 +138,10 @@ public interface BuildLifecycleController {
          * Sets the set of scheduled node to the work graph for this build. Short-circuits dependency discovery and any sorting. Nodes must be restored in the same order they were scheduled.
          */
         void setScheduledNodes(List<? extends Node> nodes);
+
+        /**
+         * Adds a filter that is used to exclude tasks from the work graph of this build.
+         */
+        void addFilter(Spec<Task> filter);
     }
 }

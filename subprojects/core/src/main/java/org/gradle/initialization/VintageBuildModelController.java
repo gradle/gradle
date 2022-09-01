@@ -34,7 +34,6 @@ public class VintageBuildModelController implements BuildModelController {
 
     private final ProjectsPreparer projectsPreparer;
     private final GradleInternal gradle;
-    private final TaskSchedulingPreparer taskGraphPreparer;
     private final SettingsPreparer settingsPreparer;
     private final TaskExecutionPreparer taskExecutionPreparer;
     private final StateTransitionController<Stage> state;
@@ -42,14 +41,12 @@ public class VintageBuildModelController implements BuildModelController {
     public VintageBuildModelController(
         GradleInternal gradle,
         ProjectsPreparer projectsPreparer,
-        TaskSchedulingPreparer taskSchedulingPreparer,
         SettingsPreparer settingsPreparer,
         TaskExecutionPreparer taskExecutionPreparer,
         StateTransitionControllerFactory controllerFactory
     ) {
         this.gradle = gradle;
         this.projectsPreparer = projectsPreparer;
-        this.taskGraphPreparer = taskSchedulingPreparer;
         this.settingsPreparer = settingsPreparer;
         this.taskExecutionPreparer = taskExecutionPreparer;
         this.state = controllerFactory.newController(Describables.of("vintage state of", gradle.getOwner().getDisplayName()), Stage.Created);
@@ -72,11 +69,6 @@ public class VintageBuildModelController implements BuildModelController {
     public void prepareToScheduleTasks() {
         prepareSettings();
         prepareProjects();
-    }
-
-    @Override
-    public void initializeWorkGraph(ExecutionPlan plan) {
-        state.inState(Stage.Configured, () -> taskGraphPreparer.prepareForTaskScheduling(gradle, plan));
     }
 
     @Override

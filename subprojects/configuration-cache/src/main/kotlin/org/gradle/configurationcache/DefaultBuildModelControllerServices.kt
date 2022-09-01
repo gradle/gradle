@@ -43,7 +43,6 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnabl
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.configurationcache.services.DefaultEnvironment
-import org.gradle.execution.ExcludedTaskFilteringProjectsPreparer
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.TaskExecutionPreparer
@@ -135,10 +134,9 @@ class DefaultBuildModelControllerServices(
             stateTransitionControllerFactory: StateTransitionControllerFactory
         ): BuildModelController {
             val projectsPreparer: ProjectsPreparer = gradle.services.get()
-            val taskSchedulingPreparer = ExcludedTaskFilteringProjectsPreparer(gradle.services.get())
             val settingsPreparer: SettingsPreparer = gradle.services.get()
             val taskExecutionPreparer: TaskExecutionPreparer = gradle.services.get()
-            return VintageBuildModelController(gradle, projectsPreparer, taskSchedulingPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)
+            return VintageBuildModelController(gradle, projectsPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)
         }
     }
 
