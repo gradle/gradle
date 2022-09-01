@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.Transformer
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
@@ -33,6 +34,7 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.classpath.Instrumented.fileCollectionObserved
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.kotlin.dsl.*
@@ -219,8 +221,8 @@ fun Project.enableScriptCompilationOf(
                 strict.set(
                     providers
                         .systemProperty(strictModeSystemPropertyName)
-                        .map(java.lang.Boolean::parseBoolean)
-                        .orElse(false)
+                        .map(strictModeSystemPropertyNameMapper)
+                        .orElse(true)
                 )
                 plugins = scriptPlugins
             }
@@ -264,6 +266,17 @@ fun Project.enableScriptCompilationOf(
             )
         }
     }
+}
+
+
+private
+val strictModeSystemPropertyNameMapper: Transformer<Boolean, String> = Transformer { prop ->
+    DeprecationLogger.deprecateSystemProperty(strictModeSystemPropertyName)
+        .willBeRemovedInGradle9()
+        .withUpgradeGuideSection(7, "strict-kotlin-dsl-precompiled-scripts-accessors-by-default")
+        .nagUser()
+    if (prop.isBlank()) true
+    else java.lang.Boolean.parseBoolean(prop)
 }
 
 
