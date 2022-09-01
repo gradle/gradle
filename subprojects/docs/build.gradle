@@ -834,6 +834,9 @@ tasks.named("docsTest") { task ->
                 "snippet-buildlifecycle-project-evaluate-events_groovy_projectEvaluateEvents.sample",
                 "snippet-buildlifecycle-project-evaluate-events_kotlin_projectEvaluateEvents.sample",
 
+                "snippet-dependency-management-customizing-resolution-attribute-substitution-rule_groovy_resolve.sample",
+                "snippet-dependency-management-customizing-resolution-attribute-substitution-rule_kotlin_resolve.sample",
+
                 "snippet-dependency-management-customizing-resolution-capability-substitution-rule_groovy_capability_substitution.sample",
                 "snippet-dependency-management-customizing-resolution-capability-substitution-rule_kotlin_capability_substitution.sample",
 
