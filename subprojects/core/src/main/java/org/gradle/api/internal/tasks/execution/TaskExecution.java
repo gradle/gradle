@@ -346,18 +346,17 @@ public class TaskExecution implements UnitOfWork {
 
     @Override
     public RuntimeException decorateInputFileFingerprintingException(InputFingerprinter.InputFileFingerprintingException ex) {
-        throw decorateSnapshottingException("input", ex.getPropertyName(), ex);
+        throw decorateSnapshottingException("input", ex.getPropertyName(), ex.getCause());
     }
 
     @Override
     public RuntimeException decorateOutputFileSnapshottingException(OutputSnapshotter.OutputFileSnapshottingException ex) {
-        throw decorateSnapshottingException("output", ex.getPropertyName(), ex);
+        throw decorateSnapshottingException("output", ex.getPropertyName(), ex.getCause());
     }
 
-    private RuntimeException decorateSnapshottingException(String propertyType, String propertyName, RuntimeException ex) {
-        Throwable cause = ex.getCause();
-        if (!(cause instanceof UncheckedIOException) && !(cause instanceof org.gradle.api.UncheckedIOException)) {
-            throw ex;
+    private RuntimeException decorateSnapshottingException(String propertyType, String propertyName, Throwable cause) {
+        if (!(cause instanceof UncheckedIOException || cause instanceof org.gradle.api.UncheckedIOException)) {
+            throw UncheckedException.throwAsUncheckedException(cause);
         }
         LOGGER.info("Cannot access {} property '{}' of {}", propertyType, propertyName, getDisplayName(), cause);
         boolean isDestinationDir = propertyName.equals("destinationDir");
