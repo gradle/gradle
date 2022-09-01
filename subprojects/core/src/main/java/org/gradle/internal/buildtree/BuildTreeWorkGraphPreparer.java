@@ -16,13 +16,9 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.internal.build.BuildState;
-
-import java.util.Set;
-
 /**
  * Performs any initial setup that needs to happen to a build tree work graph prior to scheduling the requested tasks.
  */
 public interface BuildTreeWorkGraphPreparer {
-    void prepareToScheduleTasks(Set<String> excludedTaskNames, BuildState targetBuild, BuildTreeWorkGraph.Builder workGraph);
+    void prepareToScheduleTasks(BuildTreeWorkGraph.Builder workGraph);
 }

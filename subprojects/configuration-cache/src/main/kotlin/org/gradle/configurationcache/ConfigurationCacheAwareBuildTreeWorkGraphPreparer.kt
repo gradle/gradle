@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 
@@ -25,9 +24,9 @@ class ConfigurationCacheAwareBuildTreeWorkGraphPreparer(
     private val delegate: BuildTreeWorkGraphPreparer,
     private val cache: BuildTreeConfigurationCache
 ) : BuildTreeWorkGraphPreparer {
-    override fun prepareToScheduleTasks(excludedTaskNames: Set<String>, targetBuild: BuildState, workGraph: BuildTreeWorkGraph.Builder) {
+    override fun prepareToScheduleTasks(workGraph: BuildTreeWorkGraph.Builder) {
         if (!cache.isLoaded) {
-            delegate.prepareToScheduleTasks(excludedTaskNames, targetBuild, workGraph)
+            delegate.prepareToScheduleTasks(workGraph)
         } // else, not required
     }
 }

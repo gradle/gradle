@@ -57,6 +57,7 @@ import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.DefaultBuildWorkGraphController
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
+import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
@@ -92,6 +93,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     @Shared
     def manyWorkers = 10
     def cancellationToken = new DefaultBuildCancellationToken()
+    def preparer = Stub(BuildTreeWorkGraphPreparer)
 
     def "does nothing when nothing scheduled"() {
         when:
@@ -436,6 +438,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
                 buildStateRegistry,
                 workerLeaseService,
                 planExecutor,
+                preparer,
                 MONITOR_POLL_TIME,
                 TimeUnit.MILLISECONDS
             )
