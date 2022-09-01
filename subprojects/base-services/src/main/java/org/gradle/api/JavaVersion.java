@@ -62,7 +62,6 @@ public enum JavaVersion {
      *
      * @since 6.3
      */
-    @Incubating
     VERSION_15,
 
     /**
@@ -82,6 +81,33 @@ public enum JavaVersion {
      */
     @Incubating
     VERSION_17,
+
+    /**
+     * Java 18 major version.
+     * Not officially supported by Gradle. Use at your own risk.
+     *
+     * @since 6.9.3
+     */
+    @Incubating
+    VERSION_18,
+
+    /**
+     * Java 19 major version.
+     * Not officially supported by Gradle. Use at your own risk.
+     *
+     * @since 6.9.3
+     */
+    @Incubating
+    VERSION_19,
+
+    /**
+     * Java 20 major version.
+     * Not officially supported by Gradle. Use at your own risk.
+     *
+     * @since 6.9.3
+     */
+    @Incubating
+    VERSION_20,
 
     /**
      * Higher version of Java.
