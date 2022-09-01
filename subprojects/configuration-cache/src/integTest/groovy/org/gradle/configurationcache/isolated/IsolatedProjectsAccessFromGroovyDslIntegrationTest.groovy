@@ -258,6 +258,37 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "project(':').allprojects.each" | _
     }
 
+    def "reports cross-project model access on #kind lookup in the parent project using `#expr`"() {
+        settingsFile << """
+            include("a")
+        """
+        file("build.gradle") << """
+            $setExpr
+        """
+        file("a/build.gradle") << """
+            println($expr)
+        """
+
+        when:
+        configurationCacheFails(":a:help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a")
+            problem("Build file 'a/build.gradle': Project ':a' cannot dynamically lookup a $kind in the parent project ':'", reportsCount)
+        }
+
+        where:
+        kind       | setExpr                   | expr                  | reportsCount
+        "property" | "ext.set(\"foo\", 1)"     | "foo"                 | 1
+        "property" | "ext.set(\"foo\", 1)"     | "hasProperty('foo')"  | 1
+        "property" | "ext.set(\"foo\", 1)"     | "property('foo')"     | 1
+        "property" | "ext.set(\"foo\", 1)"     | "findProperty('foo')" | 2 // known issue: there are two reports, because the implementation calls `hasProperty` + `property`
+        "property" | "ext.set(\"foo\", 1)"     | "getProperty('foo')"  | 1
+        "property" | "ext.set(\"foo\", 1)"     | "properties"          | 1
+        "method"   | "def foo() { }"           | "foo()"               | 1
+    }
+
     def "build script can query basic details of projects in allprojects block"() {
         settingsFile << """
             rootProject.name = "root"

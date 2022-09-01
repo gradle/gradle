@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -50,4 +51,15 @@ public interface CrossProjectModelAccess {
      * @param referrer The project from which the return value will be used.
      */
     Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo);
+
+    /**
+     * Produces a {@code DynamicObject} for the inherited scope from the parent project of the specified project, behaving correctly
+     * regarding cross-project model access.
+     *
+     * @param referrerProject The project that needs to get an inherited scope dynamic object from its parent.
+     * @return Returns a {@code DynamicObject} for the {@code referrerProject}'s parent project, or null if there is no parent project.
+     * The returned object handles cross-project model access according to the current policy.
+     */
+    @Nullable
+    DynamicObject parentProjectDynamicInheritedScope(ProjectInternal referrerProject);
 }
