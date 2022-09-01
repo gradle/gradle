@@ -632,6 +632,14 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.workers.WorkerExecutor",
+            "member": "Method org.gradle.workers.WorkerExecutor.submit(java.lang.Class,org.gradle.api.Action)",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
