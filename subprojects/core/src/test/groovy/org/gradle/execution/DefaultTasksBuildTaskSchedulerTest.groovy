@@ -25,11 +25,11 @@ import org.gradle.internal.DefaultTaskExecutionRequest
 import org.gradle.internal.RunDefaultTasksExecutionRequest
 import spock.lang.Specification
 
-class DefaultTasksBuildExecutionActionTest extends Specification {
+class DefaultTasksBuildTaskSchedulerTest extends Specification {
     final projectConfigurer = Mock(ProjectConfigurer)
     final buildInCommand = Mock(BuiltInCommand)
-    final delegate = Mock(BuildConfigurationAction)
-    final action = new DefaultTasksBuildExecutionAction(projectConfigurer, [buildInCommand], delegate)
+    final delegate = Mock(BuildTaskScheduler)
+    final action = new DefaultTasksBuildTaskScheduler(projectConfigurer, [buildInCommand], delegate)
     final startParameter = Mock(StartParameterInternal)
     final defaultProject = Mock(ProjectInternal)
     final gradle = Mock(GradleInternal)

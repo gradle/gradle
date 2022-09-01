@@ -24,19 +24,19 @@ import org.gradle.execution.commandline.CommandLineTaskParser
 import org.gradle.execution.plan.ExecutionPlan
 import spock.lang.Specification
 
-class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
+class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
     GradleInternal gradle
     ExecutionPlan executionPlan
     CommandLineTaskParser parser
     EntryTaskSelector selector
-    TaskNameResolvingBuildConfigurationAction action
+    TaskNameResolvingBuildTaskScheduler action
 
     def setup() {
         gradle = Mock(GradleInternal)
         executionPlan = Mock(ExecutionPlan)
         parser = Mock(CommandLineTaskParser)
         selector = Mock(EntryTaskSelector)
-        action = new TaskNameResolvingBuildConfigurationAction(parser, Stub(TaskSelector))
+        action = new TaskNameResolvingBuildTaskScheduler(parser, Stub(TaskSelector))
     }
 
     def "empty task parameters are no-op action"() {

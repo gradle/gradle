@@ -17,7 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.execution.BuildConfigurationAction;
+import org.gradle.execution.BuildTaskScheduler;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.buildtree.BuildModelParameters;
@@ -27,15 +27,15 @@ import javax.annotation.Nullable;
 
 public class DefaultTaskExecutionPreparer implements TaskExecutionPreparer {
     private final BuildOperationExecutor buildOperationExecutor;
-    private final BuildConfigurationAction buildConfigurationAction;
+    private final BuildTaskScheduler buildTaskScheduler;
     private final BuildModelParameters buildModelParameters;
 
     public DefaultTaskExecutionPreparer(
-        BuildConfigurationAction buildConfigurationAction,
+        BuildTaskScheduler buildTaskScheduler,
         BuildOperationExecutor buildOperationExecutor,
         BuildModelParameters buildModelParameters
     ) {
-        this.buildConfigurationAction = buildConfigurationAction;
+        this.buildTaskScheduler = buildTaskScheduler;
         this.buildOperationExecutor = buildOperationExecutor;
         this.buildModelParameters = buildModelParameters;
     }
@@ -43,7 +43,7 @@ public class DefaultTaskExecutionPreparer implements TaskExecutionPreparer {
     @Override
     public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
         gradle.getOwner().getProjects().withMutableStateOfAllProjects(() -> {
-            buildConfigurationAction.scheduleRequestedTasks(gradle, selector, plan);
+            buildTaskScheduler.scheduleRequestedTasks(gradle, selector, plan);
 
             if (buildModelParameters.isConfigureOnDemand() && gradle.isRootBuild()) {
                 new ProjectsEvaluatedNotifier(buildOperationExecutor).notify(gradle);

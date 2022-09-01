@@ -26,7 +26,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * A {@link BuildConfigurationAction} which filters excluded tasks.
+ * A {@link BuildTaskScheduler} which filters excluded tasks.
  */
 public class ExcludedTaskFilteringProjectsPreparer implements TaskSchedulingPreparer {
     private final TaskSelector taskSelector;
