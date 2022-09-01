@@ -113,14 +113,16 @@ If you need to serialize it, you can convert it into your own, serializable clas
 Gradle now does not try to use equals when comparing serialized values in up-to-date checks.
 For more information see <<equals_up_to_date_deprecation>>.
 
-==== Task validation warnings introduced in Gradle 7.x are now errors
+==== Task and transform validation warnings introduced in Gradle 7.x are now errors
 
-Gradle introduced additional task validation warnings in the Gradle 7.x series.
+Gradle introduced additional task and artifact transform validation warnings in the Gradle 7.x series.
 Those warnings are now errors in Gradle 8.0 and will fail the build.
 
-Warnings which became errors:
+Warnings that became errors:
 
-- An input file collection which can't be resolved.
+- An input file collection that can't be resolved.
+- An input or output file or directory that cannot be read. See <<#declare_unreadable_input_output,Declaring input or output directories which contain unreadable content>>.
+- Using a `java.io.File` as the `@InputArtifact` of an artifact transform.
 - Using an input with an unknown implementation. See <<validation_problems.adoc#implementation_unknown,Cannot use an input with an unknown implementation>>.
 - Converting files to a classpath where paths contain file separator.
 
@@ -129,6 +131,28 @@ Warnings which became errors:
 Previously Gradle used to detect if an input file collection annotated with `@SkipWhenEmpty` consisted only of file trees and then ignored directories automatically.
 To ignore directories in Gradle 8.0 and later, the input property needs to be explicitly annotated with `@IgnoreEmptyDirectories`.
 For more information see <<empty_directories_file_tree>>.
+
+[[strict-kotlin-dsl-precompiled-scripts-accessors-by-default]]
+=== Precompiled script plugins use strict Kotlin DSL accessor generation by default
+
+In precompiled script plugins, type safe Kotlin DSL accessor generation now fails the build if a plugin fails to apply.
+
+Starting in Gradle 7.6, builds could enable this behavior with the `org.gradle.kotlin.dsl.precompiled.accessors.strict` system property. This behavior is now default. The property has been deprecated and its usage should be removed. You can find more information about this property <<upgrading_version_7.adoc#strict-kotlin-dsl-precompiled-scripts-accessors, below>>.
+
+==== Adding `jst.ejb` with the `eclipse wtp' plugin now removes the `jst.utility` facet
+
+The `eclipse wtp` plugin adds the `jst.utility` facet to java projects.
+Now, adding the `jst.ejb` facet implicitly removes the `jst.utility` facet:
+
+```
+eclipse {
+    wtp {
+        facet {
+            facet name: 'jst.ejb', version: '3.2'
+        }
+    }
+}
+```
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
