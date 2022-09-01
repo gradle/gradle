@@ -28,6 +28,7 @@ fun propertyDescriptionFor(trace: PropertyTrace): String =
 private
 fun PropertyTrace.Property.simplePropertyDescription(): String = when (kind) {
     PropertyKind.Field -> "field '$name' from type '${firstTypeFrom(trace).name}'"
+    PropertyKind.PropertyUsage -> "property '$name'"
     else -> "$kind '$name' of '${taskPathFrom(trace)}'"
 }
 
