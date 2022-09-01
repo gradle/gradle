@@ -642,9 +642,25 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.invoke(org.gradle.api.NamedDomainObjectContainer,kotlin.jvm.functions.Function1)",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.WorkerExecutor",
+            "member": "Method org.gradle.workers.WorkerExecutor.submit(java.lang.Class,org.gradle.api.Action)",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.DependencySubstitutions$Substitution",
             "member": "Method org.gradle.api.artifacts.DependencySubstitutions$Substitution.with(org.gradle.api.artifacts.component.ComponentSelector)",
-            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
