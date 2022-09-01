@@ -275,18 +275,18 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': Project ':a' cannot dynamically lookup a $kind in the parent project ':'", reportsCount)
+            problem("Build file 'a/build.gradle': Project ':a' cannot dynamically lookup a $kind in the parent project ':'")
         }
 
         where:
-        kind       | setExpr                   | expr                  | reportsCount
-        "property" | "ext.set(\"foo\", 1)"     | "foo"                 | 1
-        "property" | "ext.set(\"foo\", 1)"     | "hasProperty('foo')"  | 1
-        "property" | "ext.set(\"foo\", 1)"     | "property('foo')"     | 1
-        "property" | "ext.set(\"foo\", 1)"     | "findProperty('foo')" | 2 // known issue: there are two reports, because the implementation calls `hasProperty` + `property`
-        "property" | "ext.set(\"foo\", 1)"     | "getProperty('foo')"  | 1
-        "property" | "ext.set(\"foo\", 1)"     | "properties"          | 1
-        "method"   | "def foo() { }"           | "foo()"               | 1
+        kind       | setExpr                   | expr
+        "property" | "ext.set(\"foo\", 1)"     | "foo"
+        "property" | "ext.set(\"foo\", 1)"     | "hasProperty('foo')"
+        "property" | "ext.set(\"foo\", 1)"     | "property('foo')"
+        "property" | "ext.set(\"foo\", 1)"     | "findProperty('foo')"
+        "property" | "ext.set(\"foo\", 1)"     | "getProperty('foo')"
+        "property" | "ext.set(\"foo\", 1)"     | "properties"
+        "method"   | "def foo() { }"           | "foo()"
     }
 
     def "build script can query basic details of projects in allprojects block"() {

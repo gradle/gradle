@@ -97,6 +97,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
@@ -1102,7 +1103,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Object findProperty(String propertyName) {
-        return hasProperty(propertyName) ? property(propertyName) : null;
+        DynamicInvokeResult dynamicInvokeResult = extensibleDynamicObject.tryGetProperty(propertyName);
+        return dynamicInvokeResult.isFound() ? dynamicInvokeResult.getValue() : null;
     }
 
     @Override
