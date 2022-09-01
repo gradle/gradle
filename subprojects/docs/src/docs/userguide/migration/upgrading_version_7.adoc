@@ -67,7 +67,7 @@ The legacy `IncrementalTaskInputs` API has been removed. For more information, s
 
 The legacy `AntlrSourceVirtualDirectory` API has been removed.
 This change affects the `antlr` plugin.
-With Gradle 8.0 you should use the already existing `AntlrSourceDirectorySet` source set extension instead.
+In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
 
 === Potential breaking changes
 
