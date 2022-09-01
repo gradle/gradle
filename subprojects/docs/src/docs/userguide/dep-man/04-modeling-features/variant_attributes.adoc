@@ -244,7 +244,8 @@ Finding the best variant can get complicated when there are many different varia
     b. After all extra attributes with precedence are considered, the remaining candidates can be chosen if they are compatible with all of the non-ordered disambiguation rules.
 6. If several candidates still remain, Gradle will consider extra attributes again. A candidate can be chosen if it has the fewest number of extra attributes.
 
-If at any step no candidates remain compatible, resolution will fail and list all compatible candidates from step 1.
+If at any step no candidates remain compatible, resolution fails.
+Additionally, Gradle outputs a list of all compatible candidates from step 1 to help with debugging variant matching failures.
 
 Plugins and ecosystems can influence the selection algorithm by implementing compatibility rules, disambiguation rules and telling Gradle the precedence of attributes. Attributes with a higher precedence are used to eliminate compatible matches in order.
 
