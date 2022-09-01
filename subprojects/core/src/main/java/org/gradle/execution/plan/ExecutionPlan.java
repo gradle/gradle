@@ -32,7 +32,7 @@ import java.util.function.Consumer;
  */
 @NotThreadSafe
 public interface ExecutionPlan extends Describable, Closeable {
-    void useFilter(Spec<? super Task> filter);
+    void addFilter(Spec<? super Task> filter);
 
     void setContinueOnFailure(boolean continueOnFailure);
 

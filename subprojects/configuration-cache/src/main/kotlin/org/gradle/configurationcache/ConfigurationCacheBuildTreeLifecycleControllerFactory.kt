@@ -63,10 +63,7 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory(
             return vintageFactory.createController(targetBuild, workExecutor, finishExecutor)
         }
 
-        val defaultWorkGraphPreparer = vintageFactory.createWorkGraphPreparer()
-        val workGraphPreparer = ConfigurationCacheAwareBuildTreeWorkGraphPreparer(defaultWorkGraphPreparer, cache)
-
-        val defaultWorkPreparer = vintageFactory.createWorkPreparer(targetBuild, workGraphPreparer)
+        val defaultWorkPreparer = vintageFactory.createWorkPreparer(targetBuild)
         val workPreparer = ConfigurationCacheAwareBuildTreeWorkPreparer(defaultWorkPreparer, cache)
 
         val defaultModelCreator = vintageFactory.createModelCreator(targetBuild)

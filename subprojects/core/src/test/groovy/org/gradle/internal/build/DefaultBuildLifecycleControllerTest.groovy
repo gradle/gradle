@@ -306,14 +306,14 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         t3 == failure
     }
 
-    void testCannotExecuteTasksWhenNothingHasBeenScheduled() {
+    void testCanExecuteTasksWhenNothingHasBeenScheduled() {
         when:
         def controller = controller()
         def workGraph = controller.newWorkGraph()
-        controller.executeTasks(workGraph)
+        def result = controller.executeTasks(workGraph)
 
         then:
-        def t = thrown IllegalStateException
+        result.failures.empty
 
         when:
         def finishResult = controller.finishBuild(null)

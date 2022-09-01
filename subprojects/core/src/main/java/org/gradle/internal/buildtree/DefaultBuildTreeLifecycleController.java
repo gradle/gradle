@@ -93,8 +93,8 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     private ExecutionResult<Void> doScheduleAndRunTasks(@Nullable EntryTaskSelector taskSelector) {
         return taskGraph.withNewWorkGraph(graph -> {
-            workPreparer.scheduleRequestedTasks(graph, taskSelector);
-            return workExecutor.execute(graph);
+            BuildTreeWorkGraph.FinalizedGraph finalizedGraph = workPreparer.scheduleRequestedTasks(graph, taskSelector);
+            return workExecutor.execute(finalizedGraph);
         });
     }
 

@@ -300,8 +300,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     }
 
     @Override
-    public void useFilter(Spec<? super Task> filter) {
-        this.filter = filter;
+    public void addFilter(Spec<? super Task> filter) {
+        this.filter = Specs.intersect(this.filter, filter);
     }
 
     @Override

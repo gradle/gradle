@@ -20,6 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -77,6 +78,34 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         2.times {
             succeeds(":other-build:sub:doSomething")
             outputContains("do something")
+        }
+    }
+
+    def "can exclude included subproject task"() {
+        setup:
+        settingsFile << "includeBuild('other-build')"
+        file('other-build/settings.gradle') << """
+            rootProject.name = 'other-build'
+            include 'sub'
+        """
+        file('other-build/sub/build.gradle') << """
+            def depTask = tasks.register('dependency') {
+                doLast {
+                    println 'dependency'
+                }
+            }
+            tasks.register('doSomething') {
+                dependsOn(depTask)
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        expect:
+        2.times {
+            succeeds(":other-build:sub:doSomething", "-x", ":other-build:sub:dependency")
+            result.assertTasksExecuted(":other-build:sub:doSomething")
         }
     }
 
@@ -341,7 +370,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         // build logic tasks do not run when configuration cache is enabled
     }
 
-    def "can run task from included build that is also required to produce a plugin used from root build"() {
+    def "can run and exclude task from included build that is also required to produce a plugin used from root build"() {
         setup:
         settingsFile << "includeBuild('build-logic')"
         def rootDir = file("build-logic")
@@ -362,6 +391,39 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
 
         succeeds(":build-logic:classes")
         // build logic tasks are not run when configuration cache is enabled (because their inputs are encoded in the cache key)
+
+        succeeds("greeting", "-x", ":build-logic:classes")
+        result.assertTaskNotExecuted(":build-logic:classes")
+
+        succeeds("greeting", "-x", ":build-logic:classes")
+        // build logic tasks are not run when configuration cache is enabled (because their inputs are encoded in the cache key)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21708")
+    def "can run and exclude task from included build that requires a plugin from another build"() {
+        setup:
+        settingsFile << """
+            includeBuild('build-logic')
+            includeBuild('app')
+        """
+        def rootDir = file("build-logic")
+        addPluginIncludedBuild(rootDir)
+        file("app/build.gradle") << """
+            plugins {
+                id("test.plugin")
+                id("java-library")
+            }
+        """
+
+        expect:
+        2.times {
+            succeeds(":app:assemble")
+            result.assertTaskExecuted(":app:processResources")
+        }
+        2.times {
+            succeeds(":app:assemble", "-x", ":app:processResources")
+            result.assertTaskNotExecuted(":app:processResources")
+        }
     }
 
     def "can run task from included build that also produces a plugin used from root build when configure on demand is enabled"() {

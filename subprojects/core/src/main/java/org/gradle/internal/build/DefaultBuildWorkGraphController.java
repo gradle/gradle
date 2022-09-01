@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.Runnables;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.execution.plan.BuildWorkPlan;
@@ -123,6 +124,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             }
             controller.getGradle().getOwner().getProjects().withMutableStateOfAllProjects(() -> {
                 createPlan();
+                controller.prepareToScheduleTasks();
                 controller.populateWorkGraph(plan, workGraph -> workGraph.addEntryTasks(tasks));
             });
             return true;
@@ -132,12 +134,19 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
             assertIsOwner();
             createPlan();
+            controller.prepareToScheduleTasks();
             controller.populateWorkGraph(plan, action);
+        }
+
+        @Override
+        public void addFilter(Spec<Task> filter) {
+            assertIsOwner();
+            createPlan();
+            plan.addFilter(filter);
         }
 
         private void createPlan() {
             if (plan == null) {
-                controller.prepareToScheduleTasks();
                 plan = controller.newWorkGraph();
                 plan.onComplete(this::nodeComplete);
             }
