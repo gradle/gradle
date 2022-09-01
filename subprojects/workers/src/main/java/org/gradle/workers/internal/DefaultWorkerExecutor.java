@@ -140,11 +140,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
         return instantiator.newInstance(DefaultWorkQueue.class, this, spec, daemonWorkerFactory);
     }
-
-    <T extends WorkerSpec> Action<T> getWorkerSpecAdapterAction(DefaultWorkerConfiguration configuration) {
-        return spec -> configuration.adaptTo(spec);
-    }
-
     private <T extends WorkParameters> AsyncWorkCompletion submitWork(Class<? extends WorkAction<T>> workActionClass, Action<? super T> parameterAction, WorkerSpec workerSpec, WorkerFactory workerFactory) {
         Class<T> parameterType = isolationScheme.parameterTypeFor(workActionClass);
         T parameters = (parameterType == null) ? null : instantiator.newInstance(parameterType);
@@ -152,7 +147,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             parameterAction.execute(parameters);
         }
 
-        String description = getWorkerDisplayName(workActionClass, parameters);
+        String description = workActionClass.getName();
         WorkerRequirement workerRequirement = getWorkerRequirement(workActionClass, workerSpec, parameters);
         IsolatedParametersActionExecutionSpec<?> spec;
         try {
@@ -179,10 +174,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         executionQueue.submit(execution);
         asyncWorkTracker.registerWork(currentBuildOperation, execution);
         return execution;
-    }
-
-    private static String getWorkerDisplayName(Class<?> workActionClass, WorkParameters parameters) {
-        return workActionClass.getName();
     }
 
     private void checkIsManagedThread() {
