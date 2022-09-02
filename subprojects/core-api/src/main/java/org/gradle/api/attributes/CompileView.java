@@ -20,10 +20,8 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
- * Represents the depth at which module dependencies are exposed during compilation. Differentiates
- * between dependencies required to compile a module and dependencies required to compile against it.
- * <p>
- * This attribute is only applicable when paired with the {@link Usage#JAVA_API} attribute.
+ * Differentiates between dependencies required to compile a module and dependencies required to compile
+ * against it. This attribute is only applicable when paired with the {@link Usage#JAVA_API} attribute.
  *
  * @since 7.6
  */
