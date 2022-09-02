@@ -124,6 +124,7 @@ Warnings that became errors:
 - An input or output file or directory that cannot be read. See <<#declare_unreadable_input_output,Declaring input or output directories which contain unreadable content>>.
 - Using a `java.io.File` as the `@InputArtifact` of an artifact transform.
 - Using an input with an unknown implementation. See <<validation_problems.adoc#implementation_unknown,Cannot use an input with an unknown implementation>>.
+- Missing dependencies between tasks. See <<validation_problems.adoc#implicit_dependency,Implicit dependencies between tasks>>.
 - Converting files to a classpath where paths contain file separator.
 
 ==== Gradle does not ignore empty directories for file-trees with `@SkipWhenEmpty`
