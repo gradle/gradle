@@ -16,6 +16,14 @@
 
 package org.gradle.env;
 
+import org.gradle.api.Incubating;
+
+/**
+ * Information about the environment the build is running in.
+ *
+ * @since 7.6
+ */
+@Incubating
 public interface BuildEnvironment {
 
     OperatingSystem getOperatingSystem();
