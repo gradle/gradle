@@ -86,6 +86,7 @@ These members will be removed in Gradle 9.0.
 * `GradleVersion.getNextMajor()`
 * `GradleVersion.getRevision()`
 * `GradleVersion.isValid()`
+* `GUtil`
 
 === Potential breaking changes
 

@@ -24,6 +24,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.io.StreamByteBuffer;
 
 import javax.annotation.Nullable;
@@ -63,10 +64,18 @@ import static java.util.Collections.emptyList;
  * Plugins should prefer external collection frameworks over this class.
  * Internally, all code should use {@link org.gradle.util.internal.GUtil}.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public class GUtil {
+
+    static {
+        DeprecationLogger.deprecateType(GUtil.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
+
     private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
     private static final Pattern UPPER_LOWER = Pattern.compile("(?m)([A-Z]*)([a-z0-9]*)");
 
@@ -162,6 +171,7 @@ public class GUtil {
         }
         return true;
     }
+
     /**
      * Prefer {@link #getOrDefault(Object, Factory)} if the value is expensive to compute or
      * would trigger early configuration.
