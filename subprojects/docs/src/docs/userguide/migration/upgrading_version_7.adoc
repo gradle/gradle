@@ -81,6 +81,7 @@ See more details about toolchain configuration in the <<toolchains#sec:configuri
 These members will be removed in Gradle 9.0.
 
 * `CollectionUtils`
+* `GFileUtils`
 * `GradleVersion.getBuildTime()`
 * `GradleVersion.getNextMajor()`
 * `GradleVersion.getRevision()`

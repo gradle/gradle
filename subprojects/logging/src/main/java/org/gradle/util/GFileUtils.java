@@ -20,6 +20,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.LimitedDescription;
 
 import javax.annotation.Nullable;
@@ -46,10 +47,17 @@ import java.util.zip.Checksum;
  * <p>
  * Plugins should prefer java.io, java.nio or external packages over this class.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public class GFileUtils {
+
+    static {
+        DeprecationLogger.deprecateType(GFileUtils.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
 
     public static FileInputStream openInputStream(File file) {
         try {
