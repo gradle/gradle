@@ -282,17 +282,12 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
     private static String customToolchainRegistryCode() {
         """
             import java.util.Optional;
+            import org.gradle.env.BuildEnvironment;
 
             public abstract class CustomToolchainRegistry implements JavaToolchainRepository {
-
                 @Override
-                public Optional<URI> toUri(JavaToolchainSpec spec) {
+                public Optional<URI> toUri(JavaToolchainSpec spec, BuildEnvironment env) {
                     return Optional.of(URI.create("https://exoticJavaToolchain.com/java-" + spec.getLanguageVersion().get()));
-                }
-        
-                @Override
-                public JavaToolchainSpecVersion getToolchainSpecCompatibility() {
-                    return JavaToolchainSpecVersion.V1;
                 }
             }
             """
@@ -301,17 +296,12 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
     private static String uselessToolchainRegistryCode(String className) {
         """
             import java.util.Optional;
+            import org.gradle.env.BuildEnvironment;
 
             public abstract class ${className} implements JavaToolchainRepository {
-
                 @Override
-                public Optional<URI> toUri(JavaToolchainSpec spec) {
+                public Optional<URI> toUri(JavaToolchainSpec spec, BuildEnvironment env) {
                     return Optional.empty();
-                }
-        
-                @Override
-                public JavaToolchainSpecVersion getToolchainSpecCompatibility() {
-                    return JavaToolchainSpecVersion.V1;
                 }
             }
             """

@@ -16,12 +16,12 @@
 
 package org.gradle.jvm.toolchain.internal.install;
 
-import net.rubygrapefruit.platform.SystemInfo;
+import org.gradle.api.GradleException;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.env.BuildEnvironment;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.inspection.JvmVendor;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
@@ -36,22 +36,18 @@ public class AdoptOpenJdkRemoteBinary {
     private static final String DEFAULT_ADOPTOPENJDK_ROOT_URL = "https://api.adoptopenjdk.net/";
     private static final String DEFAULT_ADOPTIUM_ROOT_URL = "https://api.adoptium.net/";
 
-    private final SystemInfo systemInfo;
-    private final OperatingSystem operatingSystem;
     private final Provider<String> adoptOpenJdkRootUrl;
     private final Provider<String> adoptiumRootUrl;
 
     @Inject
-    public AdoptOpenJdkRemoteBinary(SystemInfo systemInfo, OperatingSystem operatingSystem, ProviderFactory providerFactory) {
-        this.systemInfo = systemInfo;
-        this.operatingSystem = operatingSystem;
+    public AdoptOpenJdkRemoteBinary(ProviderFactory providerFactory) {
         this.adoptOpenJdkRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri");
         this.adoptiumRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptium.baseUri");
     }
 
-    public Optional<URI> toUri(JavaToolchainSpec spec) {
+    public Optional<URI> toUri(JavaToolchainSpec spec, BuildEnvironment env) {
         if (canProvide(spec)) {
-            return Optional.of(constructUri(spec));
+            return Optional.of(constructUri(spec, env));
         } else {
             return Optional.empty();
         }
@@ -82,15 +78,15 @@ public class AdoptOpenJdkRemoteBinary {
         return vendorSpec.test(JvmVendor.KnownJvmVendor.IBM_SEMERU.asJvmVendor());
     }
 
-    private URI constructUri(JavaToolchainSpec spec) {
+    private URI constructUri(JavaToolchainSpec spec, BuildEnvironment env) {
         return URI.create(determineServerBaseUri(spec) +
                 "v3/binary/latest/" + determineLanguageVersion(spec) +
                 "/" +
                 determineReleaseState() +
                 "/" +
-                determineOs() +
+                determineOs(env) +
                 "/" +
-                determineArch() +
+                determineArch(env) +
                 "/jdk/" +
                 determineImplementation(spec) +
                 "/normal/" +
@@ -105,27 +101,34 @@ public class AdoptOpenJdkRemoteBinary {
         return spec.getLanguageVersion().get();
     }
 
-    private String determineArch() {
-        switch (systemInfo.getArchitecture()) {
-            case i386:
+    private String determineArch(BuildEnvironment env) {
+        switch (env.getArchitecture()) {
+            case I386:
                 return "x32";
-            case amd64:
+            case AMD64:
                 return "x64";
-            case aarch64:
+            case AARCH64:
                 return "aarch64";
+            case OTHER:
+                return env.getArchitectureName();
+            default:
+                throw new GradleException("Unhandled architecture type " + env.getArchitecture().name());
         }
-        return systemInfo.getArchitectureName();
     }
 
-    private String determineOs() {
-        if (operatingSystem.isWindows()) {
-            return "windows";
-        } else if (operatingSystem.isMacOsX()) {
-            return "mac";
-        } else if (operatingSystem.isLinux()) {
-            return "linux";
+    private String determineOs(BuildEnvironment env) {
+        switch (env.getOperatingSystem()) {
+            case LINUX:
+                return "linux";
+            case WINDOWS:
+                return "windows";
+            case MAC_OS:
+                return "mac";
+            case OTHER:
+                return env.getOperatingSystemName();
+            default:
+                throw new GradleException("Unhandle operating system type " + env.getOperatingSystem().name());
         }
-        return operatingSystem.getFamilyName();
     }
 
     private static String determineReleaseState() {
