@@ -18,16 +18,25 @@ package org.gradle.util;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Ordering;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 
 /**
  * This class is only here to maintain binary compatibility with existing plugins.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public class VersionNumber implements Comparable<VersionNumber> {
+
+    static {
+        DeprecationLogger.deprecateType(VersionNumber.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
+
     private static final DefaultScheme DEFAULT_SCHEME = new DefaultScheme();
     private static final SchemeWithPatchVersion PATCH_SCHEME = new SchemeWithPatchVersion();
     public static final VersionNumber UNKNOWN = version(0);
