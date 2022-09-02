@@ -18,13 +18,17 @@ package org.gradle.execution.selection;
 
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
+import org.gradle.execution.TaskSelection;
+import org.gradle.execution.TaskSelectionException;
 import org.gradle.execution.TaskSelector;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.RootBuildState;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.io.File;
 
 public class DefaultBuildTaskSelector implements BuildTaskSelector {
     private final BuildStateRegistry buildRegistry;
@@ -34,7 +38,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
     }
 
     @Override
-    public Filter resolveExcludedTaskName(String taskName, BuildState targetBuild) {
+    public Filter resolveExcludedTaskName(String taskName, BuildState defaultBuild) {
         Path taskPath = Path.path(taskName);
         if (taskPath.isAbsolute() && taskPath.segmentCount() > 1) {
             BuildState build = findIncludedBuild(taskPath);
@@ -44,7 +48,45 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
             }
         }
         // Exclusion didn't match an included build, so it might be a subproject of the root build or a relative path
-        return new Filter(targetBuild, new LazyFilter(targetBuild, taskPath));
+        return new Filter(defaultBuild, new LazyFilter(defaultBuild, taskPath));
+    }
+
+    @Override
+    public TaskSelection resolveTaskName(@Nullable File rootDir, @Nullable String projectPath, BuildState defaultBuild, String taskName) {
+        if (rootDir != null) {
+            RootBuildState rootBuild = buildRegistry.getRootBuild();
+            if (rootDir.equals(rootBuild.getBuildRootDir())) {
+                return getSelectorForBuild(rootBuild).getSelection(projectPath, taskName);
+            }
+            BuildState build = findIncludedBuild(rootDir);
+            if (build != null) {
+                return getSelectorForBuild(build).getSelection(projectPath, taskName);
+            }
+            throw new TaskSelectionException(String.format("Could not find included build with root directory '%s'.", rootDir));
+        }
+
+        Path taskPath = Path.path(taskName);
+        if (taskPath.isAbsolute() && taskPath.segmentCount() > 1) {
+            BuildState build = findIncludedBuild(taskPath);
+            if (build != null) {
+                return getSelectorForBuild(build).getSelection(projectPath, taskPath.removeFirstSegments(1).getPath());
+            }
+        }
+        return getSelectorForBuild(defaultBuild).getSelection(projectPath, taskName);
+    }
+
+    @Override
+    public BuildSpecificSelector relativeToBuild(BuildState target) {
+        return taskName -> DefaultBuildTaskSelector.this.resolveTaskName(null, null, target, taskName);
+    }
+
+    private BuildState findIncludedBuild(File rootDir) {
+        for (IncludedBuildState build : buildRegistry.getIncludedBuilds()) {
+            if (build.getRootDirectory().equals(rootDir)) {
+                return build;
+            }
+        }
+        return null;
     }
 
     @Nullable
@@ -57,6 +99,13 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         }
 
         return null;
+    }
+
+    private static TaskSelector getSelectorForBuild(BuildState target) {
+        if (!(target instanceof RootBuildState)) {
+            target.ensureProjectsConfigured();
+        }
+        return target.getMutableModel().getServices().get(TaskSelector.class);
     }
 
     private static class LazyFilter implements Spec<Task> {
@@ -72,7 +121,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         @Override
         public boolean isSatisfiedBy(Task element) {
             if (spec == null) {
-                spec = build.getMutableModel().getServices().get(TaskSelector.class).getFilter(path.getPath());
+                spec = getSelectorForBuild(build).getFilter(path.getPath());
             }
             return spec.isSatisfiedBy(element);
         }

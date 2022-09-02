@@ -18,13 +18,32 @@ package org.gradle.execution.selection;
 
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
+import org.gradle.execution.TaskSelection;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nullable;
+import java.io.File;
+
 @ServiceScope(Scopes.BuildTree.class)
 public interface BuildTaskSelector {
     Filter resolveExcludedTaskName(String taskName, BuildState targetBuild);
+
+    /**
+     * @param rootDir When not null, specifies the build to resolve tasks relative to. When null, resolve relative to the default build.
+     * @param projectPath When not null, specifies the project within the target build to resolve tasks relative to. When null, resolve relative to the default project of the target build.
+     */
+    TaskSelection resolveTaskName(@Nullable File rootDir, @Nullable String projectPath, BuildState targetBuild, String taskName);
+
+    BuildSpecificSelector relativeToBuild(BuildState target);
+
+    /**
+     * A selector that is contextualized to select tasks relative to some build.
+     */
+    interface BuildSpecificSelector {
+        TaskSelection resolveTaskName(String taskName);
+    }
 
     class Filter {
         private final BuildState build;
