@@ -27,6 +27,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Array;
@@ -58,10 +59,17 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
  * Plugins should prefer external collection frameworks over this class.
  * Internally, all code should use {@link org.gradle.util.internal.CollectionUtils}.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public abstract class CollectionUtils {
+
+    static {
+        DeprecationLogger.deprecateType(CollectionUtils.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
 
     /**
      * Returns null if the collection is empty otherwise expects a {@link #single(Iterable)} element to be found.
