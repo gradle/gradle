@@ -134,7 +134,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
 
                 @TaskAction
                 public void runWork() {
-                    WorkQueue queue = workerExecutor.noIsolation(s -> {});
+                    WorkQueue queue = workerExecutor.noIsolation();
                     queue.submit(TypedWorkAction.class, new Action<TypedParameter>() {
                         public void execute(TypedParameter parameters) {
                             parameters.getOutputFile().set(outputFile);
