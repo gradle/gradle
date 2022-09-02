@@ -92,6 +92,7 @@ These members will be removed in Gradle 9.0.
 * `GUtil`
 * `NameMatcher`
 * `NameValidator`
+* `RelativePathUtil`
 * `SingleMessageLogger`
 
 === Potential breaking changes
