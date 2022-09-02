@@ -80,6 +80,11 @@ See more details about toolchain configuration in the <<toolchains#sec:configuri
 
 These members will be removed in Gradle 9.0.
 
+* `GradleVersion.getBuildTime()`
+* `GradleVersion.getNextMajor()`
+* `GradleVersion.getRevision()`
+* `GradleVersion.isValid()`
+
 === Potential breaking changes
 
 [[kotlin_1_7_10]]
