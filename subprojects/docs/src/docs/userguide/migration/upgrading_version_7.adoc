@@ -83,6 +83,7 @@ These members will be removed in Gradle 9.0.
 * `ClosureBackedAction`
 * `CollectionUtils`
 * `ConfigureUtil`
+* `DistributionLocator`
 * `GFileUtils`
 * `GradleVersion.getBuildTime()`
 * `GradleVersion.getNextMajor()`
