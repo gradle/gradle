@@ -16,11 +16,13 @@
 
 package org.gradle.jvm.internal.services;
 
+import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.FileLockManager;
+import org.gradle.env.internal.DefaultBuildEnvironment;
 import org.gradle.initialization.DefaultToolchainManagementSpec;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
@@ -65,6 +67,10 @@ import java.util.List;
 public class PlatformJvmServices extends AbstractPluginServiceRegistry {
 
     protected static class BuildServices {
+
+        protected DefaultBuildEnvironment createBuildEnvironment(ObjectFactory objectFactory, SystemInfo systemInfo, OperatingSystem operatingSystem) {
+            return objectFactory.newInstance(DefaultBuildEnvironment.class, systemInfo, operatingSystem);
+        }
 
         protected DefaultJavaToolchainRepositoryRegistry createJavaToolchainRepositoryRegistry(
                 Gradle gradle,

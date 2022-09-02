@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain;
 import org.gradle.api.Incubating;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
+import org.gradle.env.BuildEnvironment;
 
 import java.net.URI;
 import java.util.Optional;
@@ -39,12 +40,8 @@ public interface JavaToolchainRepository extends BuildService<BuildServiceParame
      * <p>
      * Returns an empty Optional if and only if the provided specification can't be matched.
      */
-    Optional<URI> toUri(JavaToolchainSpec spec); //TODO (#21082): provide not just the spec, but also build environment information
+    Optional<URI> toUri(JavaToolchainSpec spec, BuildEnvironment buildEnvironment);
 
-    /**
-     * Returns the highest version of {@link JavaToolchainSpec} this repository implementation can handle.
-     * <p>
-     * All versions lower than the upper limit must also be handled by the repository.
-     */
-    JavaToolchainSpecVersion getToolchainSpecCompatibility();
+    //TODO (#21082): update the design spec with the build environment addition
+
 }

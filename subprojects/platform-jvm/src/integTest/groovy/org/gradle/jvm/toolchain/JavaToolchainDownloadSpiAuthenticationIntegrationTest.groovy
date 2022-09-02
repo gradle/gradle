@@ -134,17 +134,12 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
     private static String customToolchainRegistryCode(String uri) {
         """
             import java.util.Optional;
+            import org.gradle.env.BuildEnvironment;
 
             public abstract class CustomToolchainRegistry implements JavaToolchainRepository {
-
                 @Override
-                public Optional<URI> toUri(JavaToolchainSpec spec) {
+                public Optional<URI> toUri(JavaToolchainSpec spec, BuildEnvironment env) {
                     return Optional.of(URI.create("$uri"));
-                }
-        
-                @Override
-                public JavaToolchainSpecVersion getToolchainSpecCompatibility() {
-                    return JavaToolchainSpecVersion.V1;
                 }
             }
             """

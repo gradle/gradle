@@ -21,6 +21,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.FileLock;
+import org.gradle.env.BuildEnvironment;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -65,6 +66,9 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     private final JdkCacheDirectory cacheDirProvider;
     private final Provider<Boolean> downloadEnabled;
     private final BuildOperationExecutor buildOperationExecutor;
+
+    private final BuildEnvironment buildEnvironment;
+
     private static final Object PROVISIONING_PROCESS_LOCK = new Object();
 
     @Inject
@@ -74,7 +78,8 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             SecureFileDownloader downloader,
             JdkCacheDirectory cacheDirProvider,
             ProviderFactory factory,
-            BuildOperationExecutor executor
+            BuildOperationExecutor executor,
+            BuildEnvironment buildEnvironment
     ) {
         this.toolchainRepositoryRegistry = (JavaToolchainRepositoryRegistryInternal) toolchainRepositoryRegistry;
         this.openJdkBinary = openJdkBinary;
@@ -82,6 +87,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         this.cacheDirProvider = cacheDirProvider;
         this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).map(Boolean::parseBoolean);
         this.buildOperationExecutor = executor;
+        this.buildEnvironment = buildEnvironment;
     }
 
     public Optional<File> tryInstall(JavaToolchainSpec spec) {
@@ -96,13 +102,13 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                             "Need to inject such registries via settings plugins and explicitly request them via the 'toolchainManagement' block.")
                     .undocumented() //TODO (#21082): needs to be documented properly
                     .nagUser();
-            Optional<URI> uri = openJdkBinary.toUri(spec);
+            Optional<URI> uri = openJdkBinary.toUri(spec, buildEnvironment);
             if (uri.isPresent()) {
                 return Optional.of(provisionInstallation(spec, uri.get(), Collections.emptyList()));
             }
         } else {
             for (JavaToolchainRepositoryRequest request : requestedRepositories) {
-                Optional<URI> uri = request.getRepository().toUri(spec);
+                Optional<URI> uri = request.getRepository().toUri(spec, buildEnvironment);
                 if (uri.isPresent()) {
                     Collection<Authentication> authentications = request.getAuthentications(uri.get());
                     return Optional.of(provisionInstallation(spec, uri.get(), authentications));
