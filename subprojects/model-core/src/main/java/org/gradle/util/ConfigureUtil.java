@@ -19,6 +19,7 @@ package org.gradle.util;
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.GeneratedClosure;
 import org.gradle.api.Action;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.Actions;
 import org.gradle.internal.metaobject.ConfigureDelegate;
@@ -65,10 +66,17 @@ import static org.gradle.util.internal.CollectionUtils.toStringList;
  * <p>
  * As a last resort, to apply some configuration represented by a Groovy Closure, a plugin can use {@link org.gradle.api.Project#configure(Object, Closure)}.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public class ConfigureUtil {
+
+    static {
+        DeprecationLogger.deprecateType(ConfigureUtil.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
 
     public static <T> T configureByMap(Map<?, ?> properties, T delegate) {
         if (properties.isEmpty()) {
