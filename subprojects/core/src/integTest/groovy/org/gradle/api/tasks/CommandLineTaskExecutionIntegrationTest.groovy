@@ -17,8 +17,39 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.internal.ToBeImplemented
 
 class CommandLineTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeImplemented
+    def "fails with badly formed task name"() {
+        settingsFile """
+            rootProject.name = 'broken'
+            include("a")
+        """
+        buildFile """
+        """
+
+        when:
+        if (message.empty) {
+            succeeds(taskName)
+        } else {
+            fails(taskName)
+        }
+
+        then:
+        if (!message.empty) {
+            failure.assertHasDescription(message)
+        }
+
+        where:
+        taskName | message
+        ""       | "A path must be specified!"
+        ":"      | "Task '' not found in root project 'broken'."
+        "::"     | "Task '' not found in root project 'broken'."
+        ":a::"   | "Task '' not found in project ':a'."
+        ":a::b"  | ""
+    }
+
     def "build logic can mutate the list of requested tasks"() {
         buildFile """
             gradle.startParameter.taskNames += ["last"]

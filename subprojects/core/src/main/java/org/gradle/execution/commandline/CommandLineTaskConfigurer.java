@@ -23,6 +23,8 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.ParsedCommandLineOption;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.TypeConversionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@ServiceScope(Scopes.Gradle.class)
 public class CommandLineTaskConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineTaskConfigurer.class);
 
