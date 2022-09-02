@@ -17,17 +17,14 @@
 package org.gradle.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.reflect.problems.ValidationProblemId
-import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 @IgnoreIf({ GradleContextualExecuter.parallel })
-class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implements ExecutionOptimizationDeprecationFixture {
+class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << "include 'a', 'b'"
         buildFile << '''
@@ -81,30 +78,28 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implem
         result.assertTasksSkipped(":a:compileJava", ":a:processResources", ":a:classes", ":a:javadoc")
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IMPLICIT_DEPENDENCY
-    )
     def "order of upstream jar entries does not matter"() {
         given:
         file("a/build.gradle") << '''
             dependencies {
-                implementation rootProject.files("build/libs/external.jar")
+                implementation rootProject.orderedJar.outputs.files
             }
         '''
         buildFile << """
-            task alphabetic(type: Jar) {
-                from("external/a")
-                from("external/b")
-                from("external/c")
-                from("external/d")
-
-                archiveFileName = "external.jar"
-            }
-            task reverseAlphabetic(type: Jar) {
-                from("external/d")
-                from("external/c")
-                from("external/b")
-                from("external/a")
+            task orderedJar(type: Jar) {
+                def reverse = Boolean.getBoolean("reverse")
+                inputs.property("reverse", reverse)
+                if (reverse) {
+                    from("external/d")
+                    from("external/c")
+                    from("external/b")
+                    from("external/a")
+                } else {
+                    from("external/a")
+                    from("external/b")
+                    from("external/c")
+                    from("external/d")
+                }
 
                 archiveFileName = "external.jar"
             }
@@ -114,16 +109,12 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implem
         }
         // Generate external jar with entries in alphabetical order
         def externalJar = file('build/libs/external.jar')
-        expectMissingDependencyDeprecation(":alphabetic", ":a:compileJava", file("build/libs/external.jar"))
-        expectMissingDependencyDeprecation(":alphabetic", ":a:javadoc", file("build/libs/external.jar"))
-        succeeds("alphabetic", ":a:javadoc")
+        succeeds(":a:javadoc", "-Dreverse=false")
         new ZipTestFixture(externalJar).hasDescendantsInOrder('META-INF/MANIFEST.MF', 'a', 'b', 'c', 'd')
 
         when:
         // Re-generate external jar with entries in reverse alphabetical order
-        succeeds("reverseAlphabetic")
-        and:
-        succeeds(":a:javadoc")
+        succeeds(":a:javadoc", "-Dreverse=true")
         then:
         // javadoc should still be up-to-date even though the upstream external.jar changed
         new ZipTestFixture(externalJar).hasDescendantsInOrder('META-INF/MANIFEST.MF', 'd', 'c', 'b', 'a')
@@ -135,26 +126,18 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implem
         given:
         file("a/build.gradle") << '''
             dependencies {
-                implementation rootProject.files("build/libs/external.jar")
+                implementation rootProject.timedJar.outputs.files
             }
         '''
         buildFile << """
-            task currentTime(type: Jar) {
+            task timedJar(type: Jar) {
                 from("external/a")
                 from("external/b")
                 from("external/c")
                 from("external/d")
 
                 archiveFileName = "external.jar"
-            }
-            task oldTime(type: Jar) {
-                from("external/a")
-                from("external/b")
-                from("external/c")
-                from("external/d")
-
-                archiveFileName = "external.jar"
-                preserveFileTimestamps = false
+                preserveFileTimestamps = Boolean.getBoolean("oldTime")
             }
         """
         def externalJar = file("build/libs/external.jar")
@@ -162,15 +145,11 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implem
             file("external/$it").touch()
         }
         // Generate external jar with entries with a current timestamp
-        expectMissingDependencyDeprecation(":currentTime", ":a:compileJava", file("build/libs/external.jar"))
-        expectMissingDependencyDeprecation(":currentTime", ":a:javadoc", file("build/libs/external.jar"))
-        succeeds("currentTime", ":a:javadoc")
+        succeeds(":a:javadoc", "-DoldTime=false")
         def oldHash = externalJar.md5Hash
         when:
         // Re-generate external jar with entries with a different/fixed timestamp
-        succeeds("oldTime")
-        and:
-        succeeds(":a:javadoc")
+        succeeds(":a:javadoc", "-DoldTime=true")
         then:
         // check that the upstream jar definitely changed
         oldHash != externalJar.md5Hash
@@ -182,7 +161,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implem
         given:
         file("a/build.gradle") << '''
             dependencies {
-                implementation rootProject.files("build/libs/external.jar")
+                implementation rootProject.duplicate.outputs.files
             }
         '''
         buildFile << """
@@ -205,8 +184,6 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implem
         duplicate.text = "duplicate"
 
         // Generate external jar with entries with a duplicate 'a' file
-        expectMissingDependencyDeprecation(":duplicate", ":a:compileJava", file("build/libs/external.jar"))
-        expectMissingDependencyDeprecation(":duplicate", ":a:javadoc", file("build/libs/external.jar"))
         succeeds("duplicate", ":a:javadoc")
         def oldHash = externalJar.md5Hash
 
@@ -223,7 +200,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implem
         then:
         result.assertTasksNotSkipped(":a:javadoc")
         result.assertTasksSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar",
-            ":a:compileJava", ":a:processResources", ":a:classes")
+            ":a:compileJava", ":a:processResources", ":a:classes", ":duplicate")
         when:
         // change the first duplicate
         original.text = "changed to something else"
@@ -237,7 +214,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implem
         then:
         result.assertTasksNotSkipped(":a:javadoc")
         result.assertTasksSkipped(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar",
-            ":a:compileJava", ":a:processResources", ":a:classes")
+            ":a:compileJava", ":a:processResources", ":a:classes", ":duplicate")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6168")
