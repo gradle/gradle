@@ -153,14 +153,14 @@ public interface UnitOfWork extends Describable {
      * Decorate input file fingerprinting errors when appropriate.
      */
     default RuntimeException decorateInputFileFingerprintingException(InputFileFingerprintingException ex) {
-        throw ex;
+        return ex;
     }
 
     /**
      * Decorate output file fingerprinting errors when appropriate.
      */
     default RuntimeException decorateOutputFileSnapshottingException(OutputFileSnapshottingException ex) {
-        throw ex;
+        return ex;
     }
 
     /**
