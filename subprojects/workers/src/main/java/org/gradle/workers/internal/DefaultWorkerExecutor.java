@@ -53,7 +53,6 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static org.gradle.internal.classloader.ClassLoaderUtils.classFromContextLoader;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RETAIN_PROJECT_LOCKS;
 
 public class DefaultWorkerExecutor implements WorkerExecutor {
@@ -141,11 +140,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
         return instantiator.newInstance(DefaultWorkQueue.class, this, spec, daemonWorkerFactory);
     }
-
-    <T extends WorkerSpec> Action<T> getWorkerSpecAdapterAction(DefaultWorkerConfiguration configuration) {
-        return spec -> configuration.adaptTo(spec);
-    }
-
     private <T extends WorkParameters> AsyncWorkCompletion submitWork(Class<? extends WorkAction<T>> workActionClass, Action<? super T> parameterAction, WorkerSpec workerSpec, WorkerFactory workerFactory) {
         Class<T> parameterType = isolationScheme.parameterTypeFor(workActionClass);
         T parameters = (parameterType == null) ? null : instantiator.newInstance(parameterType);
@@ -153,7 +147,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             parameterAction.execute(parameters);
         }
 
-        String description = getWorkerDisplayName(workActionClass, parameters);
+        String description = workActionClass.getName();
         WorkerRequirement workerRequirement = getWorkerRequirement(workActionClass, workerSpec, parameters);
         IsolatedParametersActionExecutionSpec<?> spec;
         try {
@@ -180,19 +174,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         executionQueue.submit(execution);
         asyncWorkTracker.registerWork(currentBuildOperation, execution);
         return execution;
-    }
-
-    private static String getWorkerDisplayName(Class<?> workActionClass, WorkParameters parameters) {
-        if (workActionClass == AdapterWorkAction.class) {
-            AdapterWorkParameters adapterWorkParameters = (AdapterWorkParameters) parameters;
-            if (adapterWorkParameters.getDisplayName() != null) {
-                return adapterWorkParameters.getDisplayName();
-            } else {
-                return adapterWorkParameters.getImplementationClassName();
-            }
-        } else {
-            return workActionClass.getName();
-        }
     }
 
     private void checkIsManagedThread() {
@@ -264,19 +245,10 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     private Class<?>[] getParamClasses(Class<?> actionClass, WorkParameters parameters) {
-        Class<?> implementationClass;
-        Object[] params;
-        if (parameters instanceof AdapterWorkParameters) {
-            AdapterWorkParameters adapterWorkParameters = (AdapterWorkParameters) parameters;
-            implementationClass = classFromContextLoader(adapterWorkParameters.getImplementationClassName());
-            params = adapterWorkParameters.getParams();
-        } else {
-            implementationClass = actionClass;
-            params = new Object[]{parameters};
-        }
+        Object[] params = new Object[]{parameters};
 
         List<Class<?>> classes = Lists.newArrayList();
-        classes.add(implementationClass);
+        classes.add(actionClass);
         for (Object param : params) {
             if (param != null) {
                 classes.add(param.getClass());
