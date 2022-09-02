@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.util.GradleVersion
-import org.gradle.util.internal.DefaultGradleVersion
 import spock.lang.Issue
 
 @ToolingApiVersion('>=3.3')
@@ -150,6 +149,6 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
     }
 
     private targetSpecificationMethod() {
-        return (GradleVersion.current() >= DefaultGradleVersion.version("6.6")) ? "using" : "with"
+        return (GradleVersion.current() >= GradleVersion.version("6.6")) ? "using" : "with"
     }
 }
