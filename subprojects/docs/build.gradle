@@ -834,9 +834,6 @@ tasks.named("docsTest") { task ->
                 "snippet-buildlifecycle-project-evaluate-events_groovy_projectEvaluateEvents.sample",
                 "snippet-buildlifecycle-project-evaluate-events_kotlin_projectEvaluateEvents.sample",
 
-                "snippet-dependency-management-customizing-resolution-attribute-substitution-rule_groovy_resolve.sample",
-                "snippet-dependency-management-customizing-resolution-attribute-substitution-rule_kotlin_resolve.sample",
-
                 "snippet-dependency-management-customizing-resolution-capability-substitution-rule_groovy_capability_substitution.sample",
                 "snippet-dependency-management-customizing-resolution-capability-substitution-rule_kotlin_capability_substitution.sample",
 
@@ -902,19 +899,6 @@ tasks.named("docsTest") { task ->
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_incrementalAdHocTaskNoSource.sample",
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep.sample",
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep2.sample",
-
-                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_incrementalBuildCustomMethods.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_incrementalBuildCustomMethodsWithTaskArg.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_incrementalBuildInputFilesConfig.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_incrementalBuildInputFilesConfigUsingTask.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_incrementalBuildUpToDateWhen.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_inferredTaskDependencyWithBuiltBy.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_incrementalBuildCustomMethods.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_incrementalBuildCustomMethodsWithTaskArg.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_incrementalBuildInputFilesConfig.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_incrementalBuildInputFilesConfigUsingTask.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_incrementalBuildUpToDateWhen.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_inferredTaskDependencyWithBuiltBy.sample",
 
                 "snippet-tasks-incremental-task_groovy_incrementalTaskChangedProperty.sample",
                 "snippet-tasks-incremental-task_groovy_incrementalTaskFirstRun.sample",

@@ -23,7 +23,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -141,42 +140,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
 
         return instantiator.newInstance(DefaultWorkQueue.class, this, spec, daemonWorkerFactory);
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void submit(Class<? extends Runnable> actionClass, Action<? super org.gradle.workers.WorkerConfiguration> configAction) {
-        DeprecationLogger.deprecateMethod(WorkerExecutor.class, "submit()")
-            .replaceWith("noIsolation(), classLoaderIsolation() or processIsolation()")
-            .willBeRemovedInGradle8()
-            .withUserManual("upgrading_version_5", "method_workerexecutor_submit_is_deprecated")
-            .nagUser();
-
-        DefaultWorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory);
-        configAction.execute(configuration);
-
-        Action<AdapterWorkParameters> parametersAction = parameters -> {
-            parameters.setImplementationClassName(actionClass.getName());
-            parameters.setParams(configuration.getParams());
-            parameters.setDisplayName(configuration.getDisplayName());
-        };
-
-        WorkQueue workQueue;
-        switch (configuration.getIsolationMode()) {
-            case NONE:
-            case AUTO:
-                workQueue = noIsolation(getWorkerSpecAdapterAction(configuration));
-                break;
-            case CLASSLOADER:
-                workQueue = classLoaderIsolation(getWorkerSpecAdapterAction(configuration));
-                break;
-            case PROCESS:
-                workQueue = processIsolation(getWorkerSpecAdapterAction(configuration));
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown isolation mode: " + configuration.getIsolationMode());
-        }
-        workQueue.submit(AdapterWorkAction.class, parametersAction);
     }
 
     <T extends WorkerSpec> Action<T> getWorkerSpecAdapterAction(DefaultWorkerConfiguration configuration) {
