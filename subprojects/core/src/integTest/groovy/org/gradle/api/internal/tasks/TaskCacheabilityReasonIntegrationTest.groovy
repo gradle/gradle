@@ -345,7 +345,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
 
     // This test only works in embedded mode because of the use of validation test fixtures
     @Requires({ GradleContextualExecuter.embedded })
-    def "cacheability for task with disabled optimizations is FAILED_VALIDATION"() {
+    def "cacheability for task with disabled optimizations is VALIDATION_FAILURE"() {
         when:
         executer.noDeprecationChecks()
         buildFile """
