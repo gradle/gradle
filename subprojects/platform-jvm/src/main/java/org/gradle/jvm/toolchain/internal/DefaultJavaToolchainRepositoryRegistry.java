@@ -35,6 +35,7 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
+import org.gradle.jvm.toolchain.JavaToolchainSpecVersion;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -81,9 +82,15 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
     }
 
     @Override
-    public <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType) {
+    public <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType, int highestToolchainSpecVersionKnown) {
         if (registrations.containsKey(name)) {
             throw new GradleException("Duplicate " + JavaToolchainRepository.class.getSimpleName() + " registration under the name '" + name + "'");
+        }
+
+        if (highestToolchainSpecVersionKnown < JavaToolchainSpecVersion.CURRENT_SPEC_VERSION) {
+            throw new GradleException("Can't register " + JavaToolchainRepository.class.getSimpleName() + " named '" + name + "' because it only support java toolchain specifications " +
+                    "up to version " + highestToolchainSpecVersionKnown + ", while the Gradle version used by this build is on version " + JavaToolchainSpecVersion.CURRENT_SPEC_VERSION);
+            //TODO (#21082): write a test for this behaviour
         }
 
         Provider<T> provider = sharedServices.registerIfAbsent(name, implementationType, EMPTY_CONFIGURE_ACTION);
