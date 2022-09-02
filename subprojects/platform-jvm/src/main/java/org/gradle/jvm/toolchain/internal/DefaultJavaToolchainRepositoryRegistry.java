@@ -87,9 +87,9 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
             throw new GradleException("Duplicate " + JavaToolchainRepository.class.getSimpleName() + " registration under the name '" + name + "'");
         }
 
-        if (highestToolchainSpecVersionKnown < JavaToolchainSpecVersion.CURRENT_SPEC_VERSION) {
+        if (highestToolchainSpecVersionKnown < JavaToolchainSpecVersion.currentSpecVersion) {
             throw new GradleException("Can't register " + JavaToolchainRepository.class.getSimpleName() + " named '" + name + "' because it only supports java toolchain specifications " +
-                    "up to version " + highestToolchainSpecVersionKnown + ", while the Gradle version used by this build is on version " + JavaToolchainSpecVersion.CURRENT_SPEC_VERSION);
+                    "up to version " + highestToolchainSpecVersionKnown + ", while the Gradle version used by this build is on version " + JavaToolchainSpecVersion.currentSpecVersion);
             //TODO (#21082): write a test for this behaviour
             //TODO (#21082): most likely not how we want to use versions in the end, needs some rethinking
             //TODO (#21082): update design spaces with the new way of using spec versions

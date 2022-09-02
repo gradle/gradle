@@ -33,6 +33,6 @@ import org.gradle.api.Incubating;
 @Incubating
 public class JavaToolchainSpecVersion {
 
-    public static int CURRENT_SPEC_VERSION = 1; //as of Gradle 7.6
+    public static int currentSpecVersion = 1; //as of Gradle 7.6
 
 }
