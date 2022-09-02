@@ -18,6 +18,7 @@ package org.gradle.util;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,10 +36,18 @@ import java.util.TreeSet;
 /**
  * This class is only here to maintain binary compatibility with existing plugins.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public class WrapUtil {
+
+    static {
+        DeprecationLogger.deprecateType(WrapUtil.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
+
     /**
      * Wraps the given items in a mutable unordered set.
      */

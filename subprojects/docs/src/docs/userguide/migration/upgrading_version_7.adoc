@@ -95,6 +95,7 @@ These members will be removed in Gradle 9.0.
 * `RelativePathUtil`
 * `SingleMessageLogger`
 * `VersionNumber`
+* `WrapUtil`
 
 === Potential breaking changes
 
