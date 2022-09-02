@@ -18,16 +18,24 @@ package org.gradle.util;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.Arrays;
 
 /**
  * This class is only here to maintain binary compatibility with existing plugins.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public final class NameValidator {
+
+    static {
+        DeprecationLogger.deprecateType(NameValidator.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
 
     private static final char[] FORBIDDEN_CHARACTERS = new char[] {'/', '\\', ':', '<', '>', '"', '?', '*', '|'};
     private static final char FORBIDDEN_LEADING_AND_TRAILING_CHARACTER = '.';
