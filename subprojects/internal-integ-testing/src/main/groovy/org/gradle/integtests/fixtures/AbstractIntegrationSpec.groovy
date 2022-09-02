@@ -682,4 +682,19 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         Assume.assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
     }
 
+    protected void addMavenRepoIfConfigCache() {
+        buildFile << mavenRepoIfConfigCache()
+    }
+
+    protected String mavenRepoIfConfigCache() {
+        // Configuration cache resolves dependencies before publishing
+        return GradleContextualExecuter.configCache ?
+            """
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            """ : """
+            """
+
+    }
 }

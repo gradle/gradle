@@ -16,10 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest {
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with feature using extension"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -36,6 +33,7 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
                 featureImplementation 'org:optionaldep:1.0'
             }
         """
+        addMavenRepoIfConfigCache()
 
         when:
         run "publish"
@@ -79,7 +77,6 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can update #prop after feature has been registered"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -98,6 +95,7 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
 
             $prop = "$newValue"
         """
+        addMavenRepoIfConfigCache()
 
         when:
         def mod = mavenRepo.module(group, name, version)

@@ -29,7 +29,6 @@ class MavenPublishBuildOperationIntegrationTest extends AbstractMavenPublishInte
     def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
     def repo = new MavenHttpRepository(server, mavenRepo)
 
-    @ToBeFixedForConfigurationCache
     def "generates build operation events while publishing"() {
         server.start()
 

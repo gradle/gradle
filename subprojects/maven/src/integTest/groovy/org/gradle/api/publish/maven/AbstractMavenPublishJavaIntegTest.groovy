@@ -19,7 +19,6 @@ package org.gradle.api.publish.maven
 import org.gradle.api.attributes.Category
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenFileModule
@@ -83,15 +82,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
                 }
             }
         """)
-
-        if (GradleContextualExecuter.configCache) {
-            // Configuration cache resolves dependencies before publishing
-            buildFile << """
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-            """
-        }
+        addMavenRepoIfConfigCache()
 
         when:
         run "publish"
@@ -670,6 +661,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     @ToBeFixedForConfigurationCache
     def "can publish java-library with capability requests"() {
         given:
+        javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).hasPackaging('pom').dependencyConstraint(mavenRepo.module('org.test', 'foo', '1.0')).withModuleMetadata().publish()
         createBuildScripts("""
             dependencies {
                 implementation("org.test:foo:1.0") {
@@ -686,6 +678,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                 }
             }
         """)
+        addMavenRepoIfConfigCache()
 
         when:
         run "publish"
@@ -808,9 +801,10 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5034, https://github.com/gradle/gradle/issues/5035")
-    @ToBeFixedForConfigurationCache
     void "configuration exclusions are published in generated POM and Gradle metadata"() {
         given:
+        javaLibrary(mavenRepo.module("org.test", "a", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org.test", "b", "2.0")).withModuleMetadata().publish()
         createBuildScripts("""
             configurations {
                 api.exclude(group: "api-group", module: "api-module")
@@ -834,6 +828,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                 }
             }
         """)
+        addMavenRepoIfConfigCache()
         settingsFile << """
             include "subproject"
         """
@@ -1156,7 +1151,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         // Sadly this does not take care of the Gradle metadata
     }
 
-    @ToBeFixedForConfigurationCache
     def 'can publish java library with a #config dependency on a java-platform subproject"'() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -1190,6 +1184,7 @@ include(':platform')
                 }
             }
 """)
+        addMavenRepoIfConfigCache()
 
         when:
         run "publish"

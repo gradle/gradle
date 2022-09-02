@@ -24,9 +24,11 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
     def repoModule = javaLibrary(mavenRepo.module('group', 'root', '1.0'))
 
     @Issue('GRADLE-1574')
-    @ToBeFixedForConfigurationCache
     def "publishes wildcard exclusions for a non-transitive dependency"() {
         given:
+        javaLibrary(mavenRepo.module('org.test', 'non-transitive', '1.0')).publish()
+        javaLibrary(mavenRepo.module('org.test', 'artifact-only', '1.0')).publish()
+
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'maven-publish'
@@ -51,6 +53,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
                 }
             }
         """
+        addMavenRepoIfConfigCache()
 
         when:
         succeeds 'publish'
@@ -68,7 +71,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-3233")
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "Eager dependency resolution in CC causes publishing to fail")
     def "publishes POM dependency with #versionType version for Gradle dependency with null version"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -113,9 +116,10 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         "null"      | "group:'group', name:'projectA', version:null"
     }
 
-    @ToBeFixedForConfigurationCache
     void "defaultDependencies are included in published pom file"() {
         given:
+        javaLibrary(mavenRepo.module('org', 'default-dependency', '1.0')).publish()
+        javaLibrary(mavenRepo.module('org', 'explicit-dependency', '1.0')).publish()
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: "java-library"
@@ -145,6 +149,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
                 }
             }
         """
+        addMavenRepoIfConfigCache()
 
         when:
         succeeds "publish"
@@ -155,9 +160,11 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         repoModule.assertRuntimeDependencies('org:explicit-dependency:1.0')
     }
 
-    @ToBeFixedForConfigurationCache
     void "dependency mutations are reflected in published pom file"() {
         given:
+        javaLibrary(mavenRepo.module('org.test', 'dep1', '1.0')).publish()
+        javaLibrary(mavenRepo.module('org.test', 'dep1', 'X')).publish()
+        javaLibrary(mavenRepo.module('org.test', 'dep2', '1.0')).publish()
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: "java-library"
@@ -187,6 +194,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
                 }
             }
         """
+        addMavenRepoIfConfigCache()
 
         when:
         succeeds "publish"
@@ -196,9 +204,9 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         repoModule.assertApiDependencies('org.test:dep1:X', 'org.test:dep2:1.0')
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishes both dependencies when one has a classifier"() {
         given:
+        javaLibrary(mavenRepo.module('org', 'foo', '1.0').artifact(classifier: 'classy')).publish()
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: "java-library"
@@ -223,6 +231,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
                 }
             }
         """
+        addMavenRepoIfConfigCache()
 
         when:
         succeeds "publish"
@@ -254,9 +263,9 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "dependencies with multiple dependency artifacts are mapped to multiple dependency declarations in GMM"() {
         given:
+        javaLibrary(mavenRepo.module('org', 'foo', '1.0').artifact(classifier: 'classy').artifact(name: 'tarified', type: 'tar', classifier: 'ctar')).publish()
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: "java-library"
@@ -289,6 +298,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
                 }
             }
         """
+        addMavenRepoIfConfigCache()
 
         when:
         succeeds "publish"

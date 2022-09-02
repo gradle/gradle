@@ -16,15 +16,20 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
-    @ToBeFixedForConfigurationCache
     void "version range is mapped to maven syntax in published pom file"() {
         given:
+
+        javaLibrary(mavenRepo.module("group", "projectA", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("group", "projectB", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("group", "projectC", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("group", "projectD", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("group", "projectE", "1.0")).withModuleMetadata().publish()
+
         settingsFile << "rootProject.name = 'publishTest' "
         buildFile << """
             apply plugin: 'maven-publish'
@@ -51,6 +56,7 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
                 api "group:projectD:[1.0,2.0)"
                 api "group:projectE:[1.0]"
             }"""
+        addMavenRepoIfConfigCache()
 
         when:
         run "publish"

@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.maven.MavenJavaModule
 
 class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
@@ -78,9 +77,11 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "a component's variant can be modified before publishing"() {
         given:
+        javaLibrary(mavenRepo.module("org", "foo", "1.0")).withModuleMetadata().publish()
+        javaLibrary(mavenRepo.module("org", "bar", "1.0")).withModuleMetadata().publish()
+
         createBuildScripts """
             dependencies {
                 api 'org:foo:1.0'
@@ -97,6 +98,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
                 }
             }
         """
+        addMavenRepoIfConfigCache()
 
         when:
         succeeds "publish"
