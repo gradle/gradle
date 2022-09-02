@@ -22,6 +22,8 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.Requires
 
 import javax.annotation.Nullable
 
@@ -341,34 +343,38 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         assertCachingDisabledFor NOT_ENABLED_FOR_TASK, "Caching has not been enabled for the task"
     }
 
-    def "cacheability for task with disabled optimizations is FAILED_VALIDATION"() {
+    // This test only works in embedded mode because of the use of validation test fixtures
+    @Requires({ GradleContextualExecuter.embedded })
+    def "cacheability for task with disabled optimizations is VALIDATION_FAILURE"() {
         when:
         executer.noDeprecationChecks()
         buildFile """
-            task producer {
-                def outputFile = file("out.txt")
-                outputs.file(outputFile)
-                doLast {
-                    outputFile.parentFile.mkdirs()
-                    outputFile.text = "produced"
+            import org.gradle.integtests.fixtures.validation.ValidationProblem
+            import org.gradle.internal.reflect.validation.Severity
+
+            @CacheableTask
+            abstract class InvalidTask extends DefaultTask {
+                @ValidationProblem(value = Severity.WARNING)
+                abstract Property<String> getInput()
+
+                @OutputFile
+                abstract RegularFileProperty getOutput()
+
+                @TaskAction
+                void doSomething() {
+                    output.get().asFile.text = input.get()
                 }
             }
 
-            task consumer {
-                def inputFile = file("out.txt")
-                def outputFile = file("consumerOutput.txt")
-                inputs.files(inputFile)
-                outputs.file(outputFile)
-                outputs.cacheIf { true }
-                doLast {
-                    outputFile.text = "consumed"
-                }
+            task invalid(type: InvalidTask) {
+                input = "invalid"
+                output = file("out.txt")
             }
         """
 
         then:
-        withBuildCache().succeeds("producer", "consumer")
-        assertCachingDisabledFor VALIDATION_FAILURE, "Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.", ":consumer"
+        withBuildCache().succeeds("invalid")
+        assertCachingDisabledFor VALIDATION_FAILURE, "Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.", ":invalid"
     }
 
     def "cacheability for a cacheable task can be disabled via #condition"() {
