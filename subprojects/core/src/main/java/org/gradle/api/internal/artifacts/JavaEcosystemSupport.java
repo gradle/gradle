@@ -131,7 +131,7 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    public static class CompileViewDisambiguationRules implements AttributeDisambiguationRule<CompileView>, ReusableAction {
+    static class CompileViewDisambiguationRules implements AttributeDisambiguationRule<CompileView>, ReusableAction {
 
         final CompileView javaApi;
         final CompileView javaComplete;
@@ -161,7 +161,7 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    public static class CompileViewCompatibilityRules implements AttributeCompatibilityRule<CompileView>, ReusableAction {
+    static class CompileViewCompatibilityRules implements AttributeCompatibilityRule<CompileView>, ReusableAction {
 
         @Override
         public void execute(CompatibilityCheckDetails<CompileView> details) {
@@ -181,7 +181,7 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    public static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
+    static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
         final Usage javaApi;
         final Usage javaRuntime;
         final Usage javaApiJars;
@@ -242,7 +242,7 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    public static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage>, ReusableAction {
+    static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage>, ReusableAction {
         private static final Set<String> COMPATIBLE_WITH_JAVA_API = ImmutableSet.of(
                 DEPRECATED_JAVA_API_JARS,
                 DEPRECATED_JAVA_RUNTIME_JARS,
@@ -271,7 +271,7 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    public static class LibraryElementsDisambiguationRules implements AttributeDisambiguationRule<LibraryElements>, ReusableAction {
+    static class LibraryElementsDisambiguationRules implements AttributeDisambiguationRule<LibraryElements>, ReusableAction {
         final LibraryElements jar;
 
         @Inject
@@ -296,7 +296,7 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    public static class LibraryElementsCompatibilityRules implements AttributeCompatibilityRule<LibraryElements>, ReusableAction {
+    static class LibraryElementsCompatibilityRules implements AttributeCompatibilityRule<LibraryElements>, ReusableAction {
 
         @Override
         public void execute(CompatibilityCheckDetails<LibraryElements> details) {
@@ -319,7 +319,10 @@ public abstract class JavaEcosystemSupport {
         }
     }
 
-    public static class TargetJvmEnvironmentCompatibilityRules implements AttributeCompatibilityRule<TargetJvmEnvironment>, ReusableAction {
+    private static class TargetJvmEnvironmentCompatibilityRules implements AttributeCompatibilityRule<TargetJvmEnvironment>, ReusableAction {
+
+        // public constructor to make reflective initialization happy.
+        public TargetJvmEnvironmentCompatibilityRules() {}
 
         @Override
         public void execute(CompatibilityCheckDetails<TargetJvmEnvironment> details) {
@@ -327,7 +330,10 @@ public abstract class JavaEcosystemSupport {
         }
     }
 
-    public static class TargetJvmEnvironmentDisambiguationRules implements AttributeDisambiguationRule<TargetJvmEnvironment>, ReusableAction {
+    private static class TargetJvmEnvironmentDisambiguationRules implements AttributeDisambiguationRule<TargetJvmEnvironment>, ReusableAction {
+
+        // public constructor to make reflective initialization happy.
+        public TargetJvmEnvironmentDisambiguationRules() {}
 
         @Override
         public void execute(MultipleCandidatesDetails<TargetJvmEnvironment> details) {
@@ -342,7 +348,7 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    public static class BundlingCompatibilityRules implements AttributeCompatibilityRule<Bundling>, ReusableAction {
+    static class BundlingCompatibilityRules implements AttributeCompatibilityRule<Bundling>, ReusableAction {
         private static final Set<String> COMPATIBLE_WITH_EXTERNAL = ImmutableSet.of(
                 // if we ask for "external" dependencies, it's still fine to bring a fat jar if nothing else is available
                 Bundling.EMBEDDED,
@@ -374,7 +380,7 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    public static class BundlingDisambiguationRules implements AttributeDisambiguationRule<Bundling>, ReusableAction {
+    static class BundlingDisambiguationRules implements AttributeDisambiguationRule<Bundling>, ReusableAction {
 
         @Override
         public void execute(MultipleCandidatesDetails<Bundling> details) {
