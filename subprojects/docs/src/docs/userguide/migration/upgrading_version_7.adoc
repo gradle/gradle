@@ -80,6 +80,7 @@ See more details about toolchain configuration in the <<toolchains#sec:configuri
 
 These members will be removed in Gradle 9.0.
 
+* `ClosureBackedAction`
 * `CollectionUtils`
 * `GFileUtils`
 * `GradleVersion.getBuildTime()`
