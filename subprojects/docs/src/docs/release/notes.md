@@ -10,6 +10,7 @@ Include only their name, impactful features should be called out separately belo
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
 
+[David Marin](https://github.com/dmarin)
 [Herbert von Broeuschmeul](https://github.com/HvB)
 
 ## Upgrade instructions
