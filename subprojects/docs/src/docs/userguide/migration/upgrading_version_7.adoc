@@ -90,6 +90,7 @@ These members will be removed in Gradle 9.0.
 * `GradleVersion.getRevision()`
 * `GradleVersion.isValid()`
 * `GUtil`
+* `NameMatcher`
 * `SingleMessageLogger`
 
 === Potential breaking changes
