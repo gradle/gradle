@@ -879,19 +879,6 @@ tasks.named("docsTest") { task ->
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep.sample",
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep2.sample",
 
-                "snippet-tasks-incremental-task_groovy_incrementalTaskChangedProperty.sample",
-                "snippet-tasks-incremental-task_groovy_incrementalTaskFirstRun.sample",
-                "snippet-tasks-incremental-task_groovy_incrementalTaskNoChange.sample",
-                "snippet-tasks-incremental-task_groovy_incrementalTaskRemovedInput.sample",
-                "snippet-tasks-incremental-task_groovy_incrementalTaskRemovedOutput.sample",
-                "snippet-tasks-incremental-task_groovy_incrementalTaskUpdatedInputs.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskChangedProperty.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskFirstRun.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskNoChange.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskRemovedInput.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskRemovedOutput.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskUpdatedInputs.sample",
-
                 "snippet-testing-test-suite-multi-configure-each-extracted_groovy_checkTask.sample"
             ]
 
