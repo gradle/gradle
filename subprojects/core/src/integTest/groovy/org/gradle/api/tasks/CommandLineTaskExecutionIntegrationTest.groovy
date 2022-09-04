@@ -17,10 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.internal.ToBeImplemented
 
 class CommandLineTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeImplemented
     def "fails with badly formed task name"() {
         settingsFile """
             rootProject.name = 'broken'
@@ -30,24 +28,18 @@ class CommandLineTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        if (message.empty) {
-            succeeds(taskName)
-        } else {
-            fails(taskName)
-        }
+        fails(taskName)
 
         then:
-        if (!message.empty) {
-            failure.assertHasDescription(message)
-        }
+        failure.assertHasDescription(message)
 
         where:
         taskName | message
-        ""       | "A path must be specified!"
-        ":"      | "Task '' not found in root project 'broken'."
-        "::"     | "Task '' not found in root project 'broken'."
-        ":a::"   | "Task '' not found in project ':a'."
-        ":a::b"  | ""
+        ""       | "Cannot locate matching tasks for an empty path. The path should include a task name (for example ':help' or 'help')."
+        ":"      | "Cannot locate matching tasks for path ':'. The path should include a task name (for example ':help' or 'help')."
+        "::"     | "Cannot locate matching tasks for path '::'. The path should include a task name (for example ':help' or 'help')."
+        ":a::"   | "Cannot locate matching tasks for path ':a::'. The path should not include an empty segment (try ':a' instead)."
+        ":a::b"  | "Cannot locate matching tasks for path ':a::b'. The path should not include an empty segment (try ':a:b' instead)."
     }
 
     def "build logic can mutate the list of requested tasks"() {

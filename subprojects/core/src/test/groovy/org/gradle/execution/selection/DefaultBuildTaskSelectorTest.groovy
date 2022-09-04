@@ -16,6 +16,8 @@
 
 package org.gradle.execution.selection
 
+import org.gradle.api.plugins.internal.HelpBuiltInCommand
+import org.gradle.execution.TaskSelectionException
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildState
@@ -23,45 +25,80 @@ import spock.lang.Specification
 
 class DefaultBuildTaskSelectorTest extends Specification {
     def buildRegistry = Mock(BuildStateRegistry)
-    def selector = new DefaultBuildTaskSelector(buildRegistry)
+    def selector = new DefaultBuildTaskSelector(buildRegistry, [new HelpBuiltInCommand()])
     def target = build(":")
 
-    def "resolves a name to tasks in the target build"() {
+    def "fails on badly formed path"() {
         when:
-        def filter = selector.resolveExcludedTaskName("task", target)
+        selector.resolveTaskName(null, null, target, path)
+
+        then:
+        def e = thrown(TaskSelectionException)
+        e.message == message
+
+        when:
+        selector.resolveExcludedTaskName(target, path)
+
+        then:
+        def e2 = thrown(TaskSelectionException)
+        e2.message == message.replace("matching tasks", "matching excluded tasks")
+
+        where:
+        path        | message
+        ""          | "Cannot locate matching tasks for an empty path. The path should include a task name (for example ':help' or 'help')."
+        ":"         | "Cannot locate matching tasks for path ':'. The path should include a task name (for example ':help' or 'help')."
+        "::"        | "Cannot locate matching tasks for path '::'. The path should include a task name (for example ':help' or 'help')."
+        ":::"       | "Cannot locate matching tasks for path ':::'. The path should include a task name (for example ':help' or 'help')."
+        "a::b"      | "Cannot locate matching tasks for path 'a::b'. The path should not include an empty segment (try 'a:b' instead)."
+        "a:b::c"    | "Cannot locate matching tasks for path 'a:b::c'. The path should not include an empty segment (try 'a:b:c' instead)."
+        "a:"        | "Cannot locate matching tasks for path 'a:'. The path should not include an empty segment (try 'a' instead)."
+        "a::"       | "Cannot locate matching tasks for path 'a::'. The path should not include an empty segment (try 'a' instead)."
+        "::a"       | "Cannot locate matching tasks for path '::a'. The path should not include an empty segment (try ':a' instead)."
+        ":::a:b"    | "Cannot locate matching tasks for path ':::a:b'. The path should not include an empty segment (try ':a:b' instead)."
+        " "         | "Cannot locate matching tasks for an empty path. The path should include a task name (for example ':help' or 'help')."
+        ": "        | "Cannot locate matching tasks for path ': '. The path should include a task name (for example ':help' or 'help')."
+        "a:  "      | "Cannot locate matching tasks for path 'a:  '. The path should not include an empty segment (try 'a' instead)."
+        "a:  :b"    | "Cannot locate matching tasks for path 'a:  :b'. The path should not include an empty segment (try 'a:b' instead)."
+        "  :a:b"    | "Cannot locate matching tasks for path '  :a:b'. The path should not include an empty segment (try ':a:b' instead)."
+        "  ::::a:b" | "Cannot locate matching tasks for path '  ::::a:b'. The path should not include an empty segment (try ':a:b' instead)."
+    }
+
+    def "resolves an exclude name to tasks in the target build"() {
+        when:
+        def filter = selector.resolveExcludedTaskName(target, "task")
 
         then:
         filter.build == target
         filter.filter != null
     }
 
-    def "resolves a relative path to a task in the target build"() {
+    def "resolves an exclude relative path to a task in the target build"() {
         when:
-        def filter = selector.resolveExcludedTaskName("proj:task", target)
+        def filter = selector.resolveExcludedTaskName(target, "proj:task")
 
         then:
         filter.build == target
         filter.filter != null
     }
 
-    def "resolves an absolute path to a task in another build"() {
+    def "resolves an exclude absolute path to a task in another build"() {
         def other = includedBuild("build")
         withIncludedBuilds(other)
 
         when:
-        def filter = selector.resolveExcludedTaskName(":build:task", target)
+        def filter = selector.resolveExcludedTaskName(target, ":build:task")
 
         then:
         filter.build == other
         filter.filter != null
     }
 
-    def "resolves an absolute path to a task in the target build when prefix does not match any build"() {
+    def "resolves an exclude absolute path to a task in the target build when prefix does not match any build"() {
         def other = includedBuild("build")
         withIncludedBuilds(other)
 
         when:
-        def filter = selector.resolveExcludedTaskName(":proj:task", target)
+        def filter = selector.resolveExcludedTaskName(target, ":proj:task")
 
         then:
         filter.build == target
