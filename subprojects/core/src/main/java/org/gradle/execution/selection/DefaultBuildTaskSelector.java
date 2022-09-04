@@ -18,8 +18,10 @@ package org.gradle.execution.selection;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.specs.Spec;
 import org.gradle.configuration.project.BuiltInCommand;
+import org.gradle.execution.ProjectSelectionException;
 import org.gradle.execution.TaskSelection;
 import org.gradle.execution.TaskSelectionException;
 import org.gradle.execution.TaskSelector;
@@ -28,59 +30,66 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.util.Path;
+import org.gradle.util.internal.NameMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class DefaultBuildTaskSelector implements BuildTaskSelector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildTaskSelector.class);
     private final BuildStateRegistry buildRegistry;
+    private final TaskSelector taskSelector;
     private final List<BuiltInCommand> commands;
 
-    public DefaultBuildTaskSelector(BuildStateRegistry buildRegistry, List<BuiltInCommand> commands) {
+    public DefaultBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands) {
         this.buildRegistry = buildRegistry;
+        this.taskSelector = taskSelector;
         this.commands = commands;
     }
 
     @Override
     public Filter resolveExcludedTaskName(BuildState defaultBuild, String taskName) {
-        Path taskPath = sanityCheckPath(taskName, "excluded tasks");
-
-        if (taskPath.isAbsolute() && taskPath.segmentCount() > 1) {
-            BuildState build = findIncludedBuild(taskPath);
-            // Exclusion was for an included build, use it
-            if (build != null) {
-                return new Filter(build, new LazyFilter(build, taskPath.removeFirstSegments(1)));
-            }
-        }
-        // Exclusion didn't match an included build, so it might be a subproject of the root build or a relative path
-        return new Filter(defaultBuild, new LazyFilter(defaultBuild, taskPath));
+        TaskSelector.SelectionContext selection = sanityCheckPath(taskName, "excluded tasks");
+        ProjectResolutionResult resolutionResult = resolveProject(selection, selection.getOriginalPath(), defaultBuild);
+        return new Filter(resolutionResult.build, new LazyFilter(selection, resolutionResult));
     }
 
     @Override
-    public TaskSelection resolveTaskName(@Nullable File rootDir, @Nullable String projectPath, BuildState defaultBuild, String taskName) {
-        Path taskPath = sanityCheckPath(taskName, "tasks");
+    public TaskSelection resolveTaskName(@Nullable File rootDir, @Nullable String projectPath, BuildState targetBuild, String taskName) {
+        TaskSelector.SelectionContext selection = sanityCheckPath(taskName, "tasks");
 
+        BuildState defaultBuild = targetBuild;
         if (rootDir != null) {
+            // When a root dir is specified, the project path and task name have come from a `Launchable` request from the tooling API client
+            // Use exact lookup rather than pattern matching
             RootBuildState rootBuild = buildRegistry.getRootBuild();
             if (rootDir.equals(rootBuild.getBuildRootDir())) {
-                return getSelectorForBuild(rootBuild).getSelection(projectPath, taskName);
+                defaultBuild = rootBuild;
+            } else {
+                BuildState build = findIncludedBuild(rootDir);
+                if (build == null) {
+                    throw new TaskSelectionException(String.format("Could not find included build with root directory '%s'.", rootDir));
+                }
+                defaultBuild = build;
             }
-            BuildState build = findIncludedBuild(rootDir);
-            if (build != null) {
-                return getSelectorForBuild(build).getSelection(projectPath, taskName);
+            if (projectPath != null) {
+                ProjectState project = defaultBuild.getProjects().getProject(Path.path(projectPath));
+                return getSelectorForBuild(defaultBuild).getSelection(selection, project, selection.getOriginalPath().getName(), true);
+            } else {
+                Path projectPrefix = selection.getOriginalPath().getParent();
+                ProjectState project = defaultBuild.getProjects().getProject(projectPrefix);
+                return getSelectorForBuild(defaultBuild).getSelection(selection, project, selection.getOriginalPath().getName(), false);
             }
-            throw new TaskSelectionException(String.format("Could not find included build with root directory '%s'.", rootDir));
         }
 
-        if (taskPath.isAbsolute() && taskPath.segmentCount() > 1) {
-            BuildState build = findIncludedBuild(taskPath);
-            if (build != null) {
-                return getSelectorForBuild(build).getSelection(projectPath, taskPath.removeFirstSegments(1).getPath());
-            }
-        }
-        return getSelectorForBuild(defaultBuild).getSelection(projectPath, taskName);
+        ProjectResolutionResult resolutionResult = resolveProject(selection, selection.getOriginalPath(), defaultBuild);
+        return getSelectorForBuild(resolutionResult.build).getSelection(selection, resolutionResult.project, resolutionResult.taskName, resolutionResult.includeSubprojects);
     }
 
     @Override
@@ -88,11 +97,67 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         return taskName -> DefaultBuildTaskSelector.this.resolveTaskName(null, null, target, taskName);
     }
 
-    private Path sanityCheckPath(String name, String type) {
+    private ProjectResolutionResult resolveProject(TaskSelector.SelectionContext context, Path path, BuildState targetBuild) {
+        // Just a name -> use default project + select all
+        if (!path.isAbsolute() && path.segmentCount() == 1) {
+            return new ProjectResolutionResult(targetBuild, targetBuild.getMutableModel().getDefaultProject().getOwner(), true, path.getName());
+        }
+
+        // <path>:name -> resolve <path> + select exact
+        // when <path> is absolute -> resolve <path> relative to root project
+        // when <path> is relative -> resolve <path> relative to default project
+
+        Path projectPath = path.getParent();
+        ProjectState matchingProject;
+        if (projectPath.isAbsolute()) {
+            matchingProject = buildRegistry.getRootBuild().getProjects().getRootProject();
+        } else {
+            matchingProject = targetBuild.getMutableModel().getDefaultProject().getOwner();
+        }
+        while (projectPath.segmentCount() > 0) {
+            String next = projectPath.segment(0);
+            matchingProject = selectProject(context, matchingProject, next);
+            if (projectPath.segmentCount() == 1) {
+                projectPath = Path.ROOT;
+            } else {
+                projectPath = projectPath.removeFirstSegments(1);
+            }
+        }
+        LOGGER.info("Task path '{}' matched project '{}'", context.getOriginalPath(), matchingProject.getIdentityPath());
+        return new ProjectResolutionResult(matchingProject.getOwner(), matchingProject, false, path.getName());
+    }
+
+    private ProjectState selectProject(TaskSelector.SelectionContext context, ProjectState project, String childName) {
+        Map<String, ProjectState> candidates = new LinkedHashMap<>();
+        if (project.getIdentityPath().equals(Path.ROOT)) {
+            for (IncludedBuildState build : buildRegistry.getIncludedBuilds()) {
+                ProjectState rootProject = build.getProjects().getRootProject();
+                candidates.put(rootProject.getIdentityPath().getName(), rootProject);
+            }
+        }
+        for (ProjectState child : project.getChildProjects()) {
+            ProjectState previous = candidates.put(child.getIdentityPath().getName(), child);
+            if (previous != null) {
+                throw new IllegalStateException("Duplicate child project names for " + project.getDisplayName());
+            }
+        }
+        ProjectState child = candidates.get(childName);
+        if (child != null) {
+            return child;
+        }
+        NameMatcher nameMatcher = new NameMatcher();
+        child = nameMatcher.find(childName, candidates);
+        if (child != null) {
+            return child;
+        }
+        throw new ProjectSelectionException(String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(), nameMatcher.formatErrorMessage("project", project.getDisplayName())));
+    }
+
+    private TaskSelector.SelectionContext sanityCheckPath(String name, String type) {
         // Don't allow paths that are:
         // - empty or blank
         // - the root path
-        // - have empty segments (eg ::a, a::b, etc)
+        // - have empty or blank segments (eg `::a`, `a::b`, `a:  :b`, etc)
 
         if (name.isEmpty() || StringUtils.isBlank(name)) {
             throw new TaskSelectionException(String.format("Cannot locate matching %s for an empty path. The path should include a task name (for example %s).", type, examplePaths()));
@@ -100,7 +165,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         Path path = Path.path(name);
         Pattern root = Pattern.compile("\\s*:(\\s*:)*\\s*");
         if (root.matcher(name).matches()) {
-            throw new TaskSelectionException(String.format("Cannot locate matching %s for path '%s'. The path should include a task name (for example %s).", type, name, examplePaths()));
+            throw new TaskSelectionException(String.format("Cannot locate %s that match '%s'. The path should include a task name (for example %s).", type, name, examplePaths()));
         }
         Pattern emptySegment = Pattern.compile("(:\\s*:)|(^\\s+:)|(:\\s*$)");
         if (emptySegment.matcher(name).find()) {
@@ -115,9 +180,9 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
                     normalized.append(path.segment(i));
                 }
             }
-            throw new TaskSelectionException(String.format("Cannot locate matching %s for path '%s'. The path should not include an empty segment (try '%s' instead).", type, name, normalized));
+            throw new TaskSelectionException(String.format("Cannot locate %s that match '%s'. The path should not include an empty segment (try '%s' instead).", type, name, normalized));
         }
-        return path;
+        return new TaskSelector.SelectionContext(path, type);
     }
 
     private String examplePaths() {
@@ -140,39 +205,41 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         return null;
     }
 
-    @Nullable
-    private BuildState findIncludedBuild(Path taskPath) {
-        String buildName = taskPath.segment(0);
-        for (IncludedBuildState build : buildRegistry.getIncludedBuilds()) {
-            if (build.getName().equals(buildName)) {
-                return build;
-            }
-        }
-
-        return null;
-    }
-
-    private static TaskSelector getSelectorForBuild(BuildState target) {
+    private TaskSelector getSelectorForBuild(BuildState target) {
         if (!(target instanceof RootBuildState)) {
             target.ensureProjectsConfigured();
         }
-        return target.getMutableModel().getServices().get(TaskSelector.class);
+        return taskSelector;
     }
 
-    private static class LazyFilter implements Spec<Task> {
-        private final Path path;
-        private final BuildState build;
+    private static class ProjectResolutionResult {
+        final BuildState build;
+        final ProjectState project;
+        final boolean includeSubprojects;
+        final String taskName;
+
+        public ProjectResolutionResult(BuildState build, ProjectState project, boolean includeSubprojects, String taskName) {
+            this.build = build;
+            this.project = project;
+            this.includeSubprojects = includeSubprojects;
+            this.taskName = taskName;
+        }
+    }
+
+    private class LazyFilter implements Spec<Task> {
+        private final TaskSelector.SelectionContext selection;
+        private final ProjectResolutionResult resolutionResult;
         private Spec<Task> spec;
 
-        public LazyFilter(BuildState build, Path path) {
-            this.build = build;
-            this.path = path;
+        public LazyFilter(TaskSelector.SelectionContext selection, ProjectResolutionResult resolutionResult) {
+            this.selection = selection;
+            this.resolutionResult = resolutionResult;
         }
 
         @Override
         public boolean isSatisfiedBy(Task element) {
             if (spec == null) {
-                spec = getSelectorForBuild(build).getFilter(path.getPath());
+                spec = getSelectorForBuild(resolutionResult.build).getFilter(selection, resolutionResult.project, resolutionResult.taskName, resolutionResult.includeSubprojects);
             }
             return spec.isSatisfiedBy(element);
         }

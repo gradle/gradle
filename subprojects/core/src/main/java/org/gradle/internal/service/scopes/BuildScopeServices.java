@@ -97,11 +97,7 @@ import org.gradle.configuration.ScriptPluginFactorySelector;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.project.DefaultCompileOperationFactory;
 import org.gradle.configuration.project.PluginsProjectConfigureActions;
-import org.gradle.execution.DefaultTaskSelector;
 import org.gradle.execution.ProjectConfigurer;
-import org.gradle.execution.TaskNameResolver;
-import org.gradle.execution.TaskPathProjectEvaluator;
-import org.gradle.execution.TaskSelector;
 import org.gradle.execution.plan.DefaultNodeValidator;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.ExecutionPlanFactory;
@@ -224,7 +220,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registration.add(DefaultFileOperations.class);
             registration.add(DefaultFileSystemOperations.class);
             registration.add(DefaultArchiveOperations.class);
-            registration.add(TaskPathProjectEvaluator.class);
             registration.add(ProjectFactory.class);
             registration.add(DefaultSettingsLoaderFactory.class);
             registration.add(ResolvedBuildLayout.class);
@@ -576,10 +571,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new DefaultBuildWorkPreparer(
                 executionPlanFactory
             ));
-    }
-
-    protected TaskSelector createTaskSelector(GradleInternal gradle, ProjectConfigurer projectConfigurer) {
-        return new DefaultTaskSelector(gradle, new TaskNameResolver(), projectConfigurer);
     }
 
     protected BuildTaskSelector.BuildSpecificSelector createTaskSelector(BuildTaskSelector selector, BuildState build) {

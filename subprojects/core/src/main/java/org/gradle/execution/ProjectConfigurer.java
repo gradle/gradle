@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scopes.BuildTree.class)
 public interface ProjectConfigurer {
     /**
      * Configures the given project.
