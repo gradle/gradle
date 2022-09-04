@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.Node;
 
@@ -69,7 +70,7 @@ public interface BuildLifecycleController {
      * Configures the build, if not already done.
      * This may fail with an error, if this build is loaded from cache rather than configured.
      *
-     * Note: You should not use this method as no thread safety is applied to the return value.
+     * <p>Note: You should not use this method as no thread safety is applied to the return value.
      *
      * @return The configured Gradle build instance.
      */
@@ -81,8 +82,7 @@ public interface BuildLifecycleController {
     void prepareToScheduleTasks();
 
     /**
-     * Creates a new work plan for this build.
-     * Must call {@link #prepareToScheduleTasks()} prior to calling this method. This method can be called multiple times to create multiple plans.
+     * Creates a new work plan for this build. This method can be called multiple times to create multiple plans.
      */
     BuildWorkPlan newWorkGraph();
 
@@ -125,7 +125,7 @@ public interface BuildLifecycleController {
         /**
          * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build.
          */
-        void addRequestedTasks();
+        void addRequestedTasks(@Nullable EntryTaskSelector selector);
 
         /**
          * Adds the given tasks and their dependencies to the work graph for this build.

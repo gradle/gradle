@@ -116,13 +116,13 @@ class ConfigurationCacheState(
             writeInt(0x1ecac8e)
         }
 
-    suspend fun DefaultReadContext.readRootBuildState(graph: BuildTreeWorkGraph, createBuild: (File?, String) -> ConfigurationCacheBuild) {
+    suspend fun DefaultReadContext.readRootBuildState(graph: BuildTreeWorkGraph, createBuild: (File?, String) -> ConfigurationCacheBuild): BuildTreeWorkGraph.FinalizedGraph {
         val buildState = readRootBuild(createBuild)
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
         }
         configureBuild(buildState)
-        calculateRootTaskGraph(buildState, graph)
+        return calculateRootTaskGraph(buildState, graph)
     }
 
     private
@@ -137,8 +137,8 @@ class ConfigurationCacheState(
     }
 
     private
-    fun calculateRootTaskGraph(state: CachedBuildState, graph: BuildTreeWorkGraph) {
-        graph.scheduleWork { builder ->
+    fun calculateRootTaskGraph(state: CachedBuildState, graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
+        return graph.scheduleWork { builder ->
             builder.withWorkGraph(state.build.state) {
                 it.setScheduledNodes(state.workGraph)
             }
@@ -544,6 +544,7 @@ class ConfigurationCacheState(
                     write(listener.buildIdentifier)
                     writeString(listener.name)
                 }
+
                 else -> {
                     writeBoolean(false)
                     write(listener)
@@ -568,6 +569,7 @@ class ConfigurationCacheState(
                     val provider = buildStateRegistry.buildServiceRegistrationOf(buildIdentifier).getByName(serviceName)
                     eventListenerRegistry.subscribe(provider.service)
                 }
+
                 else -> {
                     val provider = readNonNull<Provider<*>>()
                     eventListenerRegistry.subscribe(provider)
