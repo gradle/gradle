@@ -912,8 +912,6 @@ tasks.named("docsTest") { task ->
 
                 "snippet-testing-test-suite-multi-configure-each-extracted_groovy_checkTask.sample",
 
-                "snippet-testing-test-suite-multi-configure-each-matching_groovy_checkTask.sample",
-
                 "snippet-testing-test-suite-multi-configure-each_groovy_checkTask.sample",
 
                 "snippet-tutorial-configure-task-using-project-property_groovy_configureTaskUsingProjectProperty.sample",
