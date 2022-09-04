@@ -28,7 +28,7 @@ import java.io.File;
 
 @ServiceScope(Scopes.BuildTree.class)
 public interface BuildTaskSelector {
-    Filter resolveExcludedTaskName(String taskName, BuildState targetBuild);
+    Filter resolveExcludedTaskName(BuildState targetBuild, String taskName);
 
     /**
      * @param rootDir When not null, specifies the build to resolve tasks relative to. When null, resolve relative to the default build.

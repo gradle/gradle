@@ -16,8 +16,10 @@
 
 package org.gradle.execution.selection;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
+import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.TaskSelection;
 import org.gradle.execution.TaskSelectionException;
 import org.gradle.execution.TaskSelector;
@@ -29,17 +31,22 @@ import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.List;
+import java.util.regex.Pattern;
 
 public class DefaultBuildTaskSelector implements BuildTaskSelector {
     private final BuildStateRegistry buildRegistry;
+    private final List<BuiltInCommand> commands;
 
-    public DefaultBuildTaskSelector(BuildStateRegistry buildRegistry) {
+    public DefaultBuildTaskSelector(BuildStateRegistry buildRegistry, List<BuiltInCommand> commands) {
         this.buildRegistry = buildRegistry;
+        this.commands = commands;
     }
 
     @Override
-    public Filter resolveExcludedTaskName(String taskName, BuildState defaultBuild) {
-        Path taskPath = Path.path(taskName);
+    public Filter resolveExcludedTaskName(BuildState defaultBuild, String taskName) {
+        Path taskPath = sanityCheckPath(taskName, "excluded tasks");
+
         if (taskPath.isAbsolute() && taskPath.segmentCount() > 1) {
             BuildState build = findIncludedBuild(taskPath);
             // Exclusion was for an included build, use it
@@ -53,6 +60,8 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
 
     @Override
     public TaskSelection resolveTaskName(@Nullable File rootDir, @Nullable String projectPath, BuildState defaultBuild, String taskName) {
+        Path taskPath = sanityCheckPath(taskName, "tasks");
+
         if (rootDir != null) {
             RootBuildState rootBuild = buildRegistry.getRootBuild();
             if (rootDir.equals(rootBuild.getBuildRootDir())) {
@@ -65,7 +74,6 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
             throw new TaskSelectionException(String.format("Could not find included build with root directory '%s'.", rootDir));
         }
 
-        Path taskPath = Path.path(taskName);
         if (taskPath.isAbsolute() && taskPath.segmentCount() > 1) {
             BuildState build = findIncludedBuild(taskPath);
             if (build != null) {
@@ -78,6 +86,49 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
     @Override
     public BuildSpecificSelector relativeToBuild(BuildState target) {
         return taskName -> DefaultBuildTaskSelector.this.resolveTaskName(null, null, target, taskName);
+    }
+
+    private Path sanityCheckPath(String name, String type) {
+        // Don't allow paths that are:
+        // - empty or blank
+        // - the root path
+        // - have empty segments (eg ::a, a::b, etc)
+
+        if (name.isEmpty() || StringUtils.isBlank(name)) {
+            throw new TaskSelectionException(String.format("Cannot locate matching %s for an empty path. The path should include a task name (for example %s).", type, examplePaths()));
+        }
+        Path path = Path.path(name);
+        Pattern root = Pattern.compile("\\s*:(\\s*:)*\\s*");
+        if (root.matcher(name).matches()) {
+            throw new TaskSelectionException(String.format("Cannot locate matching %s for path '%s'. The path should include a task name (for example %s).", type, name, examplePaths()));
+        }
+        Pattern emptySegment = Pattern.compile("(:\\s*:)|(^\\s+:)|(:\\s*$)");
+        if (emptySegment.matcher(name).find()) {
+            Pattern emptyFirstSegment = Pattern.compile("^\\s*:");
+            boolean isAbsolute = emptyFirstSegment.matcher(name).find();
+            StringBuilder normalized = new StringBuilder();
+            for (int i = 0; i < path.segmentCount(); i++) {
+                if (!StringUtils.isBlank(path.segment(i))) {
+                    if (isAbsolute || normalized.length() > 0) {
+                        normalized.append(":");
+                    }
+                    normalized.append(path.segment(i));
+                }
+            }
+            throw new TaskSelectionException(String.format("Cannot locate matching %s for path '%s'. The path should not include an empty segment (try '%s' instead).", type, name, normalized));
+        }
+        return path;
+    }
+
+    private String examplePaths() {
+        for (BuiltInCommand command : commands) {
+            if (command.asDefaultTask().isEmpty()) {
+                continue;
+            }
+            String task = command.asDefaultTask().get(0);
+            return String.format("':%s' or '%s'", task, task);
+        }
+        throw new IllegalStateException("No built-in tasks available.");
     }
 
     private BuildState findIncludedBuild(File rootDir) {
