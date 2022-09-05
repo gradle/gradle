@@ -63,6 +63,7 @@ tasks.register("usage") {
 }
 
 tasks.register("filterTextFiles") {
+    // Copy collection property to a local variable for configuration cache support.
     val collection: FileCollection = collection
     val projectDirectory: Directory = layout.projectDirectory
     doLast {
