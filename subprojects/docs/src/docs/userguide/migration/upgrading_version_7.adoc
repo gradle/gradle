@@ -52,6 +52,12 @@ Creating a TAR tree from a resource with no backing file is no longer supported.
 Instead, convert the resource to a file and use `project.tarTree()` on the file.
 For more information, see <<tar_tree_no_backing_file>>.
 
+==== Using invalid Java toolchain specifications
+
+Usage of invalid Java toolchain specifications is no longer supported.
+Related build errors can be avoided by making sure that language version is set on all toolchain specifications.
+See <<toolchains#sec:configuring_toolchain_specifications,user manual>> for more information.
+
 === Removed APIs
 
 ==== Legacy ArtifactTransform API
@@ -124,6 +130,7 @@ Warnings that became errors:
 - An input or output file or directory that cannot be read. See <<#declare_unreadable_input_output,Declaring input or output directories which contain unreadable content>>.
 - Using a `java.io.File` as the `@InputArtifact` of an artifact transform.
 - Using an input with an unknown implementation. See <<validation_problems.adoc#implementation_unknown,Cannot use an input with an unknown implementation>>.
+- Missing dependencies between tasks. See <<validation_problems.adoc#implicit_dependency,Implicit dependencies between tasks>>.
 - Converting files to a classpath where paths contain file separator.
 
 ==== Gradle does not ignore empty directories for file-trees with `@SkipWhenEmpty`

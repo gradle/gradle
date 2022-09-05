@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,17 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.execution.EntryTaskSelector
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
-import org.gradle.internal.buildtree.BuildTreeWorkPreparer
+import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 
 
-class ConfigurationCacheAwareBuildTreeWorkPreparer(
-    private val delegate: BuildTreeWorkPreparer,
+class ConfigurationCacheAwareBuildTreeWorkGraphPreparer(
+    private val delegate: BuildTreeWorkGraphPreparer,
     private val cache: BuildTreeConfigurationCache
-) : BuildTreeWorkPreparer {
-    override fun scheduleRequestedTasks(graph: BuildTreeWorkGraph, selector: EntryTaskSelector?): BuildTreeWorkGraph.FinalizedGraph {
-        return cache.loadOrScheduleRequestedTasks(graph) {
-            delegate.scheduleRequestedTasks(it, selector)
-        }
+) : BuildTreeWorkGraphPreparer {
+    override fun prepareToScheduleTasks(workGraph: BuildTreeWorkGraph.Builder) {
+        if (!cache.isLoaded) {
+            delegate.prepareToScheduleTasks(workGraph)
+        } // else, not required
     }
 }
