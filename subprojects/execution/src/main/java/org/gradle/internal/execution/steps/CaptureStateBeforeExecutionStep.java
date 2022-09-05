@@ -164,7 +164,7 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
             LOGGER.debug("Additional implementations for {}: {}", work.getDisplayName(), additionalImplementations);
         }
 
-        ImmutableSortedMap<String, ValueSnapshot> previousInputProperties = previousExecutionState
+        ImmutableSortedMap<String, ValueSnapshot> previousInputPropertySnapshots = previousExecutionState
             .map(InputExecutionState::getInputProperties)
             .orElse(ImmutableSortedMap.of());
         ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousInputFileFingerprints = previousExecutionState
@@ -187,7 +187,7 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
         }
 
         InputFingerprinter.Result newInputs = work.getInputFingerprinter().fingerprintInputProperties(
-            previousInputProperties,
+            previousInputPropertySnapshots,
             previousInputFileFingerprints,
             context.getInputProperties(),
             context.getInputFileProperties(),
