@@ -25,6 +25,8 @@ import static org.junit.Assume.assumeFalse
 
 abstract class AbstractSourceIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
 
+    abstract boolean isForkedCompiler();
+
     def "detects class changes in subsequent runs ensuring the class dependency data is refreshed"() {
         source "class A {}", "class B {}", "class C {}"
         outputs.snapshot { run language.compileTaskName }
@@ -634,5 +636,41 @@ sourceSets {
         outputs.recompiledClasses("A")
         compileTransactionDir.exists()
         compileTransactionDir.file("stash-dir/A.class.uniqueId0").exists()
+    }
+
+    def "unrelated class in the same source file as affected class is recompiled and stashed on incremental compilation"() {
+        given:
+        // For forked compiler we don't have a source-class-mapping,so we can't detect such class
+        assumeFalse(isForkedCompiler())
+        source "class A {}", "class B extends A {}", "class D {}"
+        // F is not affected by changes, but it is recompiled
+        // and still stashed since it's in the same source file as C
+        source """
+        class C extends B {}
+        class F {}
+        """
+        def compileTransactionDir = file("build/tmp/${language.compileTaskName}/compileTransaction")
+        def stashDirClasses = {
+            compileTransactionDir.file("stash-dir")
+                .list()
+                .collect { it.replaceAll(".uniqueId.", "") }
+                .sort()
+        }
+
+        when: "First compilation is always full compilation"
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B", "C", "D", "F")
+        !compileTransactionDir.exists()
+
+        when:
+        outputs.snapshot { source("class A { /* comment */ }") }
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B", "C", "F")
+        compileTransactionDir.exists()
+        stashDirClasses() == ["A.class", "B.class", "C.class", "F.class"]
     }
 }

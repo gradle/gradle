@@ -30,4 +30,9 @@ class JavaSourceCliIncrementalCompilationIntegrationTest extends BaseJavaSourceI
             }
         """
     }
+
+    @Override
+    boolean isForkedCompiler() {
+        return true
+    }
 }
