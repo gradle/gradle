@@ -125,7 +125,7 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
         val message = StructuredMessage.build {
             text("Project ")
             reference(referrerProject.identityPath.toString())
-            text(" cannot dynamically lookup a ")
+            text(" cannot dynamically look up a ")
             text(memberKind.name.lowercase(Locale.ENGLISH))
             text(" in the parent project ")
             reference(ownerProject.identityPath.toString())
