@@ -36,24 +36,17 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
 
     @Override
     public void execute(Configuration classpath) {
-        List<TaskIdentifier> tasksToBuild = new ArrayList<>();
+        List<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild = new ArrayList<>();
         for (Task task : classpath.getBuildDependencies().getDependencies(null)) {
-            // This check should live lower down, and should have some kind of synchronization around it, as other threads may be
-            // running tasks at the same time
-            if (!task.getState().getExecuted()) {
-                BuildState targetBuild = ((ProjectInternal) task.getProject()).getOwner().getOwner();
-                assert targetBuild != currentBuild;
-                tasksToBuild.add(TaskIdentifier.of(targetBuild.getBuildIdentifier(), (TaskInternal) task));
-            }
+            BuildState targetBuild = ((ProjectInternal) task.getProject()).getOwner().getOwner();
+            assert targetBuild != currentBuild;
+            tasksToBuild.add(TaskIdentifier.of(targetBuild.getBuildIdentifier(), (TaskInternal) task));
         }
         if (!tasksToBuild.isEmpty()) {
             buildTreeWorkGraphController.withNewWorkGraph(graph -> {
                 graph.scheduleWork(builder -> {
-                    for (TaskIdentifier taskIdentifier : tasksToBuild) {
-                        buildTreeWorkGraphController.locateTask(taskIdentifier).queueForExecution();
-                    }
-                });
-                graph.runWork().rethrow();
+                    builder.scheduleTasks(tasksToBuild);
+                }).runWork().rethrow();
                 return null;
             });
         }
