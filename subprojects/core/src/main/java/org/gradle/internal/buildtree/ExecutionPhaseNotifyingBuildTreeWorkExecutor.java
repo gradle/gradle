@@ -29,7 +29,7 @@ public class ExecutionPhaseNotifyingBuildTreeWorkExecutor implements BuildTreeWo
     }
 
     @Override
-    public ExecutionResult<Void> execute(BuildTreeWorkGraph graph) {
+    public ExecutionResult<Void> execute(BuildTreeWorkGraph.FinalizedGraph graph) {
         gradleEnterprisePluginManager.executionPhaseStarted();
         return delegate.execute(graph);
     }
