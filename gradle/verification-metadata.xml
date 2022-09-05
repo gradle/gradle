@@ -63,7 +63,6 @@
       </trusted-artifacts>
       <ignored-keys>
          <ignored-key id="74dafdfd6dae2441" reason="Key couldn't be downloaded from any key server"/>
-         <ignored-key id="02216ed811210daa" reason="Key couldn't be downloaded from any key server"/>
       </ignored-keys>
       <trusted-keys>
          <trusted-key id="019082bc00e0324e2aef4cf00d3b328562a119a7" group="org.openjdk.jmh"/>
@@ -758,7 +757,7 @@
       </component>
       <component group="io.github.detekt.sarif4k" name="sarif4k" version="0.0.1">
          <artifact name="sarif4k-0.0.1.jar">
-            <sha256 value="41ec72cf2521783224581c76aaa7e97d4a50f396a66d642500ff4777b395a376" origin="Artifact is not signed"/>
+            <pgp value="8569c95cadc508b09fe90f3002216ed811210daa"/>
          </artifact>
       </component>
       <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.7.6">
