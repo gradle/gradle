@@ -133,7 +133,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
 
     private JvmInstallationMetadata parseExecOutput(File jdkPath, String probeResult) {
         String[] split = Arrays.stream(probeResult.split(System.getProperty("line.separator")))
-                .filter(l -> l.startsWith(MetadataProbe.MARKER_PREFIX))
+                .filter(line -> line.startsWith(MetadataProbe.MARKER_PREFIX))
                 .map(line -> line.substring(MetadataProbe.MARKER_PREFIX.length()))
                 .toArray(String[]::new);
         if (split.length != ProbedSystemProperty.values().length - 1) { // -1 because of Z_ERROR
