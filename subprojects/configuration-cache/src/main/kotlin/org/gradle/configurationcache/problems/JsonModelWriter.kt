@@ -117,7 +117,7 @@ class JsonModelWriter(val writer: Writer) {
                         comma()
                         property("name", trace.name)
                         comma()
-                        property("from", trace.sequence.filterIsInstance<PropertyTrace.Project>().first().path)
+                        property("from", projectPathFrom(trace.trace))
                     }
                     else -> {
                         property("kind", trace.kind.name)

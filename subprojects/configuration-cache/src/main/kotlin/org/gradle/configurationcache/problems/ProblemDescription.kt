@@ -39,6 +39,11 @@ fun taskPathFrom(trace: PropertyTrace): String =
 
 
 internal
+fun projectPathFrom(trace: PropertyTrace): String =
+    trace.sequence.filterIsInstance<PropertyTrace.Project>().first().path
+
+
+internal
 fun firstTypeFrom(trace: PropertyTrace): Class<*> =
     trace.sequence.mapNotNull { typeFrom(it) }.first()
 
