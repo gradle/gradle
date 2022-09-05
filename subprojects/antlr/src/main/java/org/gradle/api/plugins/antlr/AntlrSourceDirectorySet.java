@@ -32,7 +32,7 @@ public interface AntlrSourceDirectorySet extends SourceDirectorySet {
     /**
      * Name of the source set extension contributed by the antlr plugin.
      *
-     * @since 7.7
+     * @since 8.0
      */
     String NAME = "antlr";
 }
