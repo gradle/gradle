@@ -1102,6 +1102,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Object findProperty(String propertyName) {
+        // Do not reuse `hasProperty` + `getProperty` as those would count as separate attempts to dynamically
+        // access a property, which might trigger extra diagnostics as if there were two calls.
         DynamicInvokeResult dynamicInvokeResult = extensibleDynamicObject.tryGetProperty(propertyName);
         return dynamicInvokeResult.isFound() ? dynamicInvokeResult.getValue() : null;
     }
