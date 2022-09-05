@@ -814,9 +814,6 @@ tasks.named("docsTest") { task ->
             def testsToBeFixedForConfigurationCache = [
                 "snippet-artifacts-define-repository_groovy_defineMavenCentral.sample",
 
-                "snippet-build-cache-cacheable-bundle-task_groovy_cacheableBundleTask.sample",
-                "snippet-build-cache-cacheable-bundle-task_kotlin_cacheableBundleTask.sample",
-
                 "snippet-build-cache-cacheable-bundle_groovy_cacheableBundle-caching.sample",
                 "snippet-build-cache-cacheable-bundle_groovy_cacheableBundle.sample",
                 "snippet-build-cache-cacheable-bundle_kotlin_cacheableBundle-caching.sample",
