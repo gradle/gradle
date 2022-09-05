@@ -249,11 +249,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         taskContainer = services.get(TaskContainerInternal.class);
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
-        if (parent != null) {
-            DynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(this);
-            if (parentInherited != null) {
-                extensibleDynamicObject.setParent(parentInherited);
-            }
+
+        @Nullable DynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(this);
+        if (parentInherited != null) {
+            extensibleDynamicObject.setParent(parentInherited);
         }
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
