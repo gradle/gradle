@@ -16,6 +16,14 @@
 
 package org.gradle.env;
 
+import org.gradle.api.Incubating;
+
+/**
+ * Constants for various processor architectures Gradle runs on.
+ *
+ * @since 7.6
+ */
+@Incubating
 public enum Architecture {
     I386, AMD64, AARCH64, OTHER
 }

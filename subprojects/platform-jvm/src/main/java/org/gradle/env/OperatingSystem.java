@@ -16,6 +16,14 @@
 
 package org.gradle.env;
 
+import org.gradle.api.Incubating;
+
+/**
+ * Constants for various operating systems Gradle runs on.
+ *
+ * @since 7.6
+ */
+@Incubating
 public enum OperatingSystem {
     MAC_OS, LINUX, WINDOWS, OTHER;
 }
