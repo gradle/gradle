@@ -77,16 +77,17 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         0 * _
     }
 
-    def "no state is captured if snapshotting outputs fail"() {
+    def "fails if snapshotting outputs fail"() {
         def delegateDuration = Duration.ofMillis(123)
         def failure = new OutputSnapshotter.OutputFileSnapshottingException("output", new IOException("Error")) {}
 
         when:
-        def result = step.execute(work, context)
+        step.execute(work, context)
         then:
-        !result.afterExecutionState.present
-        result.duration == delegateDuration
-        assertOperation()
+        def ex = thrown RuntimeException
+        ex.cause == failure
+        ex.message == "Wrapper"
+        assertOperation(ex)
 
         1 * outputChangeListener.invalidateCachesFor([])
         then:
@@ -99,6 +100,7 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
             _ * detectedOverlappingOutputs >> Optional.empty()
         })
         1 * outputSnapshotter.snapshotOutputs(work, _) >> { throw failure }
+        _ * work.decorateOutputFileSnapshottingException(_) >> { OutputSnapshotter.OutputFileSnapshottingException e -> throw new RuntimeException("Wrapper", e) }
         0 * _
     }
 
