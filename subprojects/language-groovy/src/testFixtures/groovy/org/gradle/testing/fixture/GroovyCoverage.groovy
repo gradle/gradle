@@ -35,6 +35,11 @@ class GroovyCoverage {
     static final Set<String> SINCE_3_0
 
     /**
+     * The lowest working Groovy 3 version for the current JDK.
+     */
+    static final String MINIMAL_GROOVY_3
+
+    /**
      * The current Groovy version if stable, otherwise the latest stable version before the current version.
      */
     static final String CURRENT_STABLE
@@ -51,6 +56,7 @@ class GroovyCoverage {
         CURRENT_STABLE = isCurrentGroovyVersionStable()
             ? GroovySystem.version
             : versionsBelow(SUPPORTED_BY_JDK, GroovySystem.version).last()
+        MINIMAL_GROOVY_3 = versionsBelow(SINCE_3_0, "4.0.0").first()
     }
 
     static boolean supportsJavaVersion(String groovyVersion, JavaVersion javaVersion) {
