@@ -73,6 +73,16 @@ public class OutputUnpacker extends PropertyVisitor.Adapter {
         }
     }
 
+    @Override
+    public void visitDestroyableProperty(Object value) {
+        hasDeclaredOutputs = true;
+    }
+
+    @Override
+    public void visitLocalStateProperty(Object value) {
+        hasDeclaredOutputs = true;
+    }
+
     public boolean hasDeclaredOutputs() {
         return hasDeclaredOutputs;
     }
