@@ -86,8 +86,8 @@ Gradle supports [Java incremental compilation](userguide/java_plugin.html#sec:in
 by default and [Groovy incremental compilation](userguide/groovy_plugin.html#sec:incremental_groovy_compilation)
 as an opt-in experimental feature.
 
-In previous versions, a compilation failure caused the next compilation to fully recompile.
-In Gradle 7.6 and above, Java and Groovy incremental compilation works even after a failure.
+In previous versions, a compilation failure caused the next compilation to perform a full recompile.
+Starting in Gradle 7.6, Java and Groovy incremental compilation works even after a failure.
 
 #### Relocated convention plugins in projects generated with `init`
 
@@ -151,7 +151,8 @@ For more information about the rerun option, see [Built-in Task Options](usergui
 In previous Gradle versions, it was possible to leave a configuration cache entry in a
 permanently broken state after a dependency resolution failure. The same build would later succeed with configuration caching disabled.
 
-Starting with Gradle 7.6 this is no longer the case. Gradle recovers from dependency resolution failures in exactly the same way with the configuration cache enabled.
+Starting with Gradle 7.6, this is no longer the case.
+Gradle recovers from dependency resolution failures in exactly the same way with the configuration cache enabled.
 
 #### Extended configuration cache task compatibility
 
@@ -354,8 +355,8 @@ to accept debugger client connections over the network.
 If the debugging options only specify a port, but not a host address,
 the set of accepted connections depends on your version of Java:
 
-- In versions of Java lower than 9, the debugger client accepts connections from any machine.
-- In Java 9 and above, the debugger client accepts connections originating from the host machine *only*.
+- Before Java 9, the debugger client accepts connections from any machine.
+- Starting in Java 9, the debugger client accepts connections originating from the host machine *only*.
 
 This release adds a new property to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html): `host`.
 This allows you to specify the debugger host address along with the port.
