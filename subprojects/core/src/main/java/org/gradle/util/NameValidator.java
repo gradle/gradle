@@ -30,7 +30,7 @@ import java.util.Arrays;
 @Deprecated
 public final class NameValidator {
 
-    static {
+    private static void logDeprecation() {
         DeprecationLogger.deprecateType(NameValidator.class)
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
@@ -46,6 +46,7 @@ public final class NameValidator {
      * Validates that a given name string does not contain any forbidden characters.
      */
     public static void validate(String name, String nameDescription, String fixSuggestion) throws InvalidUserDataException {
+        logDeprecation();
         if (StringUtils.isEmpty(name)) {
             throw newInvalidUserDataException("The " + nameDescription + " must not be empty.", fixSuggestion);
         } else if (StringUtils.containsAny(name, FORBIDDEN_CHARACTERS)) {
