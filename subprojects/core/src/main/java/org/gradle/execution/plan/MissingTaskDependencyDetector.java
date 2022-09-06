@@ -167,7 +167,7 @@ public class MissingTaskDependencyDetector {
     private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         validationContext.visitPropertyProblem(problem ->
             problem.withId(ValidationProblemId.IMPLICIT_DEPENDENCY)
-                .reportAs(Severity.WARNING)
+                .reportAs(Severity.ERROR)
                 .withDescription(() -> "Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
                 .happensBecause(() -> String.format("Task '%s' uses this output of task '%s' without declaring an explicit or implicit dependency. "
                         + "This can lead to incorrect results being produced, depending on what order the tasks are executed",

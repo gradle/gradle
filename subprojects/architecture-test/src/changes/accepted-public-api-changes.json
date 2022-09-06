@@ -9,6 +9,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.AntBuilder",
+            "member": "Superclass [removed]",
+            "acceptation": "org.gradle.api.AntBuilder now extends groovy.ant.AntBuilder",
+            "changes": [
+                "Superclass has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.ArtifactIdentifier",
             "member": "Method org.gradle.api.artifacts.ArtifactIdentifier.getClassifier()",
             "acceptation": "Method always could return null",

@@ -27,6 +27,7 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.internal.DefaultTaskExecutionRequest;
+import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.invocation.BuildAction;
@@ -163,14 +164,17 @@ public class BuildActionSerializer {
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
             encoder.writeSmallInt(taskRequests.size());
             for (TaskExecutionRequest taskRequest : taskRequests) {
-                if (!(taskRequest instanceof DefaultTaskExecutionRequest)) {
-                    // Only handle the command line for now
+                if (taskRequest instanceof RunDefaultTasksExecutionRequest) {
+                    encoder.writeByte((byte) 0);
+                } else if (taskRequest instanceof DefaultTaskExecutionRequest) {
+                    DefaultTaskExecutionRequest request = (DefaultTaskExecutionRequest) taskRequest;
+                    encoder.writeByte((byte) 1);
+                    encoder.writeNullableString(request.getProjectPath());
+                    nullableFileSerializer.write(encoder, request.getRootDir());
+                    stringListSerializer.write(encoder, request.getArgs());
+                } else {
                     throw new UnsupportedOperationException();
                 }
-                DefaultTaskExecutionRequest request = (DefaultTaskExecutionRequest) taskRequest;
-                encoder.writeNullableString(request.getProjectPath());
-                nullableFileSerializer.write(encoder, request.getRootDir());
-                stringListSerializer.write(encoder, request.getArgs());
             }
         }
 
@@ -251,10 +255,17 @@ public class BuildActionSerializer {
             int requestCount = decoder.readSmallInt();
             List<TaskExecutionRequest> taskExecutionRequests = new ArrayList<>(requestCount);
             for (int i = 0; i < requestCount; i++) {
-                String projectPath = decoder.readNullableString();
-                File rootDir = nullableFileSerializer.read(decoder);
-                List<String> args = stringListSerializer.read(decoder);
-                taskExecutionRequests.add(new DefaultTaskExecutionRequest(args, projectPath, rootDir));
+                byte tag = decoder.readByte();
+                if (tag == 0) {
+                    taskExecutionRequests.add(new RunDefaultTasksExecutionRequest());
+                } else if (tag == 1) {
+                    String projectPath = decoder.readNullableString();
+                    File rootDir = nullableFileSerializer.read(decoder);
+                    List<String> args = stringListSerializer.read(decoder);
+                    taskExecutionRequests.add(new DefaultTaskExecutionRequest(args, projectPath, rootDir));
+                } else {
+                    throw new IllegalStateException();
+                }
             }
             return taskExecutionRequests;
         }
