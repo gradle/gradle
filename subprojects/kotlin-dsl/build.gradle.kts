@@ -34,6 +34,7 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":normalization-java"))
     implementation(project(":wrapper-shared"))
+    implementation(project(":platform-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.groovyJson)
