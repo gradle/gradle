@@ -156,6 +156,9 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
     private void performIncrementalCompilation(InputChanges inputs, DefaultJavaCompileSpec spec) {
         boolean isUsingCliCompiler = isUsingCliCompiler(spec);
+        if (isUsingCliCompiler) {
+            spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(false);
+        }
         spec.getCompileOptions().setSupportsCompilerApi(!isUsingCliCompiler);
         spec.getCompileOptions().setSupportsConstantAnalysis(!isUsingCliCompiler);
         spec.getCompileOptions().setPreviousCompilationDataFile(getPreviousCompilationData());
