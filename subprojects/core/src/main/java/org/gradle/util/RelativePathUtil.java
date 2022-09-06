@@ -36,6 +36,10 @@ public class RelativePathUtil {
             .nagUser();
     }
 
+    public RelativePathUtil() {
+        logDeprecation();
+    }
+
     /**
      * Returns a relative path from 'from' to 'to'
      *
