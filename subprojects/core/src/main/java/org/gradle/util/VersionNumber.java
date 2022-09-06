@@ -47,6 +47,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
     private final int patch;
     private final String qualifier;
     private final AbstractScheme scheme;
+    private boolean deprecationLogged;
 
     public VersionNumber(int major, int minor, int micro, @Nullable String qualifier) {
         this(major, minor, micro, 0, qualifier, DEFAULT_SCHEME, true);
@@ -63,41 +64,48 @@ public class VersionNumber implements Comparable<VersionNumber> {
         this.patch = patch;
         this.qualifier = qualifier;
         this.scheme = scheme;
+        // TODO log deprecation once protobuf/osdetector plugin is fixed
         if (logDeprecation) {
             logDeprecation();
-        } else {
-            // TODO log deprecation once protobuf/osdetector plugin is fixed
+            deprecationLogged = true;
+        }
+    }
+
+    private void maybeLogDeprecation() {
+        if(!deprecationLogged) {
+            logDeprecation();
         }
     }
 
     public int getMajor() {
-        logDeprecation();
+        maybeLogDeprecation();
         return major;
     }
 
     public int getMinor() {
-        logDeprecation();
+        maybeLogDeprecation();
         return minor;
     }
 
     public int getMicro() {
-        logDeprecation();
+        maybeLogDeprecation();
         return micro;
     }
 
     public int getPatch() {
-        logDeprecation();
+        maybeLogDeprecation();
         return patch;
     }
 
     @Nullable
     public String getQualifier() {
-        logDeprecation();
+        maybeLogDeprecation();
         return qualifier;
     }
 
     public VersionNumber getBaseVersion() {
-        return new VersionNumber(major, minor, micro, patch, null, scheme, true);
+        maybeLogDeprecation();
+        return new VersionNumber(major, minor, micro, patch, null, scheme, false);
     }
 
     @Override
@@ -135,7 +143,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     @Override
     public String toString() {
-        logDeprecation();
+        maybeLogDeprecation();
         return scheme.format(this);
     }
 
