@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
@@ -85,6 +86,7 @@ public class CompileOptions extends AbstractOptions {
 
     private FileCollection annotationProcessorPath;
 
+    private final Property<Boolean> incrementalAfterFailure;
     private final Property<String> javaModuleVersion;
     private final Property<String> javaModuleMainClass;
     private final Property<Integer> release;
@@ -100,6 +102,7 @@ public class CompileOptions extends AbstractOptions {
         this.generatedSourceOutputDirectory = objectFactory.directoryProperty();
         this.headerOutputDirectory = objectFactory.directoryProperty();
         this.release = objectFactory.property(Integer.class);
+        this.incrementalAfterFailure = objectFactory.property(Boolean.class).convention(true);
     }
 
     /**
@@ -383,6 +386,21 @@ public class CompileOptions extends AbstractOptions {
     @Internal
     public boolean isIncremental() {
         return incremental;
+    }
+
+    /**
+     * Used to disable incremental compilation after a failure. By default incremental compilation after failure is enabled if incremental compilation is enabled,
+     *
+     * Exception is a command line compiler, so when `options.fork = true` in combination with `options.executable = [path to javac executable]` options are used,
+     * where it's always disabled and cannot be enabled, since Java Compiler API cannot be used there.
+     *
+     * @since 7.6
+     */
+    @Input
+    @Optional
+    @Incubating
+    public Property<Boolean> getIncrementalAfterFailure() {
+        return incrementalAfterFailure;
     }
 
     /**
