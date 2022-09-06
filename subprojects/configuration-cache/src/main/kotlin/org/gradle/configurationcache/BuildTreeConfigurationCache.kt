@@ -34,7 +34,7 @@ interface BuildTreeConfigurationCache {
      * Loads the scheduled tasks from cache, if available, or else runs the given function to schedule the tasks and then
      * writes the result to the cache.
      */
-    fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> Unit)
+    fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph): BuildTreeWorkGraph.FinalizedGraph
 
     /**
      * Prepares to load or create a model. Does nothing if the cached model is available or else prepares to capture

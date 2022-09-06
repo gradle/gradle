@@ -52,6 +52,12 @@ Creating a TAR tree from a resource with no backing file is no longer supported.
 Instead, convert the resource to a file and use `project.tarTree()` on the file.
 For more information, see <<tar_tree_no_backing_file>>.
 
+==== Using invalid Java toolchain specifications
+
+Usage of invalid Java toolchain specifications is no longer supported.
+Related build errors can be avoided by making sure that language version is set on all toolchain specifications.
+See <<toolchains#sec:configuring_toolchain_specifications,user manual>> for more information.
+
 === Removed APIs
 
 ==== Legacy ArtifactTransform API
@@ -62,6 +68,12 @@ For more information, see <<old_artifact_transforms_api>>.
 ==== Legacy IncrementalTaskInputs API
 
 The legacy `IncrementalTaskInputs` API has been removed. For more information, see <<incremental_task_inputs_deprecation>>. This change also affects Kotlin Gradle Plugin and Android Gradle Plugin. With Gradle 8.0 you should use Kotlin Gradle Plugin 1.6.10 or later and Android Gradle Plugin 7.3.0 with `android.experimental.legacyTransform.forceNonIncremental=true` property or later.
+
+==== Legacy AntlrSourceVirtualDirectory API
+
+The legacy `AntlrSourceVirtualDirectory` API has been removed.
+This change affects the `antlr` plugin.
+In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
 
 === Potential breaking changes
 
