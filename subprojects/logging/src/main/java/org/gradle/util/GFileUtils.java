@@ -173,7 +173,7 @@ public class GFileUtils {
         moveDirectoryInternal(source, destination);
     }
 
-    public static void moveDirectoryInternal(File source, File destination) {
+    private static void moveDirectoryInternal(File source, File destination) {
         try {
             FileUtils.moveDirectory(source, destination);
         } catch (IOException e) {
