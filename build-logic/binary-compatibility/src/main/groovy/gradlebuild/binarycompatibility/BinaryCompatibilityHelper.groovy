@@ -21,7 +21,6 @@ import gradlebuild.binarycompatibility.filters.KotlinInternalFilter
 import gradlebuild.binarycompatibility.rules.AcceptedRegressionsRulePostProcess
 import gradlebuild.binarycompatibility.rules.AcceptedRegressionsRuleSetup
 import gradlebuild.binarycompatibility.rules.BinaryBreakingChangesRule
-import gradlebuild.binarycompatibility.rules.BinaryBreakingSuperclassChangeRule
 import gradlebuild.binarycompatibility.rules.IncubatingInternalInterfaceAddedRule
 import gradlebuild.binarycompatibility.rules.IncubatingMissingRule
 import gradlebuild.binarycompatibility.rules.KotlinModifiersBreakingChangeRule
@@ -55,10 +54,6 @@ class BinaryCompatibilityHelper {
                     publicApiPatterns: richReport.includedClasses
                 ])
                 addRule(MethodsRemovedInInternalSuperClassRule, [
-                    acceptedApiChanges: acceptedChangesMap,
-                    publicApiPatterns: richReport.includedClasses
-                ])
-                addRule(BinaryBreakingSuperclassChangeRule, [
                     acceptedApiChanges: acceptedChangesMap,
                     publicApiPatterns: richReport.includedClasses
                 ])
