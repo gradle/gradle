@@ -35,7 +35,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
     private final GlobalScopedCache globalScopedCache;
     private final UsedGradleVersions usedGradleVersions;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final GradleUserHomeCacheCleanupEnablement cacheCleanupEnablement;
+    private final CacheCleanupEnablement cacheCleanupEnablement;
 
     public GradleUserHomeCleanupService(
         Deleter deleter,
@@ -43,7 +43,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
         GlobalScopedCache globalScopedCache,
         UsedGradleVersions usedGradleVersions,
         ProgressLoggerFactory progressLoggerFactory,
-        GradleUserHomeCacheCleanupEnablement cacheCleanupEnablement
+        CacheCleanupEnablement cacheCleanupEnablement
     ) {
         this.deleter = deleter;
         this.userHomeDirProvider = userHomeDirProvider;
@@ -55,15 +55,13 @@ public class GradleUserHomeCleanupService implements Stoppable {
 
     @Override
     public void stop() {
-        if (!cacheCleanupEnablement.isEnabledFor(userHomeDirProvider.getGradleUserHomeDirectory())) {
-            return;
-        }
-
-        File cacheBaseDir = globalScopedCache.getRootDir();
-        boolean wasCleanedUp = execute(
-            new VersionSpecificCacheCleanupAction(cacheBaseDir, MAX_UNUSED_DAYS_FOR_RELEASES, MAX_UNUSED_DAYS_FOR_SNAPSHOTS, deleter));
-        if (wasCleanedUp) {
-            execute(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions));
+        if (cacheCleanupEnablement.isEnabled()) {
+            File cacheBaseDir = globalScopedCache.getRootDir();
+            boolean wasCleanedUp = execute(
+                new VersionSpecificCacheCleanupAction(cacheBaseDir, MAX_UNUSED_DAYS_FOR_RELEASES, MAX_UNUSED_DAYS_FOR_SNAPSHOTS, deleter));
+            if (wasCleanedUp) {
+                execute(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions));
+            }
         }
     }
 
