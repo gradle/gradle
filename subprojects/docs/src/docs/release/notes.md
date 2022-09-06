@@ -14,6 +14,7 @@ We would like to thank the following community members for their contributions t
 [Björn Kautler](https://github.com/Vampire)
 [Ricardo Jiang](https://github.com/RicardoJiang)
 [Siddardha Bezawada](https://github.com/SidB3)
+[Stephen Topley](https://github.com/stopley)
 
 ## Upgrade instructions
 
