@@ -13,6 +13,7 @@ We would like to thank the following community members for their contributions t
 [Herbert von Broeuschmeul](https://github.com/HvB),
 [Björn Kautler](https://github.com/Vampire),
 [Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy),
+[Matthew Haughton](https://github.com/3flex),
 [Siddardha Bezawada](https://github.com/SidB3)
 [Stephen Topley](https://github.com/stopley)
 
