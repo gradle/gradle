@@ -60,6 +60,10 @@ public class GFileUtils {
             .nagUser();
     }
 
+    public GFileUtils() {
+        logDeprecation();
+    }
+
     public static FileInputStream openInputStream(File file) {
         logDeprecation();
         try {
