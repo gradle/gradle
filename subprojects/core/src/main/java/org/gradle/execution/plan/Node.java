@@ -377,6 +377,7 @@ public abstract class Node {
     public void addDependencySuccessor(Node toNode) {
         dependencySuccessors.addDependency(toNode);
         toNode.getDependencyPredecessors().add(this);
+        toNode.getMutationInfo().consumingNodes.add(this);
     }
 
     /**
@@ -467,6 +468,21 @@ public abstract class Node {
         for (Node node : getDependencyPredecessors()) {
             visitor.accept(node);
         }
+    }
+
+    /**
+     * Called prior to attempting to schedule a node.
+     */
+    public void prepareForScheduling() {
+        ExecutionState initialState = getInitialState();
+        if (initialState != null) {
+            state = initialState;
+        }
+    }
+
+    @Nullable
+    protected Node.ExecutionState getInitialState() {
+        return null;
     }
 
     /**

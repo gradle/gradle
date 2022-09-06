@@ -28,7 +28,6 @@ class MutationInfo {
     boolean hasFileInputs;
     boolean hasOutputs;
     boolean hasLocalState;
-    boolean resolved;
     boolean hasValidationProblem;
 
     MutationInfo(Node node) {
