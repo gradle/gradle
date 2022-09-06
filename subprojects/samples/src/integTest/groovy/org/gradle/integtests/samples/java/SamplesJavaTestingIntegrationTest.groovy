@@ -337,13 +337,20 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         given:
         configureExecuterForToolchains('11')
         TestFile dslDir = sample.dir.file(dsl)
-        executer.inDirectory(dslDir).withArgument("-PmySkipTests")
 
-        when:
+        when: "run first time to populate configuration cache if it is enabled"
+        executer.inDirectory(dslDir).withArgument("-PmySkipTests")
         def result = succeeds("build")
 
         then:
         result.assertTaskSkipped(":test")
+
+        when: "run second time to restore from configuration cache if it is enabled"
+        executer.inDirectory(dslDir).withArgument("-PmySkipTests")
+        def secondResult = succeeds("build")
+
+        then:
+        secondResult.assertTaskSkipped(":test")
 
         where:
         dsl << ['groovy', 'kotlin']

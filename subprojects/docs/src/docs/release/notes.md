@@ -13,6 +13,7 @@ We would like to thank the following community members for their contributions t
 [Björn Kautler](https://github.com/Vampire)
 [David Marin](https://github.com/dmarin)
 [Herbert von Broeuschmeul](https://github.com/HvB)
+[Siddardha Bezawada](https://github.com/SidB3)
 
 ## Upgrade instructions
 
