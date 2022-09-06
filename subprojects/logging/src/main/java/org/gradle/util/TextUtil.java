@@ -118,7 +118,7 @@ public class TextUtil {
         return replaceLineSeparatorsInternalOf(string, bySeparator);
     }
 
-    public static String replaceLineSeparatorsInternalOf(CharSequence string, String bySeparator) {
+    private static String replaceLineSeparatorsInternalOf(CharSequence string, String bySeparator) {
         logDeprecation();
         return replaceAll("\r\n|\r|\n", string, bySeparator);
     }
@@ -150,7 +150,7 @@ public class TextUtil {
         return normaliseLineSeparatorsInternal(str);
     }
 
-    public static String normaliseLineSeparatorsInternal(@Nullable String str) {
+    private static String normaliseLineSeparatorsInternal(@Nullable String str) {
         return str == null ? null : convertLineSeparatorsToUnixInternal(str);
     }
 
@@ -162,7 +162,7 @@ public class TextUtil {
         return normaliseFileSeparatorsInternal(path);
     }
 
-    public static String normaliseFileSeparatorsInternal(String path) {
+    private static String normaliseFileSeparatorsInternal(String path) {
         return path.replace(File.separatorChar, '/');
     }
 
