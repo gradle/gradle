@@ -358,10 +358,9 @@ public class GUtil {
     }
 
     private static String toCamelCase(CharSequence string, boolean lower) {
+        // TODO log deprecation once protobuf plugin is fixed
         if (lower) {
             logDeprecation();
-        } else {
-            // TODO log deprecation once protobuf plugin is fixed
         }
         if (string == null) {
             return null;
