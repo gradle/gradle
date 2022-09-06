@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
 @Deprecated
 public class VersionNumber implements Comparable<VersionNumber> {
 
-    static {
+    private static void logDeprecation() {
         DeprecationLogger.deprecateType(VersionNumber.class)
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
@@ -49,49 +49,60 @@ public class VersionNumber implements Comparable<VersionNumber> {
     private final AbstractScheme scheme;
 
     public VersionNumber(int major, int minor, int micro, @Nullable String qualifier) {
-        this(major, minor, micro, 0, qualifier, DEFAULT_SCHEME);
+        this(major, minor, micro, 0, qualifier, DEFAULT_SCHEME, true);
     }
 
     public VersionNumber(int major, int minor, int micro, int patch, @Nullable String qualifier) {
-        this(major, minor, micro, patch, qualifier, PATCH_SCHEME);
+        this(major, minor, micro, patch, qualifier, PATCH_SCHEME, true);
     }
 
-    private VersionNumber(int major, int minor, int micro, int patch, @Nullable String qualifier, AbstractScheme scheme) {
+    private VersionNumber(int major, int minor, int micro, int patch, @Nullable String qualifier, AbstractScheme scheme, boolean logDeprecation) {
         this.major = major;
         this.minor = minor;
         this.micro = micro;
         this.patch = patch;
         this.qualifier = qualifier;
         this.scheme = scheme;
+        if (logDeprecation) {
+            logDeprecation();
+        } else {
+            // TODO log deprecation once protobuf/osdetector plugin is fixed
+        }
     }
 
     public int getMajor() {
+        logDeprecation();
         return major;
     }
 
     public int getMinor() {
+        logDeprecation();
         return minor;
     }
 
     public int getMicro() {
+        logDeprecation();
         return micro;
     }
 
     public int getPatch() {
+        logDeprecation();
         return patch;
     }
 
     @Nullable
     public String getQualifier() {
+        logDeprecation();
         return qualifier;
     }
 
     public VersionNumber getBaseVersion() {
-        return new VersionNumber(major, minor, micro, patch, null, scheme);
+        return new VersionNumber(major, minor, micro, patch, null, scheme, true);
     }
 
     @Override
     public int compareTo(VersionNumber other) {
+        // TODO log deprecation once protobuf/osdetector plugin is fixed
         if (major != other.major) {
             return major - other.major;
         }
@@ -124,6 +135,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     @Override
     public String toString() {
+        logDeprecation();
         return scheme.format(this);
     }
 
@@ -132,13 +144,14 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
     public static VersionNumber version(int major, int minor) {
-        return new VersionNumber(major, minor, 0, 0, null, DEFAULT_SCHEME);
+        return new VersionNumber(major, minor, 0, 0, null, DEFAULT_SCHEME, false);
     }
 
     /**
      * Returns the default MAJOR.MINOR.MICRO-QUALIFIER scheme.
      */
     public static Scheme scheme() {
+        logDeprecation();
         return DEFAULT_SCHEME;
     }
 
@@ -146,10 +159,12 @@ public class VersionNumber implements Comparable<VersionNumber> {
      * Returns the MAJOR.MINOR.MICRO.PATCH-QUALIFIER scheme.
      */
     public static Scheme withPatchNumber() {
+        logDeprecation();
         return PATCH_SCHEME;
     }
 
     public static VersionNumber parse(String versionString) {
+        // TODO log deprecation once protobuf/osdetector plugin is fixed
         return DEFAULT_SCHEME.parse(versionString);
     }
 
@@ -205,12 +220,12 @@ public class VersionNumber implements Comparable<VersionNumber> {
             }
 
             if (scanner.isEnd()) {
-                return new VersionNumber(major, minor, micro, patch, null, this);
+                return new VersionNumber(major, minor, micro, patch, null, this, false);
             }
 
             if (scanner.isQualifier()) {
                 scanner.skipSeparator();
-                return new VersionNumber(major, minor, micro, patch, scanner.remainder(), this);
+                return new VersionNumber(major, minor, micro, patch, scanner.remainder(), this, false);
             }
 
             return UNKNOWN;
