@@ -157,6 +157,28 @@ public interface ProviderFactory {
     Provider<String> gradleProperty(Provider<String> propertyName);
 
     /**
+     * Creates a {@link Provider} whose value is a name-to-value map of the Gradle properties with the names starting with the given prefix.
+     * The prefix comparison is case-sensitive. The returned map is immutable.
+     *
+     * @param variableNamePrefix The prefix of the system property names
+     * @return The provider. Never returns null.
+     * @since 7.6
+     */
+    @Incubating
+    Provider<Map<String, String>> gradlePropertiesPrefixedBy(String variableNamePrefix);
+
+    /**
+     * Creates a {@link Provider} whose value is a name-to-value map of the Gradle properties with the names starting with the given prefix.
+     * The prefix comparison is case-sensitive. The returned map is immutable.
+     *
+     * @param variableNamePrefix The prefix of the system property names
+     * @return The provider. Never returns null.
+     * @since 7.6
+     */
+    @Incubating
+    Provider<Map<String, String>> gradlePropertiesPrefixedBy(Provider<String> variableNamePrefix);
+
+    /**
      * Allows lazy access to the contents of the given file.
      *
      * When the file contents are read at configuration time the file is automatically considered
