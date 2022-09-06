@@ -64,7 +64,7 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 @Deprecated
 public abstract class CollectionUtils {
 
-    static {
+    private static void logDeprecation() {
         DeprecationLogger.deprecateType(CollectionUtils.class)
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
@@ -76,13 +76,20 @@ public abstract class CollectionUtils {
      */
     @Nullable
     public static <T> T findSingle(Iterable<T> source) {
-        return Iterables.isEmpty(source) ? null : single(source);
+        logDeprecation();
+        return Iterables.isEmpty(source) ? null : singleInternal(source);
     }
 
     /**
      * Returns the single element in the collection or throws.
      */
     public static <T> T single(Iterable<? extends T> source) {
+        logDeprecation();
+        return singleInternal(source);
+    }
+
+    private static <T> T singleInternal(Iterable<? extends T> source) {
+        logDeprecation();
         Iterator<? extends T> iterator = source.iterator();
         if (!iterator.hasNext()) {
             throw new NoSuchElementException("Expecting collection with single element, got none.");
@@ -95,6 +102,7 @@ public abstract class CollectionUtils {
     }
 
     public static <T> Collection<? extends T> checkedCast(Class<T> type, Collection<?> input) {
+        logDeprecation();
         for (Object o : input) {
             castNullable(type, o);
         }
@@ -103,6 +111,7 @@ public abstract class CollectionUtils {
 
     @Nullable
     public static <T> T findFirst(Iterable<? extends T> source, Spec<? super T> filter) {
+        logDeprecation();
         for (T item : source) {
             if (filter.isSatisfiedBy(item)) {
                 return item;
@@ -114,6 +123,7 @@ public abstract class CollectionUtils {
 
     @Nullable
     public static <T> T findFirst(T[] source, Spec<? super T> filter) {
+        logDeprecation();
         for (T thing : source) {
             if (filter.isSatisfiedBy(thing)) {
                 return thing;
@@ -124,6 +134,7 @@ public abstract class CollectionUtils {
     }
 
     public static <T> T first(Iterable<? extends T> source) {
+        logDeprecation();
         return source.iterator().next();
     }
 
@@ -167,6 +178,7 @@ public abstract class CollectionUtils {
     }
 
     public static <T, C extends Collection<T>> C filter(Iterable<? extends T> source, C destination, Spec<? super T> filter) {
+        logDeprecation();
         for (T item : source) {
             if (filter.isSatisfiedBy(item)) {
                 destination.add(item);
@@ -180,6 +192,7 @@ public abstract class CollectionUtils {
     }
 
     public static <K, V> Map<K, V> filter(Map<K, V> map, Map<K, V> destination, Spec<Map.Entry<K, V>> filter) {
+        logDeprecation();
         for (Map.Entry<K, V> entry : map.entrySet()) {
             if (filter.isSatisfiedBy(entry)) {
                 destination.put(entry.getKey(), entry.getValue());
@@ -195,6 +208,7 @@ public abstract class CollectionUtils {
     }
 
     public static <R, I> R[] collectArray(I[] list, R[] destination, Transformer<? extends R, ? super I> transformer) {
+        logDeprecation();
         assert list.length <= destination.length;
         for (int i = 0; i < list.length; ++i) {
             destination[i] = transformer.transform(list[i]);
@@ -220,6 +234,11 @@ public abstract class CollectionUtils {
     }
 
     public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, Transformer<? extends R, ? super I> transformer) {
+        logDeprecation();
+        return collectInternal(source, destination, transformer);
+    }
+
+    private static <R, I, C extends Collection<R>> C collectInternal(Iterable<? extends I> source, C destination, Transformer<? extends R, ? super I> transformer) {
         for (I item : source) {
             destination.add(transformer.transform(item));
         }
@@ -254,6 +273,11 @@ public abstract class CollectionUtils {
      * @return A flattened list of the given things
      */
     public static <T> List<T> flattenCollections(Class<T> type, Object... things) {
+        logDeprecation();
+        return flattenCollectionsInternal(type, things);
+    }
+
+    private static <T> List<T> flattenCollectionsInternal(Class<T> type, Object... things) {
         if (things == null) {
             return Collections.singletonList(null);
         } else if (things.length == 0) {
@@ -298,6 +322,7 @@ public abstract class CollectionUtils {
 
     public static <T> List<T> toList(Iterable<? extends T> things) {
         if (things instanceof List) {
+            logDeprecation();
             @SuppressWarnings("unchecked") List<T> castThings = (List<T>) things;
             return castThings;
         }
@@ -305,6 +330,7 @@ public abstract class CollectionUtils {
     }
 
     public static <T> List<T> toList(Enumeration<? extends T> things) {
+        logDeprecation();
         AbstractList<T> list = new ArrayList<T>();
         while (things.hasMoreElements()) {
             list.add(things.nextElement());
@@ -313,6 +339,7 @@ public abstract class CollectionUtils {
     }
 
     private static <T> List<T> toMutableList(Iterable<? extends T> things) {
+        logDeprecation();
         if (things == null) {
             return new ArrayList<T>(0);
         }
@@ -325,6 +352,7 @@ public abstract class CollectionUtils {
 
 
     public static <T> List<T> intersection(Collection<? extends Collection<T>> availableValuesByDescriptor) {
+        logDeprecation();
         List<T> result = new ArrayList<T>();
         Iterator<? extends Collection<T>> iterator = availableValuesByDescriptor.iterator();
         if (iterator.hasNext()) {
@@ -340,6 +368,7 @@ public abstract class CollectionUtils {
     }
 
     public static <T> List<T> toList(T[] things) {
+        logDeprecation();
         if (things == null || things.length == 0) {
             return new ArrayList<T>(0);
         }
@@ -350,6 +379,7 @@ public abstract class CollectionUtils {
     }
 
     public static <T> Set<T> toSet(Iterable<? extends T> things) {
+        logDeprecation();
         if (things == null) {
             return new HashSet<T>(0);
         }
@@ -366,6 +396,7 @@ public abstract class CollectionUtils {
     }
 
     public static <E> List<E> compact(List<E> list) {
+        logDeprecation();
         boolean foundAtLeastOneNull = false;
         List<E> compacted = null;
         int i = 0;
@@ -389,14 +420,21 @@ public abstract class CollectionUtils {
     }
 
     public static <C extends Collection<String>> C stringize(Iterable<?> source, C destination) {
-        return collect(source, destination, Transformers.asString());
+        logDeprecation();
+        return stringizeInternal(source, destination);
     }
 
     public static List<String> stringize(Collection<?> source) {
-        return stringize(source, new ArrayList<String>(source.size()));
+        // TODO log deprecation once asciidoctor/grolifant is fixed
+        return stringizeInternal(source, new ArrayList<String>(source.size()));
+    }
+
+    private static <C extends Collection<String>> C stringizeInternal(Iterable<?> source, C destination) {
+        return collectInternal(source, destination, Transformers.asString());
     }
 
     public static <E> boolean replace(List<E> list, Spec<? super E> filter, Transformer<? extends E, ? super E> transformer) {
+        logDeprecation();
         boolean replaced = false;
         int i = 0;
         for (E it : list) {
@@ -410,6 +448,7 @@ public abstract class CollectionUtils {
     }
 
     public static <K, V> void collectMap(Map<K, V> destination, Iterable<? extends V> items, Transformer<? extends K, ? super V> keyGenerator) {
+        logDeprecation();
         for (V item : items) {
             destination.put(keyGenerator.transform(item), item);
         }
@@ -425,6 +464,7 @@ public abstract class CollectionUtils {
     }
 
     public static <K, V> void collectMapValues(Map<K, V> destination, Iterable<? extends K> keys, Transformer<? extends V, ? super K> keyGenerator) {
+        logDeprecation();
         for (K item : keys) {
             destination.put(item, keyGenerator.transform(item));
         }
@@ -440,6 +480,7 @@ public abstract class CollectionUtils {
     }
 
     public static <T> boolean every(Iterable<? extends T> things, Spec<? super T> predicate) {
+        logDeprecation();
         for (T thing : things) {
             if (!predicate.isSatisfiedBy(thing)) {
                 return false;
@@ -458,6 +499,7 @@ public abstract class CollectionUtils {
      * @return t1
      */
     public static <T, C extends Collection<? super T>> C addAll(C t1, Iterable<? extends T> t2) {
+        logDeprecation();
         for (T t : t2) {
             t1.add(t);
         }
@@ -473,6 +515,7 @@ public abstract class CollectionUtils {
      * @return t1
      */
     public static <T, C extends Collection<? super T>> C addAll(C t1, T... t2) {
+        logDeprecation();
         Collections.addAll(t1, t2);
         return t1;
     }
@@ -487,6 +530,16 @@ public abstract class CollectionUtils {
         public Set<T> leftOnly = new HashSet<T>();
         public Set<Pair<T, T>> common = new HashSet<Pair<T, T>>();
         public Set<T> rightOnly = new HashSet<T>();
+
+        public SetDiff() {
+            this(true);
+        }
+
+        private SetDiff(boolean logDeprecation) {
+            if (logDeprecation) {
+                logDeprecation();
+            }
+        }
     }
 
     /**
@@ -503,6 +556,7 @@ public abstract class CollectionUtils {
      * @return A representation of the difference
      */
     public static <T> SetDiff<T> diffSetsBy(Set<? extends T> left, Set<? extends T> right, Transformer<?, T> compareBy) {
+        logDeprecation();
         if (left == null) {
             throw new NullPointerException("'left' set is null");
         }
@@ -510,7 +564,7 @@ public abstract class CollectionUtils {
             throw new NullPointerException("'right' set is null");
         }
 
-        SetDiff<T> setDiff = new SetDiff<T>();
+        SetDiff<T> setDiff = new SetDiff<T>(false);
 
         Map<Object, T> indexedLeft = collectMap(left, compareBy);
         Map<Object, T> indexedRight = collectMap(right, compareBy);
@@ -569,6 +623,7 @@ public abstract class CollectionUtils {
      * @return The joined string
      */
     public static String join(String separator, Iterable<?> objects) {
+        logDeprecation();
         if (separator == null) {
             throw new NullPointerException("The 'separator' cannot be null");
         }
@@ -595,6 +650,7 @@ public abstract class CollectionUtils {
      * <pre>Right</pre> Collection containing entries that do NOT satisfy the given predicate
      */
     public static <T> Pair<Collection<T>, Collection<T>> partition(Iterable<T> items, Spec<? super T> predicate) {
+        logDeprecation();
         Preconditions.checkNotNull(items, "Cannot partition null Collection");
         Preconditions.checkNotNull(predicate, "Cannot apply null Spec when partitioning");
 
@@ -614,6 +670,7 @@ public abstract class CollectionUtils {
 
     /**
      * Injection step.
+     *
      * @param <T> target type.
      * @param <I> item type.
      */
@@ -623,8 +680,15 @@ public abstract class CollectionUtils {
         private final I item;
 
         public InjectionStep(T target, I item) {
+            this(target, item, true);
+        }
+
+        private InjectionStep(T target, I item, boolean logDeprecation) {
             this.target = target;
             this.item = item;
+            if (logDeprecation) {
+                logDeprecation();
+            }
         }
 
         public T getTarget() {
@@ -637,6 +701,7 @@ public abstract class CollectionUtils {
     }
 
     public static <T, I> T inject(T target, Iterable<? extends I> items, Action<InjectionStep<T, I>> action) {
+        logDeprecation();
         if (target == null) {
             throw new NullPointerException("The 'target' cannot be null");
         }
@@ -648,12 +713,13 @@ public abstract class CollectionUtils {
         }
 
         for (I item : items) {
-            action.execute(new InjectionStep<T, I>(target, item));
+            action.execute(new InjectionStep<T, I>(target, item, false));
         }
         return target;
     }
 
     public static <K, V> Map<K, Collection<V>> groupBy(Iterable<? extends V> iterable, Transformer<? extends K, V> grouper) {
+        logDeprecation();
         ImmutableListMultimap.Builder<K, V> builder = ImmutableListMultimap.builder();
 
         for (V element : iterable) {
@@ -665,6 +731,7 @@ public abstract class CollectionUtils {
     }
 
     public static <T> Iterable<? extends T> unpack(final Iterable<? extends Factory<? extends T>> factories) {
+        logDeprecation();
         return new Iterable<T>() {
             private final Iterator<? extends Factory<? extends T>> delegate = factories.iterator();
 
@@ -692,11 +759,13 @@ public abstract class CollectionUtils {
 
     @Nullable
     public static <T> List<T> nonEmptyOrNull(Iterable<T> iterable) {
+        logDeprecation();
         ImmutableList<T> list = ImmutableList.copyOf(iterable);
         return list.isEmpty() ? null : list;
     }
 
     public static String asCommandLine(Iterable<String> arguments) {
+        logDeprecation();
         return Joiner.on(" ").join(collect(arguments, Transformers.asSafeCommandLineArgument()));
     }
 }
