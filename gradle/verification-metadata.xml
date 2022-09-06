@@ -63,7 +63,6 @@
       </trusted-artifacts>
       <ignored-keys>
          <ignored-key id="74dafdfd6dae2441" reason="Key couldn't be downloaded from any key server"/>
-         <ignored-key id="02216ed811210daa" reason="Key couldn't be downloaded from any key server"/>
       </ignored-keys>
       <trusted-keys>
          <trusted-key id="019082bc00e0324e2aef4cf00d3b328562a119a7" group="org.openjdk.jmh"/>
@@ -118,6 +117,7 @@
             <trusting group="net.java.dev.jna"/>
             <trusting group="org.codehaus.plexus"/>
          </trusted-key>
+         <trusted-key id="47504b76cf89c15c0512d9afe16ab52d79fd224f" group="^com[.]google($|([.].*))" regex="true"/>
          <trusted-key id="475f3b8e59e6e63aa78067482c7b12f2a511e325">
             <trusting group="ch.qos.logback"/>
             <trusting group="org.slf4j"/>
@@ -142,6 +142,7 @@
          <trusted-key id="5ce325996a35213326ae2c68912d2c0eccda55c0" group="com.google.errorprone" name="error_prone_annotations"/>
          <trusted-key id="5de533cb43daf8bc3e372283e7ae839cd7c58886" group="org.eclipse.jetty"/>
          <trusted-key id="5f55943e13d49059d3f342777186b06e1ed139e7" group="org.apache.lucene"/>
+         <trusted-key id="600ea202b1ec682f4a788e5aac7a514bc9f9bb70" group="io.opencensus"/>
          <trusted-key id="60c6700e08f02b9eb6f4a46745145f826cf4bf98" group="com.googlecode.plist" name="dd-plist"/>
          <trusted-key id="6214760097dc5cfad0175ac2c9fbaa83a8753994" group="^com[.]fasterxml[.]jackson($|([.].*))" regex="true"/>
          <trusted-key id="666a4692ce11b7b3f4eb7b3410066a9707090cf9" group="org.javassist" name="javassist"/>
@@ -207,12 +208,12 @@
          <trusted-key id="a7892505cf1a58076453e52d7999befba1039e8b" group="net.bytebuddy"/>
          <trusted-key id="acf39ccded38e2c6f0898bf28f7f6c0451967b84" group="org.scala-lang"/>
          <trusted-key id="adbc987d1a7b91db6b0aaa81995efbf4a3d20beb" group="^com[.]pinterest($|([.].*))" regex="true"/>
-         <trusted-key id="afcc4c7594d09e2182c60e0f7a01b0f236e5430f" group="com.google.code.gson" name="gson"/>
          <trusted-key id="b02137d875d833d9b23392ecae5a7fb608a0221c">
             <trusting group="com.thoughtworks.qdox"/>
             <trusting group="org.codehaus.plexus"/>
             <trusting group="^org[.]apache[.]maven($|([.].*))" regex="true"/>
          </trusted-key>
+         <trusted-key id="b02335aa54ccf21e52bbf9abd9c565aa72ba2fdd" group="io.grpc" name="grpc-context"/>
          <trusted-key id="b41089a2da79b0fa5810252872385ff0af338d52" group="joda-time" name="joda-time"/>
          <trusted-key id="b6e73d84ea4fcc47166087253faad2cd5ecbb314" group="org.apache.commons" name="commons-lang3"/>
          <trusted-key id="b801e2f8ef035068ec1139cc29579f18fa8fd93b" group="com.google.j2objc" name="j2objc-annotations"/>
@@ -225,6 +226,7 @@
          <trusted-key id="bd95a93175bfe816fc152de5f9fd57a03b80305d" group="com.lihaoyi"/>
          <trusted-key id="bdb5fa4fe719d787fb3d3197f6d4a1d411e9d1ae" group="com.google.guava"/>
          <trusted-key id="c0822d185fbfd963c33acbfea318a06284d602d5" group="com.tngtech.archunit"/>
+         <trusted-key id="c7be5bcc9fec15518cfda882b0f3710fa64900e7" group="com.google.code.gson" name="gson"/>
          <trusted-key id="c9a503282182ec4ecdb914ea102e05d8da6c286d" group="com.sun.xml.bind"/>
          <trusted-key id="cacfbd4755a2fc78709bdd92be096e29edb8d141" group="net.sf.proguard"/>
          <trusted-key id="cc4483cd6a3eb2939b948667a1b4460d8ba7b9af" group="org.mockito" name="mockito-core"/>
@@ -1264,6 +1266,11 @@
       <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-conventions" version="0.8.0">
          <artifact name="gradle-kotlin-dsl-conventions-0.8.0.jar">
             <sha256 value="b4182982109d85f9a623fa597932c3f09651467559bb99965c41d45159e89a68" origin="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="2.3.3">
+         <artifact name="gradle-kotlin-dsl-plugins-2.3.3.jar">
+            <sha256 value="ba63ebb9e874a798510b5888a159622ef4e4d59f82e54d755ddcf5e60bf1257f" origin="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="2.4.1">
