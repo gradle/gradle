@@ -25,11 +25,11 @@ tasks.register('list') {
 
         srcDir = projectDirectory.file('src').asFile
         println "Contents of $srcDir.name"
-        collection.collect { projectDirectory.asFile.toPath().relativize(it.toPath()) }.sort().each { println it }
+        collection.collect { projectDirectory.asFile.relativePath(it) }.sort().each { println it }
 
         srcDir = projectDirectory.file('src2').asFile
         println "Contents of $srcDir.name"
-        collection.collect { projectDirectory.asFile.toPath().relativize(it.toPath()) }.sort().each { println it }
+        collection.collect { projectDirectory.asFile.relativePath(it) }.sort().each { println it }
     }
 }
 // end::closure[]
