@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -61,4 +62,13 @@ public interface CrossProjectModelAccess {
      * @return A Gradle instance that implements correct cross-project model access.
      */
     GradleInternal gradleInstanceForProject(ProjectInternal referrerProject, GradleInternal gradle);
+
+    /**
+     * Provides an implementation of {@code TaskExecutionGraph} such that it handles access to the
+     * tasks in the other projects according to the current cross-project model access policy.
+     *
+     * @param referrerProject The project that views the task graph.
+     * @return A task graph instance that implements correct cross-project model access.
+     */
+    TaskExecutionGraphInternal taskGraphForProject(ProjectInternal referrerProject, TaskExecutionGraphInternal taskGraph);
 }

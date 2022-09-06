@@ -1,0 +1,245 @@
+/*
+ * Copyright 2022 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.configurationcache
+
+import groovy.lang.Closure
+import org.gradle.api.Action
+import org.gradle.api.InvalidUserCodeException
+import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.execution.TaskExecutionGraph
+import org.gradle.api.execution.TaskExecutionGraphListener
+import org.gradle.api.execution.TaskExecutionListener
+import org.gradle.api.internal.project.CrossProjectModelAccess
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.configurationcache.extensions.capitalized
+import org.gradle.configurationcache.problems.ProblemsListener
+import org.gradle.configurationcache.problems.PropertyProblem
+import org.gradle.configurationcache.problems.StructuredMessage
+import org.gradle.configurationcache.problems.location
+import org.gradle.execution.plan.FinalizedExecutionPlan
+import org.gradle.execution.plan.Node
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.internal.build.ExecutionResult
+import org.gradle.util.Path
+import java.util.Objects
+import java.util.function.Consumer
+
+
+class CrossProjectConfigurationReportingTaskExecutionGraph(
+    private val delegate: TaskExecutionGraphInternal,
+    private val referrerProject: ProjectInternal,
+    private val problems: ProblemsListener,
+    private val crossProjectModelAccess: CrossProjectModelAccess,
+    private val coupledProjectsListener: CoupledProjectsListener,
+    private val userCodeContext: UserCodeApplicationContext
+) : TaskExecutionGraphInternal {
+    override fun addTaskExecutionGraphListener(listener: TaskExecutionGraphListener) {
+        delegate.addTaskExecutionGraphListener(listener.wrap())
+    }
+
+    override fun removeTaskExecutionGraphListener(listener: TaskExecutionGraphListener) {
+        delegate.removeTaskExecutionGraphListener(listener.wrap())
+    }
+
+    override fun whenReady(closure: Closure<*>) {
+        delegate.whenReady(CrossProjectModelAccessTrackingClosure(closure, referrerProject, crossProjectModelAccess))
+    }
+
+    override fun whenReady(action: Action<TaskExecutionGraph>) {
+        delegate.whenReady(action.wrap())
+    }
+
+    override fun hasTask(path: String): Boolean {
+        // If the queried task is in the referrer project, it's basically not a case of cross-project configuration;
+        // If there are only tasks from the current project in the task graph, then it's safe, too.
+        val parentPath = Path.path(path).parent?.path
+        if (parentPath != referrerProject.path && delegate.allTasks.any { it.project.path != parentPath }) {
+            val coupledProjects = listOfNotNull(parentPath).mapNotNull { referrerProject.findProject(it) }
+            reportCrossProjectTaskAccess(coupledProjects, path)
+        }
+        return delegate.hasTask(path)
+    }
+
+    private
+    fun checkCrossProjectTaskAccess(task: Task) {
+        val taskOwner = task.project as ProjectInternal
+        if (!taskOwner.isReferrerProject) {
+            val coupledProjects = listOf(taskOwner)
+            reportCrossProjectTaskAccess(coupledProjects, task.path)
+        }
+    }
+
+    override fun hasTask(task: Task): Boolean {
+        checkCrossProjectTaskAccess(task)
+        return delegate.hasTask(task)
+    }
+
+    override fun getAllTasks(): MutableList<Task> {
+        val result = delegate.allTasks
+        observingTasks(result)
+        return result
+    }
+
+    override fun getDependencies(task: Task): MutableSet<Task> {
+        checkCrossProjectTaskAccess(task)
+        val result = delegate.getDependencies(task)
+        observingTasks(result)
+        return result
+    }
+
+    override
+    fun getFilteredTasks(): MutableSet<Task> {
+        val result = delegate.filteredTasks
+        observingTasks(result)
+        return result
+    }
+
+    private
+    fun observingTasks(tasks: Collection<Task>) {
+        val otherProjects = tasks.mapNotNullTo(LinkedHashSet(tasks.size / 8)) { task ->
+            (task.project as? ProjectInternal)?.takeIf { project -> !project.isReferrerProject }
+        }
+        if (otherProjects.isNotEmpty()) {
+            reportCrossProjectTaskAccess(otherProjects)
+        }
+    }
+
+    private
+    val Project.isReferrerProject: Boolean
+        get() = this is ProjectInternal && identityPath == referrerProject.identityPath
+
+    private
+    fun reportCrossProjectTaskAccess(coupledProjects: Iterable<ProjectInternal>, requestPath: String? = null) {
+        reportCoupledProjects(coupledProjects)
+        reportProjectIsolationProblem(requestPath)
+    }
+
+    private
+    fun reportCoupledProjects(coupledProjects: Iterable<ProjectInternal>) {
+        coupledProjects.forEach { other ->
+            coupledProjectsListener.onProjectReference(referrerProject.owner, other.owner)
+        }
+    }
+
+    private
+    fun reportProjectIsolationProblem(requestPath: String?) {
+        val location = userCodeContext.location(null)
+        val message = StructuredMessage.build {
+            text("Project ")
+            reference(referrerProject.identityPath.toString())
+            text(" cannot access the tasks in the task graph that were created by other projects")
+        }
+        val exception = InvalidUserCodeException(
+            // As the exception message is not used for grouping, we can safely add the exact task name to it:
+            message.toString().capitalized() +
+                if (requestPath != null) "; tried to access '$requestPath'" else '"'
+        )
+        problems.onProblem(PropertyProblem(location, message, exception, null))
+    }
+
+    private
+    fun TaskExecutionGraphListener.wrap() = CrossProjectAccessTrackingTaskExecutionGraphListener(this, referrerProject, crossProjectModelAccess)
+
+    private
+    class CrossProjectAccessTrackingTaskExecutionGraphListener(
+        private val delegate: TaskExecutionGraphListener,
+        private val referrerProject: ProjectInternal,
+        private val crossProjectModelAccess: CrossProjectModelAccess
+    ) : TaskExecutionGraphListener {
+
+        override fun graphPopulated(graph: TaskExecutionGraph) {
+            val wrappedGraph = crossProjectModelAccess.taskGraphForProject(referrerProject, graph as TaskExecutionGraphInternal)
+            delegate.graphPopulated(wrappedGraph)
+        }
+
+        override fun equals(other: Any?): Boolean =
+            (other as? CrossProjectAccessTrackingTaskExecutionGraphListener)?.javaClass == javaClass &&
+                other.delegate == delegate &&
+                other.referrerProject == referrerProject
+
+        override fun hashCode(): Int = Objects.hash(delegate, referrerProject)
+        override fun toString(): String = "CrossProjectAccessTrackingTaskExecutionGraphListener(delegate = $delegate, referrerProject = $referrerProject)"
+    }
+
+    private
+    fun Action<in TaskExecutionGraph>.wrap(): Action<TaskExecutionGraph> = Action {
+        val wrappedGraph = if (this@Action == this@CrossProjectConfigurationReportingTaskExecutionGraph)
+            this@Action
+        else run {
+            val originalDelegate = when (val receiver = this@Action) {
+                is CrossProjectConfigurationReportingTaskExecutionGraph -> receiver.delegate
+                else -> receiver as TaskExecutionGraphInternal
+            }
+            crossProjectModelAccess.taskGraphForProject(referrerProject, originalDelegate)
+        }
+        this@wrap.execute(wrappedGraph)
+    }
+
+    // region overridden by delegation
+
+    override fun populate(plan: FinalizedExecutionPlan?) {
+        delegate.populate(plan)
+    }
+
+    override fun execute(plan: FinalizedExecutionPlan?): ExecutionResult<Void>? =
+        delegate.execute(plan)
+
+    override fun visitScheduledNodes(visitor: Consumer<MutableList<Node>>?) =
+        delegate.visitScheduledNodes(visitor)
+
+    override fun size(): Int = delegate.size()
+
+    @Deprecated("Deprecated in Java")
+    override fun addTaskExecutionListener(listener: TaskExecutionListener) {
+        @Suppress("DEPRECATION")
+        delegate.addTaskExecutionListener(listener)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun removeTaskExecutionListener(listener: TaskExecutionListener) {
+        @Suppress("DEPRECATION")
+        delegate.removeTaskExecutionListener(listener)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun beforeTask(closure: Closure<*>) {
+        @Suppress("DEPRECATION")
+        delegate.beforeTask(closure)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun beforeTask(action: Action<Task>) {
+        @Suppress("DEPRECATION")
+        delegate.beforeTask(action)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun afterTask(closure: Closure<*>) {
+        @Suppress("DEPRECATION")
+        delegate.afterTask(closure)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun afterTask(action: Action<Task>) {
+        @Suppress("DEPRECATION")
+        delegate.afterTask(action)
+    }
+
+    // endregion
+}

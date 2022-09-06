@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -51,5 +52,10 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     @Override
     public GradleInternal gradleInstanceForProject(ProjectInternal referrerProject, GradleInternal gradle) {
         return gradle;
+    }
+
+    @Override
+    public TaskExecutionGraphInternal taskGraphForProject(ProjectInternal referrerProject, TaskExecutionGraphInternal taskGraph) {
+        return taskGraph;
     }
 }
