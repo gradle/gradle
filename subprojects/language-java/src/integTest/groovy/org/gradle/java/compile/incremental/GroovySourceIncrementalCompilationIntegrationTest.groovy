@@ -22,11 +22,6 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIncrementalCompilationIntegrationTest implements DirectoryBuildCacheFixture {
     CompiledLanguage language = CompiledLanguage.GROOVY
 
-    @Override
-    boolean isForkedCompiler() {
-        return false
-    }
-
     def setup() {
         configureGroovyIncrementalCompilation()
     }
