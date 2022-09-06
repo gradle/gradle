@@ -48,6 +48,10 @@ public class WrapUtil {
             .nagUser();
     }
 
+    public WrapUtil() {
+        logDeprecation();
+    }
+
     /**
      * Wraps the given items in a mutable unordered set.
      */
