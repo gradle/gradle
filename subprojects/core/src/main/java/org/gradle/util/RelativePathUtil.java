@@ -29,7 +29,7 @@ import java.io.File;
 @Deprecated
 public class RelativePathUtil {
 
-    static {
+    private static void logDeprecation() {
         DeprecationLogger.deprecateType(RelativePathUtil.class)
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
@@ -44,6 +44,7 @@ public class RelativePathUtil {
      * @return The relative path
      */
     public static String relativePath(File from, File to) {
+        logDeprecation();
         try {
             return TextUtil.normaliseFileSeparators(from.toPath().relativize(to.toPath()).toString());
         } catch (Exception e) {
