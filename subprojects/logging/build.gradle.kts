@@ -44,5 +44,5 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/internal/featurelifecycle/**")
-    excludePatterns.add("org.gradle.api.internal.DocumentationRegistry")
+    excludePatterns.add("org/gradle/util/**")
 }
