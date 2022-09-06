@@ -61,10 +61,10 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaDependencyRecommender = "11.0.0"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "16.0.1"
+        static nebulaPluginPlugin = "17.1.0"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "17.2.3"
+        static nebulaLint = "17.7.0"
 
         // https://plugins.gradle.org/plugin/org.jetbrains.gradle.plugin.idea-ext
         static ideaExt = "1.1"
@@ -72,7 +72,7 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
         // TODO: Re-add "8.8.x", "9.4.x" and "10.1.x" if fixed:
         //   https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/215
-        static nebulaDependencyLock = Versions.of("12.1.0")
+        static nebulaDependencyLock = Versions.of("12.6.1")
 
         // https://plugins.gradle.org/plugin/nebula.resolution-rules
         static nebulaResolutionRules = "9.0.0"
