@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -67,9 +68,64 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         SourceFileClassNameConverter sourceFileClassNameConverter = getSourceFileClassNameConverter(previous);
 
         processClasspathChanges(current, previous, spec);
-        processOtherChanges(current, previous, spec, sourceFileClassNameConverter);
+        processSourceChanges(current, previous, spec, sourceFileClassNameConverter);
+        collectSourcePathsAndFindIndependentClasses(previous, spec, sourceFileClassNameConverter);
         spec.addClassesToProcess(previous.getTypesToReprocess(spec.getClassesToCompile()));
         return spec;
+    }
+
+    /**
+     * This method collects all source paths, while collecting paths it additionally also
+     * collects all classes that are inside these sources, but were not detected as a dependency of a changed class.
+     * This is important so all .class files that will be created are removed before compilation.
+     * </p>
+     * Example:
+     * A.java
+     * class A {}
+     * </p>
+     * Test.java (has C as an independent class)
+     * class B extends A {}
+     * class C {}
+     * </p>
+     * If/when we change A, B and C will be recompiled, since we will pass Test.java to a compiler, but we won't delete origin C.class. So C.class will be on classpath at the compile time.
+     * That can confuse for example Groovy compiler when it generates test methods for Spock.
+     */
+    private void collectSourcePathsAndFindIndependentClasses(PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+        SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
+        Set<String> classesToCompile = new LinkedHashSet<>(spec.getClassesToCompile());
+        while (!classesToCompile.isEmpty() && !spec.isFullRebuildNeeded()) {
+
+            Set<String> independentClasses = new LinkedHashSet<>();
+            for (String classToCompile : classesToCompile) {
+                for (String sourcePath : sourceFileClassNameConverter.getRelativeSourcePaths(classToCompile)) {
+                    independentClasses.addAll(findIndependentClassesFromSource(sourcePath, spec, sourceFileClassNameConverter));
+                    spec.addSourcePath(sourcePath);
+                }
+            }
+
+            if (independentClasses.isEmpty()) {
+                classesToCompile = Collections.emptySet();
+            } else {
+                // Since these independent classes didn't actually change, they will be just recreated.
+                // So we just have to collect just annotation dependencies, so they are correctly deleted before compilation.
+                classesToCompile = sourceFileChangeProcessor.processAnnotationDependenciesOfIndependentClasses(independentClasses, spec);
+            }
+        }
+    }
+
+    private Set<String> findIndependentClassesFromSource(String sourcePath, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+        Set<String> classNames = sourceFileClassNameConverter.getClassNames(sourcePath);
+        if (classNames.size() <= 1) {
+            // If we have just 1 class in a source, it was already collected before
+            return Collections.emptySet();
+        }
+        Set<String> newClasses = new LinkedHashSet<>();
+        for (String className : classNames) {
+            if (spec.addClassesToCompile(className)) {
+                newClasses.add(className);
+            }
+        }
+        return newClasses;
     }
 
     @Override
@@ -83,8 +139,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         PatternSet classesToDelete = fileOperations.patternSet();
         PatternSet sourceToCompile = fileOperations.patternSet();
 
-        SourceFileClassNameConverter sourceFileClassNameConverter = getSourceFileClassNameConverter(recompilationSpec.getPreviousCompilation());
-        prepareFilePatterns(recompilationSpec.getClassesToCompile(), classesToDelete, sourceToCompile, sourceFileClassNameConverter);
+        prepareFilePatterns(recompilationSpec.getClassesToCompile(), recompilationSpec.getSourcePaths(), classesToDelete, sourceToCompile);
         spec.setSourceFiles(narrowDownSourcesToCompile(sourceTree, sourceToCompile));
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
@@ -107,7 +162,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         return resourcesByLocation;
     }
 
-    private void processOtherChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+    private void processSourceChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         if (spec.isFullRebuildNeeded()) {
             return;
         }
@@ -131,12 +186,12 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
 
     protected abstract boolean isIncrementalOnResourceChanges(CurrentCompilation currentCompilation);
 
-    private void prepareFilePatterns(Collection<String> staleClasses, PatternSet filesToDelete, PatternSet sourceToCompile, SourceFileClassNameConverter sourceFileClassNameConverter) {
+    private void prepareFilePatterns(Collection<String> staleClasses, Collection<String> sourcePaths, PatternSet filesToDelete, PatternSet sourceToCompile) {
+        for (String sourcePath : sourcePaths) {
+            filesToDelete.include(sourcePath);
+            sourceToCompile.include(sourcePath);
+        }
         for (String staleClass : staleClasses) {
-            for (String sourcePath : sourceFileClassNameConverter.getRelativeSourcePaths(staleClass)) {
-                filesToDelete.include(sourcePath);
-                sourceToCompile.include(sourcePath);
-            }
             filesToDelete.include(staleClass.replaceAll("\\.", "/").concat(".class"));
             filesToDelete.include(staleClass.replaceAll("[.$]", "_").concat(".h"));
         }

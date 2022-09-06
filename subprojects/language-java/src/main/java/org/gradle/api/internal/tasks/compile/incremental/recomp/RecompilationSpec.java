@@ -25,6 +25,7 @@ import java.util.Set;
 
 public class RecompilationSpec {
     private final Set<String> classesToCompile = new LinkedHashSet<>();
+    private final Set<String> sourcePaths = new LinkedHashSet<>();
     private final Collection<String> classesToProcess = new LinkedHashSet<>();
     private final Collection<GeneratedResource> resourcesToGenerate = new LinkedHashSet<>();
     private final PreviousCompilation previousCompilation;
@@ -40,10 +41,15 @@ public class RecompilationSpec {
             "classesToCompile=" + classesToCompile +
             ", classesToProcess=" + classesToProcess +
             ", resourcesToGenerate=" + resourcesToGenerate +
+            ", sourcePaths=" + sourcePaths +
             ", fullRebuildCause='" + fullRebuildCause + '\'' +
             ", buildNeeded=" + isBuildNeeded() +
             ", fullRebuildNeeded=" + isFullRebuildNeeded() +
             '}';
+    }
+
+    public boolean addClassesToCompile(String classToCompile) {
+        return classesToCompile.add(classToCompile);
     }
 
     public void addClassesToCompile(Collection<String> classes) {
@@ -78,6 +84,14 @@ public class RecompilationSpec {
 
     public Collection<GeneratedResource> getResourcesToGenerate() {
         return Collections.unmodifiableCollection(resourcesToGenerate);
+    }
+
+    public void addSourcePath(String sourcePath) {
+        sourcePaths.add(sourcePath);
+    }
+
+    public Set<String> getSourcePaths() {
+        return sourcePaths;
     }
 
     public boolean isBuildNeeded() {
