@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.LimitedDescription;
 
 import javax.annotation.Nullable;
