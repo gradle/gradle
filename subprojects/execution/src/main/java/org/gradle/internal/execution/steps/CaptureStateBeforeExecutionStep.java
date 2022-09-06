@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
 
@@ -135,8 +136,10 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
                     throw work.decorateOutputFileSnapshottingException(e);
                 }
 
+                OverlappingOutputs overlappingOutputs = detectOverlappingOutputs(work, context, unfilteredOutputSnapshots);
+
                 try {
-                    BeforeExecutionState executionState = captureExecutionStateWithOutputs(work, context, unfilteredOutputSnapshots);
+                    BeforeExecutionState executionState = captureExecutionStateWithOutputs(work, context, unfilteredOutputSnapshots, overlappingOutputs);
                     operationContext.setResult(Operation.Result.INSTANCE);
                     return executionState;
                 } catch (InputFileFingerprintingException e) {
@@ -151,7 +154,18 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
         );
     }
 
-    private BeforeExecutionState captureExecutionStateWithOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots) {
+    @Nullable
+    private OverlappingOutputs detectOverlappingOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots) {
+        if (work.getOverlappingOutputHandling() == UnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS) {
+            return null;
+        }
+        ImmutableSortedMap<String, FileSystemSnapshot> previousOutputSnapshots = context.getPreviousExecutionState()
+            .map(PreviousExecutionState::getOutputFilesProducedByWork)
+            .orElse(ImmutableSortedMap.of());
+        return overlappingOutputDetector.detect(previousOutputSnapshots, unfilteredOutputSnapshots);
+    }
+
+    private BeforeExecutionState captureExecutionStateWithOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots, @Nullable OverlappingOutputs overlappingOutputs) {
         Optional<PreviousExecutionState> previousExecutionState = context.getPreviousExecutionState();
 
         ImplementationsBuilder implementationsBuilder = new ImplementationsBuilder(classLoaderHierarchyHasher);
@@ -170,21 +184,6 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
         ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousInputFileFingerprints = previousExecutionState
             .map(InputExecutionState::getInputFileProperties)
             .orElse(ImmutableSortedMap.of());
-        ImmutableSortedMap<String, FileSystemSnapshot> previousOutputSnapshots = previousExecutionState
-            .map(PreviousExecutionState::getOutputFilesProducedByWork)
-            .orElse(ImmutableSortedMap.of());
-
-        OverlappingOutputs overlappingOutputs;
-        switch (work.getOverlappingOutputHandling()) {
-            case DETECT_OVERLAPS:
-                overlappingOutputs = overlappingOutputDetector.detect(previousOutputSnapshots, unfilteredOutputSnapshots);
-                break;
-            case IGNORE_OVERLAPS:
-                overlappingOutputs = null;
-                break;
-            default:
-                throw new AssertionError();
-        }
 
         InputFingerprinter.Result newInputs = work.getInputFingerprinter().fingerprintInputProperties(
             previousInputPropertySnapshots,
