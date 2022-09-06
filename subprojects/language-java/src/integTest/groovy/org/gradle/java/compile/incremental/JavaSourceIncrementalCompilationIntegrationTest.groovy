@@ -181,9 +181,4 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         then:
         outputs.recompiledClasses("A", "B", "E", "Const", "package-info")
     }
-
-    @Override
-    boolean isForkedCompiler() {
-        return false
-    }
 }
