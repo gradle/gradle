@@ -39,6 +39,7 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.configuration.ConfigurationTargetIdentifier
+import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
@@ -138,8 +139,8 @@ class CrossProjectConfigurationReportingGradle private constructor(
     internal
     companion object {
         fun from(gradle: GradleInternal, referrerProject: ProjectInternal): CrossProjectConfigurationReportingGradle {
-            val parentCrossProjectModelAccess = gradle.services.get(CrossProjectModelAccess::class.java)
-            val parentCrossProjectConfigurator = gradle.services.get(CrossProjectConfigurator::class.java)
+            val parentCrossProjectModelAccess = gradle.serviceOf<CrossProjectModelAccess>()
+            val parentCrossProjectConfigurator = gradle.serviceOf<CrossProjectConfigurator>()
             return CrossProjectConfigurationReportingGradle(gradle, referrerProject, parentCrossProjectModelAccess, parentCrossProjectConfigurator)
         }
     }
