@@ -32,7 +32,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
@@ -70,13 +69,6 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
     private static void validateName(String name) {
         if (!VALID_EXTENSION_PATTERN.matcher(name).matches()) {
             throw new InvalidUserDataException("Invalid model name '" + name + "': it must match the following regular expression: " + VALID_EXTENSION_NAME);
-        }
-
-        if (!name.equals("libs") && !name.endsWith("Libs")) {
-            DeprecationLogger.deprecateBehaviour("The name of version catalogs must end with 'Libs' to reduce chances of extension conflicts.")
-                .willBecomeAnErrorInGradle8()
-                .withUserManual("platforms", "sec:multiple")
-                .nagUser();
         }
     }
 
