@@ -18,7 +18,7 @@ file("src2/dir2").mkdirs()
 
 // tag::closure[]
 tasks.register("list") {
-    val projectDirectory: Directory = layout.projectDirectory
+    val projectDirectory = layout.projectDirectory
     doLast {
         var srcDir: File? = null
 
@@ -38,7 +38,7 @@ tasks.register("list") {
 // end::closure[]
 
 tasks.register("usage") {
-    val projectLayout: ProjectLayout = layout
+    val projectLayout = layout
     doLast {
         val collection = projectLayout.files("src/file1.txt")
 
@@ -65,7 +65,7 @@ tasks.register("usage") {
 tasks.register("filterTextFiles") {
     // Copy collection property to a local variable for configuration cache support.
     val collection: FileCollection = collection
-    val projectDirectory: Directory = layout.projectDirectory
+    val projectDirectory = layout.projectDirectory
     doLast {
         // tag::filtering-file-collections[]
         val textFiles: FileCollection = collection.filter { f: File ->

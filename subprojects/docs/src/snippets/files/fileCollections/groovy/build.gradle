@@ -69,7 +69,7 @@ tasks.register('filterTextFiles') {
         }
         // end::filtering-file-collections[]
 
-        textFiles.collect { projectDirectory.asFile.toPath().relativize(it.toPath()).toString() }.sort().each { String path ->
+        textFiles.collect { projectDirectory.asFile.relativePath(it).toString() }.sort().each { String path ->
             println path
         }
 
