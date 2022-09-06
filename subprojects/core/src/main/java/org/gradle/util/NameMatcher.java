@@ -30,7 +30,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 @Deprecated
 public class NameMatcher {
 
-    static {
+    private static void logDeprecation() {
         DeprecationLogger.deprecateType(NameMatcher.class)
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
@@ -40,6 +40,10 @@ public class NameMatcher {
     private final SortedSet<String> matches = new TreeSet<>();
     private final Set<String> candidates = new TreeSet<>();
     private String pattern;
+
+    public NameMatcher() {
+        logDeprecation();
+    }
 
     /**
      * Locates the best match for a camel case pattern in a key set of a map and returns the corresponding value.
