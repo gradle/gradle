@@ -18,6 +18,7 @@ package org.gradle.util;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 
