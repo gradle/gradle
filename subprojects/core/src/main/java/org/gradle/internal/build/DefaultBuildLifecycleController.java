@@ -20,7 +20,9 @@ import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.execution.BuildWorkExecutor;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
@@ -131,22 +133,23 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public BuildWorkPlan newWorkGraph() {
-        return state.inState(State.TaskSchedule, () -> {
-            ExecutionPlan plan = workPreparer.newExecutionPlan();
-            modelController.initializeWorkGraph(plan);
-            return new DefaultBuildWorkPlan(this, plan);
-        });
+        ExecutionPlan plan = workPreparer.newExecutionPlan();
+        return new DefaultBuildWorkPlan(this, plan);
     }
 
     @Override
     public void populateWorkGraph(BuildWorkPlan plan, Consumer<? super WorkGraphBuilder> action) {
         DefaultBuildWorkPlan workPlan = unpack(plan);
+        workPlan.empty = false;
         state.inState(State.TaskSchedule, () -> workPreparer.populateWorkGraph(gradle, workPlan.plan, dest -> action.accept(new DefaultWorkGraphBuilder(dest))));
     }
 
     @Override
     public void finalizeWorkGraph(BuildWorkPlan plan) {
         DefaultBuildWorkPlan workPlan = unpack(plan);
+        if (workPlan.empty) {
+            return;
+        }
         state.transition(State.TaskSchedule, State.ReadyToRun, () -> {
             for (Consumer<LocalTaskNode> handler : workPlan.handlers) {
                 workPlan.plan.onComplete(handler);
@@ -159,6 +162,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     public ExecutionResult<Void> executeTasks(BuildWorkPlan plan) {
         // Execute tasks and transition back to "configure", as this build may run more tasks;
         DefaultBuildWorkPlan workPlan = unpack(plan);
+        if (workPlan.empty) {
+            return ExecutionResult.succeeded();
+        }
         return state.tryTransition(State.ReadyToRun, State.Configure, () -> workExecutor.execute(gradle, workPlan.finalizedPlan));
     }
 
@@ -215,6 +221,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         private final ExecutionPlan plan;
         private final List<Consumer<LocalTaskNode>> handlers = new ArrayList<>();
         private FinalizedExecutionPlan finalizedPlan;
+        private boolean empty = true;
 
         public DefaultBuildWorkPlan(DefaultBuildLifecycleController owner, ExecutionPlan plan) {
             this.owner = owner;
@@ -224,6 +231,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         @Override
         public void stop() {
             plan.close();
+        }
+
+        @Override
+        public void addFilter(Spec<Task> filter) {
+            plan.addFilter(filter);
         }
 
         @Override
@@ -240,8 +252,8 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
-        public void addRequestedTasks() {
-            modelController.scheduleRequestedTasks(plan);
+        public void addRequestedTasks(@Nullable EntryTaskSelector selector) {
+            modelController.scheduleRequestedTasks(selector, plan);
         }
 
         @Override

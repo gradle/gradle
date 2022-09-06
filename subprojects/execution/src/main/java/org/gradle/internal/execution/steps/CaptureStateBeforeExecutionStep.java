@@ -72,7 +72,7 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
     @Override
     public R execute(UnitOfWork work, C context) {
         Optional<BeforeExecutionState> beforeExecutionState = context.getHistory()
-            .flatMap(history -> captureExecutionState(work, context));
+            .map(history -> captureExecutionState(work, context));
         return delegate.execute(work, new BeforeExecutionContext() {
             @Override
             public Optional<BeforeExecutionState> getBeforeExecutionState() {
@@ -126,27 +126,23 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
     }
 
     @Nonnull
-    private Optional<BeforeExecutionState> captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {
+    private BeforeExecutionState captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {
         return operation(operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots;
                 try {
                     unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
                 } catch (OutputFileSnapshottingException e) {
-                    work.handleUnreadableOutputs(e);
-                    operationContext.setResult(Operation.Result.INSTANCE);
-                    return Optional.empty();
+                    throw work.decorateOutputFileSnapshottingException(e);
                 }
 
                 try {
                     BeforeExecutionState executionState = captureExecutionStateWithOutputs(work, context, unfilteredOutputSnapshots);
                     operationContext.setResult(Operation.Result.INSTANCE);
-                    return Optional.of(executionState);
+                    return executionState;
                 } catch (InputFileFingerprintingException e) {
                     // Note that we let InputFingerprintException fall through as we've already
                     // been failing for non-file value fingerprinting problems even for tasks
-                    work.handleUnreadableInputs(e);
-                    operationContext.setResult(Operation.Result.INSTANCE);
-                    return Optional.empty();
+                    throw work.decorateInputFileFingerprintingException(e);
                 }
             },
             BuildOperationDescriptor
