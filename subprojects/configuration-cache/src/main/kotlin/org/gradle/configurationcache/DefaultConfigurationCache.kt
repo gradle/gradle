@@ -125,13 +125,14 @@ class DefaultConfigurationCache internal constructor(
         this.host = host
     }
 
-    override fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> Unit) {
-        if (isLoaded) {
+    override fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph): BuildTreeWorkGraph.FinalizedGraph {
+        return if (isLoaded) {
             loadWorkGraph(graph)
         } else {
             runWorkThatContributesToCacheEntry {
-                scheduler(graph)
+                val finalizedGraph = scheduler(graph)
                 saveWorkGraph()
+                finalizedGraph
             }
         }
     }
@@ -185,6 +186,7 @@ class DefaultConfigurationCache internal constructor(
             logBootstrapSummary("Recreating configuration cache")
             ConfigurationCacheAction.STORE
         }
+
         startParameter.isRefreshDependencies -> {
             logBootstrapSummary(
                 "{} as configuration cache cannot be reused due to {}",
@@ -193,6 +195,7 @@ class DefaultConfigurationCache internal constructor(
             )
             ConfigurationCacheAction.STORE
         }
+
         startParameter.isWriteDependencyLocks -> {
             logBootstrapSummary(
                 "{} as configuration cache cannot be reused due to {}",
@@ -201,6 +204,7 @@ class DefaultConfigurationCache internal constructor(
             )
             ConfigurationCacheAction.STORE
         }
+
         startParameter.isUpdateDependencyLocks -> {
             logBootstrapSummary(
                 "{} as configuration cache cannot be reused due to {}",
@@ -209,6 +213,7 @@ class DefaultConfigurationCache internal constructor(
             )
             ConfigurationCacheAction.STORE
         }
+
         else -> {
             when (val checkedFingerprint = checkFingerprint()) {
                 is CheckedFingerprint.NotFound -> {
@@ -219,6 +224,7 @@ class DefaultConfigurationCache internal constructor(
                     )
                     ConfigurationCacheAction.STORE
                 }
+
                 is CheckedFingerprint.EntryInvalid -> {
                     logBootstrapSummary(
                         "{} as configuration cache cannot be reused because {}.",
@@ -227,6 +233,7 @@ class DefaultConfigurationCache internal constructor(
                     )
                     ConfigurationCacheAction.STORE
                 }
+
                 is CheckedFingerprint.ProjectsInvalid -> {
                     logBootstrapSummary(
                         "{} as configuration cache cannot be reused because {}.",
@@ -235,6 +242,7 @@ class DefaultConfigurationCache internal constructor(
                     )
                     ConfigurationCacheAction.UPDATE
                 }
+
                 is CheckedFingerprint.Valid -> {
                     logBootstrapSummary("Reusing configuration cache.")
                     ConfigurationCacheAction.LOAD
@@ -339,8 +347,8 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun loadWorkGraph(graph: BuildTreeWorkGraph) {
-        loadFromCache(StateType.Work) { stateFile ->
+    fun loadWorkGraph(graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
+        return loadFromCache(StateType.Work) { stateFile ->
             cacheIO.readRootBuildStateFrom(stateFile, graph)
         }
     }

@@ -56,12 +56,38 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         'codenarc'   | 'codenarc'
         'pmd'        | 'pmd'
         'checkstyle' | 'checkstyle'
-        'antlr'      | 'antlr'
         'jacoco'     | 'jacocoAgent'
         'jacoco'     | 'jacocoAnt'
         'scala'      | 'zinc'
         'war'        | 'providedRuntime'
         'war'        | 'providedCompile'
+    }
+
+    def "plugin runtime configuration is not consumable"() {
+        given:
+        file("producer/build.gradle") << """
+            plugins {
+                id("$plugin")
+            }
+        """
+
+        when:
+        file("consumer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation(project(path: ":producer", configuration: "$configuration"))
+            }
+        """
+
+        then:
+        fails("test")
+        result.hasErrorOutput("Selected configuration 'antlr' on 'project :producer' but it can't be used as a project dependency because it isn't intended for consumption by other components")
+
+        where:
+        plugin       | configuration
+        'antlr'      | 'antlr'
     }
 
     def "plugin runtime configuration can be extended and consumed without deprecation"() {

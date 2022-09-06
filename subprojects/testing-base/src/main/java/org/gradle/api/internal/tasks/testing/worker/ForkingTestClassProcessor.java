@@ -106,10 +106,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     }
 
     RemoteTestClassProcessor forkProcess() {
-        @SuppressWarnings("deprecation") // WorkerProcessBuilder#useLegacyAddOpens
-        WorkerProcessBuilder builder =
-            workerFactory.create(new TestWorker(processorFactory))
-                         .setUseLegacyAddOpens(false);
+        WorkerProcessBuilder builder = workerFactory.create(new TestWorker(processorFactory));
         builder.setBaseName("Gradle Test Executor");
         builder.setImplementationClasspath(getTestWorkerImplementationClasspath());
         builder.setImplementationModulePath(getTestWorkerImplementationModulePath());

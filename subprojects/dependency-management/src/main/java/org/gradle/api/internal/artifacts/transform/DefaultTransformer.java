@@ -47,7 +47,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.Describables;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
@@ -425,15 +424,6 @@ public class DefaultTransformer implements Transformer {
         public TransformServiceLookup(Provider<FileSystemLocation> inputFileProvider, @Nullable ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges, ServiceLookup delegate) {
             this.delegate = delegate;
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
-            builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, File.class, () -> {
-                DeprecationLogger
-                    .deprecate("Injecting the input artifact of a transform as a File")
-                    .withAdvice("Declare the input artifact as Provider<FileSystemLocation> instead.")
-                    .willBecomeAnErrorInGradle8()
-                    .withUserManual("artifact_transforms", "sec:implementing-artifact-transforms")
-                    .nagUser();
-                return inputFileProvider.get().getAsFile();
-            }));
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
             if (artifactTransformDependencies != null) {
                 builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, () -> artifactTransformDependencies.getFiles().orElseThrow(() -> new IllegalStateException("Transform does not use artifact dependencies."))));

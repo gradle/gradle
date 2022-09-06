@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JavaToolchainSpecIntegrationTest extends AbstractIntegrationSpec {
 
-    def "nag user about invalid toolchain spec when #description"() {
+    def "fails when using an invalid toolchain spec when #description"() {
         buildScript """
             apply plugin: "java"
 
@@ -31,11 +31,10 @@ class JavaToolchainSpecIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Using toolchain specifications without setting a language version has been deprecated. This will fail with an error in Gradle 8.0. Consider configuring the language version. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#invalid_toolchain_specification_deprecation")
-        run ':help'
+        runAndFail ':help'
 
         then:
-        executedAndNotSkipped ':help'
+        failure.assertHasDocumentedCause("Using toolchain specifications without setting a language version is not supported. Consider configuring the language version. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#invalid_toolchain_specification_deprecation")
 
         where:
         description                                | configureInvalid

@@ -20,7 +20,6 @@ val archunitVersion = "0.20.1"
 val asmVersion = "9.3"
 val awsS3Version = "1.11.948"
 val bouncycastleVersion = "1.68"
-val googleApiVersion = "1.25.0" // See usage before attempting to upgrade
 val jacksonVersion = "2.13.3"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
@@ -67,12 +66,14 @@ dependencies {
         api(libs.commonsLang3)          { version { strictly("3.12.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.fastutil)              { version { strictly("8.5.2") }}
-        api(libs.gcs)                   { version { strictly("v1-rev171-1.25.0") }}
-        api(libs.googleApiClient)       { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
-        api(libs.googleHttpClient)      { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
-        api(libs.googleHttpClientJackson2) { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
-        api(libs.googleOauthClient)     { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
         api(libs.gradleProfiler)        { version { strictly("0.19.0-alpha02") }}
+        api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
+        api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
+        api(libs.guava)                 { version { strictly("31.1-jre"); because("our Google API Client version requires 31.1-jre")  }}
+        api(libs.googleHttpClientGson)  { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2")  }}
+        api(libs.googleHttpClientApacheV2) { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2")  }}
+        api(libs.googleHttpClient)      { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2") }}
+        api(libs.googleOauthClient)     { version { strictly("1.34.1"); because("our Google API Client version requires 1.34.1") }}
         api(libs.groovy)                { version { strictly(libs.groovyVersion) }}
         api(libs.groovyAnt)             { version { strictly(libs.groovyVersion) }}
         api(libs.groovyAstbuilder)      { version { strictly(libs.groovyVersion) }}
@@ -87,7 +88,6 @@ dependencies {
         api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
         api(libs.gson)                  { version { strictly("2.8.9") }}
-        api(libs.guava)                 { version { strictly("30.1.1-jre") }}
         api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
         api(libs.hikariCP)              { version { strictly("4.0.2") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
