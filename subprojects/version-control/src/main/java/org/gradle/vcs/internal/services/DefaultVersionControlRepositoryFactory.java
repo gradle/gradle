@@ -17,9 +17,9 @@
 package org.gradle.vcs.internal.services;
 
 import org.gradle.api.GradleException;
+import org.gradle.cache.CleanupActionFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.CleanupActionFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.scopes.BuildTreeScopedCache;

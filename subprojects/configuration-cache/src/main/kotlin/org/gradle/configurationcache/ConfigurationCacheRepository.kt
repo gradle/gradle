@@ -18,9 +18,9 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.cache.CacheBuilder
+import org.gradle.cache.CleanupActionFactory
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.CleanupActionFactory
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.cache.internal.SingleDepthFilesFinder
 import org.gradle.cache.internal.filelock.LockOptionsBuilder

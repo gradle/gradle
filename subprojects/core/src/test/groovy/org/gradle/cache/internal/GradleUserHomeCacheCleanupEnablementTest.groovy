@@ -16,6 +16,9 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.cache.CleanableStore
+import org.gradle.cache.CleanupAction
+import org.gradle.cache.CleanupProgressMonitor
 import org.gradle.initialization.GradleUserHomeDirProvider
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -26,59 +29,60 @@ class GradleUserHomeCacheCleanupEnablementTest extends Specification {
     @Rule
     TemporaryFolder tmpDir = new TemporaryFolder()
 
+    def delegateCleanupAction = Mock(CleanupAction)
     def gradleUserHomeProvider = Stub(GradleUserHomeDirProvider)
     def cacheCleanupEnablement = new GradleUserHomeCacheCleanupEnablement(gradleUserHomeProvider)
 
-    def "allows cleanup for files in gradle user home"() {
+    def "allows cleanup when enabled"() {
         given:
-        gradleUserHomeProvider.gradleUserHomeDirectory >> tmpDir.newFolder('foo')
+        enableCacheCleanup('foo')
 
         expect:
-        cacheCleanupEnablement.isEnabledFor(directory(dir))
-
-        where:
-        dir << [
-            'foo',
-            'foo/bar',
-            'foo/bar/baz'
-        ]
+        cacheCleanupEnablement.isEnabled()
     }
 
-    def "does not allow cleanup for files not in gradle user home"() {
+    def "disallows cleanup when disabled"() {
         given:
-        gradleUserHomeProvider.gradleUserHomeDirectory >> tmpDir.newFolder('foo/bar')
+        disableCacheCleanup('foo')
 
         expect:
-        !cacheCleanupEnablement.isEnabledFor(directory(dir))
-
-        where:
-        dir << [
-            'foo',
-            'foo/baz',
-            'bar',
-            'foo'
-        ]
+        !cacheCleanupEnablement.isEnabled()
     }
 
-    def "does not allow cleanup when caching is disabled"() {
+    def "wrapping allows cleanup when enabled"() {
         given:
-        def guh = tmpDir.newFolder('foo')
+        enableCacheCleanup('foo')
+
+        when:
+        cacheCleanupEnablement.create(delegateCleanupAction).clean(Mock(CleanableStore), Mock(CleanupProgressMonitor))
+
+        then:
+        1 * delegateCleanupAction.clean(_, _)
+    }
+
+    def "wrapping does not allow cleanup for files in gradle user home when cleanup is disabled"() {
+        given:
+        disableCacheCleanup('foo')
+
+        when:
+        cacheCleanupEnablement.create(delegateCleanupAction).clean(Mock(CleanableStore), Mock(CleanupProgressMonitor))
+
+        then:
+        0 * delegateCleanupAction.clean(_, _)
+    }
+
+    private File setGradleUserHome(String gradleUserHomePath) {
+        def guh = tmpDir.newFolder(gradleUserHomePath)
         gradleUserHomeProvider.gradleUserHomeDirectory >> guh
-        new File(guh, 'gradle.properties') << "${GradleUserHomeCacheCleanupEnablement.CACHE_CLEANUP_PROPERTY}=false"
-
-        expect:
-        !cacheCleanupEnablement.isEnabledFor(directory(dir))
-
-        where:
-        dir << [
-            'foo',
-            'foo/bar',
-            'foo/bar/baz'
-        ]
+        return guh
     }
 
-    private File directory(String path) {
-        def dir = new File(tmpDir.root, path)
-        return dir.exists() ? dir : tmpDir.newFolder(path)
+    private void enableCacheCleanup(String gradleUserHomePath) {
+        setGradleUserHome(gradleUserHomePath)
+    }
+
+    private void disableCacheCleanup(String gradleUserHomePath) {
+        def guh = setGradleUserHome(gradleUserHomePath)
+        new File(guh, 'gradle.properties') << "${GradleUserHomeCacheCleanupEnablement.CACHE_CLEANUP_PROPERTY}=false"
     }
 }

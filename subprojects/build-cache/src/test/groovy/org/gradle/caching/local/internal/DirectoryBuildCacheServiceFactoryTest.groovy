@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.CleanupAction
-import org.gradle.cache.internal.CleanupActionFactory
+import org.gradle.cache.CleanupActionFactory
 import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.local.DirectoryBuildCache

@@ -35,8 +35,9 @@ import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.CleanupActionFactory;
 import org.gradle.cache.internal.BuildScopeCacheDir;
-import org.gradle.cache.internal.CleanupActionFactory;
+import org.gradle.cache.internal.BuildOperationCleanupActionFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCache;
 import org.gradle.cache.scopes.BuildTreeScopedCache;
@@ -193,7 +194,7 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
     }
 
     CleanupActionFactory createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {
-        return new CleanupActionFactory(buildOperationExecutor);
+        return new BuildOperationCleanupActionFactory(buildOperationExecutor);
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {

@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.CacheCleanupEnablement;
 import org.gradle.cache.internal.CacheVersionMapping;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
@@ -49,9 +50,11 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final UsedGradleVersions usedGradleVersions;
+    private final CacheCleanupEnablement cacheCleanupEnablement;
 
-    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions) {
+    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CacheCleanupEnablement cacheCleanupEnablement) {
         this.usedGradleVersions = usedGradleVersions;
+        this.cacheCleanupEnablement = cacheCleanupEnablement;
     }
 
     @Override
@@ -61,17 +64,20 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
             .withDisplayName(CACHE_NAME)
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
-            .withCleanup(
-                CompositeCleanupAction.builder()
-                    .add(UnusedVersionsCacheCleanup.create(CACHE_NAME, CACHE_VERSION_MAPPING, usedGradleVersions))
-                    .add(
-                        new LeastRecentlyUsedCacheCleanup(
-                            new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP),
-                            fileAccessTimeJournal,
-                            DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
-                        )
-                    ).build()
-            ).open();
+            .withCleanup(cacheCleanupEnablement.create(createCleanupAction(fileAccessTimeJournal)))
+            .open();
+    }
+
+    private CompositeCleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal) {
+        return CompositeCleanupAction.builder()
+            .add(UnusedVersionsCacheCleanup.create(CACHE_NAME, CACHE_VERSION_MAPPING, usedGradleVersions))
+            .add(
+                new LeastRecentlyUsedCacheCleanup(
+                    new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP),
+                    fileAccessTimeJournal,
+                    DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+                )
+            ).build();
     }
 
     @Override

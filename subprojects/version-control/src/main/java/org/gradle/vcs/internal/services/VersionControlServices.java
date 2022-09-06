@@ -30,7 +30,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.cache.internal.CleanupActionFactory;
+import org.gradle.cache.CleanupActionFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCache;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;

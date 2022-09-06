@@ -32,6 +32,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
+import org.gradle.cache.internal.CacheCleanupEnablement;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultCacheRepository;
@@ -39,6 +40,7 @@ import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.DefaultGlobalCacheLocations;
 import org.gradle.cache.internal.FileContentCacheFactory;
+import org.gradle.cache.internal.GradleUserHomeCacheCleanupEnablement;
 import org.gradle.cache.internal.GradleUserHomeCleanupServices;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
@@ -111,6 +113,10 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         for (PluginServiceRegistry plugin : globalServices.getAll(PluginServiceRegistry.class)) {
             plugin.registerGradleUserHomeServices(registration);
         }
+    }
+
+    CacheCleanupEnablement createCacheCleanupEnablement(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
+        return new GradleUserHomeCacheCleanupEnablement(gradleUserHomeDirProvider);
     }
 
     CacheRepository createCacheRepository(GlobalCacheDir globalCacheDir, CacheFactory cacheFactory) {

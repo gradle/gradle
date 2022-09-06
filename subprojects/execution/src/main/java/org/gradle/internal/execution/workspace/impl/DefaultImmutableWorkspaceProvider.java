@@ -21,6 +21,7 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.CacheCleanupEnablement;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
@@ -51,7 +52,8 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner,
-        ClassLoaderHierarchyHasher classLoaderHasher
+        ClassLoaderHierarchyHasher classLoaderHasher,
+        CacheCleanupEnablement cacheCleanupEnablement
     ) {
         return withBuiltInHistory(
             cacheBuilder,
@@ -59,7 +61,8 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
             inMemoryCacheDecoratorFactory,
             stringInterner,
             classLoaderHasher,
-            DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP
+            DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
+            cacheCleanupEnablement
         );
     }
 
@@ -69,26 +72,30 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHasher,
-        int treeDepthToTrackAndCleanup
+        int treeDepthToTrackAndCleanup,
+        CacheCleanupEnablement cacheCleanupEnablement
     ) {
         return new DefaultImmutableWorkspaceProvider(
             cacheBuilder,
             fileAccessTimeJournal,
             cache -> new DefaultExecutionHistoryStore(() -> cache, inMemoryCacheDecoratorFactory, stringInterner, classLoaderHasher),
-            treeDepthToTrackAndCleanup
+            treeDepthToTrackAndCleanup,
+            cacheCleanupEnablement
         );
     }
 
     public static DefaultImmutableWorkspaceProvider withExternalHistory(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
-        ExecutionHistoryStore executionHistoryStore
+        ExecutionHistoryStore executionHistoryStore,
+        CacheCleanupEnablement cacheCleanupEnablement
     ) {
         return new DefaultImmutableWorkspaceProvider(
             cacheBuilder,
             fileAccessTimeJournal,
             __ -> executionHistoryStore,
-            DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP
+            DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
+            cacheCleanupEnablement
         );
     }
 
@@ -96,10 +103,11 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         Function<PersistentCache, ExecutionHistoryStore> historyFactory,
-        int treeDepthToTrackAndCleanup
+        int treeDepthToTrackAndCleanup,
+        CacheCleanupEnablement cacheCleanupEnablement
     ) {
         PersistentCache cache = cacheBuilder
-            .withCleanup(createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup))
+            .withCleanup(cacheCleanupEnablement.create(createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup)))
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
         this.cache = cache;
