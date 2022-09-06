@@ -92,8 +92,8 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
             .build()
     }
 
-    @Ignore("Waiting for Groovy3 compatibility https://github.com/gradle/gradle/issues/16358")
     @Issue('https://plugins.gradle.org/plugin/nebula.lint')
+    @ToBeFixedForConfigurationCache(because = "Task.project at execution time")
     def 'nebula lint plugin'() {
         given:
         buildFile << """
