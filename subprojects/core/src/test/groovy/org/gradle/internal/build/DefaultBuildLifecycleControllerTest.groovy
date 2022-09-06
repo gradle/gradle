@@ -306,14 +306,14 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         t3 == failure
     }
 
-    void testCannotExecuteTasksWhenNothingHasBeenScheduled() {
+    void testCanExecuteTasksWhenNothingHasBeenScheduled() {
         when:
         def controller = controller()
         def workGraph = controller.newWorkGraph()
-        controller.executeTasks(workGraph)
+        def result = controller.executeTasks(workGraph)
 
         then:
-        def t = thrown IllegalStateException
+        result.failures.empty
 
         when:
         def finishResult = controller.finishBuild(null)
@@ -327,7 +327,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         given:
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
-        1 * buildModelController.scheduleRequestedTasks(executionPlan) >> { throw failure }
+        1 * buildModelController.scheduleRequestedTasks(null, executionPlan) >> { throw failure }
 
         when:
         def controller = this.controller()
@@ -510,16 +510,14 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     private void expectRequestedTasksScheduled() {
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * buildModelController.prepareToScheduleTasks()
-        1 * buildModelController.initializeWorkGraph(executionPlan)
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
-        1 * buildModelController.scheduleRequestedTasks(executionPlan)
+        1 * buildModelController.scheduleRequestedTasks(null, executionPlan)
         1 * workPreparer.finalizeWorkGraph(gradleMock, executionPlan) >> finalizedPlan
     }
 
     private void expectTasksScheduled() {
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * buildModelController.prepareToScheduleTasks()
-        1 * buildModelController.initializeWorkGraph(executionPlan)
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
         1 * workPreparer.finalizeWorkGraph(gradleMock, executionPlan) >> finalizedPlan
     }
