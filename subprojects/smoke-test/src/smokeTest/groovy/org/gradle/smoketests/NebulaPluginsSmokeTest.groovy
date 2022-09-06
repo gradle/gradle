@@ -52,6 +52,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         runner('build').build()
     }
 
+    @Ignore("Plugin incompatible with plugin-publish 1.0.0 and Gradle 8 - enable static check for this when removing ignore, see below")
     @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
     def 'nebula plugin plugin'() {
         when:
@@ -256,7 +257,8 @@ testImplementation('junit:junit:4.7')""")
     Map<String, Versions> getPluginsToValidate() {
         [
             'nebula.dependency-recommender': Versions.of(TestedVersions.nebulaDependencyRecommender),
-            'nebula.plugin-plugin': Versions.of(TestedVersions.nebulaPluginPlugin),
+            // Enable back once compatible, see @Ignore above
+//            'nebula.plugin-plugin': Versions.of(TestedVersions.nebulaPluginPlugin),
             'nebula.lint': Versions.of(TestedVersions.nebulaLint),
             'nebula.dependency-lock': TestedVersions.nebulaDependencyLock,
             'nebula.resolution-rules': Versions.of(TestedVersions.nebulaResolutionRules)
