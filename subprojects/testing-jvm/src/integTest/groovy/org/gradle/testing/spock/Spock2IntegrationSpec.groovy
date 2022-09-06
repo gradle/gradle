@@ -17,6 +17,7 @@
 package org.gradle.testing.spock
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.testing.fixture.GroovyCoverage
 
 class Spock2IntegrationSpec extends AbstractIntegrationSpec {
     private static final String SPOCK_VERSION = "2.1-groovy-3.0"
@@ -32,8 +33,8 @@ class Spock2IntegrationSpec extends AbstractIntegrationSpec {
                 testImplementation("org.spockframework:spock-core:$SPOCK_VERSION")
 
                 constraints {
-                    implementation("org.codehaus.groovy:groovy:${GroovySystem.version}") {
-                        because("needs to support the same JDKs as Gradle")
+                    implementation("org.codehaus.groovy:groovy:${GroovyCoverage.MINIMAL_GROOVY_3}") {
+                        because("need a version of Groovy that supports the current JDK")
                     }
                 }
             }
