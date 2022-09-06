@@ -29,7 +29,7 @@ import java.net.URISyntaxException;
 @Deprecated
 public class DistributionLocator {
 
-    static {
+    private static void logDeprecation() {
         DeprecationLogger.deprecateType(DistributionLocator.class)
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
@@ -38,6 +38,10 @@ public class DistributionLocator {
 
     private static final String RELEASE_REPOSITORY = "https://services.gradle.org/distributions";
     private static final String SNAPSHOT_REPOSITORY = "https://services.gradle.org/distributions-snapshots";
+
+    public DistributionLocator() {
+        logDeprecation();
+    }
 
     public URI getDistributionFor(GradleVersion version) {
         return getDistributionFor(version, "bin");
