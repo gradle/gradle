@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
-    def "download and provisioning works end-to-end"() { //TODO (#21082): this test actually downloads a JDK from Adoptium... can we leave it like that?
+    def "download and provisioning works end-to-end"() {
         buildFile << """
             apply plugin: "java"
 
