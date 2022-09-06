@@ -1,11 +1,27 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.artifacts.ExternalDependency",
+            "member": "Method org.gradle.api.artifacts.ExternalDependency.setForce(boolean)",
+            "acceptation": "Removed for Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.AbstractExecTask",
             "member": "Method org.gradle.api.tasks.AbstractExecTask.getExecResult()",
             "acceptation": "Removed for Gradle 8.0",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ClientModuleScope",
+            "member": "Class org.gradle.kotlin.dsl.ClientModuleScope",
+            "acceptation": "Removed for Gradle 8.0",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.ClientModuleDelegate.setForce(boolean)"
             ]
         },
         {
