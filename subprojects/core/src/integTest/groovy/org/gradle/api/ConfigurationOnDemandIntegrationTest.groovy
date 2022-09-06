@@ -432,7 +432,7 @@ allprojects {
 
         then:
         result.assertTasksExecuted(":a:one")
-        fixture.assertProjectsConfigured(":", ":b", ":a")
+        fixture.assertProjectsConfigured(":", ":a", ":b")
     }
 
     def "does not configure all projects when excluded task path is not qualified and an exact match for task has already been seen in some sub-project of default project"() {
@@ -460,7 +460,7 @@ project(':b') {
 
         then:
         failure.assertHasDescription("Task 'two' not found in project ':c'.")
-        fixture.assertProjectsConfigured(":", ":c", ':c:child')
+        fixture.assertProjectsConfigured(":", ":a", ":c", ':c:child')
     }
 
     def "configures all subprojects of default project when excluded task path is not qualified and an exact match not found in default project"() {
@@ -486,7 +486,7 @@ allprojects {
 
         then:
         failure.assertHasDescription("Task 'two' not found in project ':c'.")
-        fixture.assertProjectsConfigured(":", ":c", ':c:child')
+        fixture.assertProjectsConfigured(":", ":a", ":c", ':c:child')
     }
 
     def "configures all subprojects of default projects when excluded task path is not qualified and uses camel case matching"() {
@@ -512,7 +512,7 @@ allprojects {
 
         then:
         result.assertTasksExecuted(":a:one")
-        fixture.assertProjectsConfigured(":", ":b", ":b:child", ":a")
+        fixture.assertProjectsConfigured(":", ":a", ":b", ":b:child")
     }
 
     def "extra properties defined in parent project are accessible to child"() {
