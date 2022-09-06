@@ -33,10 +33,9 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.gradle.composite.internal.BuildTreeWorkGraphController
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.file.Stat
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Path
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -49,17 +48,15 @@ import java.util.function.Consumer
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
 class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
-
-    FileSystem fs = NativeServicesTestFixture.instance.get(FileSystem)
-
     DefaultExecutionPlan executionPlan
     DefaultFinalizedExecutionPlan finalizedPlan
 
-    def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor())
+    def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
+    def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor(), accessHierarchies)
 
     def setup() {
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), coordinator)
+        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator)
     }
 
     Node priorityNode(Map<String, ?> options = [:]) {
@@ -1415,7 +1412,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         // TODO - this is the wrong order (the order of this list does not take ordinal groups into account)
         executionPlan.tasks as List == [destroyer, producer]
         ordinalGroups == [1, 0]
-        assertLastTaskOfGroupReady(producer)
+        assertTaskReady(producer)
         assertTaskReadyAndNoMoreToStart(destroyer)
         assertAllWorkComplete()
     }
@@ -1434,7 +1431,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         // TODO - this is the wrong order (the order of this list does not take ordinal groups into account)
         executionPlan.tasks as List == [producer, destroyer]
         ordinalGroups == [1, 0]
-        assertLastTaskOfGroupReady(destroyer)
+        assertTaskReady(destroyer)
         assertTaskReadyAndNoMoreToStart(producer)
         assertAllWorkComplete()
     }

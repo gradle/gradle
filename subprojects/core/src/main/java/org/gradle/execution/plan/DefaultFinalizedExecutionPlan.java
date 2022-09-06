@@ -16,7 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.NonNullApi;
@@ -35,8 +34,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import static com.google.common.collect.Sets.newIdentityHashSet;
 import static java.lang.String.format;
@@ -79,7 +78,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         ExecutionNodeAccessHierarchy outputHierarchy,
         ExecutionNodeAccessHierarchy destroyableHierarchy,
         ResourceLockCoordinationService lockCoordinator,
-        DefaultExecutionPlan.NodeMapping nodeMapping,
+        List<Node> scheduledNodes,
         boolean continueOnFailure,
         QueryableExecutionPlan contents,
         Consumer<LocalTaskNode> completionHandler
@@ -93,7 +92,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         this.contents = contents;
         this.completionHandler = completionHandler;
 
-        executionQueue.setNodes(nodeMapping);
+        executionQueue.setNodes(scheduledNodes);
 
         executionQueue.restart();
         while (executionQueue.hasNext()) {
@@ -267,7 +266,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             return false;
         }
 
-        MutationInfo mutations = getResolvedMutationInfo(node);
+        MutationInfo mutations = node.getMutationInfo();
 
         if (conflictsWithOtherNodes(node, mutations)) {
             releaseLocks(resources);
@@ -301,6 +300,8 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     private boolean conflictsWithOtherNodes(Node node, MutationInfo mutations) {
         if (!canRunWithCurrentlyExecutedNodes(mutations)) {
             LOGGER.debug("Node {} cannot run with currently running nodes {}", node, runningNodes);
+            return true;
+        } else if (mutationConflictsWithOtherNodes(node, mutations)) {
             return true;
         } else if (destroysNotYetConsumedOutputOfAnotherNode(node, mutations.destroyablePaths)) {
             LOGGER.debug("Node {} destroys not yet consumed output of another node", node);
@@ -349,44 +350,50 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         node.getResourcesToLock().forEach(ResourceLock::unlock);
     }
 
-    private MutationInfo getResolvedMutationInfo(Node node) {
-        MutationInfo mutations = node.getMutationInfo();
-        if (!mutations.resolved) {
-            outputHierarchy.recordNodeAccessingLocations(node, mutations.outputPaths);
-            destroyableHierarchy.recordNodeAccessingLocations(node, mutations.destroyablePaths);
-            mutations.resolved = true;
-        }
-        return mutations;
-    }
-
     private boolean canRunWithCurrentlyExecutedNodes(MutationInfo mutations) {
+        // No new work should be started when invalid work is running
         if (mutations.hasValidationProblem) {
-            if (!runningNodes.isEmpty()) {
-                // Invalid work is not allowed to run together with any other work
-                return false;
-            }
-        } else if (invalidNodeRunning) {
-            // No new work should be started when invalid work is running
-            return false;
+            // Invalid work is not allowed to run together with any other work
+            return runningNodes.isEmpty();
+        } else {
+            return !invalidNodeRunning;
         }
-        return !hasRunningNodeWithOverlappingMutations(mutations);
     }
 
-    private boolean hasRunningNodeWithOverlappingMutations(MutationInfo mutations) {
-        if (runningNodes.isEmpty()) {
+    private boolean mutationConflictsWithOtherNodes(Node node, MutationInfo mutations) {
+        Set<String> nodeOutputPaths = mutations.outputPaths;
+        Set<String> nodeDestroysPaths = mutations.destroyablePaths;
+        if (nodeOutputPaths.isEmpty() && nodeDestroysPaths.isEmpty()) {
             return false;
         }
-        Set<String> candidateNodeOutputs = mutations.outputPaths;
-        Set<String> candidateMutationPaths = !candidateNodeOutputs.isEmpty()
-            ? candidateNodeOutputs
-            : mutations.destroyablePaths;
-        if (!candidateMutationPaths.isEmpty()) {
-            for (String candidateMutationPath : candidateMutationPaths) {
-                Stream<Node> nodesMutatingCandidatePath = Stream.concat(
-                    outputHierarchy.getNodesAccessing(candidateMutationPath).stream(),
-                    destroyableHierarchy.getNodesAccessing(candidateMutationPath).stream()
-                );
-                if (nodesMutatingCandidatePath.anyMatch(runningNodes::contains)) {
+
+        BiFunction<Boolean, Node, Boolean> conflictsWithRunning = (current, candidate) -> current || candidate.isExecuting();
+
+        OrdinalGroup nodeOrdinal = node.getOrdinal();
+        BiFunction<Boolean, Node, Boolean> conflictsWithNodeInEarlierOrdinal = (current, candidate) -> {
+            if (current || candidate.isComplete()) {
+                return current;
+            }
+            OrdinalGroup otherOrdinal = candidate.getOrdinal();
+            return otherOrdinal != null && otherOrdinal.getOrdinal() < nodeOrdinal.getOrdinal();
+        };
+
+        for (String path : nodeOutputPaths) {
+            if (outputHierarchy.visitNodesAccessing(path, false, conflictsWithRunning)) {
+                return true;
+            }
+            if (nodeOrdinal != null) {
+                if (destroyableHierarchy.visitNodesAccessing(path, false, conflictsWithNodeInEarlierOrdinal)) {
+                    return true;
+                }
+            }
+        }
+        for (String path : nodeDestroysPaths) {
+            if (destroyableHierarchy.visitNodesAccessing(path, false, conflictsWithRunning)) {
+                return true;
+            }
+            if (nodeOrdinal != null) {
+                if (outputHierarchy.visitNodesAccessing(path, false, conflictsWithNodeInEarlierOrdinal)) {
                     return true;
                 }
             }
@@ -398,23 +405,31 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         if (destroyablePaths.isEmpty()) {
             return false;
         }
-        for (String destroyablePath : destroyablePaths) {
-            ImmutableSet<Node> producersDestroyedByDestroyer = outputHierarchy.getNodesAccessing(destroyablePath);
-            for (Node producingNode : producedButNotYetConsumed) {
-                if (!producersDestroyedByDestroyer.contains(producingNode)) {
+
+        BiFunction<Boolean, Node, Boolean> conflicts = (current, producingNode) -> {
+            if (current) {
+                return current;
+            }
+            if (!producedButNotYetConsumed.contains(producingNode)) {
+                return false;
+            }
+            MutationInfo producingNodeMutations = producingNode.getMutationInfo();
+            assert !producingNodeMutations.consumingNodes.isEmpty();
+            for (Node consumer : producingNodeMutations.consumingNodes) {
+                if (doesConsumerDependOnDestroyer(consumer, destroyer)) {
+                    // If there's an explicit dependency from consuming node to destroyer,
+                    // then we accept that as the will of the user
                     continue;
                 }
-                MutationInfo producingNodeMutations = producingNode.getMutationInfo();
-                assert !producingNodeMutations.consumingNodes.isEmpty();
-                for (Node consumer : producingNodeMutations.consumingNodes) {
-                    if (doesConsumerDependOnDestroyer(consumer, destroyer)) {
-                        // If there's an explicit dependency from consuming node to destroyer,
-                        // then we accept that as the will of the user
-                        continue;
-                    }
-                    LOGGER.debug("Node {} destroys output of consumer {}", destroyer, consumer);
-                    return true;
-                }
+                LOGGER.debug("Node {} destroys output of consumer {}", destroyer, consumer);
+                return true;
+            }
+            return false;
+        };
+
+        for (String destroyablePath : destroyablePaths) {
+            if (outputHierarchy.visitNodesAccessing(destroyablePath, false, conflicts)) {
+                return true;
             }
         }
         return false;

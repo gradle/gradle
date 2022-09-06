@@ -39,7 +39,7 @@ class TaskNodeFactoryTest extends Specification {
         project.gradle >> gradle
         project.pluginManager >> Stub(PluginManagerInternal)
 
-        graph = new TaskNodeFactory(gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationExecutor())
+        graph = new TaskNodeFactory(gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationExecutor(), Stub(ExecutionNodeAccessHierarchies))
     }
 
     private TaskInternal task(String name) {
