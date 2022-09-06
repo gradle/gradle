@@ -23,7 +23,7 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.InputStreamContent;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.Objects;
 import com.google.api.services.storage.model.StorageObject;
@@ -57,7 +57,7 @@ public class GcsClient {
 
     public static GcsClient create(GcsConnectionProperties gcsConnectionProperties) throws GeneralSecurityException, IOException {
         HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
-        JsonFactory jsonFactory = new JacksonFactory();
+        JsonFactory jsonFactory = new GsonFactory();
         Storage.Builder builder = new Storage.Builder(transport, jsonFactory, null);
         if (gcsConnectionProperties.requiresAuthentication()) {
             Supplier<Credential> credentialSupplier = getCredentialSupplier(transport, jsonFactory);
@@ -129,7 +129,7 @@ public class GcsClient {
 
     @Nullable
     public List<String> list(URI uri) throws ResourceException {
-        List<StorageObject> results = new ArrayList<StorageObject>();
+        List<StorageObject> results = new ArrayList<>();
 
         String path = cleanResourcePath(uri);
         try {
@@ -152,7 +152,7 @@ public class GcsClient {
             throw ResourceExceptions.getFailed(uri, e);
         }
 
-        List<String> resultStrings = new ArrayList<String>();
+        List<String> resultStrings = new ArrayList<>();
         for (StorageObject result : results) {
             resultStrings.add(result.getName());
         }
