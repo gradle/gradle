@@ -93,6 +93,7 @@ These members will be removed in Gradle 9.0.
 * `NameMatcher`
 * `NameValidator`
 * `RelativePathUtil`
+* `TextUtil`
 * `SingleMessageLogger`
 * `VersionNumber`
 * `WrapUtil`
