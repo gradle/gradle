@@ -30,9 +30,9 @@ configurations.all {
 // end::substitution_rule_alternative[]
 
 tasks.register("resolve") {
-    val classpath: Provider<out FileCollection> = configurations.runtimeClasspath
+    val classpath: FileCollection = configurations.runtimeClasspath.get()
     inputs.files(classpath)
     doLast {
-        println(classpath.get().files.map { it.name })
+        println(classpath.files.map { it.name })
     }
 }
