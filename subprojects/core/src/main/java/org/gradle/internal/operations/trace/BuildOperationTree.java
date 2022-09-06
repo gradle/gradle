@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class BuildOperationTree {
 
@@ -53,4 +54,7 @@ public class BuildOperationTree {
         });
     }
 
+    static List<Map<String, ?>> serializeToTraceEvents(List<BuildOperationRecord> roots) {
+        return roots.stream().flatMap(it -> it.toSerializableTraceEvents().stream()).collect(Collectors.toList());
+    }
 }

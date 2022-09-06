@@ -58,22 +58,23 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 /**
  * Writes files describing the build operation stream for a build.
  * Can be enabled for any build with `-Dorg.gradle.internal.operations.trace=«path-base»`.
- *
+ * <p>
  * Imposes no overhead when not enabled.
  * Also used as the basis for asserting on the event stream in integration tests, via BuildOperationFixture.
- *
+ * <p>
  * Three files are created:
- *
- * - «path-base»-log.txt: a chronological log of events, each line is a JSON object
- * - «path-base»-tree.json: a JSON tree of the event structure
- * - «path-base»-tree.txt: A simplified tree representation showing basic information
- *
+ * <ul>
+ * <li>«path-base»-log.txt: a chronological log of events, each line is a JSON object
+ * <li>«path-base»-tree.json: a JSON tree of the event structure
+ * <li>«path-base»-tree.txt: A simplified tree representation showing basic information
+ * </ul>
+ * <p>
  * Generally, the simplified tree view is best for browsing.
  * The JSON tree view can be used for more detailed analysis — open in a JSON tree viewer, like Chrome.
- *
+ * <p>
  * The «path-base» param is optional.
  * If invoked as `-Dorg.gradle.internal.operations.trace`, a base value of "operations" will be used.
- *
+ * <p>
  * The “trace” produced here is different to the trace produced by Gradle Profiler.
  * There, the focus is analyzing the performance profile.
  * Here, the focus is debugging/developing the information structure of build operations.
@@ -151,6 +152,7 @@ public class BuildOperationTrace implements Stoppable {
 
                 final List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath));
                 writeDetailTree(roots);
+                writeTraceEventTree(roots);
                 writeSummaryTree(roots);
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
@@ -183,6 +185,21 @@ public class BuildOperationTrace implements Stoppable {
             String rawJson = JsonOutput.toJson(BuildOperationTree.serialize(roots));
             String prettyJson = JsonOutput.prettyPrint(rawJson);
             Files.asCharSink(file(basePath, "-tree.json"), Charsets.UTF_8).write(prettyJson);
+        } catch (OutOfMemoryError e) {
+            System.err.println("Failed to write build operation trace JSON due to out of memory.");
+        }
+    }
+
+    /**
+     * Serializes build operations in Trace Events format that can be opened via {@code chrome://tracing}.
+     *
+     * @see <a href="https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU">Trace Events Format</a>
+     */
+    private void writeTraceEventTree(List<BuildOperationRecord> roots) throws IOException {
+        try {
+            String rawJson = JsonOutput.toJson(BuildOperationTree.serializeToTraceEvents(roots));
+            String prettyJson = JsonOutput.prettyPrint(rawJson);
+            Files.asCharSink(file(basePath, "-trace-events.json"), Charsets.UTF_8).write(prettyJson);
         } catch (OutOfMemoryError e) {
             System.err.println("Failed to write build operation trace JSON due to out of memory.");
         }

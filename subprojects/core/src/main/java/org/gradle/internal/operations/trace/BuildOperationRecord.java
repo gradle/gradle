@@ -17,6 +17,7 @@
 package org.gradle.internal.operations.trace;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 
 import java.util.LinkedHashMap;
@@ -112,6 +113,59 @@ public final class BuildOperationRecord {
         return map;
     }
 
+    List<Map<String, ?>> toSerializableTraceEvents() {
+        ImmutableList.Builder<Map<String, ?>> events = new ImmutableList.Builder<>();
+        toSerializableTraceEvents(events);
+        return events.build();
+    }
+
+    private void toSerializableTraceEvents(ImmutableList.Builder<Map<String, ?>> events) {
+        Map<String, Object> beginEvent = new LinkedHashMap<>();
+        beginEvent.put("name", displayName);
+        beginEvent.put("cat", "");
+        beginEvent.put("ph", "B");
+        beginEvent.put("pid", 1);
+        beginEvent.put("tid", 1);
+        beginEvent.put("ts", startTime * 1000); // micro-second timestamp
+
+        if (details != null) {
+            Map<String, Object> beginEventArgs = new LinkedHashMap<>();
+            beginEventArgs.put("opid", id);
+            beginEventArgs.put("details", details);
+            beginEventArgs.put("detailsClassName", detailsClassName);
+
+            beginEvent.put("args", beginEventArgs);
+        }
+
+        events.add(beginEvent);
+
+        for (Progress p : progress) {
+            events.add(p.toSerializableTraceEvent());
+        }
+
+        for (BuildOperationRecord child : children) {
+            child.toSerializableTraceEvents(events);
+        }
+
+        Map<String, Object> endEvent = new LinkedHashMap<>();
+        endEvent.put("ph", "E");
+        endEvent.put("pid", 1);
+        endEvent.put("tid", 1);
+        endEvent.put("ts", endTime * 1000); // micro-second timestamp
+        if (result != null) {
+            Map<String, Object> endEventArgs = new LinkedHashMap<>();
+            endEventArgs.put("resultClassName", resultClassName);
+            endEventArgs.put("result", result);
+            if (failure != null) {
+                endEventArgs.put("failure", failure);
+            }
+
+            endEvent.put("args", endEventArgs);
+        }
+
+        events.add(endEvent);
+    }
+
     public boolean hasDetailsOfType(Class<?> clazz) throws ClassNotFoundException {
         Class<?> detailsType = getDetailsType();
         return detailsType != null && clazz.isAssignableFrom(detailsType);
@@ -152,6 +206,24 @@ public final class BuildOperationRecord {
             if (details != null) {
                 map.put("details", details);
                 map.put("detailsClassName", detailsClassName);
+            }
+
+            return map;
+        }
+
+        Map<String, ?> toSerializableTraceEvent() {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("ph", "i");
+            map.put("pid", 1);
+            map.put("tid", 1);
+            map.put("ts", time * 1000); // micro-second timestamp
+
+            if (details != null) {
+                Map<String, Object> args = new LinkedHashMap<>();
+                args.put("details", details);
+                args.put("detailsClassName", detailsClassName);
+
+                map.put("args", args);
             }
 
             return map;
