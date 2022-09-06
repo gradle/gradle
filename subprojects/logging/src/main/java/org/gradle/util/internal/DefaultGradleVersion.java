@@ -227,10 +227,13 @@ public final class DefaultGradleVersion extends GradleVersion {
     @Override
     @Deprecated
     public GradleVersion getNextMajor() {
+        // TODO add nagging once Spring dependency management plugin is fixed
+        /*
         DeprecationLogger.deprecateMethod(GradleVersion.class, "getNextMajor()")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
             .nagUser();
+        */
         return getNextMajorVersion();
     }
 
