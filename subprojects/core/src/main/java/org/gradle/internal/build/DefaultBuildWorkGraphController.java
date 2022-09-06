@@ -18,7 +18,9 @@ package org.gradle.internal.build;
 
 import com.google.common.util.concurrent.Runnables;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.execution.plan.BuildWorkPlan;
@@ -29,21 +31,27 @@ import org.gradle.execution.plan.TaskNodeFactory;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class DefaultBuildWorkGraphController implements BuildWorkGraphController {
     private final TaskNodeFactory taskNodeFactory;
     private final BuildLifecycleController controller;
+    private final BuildIdentifier buildIdentifier;
     private final Map<String, DefaultExportedTaskNode> nodesByPath = new ConcurrentHashMap<>();
     private final Object lock = new Object();
-    private DefaultBuildWorkGraph current;
+    private Thread currentOwner;
+    private final Set<DefaultBuildWorkGraph> pendingGraphs = new HashSet<>();
+    private DefaultBuildWorkGraph currentlyRunning;
 
-    public DefaultBuildWorkGraphController(TaskNodeFactory taskNodeFactory, BuildLifecycleController controller) {
+    public DefaultBuildWorkGraphController(TaskNodeFactory taskNodeFactory, BuildLifecycleController controller, BuildState buildState) {
         this.taskNodeFactory = taskNodeFactory;
         this.controller = controller;
+        this.buildIdentifier = buildState.getBuildIdentifier();
     }
 
     @Override
@@ -58,11 +66,13 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     @Override
     public BuildWorkGraph newWorkGraph() {
         synchronized (lock) {
-            if (current != null) {
-                throw new IllegalStateException("This build's work graph is currently in use by another thread.");
+            if (currentOwner != null && currentOwner != Thread.currentThread()) {
+                throw new IllegalStateException("This work graph of build '" + buildIdentifier.getName() + "' is currently in use by another thread.");
             }
-            current = new DefaultBuildWorkGraph();
-            return current;
+            currentOwner = Thread.currentThread();
+            DefaultBuildWorkGraph workGraph = new DefaultBuildWorkGraph();
+            pendingGraphs.add(workGraph);
+            return workGraph;
         }
     }
 
@@ -114,6 +124,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             }
             controller.getGradle().getOwner().getProjects().withMutableStateOfAllProjects(() -> {
                 createPlan();
+                controller.prepareToScheduleTasks();
                 controller.populateWorkGraph(plan, workGraph -> workGraph.addEntryTasks(tasks));
             });
             return true;
@@ -123,12 +134,19 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         public void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action) {
             assertIsOwner();
             createPlan();
+            controller.prepareToScheduleTasks();
             controller.populateWorkGraph(plan, action);
+        }
+
+        @Override
+        public void addFilter(Spec<Task> filter) {
+            assertIsOwner();
+            createPlan();
+            plan.addFilter(filter);
         }
 
         private void createPlan() {
             if (plan == null) {
-                controller.prepareToScheduleTasks();
                 plan = controller.newWorkGraph();
                 plan.onComplete(this::nodeComplete);
             }
@@ -151,6 +169,12 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
 
         @Override
         public ExecutionResult<Void> runWork() {
+            synchronized (lock) {
+                if (currentlyRunning != null) {
+                    throw new IllegalStateException("Build '" + buildIdentifier + "' is currently already running work.");
+                }
+                currentlyRunning = this;
+            }
             try {
                 if (plan != null) {
                     return controller.executeTasks(plan);
@@ -159,7 +183,11 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                 }
             } finally {
                 synchronized (lock) {
-                    current = null;
+                    currentlyRunning = null;
+                    pendingGraphs.remove(this);
+                    if (pendingGraphs.isEmpty()) {
+                        currentOwner = null;
+                    }
                 }
             }
         }

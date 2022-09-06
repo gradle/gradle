@@ -19,7 +19,6 @@ package org.gradle.execution;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -43,21 +42,7 @@ public class CompositeAwareTaskSelector extends TaskSelector {
 
     @Override
     public Spec<Task> getFilter(String path) {
-        Path taskPath = Path.path(path);
-        if (taskPath.isAbsolute()) {
-            BuildState build = findIncludedBuild(taskPath);
-            // Exclusion was for an included build, use it
-            if (build != null) {
-                return getSelectorForChildBuild(build).getFilter(taskPath.removeFirstSegments(1).toString());
-            }
-        }
-        // Exclusion didn't match an included build, so it might be a subproject of the root build or a relative path
-        if (gradle.isRootBuild()) {
-            return getUnqualifiedBuildSelector().getFilter(path);
-        } else {
-            // Included build ignores this exclusion since it doesn't apply directly to it
-            return Specs.satisfyAll();
-        }
+        return getUnqualifiedBuildSelector().getFilter(path);
     }
 
     @Override

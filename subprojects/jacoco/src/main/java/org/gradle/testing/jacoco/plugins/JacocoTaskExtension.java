@@ -349,7 +349,7 @@ public class JacocoTaskExtension {
                 }
                 builder.append(name).append('=');
                 if (value instanceof Collection) {
-                    builder.append(Joiner.on(':').join((Collection) value));
+                    builder.append(Joiner.on(':').join((Collection<?>) value));
                 } else if (value instanceof File) {
                     builder.append(RelativePathUtil.relativePath(workingDirectory, (File) value));
                 } else {
