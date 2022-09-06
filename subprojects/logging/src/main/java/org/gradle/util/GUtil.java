@@ -80,6 +80,10 @@ public class GUtil {
     private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
     private static final Pattern UPPER_LOWER = Pattern.compile("(?m)([A-Z]*)([a-z0-9]*)");
 
+    public GUtil() {
+        logDeprecation();
+    }
+
     public static <T extends Collection<?>> T flatten(Object[] elements, T addTo, boolean flattenMaps) {
         return flatten(asList(elements), addTo, flattenMaps);
     }
