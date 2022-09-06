@@ -409,7 +409,7 @@ public class GUtil {
     }
 
     public static String toWords(CharSequence string, char separator) {
-        logDeprecation();
+        // TODO log deprecation once android plugin is fixed
         if (string == null) {
             return null;
         }
