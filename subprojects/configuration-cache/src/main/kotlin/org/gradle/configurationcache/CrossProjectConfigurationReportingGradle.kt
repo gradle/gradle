@@ -127,6 +127,9 @@ class CrossProjectConfigurationReportingGradle private constructor(
         delegate.removeListener(maybeWrapListener(listener))
     }
 
+    override fun getTaskGraph(): TaskExecutionGraphInternal =
+        crossProjectModelAccess.taskGraphForProject(referrerProject, delegate.taskGraph)
+
     override fun equals(other: Any?): Boolean =
         javaClass == (other as? CrossProjectConfigurationReportingGradle)?.javaClass &&
             other.delegate == delegate &&
@@ -206,9 +209,6 @@ class CrossProjectConfigurationReportingGradle private constructor(
     }
 
     // region delegated members
-    override fun getTaskGraph(): TaskExecutionGraphInternal =
-        delegate.taskGraph
-
     override fun getPlugins(): PluginContainer =
         delegate.plugins
 

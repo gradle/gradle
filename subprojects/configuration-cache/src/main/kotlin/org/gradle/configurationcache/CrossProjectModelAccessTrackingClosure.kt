@@ -20,6 +20,7 @@ import groovy.lang.Closure
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import java.util.Objects
 
 
@@ -56,6 +57,7 @@ class CrossProjectModelAccessTrackingClosure<T>(
             when (modelObject) {
                 is ProjectInternal -> crossProjectModelAccess.access(referrerProject, modelObject)
                 is GradleInternal -> crossProjectModelAccess.gradleInstanceForProject(referrerProject, modelObject)
+                is TaskExecutionGraphInternal -> crossProjectModelAccess.taskGraphForProject(referrerProject, modelObject)
                 else -> modelObject
             }
     }
