@@ -52,7 +52,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         runner('build').build()
     }
 
-    @Ignore("Plugin incompatible with plugin-publish 1.0.0 and Gradle 8 - enable static check for this when removing ignore, see below")
+    @Ignore("Plugin incompatible with plugin-publish 1.0.0 and Gradle 8 - enable static check for this when removing ignore, see below - https://github.com/nebula-plugins/nebula-plugin-plugin/issues/71")
     @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
     def 'nebula plugin plugin'() {
         when:
@@ -92,7 +92,6 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
             .build()
     }
 
-    @Ignore("Waiting for Groovy3 compatibility https://github.com/gradle/gradle/issues/16358")
     @Issue('https://plugins.gradle.org/plugin/nebula.lint')
     def 'nebula lint plugin'() {
         given:
