@@ -17,10 +17,10 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
-import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.execution.selection.DefaultBuildTaskSelector;
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionAnalyser;
@@ -33,8 +33,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.work.WorkerLeaseService;
-import org.gradle.problems.buildtree.ProblemReporter;
 
 import java.util.List;
 
@@ -59,6 +57,10 @@ public class BuildTreeScopeServices {
         registration.add(DefaultBuildLifecycleControllerFactory.class);
         registration.add(BuildOptionBuildOperationProgressEventsEmitter.class);
         registration.add(BuildInclusionCoordinator.class);
+        registration.add(DefaultBuildTaskSelector.class);
+        registration.add(DefaultProjectStateRegistry.class);
+        registration.add(DefaultConfigurationTimeBarrier.class);
+        registration.add(DeprecationsReporter.class);
         modelServices.applyServicesTo(registration);
     }
 
@@ -72,17 +74,5 @@ public class BuildTreeScopeServices {
             exceptionAnalyser = new StackTraceSanitizingExceptionAnalyser(exceptionAnalyser);
         }
         return exceptionAnalyser;
-    }
-
-    protected DefaultProjectStateRegistry createProjectPathRegistry(WorkerLeaseService workerLeaseService) {
-        return new DefaultProjectStateRegistry(workerLeaseService);
-    }
-
-    protected ConfigurationTimeBarrier createConfigurationTimeBarrier() {
-        return new DefaultConfigurationTimeBarrier();
-    }
-
-    protected ProblemReporter createProblemReporter() {
-        return new DeprecationsReporter();
     }
 }

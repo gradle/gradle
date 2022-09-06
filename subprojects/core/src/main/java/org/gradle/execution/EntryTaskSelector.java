@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,20 +19,12 @@ package org.gradle.execution;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
 
-import java.util.List;
+public interface EntryTaskSelector {
+    void applyTasksTo(Context context, ExecutionPlan plan);
 
+    interface Context {
+        TaskSelection getSelection(String taskPath);
 
-/**
- * Selects the tasks requested for a build.
- */
-public interface BuildConfigurationActionExecuter {
-    /**
-     * Selects the tasks to execute, if any. This method is called before any other methods on this executer.
-     */
-    void select(GradleInternal gradle, ExecutionPlan plan);
-
-    /**
-     * registers actions allowing late customization of handled BuildConfigurationActions, if any. This method is called before any other methods on this executer.
-     */
-    void setTaskSelectors(List<? extends BuildConfigurationAction> taskSelectors);
+        GradleInternal getGradle();
+    }
 }

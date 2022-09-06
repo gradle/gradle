@@ -17,6 +17,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.AntBuilder",
+            "member": "Superclass [removed]",
+            "acceptation": "org.gradle.api.AntBuilder now extends groovy.ant.AntBuilder",
+            "changes": [
+                "Superclass has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.file.SourceDirectorySet",
             "member": "Method org.gradle.api.file.SourceDirectorySet.getOutputDir()",
             "acceptation": "Deprecated method removed",
@@ -512,7 +520,6 @@
                 "Method has been removed"
             ]
         },
-
         {
             "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.setLegacyShowSinglePathToDependency(boolean)",
@@ -644,6 +651,46 @@
         {
             "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.invoke(org.gradle.api.NamedDomainObjectContainer,kotlin.jvm.functions.Function1)",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory",
+            "member": "Class org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory",
+            "acceptation": "Removed deprecated class in Gradle 8.0",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory",
+            "member": "Field NAME",
+            "acceptation": "Removed deprecated field in Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory.antlr(groovy.lang.Closure)",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory.antlr(org.gradle.api.Action)",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory",
+            "member": "Method org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory.getAntlr()",
             "acceptation": "Removed deprecated method in Gradle 8.0",
             "changes": [
                 "Method has been removed"
