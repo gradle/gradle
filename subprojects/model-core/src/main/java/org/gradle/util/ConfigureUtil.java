@@ -115,9 +115,10 @@ public class ConfigureUtil {
     public static class IncompleteInputException extends RuntimeException {
         private final Collection missingKeys;
 
-        private IncompleteInputException(String message, Collection missingKeys) {
+        public IncompleteInputException(String message, Collection missingKeys) {
             super(message);
             this.missingKeys = missingKeys;
+            logDeprecation();
         }
 
         public Collection getMissingKeys() {
