@@ -601,7 +601,6 @@ rootProject.name = 'root'
         apiConfiguration.dependencies[0].children.empty
     }
 
-    @ToBeFixedForConfigurationCache
     void "fails if attempting to use fully deprecated configurations"() {
         given:
         mavenRepo.module("foo", "foo", '1.0').publish()
