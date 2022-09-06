@@ -25,6 +25,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -71,14 +72,8 @@ import static org.gradle.util.internal.CollectionUtils.toStringList;
 @Deprecated
 public class ConfigureUtil {
 
-    static {
-        DeprecationLogger.deprecateType(ConfigureUtil.class)
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
-            .nagUser();
-    }
-
     public static <T> T configureByMap(Map<?, ?> properties, T delegate) {
+        logDeprecation();
         if (properties.isEmpty()) {
             return delegate;
         }
@@ -120,7 +115,7 @@ public class ConfigureUtil {
     public static class IncompleteInputException extends RuntimeException {
         private final Collection missingKeys;
 
-        public IncompleteInputException(String message, Collection missingKeys) {
+        private IncompleteInputException(String message, Collection missingKeys) {
             super(message);
             this.missingKeys = missingKeys;
         }
@@ -144,6 +139,8 @@ public class ConfigureUtil {
      * @return The delegate param
      */
     public static <T> T configure(@Nullable Closure configureClosure, T target) {
+        // TODO log deprecation once the protobuf plugin is fixed
+        // logDeprecation();
         if (configureClosure == null) {
             return target;
         }
@@ -161,6 +158,7 @@ public class ConfigureUtil {
      * Creates an action that uses the given closure to configure objects of type T.
      */
     public static <T> Action<T> configureUsing(@Nullable final Closure configureClosure) {
+        logDeprecation();
         if (configureClosure == null) {
             return Actions.doNothing();
         }
@@ -172,6 +170,7 @@ public class ConfigureUtil {
      * Called from an object's {@link Configurable#configure} method.
      */
     public static <T> T configureSelf(@Nullable Closure configureClosure, T target) {
+        logDeprecation();
         if (configureClosure == null) {
             return target;
         }
@@ -184,6 +183,7 @@ public class ConfigureUtil {
      * Called from an object's {@link Configurable#configure} method.
      */
     public static <T> T configureSelf(@Nullable Closure configureClosure, T target, ConfigureDelegate closureDelegate) {
+        logDeprecation();
         if (configureClosure == null) {
             return target;
         }
@@ -201,6 +201,13 @@ public class ConfigureUtil {
         // Hackery to make closure execution faster, by short-circuiting the expensive property and method lookup on Closure
         Closure withNewOwner = configureClosure.rehydrate(target, closureDelegate, configureClosure.getThisObject());
         new ClosureBackedAction<T>(withNewOwner, Closure.OWNER_ONLY, false).execute(target);
+    }
+
+    private static void logDeprecation() {
+        DeprecationLogger.deprecateType(ConfigureUtil.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
     }
 
     /**
