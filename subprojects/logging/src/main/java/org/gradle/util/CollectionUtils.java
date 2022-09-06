@@ -71,6 +71,10 @@ public abstract class CollectionUtils {
             .nagUser();
     }
 
+    public CollectionUtils() {
+        logDeprecation();
+    }
+
     /**
      * Returns null if the collection is empty otherwise expects a {@link #single(Iterable)} element to be found.
      */
