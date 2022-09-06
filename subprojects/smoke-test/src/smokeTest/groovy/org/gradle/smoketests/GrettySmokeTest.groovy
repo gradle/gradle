@@ -59,12 +59,15 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
         """
 
         when:
-        def result = runner('checkContainerUp')
-            .expectDeprecationWarning(
-                "Internal API DependencyFactory.ClassPathNotation has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use an appropriate call to DependencyHandler instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#dependency_factory_renamed",
-                "https://github.com/gretty-gradle-plugin/gretty/pull/263"
+        def runner = runner('checkContainerUp')
+        if (grettyConfig.version != "4.0.3") {
+            runner.expectDeprecationWarning(
+                    "Internal API DependencyFactory.ClassPathNotation has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use an appropriate call to DependencyHandler instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#dependency_factory_renamed",
+                    "https://github.com/gretty-gradle-plugin/gretty/pull/263"
             )
-            .build()
+
+        }
+        def result = runner.build()
 
         then:
         result.task(':checkContainerUp').outcome == SUCCESS
