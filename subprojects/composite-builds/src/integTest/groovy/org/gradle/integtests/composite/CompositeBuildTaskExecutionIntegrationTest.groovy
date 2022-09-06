@@ -19,6 +19,8 @@ package org.gradle.integtests.composite
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -79,6 +81,34 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
+    def "can exclude included subproject task"() {
+        setup:
+        settingsFile << "includeBuild('other-build')"
+        file('other-build/settings.gradle') << """
+            rootProject.name = 'other-build'
+            include 'sub'
+        """
+        file('other-build/sub/build.gradle') << """
+            def depTask = tasks.register('dependency') {
+                doLast {
+                    println 'dependency'
+                }
+            }
+            tasks.register('doSomething') {
+                dependsOn(depTask)
+                doLast {
+                    println 'do something'
+                }
+            }
+        """
+
+        expect:
+        2.times {
+            succeeds(":other-build:sub:doSomething", "-x", ":other-build:sub:dependency")
+            result.assertTasksExecuted(":other-build:sub:doSomething")
+        }
+    }
+
     def "only absolute task paths can be used to target included builds"() {
         setup:
         settingsFile << "includeBuild('other-build')"
@@ -105,59 +135,6 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         expect:
         succeeds(":other-build:sub:doSomething")
         fails("other-build:sub:doSomething")
-    }
-
-    def "can run task from included build with applied plugin"() {
-        setup:
-        buildFile << """
-            plugins {
-                id 'other.plugin'
-            }
-        """
-        settingsFile << """
-            pluginManagement {
-                includeBuild('other-plugin')
-            }
-        """
-        file('other-plugin/settings.gradle') << "rootProject.name = 'other-plugin'"
-        file('other-plugin/build.gradle') << """
-            plugins {
-                id 'java-gradle-plugin'
-            }
-
-            ${mavenCentralRepository()}
-
-            gradlePlugin {
-                plugins {
-                    greeting {
-                        id = 'other.plugin'
-                        implementationClass = 'com.example.OtherPlugin'
-                    }
-                }
-            }
-
-            tasks.register('taskFromIncludedPlugin') {
-                doLast {
-                    println 'Task from included plugin'
-               }
-            }
-        """
-        file('other-plugin/src/main/java/com/example/OtherPlugin.java') << """
-            package com.example;
-            import org.gradle.api.*;
-            public class OtherPlugin implements Plugin<Project> {
-                public void apply(Project project) {
-                    project.getTasks().register("greeting", task -> {
-                        task.doLast(s -> System.out.println("Hello world"));
-                    });
-                }
-            }
-        """
-
-        expect:
-        succeeds(":other-plugin:taskFromIncludedPlugin")
-        output.count(":other-plugin:jar") == 1
-        succeeds(":other-plugin:taskFromIncludedPlugin")
     }
 
     def "can pass options to task in included build"() {
@@ -360,17 +337,140 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         outputContains("do something")
     }
 
-    def "can run task from included build that also produces build logic"() {
+    def "can run task from included build that also produces a plugin used from root build"() {
+        setup:
+        buildFile << """
+            plugins {
+                id 'test.plugin'
+            }
+        """
+        settingsFile << """
+            pluginManagement {
+                includeBuild('other-plugin')
+            }
+        """
+
+        def rootDir = file("other-plugin")
+        addPluginIncludedBuild(rootDir)
+        rootDir.file("build.gradle") << """
+            tasks.register('taskFromIncludedPlugin') {
+                doLast {
+                    println 'Task from included plugin'
+               }
+            }
+        """
+
+        expect:
+        succeeds(":other-plugin:taskFromIncludedPlugin")
+        result.assertTaskExecuted(":other-plugin:taskFromIncludedPlugin")
+        result.assertTaskExecuted(":other-plugin:jar")
+
+        succeeds(":other-plugin:taskFromIncludedPlugin")
+        result.assertTaskExecuted(":other-plugin:taskFromIncludedPlugin")
+        // build logic tasks do not run when configuration cache is enabled
+    }
+
+    def "can run and exclude task from included build that is also required to produce a plugin used from root build"() {
         setup:
         settingsFile << "includeBuild('build-logic')"
         def rootDir = file("build-logic")
+        addPluginIncludedBuild(rootDir)
+        buildFile("""
+            plugins {
+                id("test.plugin")
+                id("java-library")
+            }
+            dependencies {
+                implementation("lib:lib:1.0")
+            }
+        """)
+
+        expect:
+        succeeds(":build-logic:classes")
+        result.assertTaskExecuted(":build-logic:classes")
+
+        succeeds(":build-logic:classes")
+        // build logic tasks are not run when configuration cache is enabled (because their inputs are encoded in the cache key)
+
+        succeeds("greeting", "-x", ":build-logic:classes")
+        result.assertTaskNotExecuted(":build-logic:classes")
+
+        succeeds("greeting", "-x", ":build-logic:classes")
+        // build logic tasks are not run when configuration cache is enabled (because their inputs are encoded in the cache key)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21708")
+    def "can run and exclude task from included build that requires a plugin from another build"() {
+        setup:
+        settingsFile << """
+            includeBuild('build-logic')
+            includeBuild('app')
+        """
+        def rootDir = file("build-logic")
+        addPluginIncludedBuild(rootDir)
+        file("app/build.gradle") << """
+            plugins {
+                id("test.plugin")
+                id("java-library")
+            }
+        """
+
+        expect:
+        2.times {
+            succeeds(":app:assemble")
+            result.assertTaskExecuted(":app:processResources")
+        }
+        2.times {
+            succeeds(":app:assemble", "-x", ":app:processResources")
+            result.assertTaskNotExecuted(":app:processResources")
+        }
+    }
+
+    def "can run task from included build that also produces a plugin used from root build when configure on demand is enabled"() {
+        setup:
+        settingsFile << """
+            includeBuild('build-logic')
+            include("app")
+            include("util")
+        """
+        def rootDir = file("build-logic")
+        addPluginIncludedBuild(rootDir)
+
+        // App project does not use the plugin, but depends on a project that does
+        file("app/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation(project(":util"))
+            }
+        """
+        file("util/build.gradle") << """
+            plugins {
+                id("test.plugin")
+                id("java-library")
+            }
+        """
+
+        expect:
+        2.times {
+            succeeds(":build-logic:jar", ":app:assemble")
+        }
+        2.times {
+            executer.withArgument("--configure-on-demand")
+            succeeds(":build-logic:jar", ":app:assemble")
+        }
+    }
+
+    def addPluginIncludedBuild(TestFile rootDir, String group = "lib", String name = "lib") {
         rootDir.file("settings.gradle") << """
-            rootProject.name="lib"
+            rootProject.name="$name"
         """
         rootDir.file("build.gradle") << """
             plugins {
                 id("java-gradle-plugin")
             }
+            group = "$group"
             gradlePlugin {
                 plugins {
                     p {
@@ -387,22 +487,12 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
             import ${Plugin.name};
 
             public class PluginImpl implements Plugin<Project> {
-                public void apply(Project project) { }
+                public void apply(Project project) {
+                    project.getTasks().register("greeting", task -> {
+                        task.doLast(s -> System.out.println("Hello world"));
+                    });
+                }
             }
         """
-        buildFile("""
-            plugins {
-                id("test.plugin")
-                id("java-library")
-            }
-            dependencies {
-                implementation("lib:lib:1.0")
-            }
-        """)
-
-        expect:
-        2.times {
-            succeeds(":build-logic:classes")
-        }
     }
 }

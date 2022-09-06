@@ -156,12 +156,16 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         assertOperation()
     }
 
-    def "no state is captured when input properties cannot be snapshot"() {
+    def "fails when input properties cannot be snapshot"() {
         def failure = new InputFingerprinter.InputFileFingerprintingException("input", new IOException("Error"))
         when:
         step.execute(work, context)
 
         then:
+        def ex = thrown RuntimeException
+        ex.cause == failure
+        ex.message == "Wrapper"
+
         _ * context.inputProperties >> ImmutableSortedMap.of()
         _ * context.inputFileProperties >> ImmutableSortedMap.of()
         1 * inputFingerprinter.fingerprintInputProperties(
@@ -172,30 +176,30 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
             _
         ) >> { throw failure }
         interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
-            assert !delegateContext.beforeExecutionState.present
-        }
+        _ * work.decorateInputFileFingerprintingException(_) >> { InputFingerprinter.InputFileFingerprintingException e -> throw new RuntimeException("Wrapper", e) }
         0 * _
 
-        assertOperation()
+        assertOperation(ex)
     }
 
-    def "no state is captured when output file properties cannot be snapshot"() {
+    def "fails when output file properties cannot be snapshot"() {
         def failure = new OutputSnapshotter.OutputFileSnapshottingException("output", new IOException("Error")) {}
         when:
         step.execute(work, context)
 
         then:
+        def ex = thrown RuntimeException
+        ex.cause == failure
+        ex.message == "Wrapper"
+
         _ * context.inputProperties >> ImmutableSortedMap.of()
         _ * context.inputFileProperties >> ImmutableSortedMap.of()
         1 * outputSnapshotter.snapshotOutputs(work, _) >> { throw failure }
         interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
-            assert !delegateContext.beforeExecutionState.present
-        }
+        _ * work.decorateOutputFileSnapshottingException(_) >> { OutputSnapshotter.OutputFileSnapshottingException e -> throw new RuntimeException("Wrapper", e) }
         0 * _
 
-        assertOperation()
+        assertOperation(ex)
     }
 
     def "detects overlapping outputs when instructed"() {

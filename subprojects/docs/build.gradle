@@ -771,12 +771,6 @@ tasks.named("docsTest") { task ->
                 "snippet-ivy-publish-quickstart_kotlin_publishingIvyPublishSingle.sample",
                 "snippet-tooling-api-custom-model_groovy_sanityCheck.sample",
 
-                // TODO(https://github.com/gradle/gradle/issues/16080, https://github.com/gradle/gradle/issues/20126)
-                "snippet-java-basic_groovy_basicJavaWithIntegrationTests.sample",
-                "snippet-java-basic_kotlin_basicJavaWithIntegrationTests.sample",
-                "snippet-tutorial-task-only-if_groovy_taskOnlyIf.sample",
-                "snippet-tutorial-task-only-if_kotlin_taskOnlyIf.sample",
-
                 // TODO(https://github.com/gradle/gradle/issues/21717)
                 "snippet-java-toolchain-filters_groovy_toolchainFilters.sample",
                 "snippet-java-toolchain-filters_kotlin_toolchainFilters.sample",
@@ -820,9 +814,6 @@ tasks.named("docsTest") { task ->
             def testsToBeFixedForConfigurationCache = [
                 "snippet-artifacts-define-repository_groovy_defineMavenCentral.sample",
 
-                "snippet-artifacts-generated-file-dependencies_groovy_generatedFileDependencies.sample",
-                "snippet-artifacts-generated-file-dependencies_kotlin_generatedFileDependencies.sample",
-
                 "snippet-build-cache-cacheable-bundle-task_groovy_cacheableBundleTask.sample",
                 "snippet-build-cache-cacheable-bundle-task_kotlin_cacheableBundleTask.sample",
 
@@ -833,9 +824,6 @@ tasks.named("docsTest") { task ->
 
                 "snippet-buildlifecycle-project-evaluate-events_groovy_projectEvaluateEvents.sample",
                 "snippet-buildlifecycle-project-evaluate-events_kotlin_projectEvaluateEvents.sample",
-
-                "snippet-dependency-management-customizing-resolution-attribute-substitution-rule_groovy_resolve.sample",
-                "snippet-dependency-management-customizing-resolution-attribute-substitution-rule_kotlin_resolve.sample",
 
                 "snippet-dependency-management-customizing-resolution-capability-substitution-rule_groovy_capability_substitution.sample",
                 "snippet-dependency-management-customizing-resolution-capability-substitution-rule_kotlin_capability_substitution.sample",
@@ -903,19 +891,6 @@ tasks.named("docsTest") { task ->
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep.sample",
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep2.sample",
 
-                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_incrementalBuildCustomMethods.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_incrementalBuildCustomMethodsWithTaskArg.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_incrementalBuildInputFilesConfig.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_incrementalBuildInputFilesConfigUsingTask.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_incrementalBuildUpToDateWhen.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_groovy_inferredTaskDependencyWithBuiltBy.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_incrementalBuildCustomMethods.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_incrementalBuildCustomMethodsWithTaskArg.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_incrementalBuildInputFilesConfig.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_incrementalBuildInputFilesConfigUsingTask.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_incrementalBuildUpToDateWhen.sample",
-                "snippet-tasks-incremental-build-incremental-build-advanced_kotlin_inferredTaskDependencyWithBuiltBy.sample",
-
                 "snippet-tasks-incremental-task_groovy_incrementalTaskChangedProperty.sample",
                 "snippet-tasks-incremental-task_groovy_incrementalTaskFirstRun.sample",
                 "snippet-tasks-incremental-task_groovy_incrementalTaskNoChange.sample",
@@ -933,10 +908,6 @@ tasks.named("docsTest") { task ->
 
                 "snippet-testing-test-suite-multi-configure-each-matching_groovy_checkTask.sample",
 
-                "snippet-testing-test-suite-multi-configure-each_groovy_checkTask.sample",
-
-                "snippet-tutorial-configure-task-using-project-property_groovy_configureTaskUsingProjectProperty.sample",
-                "snippet-tutorial-configure-task-using-project-property_kotlin_configureTaskUsingProjectProperty.sample",
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache

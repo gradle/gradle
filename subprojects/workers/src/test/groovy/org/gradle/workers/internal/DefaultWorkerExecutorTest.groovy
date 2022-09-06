@@ -67,13 +67,11 @@ class DefaultWorkerExecutorTest extends Specification {
     def actionExecutionSpecFactory = Mock(ActionExecutionSpecFactory)
     def instantiator = Mock(Instantiator)
     def classpathTransformer = Mock(CachedClasspathTransformer)
-    def parameters = Mock(AdapterWorkParameters)
     ConditionalExecution task
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
-        _ * instantiator.newInstance(AdapterWorkParameters) >> parameters
         _ * instantiator.newInstance(DefaultWorkerSpec) >> { args -> new DefaultWorkerSpec() }
         _ * instantiator.newInstance(DefaultClassLoaderWorkerSpec) >> { args -> new DefaultClassLoaderWorkerSpec(objectFactory) }
         _ * instantiator.newInstance(DefaultProcessWorkerSpec, _) >> { args -> new DefaultProcessWorkerSpec(args[1][0], objectFactory) }
@@ -161,8 +159,6 @@ class DefaultWorkerExecutorTest extends Specification {
         workerExecutor.processIsolation().submit(TestExecutable.class, Actions.doNothing())
 
         then:
-        _ * parameters.implementationClassName >> TestExecutable.class.getName()
-        _ * parameters.params >> []
         1 * workerThreadRegistry.workerThread >> true
         1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
@@ -182,8 +178,6 @@ class DefaultWorkerExecutorTest extends Specification {
         workerExecutor.classLoaderIsolation().submit(TestExecutable.class, Actions.doNothing())
 
         then:
-        _ * parameters.implementationClassName >> TestExecutable.class.getName()
-        _ * parameters.params >> []
         1 * workerThreadRegistry.workerThread >> true
         1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
@@ -203,8 +197,6 @@ class DefaultWorkerExecutorTest extends Specification {
         workerExecutor.noIsolation().submit(TestExecutable.class, Actions.doNothing())
 
         then:
-        _ * parameters.implementationClassName >> TestExecutable.class.getName()
-        _ * parameters.params >> []
         1 * workerThreadRegistry.workerThread >> true
         1 * executionQueue.submit(_) >> { args -> task = args[0] }
 

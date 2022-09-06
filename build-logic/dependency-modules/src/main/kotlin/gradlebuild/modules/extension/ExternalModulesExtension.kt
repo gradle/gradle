@@ -56,7 +56,8 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val gcs = "com.google.apis:google-api-services-storage"
     val googleApiClient = "com.google.api-client:google-api-client"
     val googleHttpClient = "com.google.http-client:google-http-client"
-    val googleHttpClientJackson2 = "com.google.http-client:google-http-client-jackson2"
+    val googleHttpClientGson = "com.google.http-client:google-http-client-gson"
+    val googleHttpClientApacheV2 = "com.google.http-client:google-http-client-apache-v2"
     val googleOauthClient = "com.google.oauth-client:google-oauth-client"
     val gradleProfiler = "org.gradle.profiler:gradle-profiler"
     val groovyGroup = if (isBundleGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
@@ -206,7 +207,8 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
         gcs to License.Apache2,
         googleApiClient to License.Apache2,
         googleHttpClient to License.Apache2,
-        googleHttpClientJackson2 to License.Apache2,
+        googleHttpClientGson to License.Apache2,
+        googleHttpClientApacheV2 to License.Apache2,
         googleOauthClient to License.Apache2,
         gradleProfiler to License.Apache2,
         groovy to License.Apache2,
