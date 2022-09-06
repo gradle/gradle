@@ -259,6 +259,7 @@ public class GUtil {
     }
 
     public static Properties loadProperties(File propertyFile) {
+        logDeprecation();
         try {
             FileInputStream inputStream = new FileInputStream(propertyFile);
             try {
@@ -272,6 +273,7 @@ public class GUtil {
     }
 
     public static Properties loadProperties(URL url) {
+        // TODO log deprecation when nebula-lint plugin is fixed
         try {
             URLConnection uc = url.openConnection();
             uc.setUseCaches(false);
@@ -282,7 +284,7 @@ public class GUtil {
     }
 
     public static Properties loadProperties(InputStream inputStream) {
-        logDeprecation();
+        // TODO log deprecation when nebula-lint plugin is fixed
         Properties properties = new Properties();
         try {
             properties.load(inputStream);
