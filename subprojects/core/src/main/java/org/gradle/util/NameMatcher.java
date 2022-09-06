@@ -42,7 +42,7 @@ public class NameMatcher {
     private String pattern;
 
     public NameMatcher() {
-        logDeprecation();
+        // TODO log deprecation once nebula.dependency-lock plugin is fixed
     }
 
     /**
@@ -52,6 +52,7 @@ public class NameMatcher {
      * @see #find(String, Collection)
      */
     public <T> T find(String pattern, Map<String, ? extends T> items) {
+        logDeprecation();
         String name = find(pattern, items.keySet());
         if (name != null) {
             return items.get(name);
@@ -72,6 +73,7 @@ public class NameMatcher {
      * @return The match if exactly 1 match found, null if no matches or multiple matches.
      */
     public String find(String pattern, Collection<String> items) {
+        // TODO log deprecation once nebula.dependency-lock plugin is fixed
         this.pattern = pattern;
         matches.clear();
         candidates.clear();
@@ -191,6 +193,7 @@ public class NameMatcher {
      * @return The matches. Returns an empty set when there are no matches.
      */
     public Set<String> getMatches() {
+        logDeprecation();
         return matches;
     }
 
@@ -200,6 +203,7 @@ public class NameMatcher {
      * @return The matches. Returns an empty set when there are no potential matches.
      */
     public Set<String> getCandidates() {
+        logDeprecation();
         return candidates;
     }
 
