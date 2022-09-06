@@ -19,6 +19,7 @@ package org.gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.internal.DefaultTaskExecutionRequest
+import org.gradle.internal.RunDefaultTasksExecutionRequest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -108,8 +109,7 @@ class StartParameterTest extends Specification {
 
         parameter.logLevel == LogLevel.LIFECYCLE
         parameter.consoleOutput == ConsoleOutput.Auto
-        parameter.taskNames.empty
-        parameter.taskRequests.empty
+        assertRunsDefaultTasks(parameter)
         parameter.excludedTaskNames.empty
         parameter.projectProperties.isEmpty()
         parameter.systemPropertiesArgs.isEmpty()
@@ -296,8 +296,7 @@ class StartParameterTest extends Specification {
         newParameter.lockedDependenciesToUpdate == parameter.lockedDependenciesToUpdate
 
         newParameter.buildFile == null
-        newParameter.taskRequests.empty
-        newParameter.taskNames.empty
+        assertRunsDefaultTasks(newParameter)
         newParameter.excludedTaskNames.empty
         newParameter.currentDir == new File(System.getProperty("user.dir")).getCanonicalFile()
         !newParameter.dryRun
@@ -362,7 +361,11 @@ class StartParameterTest extends Specification {
         parameter.taskNames = null
 
         then:
-        parameter.taskNames == []
-        parameter.taskRequests == []
+        assertRunsDefaultTasks(parameter)
+    }
+
+    private void assertRunsDefaultTasks(StartParameter parameter) {
+        assert parameter.taskNames.empty
+        assert parameter.taskRequests.size() == 1 && parameter.taskRequests[0] instanceof RunDefaultTasksExecutionRequest
     }
 }

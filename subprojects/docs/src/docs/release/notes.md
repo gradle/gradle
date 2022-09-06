@@ -13,6 +13,7 @@ We would like to thank the following community members for their contributions t
 [Herbert von Broeuschmeul](https://github.com/HvB),
 [Björn Kautler](https://github.com/Vampire)
 [Ricardo Jiang](https://github.com/RicardoJiang)
+[Siddardha Bezawada](https://github.com/SidB3)
 
 ## Upgrade instructions
 
