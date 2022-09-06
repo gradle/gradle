@@ -16,6 +16,8 @@
 
 package org.gradle.internal.build;
 
+import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.concurrent.Stoppable;
 
 import java.util.Collection;
@@ -31,6 +33,11 @@ public interface BuildWorkGraph extends Stoppable {
      * Adds tasks and other nodes to this work graph.
      */
     void populateWorkGraph(Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
+
+    /**
+     * Adds a task filter to this work graph.
+     */
+    void addFilter(Spec<Task> filter);
 
     /**
      * Finalize the work graph for execution, after all work has been scheduled. This method should not schedule any additional work.
