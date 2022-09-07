@@ -481,7 +481,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @since 7.5
      */
     @Input
-    @Incubating
     public Property<Integer> getThreads() {
         return threads;
     }
