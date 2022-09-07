@@ -20,6 +20,11 @@ import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.execution.DefaultTaskSelector;
+import org.gradle.execution.ProjectConfigurer;
+import org.gradle.execution.TaskNameResolver;
+import org.gradle.execution.TaskPathProjectEvaluator;
+import org.gradle.execution.TaskSelector;
 import org.gradle.execution.selection.DefaultBuildTaskSelector;
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
@@ -61,7 +66,12 @@ public class BuildTreeScopeServices {
         registration.add(DefaultProjectStateRegistry.class);
         registration.add(DefaultConfigurationTimeBarrier.class);
         registration.add(DeprecationsReporter.class);
+        registration.add(TaskPathProjectEvaluator.class);
         modelServices.applyServicesTo(registration);
+    }
+
+    protected TaskSelector createTaskSelector(ProjectConfigurer projectConfigurer) {
+        return new DefaultTaskSelector(new TaskNameResolver(), projectConfigurer);
     }
 
     protected DefaultListenerManager createListenerManager(DefaultListenerManager parent) {
