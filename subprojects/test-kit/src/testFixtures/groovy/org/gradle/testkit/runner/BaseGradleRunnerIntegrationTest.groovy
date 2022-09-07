@@ -16,11 +16,7 @@
 
 package org.gradle.testkit.runner
 
-import com.google.common.collect.ImmutableRangeMap
-import com.google.common.collect.Range
-import com.google.common.collect.TreeRangeMap
 import groovy.transform.Sortable
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
@@ -184,30 +180,24 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         OutputScrapingExecutionFailure.from(buildResult.output, buildResult.output)
     }
 
-    // Add to this after adding support for a JDK version.
-    // If the existing version still works, increase its range to include the next version.
-    // If it doesn't, add a new one at the top with the release/rc version.
-    static final def GRADLE_VERSION_BY_JDK
+    private static final String LOWEST_MAJOR_GRADLE_VERSION
     static {
-        def rangeMap = TreeRangeMap.create()
-        rangeMap.put(Range.atMost(JavaVersion.VERSION_18), "7.3")
-        rangeMap.put(Range.atMost(JavaVersion.VERSION_16), "7.0")
-        // see https://github.com/gradle/gradle/issues/4860
-        rangeMap.put(Range.atMost(JavaVersion.VERSION_15), "4.8.1")
-        // see https://github.com/gradle/gradle/issues/2992
-        rangeMap.put(Range.atMost(JavaVersion.VERSION_1_10), "4.3.1")
-        rangeMap.put(Range.atMost(JavaVersion.VERSION_1_8), "4.1")
-        GRADLE_VERSION_BY_JDK = ImmutableRangeMap.copyOf(rangeMap)
+        def releasedGradleVersions = new ReleasedVersionDistributions()
+        def probeVersions = ["4.10.3", "5.6.4", "6.9.2", "7.5.1", "7.6"]
+        String compatibleVersion = probeVersions.find {version ->
+            releasedGradleVersions.getDistribution(version)?.worksWith(Jvm.current())
+        }
+        LOWEST_MAJOR_GRADLE_VERSION = compatibleVersion
     }
 
-    static String findMinimumSupportedGradleVersion() {
-        GRADLE_VERSION_BY_JDK.get(JavaVersion.current())
+    static String findLowestMajorGradleVersion() {
+        LOWEST_MAJOR_GRADLE_VERSION
     }
 
-    static String getMinimumSupportedGradleVersion() {
-        def gradleVersion = findMinimumSupportedGradleVersion()
+    static String getLowestMajorGradleVersion() {
+        def gradleVersion = LOWEST_MAJOR_GRADLE_VERSION
         if (gradleVersion == null) {
-            throw new AssumptionViolatedException("No version of Gradle supports Java ${JavaVersion.current()}")
+            throw new AssumptionViolatedException("No version of Gradle supports Java ${Jvm.current()}")
         }
         return gradleVersion
     }
