@@ -898,10 +898,7 @@ tasks.named("docsTest") { task ->
                 "snippet-tasks-incremental-task_kotlin_incrementalTaskRemovedOutput.sample",
                 "snippet-tasks-incremental-task_kotlin_incrementalTaskUpdatedInputs.sample",
 
-                "snippet-testing-test-suite-multi-configure-each-extracted_groovy_checkTask.sample",
-
-                "snippet-testing-test-suite-multi-configure-each-matching_groovy_checkTask.sample",
-
+                "snippet-testing-test-suite-multi-configure-each-extracted_groovy_checkTask.sample"
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
