@@ -155,7 +155,7 @@ class ProjectMetadataController(
                     metadata.id,
                     selector,
                     null,
-                    null,
+                    ImmutableAttributes.EMPTY,
                     ImmutableAttributes.EMPTY,
                     null,
                     emptyList(),

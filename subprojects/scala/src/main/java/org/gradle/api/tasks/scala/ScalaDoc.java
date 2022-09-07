@@ -208,8 +208,8 @@ public class ScalaDoc extends SourceTask {
      * Optional JavaLauncher for toolchain support
      * @since 7.2
      */
-    @Incubating
-    @Internal
+    @Nested
+    @Optional
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }

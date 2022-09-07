@@ -134,7 +134,7 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
 
     /**
      * JavaLauncher for toolchain support
-     * @since 7.7
+     * @since 8.0
      */
     @Incubating
     @Nested
