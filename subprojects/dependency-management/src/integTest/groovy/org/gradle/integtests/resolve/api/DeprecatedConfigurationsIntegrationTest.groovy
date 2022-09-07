@@ -119,6 +119,6 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         fails 'resolve'
 
         then:
-        failure.hasErrorOutput("Dependencies can no longer be declared using the `compileOnly` configuration.")
+        failure.hasErrorOutput("Dependencies can no longer be resolved using the `compileOnly` configuration.")
     }
 }

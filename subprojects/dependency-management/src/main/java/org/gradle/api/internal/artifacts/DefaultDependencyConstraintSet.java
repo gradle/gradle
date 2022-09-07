@@ -25,7 +25,7 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import java.util.Collection;
 
-import static org.gradle.api.internal.artifacts.ValidDependencyDeclarationHelper.ensureValidConfigurationForDeclaration;
+import static org.gradle.api.internal.artifacts.ValidDependencyUsageForConfigurationHelper.ensureValidConfigurationForDeclaration;
 
 public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<DependencyConstraint> implements DependencyConstraintSet {
     private final Describable displayName;

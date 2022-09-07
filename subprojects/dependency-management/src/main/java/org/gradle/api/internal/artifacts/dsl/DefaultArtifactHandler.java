@@ -35,7 +35,7 @@ import org.gradle.util.internal.GUtil;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.gradle.api.internal.artifacts.ValidDependencyDeclarationHelper.ensureValidConfigurationForDeclaration;
+import static org.gradle.api.internal.artifacts.ValidDependencyUsageForConfigurationHelper.ensureValidConfigurationForDeclaration;
 
 public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
 

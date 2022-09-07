@@ -31,7 +31,7 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import java.util.Collection;
 
-import static org.gradle.api.internal.artifacts.ValidDependencyDeclarationHelper.ensureValidConfigurationForDeclaration;
+import static org.gradle.api.internal.artifacts.ValidDependencyUsageForConfigurationHelper.ensureValidConfigurationForDeclaration;
 
 public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> implements DependencySet {
     private final Describable displayName;
