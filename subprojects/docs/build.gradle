@@ -872,9 +872,6 @@ tasks.named("docsTest") { task ->
 
                 "snippet-kotlin-dsl-multi-project-build_kotlin_build.sample",
 
-                "snippet-providers-property-convention_groovy_propertyConvention.sample",
-                "snippet-providers-property-convention_kotlin_propertyConvention.sample",
-
                 "snippet-tasks-incremental-build-custom-task-class_groovy_customTaskClassWithInputOutputAnnotations.sample",
                 "snippet-tasks-incremental-build-custom-task-class_groovy_incrementalAdHocTask.sample",
                 "snippet-tasks-incremental-build-custom-task-class_groovy_inferredTaskDep.sample",
@@ -898,10 +895,7 @@ tasks.named("docsTest") { task ->
                 "snippet-tasks-incremental-task_kotlin_incrementalTaskRemovedOutput.sample",
                 "snippet-tasks-incremental-task_kotlin_incrementalTaskUpdatedInputs.sample",
 
-                "snippet-testing-test-suite-multi-configure-each-extracted_groovy_checkTask.sample",
-
-                "snippet-testing-test-suite-multi-configure-each-matching_groovy_checkTask.sample",
-
+                "snippet-testing-test-suite-multi-configure-each-extracted_groovy_checkTask.sample"
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
