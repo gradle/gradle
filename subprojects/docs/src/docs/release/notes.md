@@ -11,8 +11,10 @@ Include only their name, impactful features should be called out separately belo
 We would like to thank the following community members for their contributions to this release of Gradle:
 
 [Herbert von Broeuschmeul](https://github.com/HvB),
-[Björn Kautler](https://github.com/Vampire)
+[Björn Kautler](https://github.com/Vampire),
+[Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy),
 [Siddardha Bezawada](https://github.com/SidB3)
+[Stephen Topley](https://github.com/stopley)
 
 ## Upgrade instructions
 
