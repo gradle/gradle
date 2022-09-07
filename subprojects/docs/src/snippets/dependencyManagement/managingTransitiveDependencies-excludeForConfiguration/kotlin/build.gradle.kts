@@ -20,7 +20,7 @@ dependencies {
 // end::exclude-transitive-dependencies[]
 
 tasks.register("printArtifacts") {
-    val runtimeClasspath: FileCollection = configurations.runtimeClasspath.get()
+    val runtimeClasspath: FileCollection = configurations["runtimeClasspath"]
     doLast {
         runtimeClasspath.forEach { println(it.name) }
     }
