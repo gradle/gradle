@@ -23,12 +23,12 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * Static util class containing logic to check whether a configuration is allowed to declare dependencies.
+ * Static util class containing logic to check whether a configuration is allowed to declare or resolve dependencies.
  *
  * @since 8.0
  */
-public abstract class ValidDependencyDeclarationHelper {
-    private ValidDependencyDeclarationHelper() {}
+public abstract class ValidDependencyUsageForConfigurationHelper {
+    private ValidDependencyUsageForConfigurationHelper() {}
 
     public static void ensureValidConfigurationForDeclaration(String configurationName, DeprecatableConfiguration conf) {
         ensureValidConfigurationForDeclaration(configurationName, conf.getDeclarationAlternatives());
@@ -42,6 +42,17 @@ public abstract class ValidDependencyDeclarationHelper {
     public static void ensureValidConfigurationForDeclaration(String configurationName, boolean isValid) {
         if (!isValid) {
             throw new GradleException("Dependencies can no longer be declared using the `" + configurationName + "` configuration.");
+        }
+    }
+
+    public static void ensureValidConfigurationForResolution(String configurationName, @Nullable List<String> alternatives) {
+        boolean alternativesExist = alternatives != null;
+        ensureValidConfigurationForResolution(configurationName, !alternativesExist);
+    }
+
+    public static void ensureValidConfigurationForResolution(String configurationName, boolean isValid) {
+        if (!isValid) {
+            throw new GradleException("Dependencies can no longer be resolved using the `" + configurationName + "` configuration.");
         }
     }
 }
