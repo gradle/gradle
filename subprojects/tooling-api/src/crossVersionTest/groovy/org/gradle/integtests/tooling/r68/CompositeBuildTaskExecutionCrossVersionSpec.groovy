@@ -138,37 +138,6 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         outputContains("do something")
     }
 
-    def "only absolute task paths can be used to target included builds"() {
-        given:
-        settingsFile << "includeBuild('other-build')"
-        file('other-build/settings.gradle') << """
-            rootProject.name = 'other-build'
-            include 'sub'
-            include 'sub:subsub'
-        """
-        file('other-build/sub/build.gradle') << """
-            tasks.register('doSomething') {
-                doLast {
-                    println '[sub] do something'
-                }
-            }
-        """
-        file('other-build/sub/subsub/build.gradle') << """
-            tasks.register('doSomething') {
-                doLast {
-                    println '[sub/subsub] do something'
-                }
-            }
-        """
-
-        when:
-        executeTaskViaTAPI("other-build:sub:doSomething")
-
-        then:
-        def exception = thrown(Exception)
-        exception.cause.message.contains("Project 'other-build' not found in root project")
-    }
-
     def "can pass options to task in included build"() {
         given:
         settingsFile << "includeBuild('other-build')"
@@ -293,7 +262,8 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         outputContains("do something")
     }
 
-    def "included build name can not be name patterns to execute a task"() {
+    @TargetGradleVersion(">=7.6")
+    def "included build name can use pattern matching to execute a task"() {
         given:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
@@ -309,8 +279,15 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
         executeTaskViaTAPI(":oB:doSo")
 
         then:
-        def exception = thrown(Exception)
-        exception.cause.message.contains("Project 'oB' not found in root project")
+        assertHasBuildSuccessfulLogging()
+        outputContains("do something")
+
+        when:
+        executeTaskViaTAPI("oB:doSo")
+
+        then:
+        assertHasBuildSuccessfulLogging()
+        outputContains("do something")
     }
 
     def "gives reasonable error message when a task does not exist in the referenced included build"() {
@@ -328,7 +305,7 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
 
         then:
         def exception = thrown(Exception)
-        exception.cause.message.contains("Task 'nonexistent' not found in project ':other-build'.")
+        exception.cause.message.containsIgnoreCase("task 'nonexistent' not found in project ':other-build'.")
     }
 
     def "gives reasonable error message when a project does not exist in the referenced included build"() {
@@ -346,7 +323,7 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
 
         then:
         def exception = thrown(Exception)
-        exception.cause.message.contains("Project 'sub' not found in project ':other-build'.")
+        exception.cause.message.containsIgnoreCase("project 'sub' not found in project ':other-build'.")
     }
 
     def "handles overlapping names between composite and a subproject within the composite"() {
@@ -484,7 +461,7 @@ class CompositeBuildTaskExecutionCrossVersionSpec extends ToolingApiSpecificatio
     }
 
     private def findLaunchables(Collection<GradleProject> gradleProjects, String taskName) {
-        collectGradleProjects(gradleProjects).collect {it.tasks }.flatten().findAll { GradleTask task -> task.path.contains(taskName) }
+        collectGradleProjects(gradleProjects).collect { it.tasks }.flatten().findAll { GradleTask task -> task.path.contains(taskName) }
     }
 
     private def collectGradleProjects(Collection<GradleProject> projects, Collection<GradleProject> acc = []) {
