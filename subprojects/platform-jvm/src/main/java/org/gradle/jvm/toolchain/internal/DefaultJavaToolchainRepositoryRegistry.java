@@ -83,9 +83,7 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
 
     @Override
     public <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType, int highestToolchainSpecVersionKnown) {
-        if (registrations.containsKey(name)) {
-            throw new GradleException("Duplicate " + JavaToolchainRepository.class.getSimpleName() + " registration under the name '" + name + "'");
-        }
+        validateName(name);
 
         if (highestToolchainSpecVersionKnown < JavaToolchainSpecVersion.currentSpecVersion) {
             throw new GradleException("Can't register " + JavaToolchainRepository.class.getSimpleName() + " named '" + name + "' because it only supports java toolchain specifications " +
@@ -100,6 +98,16 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
         registrations.put(name, registration);
 
         registrationBroadcaster.onRegister(registration);
+    }
+
+    private void validateName(String name) {
+        if (!name.matches("[a-z][_a-zA-Z0-9]*")) {
+            throw new GradleException(JavaToolchainRepository.class.getSimpleName() + " names must start with a lowercase letter and contain only letters, numbers, and underscore characters");
+        }
+
+        if (registrations.containsKey(name)) {
+            throw new GradleException("Duplicate " + JavaToolchainRepository.class.getSimpleName() + " registration under the name '" + name + "'");
+        }
     }
 
     @Override
@@ -144,7 +152,7 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
 
     @Override
     public List<JavaToolchainRepositoryRequest> requestedRepositories() {
-        return requests; //TODO (#21082): do we need to create a defensive copy here?
+        return requests;
     }
 
     private JavaToolchainRepositoryRegistrationInternal findRegistrationByName(String registrationName) {

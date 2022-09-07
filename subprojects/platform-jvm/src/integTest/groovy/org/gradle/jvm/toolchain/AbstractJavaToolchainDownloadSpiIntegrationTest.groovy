@@ -20,8 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class AbstractJavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
-    //TODO (#21082): write separate integration tests for Kotlin; looks like the dynamically added jdks block is not working at all in Kotlin...
-
     protected static String applyToolchainRegistryPlugin(String name, String className, String code) {
         """
             public abstract class ${className}Plugin implements Plugin<Settings> {

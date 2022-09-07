@@ -33,16 +33,19 @@ public interface JavaToolchainRepositoryRegistry {
      * Registers a <code>JavaToolchainRepository</code> implementation with a specific name. Fails if
      * any other repository has been already registered with that name (throws a <code>GradleException</code>).
      * <p>
-     * In order to avoid name collisions we recommend this name to be set to the plugin ID that's doing
-     * the registration. Since plugin IDs are already forced to be unique by the Plugin Portal, this
-     * will ensure that any combination of Java Toolchain Provisioning SPI plugins will work in any build. //TODO (#21082): dot and dash can't be used in the names
+     * To avoid name collisions, we recommend repository names be namespaced, like plugin-ids. For example,
+     * if the plugin providing the repository has the plugin-id "com.domain.myrepo", then we recommend the
+     * repository to be named "com_domain_myrepo". This way we can ensure that any combination of
+     * Java Toolchain Provisioning SPI plugins will work in any build.
+     * <p>
+     * Dots and dashes need to be avoided in the repository names because at a later stage we will be generating
+     * accessors for the repositories and that mechanism will not be able to handle them. In general, names
+     * must start with a lowercase letter and contain only letters, numbers, and underscore characters.
      * <p>
      * The toolchain specification version provided describes the highest version the repository being
      * registered is capable of handling. In case it's lower than what the current build might use a
      * <code>GradleException</code> will be thrown. See {@link JavaToolchainSpecVersion}.
      */
     <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType, int highestToolchainSpecVersionKnown);
-
-    //TODO (#21082): check this user provided name for the conventions we require
 
 }
