@@ -69,7 +69,7 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.headerOutputDirectory = compileOptions.getHeaderOutputDirectory().getAsFile().getOrNull();
         this.javaModuleVersion = compileOptions.getJavaModuleVersion().getOrNull();
         this.javaModuleMainClass = compileOptions.getJavaModuleMainClass().getOrNull();
-        this.supportsIncrementalCompilationAfterFailure = compileOptions.getIncrementalAfterFailure().getOrElse(true);
+        this.supportsIncrementalCompilationAfterFailure = compileOptions.getIncrementalAfterFailure().getOrElse(false);
     }
 
     @Nullable
