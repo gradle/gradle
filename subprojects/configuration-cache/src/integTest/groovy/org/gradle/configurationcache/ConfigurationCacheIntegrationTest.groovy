@@ -48,6 +48,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         "properties"    | []
         "dependencies"  | []
         "help"          | ["--task", "help"]
+        "help"          | ["--rerun"]
     }
 
     def "can store task selection success/failure for :help --task"() {

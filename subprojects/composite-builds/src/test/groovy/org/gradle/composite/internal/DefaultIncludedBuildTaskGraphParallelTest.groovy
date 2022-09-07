@@ -57,6 +57,7 @@ import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.DefaultBuildWorkGraphController
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
+import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
@@ -92,6 +93,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     @Shared
     def manyWorkers = 10
     def cancellationToken = new DefaultBuildCancellationToken()
+    def preparer = Stub(BuildTreeWorkGraphPreparer)
 
     def "does nothing when nothing scheduled"() {
         when:
@@ -125,6 +127,34 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     }
 
     def "runs scheduled unrelated work across multiple builds"() {
+        def services = new TreeServices(workers)
+        def childBuild = build(services, new DefaultBuildIdentifier("child"))
+        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def childNode = new TestNode("child build node")
+        def node = new TestNode("main build node")
+
+        when:
+        def result = scheduleAndRun(services) { builder ->
+            builder.withWorkGraph(build.state) { graphBuilder ->
+                def task = task(build, node)
+                graphBuilder.addEntryTasks([task])
+            }
+            builder.withWorkGraph(childBuild.state) { graphBuilder ->
+                def task = task(childBuild, childNode)
+                graphBuilder.addEntryTasks([task])
+            }
+        }
+
+        then:
+        result.failures.empty
+        childNode.executed
+        node.executed
+
+        where:
+        workers << [1, manyWorkers]
+    }
+
+    def "runs scheduled related work across multiple builds"() {
         def services = new TreeServices(workers)
         def childBuild = build(services, new DefaultBuildIdentifier("child"))
         def build = build(services, DefaultBuildIdentifier.ROOT)
@@ -282,7 +312,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
         return new DefaultBuildWorkGraphController(
             nodeFactory,
-            controller
+            controller,
+            Stub(BuildState)
         )
     }
 
@@ -407,6 +438,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
                 buildStateRegistry,
                 workerLeaseService,
                 planExecutor,
+                preparer,
                 MONITOR_POLL_TIME,
                 TimeUnit.MILLISECONDS
             )
@@ -452,9 +484,12 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
         @Override
         void finishExecution(Consumer<Node> completionAction) {
-            super.finishExecution(completionAction)
-            for (final def action in observers) {
-                action.run()
+            try {
+                super.finishExecution(completionAction)
+            } finally {
+                for (final def action in observers) {
+                    action.run()
+                }
             }
         }
     }
