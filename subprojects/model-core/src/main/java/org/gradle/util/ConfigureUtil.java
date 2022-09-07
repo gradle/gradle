@@ -73,7 +73,11 @@ import static org.gradle.util.internal.CollectionUtils.toStringList;
 public class ConfigureUtil {
 
     public static <T> T configureByMap(Map<?, ?> properties, T delegate) {
-        logDeprecation();
+        // TODO log deprecation once idea is fixed
+        return configureByMapInternal(properties, delegate);
+    }
+
+    private static <T> T configureByMapInternal(Map<?, ?> properties, T delegate) {
         if (properties.isEmpty()) {
             return delegate;
         }
@@ -105,7 +109,8 @@ public class ConfigureUtil {
                 throw new IncompleteInputException("Input configuration map does not contain following mandatory keys: " + missingKeys, missingKeys);
             }
         }
-        return configureByMap(properties, delegate);
+        logDeprecation();
+        return configureByMapInternal(properties, delegate);
     }
 
     /**
