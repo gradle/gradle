@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryDelegate;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -33,7 +32,8 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import java.util.Map;
 
-public class DefaultDependencyFactory implements DependencyFactory {
+@Deprecated
+public class DefaultDependencyFactory implements org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory {
     private final NotationParser<Object, Dependency> dependencyNotationParser;
     private final NotationParser<Object, DependencyConstraint> dependencyConstraintNotationParser;
     private final NotationParser<Object, ClientModule> clientModuleNotationParser;
