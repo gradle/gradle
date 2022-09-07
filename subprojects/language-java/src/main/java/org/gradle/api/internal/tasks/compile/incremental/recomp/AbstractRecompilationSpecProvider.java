@@ -69,7 +69,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
 
         processClasspathChanges(current, previous, spec);
         processSourceChanges(current, previous, spec, sourceFileClassNameConverter);
-        collectSourcePathsAndFindIndependentClasses(previous, spec, sourceFileClassNameConverter);
+        collectAllSourcePathsAndIndependentClasses(previous, spec, sourceFileClassNameConverter);
         spec.addClassesToProcess(previous.getTypesToReprocess(spec.getClassesToCompile()));
         return spec;
     }
@@ -90,33 +90,34 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
      * If/when we change A, B and C will be recompiled, since we will pass Test.java to a compiler, but we won't delete origin C.class. So C.class will be on classpath at the compile time.
      * That can confuse for example Groovy compiler when it generates test methods for Spock.
      */
-    private void collectSourcePathsAndFindIndependentClasses(PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+    private void collectAllSourcePathsAndIndependentClasses(PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
         Set<String> classesToCompile = new LinkedHashSet<>(spec.getClassesToCompile());
         while (!classesToCompile.isEmpty() && !spec.isFullRebuildNeeded()) {
-
-            Set<String> independentClasses = new LinkedHashSet<>();
-            for (String classToCompile : classesToCompile) {
-                for (String sourcePath : sourceFileClassNameConverter.getRelativeSourcePaths(classToCompile)) {
-                    independentClasses.addAll(findIndependentClassesFromSource(sourcePath, spec, sourceFileClassNameConverter));
-                    spec.addSourcePath(sourcePath);
-                }
-            }
-
-            if (independentClasses.isEmpty()) {
-                classesToCompile = Collections.emptySet();
-            } else {
-                // Since these independent classes didn't actually change, they will be just recreated.
-                // So we just have to collect just annotation dependencies, so they are correctly deleted before compilation.
-                classesToCompile = sourceFileChangeProcessor.processAnnotationDependenciesOfIndependentClasses(independentClasses, spec);
-            }
+            Set<String> independentClasses = collectSourcePathsAndIndependentClasses(classesToCompile, spec, sourceFileClassNameConverter);
+            // Since these independent classes didn't actually change, they will be just recreated without any change.
+            // That is why we just have to collect annotation dependencies, so they are correctly deleted before compilation.
+            classesToCompile = independentClasses.isEmpty()
+                ? Collections.emptySet()
+                : sourceFileChangeProcessor.processAnnotationDependenciesOfIndependentClasses(independentClasses, spec);
         }
     }
 
-    private Set<String> findIndependentClassesFromSource(String sourcePath, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+    private Set<String> collectSourcePathsAndIndependentClasses(Set<String> classesToCompile, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+        Set<String> independentClasses = new LinkedHashSet<>();
+        for (String classToCompile : classesToCompile) {
+            for (String sourcePath : sourceFileClassNameConverter.getRelativeSourcePaths(classToCompile)) {
+                independentClasses.addAll(collectIndependentClassesForSourcePath(sourcePath, spec, sourceFileClassNameConverter));
+                spec.addSourcePath(sourcePath);
+            }
+        }
+        return independentClasses;
+    }
+
+    private Set<String> collectIndependentClassesForSourcePath(String sourcePath, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         Set<String> classNames = sourceFileClassNameConverter.getClassNames(sourcePath);
         if (classNames.size() <= 1) {
-            // If we have just 1 class in a source, it was already collected before
+            // If source has just 1 class, it doesn't have any independent class
             return Collections.emptySet();
         }
         Set<String> newClasses = new LinkedHashSet<>();

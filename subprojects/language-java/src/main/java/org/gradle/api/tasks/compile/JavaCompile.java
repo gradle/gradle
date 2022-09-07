@@ -108,6 +108,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         javaCompiler = objectFactory.property(JavaCompiler.class);
         javaCompiler.finalizeValueOnRead();
+        compileOptions.getIncrementalAfterFailure().convention(true);
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 

@@ -102,7 +102,7 @@ public class CompileOptions extends AbstractOptions {
         this.generatedSourceOutputDirectory = objectFactory.directoryProperty();
         this.headerOutputDirectory = objectFactory.directoryProperty();
         this.release = objectFactory.property(Integer.class);
-        this.incrementalAfterFailure = objectFactory.property(Boolean.class).convention(true);
+        this.incrementalAfterFailure = objectFactory.property(Boolean.class);
     }
 
     /**
@@ -389,10 +389,11 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Used to disable incremental compilation after a failure. By default incremental compilation after failure is enabled if incremental compilation is enabled,
-     *
-     * Exception is a command line compiler, so when `options.fork = true` in combination with `options.executable = [path to javac executable]` options are used,
-     * where it's always disabled and cannot be enabled, since Java Compiler API cannot be used there.
+     * Used to enable or disable incremental compilation after a failure. By default incremental compilation after a failure is enabled for Java and disabled for Groovy
+     * It has no effect for Scala. It has no effect if incremental compilation is not enabled.
+     * <p>
+     * When Java command line compiler is used, i.e. when custom java home is passed to forkOptions.javaHome or javac is passed to forkOptions.executable,
+     * this optimization is automatically disabled, since compiler is not invoked via the compiler API.
      *
      * @since 7.6
      */

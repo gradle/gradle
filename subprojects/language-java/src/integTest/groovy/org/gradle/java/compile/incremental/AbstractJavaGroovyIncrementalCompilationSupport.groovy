@@ -71,6 +71,7 @@ abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractI
                 ${allprojectsOrSubprojects} {
                     tasks.withType(GroovyCompile) {
                         options.incremental = true
+                        options.incrementalAfterFailure = true
                     }
                 }
             """
