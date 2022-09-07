@@ -19,6 +19,7 @@ dependencies {
     implementation(kotlin("compiler-embeddable"))
 
     testImplementation("org.jsoup:jsoup")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine")
 }
 
 tasks.compileGroovy.configure {
