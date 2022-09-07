@@ -52,7 +52,6 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
-    @ToBeFixedForConfigurationCache(because = "Gradle.addBuildListener and TaskExecutionGraph.addTaskExecutionListener")
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
