@@ -273,7 +273,7 @@ public class GUtil {
     }
 
     public static Properties loadProperties(URL url) {
-        // TODO log deprecation when nebula-lint plugin is fixed
+        // TODO log deprecation when nebula-lint plugin and idea are fixed
         try {
             URLConnection uc = url.openConnection();
             uc.setUseCaches(false);
@@ -284,7 +284,7 @@ public class GUtil {
     }
 
     public static Properties loadProperties(InputStream inputStream) {
-        // TODO log deprecation when nebula-lint plugin is fixed
+        // TODO log deprecation when nebula-lint plugin and idea are fixed
         Properties properties = new Properties();
         try {
             properties.load(inputStream);
@@ -360,7 +360,7 @@ public class GUtil {
     }
 
     private static String toCamelCase(CharSequence string, boolean lower) {
-        // TODO log deprecation once protobuf plugin is fixed
+        // TODO log deprecation once protobuf plugin and idea are fixed
         if (lower) {
             logDeprecation();
         }
