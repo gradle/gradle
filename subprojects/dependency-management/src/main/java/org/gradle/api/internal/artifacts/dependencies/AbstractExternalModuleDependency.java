@@ -86,7 +86,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
 
     @Override
     public boolean isForce() {
-        return false;
+        return false; // The public force API is removed - we'll never be forcing now
     }
 
     @Override
