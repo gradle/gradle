@@ -46,7 +46,7 @@ import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerifi
 import org.gradle.api.internal.artifacts.verification.verifier.DefaultDependencyVerifierBuilder;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
-import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder2;
 import org.gradle.api.internal.artifacts.verification.verifier.VersionRemovingDependencyVerifierBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
@@ -107,7 +107,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private static final String PGP_VERIFICATION_FAILED = "PGP verification failed";
     private static final String KEY_NOT_DOWNLOADED = "Key couldn't be downloaded from any key server";
 
-    private final DependencyVerifierBuilder verificationsBuilder = new DefaultDependencyVerifierBuilder();
+    private final DependencyVerifierBuilder2 verificationsBuilder = new DefaultDependencyVerifierBuilder();
     private final BuildOperationExecutor buildOperationExecutor;
     private final List<String> checksums;
     private final Set<VerificationEntry> entriesToBeWritten = Sets.newLinkedHashSetWithExpectedSize(512);
@@ -397,7 +397,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             verificationsBuilder.addIgnoredKey(new IgnoredKey(ignoredKey, KEY_NOT_DOWNLOADED));
         }
        
-        DependencyVerifierBuilder verificationsBuilder = new VersionRemovingDependencyVerifierBuilder(this.verificationsBuilder);
+        DependencyVerifierBuilder2 verificationsBuilder = new VersionRemovingDependencyVerifierBuilder(this.verificationsBuilder);
         PgpKeyGrouper grouper = new PgpKeyGrouper(verificationsBuilder, entriesToBeWritten);
         grouper.performPgpKeyGrouping();
     }

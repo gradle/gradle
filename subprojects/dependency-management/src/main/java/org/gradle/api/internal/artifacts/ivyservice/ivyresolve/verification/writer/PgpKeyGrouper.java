@@ -22,7 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder2;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
 import java.util.Collection;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 /**
  * This class is responsible for "normalizing" trusted PGP keys and
- * adding them to a DependencyVerifierBuilder.
+ * adding them to a DependencyVerifierBuilder2.
  * It tries to identify common super modules/groups/etc... which can
  * then be moved globally.
  *
@@ -48,10 +48,10 @@ class PgpKeyGrouper {
     private static final String GROUP_SUFFIX = "($|([.].*))";
     private static final Joiner GROUP_JOINER = Joiner.on("[.]");
 
-    private final DependencyVerifierBuilder verificationsBuilder;
+    private final DependencyVerifierBuilder2 verificationsBuilder;
     private final Set<VerificationEntry> entriesToBeWritten;
 
-    PgpKeyGrouper(DependencyVerifierBuilder dependencyVerifierBuilder, Set<VerificationEntry> entriesToBeWritten) {
+    PgpKeyGrouper(DependencyVerifierBuilder2 dependencyVerifierBuilder, Set<VerificationEntry> entriesToBeWritten) {
         this.verificationsBuilder = dependencyVerifierBuilder;
         this.entriesToBeWritten = entriesToBeWritten;
     }

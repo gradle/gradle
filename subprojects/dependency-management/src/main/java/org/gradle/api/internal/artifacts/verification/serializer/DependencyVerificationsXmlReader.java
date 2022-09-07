@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey;
 import org.gradle.api.internal.artifacts.verification.verifier.DefaultDependencyVerifierBuilder;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
-import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder;
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder2;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -75,7 +75,7 @@ import static org.gradle.api.internal.artifacts.verification.serializer.Dependen
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
 
 public class DependencyVerificationsXmlReader {
-    public static void readFromXml(InputStream in, DependencyVerifierBuilder builder) {
+    public static void readFromXml(InputStream in, DependencyVerifierBuilder2 builder) {
         try {
             SAXParser saxParser = createSecureParser();
             XMLReader xmlReader = saxParser.getXMLReader();
@@ -95,7 +95,7 @@ public class DependencyVerificationsXmlReader {
     }
 
     public static DependencyVerifier readFromXml(InputStream in) {
-        DependencyVerifierBuilder builder = new DefaultDependencyVerifierBuilder();
+        DependencyVerifierBuilder2 builder = new DefaultDependencyVerifierBuilder();
         readFromXml(in, builder);
         return builder.build();
     }
@@ -110,7 +110,7 @@ public class DependencyVerificationsXmlReader {
 
     private static class VerifiersHandler extends DefaultHandler2 {
         private final Interner<String> stringInterner = Interners.newStrongInterner();
-        private final DependencyVerifierBuilder builder;
+        private final DependencyVerifierBuilder2 builder;
         private boolean inMetadata;
         private boolean inComponents;
         private boolean inConfiguration;
@@ -126,7 +126,7 @@ public class DependencyVerificationsXmlReader {
         private ModuleComponentArtifactIdentifier currentArtifact;
         private ChecksumKind currentChecksum;
 
-        public VerifiersHandler(DependencyVerifierBuilder builder) {
+        public VerifiersHandler(DependencyVerifierBuilder2 builder) {
             this.builder = builder;
         }
 

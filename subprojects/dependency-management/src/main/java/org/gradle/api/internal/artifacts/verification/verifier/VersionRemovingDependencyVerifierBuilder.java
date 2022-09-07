@@ -25,13 +25,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * This class is a DependencyVerifierBuilder that skips adding the
+ * This class is a DependencyVerifierBuilder2 that skips adding the
  * version field.
  */
-public class VersionRemovingDependencyVerifierBuilder implements DependencyVerifierBuilder {
-    private final DependencyVerifierBuilder delegate;
+public class VersionRemovingDependencyVerifierBuilder implements DependencyVerifierBuilder2 {
+    private final DependencyVerifierBuilder2 delegate;
 
-    public VersionRemovingDependencyVerifierBuilder(DependencyVerifierBuilder wrapped) {
+    public VersionRemovingDependencyVerifierBuilder(DependencyVerifierBuilder2 wrapped) {
         delegate = wrapped;
     }
 

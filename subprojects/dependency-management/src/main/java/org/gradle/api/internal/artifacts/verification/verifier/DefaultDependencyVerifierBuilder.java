@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class DefaultDependencyVerifierBuilder implements DependencyVerifierBuilder {
+public class DefaultDependencyVerifierBuilder implements DependencyVerifierBuilder2 {
     private static final Comparator<ModuleComponentIdentifier> MODULE_COMPONENT_IDENTIFIER_COMPARATOR = Comparator.comparing(ModuleComponentIdentifier::getGroup)
         .thenComparing(ModuleComponentIdentifier::getModule)
         .thenComparing(ModuleComponentIdentifier::getVersion);

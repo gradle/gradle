@@ -21,13 +21,13 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.Arti
 import org.gradle.api.internal.artifacts.verification.verifier.DefaultDependencyVerifierBuilder
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
-import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder
+import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder2
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import spock.lang.Specification
 
 class PgpKeyGrouperTest extends Specification {
-    private DependencyVerifierBuilder builder = new DefaultDependencyVerifierBuilder()
+    private DependencyVerifierBuilder2 builder = new DefaultDependencyVerifierBuilder()
     private DependencyVerifier verifier
     private PgpKeyGrouper pgpKeyGrouper
 
