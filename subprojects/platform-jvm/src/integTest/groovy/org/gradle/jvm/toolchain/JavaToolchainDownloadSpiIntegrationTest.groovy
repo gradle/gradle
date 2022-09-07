@@ -157,13 +157,15 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
                 .withToolchainDownloadEnabled()
+                .expectDocumentedDeprecationWarning("Starting from Gradle 8.0 there will be no default Java Toolchain Registry. " +
+                        "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                        "Need to inject such registries via settings plugins and explicitly request them via the 'toolchainManagement' block. " +
+                        "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
                 .runWithFailure()
 
         then:
-
-        failure.getOutput().contains("Starting from Gradle 8.0 there will be no default Java Toolchain Registry. Need to inject such registries via settings plugins and explicitly request them via the 'toolchainManagement' block.")
-
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
+                .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
                 .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from: https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse")
                 .assertHasCause("Could not read 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' as it does not exist.")

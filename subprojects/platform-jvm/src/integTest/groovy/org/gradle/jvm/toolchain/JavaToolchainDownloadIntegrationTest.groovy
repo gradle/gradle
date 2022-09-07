@@ -43,6 +43,10 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
                 .withToolchainDownloadEnabled()
+                .expectDocumentedDeprecationWarning("Starting from Gradle 8.0 there will be no default Java Toolchain Registry. " +
+                        "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                        "Need to inject such registries via settings plugins and explicitly request them via the 'toolchainManagement' block. " +
+                        "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
                 .run()
 
 
@@ -79,6 +83,10 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .requireOwnGradleUserHomeDir()
             .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
+            .expectDocumentedDeprecationWarning("Starting from Gradle 8.0 there will be no default Java Toolchain Registry. " +
+                    "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                    "Need to inject such registries via settings plugins and explicitly request them via the 'toolchainManagement' block. " +
+                    "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
             .runWithFailure()
 
         then:
@@ -143,6 +151,10 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .requireOwnGradleUserHomeDir()
             .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
+            .expectDocumentedDeprecationWarning("Starting from Gradle 8.0 there will be no default Java Toolchain Registry. " +
+                    "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                    "Need to inject such registries via settings plugins and explicitly request them via the 'toolchainManagement' block. " +
+                    "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
             .runWithFailure()
 
         then:
@@ -178,6 +190,10 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
             .expectDeprecationWarning('Due to changes in AdoptOpenJDK download endpoint, downloading a JDK with an explicit vendor of AdoptOpenJDK should be replaced with a spec without a vendor or using Eclipse Temurin / IBM Semeru.')
+            .expectDocumentedDeprecationWarning("Starting from Gradle 8.0 there will be no default Java Toolchain Registry. " +
+                    "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                    "Need to inject such registries via settings plugins and explicitly request them via the 'toolchainManagement' block. " +
+                    "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
             .runWithFailure()
 
         then:
@@ -211,6 +227,10 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .requireOwnGradleUserHomeDir()
             .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
+            .expectDocumentedDeprecationWarning("Starting from Gradle 8.0 there will be no default Java Toolchain Registry. " +
+                    "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                    "Need to inject such registries via settings plugins and explicitly request them via the 'toolchainManagement' block. " +
+                    "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
             .runWithFailure()
 
         then:
@@ -244,6 +264,10 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .requireOwnGradleUserHomeDir()
             .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
+            .expectDocumentedDeprecationWarning("Starting from Gradle 8.0 there will be no default Java Toolchain Registry. " +
+                    "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                    "Need to inject such registries via settings plugins and explicitly request them via the 'toolchainManagement' block. " +
+                    "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
             .runWithFailure()
 
         then:
