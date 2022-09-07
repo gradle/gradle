@@ -19,7 +19,6 @@ package org.gradle.jvm.toolchain.internal;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.repositories.AuthenticationSupporter;
 import org.gradle.api.invocation.Gradle;
@@ -35,6 +34,7 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
+import org.gradle.jvm.toolchain.JavaToolchainRepositoryRequestConfiguration;
 import org.gradle.jvm.toolchain.JavaToolchainSpecVersion;
 
 import javax.inject.Inject;
@@ -116,7 +116,7 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
     }
 
     @Override
-    public void request(String registrationName, Action<? super AuthenticationSupported> authentication) {
+    public void request(String registrationName, Action<? super JavaToolchainRepositoryRequestConfiguration> authentication) {
         request(findRegistrationByName(registrationName), authentication);
     }
 
@@ -126,7 +126,7 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
     }
 
     @Override
-    public void request(JavaToolchainRepositoryRegistration registration, Action<? super AuthenticationSupported> authentication) {
+    public void request(JavaToolchainRepositoryRegistration registration, Action<? super JavaToolchainRepositoryRequestConfiguration> authentication) {
         JavaToolchainRepositoryRequest request = createRequest((JavaToolchainRepositoryRegistrationInternal) registration);
         authentication.execute(request);
         requests.add(request);

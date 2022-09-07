@@ -18,7 +18,6 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 
 import java.util.List;
@@ -64,9 +63,7 @@ public interface JdksBlockForToolchainManagement {
      * }
      * </pre>
      */
-    void add(String registrationName, Action<? super AuthenticationSupported> authenticationSupported);
-
-    //TODO (#21082): action -> own type which is extensible in the future (NOT authentication specific)
+    void add(String registrationName, Action<? super JavaToolchainRepositoryRequestConfiguration> authenticationSupported);
 
     List<? extends JavaToolchainRepositoryRegistration> getAll();
 
