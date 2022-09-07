@@ -15,6 +15,7 @@ dependencies {
 
     implementation("me.champeau.gradle:japicmp-gradle-plugin")
     implementation("org.codenarc:CodeNarc") {
+        exclude(group = "org.apache.groovy")
         exclude(group = "org.codehaus.groovy")
     }
     implementation("com.github.javaparser:javaparser-symbol-solver-core") {
