@@ -237,10 +237,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public DisplayName getDisplayName() {
-            if (projectPath.equals(Path.ROOT)) {
-                return Describables.quoted("root project", projectName);
+            if (identityPath.equals(Path.ROOT)) {
+                return Describables.withTypeAndName("root project", projectName);
+            } else {
+                return Describables.withTypeAndName("project", identityPath.getPath());
             }
-            return Describables.of(identifier);
         }
 
         @Override
