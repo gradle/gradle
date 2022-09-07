@@ -19,7 +19,7 @@ package org.gradle.configuration;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.execution.TaskSelectionException;
-import org.gradle.execution.TaskSelector;
+import org.gradle.execution.selection.BuildTaskSelector;
 
 import java.util.Collections;
 import java.util.List;
@@ -45,6 +45,7 @@ class TaskDetailsModel {
         this.tasks = Collections.emptyList();
         this.failure = failure;
     }
+
     public List<TaskDetails> getTasks() {
         if (failure != null) {
             // rethrow the original failure
@@ -57,9 +58,9 @@ class TaskDetailsModel {
         return taskPath;
     }
 
-    public static TaskDetailsModel from(String taskPath, TaskSelector taskSelector, OptionReader optionReader) {
+    public static TaskDetailsModel from(String taskPath, BuildTaskSelector.BuildSpecificSelector taskSelector, OptionReader optionReader) {
         try {
-            Stream<Task> selectedTasks = taskSelector.getSelection(taskPath).getTasks().stream();
+            Stream<Task> selectedTasks = taskSelector.resolveTaskName(taskPath).getTasks().stream();
             List<TaskDetails> tasks = selectedTasks.map(t -> TaskDetails.from(t, optionReader))
                 .sorted(TaskDetails.DEFAULT_COMPARATOR).collect(Collectors.toList());
             return new TaskDetailsModel(taskPath, tasks);
