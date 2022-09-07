@@ -126,6 +126,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         }
     };
     private final ConfigurationContainer configurationContainer;
+    @SuppressWarnings("deprecation")
     private final DependencyFactory dependencyFactory;
     private final DynamicAddDependencyMethods dynamicMethods;
     private final ObjectFactory objects;
@@ -134,7 +135,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     private final Category enforcedPlatform;
 
     public DefaultDependencyConstraintHandler(ConfigurationContainer configurationContainer,
-                                              DependencyFactory dependencyFactory,
+                                              @SuppressWarnings("deprecation") DependencyFactory dependencyFactory,
                                               ObjectFactory objects,
                                               PlatformSupport platformSupport) {
         this.configurationContainer = configurationContainer;

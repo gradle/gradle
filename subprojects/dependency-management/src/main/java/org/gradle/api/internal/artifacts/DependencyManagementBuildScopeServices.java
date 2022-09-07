@@ -31,7 +31,6 @@ import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
@@ -289,7 +288,9 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
     }
 
-    DependencyFactory createDependencyFactory(
+
+    @SuppressWarnings("deprecation")
+    org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory createDependencyFactory(
         Instantiator instantiator,
         DefaultProjectDependencyFactory factory,
         ClassPathRegistry classPathRegistry,

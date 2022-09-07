@@ -23,6 +23,10 @@ import org.gradle.api.artifacts.ProjectDependency;
 
 import java.util.Map;
 
+/**
+ * @deprecated - Replaced by more type-safe means of parsing dependencies, will be removed in Gradle 8.0.
+ */
+@Deprecated
 public interface DependencyFactory {
     //for gradle distribution specific dependencies
     enum ClassPathNotation {

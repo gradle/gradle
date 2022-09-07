@@ -26,7 +26,6 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DependencyVariant;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -41,6 +40,7 @@ import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
 public class DependencyNotationParser {
+    @SuppressWarnings("deprecation")
     public static NotationParser<Object, Dependency> parser(Instantiator instantiator,
                                                             DefaultProjectDependencyFactory dependencyFactory,
                                                             ClassPathRegistry classPathRegistry,
@@ -57,7 +57,7 @@ public class DependencyNotationParser {
             .converter(new DependencyMapNotationConverter<>(instantiator, DefaultExternalModuleDependency.class))
             .fromType(FileCollection.class, new DependencyFilesNotationConverter(instantiator))
             .fromType(Project.class, new DependencyProjectNotationConverter(dependencyFactory))
-            .fromType(DependencyFactory.ClassPathNotation.class, new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation))
+            .fromType(org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.class, new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation))
             .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
             .toComposite();
     }

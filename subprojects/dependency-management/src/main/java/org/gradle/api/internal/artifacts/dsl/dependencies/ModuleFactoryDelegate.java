@@ -26,9 +26,10 @@ import org.gradle.util.internal.ConfigureUtil;
 
 public class ModuleFactoryDelegate {
     private final ClientModule clientModule;
+    @SuppressWarnings("deprecation")
     private final DependencyFactory dependencyFactory;
 
-    public ModuleFactoryDelegate(ClientModule clientModule, DependencyFactory dependencyFactory) {
+    public ModuleFactoryDelegate(ClientModule clientModule, @SuppressWarnings("deprecation") DependencyFactory dependencyFactory) {
         this.clientModule = clientModule;
         this.dependencyFactory = dependencyFactory;
     }
