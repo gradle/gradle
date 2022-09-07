@@ -57,7 +57,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
 
         def p1 = registry.stateFor(projectId("p1"))
         p1.name == "p1"
-        p1.displayName.displayName == "project :p1"
+        p1.displayName.displayName == "project ':p1'"
         p1.identityPath == Path.path(":p1")
         p1.projectPath == Path.path(":p1")
         p1.parent.is(root)
@@ -66,7 +66,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
 
         def p2 = registry.stateFor(projectId("p2"))
         p2.name == "p2"
-        p2.displayName.displayName == "project :p2"
+        p2.displayName.displayName == "project ':p2'"
         p2.identityPath == Path.path(":p2")
         p2.projectPath == Path.path(":p2")
         p2.parent.is(root)
@@ -122,7 +122,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'Project :p1 should be in state Created or later.'
+        e.message == "Project ':p1' should be in state Created or later."
     }
 
     def "one thread can access state at a time"() {

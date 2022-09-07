@@ -275,12 +275,11 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * Do not track the state of the task.
      *
-     * Instructs Gradle to treat the task as untracked.
+     * <p>Instructs Gradle to treat the task as untracked.
      *
      * @see org.gradle.api.tasks.UntrackedTask
      * @since 7.3
      */
-    @Incubating
     void doNotTrackState(String reasonNotToTrackState);
 
     /**
