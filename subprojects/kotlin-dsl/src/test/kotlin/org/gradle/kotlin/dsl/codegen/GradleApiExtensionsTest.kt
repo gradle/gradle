@@ -58,7 +58,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             ClassAndGroovyNamedArguments::class
         ) {
 
-            assertGeneratedJarHash("6236f057767b0bf27131a299c9128997")
+            assertGeneratedJarHash("fde0416274c2dd9f173ac11f1d38b03f")
         }
     }
 
@@ -195,11 +195,11 @@ class GradleApiExtensionsTest : TestWithClassPath() {
                     subject.mapWithOtherParameters(foo = "foo", bar = 42)
                     subject.mapWithOtherParameters("foo", 42, "bar" to 23L, "bazar" to "cathedral")
 
-                    subject.mapWithLastSamAndOtherParameters(foo = "foo") { println(it.toUpperCase()) }
-                    subject.mapWithLastSamAndOtherParameters("foo", "bar" to 23L, "bazar" to "cathedral") { println(it.toUpperCase()) }
-                    subject.mapWithLastSamAndOtherParameters("foo", *arrayOf("bar" to 23L, "bazar" to "cathedral")) { println(it.toUpperCase()) }
-                    subject.mapWithLastSamAndOtherParameters(foo = "foo", bar = Consumer { println(it.toUpperCase()) })
-                    subject.mapWithLastSamAndOtherParameters(foo = "foo", bar = Consumer<String> { println(it.toUpperCase()) })
+                    subject.mapWithLastSamAndOtherParameters(foo = "foo") { println(it.uppercase()) }
+                    subject.mapWithLastSamAndOtherParameters("foo", "bar" to 23L, "bazar" to "cathedral") { println(it.uppercase()) }
+                    subject.mapWithLastSamAndOtherParameters("foo", *arrayOf("bar" to 23L, "bazar" to "cathedral")) { println(it.uppercase()) }
+                    subject.mapWithLastSamAndOtherParameters(foo = "foo", bar = Consumer { println(it.uppercase()) })
+                    subject.mapWithLastSamAndOtherParameters(foo = "foo", bar = Consumer<String> { println(it.uppercase()) })
                 }
                 """
             )
@@ -405,21 +405,25 @@ val fixtureParameterNamesSupplier = { key: String ->
             key.contains("Classes(") -> listOf("types")
             else -> null
         }
+
         key.startsWith("${GroovyNamedArguments::class.qualifiedName}.") -> when {
             key.contains("Map(") -> listOf("args")
             key.contains("Parameters(") -> listOf("args", "foo", "bar")
             else -> null
         }
+
         key.startsWith("${ClassAndGroovyNamedArguments::class.qualifiedName}.") -> when {
             key.contains("mapAndClass(") -> listOf("args", "type")
             key.contains("mapAndClassAndVarargs(") -> listOf("args", "type", "options")
             key.contains("mapAndClassAndSAM(") -> listOf("args", "type", "action")
             else -> null
         }
+
         key.startsWith("${ClassToKClassParameterizedType::class.qualifiedName}.") -> when {
             key.contains("Class(") -> listOf("type", "list")
             else -> null
         }
+
         else -> null
     }
 }
