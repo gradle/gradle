@@ -20,7 +20,7 @@ dependencies {
 // end::exclude-transitive-dependencies[]
 
 tasks.register("printArtifacts") {
-    def runtimeClasspath = configurations.getByName("runtimeClasspath")
+    def runtimeClasspath = configurations.runtimeClasspath
     doLast {
         runtimeClasspath.each { println(it.name) }
     }
