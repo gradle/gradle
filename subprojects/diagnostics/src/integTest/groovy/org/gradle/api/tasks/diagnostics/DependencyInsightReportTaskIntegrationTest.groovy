@@ -633,50 +633,6 @@ org:leaf:2.0 -> 1.0
 """
     }
 
-    def "shows forced dynamic version"() {
-        given:
-        mavenRepo.module("org", "leaf", "1").publish()
-        mavenRepo.module("org", "leaf", "2").publish()
-        mavenRepo.module("org", "leaf", "3").publish()
-
-        file("build.gradle") << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf('org:leaf:[1,2]') {
-                    because 'testing stuff'
-                    force true
-                }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        run "dependencyInsight", "--configuration", "conf", "--dependency", "leaf"
-
-        then:
-        outputContains """
-org:leaf:2
-  Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
-   Selection reasons:
-      - Was requested: didn't match version 3 because testing stuff
-      - Forced
-
-org:leaf:[1,2] -> 2
-\\--- conf
-"""
-    }
-
     def "shows multiple outgoing dependencies"() {
         given:
         ivyRepo.module("org", "leaf", "1.0").publish()
@@ -1211,60 +1167,6 @@ org:leaf:1.0 -> 1.5
      \\--- conf
 
 org:leaf:2.0 -> 1.5
-\\--- org:bar:1.0
-     \\--- conf
-"""
-    }
-
-    def "forced version at dependency level"() {
-        given:
-        mavenRepo.module("org", "leaf", "1.0").publish()
-        mavenRepo.module("org", "leaf", "2.0").publish()
-
-        mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
-        mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
-
-        file("build.gradle") << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf 'org:foo:1.0', 'org:bar:1.0'
-                conf('org:leaf:1.0') {
-                  force = true
-                }
-            }
-            task insight(type: DependencyInsightReportTask) {
-                showingAllVariants = false
-                configuration = configurations.conf
-                setDependencySpec { it.requested.module == 'leaf' }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        run "insight"
-
-        then:
-        outputContains """
-org:leaf:1.0 (forced)
-  Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
-
-org:leaf:1.0
-+--- conf
-\\--- org:foo:1.0
-     \\--- conf
-
-org:leaf:2.0 -> 1.0
 \\--- org:bar:1.0
      \\--- conf
 """
