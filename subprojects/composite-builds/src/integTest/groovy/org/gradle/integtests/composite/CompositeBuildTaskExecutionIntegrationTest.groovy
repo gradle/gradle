@@ -16,13 +16,7 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Issue
-
-class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
+class CompositeBuildTaskExecutionIntegrationTest extends AbstractCompositeBuildTaskExecutionIntegrationTest {
 
     def "can run included root project task"() {
         setup:
@@ -39,6 +33,10 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         expect:
         2.times {
             succeeds(":other-build:doSomething")
+            outputContains("do something")
+        }
+        2.times {
+            succeeds("other-build:doSomething")
             outputContains("do something")
         }
     }
@@ -81,60 +79,33 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    def "can exclude included subproject task"() {
-        setup:
-        settingsFile << "includeBuild('other-build')"
-        file('other-build/settings.gradle') << """
-            rootProject.name = 'other-build'
-            include 'sub'
+    def "reports candidates when task path cannot be resolved"() {
+        settingsFile << """
+            rootProject.name = 'broken'
+            includeBuild("aaBb")
+            include("aaaBbb")
+            include("aaaaBbbb")
         """
-        file('other-build/sub/build.gradle') << """
-            def depTask = tasks.register('dependency') {
-                doLast {
-                    println 'dependency'
-                }
-            }
-            tasks.register('doSomething') {
-                dependsOn(depTask)
-                doLast {
-                    println 'do something'
-                }
-            }
+        file("aaBb/settings.gradle") << """
+            include("ccDD")
+            include("cccDDD")
         """
 
         expect:
-        2.times {
-            succeeds(":other-build:sub:doSomething", "-x", ":other-build:sub:dependency")
-            result.assertTasksExecuted(":other-build:sub:doSomething")
-        }
-    }
+        fails(requested)
+        failure.assertHasDescription(message)
 
-    def "only absolute task paths can be used to target included builds"() {
-        setup:
-        settingsFile << "includeBuild('other-build')"
-        file('other-build/settings.gradle') << """
-            rootProject.name = 'other-build'
-            include 'sub'
-            include 'sub:subsub'
-        """
-        file('other-build/sub/build.gradle') << """
-            tasks.register('doSomething') {
-                doLast {
-                    println '[sub] do something'
-                }
-            }
-        """
-        file('other-build/sub/subsub/build.gradle') << """
-            tasks.register('doSomething') {
-                doLast {
-                    println '[sub/subsub] do something'
-                }
-            }
-        """
-
-        expect:
-        succeeds(":other-build:sub:doSomething")
-        fails("other-build:sub:doSomething")
+        where:
+        requested            | message
+        "unknown"            | "Task 'unknown' not found in root project 'broken' and its subprojects."
+        "unknown:help"       | "Cannot locate tasks that match 'unknown:help' as project 'unknown' not found in root project 'broken'."
+        ":unknown:help"      | "Cannot locate tasks that match ':unknown:help' as project 'unknown' not found in root project 'broken'."
+        "aB:help"            | "Cannot locate tasks that match 'aB:help' as project 'aB' is ambiguous in root project 'broken'. Candidates are: 'aaBb', 'aaaBbb', 'aaaaBbbb'."
+        "aaBb:unknown"       | "Cannot locate tasks that match 'aaBb:unknown' as task 'unknown' not found in project ':aaBb'."
+        "aaBb:unknown:help"  | "Cannot locate tasks that match 'aaBb:unknown:help' as project 'unknown' not found in project ':aaBb'."
+        ":aB:help"           | "Cannot locate tasks that match ':aB:help' as project 'aB' is ambiguous in root project 'broken'. Candidates are: 'aaBb', 'aaaBbb', 'aaaaBbbb'."
+        ":aaBb:cD:help"      | "Cannot locate tasks that match ':aaBb:cD:help' as project 'cD' is ambiguous in project ':aaBb'. Candidates are: 'ccDD', 'cccDDD'."
+        ":aaBb:ccDD:unknown" | "Cannot locate tasks that match ':aaBb:ccDD:unknown' as task 'unknown' not found in project ':aaBb:ccDD'."
     }
 
     def "can pass options to task in included build"() {
@@ -198,7 +169,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         outputContains("Prints the message 'do something'")
     }
 
-    def "can use pattern matching to address tasks"() {
+    def "can use pattern matching to address tasks in included build"() {
         setup:
         settingsFile << "includeBuild('other-build')"
         file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
@@ -213,6 +184,15 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         succeeds(":other-build:dSo")
+        result.assertTaskExecuted(":other-build:doSomething")
+        outputContains("do something")
+
+        succeeds(":o-b:doSomething")
+        result.assertTaskExecuted(":other-build:doSomething")
+        outputContains("do something")
+
+        succeeds("o-b:dS")
+        result.assertTaskExecuted(":other-build:doSomething")
         outputContains("do something")
     }
 
@@ -241,50 +221,6 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         succeeds(":third-build:sub:doSomething")
-    }
-
-    def "task in an included build cannot be addressed with name patterns"() {
-        setup:
-        settingsFile << "includeBuild('other-build')"
-        file('other-build/settings.gradle') << "rootProject.name = 'other-build'"
-        file('other-build/build.gradle') << """
-            tasks.register('doSomething') {
-                doLast {
-                    println 'do something'
-                }
-            }
-        """
-
-        expect:
-        fails(":oB:doSo").assertHasDescription("Project 'oB' not found in root project")
-    }
-
-    def "gives reasonable error message when a task does not exist in the referenced included build"() {
-        setup:
-        settingsFile << """
-            rootProject.name = 'root-project'
-            includeBuild('other-build')
-        """
-        file('other-build/settings.gradle') << """
-            rootProject.name = 'other-build'
-        """
-
-        expect:
-        fails(":other-build:nonexistent").assertHasDescription("Task 'nonexistent' not found in project ':other-build'")
-    }
-
-    def "gives reasonable error message when a project does not exist in the referenced included build"() {
-        setup:
-        settingsFile << """
-            rootProject.name = 'root-project'
-            includeBuild('other-build')
-        """
-        file('other-build/settings.gradle') << """
-            rootProject.name = 'other-build'
-        """
-
-        expect:
-        fails(":other-build:sub:nonexistent").assertHasDescription("Project 'sub' not found in project ':other-build'.")
     }
 
     def "handles overlapping names between composite and a subproject within the composite"() {
@@ -370,7 +306,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         // build logic tasks do not run when configuration cache is enabled
     }
 
-    def "can run and exclude task from included build that is also required to produce a plugin used from root build"() {
+    def "can run task from included build that is also required to produce a plugin used from root build"() {
         setup:
         settingsFile << "includeBuild('build-logic')"
         def rootDir = file("build-logic")
@@ -391,16 +327,9 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
 
         succeeds(":build-logic:classes")
         // build logic tasks are not run when configuration cache is enabled (because their inputs are encoded in the cache key)
-
-        succeeds("greeting", "-x", ":build-logic:classes")
-        result.assertTaskNotExecuted(":build-logic:classes")
-
-        succeeds("greeting", "-x", ":build-logic:classes")
-        // build logic tasks are not run when configuration cache is enabled (because their inputs are encoded in the cache key)
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/21708")
-    def "can run and exclude task from included build that requires a plugin from another build"() {
+    def "can run task from included build that requires a plugin from another build"() {
         setup:
         settingsFile << """
             includeBuild('build-logic')
@@ -419,10 +348,6 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         2.times {
             succeeds(":app:assemble")
             result.assertTaskExecuted(":app:processResources")
-        }
-        2.times {
-            succeeds(":app:assemble", "-x", ":app:processResources")
-            result.assertTaskNotExecuted(":app:processResources")
         }
     }
 
@@ -462,37 +387,4 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    def addPluginIncludedBuild(TestFile rootDir, String group = "lib", String name = "lib") {
-        rootDir.file("settings.gradle") << """
-            rootProject.name="$name"
-        """
-        rootDir.file("build.gradle") << """
-            plugins {
-                id("java-gradle-plugin")
-            }
-            group = "$group"
-            gradlePlugin {
-                plugins {
-                    p {
-                        id = "test.plugin"
-                        implementationClass = "test.PluginImpl"
-                    }
-                }
-            }
-        """
-        rootDir.file("src/main/java/test/PluginImpl.java") << """
-            package test;
-
-            import ${Project.name};
-            import ${Plugin.name};
-
-            public class PluginImpl implements Plugin<Project> {
-                public void apply(Project project) {
-                    project.getTasks().register("greeting", task -> {
-                        task.doLast(s -> System.out.println("Hello world"));
-                    });
-                }
-            }
-        """
-    }
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.quality;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -240,7 +239,6 @@ public class PmdExtension extends CodeQualityExtension {
      *
      * @since 7.5
      */
-    @Incubating
     public Property<Integer> getThreads() {
         return threads;
     }
