@@ -19,6 +19,7 @@ dependencies {
     implementation(project(":file-collections"))
 
     implementation(libs.groovy)
+    implementation(libs.groovyAnt)
     implementation(libs.groovyXml)
     implementation(libs.guava)
     implementation(libs.inject)
@@ -38,6 +39,6 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/plugins/quality/internal/*")
 }

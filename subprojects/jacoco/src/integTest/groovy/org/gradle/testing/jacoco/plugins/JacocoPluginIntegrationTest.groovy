@@ -141,8 +141,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec implements Ins
         runAndFail("test")
 
         then:
-        // TODO: This is not the message we want, but destinationFile is exposed as a File and not a provider
-        errorOutput.contains("Cannot query the value of this provider because it has no value available.")
+        errorOutput.contains("JaCoCo destination file must not be null if output type is FILE")
     }
 
     def "jacoco plugin adds outgoing variants for default test suite"() {

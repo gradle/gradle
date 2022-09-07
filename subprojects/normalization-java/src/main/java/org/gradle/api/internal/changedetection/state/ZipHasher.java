@@ -48,7 +48,7 @@ import java.util.Set;
 
 public class ZipHasher implements RegularFileSnapshotContextHasher, ConfigurableNormalizer {
 
-    private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of("zip", "jar", "war", "rar", "ear", "apk", "aar");
+    private static final Set<String> KNOWN_ZIP_EXTENSIONS = ImmutableSet.of("zip", "jar", "war", "rar", "ear", "apk", "aar", "klib");
     private static final Logger LOGGER = LoggerFactory.getLogger(ZipHasher.class);
     private static final HashCode EMPTY_HASH_MARKER = Hashing.signature(ZipHasher.class);
 
@@ -116,7 +116,7 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
             String fullName = parentName.isEmpty() ? zipEntry.getName() : parentName + "/" + zipEntry.getName();
             ZipEntryContext zipEntryContext = new DefaultZipEntryContext(zipEntry, fullName, rootParentName);
             if (isZipFile(zipEntry.getName())) {
-                zipEntryContext.getEntry().withInputStream((ZipEntry.InputStreamAction<Void>) inputStream -> {
+                zipEntryContext.getEntry().withInputStream(inputStream -> {
                     fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(inputStream));
                     return null;
                 });

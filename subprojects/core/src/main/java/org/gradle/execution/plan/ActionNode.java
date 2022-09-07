@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -23,11 +24,15 @@ import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.function.Consumer;
 
 public class ActionNode extends Node implements SelfExecutingNode {
     private WorkNodeAction action;
+    private List<Node> postExecutionNodes;
     private final ProjectInternal owningProject;
     private final ProjectInternal projectToLock;
+    private boolean hasVisitedPreExecutionNode;
 
     public ActionNode(WorkNodeAction action) {
         this.action = action;
@@ -53,6 +58,7 @@ public class ActionNode extends Node implements SelfExecutingNode {
         }
     }
 
+    @Nullable
     public WorkNodeAction getAction() {
         return action;
     }
@@ -86,8 +92,40 @@ public class ActionNode extends Node implements SelfExecutingNode {
     public void execute(NodeExecutionContext context) {
         try {
             action.run(context);
+            if (action instanceof PostExecutionNodeAwareActionNode) {
+                postExecutionNodes = ImmutableList.copyOf(((PostExecutionNodeAwareActionNode) action).getPostExecutionNodes());
+            }
         } finally {
             action = null;
+        }
+    }
+
+    @Override
+    public boolean hasPendingPreExecutionNodes() {
+        return !hasVisitedPreExecutionNode && action.getPreExecutionNode() != null;
+    }
+
+    @Override
+    public void visitPreExecutionNodes(Consumer<? super Node> visitor) {
+        if (!hasVisitedPreExecutionNode) {
+            WorkNodeAction preExecutionNode = action.getPreExecutionNode();
+            if (preExecutionNode != null) {
+                visitor.accept(new ActionNode(preExecutionNode));
+            }
+            hasVisitedPreExecutionNode = true;
+        }
+    }
+
+    @Override
+    public void visitPostExecutionNodes(Consumer<? super Node> visitor) {
+        if (postExecutionNodes != null) {
+            try {
+                for (Node node : postExecutionNodes) {
+                    visitor.accept(node);
+                }
+            } finally {
+                postExecutionNodes = null;
+            }
         }
     }
 }

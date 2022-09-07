@@ -23,8 +23,23 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * Requirements for selecting a Java toolchain.
  * <p>
- * A toolchain is a JRE/JDK used by the tasks of a build. Tasks of a build may require one or more of the tools javac, java, or javadoc) of a toolchain.
+ * A toolchain is a JRE/JDK used by the tasks of a build.
+ * Tasks may require one or more of the tools (javac, java, or javadoc) of a toolchain.
  * Depending on the needs of a build, only toolchains matching specific characteristics can be used to run a build or a specific task of a build.
+ * <p>
+ * Even though specification properties can be configured independently,
+ * the configuration must follow certain rules in order to form a  specification.
+ * <p>
+ * A {@code JavaToolchainSpec} is considered <em>valid</em> in two cases:
+ * <ul>
+ * <li> when no properties have been set, i.e. the specification is <em>empty</em>;
+ * <li> when {@link #getLanguageVersion() language version} has been set, optionally followed by setting any other property.
+ * </ul>
+ * <p>
+ * In other words, if a vendor or an implementation are specified, they must be accompanied by the language version.
+ * An empty specification in most cases corresponds to the toolchain that runs the current build.
+ * <p>
+ * Usage of <em>invalid</em> instances of {@code JavaToolchainSpec} is deprecated and will be removed in the future versions of Gradle.
  *
  * @since 6.7
  */
@@ -38,7 +53,10 @@ public interface JavaToolchainSpec extends Describable {
 
     /**
      * The vendor of the toolchain.
-     * <p>By default, toolchains from any vendor are eligible.</p>
+     * <p>
+     * By default, toolchains from any vendor are eligible.
+     * <p>
+     * Note that the vendor can only be configured if the {@link #getLanguageVersion() language version} is configured as well.
      *
      * @since 6.8
      */
@@ -46,7 +64,10 @@ public interface JavaToolchainSpec extends Describable {
 
     /**
      * The virtual machine implementation of the toolchain.
-     * <p>By default, any implementation (hotspot, j9, ...) is eligible.</p>
+     * <p>
+     * By default, any implementation (hotspot, j9, ...) is eligible.
+     * <p>
+     * Note that the implementation can only be configured if the {@link #getLanguageVersion() language version} is configured as well.
      *
      * @since 6.8
      */

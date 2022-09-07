@@ -19,7 +19,7 @@ package org.gradle.internal.component;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -30,7 +30,7 @@ public class IncompatibleConfigurationSelectionException extends StyledException
     public IncompatibleConfigurationSelectionException(
         AttributeContainerInternal fromConfigurationAttributes,
         AttributeMatcher attributeMatcher,
-        ComponentResolveMetadata targetComponent,
+        ComponentGraphResolveMetadata targetComponent,
         String targetConfiguration,
         boolean variantAware,
         AttributeDescriber describer) {
@@ -39,7 +39,7 @@ public class IncompatibleConfigurationSelectionException extends StyledException
 
     private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes,
                                           AttributeMatcher attributeMatcher,
-                                          ComponentResolveMetadata targetComponent,
+                                          ComponentGraphResolveMetadata targetComponent,
                                           String targetConfiguration,
                                           boolean variantAware,
                                           AttributeDescriber describer) {

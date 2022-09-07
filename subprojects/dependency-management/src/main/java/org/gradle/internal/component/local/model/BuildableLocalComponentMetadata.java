@@ -18,18 +18,14 @@ package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.DependencyConstraint;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -41,17 +37,8 @@ public interface BuildableLocalComponentMetadata {
     ComponentIdentifier getId();
 
     /**
-     * Adds some artifacts to this component. Artifacts are attached to the given configuration and each of its children. These are used only for publishing.
-     */
-    void addArtifacts(String configuration, Collection<? extends PublishArtifact> artifacts);
-
-    /**
-     * Adds a variant to this component, extending from the given configuration. Every configuration should include at least one variant.
-     */
-    void addVariant(String configuration, String name, VariantResolveMetadata.Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, Collection<? extends PublishArtifact> artifacts);
-
-    /**
      * Adds a configuration to this component.
+     *
      * @param hierarchy Must include name
      * @param attributes the attributes of the configuration.
      * @param consistentResolutionConstraints the consistent resolution constraints

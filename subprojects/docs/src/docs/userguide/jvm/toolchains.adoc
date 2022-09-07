@@ -34,7 +34,7 @@ include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",fil
 include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin/",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=toolchain]"]
 ====
 
-Executing the build (e.g. using `gradle check`) will now handle several things for you and others running your build
+Executing the build (e.g. using `gradle check`) will now handle several things for you and others running your build:
 
 1. Setup all compile, test and javadoc tasks to use the defined toolchain which may be different than the one Gradle itself uses
 2. Gradle detects <<#sec:auto_detection,locally installed JVMs>>
@@ -62,7 +62,7 @@ include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradl
 
 If the vendor you want to target is not a known vendor, you can still restrict the toolchain to those matching the `java.vendor` system property of the available toolchains.
 
-Given the snippet below, only toolchain are taken into accounts whose `java.vendor` property contains the given match string. Matching is done case-insensitive.
+Given the snippet below, only toolchain are taken into accounts whose `java.vendor` property contains the given match string. The matching is done in a case-insensitive manner.
 
 ====
 include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-vendor]"]
@@ -92,6 +92,23 @@ include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradl
 The Java major version, the vendor (if specified) and implementation (if specified)
 will be tracked as an input for compilation and test execution.
 ====
+
+[[sec:configuring_toolchain_specifications]]
+=== Configuring toolchain specifications
+
+Gradle allows configuring multiple properties that affect the selection of a toolchain, such as language version or vendor.
+Even though these properties can be configured independently, the configuration must follow certain rules in order to form a _valid_ specification.
+
+A `JavaToolchainSpec` is considered _valid_ in two cases:
+
+1. when no properties have been set, i.e. the specification is _empty_;
+2. when `languageVersion` has been set, optionally followed by setting any other property.
+
+In other words, if a vendor or an implementation are specified, they must be accompanied by the language version.
+Gradle distinguishes between toolchain specifications that configure the language version and the ones that do not.
+A specification without a language version, in most cases, would be treated as a one that selects the toolchain of the current build.
+
+Usage of _invalid_ instances of `JavaToolchainSpec` results in a build error since Gradle 8.0.
 
 
 == Specify custom toolchains for individual tasks
@@ -131,15 +148,33 @@ Any tasks that can be configured with a path to a Java executable, or a Java hom
 
 While you will not be able to wire a toolchain tool directly, they all have metadata that gives access to their full path or to the path of the Java installation they belong to.
 
-For example, you can configure the executable for a Kotlin compile tasks as follows:
+For example, you can configure the `java` executable for a task as follows:
 
 ====
-include::sample[dir="snippets/java/toolchain-kotlin/groovy/",files="build.gradle[tags=compiler-kotlin]"]
-include::sample[dir="snippets/java/toolchain-kotlin/kotlin/",files="build.gradle.kts[tags=compiler-kotlin]"]
+include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-executable]"]
+include::sample[dir="snippets/java/toolchain-config-task/kotlin/",files="build.gradle.kts[tags=java-executable]"]
 ====
 
-Similarly, doing `compiler.get().executablePath` would give you the full path to `javac` for the given toolchain.
-Please note however that this may realize (and provision) a toolchain eagerly.
+Another example, you can configure the _Java Home_ for a task as follows:
+
+====
+include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-home]"]
+include::sample[dir="snippets/java/toolchain-config-task/kotlin/",files="build.gradle.kts[tags=java-home]"]
+====
+
+Yet another example, you can configure the Java _compiler_ executable for a task as follows:
+
+====
+include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-compiler]"]
+include::sample[dir="snippets/java/toolchain-config-task/kotlin/",files="build.gradle.kts[tags=java-compiler]"]
+====
+
+[WARNING]
+====
+The examples above use tasks with `RegularFileProperty` and `DirectoryProperty` properties which allow lazy configuration.
+
+Doing respectively `launcher.get().executablePath`, `launcher.get().metadata.installationPath` or `compiler.get().executablePath` instead will give you the full path for the given toolchain but note that this may realize (and provision) a toolchain eagerly.
+====
 
 [[sec:auto_detection]]
 == Auto detection of installed toolchains

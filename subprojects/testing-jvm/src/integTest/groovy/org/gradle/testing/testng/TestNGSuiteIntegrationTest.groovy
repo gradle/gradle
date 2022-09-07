@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
-@TargetCoverage({TestNGCoverage.STANDARD_COVERAGE})
+@TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
 class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
 
     /**

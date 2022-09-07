@@ -14,7 +14,7 @@ sourceSets {
 
 idea {
     module {
-        testSourceDirs += sourceSets.intTest.java.srcDirs
+        testSources.from(sourceSets.intTest.java.srcDirs)
     }
 }
 // end::mark-additional-sourcesets-as-test[]

@@ -74,6 +74,12 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
     }
 
     private boolean matches(String expression, String input) {
+        if (expression == null && input == null) {
+            return true;
+        }
+        if (expression == null || input == null) {
+            return false;
+        }
         return matcher.getMatcher(expression).matches(input);
     }
 

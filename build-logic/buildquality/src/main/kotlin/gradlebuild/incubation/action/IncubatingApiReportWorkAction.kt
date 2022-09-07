@@ -257,6 +257,10 @@ class JavaVersionsToIncubatingCollector(srcDir: File) : VersionsToIncubatingColl
 
 
 private
+val NEWLINE_REGEX = "\\n\\s*".toRegex()
+
+
+private
 class KotlinVersionsToIncubatingCollector : VersionsToIncubatingCollector {
 
     override fun collectFrom(sourceFile: File): VersionsToIncubating {
@@ -286,7 +290,7 @@ class KotlinVersionsToIncubatingCollector : VersionsToIncubatingCollector {
                 incubating += ", top-level in ${sourceFile.name}"
             }
         }
-        return incubating
+        return incubating.replace(NEWLINE_REGEX, " ")
     }
 
     private

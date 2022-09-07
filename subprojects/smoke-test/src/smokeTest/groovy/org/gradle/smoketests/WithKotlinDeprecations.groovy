@@ -21,7 +21,7 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
 @SelfType(BaseDeprecations)
-trait WithKotlinDeprecations {
+trait WithKotlinDeprecations extends WithReportDeprecations {
     private static final VersionNumber KOTLIN_VERSION_USING_NEW_WORKERS_API = VersionNumber.parse('1.5.0')
     private static final VersionNumber KOTLIN_VERSION_USING_INPUT_CHANGES_API = VersionNumber.parse('1.6.0')
 
@@ -39,21 +39,11 @@ trait WithKotlinDeprecations {
         kotlinVersionNumber < KOTLIN_VERSION_USING_NEW_WORKERS_API
     }
 
-    void expectKotlinIncrementalTaskInputsDeprecation(String kotlinVersion) {
-        VersionNumber kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
-        runner.expectLegacyDeprecationWarningIf(kotlinVersionNumber < KOTLIN_VERSION_USING_INPUT_CHANGES_API,
-            getIncrementalTaskInputsDeprecationWarning('AbstractKotlinCompile.execute'))
-    }
-
     void expectKotlinCompileDestinationDirPropertyDeprecation(String version) {
         VersionNumber versionNumber = VersionNumber.parse(version)
         runner.expectLegacyDeprecationWarningIf(
             versionNumber >= VersionNumber.parse('1.5.20') && versionNumber <= VersionNumber.parse('1.6.10'),
             ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION
         )
-    }
-
-    void expectKotlinJsCompileDestinationDirPropertyDeprecation(String version) {
-        runner.expectDeprecationWarning(ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION, "https://youtrack.jetbrains.com/issue/KT-46019")
     }
 }

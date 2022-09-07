@@ -31,8 +31,8 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
+import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.RootLocalComponentMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import javax.inject.Inject;
 
@@ -72,7 +72,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     }
 
     @Override
-    public ComponentResolveMetadata toRootComponentMetaData() {
+    public LocalComponentMetadata toRootComponentMetaData() {
         Module module = metadataProvider.getModule();
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         DefaultLocalComponentMetadata metadata = holder.tryCached(componentIdentifier);

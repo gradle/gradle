@@ -73,7 +73,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
                 def setup() {
                     new File(testProjectDir, 'settings.gradle') << "rootProject.name = 'test'"
                     buildFile = new File(testProjectDir, 'build.gradle')
-                    def pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
+                    def pluginClasspath = getClass().classLoader.getResource("plugin-classpath.txt")
                       .readLines()
                       .collect { it.replace('\\\\', '\\\\\\\\') } // escape backslashes in Windows paths
                       .collect { "'\$it'" }
@@ -127,7 +127,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
                 def setup() {
                     new File(testProjectDir, 'settings.gradle') << "rootProject.name = 'test'"
                     buildFile = new File(testProjectDir, 'build.gradle')
-                    pluginClasspath = getClass().classLoader.findResource("plugin-classpath.txt")
+                    pluginClasspath = getClass().classLoader.getResource("plugin-classpath.txt")
                       .readLines()
                       .collect { new File(it) }
                 }

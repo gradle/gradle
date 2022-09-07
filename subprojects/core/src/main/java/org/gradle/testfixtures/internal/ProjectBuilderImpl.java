@@ -38,7 +38,6 @@ import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ProjectDescriptorRegistry;
-import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.Pair;
 import org.gradle.internal.SystemProperties;
@@ -56,6 +55,9 @@ import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
@@ -80,7 +82,7 @@ import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 public class ProjectBuilderImpl {
     private static ServiceRegistry globalServices;
 
-    public Project createChildProject(String name, Project parent, File projectDir) {
+    public Project createChildProject(String name, Project parent, @Nullable File projectDir) {
         ProjectInternal parentProject = (ProjectInternal) parent;
         ProjectDescriptorRegistry descriptorRegistry = parentProject.getServices().get(ProjectDescriptorRegistry.class);
         DefaultProjectDescriptor parentDescriptor = descriptorRegistry.getProject(parentProject.getPath());
@@ -100,7 +102,7 @@ public class ProjectBuilderImpl {
         return project;
     }
 
-    public ProjectInternal createProject(String name, File inputProjectDir, File gradleUserHomeDir) {
+    public ProjectInternal createProject(String name, File inputProjectDir, @Nullable File gradleUserHomeDir) {
 
         final File projectDir = prepareProjectDir(inputProjectDir);
         File userHomeDir = gradleUserHomeDir == null ? new File(projectDir, "userHome") : FileUtils.canonicalize(gradleUserHomeDir);
@@ -147,9 +149,15 @@ public class ProjectBuilderImpl {
         // Lock root project; this won't ever be released as ProjectBuilder has no lifecycle
         coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(project.getOwner().getAccessLock()));
 
+        BuildOperationRunner buildOperationRunner = buildServices.get(BuildOperationRunner.class);
+        BuildOperationDescriptor.Builder rootBuildOperationDescriptor = BuildOperationDescriptor.displayName("Build in progress for ProjectBuilder");
+        BuildOperationContext rootBuildOperationContext = buildOperationRunner.start(rootBuildOperationDescriptor);
+        Stoppable stopRootBuildOperation = () -> rootBuildOperationContext.setResult(null);
+
         project.getExtensions().getExtraProperties().set(
             "ProjectBuilder.stoppable",
             stoppable(
+                stopRootBuildOperation,
                 (Stoppable) workerLeaseService::runAsIsolatedTask,
                 (Stoppable) workerLease::leaseFinish,
                 buildServices,
@@ -199,17 +207,14 @@ public class ProjectBuilderImpl {
             return FileUtils.canonicalize(projectDir);
         }
 
-        TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(new Factory<File>() {
-            @Override
-            public File create() {
-                String rootTmpDir = SystemProperties.getInstance().getWorkerTmpDir();
-                if (rootTmpDir == null) {
-                    @SuppressWarnings("deprecation")
-                    String javaIoTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
-                    rootTmpDir = javaIoTmpDir;
-                }
-                return FileUtils.canonicalize(new File(rootTmpDir));
+        TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(() -> {
+            String rootTmpDir = SystemProperties.getInstance().getWorkerTmpDir();
+            if (rootTmpDir == null) {
+                @SuppressWarnings("deprecation")
+                String javaIoTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
+                rootTmpDir = javaIoTmpDir;
             }
+            return FileUtils.canonicalize(new File(rootTmpDir));
         });
         File tempDirectory = temporaryFileProvider.createTemporaryDirectory("gradle", "projectDir");
         // TODO deleteOnExit won't clean up non-empty directories (and it leaks memory for long-running processes).

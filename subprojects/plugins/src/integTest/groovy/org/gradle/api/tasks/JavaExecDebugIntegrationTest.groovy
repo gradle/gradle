@@ -19,9 +19,12 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Ignore
+import spock.lang.Issue
 
 class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
@@ -88,6 +91,50 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
+    }
+
+    @Issue("20644")
+    @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
+    def "can debug Java exec with socket server debugger (server = true) on #hostKind host with task :#taskName"() {
+        def address = nonLoopbackAddress()
+        Assume.assumeNotNull(address)
+
+        debugClient.host = address
+
+        sampleProject """
+            debugOptions {
+                enabled = true
+                server = true
+                suspend = true
+                ${jdwpHost != null ? "host = '$jdwpHost'" : ""}
+                port = $debugClient.port
+            }
+        """
+
+        when:
+        def handle = executer.withTasks(taskName).start()
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains('Listening for transport dt_socket at address')
+        }
+
+        then:
+        debugClient.connect().dispose()
+
+        then:
+        handle.waitForFinish()
+
+        where:
+        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test'].collectMany { [it] * 2 }
+        jdwpHost << [Jvm.current().javaVersion.isJava9Compatible() ? "*" : null, nonLoopbackAddress()] * 4
+        hostKind << [Jvm.current().javaVersion.isJava9Compatible() ? "star" : "default", "exact IP"] * 4
+    }
+
+    /** To test attaching the debugger via a non-loopback network interface, we need to choose an IP address of such an interface. */
+    private static final String nonLoopbackAddress() {
+        Collections.list(NetworkInterface.getNetworkInterfaces())
+            .collectMany { it.isLoopback() ? [] : Collections.list(it.inetAddresses) }
+            .find { it instanceof Inet4Address && !it.isLoopbackAddress() }
+            ?.hostAddress
     }
 
     @Ignore

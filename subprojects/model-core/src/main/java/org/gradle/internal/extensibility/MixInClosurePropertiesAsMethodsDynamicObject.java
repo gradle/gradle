@@ -22,6 +22,8 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.CompositeDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
+import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.DynamicObjectUtil;
 
 /**
  * Exposes methods for those properties whose value is a closure.
@@ -53,6 +55,8 @@ public abstract class MixInClosurePropertiesAsMethodsDynamicObject extends Compo
                 ((NamedDomainObjectContainer) property).configure((Closure) arguments[0]);
                 return DynamicInvokeResult.found();
             }
+            DynamicObject dynamicObject = DynamicObjectUtil.asDynamicObject(property);
+            return dynamicObject.tryInvokeMethod("call", arguments);
         }
         return DynamicInvokeResult.notFound();
     }

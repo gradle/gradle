@@ -103,7 +103,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         1 * node.root >> false
         1 * component.componentId >> identifier
         1 * identifier.version >> ''
-        1 * component.metadata >> metadata
+        1 * component.metadataOrNull >> metadata
         1 * metadata.isChanging() >> false
         0 * _
     }
@@ -124,7 +124,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         2 * node.owner >> component
         1 * node.root >> false
         1 * component.componentId >> identifier
-        1 * component.metadata >> null
+        1 * component.metadataOrNull >> null
         0 * _
     }
 
@@ -142,7 +142,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         2 * rootNode.owner >> component
         1 * rootNode.root >> true
         1 * component.componentId >> identifier
-        1 * component.metadata >> null
+        1 * component.metadataOrNull >> null
 
         and:
         visitor.allResolvedModules.empty
@@ -268,7 +268,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         DependencyGraphComponent component = Mock()
         ComponentResolveMetadata metadata = Mock()
         node.owner >> component
-        component.metadata >> metadata
+        component.metadataOrNull >> metadata
         metadata.isChanging() >> true
         component.componentId >> module
 

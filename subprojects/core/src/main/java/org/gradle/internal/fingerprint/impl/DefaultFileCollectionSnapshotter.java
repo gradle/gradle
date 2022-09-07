@@ -25,7 +25,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
-import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -36,12 +35,10 @@ import java.util.List;
 
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
     private final FileSystemAccess fileSystemAccess;
-    private final GenericFileTreeSnapshotter genericFileTreeSnapshotter;
     private final Stat stat;
 
-    public DefaultFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
+    public DefaultFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, Stat stat) {
         this.fileSystemAccess = fileSystemAccess;
-        this.genericFileTreeSnapshotter = genericFileTreeSnapshotter;
         this.stat = stat;
     }
 
@@ -50,17 +47,11 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         SnapshottingVisitor visitor = new SnapshottingVisitor();
         ((FileCollectionInternal) fileCollection).visitStructure(visitor);
         FileSystemSnapshot snapshot = CompositeFileSystemSnapshot.of(visitor.getRoots());
-        boolean fileTreeOnly = visitor.isFileTreeOnly();
         boolean containsArchiveTrees = visitor.containsArchiveTrees();
         return new Result() {
             @Override
             public FileSystemSnapshot getSnapshot() {
                 return snapshot;
-            }
-
-            @Override
-            public boolean isFileTreeOnly() {
-                return fileTreeOnly;
             }
 
             @Override
@@ -72,7 +63,6 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
     private class SnapshottingVisitor implements FileCollectionStructureVisitor {
         private final List<FileSystemSnapshot> roots = new ArrayList<>();
-        private Boolean fileTreeOnly;
         private boolean containsArchiveTrees;
 
         @Override
@@ -80,13 +70,6 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             for (File file : contents) {
                 fileSystemAccess.read(file.getAbsolutePath(), roots::add);
             }
-            fileTreeOnly = false;
-        }
-
-        @Override
-        public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-            roots.add(genericFileTreeSnapshotter.snapshotFileTree(fileTree));
-            fileTreeOnly = false;
         }
 
         @Override
@@ -100,24 +83,16 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                     }
                 }
             );
-            if (fileTreeOnly == null) {
-                fileTreeOnly = true;
-            }
         }
 
         @Override
         public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             fileSystemAccess.read(file.getAbsolutePath(), roots::add);
-            fileTreeOnly = false;
             containsArchiveTrees = true;
         }
 
         public List<FileSystemSnapshot> getRoots() {
             return roots;
-        }
-
-        public boolean isFileTreeOnly() {
-            return fileTreeOnly != null && fileTreeOnly;
         }
 
         public boolean containsArchiveTrees() {

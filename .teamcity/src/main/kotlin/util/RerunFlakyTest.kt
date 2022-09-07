@@ -53,7 +53,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
             functionalTestParameters(os)
         ).joinToString(separator = " ")
 
-    killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon)
+    killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", os, arch)
     (1..10).forEach { idx ->
         steps {
             gradleWrapper {
@@ -63,7 +63,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }
         }
-        killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", daemon)
+        killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", os, arch)
     }
     steps {
         checkCleanM2AndAndroidUserHome(os)

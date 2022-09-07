@@ -18,12 +18,13 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
+
 /**
  * https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
  */
 class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
     static bomVersion = "2.0.4.RELEASE"
-    static bom = "'org.springframework.boot:spring-boot-dependencies:${bomVersion}'"
+    static bom = "'org.springframework.boot:spring-boot-dependencies:${bomVersion}'" // TODO:Finalize Upload Removal - Issue #21439
     // This comes from the BOM
     static springVersion = "5.0.8.RELEASE"
 

@@ -21,7 +21,7 @@ import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
-import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction
+import org.gradle.api.internal.project.taskfactory.IncrementalTaskAction
 import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.api.specs.AndSpec
 import spock.lang.Specification
@@ -114,7 +114,7 @@ class DefaultTaskExecutionModeResolverTest extends Specification {
 
         1 * taskProperties.hasDeclaredOutputs() >> false
         1 * upToDateSpec.isEmpty() >> true
-        _ * task.getTaskActions() >> [Mock(IncrementalInputsTaskAction)]
+        _ * task.getTaskActions() >> [Mock(IncrementalTaskAction)]
         0 * _
     }
 }

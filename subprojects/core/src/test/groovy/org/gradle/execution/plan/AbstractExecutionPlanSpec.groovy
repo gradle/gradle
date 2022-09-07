@@ -66,6 +66,8 @@ abstract class AbstractExecutionPlanSpec extends Specification {
 
         def project = Mock(ProjectInternal, name: name)
         _ * project.identityPath >> (parent == null ? Path.ROOT : Path.ROOT.child(name))
+        _ * project.projectPath(_) >> { taskName -> Path.ROOT.child(taskName) }
+        _ * project.identityPath(_) >> { taskName -> (parent == null ? Path.ROOT : Path.ROOT.child(name)).child(taskName) }
         _ * project.gradle >> thisBuild
         _ * project.owner >> projectState
         _ * project.services >> backing.services
@@ -97,6 +99,15 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         task.inputs >> emptyTaskInputs()
         task.taskIdentity >> TaskIdentity.create(name, DefaultTask, project)
         return task
+    }
+
+    protected void relationships(Map options, TaskInternal task) {
+        dependsOn(task, options.dependsOn ?: [])
+        task.lifecycleDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
+        mustRunAfter(task, options.mustRunAfter ?: [])
+        shouldRunAfter(task, options.shouldRunAfter ?: [])
+        finalizedBy(task, options.finalizedBy ?: [])
+        task.getSharedResources() >> (options.resources ?: [])
     }
 
     protected void dependsOn(TaskInternal task, List<Task> dependsOnTasks) {

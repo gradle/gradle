@@ -58,7 +58,7 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
                     children.add(includedBuild.getModel());
                 } else {
                     buildRegistry.registerSubstitutionsForRootBuild();
-                    children.add(buildRegistry.getRootBuild().getModel());
+                    children.add(rootBuild.getModel());
                 }
             }
 

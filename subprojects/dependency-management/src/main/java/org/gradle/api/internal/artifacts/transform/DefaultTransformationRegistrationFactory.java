@@ -72,7 +72,6 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final DomainObjectContext owner;
     private final InstantiationScheme actionInstantiationScheme;
-    private final InstantiationScheme legacyActionInstantiationScheme;
     private final DocumentationRegistry documentationRegistry;
 
     public DefaultTransformationRegistrationFactory(
@@ -101,7 +100,6 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         this.owner = owner;
         this.actionInstantiationScheme = actionScheme.getInstantiationScheme();
         this.actionMetadataStore = actionScheme.getInspectionScheme().getMetadataStore();
-        this.legacyActionInstantiationScheme = actionScheme.getLegacyInstantiationScheme();
         this.parametersPropertyWalker = parameterScheme.getInspectionScheme().getPropertyWalker();
         this.internalServices = internalServices;
         this.documentationRegistry = documentationRegistry;
@@ -179,13 +177,6 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, owner, inputFingerprinter));
     }
 
-    @Override
-    @SuppressWarnings("deprecation")
-    public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends org.gradle.api.artifacts.transform.ArtifactTransform> implementation, Object[] params) {
-        Transformer transformer = new LegacyTransformer(implementation, params, legacyActionInstantiationScheme, from, classLoaderHierarchyHasher, isolatableFactory);
-        return new DefaultArtifactTransformRegistration(from, to, new TransformationStep(transformer, transformerInvocationFactory, owner, inputFingerprinter));
-    }
-
     private static class DefaultArtifactTransformRegistration implements ArtifactTransformRegistration {
         private final ImmutableAttributes from;
         private final ImmutableAttributes to;
@@ -223,7 +214,6 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
         private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;
 
-        @SuppressWarnings("deprecation")
         @Override
         public void visitInputFileProperty(
             String propertyName,
@@ -237,9 +227,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             InputFilePropertyType filePropertyType
         ) {
             this.normalizer = fileNormalizer;
-            this.directorySensitivity = directorySensitivity == DirectorySensitivity.UNSPECIFIED
-                ? DirectorySensitivity.DEFAULT
-                : directorySensitivity;
+            this.directorySensitivity = directorySensitivity;
             this.lineEndingSensitivity = lineEndingSensitivity;
         }
     }

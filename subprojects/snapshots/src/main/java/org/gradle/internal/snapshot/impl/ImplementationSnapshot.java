@@ -20,89 +20,100 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
+import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot.UnknownReason;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
+import java.lang.invoke.SerializedLambda;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Optional;
 
 /**
  * Identifies a type in a classloader hierarchy. The type is identified by its name,
  * the classloader hierarchy by its hash code.
  */
 public abstract class ImplementationSnapshot implements ValueSnapshot {
+
     private static final String GENERATED_LAMBDA_CLASS_SUFFIX = "$$Lambda$";
-    public enum UnknownReason {
-        LAMBDA(
-            "was implemented by the Java lambda '%s'.",
-            "Using Java lambdas is not supported as task inputs.",
-            "Use an (anonymous inner) class instead."),
-        UNKNOWN_CLASSLOADER(
-            "was loaded with an unknown classloader (class '%s').",
-            "Gradle cannot track the implementation for classes loaded with an unknown classloader.",
-            "Load your class by using one of Gradle's built-in ways."
-        );
 
-        private final String descriptionTemplate;
-        private final String reason;
-        private final String solution;
-
-        UnknownReason(String descriptionTemplate, String reason, String solution) {
-            this.descriptionTemplate = descriptionTemplate;
-            this.reason = reason;
-            this.solution = solution;
-        }
-
-        public String descriptionFor(ImplementationSnapshot implementationSnapshot) {
-            return String.format(descriptionTemplate, implementationSnapshot.getTypeName());
-        }
-
-        public String getReason() {
-            return reason;
-        }
-
-        public String getSolution() {
-            return solution;
-        }
-    }
-
-    private final String typeName;
+    protected final String classIdentifier;
 
     public static ImplementationSnapshot of(Class<?> type, ClassLoaderHierarchyHasher classLoaderHasher) {
         String className = type.getName();
-        return of(className, classLoaderHasher.getClassLoaderHash(type.getClassLoader()), type.isSynthetic() && isLambdaClassName(className));
+        HashCode classLoaderHash = classLoaderHasher.getClassLoaderHash(type.getClassLoader());
+        return of(className, classLoaderHash, isLambdaClass(type), null);
     }
 
     public static ImplementationSnapshot of(String className, @Nullable HashCode classLoaderHash) {
-        return of(className, classLoaderHash, isLambdaClassName(className));
+        return of(className, classLoaderHash, isLambdaClassName(className), null);
     }
 
-    private static ImplementationSnapshot of(String typeName, @Nullable HashCode classLoaderHash, boolean lambda) {
+    public static ImplementationSnapshot of(String className, Object value, @Nullable HashCode classLoaderHash) {
+        return of(className, classLoaderHash, isLambdaClass(value.getClass()), value);
+    }
+
+    private static boolean isLambdaClass(Class<?> type) {
+        return type.isSynthetic() && isLambdaClassName(type.getName());
+    }
+
+    private static ImplementationSnapshot of(
+        String classIdentifier,
+        @Nullable HashCode classLoaderHash,
+        boolean isLambda,
+        @Nullable Object value
+    ) {
         if (classLoaderHash == null) {
-            return new UnknownClassloaderImplementationSnapshot(typeName);
+            return new UnknownImplementationSnapshot(classIdentifier, UnknownReason.UNKNOWN_CLASSLOADER);
         }
-        if (lambda) {
-            return new LambdaImplementationSnapshot(typeName);
+
+        if (isLambda) {
+            return Optional.ofNullable(value)
+                .flatMap(ImplementationSnapshot::serializedLambdaFor)
+                .<ImplementationSnapshot>map(it -> new LambdaImplementationSnapshot(classLoaderHash, it))
+                .orElseGet(() -> new UnknownImplementationSnapshot(classIdentifier, UnknownReason.UNTRACKED_LAMBDA));
         }
-        return new KnownImplementationSnapshot(typeName, classLoaderHash);
+
+        return new ClassImplementationSnapshot(classIdentifier, classLoaderHash);
+    }
+
+    private static Optional<SerializedLambda> serializedLambdaFor(Object lambda) {
+        if (!(lambda instanceof Serializable)) {
+            return Optional.empty();
+        }
+        for (Class<?> lambdaClass = lambda.getClass(); lambdaClass != null; lambdaClass = lambdaClass.getSuperclass()) {
+            try {
+                Method replaceMethod = lambdaClass.getDeclaredMethod("writeReplace");
+                replaceMethod.setAccessible(true);
+                Object serializedForm = replaceMethod.invoke(lambda);
+                if (serializedForm instanceof SerializedLambda) {
+                    return Optional.of((SerializedLambda) serializedForm);
+                } else {
+                    return Optional.empty();
+                }
+            } catch (NoSuchMethodException e) {
+                // continue
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                return Optional.empty();
+            }
+        }
+        return Optional.empty();
     }
 
     private static boolean isLambdaClassName(String className) {
         return className.contains(GENERATED_LAMBDA_CLASS_SUFFIX);
     }
 
-    protected ImplementationSnapshot(String typeName) {
-        this.typeName = typeName;
+    protected ImplementationSnapshot(String classIdentifier) {
+        this.classIdentifier = classIdentifier;
     }
 
-    public String getTypeName() {
-        return typeName;
+    public String getClassIdentifier() {
+        return classIdentifier;
     }
 
     @Nullable
     public abstract HashCode getClassLoaderHash();
-
-    public abstract boolean isUnknown();
-
-    @Nullable
-    public abstract UnknownReason getUnknownReason();
 
     @Override
     public ValueSnapshot snapshot(@Nullable Object value, ValueSnapshotter snapshotter) {

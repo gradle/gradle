@@ -18,8 +18,8 @@ package org.gradle.execution.plan;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.NavigableSet;
 import java.util.Set;
@@ -50,6 +50,17 @@ public abstract class TaskNode extends Node {
         return DependenciesState.COMPLETE_AND_SUCCESSFUL;
     }
 
+    @Override
+    protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
+        builder.append(", groupSuccessors=").append(formatNodes(getGroup().getSuccessorsFor(this)));
+        if (!mustSuccessors.isEmpty()) {
+            builder.append(", mustSuccessors=").append(formatNodes(mustSuccessors));
+        }
+        if (!finalizingSuccessors.isEmpty()) {
+            builder.append(", finalizes=").append(formatNodes(finalizingSuccessors));
+        }
+    }
+
     public Set<Node> getMustSuccessors() {
         return mustSuccessors;
     }
@@ -71,10 +82,6 @@ public abstract class TaskNode extends Node {
     @Override
     public Set<Node> getFinalizingSuccessors() {
         return finalizingSuccessors;
-    }
-
-    public Set<Node> getFinalizingSuccessorsInReverseOrder() {
-        return finalizingSuccessors.descendingSet();
     }
 
     public Set<Node> getShouldSuccessors() {
@@ -105,7 +112,7 @@ public abstract class TaskNode extends Node {
     public Iterable<Node> getAllSuccessors() {
         return Iterables.concat(
             shouldSuccessors,
-            getGroup().getSuccessors(),
+            getGroup().getSuccessorsFor(this),
             mustSuccessors,
             super.getAllSuccessors()
         );
@@ -114,7 +121,7 @@ public abstract class TaskNode extends Node {
     @Override
     public Iterable<Node> getHardSuccessors() {
         return Iterables.concat(
-            getGroup().getSuccessors(),
+            getGroup().getSuccessorsFor(this),
             mustSuccessors,
             super.getHardSuccessors()
         );
@@ -125,7 +132,7 @@ public abstract class TaskNode extends Node {
         return Iterables.concat(
             super.getAllSuccessorsInReverseOrder(),
             mustSuccessors.descendingSet(),
-            getGroup().getSuccessorsInReverseOrder(),
+            getGroup().getSuccessorsInReverseOrderFor(this),
             shouldSuccessors.descendingSet()
         );
     }
@@ -141,26 +148,11 @@ public abstract class TaskNode extends Node {
         }
     }
 
-    @Override
-    public boolean hasHardSuccessor(Node successor) {
-        if (super.hasHardSuccessor(successor)) {
-            return true;
-        }
-        if (!(successor instanceof TaskNode)) {
-            return false;
-        }
-        return getMustSuccessors().contains(successor)
-            || getFinalizingSuccessors().contains(successor);
-    }
-
     public abstract TaskInternal getTask();
 
     protected void deprecateLifecycleHookReferencingNonLocalTask(String hookName, Node taskNode) {
         if (taskNode instanceof TaskInAnotherBuild) {
-            DeprecationLogger.deprecateAction("Using " + hookName + " to reference tasks from another build")
-                .willBecomeAnErrorInGradle8()
-                .withUpgradeGuideSection(6, "referencing_tasks_from_included_builds")
-                .nagUser();
+            throw new GradleException("Cannot use " + hookName + " to reference tasks from another build");
         }
     }
 
@@ -169,7 +161,8 @@ public abstract class TaskNode extends Node {
         super.updateGroupOfFinalizer();
         if (!getFinalizingSuccessors().isEmpty()) {
             // This node is a finalizer, decorate the current group to add finalizer behaviour
-            FinalizerGroup finalizerGroup = new FinalizerGroup(this, getGroup());
+            NodeGroup oldGroup = getGroup();
+            FinalizerGroup finalizerGroup = new FinalizerGroup(this, oldGroup);
             setGroup(finalizerGroup);
         }
     }
