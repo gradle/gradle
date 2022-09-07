@@ -1,6 +1,15 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.artifacts.result.ComponentSelectionReason",
+            "member": "Method org.gradle.api.artifacts.result.ComponentSelectionReason.isForced()",
+            "acceptation": "Removing dependency forcing for Gradle 8.0",
+            "changes": [
+                "METHOD_ABSTRACT_NOW_DEFAULT",
+                "ANNOTATION_DEPRECATED_ADDED"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.ExternalDependency",
             "member": "Method org.gradle.api.artifacts.ExternalDependency.setForce(boolean)",
             "acceptation": "Removed for Gradle 8.0",

@@ -112,14 +112,14 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
                         : DefaultMutableVersionConstraint.withVersion(lockedVersion);
                     ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(lockedDependency.getGroup(), lockedDependency.getModule()), versionConstraint);
                     syntheticDependencies.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(),  ImmutableAttributes.EMPTY, null,
-                            Collections.emptyList(),  Collections.emptyList(), false, false, false, true, false, true, getLockReason(strict, lockedVersion)));
+                            Collections.emptyList(),  Collections.emptyList(), false, false, true, false, true, getLockReason(strict, lockedVersion)));
                 }
             }
             List<DependencyConstraint> dependencyConstraints = consistentResolutionConstraints.get();
             for (DependencyConstraint dc : dependencyConstraints) {
                 ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dc.getGroup(), dc.getName()), dc.getVersionConstraint());
                 syntheticDependencies.add(new LocalComponentDependencyMetadata(getComponentId(), selector, getName(), getAttributes(),  ImmutableAttributes.EMPTY, null,
-                    Collections.emptyList(),  Collections.emptyList(), false, false, false, true, false, true, dc.getReason()));
+                    Collections.emptyList(),  Collections.emptyList(), false, false, true, false, true, dc.getReason()));
             }
             return syntheticDependencies.build();
         }

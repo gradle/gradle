@@ -223,7 +223,6 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 }
                 edge('org:foo:1.2', 'org:foo:1.1') {
                     byConstraint()
-                    forced()
                 }
             }
         }
@@ -274,7 +273,6 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 }
                 edge('org:foo:1.1', 'org:foo:1.0') {
                     configuration = 'api'
-                    forced()
                 }
             }
         }

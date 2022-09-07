@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
@@ -384,9 +383,7 @@ public class DependencyGraphBuilder {
                     // at all, but we still want to see an error message for it.
                     attachFailureToEdges(error, module.getUnattachedDependencies());
                 } else {
-                    if (module.isVirtualPlatform()) {
-                        attachMultipleForceOnPlatformFailureToEdges(module);
-                    } else if (selected.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
+                    if (selected.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
                         validateMultipleNodeSelection(module, selected);
                     }
                     if (denyDynamicSelectors) {
@@ -396,8 +393,6 @@ public class DependencyGraphBuilder {
                         validateChangingVersions(selected);
                     }
                 }
-            } else if (module.isVirtualPlatform()) {
-                attachMultipleForceOnPlatformFailureToEdges(module);
             }
         }
     }
@@ -527,44 +522,6 @@ public class DependencyGraphBuilder {
         DefaultCompatibilityCheckResult<Object> result = new DefaultCompatibilityCheckResult<>(v1, v2);
         rule.execute(result);
         return result.hasResult() && result.isCompatible();
-    }
-
-    private void attachMultipleForceOnPlatformFailureToEdges(ModuleResolveState module) {
-        List<EdgeState> forcedEdges = null;
-        boolean hasMultipleVersions = false;
-        String currentVersion = module.maybeFindForcedPlatformVersion();
-        Set<ModuleResolveState> participatingModules = module.getPlatformState().getParticipatingModules();
-        for (ModuleResolveState participatingModule : participatingModules) {
-            for (EdgeState incomingEdge : participatingModule.getIncomingEdges()) {
-                SelectorState selector = incomingEdge.getSelector();
-                if (isPlatformForcedEdge(selector)) {
-                    ComponentSelector componentSelector = selector.getSelector();
-                    if (componentSelector instanceof ModuleComponentSelector) {
-                        ModuleComponentSelector mcs = (ModuleComponentSelector) componentSelector;
-                        if (!incomingEdge.getFrom().getComponent().getModule().equals(module)) {
-                            if (forcedEdges == null) {
-                                forcedEdges = Lists.newArrayList();
-                            }
-                            forcedEdges.add(incomingEdge);
-                            if (currentVersion == null) {
-                                currentVersion = mcs.getVersion();
-                            } else {
-                                if (!currentVersion.equals(mcs.getVersion())) {
-                                    hasMultipleVersions = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (hasMultipleVersions) {
-            attachFailureToEdges(new GradleException("Multiple forces on different versions for virtual platform " + module.getId()), forcedEdges);
-        }
-    }
-
-    private static boolean isPlatformForcedEdge(SelectorState selector) {
-        return selector.isForce() && !selector.isSoftForce();
     }
 
     /**

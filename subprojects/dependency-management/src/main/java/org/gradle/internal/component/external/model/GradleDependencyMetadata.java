@@ -161,16 +161,6 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     }
 
     @Override
-    public boolean isForce() {
-        return force;
-    }
-
-    @Override
-    public ForcingDependencyMetadata forced() {
-        return new GradleDependencyMetadata(selector, excludes, constraint, endorsing, reason, true, artifacts);
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

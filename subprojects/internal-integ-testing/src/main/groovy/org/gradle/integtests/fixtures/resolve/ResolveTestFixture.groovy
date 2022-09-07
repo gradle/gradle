@@ -764,14 +764,6 @@ allprojects {
         }
 
         /**
-         * Marks that this node has a forced vers.
-         */
-        NodeBuilder forced() {
-            reasons << 'forced'
-            this
-        }
-
-        /**
          * Marks that this node was substituted in a composite.
          */
         NodeBuilder compositeSubstitute() {

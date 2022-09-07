@@ -76,7 +76,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private ModuleResolveState targetModule;
     private boolean resolved;
     private boolean forced;
-    private boolean softForced;
     private boolean fromLock;
     private boolean reusable;
     private boolean markedReusableAlready;
@@ -351,16 +350,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     @Override
-    public boolean isForce() {
-        return forced;
-    }
-
-    @Override
-    public boolean isSoftForce() {
-        return softForced;
-    }
-
-    @Override
     public boolean isFromLock() {
         return fromLock;
     }
@@ -371,14 +360,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     public void update(DependencyState dependencyState) {
         if (dependencyState != this.dependencyState) {
-            if (!forced && dependencyState.isForced()) {
-                forced = true;
-                if (dependencyState.getDependency() instanceof LenientPlatformDependencyMetadata) {
-                    softForced = true;
-                    targetModule.resolveOptimizations.declareForcedPlatformInUse();
-                }
-                resolved = false; // when a selector changes from non forced to forced, we must reselect
-            }
             if (!fromLock && dependencyState.isFromLock()) {
                 fromLock = true;
                 resolved = false; // when a selector changes from non lock to lock, we must reselect

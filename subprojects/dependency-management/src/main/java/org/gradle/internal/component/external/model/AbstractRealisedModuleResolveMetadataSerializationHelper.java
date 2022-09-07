@@ -254,7 +254,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         writeMavenExcludeRules(encoder, excludes);
         encoder.writeBoolean(dependencyMetadata.isConstraint());
         encoder.writeBoolean(dependencyMetadata.isEndorsingStrictVersions());
-        encoder.writeBoolean(dependencyMetadata.isForce());
+        encoder.writeBoolean(false);
         encoder.writeNullableString(dependencyMetadata.getReason());
         IvyArtifactNameSerializer.INSTANCE.writeNullable(encoder, dependencyMetadata.getDependencyArtifact());
     }

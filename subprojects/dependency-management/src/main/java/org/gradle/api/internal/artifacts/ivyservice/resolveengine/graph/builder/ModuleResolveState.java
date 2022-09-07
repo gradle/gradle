@@ -36,7 +36,6 @@ import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.slf4j.Logger;
@@ -467,24 +466,5 @@ class ModuleResolveState implements CandidateModule {
                 componentState.setState(new LenientPlatformGraphResolveState((ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState));
             }
         }
-    }
-
-    @Nullable
-    String maybeFindForcedPlatformVersion() {
-        ComponentState selected = getSelected();
-        for (NodeState node : selected.getNodes()) {
-            if (node.isSelected()) {
-                for (EdgeState incomingEdge : node.getIncomingEdges()) {
-                    DependencyMetadata dependencyMetadata = incomingEdge.getDependencyMetadata();
-                    if (!(dependencyMetadata instanceof LenientPlatformDependencyMetadata) && dependencyMetadata instanceof ForcingDependencyMetadata) {
-                        if (((ForcingDependencyMetadata) dependencyMetadata).isForce()) {
-                            return selected.getVersion();
-                        }
-                    }
-                }
-            }
-        }
-
-        return null;
     }
 }

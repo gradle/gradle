@@ -1008,7 +1008,7 @@ public class NodeState implements DependencyGraphNode {
     }
 
     boolean versionProvidedByAncestors(DependencyState dependencyState) {
-        return !dependencyState.isForced() && ancestorsStrictVersionConstraints != null && ancestorsStrictVersionConstraints.contains(dependencyState.getModuleIdentifier());
+        return ancestorsStrictVersionConstraints != null && ancestorsStrictVersionConstraints.contains(dependencyState.getModuleIdentifier());
     }
 
     private boolean sameIncomingEdgesAsPreviousPass(int incomingEdgeCount) {
@@ -1282,7 +1282,6 @@ public class NodeState implements DependencyGraphNode {
         assert outgoingEdges.size() <= 1;
         try {
             for (EdgeState outgoingEdge : outgoingEdges) {
-                //noinspection ConstantConditions
                 return outgoingEdge.getSelectedVariant();
             }
             return null;

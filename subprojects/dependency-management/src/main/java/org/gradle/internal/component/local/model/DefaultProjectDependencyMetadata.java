@@ -108,20 +108,4 @@ public class DefaultProjectDependencyMetadata implements ForcingDependencyMetada
     public DependencyMetadata withReason(String reason) {
         return delegate.withReason(reason);
     }
-
-    @Override
-    public boolean isForce() {
-        if (delegate instanceof ForcingDependencyMetadata) {
-            return ((ForcingDependencyMetadata) delegate).isForce();
-        }
-        return false;
-    }
-
-    @Override
-    public ForcingDependencyMetadata forced() {
-        if (delegate instanceof ForcingDependencyMetadata) {
-            return ((ForcingDependencyMetadata) delegate).forced();
-        }
-        return this;
-    }
 }

@@ -247,7 +247,6 @@ configurations.conf.resolutionStrategy.force('org.test:ivy:1.2')
                 module('org.test:maven:1.0') {
                     configuration = 'compile'
                     edge('org.test:ivy:1.0', 'org.test:ivy:1.2') {
-                        forced()
                         artifact(name: 'default')
                         module('org.test:m3:1.0')
                     }

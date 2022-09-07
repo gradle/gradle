@@ -23,7 +23,6 @@ import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.ForcingDependencyMetadata;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -111,7 +110,6 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
             case FORCED_ALL:
             case FORCED_CONSTRAINTS_ONLY:
             case FORCED_DEPENDENCIES_ONLY:
-                filtered = force(filtered);
                 break;
         }
         filteredConfigDependencies = filtered;
@@ -160,19 +158,6 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
             }
         };
     }
-
-    private ImmutableList<ModuleDependencyMetadata> force(ImmutableList<ModuleDependencyMetadata> configDependencies) {
-        ImmutableList.Builder<ModuleDependencyMetadata> dependencies = new ImmutableList.Builder<>();
-        for (ModuleDependencyMetadata configDependency : configDependencies) {
-            if (configDependency instanceof ForcingDependencyMetadata) {
-                dependencies.add((ModuleDependencyMetadata) ((ForcingDependencyMetadata) configDependency).forced());
-            } else {
-                dependencies.add(new ForcedDependencyMetadataWrapper(configDependency));
-            }
-        }
-        return dependencies.build();
-    }
-
     private ImmutableList<ModuleDependencyMetadata> withConstraints(boolean constraint, ImmutableList<ModuleDependencyMetadata> configDependencies) {
         if (configDependencies.isEmpty()) {
             return ImmutableList.of();

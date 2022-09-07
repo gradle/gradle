@@ -21,8 +21,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ForcingDependencyMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -30,10 +28,6 @@ import java.util.List;
 import java.util.Set;
 
 abstract class MessageBuilderHelper {
-    private static boolean isDependencyForced(DependencyMetadata dependency) {
-        return dependency instanceof ForcingDependencyMetadata && ((ForcingDependencyMetadata) dependency).isForce();
-    }
-
     static Collection<String> pathTo(EdgeState edge) {
         return pathTo(edge, true);
     }

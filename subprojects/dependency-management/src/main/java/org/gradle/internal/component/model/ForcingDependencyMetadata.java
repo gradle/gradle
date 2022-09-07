@@ -16,14 +16,4 @@
 package org.gradle.internal.component.model;
 
 public interface ForcingDependencyMetadata extends DependencyMetadata {
-    /**
-     * Was the dependency created with the 'force' attribute.
-     */
-    boolean isForce();
-
-    /**
-     * Returns a copy of this dependency metadata, using force.
-     * @return forced dependency metadata
-     */
-    ForcingDependencyMetadata forced();
 }

@@ -195,9 +195,6 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                     }
                 }
             }
-            if (platformType == ENFORCED_PLATFORM) {
-                nodesWithoutRoot.each { it.forced() }
-            }
         }
 
         where:
@@ -252,9 +249,6 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                         }
                     }
                 }
-            }
-            if (platformType == ENFORCED_PLATFORM) {
-                nodesWithoutRoot.each { it.forced() }
             }
         }
 
@@ -387,9 +381,6 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                     edge('org:bar', 'org:bar:2.0') {
                         edge('org:foo:3.1', "org:foo:$expectedFooVersion").byAncestor()
                     }.byRequest()
-                }
-                if (platformType == ENFORCED_PLATFORM) {
-                    nodesWithoutRoot.each { it.forced() }
                 }
             }
         }

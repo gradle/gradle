@@ -456,11 +456,10 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
                 }
                 AttributeValue<Category> attributeValue = this.getAttributes().findEntry(Category.CATEGORY_ATTRIBUTE);
                 if (attributeValue.isPresent() && attributeValue.get().getName().equals(Category.ENFORCED_PLATFORM)) {
-                    // need to wrap all dependencies to force them
                     ImmutableList<LocalOriginDependencyMetadata> rawDependencies = result.build();
                     result = ImmutableList.builder();
                     for (LocalOriginDependencyMetadata rawDependency : rawDependencies) {
-                        result.add(rawDependency.forced());
+                        result.add(rawDependency);
                     }
                 }
                 configurationDependencies = result.build();

@@ -95,16 +95,6 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
     }
 
     @Override
-    public boolean isForce() {
-        return false;
-    }
-
-    @Override
-    public boolean isSoftForce() {
-        return false;
-    }
-
-    @Override
     public boolean isFromLock() {
         return false;
     }

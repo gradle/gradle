@@ -46,15 +46,9 @@ class SelectorStateResolverResults {
     public <T extends ComponentResolutionState> List<T> getResolved(ComponentStateFactory<T> componentFactory) {
         ModuleVersionResolveException failure = null;
         List<T> resolved = null;
-        boolean hasSoftForce = hasSoftForce();
         for (Registration entry : results) {
             ResolvableSelectorState selectorState = entry.selector;
             ComponentIdResolveResult idResolveResult = entry.result;
-
-            if (selectorState.isForce() && !hasSoftForce) {
-                T forcedComponent = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
-                return Collections.singletonList(forcedComponent);
-            }
 
             if (idResolveResult.mark(this)) {
                 if (idResolveResult.getFailure() == null) {
@@ -94,15 +88,6 @@ class SelectorStateResolverResults {
         return true;
     }
 
-    private boolean hasSoftForce() {
-        for (Registration entry : results) {
-            ResolvableSelectorState selectorState = entry.selector;
-            if (selectorState.isSoftForce()) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
         T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getState());

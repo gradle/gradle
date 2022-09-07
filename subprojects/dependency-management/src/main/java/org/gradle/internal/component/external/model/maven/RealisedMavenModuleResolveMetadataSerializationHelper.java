@@ -89,9 +89,6 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
             if (dependency instanceof ForcedDependencyMetadataWrapper) {
                 ForcedDependencyMetadataWrapper wrapper = (ForcedDependencyMetadataWrapper) dependency;
                 dependency = wrapper.unwrap();
-                if (wrapper.isForce()) {
-                    encoder.writeByte(FORCED_DEPENDENCY_METADATA);
-                }
             }
             if (dependency instanceof GradleDependencyMetadata) {
                 encoder.writeByte(GRADLE_DEPENDENCY_METADATA);

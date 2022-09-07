@@ -189,8 +189,6 @@ public class DependencyInsightReporter {
                 return "Was requested";
             case SELECTED_BY_RULE:
                 return "Selected by rule";
-            case FORCED:
-                return "Forced";
             case CONFLICT_RESOLUTION:
                 return "By conflict resolution";
             case COMPOSITE_BUILD:

@@ -111,7 +111,7 @@ public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMeta
     public void forced() {
         ModuleDependencyMetadata originalMetadata = getMetadata();
         if (originalMetadata instanceof ForcingDependencyMetadata) {
-            updateMetadata((ModuleDependencyMetadata) ((ForcingDependencyMetadata) originalMetadata).forced());
+            updateMetadata(originalMetadata);
         }
     }
 }

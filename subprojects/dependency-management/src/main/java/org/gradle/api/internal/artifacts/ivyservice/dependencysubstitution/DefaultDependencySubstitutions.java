@@ -244,12 +244,6 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
                 if (substituted instanceof UnversionedModuleComponentSelector) {
                     final ModuleIdentifier moduleId = ((UnversionedModuleComponentSelector) substituted).getModuleIdentifier();
-                    if (notation instanceof ModuleComponentSelector) {
-                        if (((ModuleComponentSelector) notation).getModuleIdentifier().equals(moduleId)) {
-                            // This substitution is effectively a force
-                            substitutionReason = substitutionReason.markAsEquivalentToForce();
-                        }
-                    }
                     addSubstitution(new ModuleMatchDependencySubstitutionAction(substitutionReason, moduleId, notation, () -> artifactAction), projectInvolved);
                 } else {
                     addSubstitution(new ExactMatchDependencySubstitutionAction(substitutionReason, substituted, notation, () -> artifactAction), projectInvolved);

@@ -159,9 +159,6 @@ public class DefaultIvyModuleDescriptorWriter implements IvyModuleDescriptorWrit
         writer.attribute("org", requested.getGroup());
         writer.attribute("name", requested.getName());
         writer.attribute("rev", requested.getVersion());
-        if (dep.isForce()) {
-            writer.attribute("force", "true");
-        }
         if (dep.isChanging()) {
             writer.attribute("changing", "true");
         }

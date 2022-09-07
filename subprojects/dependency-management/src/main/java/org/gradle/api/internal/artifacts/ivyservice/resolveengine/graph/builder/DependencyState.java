@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ForcingDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -35,7 +34,6 @@ import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.BY_ANCESTOR;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONSTRAINT;
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.REQUESTED;
 
 class DependencyState {
@@ -116,22 +114,6 @@ class DependencyState {
         throw new IllegalStateException("Substitution with artifacts for something else than a module is not supported");
     }
 
-
-    public boolean isForced() {
-        if (!ruleDescriptors.isEmpty()) {
-            for (ComponentSelectionDescriptorInternal ruleDescriptor : ruleDescriptors) {
-                if (ruleDescriptor.isEquivalentToForce()) {
-                    return true;
-                }
-            }
-        }
-        return isDependencyForced();
-    }
-
-    private boolean isDependencyForced() {
-        return dependency instanceof ForcingDependencyMetadata && ((ForcingDependencyMetadata) dependency).isForce();
-    }
-
     public boolean isFromLock() {
         return dependency instanceof LocalOriginDependencyMetadata && ((LocalOriginDependencyMetadata) dependency).isFromLock();
     }
@@ -145,9 +127,6 @@ class DependencyState {
 
         if (!ruleDescriptors.isEmpty()) {
             addRuleDescriptors(reasons);
-        }
-        if (isDependencyForced()) {
-            maybeAddReason(reasons, FORCED);
         }
     }
 

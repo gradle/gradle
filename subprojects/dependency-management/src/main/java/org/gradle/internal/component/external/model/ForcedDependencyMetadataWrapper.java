@@ -78,7 +78,7 @@ public class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadat
     public DependencyMetadata withTarget(ComponentSelector target) {
         DependencyMetadata dependencyMetadata = delegate.withTarget(target);
         if (dependencyMetadata instanceof DefaultProjectDependencyMetadata) {
-            return ((DefaultProjectDependencyMetadata) dependencyMetadata).forced();
+            return dependencyMetadata;
         }
         return new ForcedDependencyMetadataWrapper((ModuleDependencyMetadata) dependencyMetadata);
     }
@@ -87,7 +87,7 @@ public class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadat
     public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
         DependencyMetadata dependencyMetadata = delegate.withTargetAndArtifacts(target, artifacts);
         if (dependencyMetadata instanceof DefaultProjectDependencyMetadata) {
-            return ((DefaultProjectDependencyMetadata) dependencyMetadata).forced();
+            return dependencyMetadata;
         }
         return new ForcedDependencyMetadataWrapper((ModuleDependencyMetadata) dependencyMetadata);
     }
@@ -115,16 +115,6 @@ public class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadat
     @Override
     public String getReason() {
         return delegate.getReason();
-    }
-
-    @Override
-    public boolean isForce() {
-        return true;
-    }
-
-    @Override
-    public ForcingDependencyMetadata forced() {
-        return this;
     }
 
     public ModuleDependencyMetadata unwrap() {

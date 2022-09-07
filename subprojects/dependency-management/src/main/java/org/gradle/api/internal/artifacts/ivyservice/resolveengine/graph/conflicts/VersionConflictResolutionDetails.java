@@ -136,5 +136,4 @@ public class VersionConflictResolutionDetails implements Describable {
     private static boolean isByVersionConflict(ComponentSelectionDescriptorInternal descriptor) {
         return descriptor.getCause() == ComponentSelectionCause.CONFLICT_RESOLUTION && descriptor.getDescribable() instanceof VersionConflictResolutionDetails;
     }
-
 }

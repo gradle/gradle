@@ -33,8 +33,13 @@ public interface ComponentSelectionReason {
     /**
      * Informs whether the component was forced. Users can force components via {@link org.gradle.api.artifacts.ResolutionStrategy} or when declaring dependencies (see {@link
      * org.gradle.api.artifacts.dsl.DependencyHandler}).
+     *
+     * Deprecated for removal in Gradle 9.0; will always return {@code false}.
      */
-    boolean isForced();
+    @Deprecated
+    default boolean isForced() {
+        return false;
+    }
 
     /**
      * Informs whether the component was selected by conflict resolution. For more information about Gradle's conflict resolution please refer to the user manual. {@link

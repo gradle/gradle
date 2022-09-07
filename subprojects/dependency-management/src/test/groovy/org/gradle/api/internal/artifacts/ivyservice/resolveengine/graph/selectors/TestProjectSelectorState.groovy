@@ -63,16 +63,6 @@ class TestProjectSelectorState implements ResolvableSelectorState {
     }
 
     @Override
-    boolean isForce() {
-        return false
-    }
-
-    @Override
-    boolean isSoftForce() {
-        return false
-    }
-
-    @Override
     boolean isFromLock() {
         return false
     }

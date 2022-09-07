@@ -52,7 +52,7 @@ class DefaultComponentSelectionReasonTest extends Specification {
 
     def "other selection reason and requested is not expected"() {
         when:
-        def reason = ComponentSelectionReasons.of(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REQUESTED), new DefaultComponentSelectionDescriptor(ComponentSelectionCause.FORCED))
+        def reason = ComponentSelectionReasons.of(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REQUESTED))
 
         then:
         !reason.isExpected()

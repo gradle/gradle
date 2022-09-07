@@ -56,10 +56,6 @@ public interface ResolvableSelectorState {
      */
     void markResolved();
 
-    boolean isForce();
-
-    boolean isSoftForce();
-
     boolean isFromLock();
 
     boolean hasStrongOpinion();

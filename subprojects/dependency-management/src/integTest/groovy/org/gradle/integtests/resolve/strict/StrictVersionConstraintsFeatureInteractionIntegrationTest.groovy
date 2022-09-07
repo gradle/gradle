@@ -280,7 +280,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                 constraint('org:bar:{strictly 1.0}', 'org:bar:2.0').byConstraint()
                 project(':foo', 'test:foo:') {
                     configuration = 'conf'
-                    module('org:bar:2.0').byRequest().forced()
+                    module('org:bar:2.0').byRequest()
                 }
             }
         }

@@ -42,7 +42,10 @@ public enum ComponentSelectionCause {
 
     /**
      * This component was selected because selection was forced on this version.
+     *
+     * Deprecated, to be removed in Gradle 9.0.
      */
+    @Deprecated
     FORCED("forced"),
 
     /**

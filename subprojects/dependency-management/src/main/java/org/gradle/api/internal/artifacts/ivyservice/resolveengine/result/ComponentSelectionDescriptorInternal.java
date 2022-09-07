@@ -36,20 +36,5 @@ public interface ComponentSelectionDescriptorInternal extends ComponentSelection
      */
     boolean hasCustomDescription();
 
-    /**
-     * Updates this component selection descriptor to indicate it is equivalent to a force
-     *
-     * @return a new descriptor, equivalent to force
-     */
-    ComponentSelectionDescriptorInternal markAsEquivalentToForce();
-
-    /**
-     * Indicates whether the component selection descriptor is equivalent to a forced dependency
-     *
-     * @return {@code true} if equivalent to force, {@code false} otherwise
-     */
-    boolean isEquivalentToForce();
-
     Describable getDescribable();
-
 }

@@ -92,11 +92,6 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
-    public boolean isForce() {
-        return delegate.isForce();
-    }
-
-    @Override
     public boolean isConstraint() {
         return delegate.isConstraint();
     }
@@ -143,10 +138,5 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     @Override
     public ComponentSelector getSelector() {
         return delegate.getSelector();
-    }
-
-    @Override
-    public LocalOriginDependencyMetadata forced() {
-        return new DslOriginDependencyMetadataWrapper(delegate.forced(), source);
     }
 }

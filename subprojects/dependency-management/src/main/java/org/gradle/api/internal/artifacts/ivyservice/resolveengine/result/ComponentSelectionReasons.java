@@ -32,7 +32,6 @@ import java.util.List;
 public class ComponentSelectionReasons {
     public static final ComponentSelectionDescriptorInternal REQUESTED = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REQUESTED);
     public static final ComponentSelectionDescriptorInternal ROOT = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.ROOT);
-    public static final ComponentSelectionDescriptorInternal FORCED = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.FORCED);
     public static final ComponentSelectionDescriptorInternal CONFLICT_RESOLUTION = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONFLICT_RESOLUTION);
     public static final ComponentSelectionDescriptorInternal SELECTED_BY_RULE = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.SELECTED_BY_RULE);
     public static final ComponentSelectionDescriptorInternal COMPOSITE_BUILD = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.COMPOSITE_BUILD);
@@ -73,11 +72,6 @@ public class ComponentSelectionReasons {
             for (ComponentSelectionDescriptor descriptor : descriptors) {
                 descriptions.add((ComponentSelectionDescriptorInternal) descriptor);
             }
-        }
-
-        @Override
-        public boolean isForced() {
-            return hasCause(ComponentSelectionCause.FORCED);
         }
 
         private boolean hasCause(ComponentSelectionCause cause) {
