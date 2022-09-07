@@ -44,6 +44,7 @@ class ProviderStartParameterConverter {
             if (launchable instanceof TaskExecutionRequest) {
                 TaskExecutionRequest originalLaunchable = (TaskExecutionRequest) launchable;
                 TaskExecutionRequest launchableImpl = DefaultTaskExecutionRequest.of(originalLaunchable.getArgs(), originalLaunchable.getProjectPath(), originalLaunchable.getRootDir());
+                System.out.println(Thread.currentThread() + " -> UNPACK LAUNCHABLE " + launchable + " TO " + launchableImpl);
                 requests.add(launchableImpl);
             } else {
                 throw new InternalUnsupportedBuildArgumentException(
