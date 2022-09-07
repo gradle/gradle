@@ -64,13 +64,13 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
 
     @Override
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
-        RecompilationSpec spec = new RecompilationSpec(previous);
+        RecompilationSpec spec = new RecompilationSpec();
         SourceFileClassNameConverter sourceFileClassNameConverter = getSourceFileClassNameConverter(previous);
 
         processClasspathChanges(current, previous, spec);
         processSourceChanges(current, previous, spec, sourceFileClassNameConverter);
         collectAllSourcePathsAndIndependentClasses(previous, spec, sourceFileClassNameConverter);
-        spec.addClassesToProcess(previous.getTypesToReprocess(spec.getClassesToCompile()));
+        processTypesToReprocess(previous, spec, sourceFileClassNameConverter);
         return spec;
     }
 
@@ -122,11 +122,25 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         }
         Set<String> newClasses = new LinkedHashSet<>();
         for (String className : classNames) {
-            if (spec.addClassesToCompile(className)) {
+            if (spec.addClassToCompile(className)) {
                 newClasses.add(className);
             }
         }
         return newClasses;
+    }
+
+    private void processTypesToReprocess(PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+        Set<String> typesToReprocess = previous.getTypesToReprocess(spec.getClassesToCompile());
+        for (String typeToReprocess : typesToReprocess) {
+            if (typeToReprocess.endsWith("package-info") || typeToReprocess.equals("module-info")) {
+                // package-info classes cannot be passed as classes to reprocess to the Java compiler.
+                // Therefore, we need to recompile them every time anything changes if they are processed by an aggregating annotation processor.
+                spec.addClassToCompile(typeToReprocess);
+                spec.addSourcePaths(sourceFileClassNameConverter.getRelativeSourcePaths(typeToReprocess));
+            } else {
+                spec.addClassToReprocess(typeToReprocess);
+            }
+        }
     }
 
     @Override

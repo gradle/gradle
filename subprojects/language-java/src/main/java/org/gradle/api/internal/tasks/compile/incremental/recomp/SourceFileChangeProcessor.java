@@ -44,7 +44,7 @@ class SourceFileChangeProcessor {
         for (String className : classNames) {
             DependentsSet annotationProcessingDependentsSet = previousCompilation.getAnnotationProcessingDependentsSet(className);
             for (String classToCompile : annotationProcessingDependentsSet.getAllDependentClasses()) {
-                if (spec.addClassesToCompile(classToCompile)) {
+                if (spec.addClassToCompile(classToCompile)) {
                     newAdded.add(classToCompile);
                 }
             }
