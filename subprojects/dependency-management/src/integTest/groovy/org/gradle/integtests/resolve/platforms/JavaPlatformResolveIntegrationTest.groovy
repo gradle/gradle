@@ -223,7 +223,6 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 }
                 edge('org:foo:1.2', 'org:foo:1.1') {
                     byConstraint()
-                    forced()
                 }
             }
         }
@@ -262,7 +261,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         then:
         resolve.expectGraph {
             root(":", "org.test:test:1.9") {
-                module("org:platform:1.0") {
+                edge("org:platform:{strictly 1.0}", "org:platform:1.0") {
                     configuration = "enforcedApi"
                     variant("enforcedApi", [
                             'org.gradle.usage': 'java-api',
@@ -274,7 +273,6 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 }
                 edge('org:foo:1.1', 'org:foo:1.0') {
                     configuration = 'api'
-                    forced()
                 }
             }
         }
@@ -407,7 +405,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         then:
         resolve.expectGraph {
             root(":", "org.test:test:1.9") {
-                module("org:top:1.0") {
+                edge("org:top:{strictly 1.0}", "org:top:1.0") {
                     variant("enforced-platform-compile", [
                             'org.gradle.category': 'enforced-platform',
                             'org.gradle.status': 'release',
@@ -472,7 +470,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         def enforcedVariant = "enforced${usage.capitalize()}"
         resolve.expectGraph {
             root(":", "org.test:test:1.9") {
-                module("org:platform:1.0") {
+                edge("org:platform:{strictly 1.0}", "org:platform:1.0") {
                     variant(regularVariant, [
                         'org.gradle.category': 'platform',
                         'org.gradle.status': 'release',
