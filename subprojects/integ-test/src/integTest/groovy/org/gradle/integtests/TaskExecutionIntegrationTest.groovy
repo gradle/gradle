@@ -197,7 +197,10 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def excludesTasksWhenExcludePatternSpecified() {
-        settingsFile << "include 'sub'"
+        settingsFile << """
+            include 'sub'
+            rootProject.name = 'root'
+        """
         buildFile << """
             task a
             task b(dependsOn: a)
@@ -224,7 +227,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             // Project defaults
             executer.withArguments("-x", "b").run().assertTasksExecuted(":a", ":c", ":d", ":sub:c", ":sub:d")
             // Unknown task
-            executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"))
+            executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project 'root' and its subprojects."))
         }
     }
 
