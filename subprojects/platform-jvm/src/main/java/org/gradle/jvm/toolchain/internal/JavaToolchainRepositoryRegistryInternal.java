@@ -17,9 +17,9 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
+import org.gradle.jvm.toolchain.JavaToolchainRepositoryRequestConfiguration;
 
 import java.util.List;
 
@@ -27,11 +27,11 @@ public interface JavaToolchainRepositoryRegistryInternal extends JavaToolchainRe
 
     void request(String registrationName);
 
-    void request(String registrationName, Action<? super AuthenticationSupported> authentication);
+    void request(String registrationName, Action<? super JavaToolchainRepositoryRequestConfiguration> authentication);
 
     void request(JavaToolchainRepositoryRegistration registration);
 
-    void request(JavaToolchainRepositoryRegistration registration, Action<? super AuthenticationSupported> authentication);
+    void request(JavaToolchainRepositoryRegistration registration, Action<? super JavaToolchainRepositoryRequestConfiguration> authentication);
 
     List<? extends JavaToolchainRepositoryRequest> requestedRepositories();
 

@@ -18,7 +18,6 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
-import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.repositories.AuthenticationSupporter;
@@ -27,12 +26,13 @@ import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
+import org.gradle.jvm.toolchain.JavaToolchainRepositoryRequestConfiguration;
 
 import javax.inject.Inject;
 import java.net.URI;
 import java.util.Collection;
 
-public class JavaToolchainRepositoryRequest implements AuthenticationSupported {
+public class JavaToolchainRepositoryRequest implements JavaToolchainRepositoryRequestConfiguration {
 
     private final JavaToolchainRepositoryRegistrationInternal registration;
 
@@ -95,10 +95,5 @@ public class JavaToolchainRepositoryRequest implements AuthenticationSupported {
     @Override
     public void authentication(Action<? super AuthenticationContainer> action) {
         authenticationSupporter.authentication(action);
-    }
-
-    @Override
-    public AuthenticationContainer getAuthentication() {
-        throw new UnsupportedOperationException(); //TODO (#21082): do we need this method for anything?
     }
 }
