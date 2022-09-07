@@ -204,7 +204,7 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",fil
 ====
 Each catalog will generate an extension applied to all projects for accessing its content.
 As such it makes sense to reduce the chance of collisions by picking a name that reduces the potential conflicts.
-Gradle will emit a deprecation warning if a catalog does not have a name that ends with `Libs`.
+As an example, one option is to pick a name that ends with `Libs`.
 ====
 
 [[sub:conventional-dependencies-toml]]

@@ -663,44 +663,6 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
-    def "nags when not using a library name ending with 'Libs'"() {
-        settingsFile << """
-            dependencyResolutionManagement {
-                versionCatalogs {
-                    notLibsEnding {
-                        library("myLib", "org.gradle.test", "lib").version {
-                            require "1.0"
-                        }
-                    }
-                }
-            }
-        """
-        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
-        buildFile << """
-            apply plugin: 'java-library'
-
-            dependencies {
-                implementation notLibsEnding.myLib
-            }
-        """
-
-        when:
-        lib.pom.expectGet()
-        lib.artifact.expectGet()
-
-        then:
-        run ':checkDeps'
-
-        then:
-        executer.expectDeprecationWarning("The name of version catalogs must end with 'Libs' to reduce chances of extension conflicts.")
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module('org.gradle.test:lib:1.0')
-            }
-        }
-
-    }
-
     def "extension can be used in any subproject"() {
         settingsFile << """
             dependencyResolutionManagement {

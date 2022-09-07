@@ -34,14 +34,24 @@ public class DefaultTaskExecutionRequest implements TaskExecutionRequest, Serial
         this(args, null, null);
     }
 
-    public DefaultTaskExecutionRequest(Iterable<String> args, @Nullable String projectPath) {
-        this(args, projectPath, null);
-    }
-
     public DefaultTaskExecutionRequest(Iterable<String> args, @Nullable String projectPath, @Nullable File rootDir) {
         this.args = Lists.newArrayList(args);
         this.projectPath = projectPath;
         this.rootDir = rootDir;
+        // Use RunDefaultTasksExecutionRequest instead
+        assert !this.args.isEmpty();
+    }
+
+    public static TaskExecutionRequest of(Iterable<String> args) {
+        return of(args, null, null);
+    }
+
+    public static TaskExecutionRequest of(Iterable<String> args, @Nullable String projectPath, @Nullable File rootDir) {
+        if (args.iterator().hasNext()) {
+            return new DefaultTaskExecutionRequest(args, projectPath, rootDir);
+        } else {
+            return new RunDefaultTasksExecutionRequest(projectPath, rootDir);
+        }
     }
 
     @Override
@@ -89,9 +99,9 @@ public class DefaultTaskExecutionRequest implements TaskExecutionRequest, Serial
     @Override
     public String toString() {
         return "DefaultTaskExecutionRequest{"
-                + "args=" + args
-                + ",projectPath='" + projectPath + '\''
-                + ",rootDir='" + rootDir + '\''
-                + '}';
+            + "args=" + args
+            + ",projectPath='" + projectPath + '\''
+            + ",rootDir='" + rootDir + '\''
+            + '}';
     }
 }

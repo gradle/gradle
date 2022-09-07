@@ -527,7 +527,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         }
 
         when:
-        executionPlan.useFilter(spec)
+        executionPlan.addFilter(spec)
         def finalizedPlan = populate([a, b])
 
         then:
@@ -552,7 +552,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         }
 
         when:
-        executionPlan.useFilter(spec)
+        executionPlan.addFilter(spec)
         def finalizedPlan = populate([c])
 
         then:
@@ -574,7 +574,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
 
         when:
         executionPlan.continueOnFailure = true
-        executionPlan.useFilter(new Spec<Task>() {
+        executionPlan.addFilter(new Spec<Task>() {
             boolean isSatisfiedBy(Task element) {
                 return element != b
             }
