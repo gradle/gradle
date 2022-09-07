@@ -90,6 +90,9 @@ With this version, Java and Groovy incremental compilation will work incremental
 
 This improves experience with compilation when working iteratively on some Java or Groovy code, e.g. when iteratively running compile or test tasks from an IDE.
 
+For Java this feature is enabled by default and for Groovy it's disabled by default.
+The feature can be enabled or disabled with the [`incrementalAfterFailure`](javadoc/org/gradle/api/tasks/compile/CompileOptions.html#getIncrementalAfterFailure--) compile option.
+
 
 #### Relocated convention plugins in projects generated with `init`
 
