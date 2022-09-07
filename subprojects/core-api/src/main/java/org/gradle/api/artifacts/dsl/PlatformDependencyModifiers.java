@@ -17,6 +17,7 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.provider.Provider;
@@ -29,6 +30,17 @@ import org.gradle.api.provider.ProviderConvertible;
  */
 @Incubating
 public interface PlatformDependencyModifiers extends Dependencies {
+    /**
+     * Create an {@link ExternalModuleDependency} from the given notation and modifies it to select the Platform variant of the given module.
+     *
+     * @param dependencyNotation the dependency notation
+     * @return the modified dependency
+     * @see DependencyFactory#create(CharSequence)
+     */
+    default ExternalModuleDependency platform(CharSequence dependencyNotation) {
+        return platform(getDependencyFactory().create(dependencyNotation));
+    }
+
     /**
      * Takes a given {@link ModuleDependency} and modifies it to select the Platform variant of the given module.
      *
@@ -55,6 +67,17 @@ public interface PlatformDependencyModifiers extends Dependencies {
      */
     default <D extends ModuleDependency> Provider<D> platform(Provider<D> providerToDependency) {
         return providerToDependency.map(this::platform);
+    }
+
+    /**
+     * Create an {@link ExternalModuleDependency} from the given notation and modifies it to select the Enforced Platform variant of the given module.
+     *
+     * @param dependencyNotation the dependency notation
+     * @return the modified dependency
+     * @see DependencyFactory#create(CharSequence)
+     */
+    default ExternalModuleDependency enforcedPlatform(CharSequence dependencyNotation) {
+        return enforcedPlatform(getDependencyFactory().create(dependencyNotation));
     }
 
     /**

@@ -31,6 +31,17 @@ import org.gradle.api.provider.ProviderConvertible;
 @Incubating
 public interface TestFixturesDependencyModifiers extends Dependencies {
     /**
+     * Create an {@link ExternalModuleDependency} from the given notation and modifies it to select the Test Fixtures variant of the given module.
+     *
+     * @param dependencyNotation the dependency notation
+     * @return the modified dependency
+     * @see DependencyFactory#create(CharSequence)
+     */
+    default ExternalModuleDependency testFixtures(CharSequence dependencyNotation) {
+        return testFixtures(getDependencyFactory().create(dependencyNotation));
+    }
+
+    /**
      * Takes a given {@link ModuleDependency} and modifies it to select the Test Fixtures variant of the given module.
      *
      * @param dependency the dependency

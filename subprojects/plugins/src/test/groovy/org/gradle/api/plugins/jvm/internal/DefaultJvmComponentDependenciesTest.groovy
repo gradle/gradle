@@ -88,8 +88,8 @@ class DefaultJvmComponentDependenciesTest extends Specification {
         def example2 = Mock(ExternalModuleDependency)
         when:
         dependencies {
-            implementation testFixtures(module("com.example:example:1.0"))
-            implementation(testFixtures(module("com.example:example:2.0"))) {
+            implementation testFixtures("com.example:example:1.0")
+            implementation(testFixtures("com.example:example:2.0")) {
                 // configure dependency
             }
         }
@@ -110,8 +110,8 @@ class DefaultJvmComponentDependenciesTest extends Specification {
         def example2 = Mock(ExternalModuleDependency)
         when:
         dependencies {
-            implementation platform(module("com.example:example:1.0"))
-            implementation(platform(module("com.example:example:2.0"))) {
+            implementation platform("com.example:example:1.0")
+            implementation(platform("com.example:example:2.0")) {
                 // configure dependency
             }
         }
@@ -134,8 +134,8 @@ class DefaultJvmComponentDependenciesTest extends Specification {
         def example2 = Mock(ExternalModuleDependency)
         when:
         dependencies {
-            implementation enforcedPlatform(module("com.example:example:1.0"))
-            implementation(enforcedPlatform(module("com.example:example:2.0"))) {
+            implementation enforcedPlatform("com.example:example:1.0")
+            implementation(enforcedPlatform("com.example:example:2.0")) {
                 // configure dependency
             }
         }
