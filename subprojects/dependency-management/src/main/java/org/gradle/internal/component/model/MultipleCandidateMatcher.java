@@ -25,9 +25,11 @@ import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -175,7 +177,6 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         return MatchResult.NO_MATCH;
     }
 
-
     private boolean longestMatchIsSuperSetOfAllOthers() {
         for (int c = compatible.nextSetBit(0); c >= 0; c = compatible.nextSetBit(c + 1)) {
             if (c == candidateWithLongestMatch) {
@@ -205,6 +206,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
 
         disambiguateWithRequestedAttributeValues();
         if (remaining.cardinality() > 1) {
+            collectExtraAttributes();
             disambiguateWithExtraAttributes();
         }
         if (remaining.cardinality() > 1) {
@@ -251,7 +253,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         // The sorted indices are [ 2, 0 ]
         // The unsorted indices are [ 1 ]
         //
-        final AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(requested);
+        final AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(requested.keySet());
 
         for (int a : precedenceResult.getSortedOrder()) {
             disambiguateWithAttribute(a);
@@ -329,10 +331,25 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     private void disambiguateWithExtraAttributes() {
-        collectExtraAttributes();
-        int allAttributes = requestedAttributes.size() + extraAttributes.length;
-        for (int a = requestedAttributes.size(); a < allAttributes; a++) {
-            disambiguateWithAttribute(a);
+        Set<Attribute<?>> extra = new LinkedHashSet<>(Arrays.asList(extraAttributes));
+        final AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(extra);
+
+        int attributeOffset = requestedAttributes.size();
+        for (int a : precedenceResult.getSortedOrder()) {
+            disambiguateWithAttribute(a + attributeOffset);
+            if (remaining.cardinality() == 0) {
+                return;
+            } else if (remaining.cardinality() == 1) {
+                // If we're down to one candidate and the attribute has a known precedence,
+                // we can stop now and choose this candidate as the match.
+                return;
+            }
+        }
+
+        // If the attribute does not have a known precedence, then we cannot stop
+        // until we've disambiguated all of the attributes.
+        for (int a : precedenceResult.getUnsortedOrder()) {
+            disambiguateWithAttribute(a + attributeOffset);
             if (remaining.cardinality() == 0) {
                 return;
             }
@@ -345,6 +362,8 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
      * from an artifact repository. We always check whether the schema has a more strongly
      * typed version of an attribute and use that one instead to apply its disambiguation
      * rules.
+     *
+     * Must be called before attempting to call {@code getAttribute} with {@code a} &gt; {@code requestedAttributes.size()}.
      */
     private void collectExtraAttributes() {
         extraAttributes = schema.collectExtraAttributes(candidateAttributeSets, requested);
