@@ -65,7 +65,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         1 * transformation.createInvocation(_, _, _) >> invocation
-        1 * invocation.getCompletedResult() >> Optional.empty()
+        1 * invocation.getCompleted() >> Optional.empty()
         1 * operationQueue.add(_ as BuildOperation)
     }
 
@@ -84,7 +84,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         1 * transformation.createInvocation({ it.files == [this.artifactFile] }, _ as TransformUpstreamDependencies, _) >> invocation
-        2 * invocation.getCompletedResult() >> Optional.of(Try.successful(TransformationSubject.initial(artifact)))
+        2 * invocation.getCompleted() >> Optional.of(Try.successful(TransformationSubject.initial(artifact)))
         0 * operationQueue._
     }
 }
