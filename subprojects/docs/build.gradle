@@ -819,9 +819,6 @@ tasks.named("docsTest") { task ->
                 "snippet-build-cache-cacheable-bundle_kotlin_cacheableBundle-caching.sample",
                 "snippet-build-cache-cacheable-bundle_kotlin_cacheableBundle.sample",
 
-                "snippet-buildlifecycle-project-evaluate-events_groovy_projectEvaluateEvents.sample",
-                "snippet-buildlifecycle-project-evaluate-events_kotlin_projectEvaluateEvents.sample",
-
                 "snippet-dependency-management-customizing-resolution-capability-substitution-rule_groovy_capability_substitution.sample",
                 "snippet-dependency-management-customizing-resolution-capability-substitution-rule_kotlin_capability_substitution.sample",
 
@@ -845,9 +842,6 @@ tasks.named("docsTest") { task ->
                 "snippet-dependency-management-dependency-verification-disabling-verification_groovy_disabling_verification.sample",
                 "snippet-dependency-management-dependency-verification-disabling-verification_kotlin_disabling_verification.sample",
 
-                "snippet-dependency-management-managing-transitive-dependencies-exclude-for-configuration_groovy_exclude-transitive-for-configuration.sample",
-                "snippet-dependency-management-managing-transitive-dependencies-exclude-for-configuration_kotlin_exclude-transitive-for-configuration.sample",
-
                 "snippet-dependency-management-managing-transitive-dependencies-exclude-for-dependency_groovy_exclude-transitive-for-dependency.sample",
                 "snippet-dependency-management-managing-transitive-dependencies-exclude-for-dependency_kotlin_exclude-transitive-for-dependency.sample",
 
@@ -869,9 +863,6 @@ tasks.named("docsTest") { task ->
 
                 "snippet-kotlin-dsl-multi-project-build_kotlin_build.sample",
 
-                "snippet-providers-property-convention_groovy_propertyConvention.sample",
-                "snippet-providers-property-convention_kotlin_propertyConvention.sample",
-
                 "snippet-tasks-incremental-build-custom-task-class_groovy_customTaskClassWithInputOutputAnnotations.sample",
                 "snippet-tasks-incremental-build-custom-task-class_groovy_incrementalAdHocTask.sample",
                 "snippet-tasks-incremental-build-custom-task-class_groovy_inferredTaskDep.sample",
@@ -882,23 +873,7 @@ tasks.named("docsTest") { task ->
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep.sample",
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep2.sample",
 
-                "snippet-tasks-incremental-task_groovy_incrementalTaskChangedProperty.sample",
-                "snippet-tasks-incremental-task_groovy_incrementalTaskFirstRun.sample",
-                "snippet-tasks-incremental-task_groovy_incrementalTaskNoChange.sample",
-                "snippet-tasks-incremental-task_groovy_incrementalTaskRemovedInput.sample",
-                "snippet-tasks-incremental-task_groovy_incrementalTaskRemovedOutput.sample",
-                "snippet-tasks-incremental-task_groovy_incrementalTaskUpdatedInputs.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskChangedProperty.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskFirstRun.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskNoChange.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskRemovedInput.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskRemovedOutput.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskUpdatedInputs.sample",
-
-                "snippet-testing-test-suite-multi-configure-each-extracted_groovy_checkTask.sample",
-
-                "snippet-testing-test-suite-multi-configure-each-matching_groovy_checkTask.sample",
-
+                "snippet-testing-test-suite-multi-configure-each-extracted_groovy_checkTask.sample"
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
