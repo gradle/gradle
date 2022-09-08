@@ -12,7 +12,7 @@ val javaParserVersion = "3.18.0"
 val groovyVersion = GroovySystem.getVersion()
 val isGroovy4 = VersionNumber.parse(groovyVersion) >= VersionNumber.version(4)
 val codenarcVersion = if (isGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
-val spockVersion = if (isGroovy4) "2.2-M3-groovy-4.0" else "2.1-groovy-3.0"
+val spockVersion = if (isGroovy4) "2.2-groovy-4.0" else "2.2-groovy-3.0"
 val asmVersion = "9.2"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
@@ -55,8 +55,8 @@ dependencies {
         api("com.sun.xml.bind:jaxb-core:2.2.11")
         api("com.sun.xml.bind:jaxb-impl:2.2.11")
         api("junit:junit:4.13.2")
-        api("org.spockframework:spock-core:$spockVersion") // TODO bump to 2.2-M3-groovy-4.0 after publishing a nightly built with Groovy 4
-        api("org.spockframework:spock-junit4:$spockVersion") // TODO bump to 2.2-M3-groovy-4.0 after publishing a nightly built with Groovy 4
+        api("org.spockframework:spock-core:$spockVersion") // TODO bump to 2.2-groovy-4.0 after publishing a nightly built with Groovy 4
+        api("org.spockframework:spock-junit4:$spockVersion") // TODO bump to 2.2-groovy-4.0 after publishing a nightly built with Groovy 4
         api("org.asciidoctor:asciidoctorj:2.4.3")
         api("org.asciidoctor:asciidoctorj-pdf:1.5.4")
         api("com.beust:jcommander:1.78")
