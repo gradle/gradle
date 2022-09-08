@@ -101,7 +101,7 @@ public class ComponentAttributeMatcher {
     /**
      * Selects the candidates from the given set that are compatible with the requested criteria, according to the given schema.
      */
-    public <T extends HasAttributes> List<T> match(AttributeSelectionSchema schema, Collection<? extends T> candidates, AttributeContainerInternal requested, @Nullable T fallback, AttributeMatchingExplanationBuilder explanationBuilder) {
+    public <T extends HasAttributes, E extends T> List<T> match(AttributeSelectionSchema schema, Collection<E> candidates, AttributeContainerInternal requested, @Nullable T fallback, AttributeMatchingExplanationBuilder explanationBuilder) {
         if (candidates.size() == 0) {
             if (fallback != null && isMatching(schema, (AttributeContainerInternal) fallback.getAttributes(), requested)) {
                 explanationBuilder.selectedFallbackConfiguration(requested, fallback);
@@ -122,18 +122,19 @@ public class ComponentAttributeMatcher {
         }
 
         ImmutableAttributes requestedAttributes = requested.asImmutable();
+        List<E> candidateList = (candidates instanceof List) ? (List<E>) candidates : ImmutableList.copyOf(candidates);
         CachedQuery query = null;
         if (explanationBuilder.canSkipExplanation()) {
-            query = CachedQuery.of(schema, requestedAttributes, candidates);
+            query = CachedQuery.of(schema, requestedAttributes, candidateList);
             int[] index = cachedQueries.get(query);
             if (index != null) {
-                return CachedQuery.select(index, candidates);
+                return CachedQuery.select(index, candidateList);
             }
         }
-        List<T> matches = new MultipleCandidateMatcher<T>(schema, candidates, requestedAttributes, explanationBuilder).getMatches();
+        List<T> matches = new MultipleCandidateMatcher<T>(schema, candidateList, requestedAttributes, explanationBuilder).getMatches();
         if (query != null) {
-            LOGGER.debug("Selected matches {} from candidates {} for {}", matches, candidates, requested);
-            cacheMatchingResult(candidates, query, matches);
+            LOGGER.debug("Selected matches {} from candidates {} for {}", matches, candidateList, requested);
+            cacheMatchingResult(candidateList, query, matches);
         }
         return matches;
     }

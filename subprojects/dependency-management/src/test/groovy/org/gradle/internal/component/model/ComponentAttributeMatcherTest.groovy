@@ -661,7 +661,7 @@ class ComponentAttributeMatcherTest extends Specification {
         }
 
         @Override
-        PrecedenceResult orderByPrecedence(Set<Attribute<?>> requested) {
+        PrecedenceResult orderByPrecedence(Collection<Attribute<?>> requested) {
             return new PrecedenceResult(IntStream.range(0, requested.size()).boxed().collect(Collectors.toList()))
         }
     }
