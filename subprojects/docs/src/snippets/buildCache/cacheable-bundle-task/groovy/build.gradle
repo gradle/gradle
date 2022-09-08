@@ -7,10 +7,16 @@ abstract class NpmTask extends DefaultTask {
 
     ListProperty<String> args = project.objects.listProperty(String)
 
+    @Inject
+    abstract ProjectLayout getProjectLayout()
+
     @TaskAction
     void run() {
-        project.file("$project.buildDir/bundle.js").withOutputStream { stream ->
-            project.file("scripts").listFiles().sort().each {
+        File bundleFile = projectLayout.buildDirectory.file("bundle.js").get().asFile
+        File[] scriptsFiles = projectLayout.projectDirectory.dir("scripts").asFile.listFiles()
+
+        bundleFile.withOutputStream { stream ->
+            scriptsFiles.sort().each {
                 stream.write(it.bytes)
             }
         }
@@ -40,10 +46,10 @@ abstract class BundleTask extends NpmTask {
 
     BundleTask() {
         args.addAll("run", "bundle")
-        bundle.set(project.layout.buildDirectory.file("bundle.js"))
-        scripts.set(project.layout.projectDirectory.dir("scripts"))
-        configFiles.from(project.layout.projectDirectory.file("package.json"))
-        configFiles.from(project.layout.projectDirectory.file("package-lock.json"))
+        bundle.set(projectLayout.buildDirectory.file("bundle.js"))
+        scripts.set(projectLayout.projectDirectory.dir("scripts"))
+        configFiles.from(projectLayout.projectDirectory.file("package.json"))
+        configFiles.from(projectLayout.projectDirectory.file("package-lock.json"))
     }
 }
 
@@ -52,7 +58,10 @@ tasks.register('bundle', BundleTask)
 
 tasks.register('printBundle') {
     dependsOn bundle
+
+    ProjectLayout projectLayout = layout
+
     doLast {
-        println project.layout.buildDirectory.file("bundle.js").get().asFile.text
+        println projectLayout.buildDirectory.file("bundle.js").get().asFile.text
     }
 }
