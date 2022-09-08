@@ -93,7 +93,6 @@ public abstract class CollectionUtils {
     }
 
     private static <T> T singleInternal(Iterable<? extends T> source) {
-        logDeprecation();
         Iterator<? extends T> iterator = source.iterator();
         if (!iterator.hasNext()) {
             throw new NoSuchElementException("Expecting collection with single element, got none.");
