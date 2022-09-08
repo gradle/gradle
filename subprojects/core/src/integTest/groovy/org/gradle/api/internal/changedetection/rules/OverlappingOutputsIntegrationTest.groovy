@@ -122,9 +122,16 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
                 ":second", file("build/overlap/second.txt")]
     }
 
+    private addMustRunAfter(String earlierTask, String laterTask) {
+        buildFile << """
+            ${laterTask}.mustRunAfter(${earlierTask})
+        """
+    }
+
     def "overlapping output directory with first, second then first, second"() {
         def (String first, TestFile firstOutput,
              String second, TestFile secondOutput) = useOverlappingOutputDirectories()
+        addMustRunAfter('first', 'second')
 
         when:
         withBuildCache().run(first, second)
@@ -394,6 +401,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
 
     def "overlapping output files with first, second then first, second"() {
         def (String first, String second, TestFile sharedOutput) = useOverlappingOutputFiles()
+        addMustRunAfter('first', 'second')
 
         when:
         withBuildCache().run(first, second)
@@ -573,6 +581,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
     def "overlapping output with localStateDirTask, fileTask then localStateDirTask, fileTask"() {
         def (String localStateDirTask, TestFile localStateDirTaskOutput, TestFile localStateDirTaskState,
              String fileTask, TestFile fileTaskOutput) = useOverlappingLocalStateDirectoryAndOutputFile()
+        addMustRunAfter('localStateDirTask', 'fileTask')
 
         when:
         withBuildCache().run(localStateDirTask, fileTask)

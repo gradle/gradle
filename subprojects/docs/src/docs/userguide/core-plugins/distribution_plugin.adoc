@@ -95,7 +95,7 @@ include::sample[dir="snippets/base/distribution/kotlin",files="build.gradle.kts[
 
 In the example above, the content of the `src/readme` directory will be included in the distribution (along with the files in the `src/main/dist` directory which are added by default).
 
-The `baseName` property has also been changed. This will cause the distribution archives to be created with a different name.
+The `distributionBaseName` and `distributionClassifier` properties have also been changed. This will cause the distribution archives to be created with a different name.
 
 [[sec:publishing_distributions]]
 == Publishing

@@ -16,17 +16,20 @@
 
 package org.gradle.execution;
 
-import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.steps.ValidateStep;
+import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine;
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
 
 public class DefaultWorkValidationWarningRecorder implements ValidateStep.ValidationWarningRecorder, WorkValidationWarningReporter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkValidationWarningRecorder.class);
@@ -34,19 +37,21 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
     private final AtomicInteger workWithFailuresCount = new AtomicInteger();
 
     @Override
-    public void recordValidationWarnings(UnitOfWork work, Collection<String> warnings) {
+    public void recordValidationWarnings(UnitOfWork work, Collection<TypeValidationProblem> warnings) {
         workWithFailuresCount.incrementAndGet();
-        Set<String> uniqueSortedWarnings = ImmutableSortedSet.copyOf(warnings);
+
+        ImmutableSet<String> uniqueWarnings = warnings.stream().map(warning -> convertToSingleLine(renderMinimalInformationAbout(warning, true, false))).collect(ImmutableSet.toImmutableSet());
         LOGGER.warn("Execution optimizations have been disabled for {} to ensure correctness due to the following reasons:{}",
             work.getDisplayName(),
-            uniqueSortedWarnings.stream()
+            uniqueWarnings.stream()
                 .map(warning -> "\n  - " + warning)
                 .collect(Collectors.joining()));
-        uniqueSortedWarnings.forEach(warning -> DeprecationLogger.deprecateBehaviour(warning)
+        warnings.forEach(warning -> DeprecationLogger.deprecateBehaviour(convertToSingleLine(renderMinimalInformationAbout(warning, false, false)))
             .withContext("Execution optimizations are disabled to ensure correctness.")
             .willBeRemovedInGradle8()
-            .withUserManual("more_about_tasks", "sec:up_to_date_checks")
-            .nagUser());
+            .withUserManual(warning.getUserManualReference().getId(), warning.getUserManualReference().getSection())
+            .nagUser()
+        );
     }
 
     @Override

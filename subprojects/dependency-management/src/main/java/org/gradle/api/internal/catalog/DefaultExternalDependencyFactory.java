@@ -16,12 +16,13 @@
 
 package org.gradle.api.internal.catalog;
 
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 
 public class DefaultExternalDependencyFactory extends AbstractExternalDependencyFactory {
 
-    public DefaultExternalDependencyFactory(DefaultVersionCatalog config, ProviderFactory providers) {
-        super(config, providers);
+    public DefaultExternalDependencyFactory(DefaultVersionCatalog config, ProviderFactory providers, ObjectFactory objects) {
+        super(config, providers, objects);
     }
 
 }

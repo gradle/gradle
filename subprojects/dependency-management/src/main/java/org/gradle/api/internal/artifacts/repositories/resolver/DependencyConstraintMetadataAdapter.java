@@ -20,11 +20,9 @@ import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 
-import java.util.List;
-
 public class DependencyConstraintMetadataAdapter extends AbstractDependencyMetadataAdapter<DependencyConstraintMetadata> implements DependencyConstraintMetadata {
 
-    public DependencyConstraintMetadataAdapter(ImmutableAttributesFactory attributesFactory, List<ModuleDependencyMetadata> container, int originalIndex) {
-        super(attributesFactory, container, originalIndex);
+    public DependencyConstraintMetadataAdapter(ImmutableAttributesFactory attributesFactory, ModuleDependencyMetadata metadata) {
+        super(attributesFactory, metadata);
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -57,7 +58,7 @@ public interface PluginAware {
      * @param closure the closure to configure an {@link ObjectConfigurationAction} with before “executing” it
      * @see #apply(java.util.Map)
      */
-    void apply(Closure closure);
+    void apply(@DelegatesTo(ObjectConfigurationAction.class) Closure closure);
 
     /**
      * Applies zero or more plugins or scripts.

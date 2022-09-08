@@ -22,6 +22,7 @@ import org.gradle.api.internal.ExternalProcessStartedListener
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.credentials.CredentialListener
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
@@ -29,6 +30,7 @@ import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsExternalProcess
+import org.gradle.configurationcache.problems.DocumentationSection.RequirementsSafeCredentials
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsUseProjectDuringExecution
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
@@ -41,7 +43,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 
 
 @ServiceScope(Scopes.BuildTree::class)
-interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener
+interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener, CredentialListener
 
 
 class DefaultConfigurationCacheProblemsListener internal constructor(
@@ -125,6 +127,21 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
                 InvalidUserCodeException(
                     "Listener registration '$invocationDescription' by $invocationSource is unsupported."
                 )
+            )
+        )
+    }
+
+    override fun onUnsafeCredentials(locationSpecificReason: String, task: TaskInternal) {
+        val message = StructuredMessage.build {
+            text("Credential values found in configuration for: ")
+            text(locationSpecificReason)
+        }
+        problems.onProblem(
+            PropertyProblem(
+                propertyTraceForTask(task),
+                message,
+                InvalidUserCodeException(message.toString()),
+                documentationSection = RequirementsSafeCredentials
             )
         )
     }

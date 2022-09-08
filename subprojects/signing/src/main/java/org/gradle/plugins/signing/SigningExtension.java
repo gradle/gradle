@@ -16,6 +16,7 @@
 package org.gradle.plugins.signing;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Incubating;
@@ -527,7 +528,7 @@ public class SigningExtension {
      * @param closure The configuration of the {@link SignOperation sign operation}.
      * @return The executed {@link SignOperation sign operation}.
      */
-    public SignOperation sign(Closure closure) {
+    public SignOperation sign(@DelegatesTo(SignOperation.class) Closure closure) {
         return doSignOperation(closure);
     }
 
@@ -548,7 +549,7 @@ public class SigningExtension {
         return doSignOperation(setup);
     }
 
-    protected SignOperation doSignOperation(final Closure setup) {
+    protected SignOperation doSignOperation(@DelegatesTo(SignOperation.class) final Closure setup) {
         return doSignOperation(new Action<SignOperation>() {
             @Override
             public void execute(SignOperation operation) {

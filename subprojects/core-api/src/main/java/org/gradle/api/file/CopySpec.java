@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
@@ -207,7 +208,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     @Override
-    CopySpec from(Object sourcePath, Closure c);
+    CopySpec from(Object sourcePath, @DelegatesTo(CopySpec.class) Closure c);
 
     /**
      * {@inheritDoc}
@@ -313,7 +314,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @param configureClosure The closure to use to configure the child {@code CopySpec}.
      * @return this
      */
-    CopySpec into(Object destPath, Closure configureClosure);
+    CopySpec into(Object destPath, @DelegatesTo(CopySpec.class) Closure configureClosure);
 
     /**
      * Creates and configures a child {@code CopySpec} with the given destination path.
@@ -395,7 +396,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     @Override
-    CopySpec eachFile(Closure closure);
+    CopySpec eachFile(@DelegatesTo(FileCopyDetails.class) Closure closure);
 
     /**
      * Gets the charset used to read and write files when filtering.

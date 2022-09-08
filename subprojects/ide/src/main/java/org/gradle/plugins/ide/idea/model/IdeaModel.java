@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 
 import java.io.File;
@@ -86,7 +87,7 @@ public class IdeaModel {
     /**
      * Configures IDEA module information. <p> For examples see docs for {@link IdeaModule}.
      */
-    public void module(Closure closure) {
+    public void module(@DelegatesTo(IdeaModule.class) Closure closure) {
         configure(closure, getModule());
     }
 
@@ -101,7 +102,7 @@ public class IdeaModel {
     /**
      * Configures IDEA project information. <p> For examples see docs for {@link IdeaProject}.
      */
-    public void project(Closure closure) {
+    public void project(@DelegatesTo(IdeaProject.class) Closure closure) {
         configure(closure, getProject());
     }
 
@@ -116,7 +117,7 @@ public class IdeaModel {
     /**
      * Configures IDEA workspace information. <p> For examples see docs for {@link IdeaWorkspace}.
      */
-    public void workspace(Closure closure) {
+    public void workspace(@DelegatesTo(IdeaWorkspace.class) Closure closure) {
         configure(closure, getWorkspace());
     }
 

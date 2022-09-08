@@ -113,7 +113,7 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
             getCapabilities() >> Mock(CapabilitiesMetadata) {
                 getCapabilities() >> []
             }
-        }) {
+        }, true) {
             @Override
             boolean isSelected() {
                 return true;

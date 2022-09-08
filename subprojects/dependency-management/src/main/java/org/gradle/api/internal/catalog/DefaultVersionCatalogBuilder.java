@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
@@ -29,7 +30,6 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
@@ -44,9 +44,9 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
@@ -261,6 +261,7 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
             );
         }
     }
+
     private void importCatalogFromFile(File modelFile) {
         if (!FileUtils.hasExtensionIgnoresCase(modelFile.getName(), "toml")) {
             throwVersionCatalogProblem(VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT, spec ->
@@ -278,11 +279,9 @@ public class DefaultVersionCatalogBuilder implements VersionCatalogBuilderIntern
                     .documented()
             );
         }
-        RegularFileProperty srcProp = objects.fileProperty();
-        srcProp.set(modelFile);
-        Provider<byte[]> dataSource = providers.fileContents(srcProp).getAsBytes();
+        Instrumented.fileObserved(modelFile, getClass().getName());
         try {
-            TomlCatalogFileParser.parse(new ByteArrayInputStream(dataSource.get()), this);
+            TomlCatalogFileParser.parse(new ByteArrayInputStream(Files.toByteArray(modelFile)), this);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

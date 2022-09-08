@@ -63,7 +63,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.*;
+import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2012;
+import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2013;
+import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2015;
+import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2017;
+import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2019;
+import static org.gradle.util.TestPrecondition.MAC_OS_X_M1;
 
 public class AvailableToolChains {
     private static final Comparator<ToolChainCandidate> LATEST_RELEASED_FIRST = Collections.reverseOrder(new Comparator<ToolChainCandidate>() {
@@ -109,6 +114,9 @@ public class AvailableToolChains {
      * @return A list of all known tool chains for this platform. Includes those tool chains that are not available on the current machine.
      */
     public static List<ToolChainCandidate> getToolChains() {
+        if (MAC_OS_X_M1.isFulfilled()) {
+            return Collections.emptyList();
+        }
         if (toolChains == null) {
             List<ToolChainCandidate> compilers = new ArrayList<ToolChainCandidate>();
             if (OperatingSystem.current().isWindows()) {
@@ -581,7 +589,7 @@ public class AvailableToolChains {
 
         @Override
         public String getBuildScriptConfig() {
-            String config =  String.format("%s(%s) {\n", getId(), getImplementationClass());
+            String config = String.format("%s(%s) {\n", getId(), getImplementationClass());
             for (File pathEntry : getPathEntries()) {
                 config += String.format("     path file('%s')\n", pathEntry.toURI());
             }
@@ -989,7 +997,7 @@ public class AvailableToolChains {
 
         @Override
         public boolean meets(ToolChainRequirement requirement) {
-            switch(requirement) {
+            switch (requirement) {
                 case AVAILABLE:
                 case CLANG:
                 case GCC_COMPATIBLE:

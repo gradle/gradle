@@ -24,9 +24,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
-import java.util.zip.ZipOutputStream
-
-class FileZipInputTest extends Specification {
+class FileZipInputTest extends Specification implements ZipFileFixture{
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
@@ -74,9 +72,49 @@ class FileZipInputTest extends Specification {
         zipInput?.close()
     }
 
-    private File makeZip(String filename) {
-        def file = temporaryFolder.file(filename)
-        new ZipOutputStream(new FileOutputStream(file)).close()
-        return file
+    @Requires(TestPrecondition.JDK11_OR_LATER)
+    def "can read from zip input stream a second time"() {
+        def file = makeZip("foo.zip")
+        def zipInput = FileZipInput.create(file)
+
+        when:
+        def zipEntry = zipInput.iterator().next()
+        def content = zipEntry.withInputStream { readAllBytes(it) }
+
+        then:
+        content == ZIP_ENTRY_CONTENT.bytes
+
+        when:
+        content = zipEntry.withInputStream { readAllBytes(it) }
+
+        then:
+        noExceptionThrown()
+        content == ZIP_ENTRY_CONTENT.bytes
+
+        cleanup:
+        zipInput?.close()
+    }
+
+    @Requires(TestPrecondition.JDK11_OR_LATER)
+    def "can read zip entry content a second time"() {
+        def file = makeZip("foo.zip")
+        def zipInput = FileZipInput.create(file)
+
+        when:
+        def zipEntry = zipInput.iterator().next()
+        def content = zipEntry.content
+
+        then:
+        content == ZIP_ENTRY_CONTENT.bytes
+
+        when:
+        content = zipEntry.content
+
+        then:
+        noExceptionThrown()
+        content == ZIP_ENTRY_CONTENT.bytes
+
+        cleanup:
+        zipInput?.close()
     }
 }

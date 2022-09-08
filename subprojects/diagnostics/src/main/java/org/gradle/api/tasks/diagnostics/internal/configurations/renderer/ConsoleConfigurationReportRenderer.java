@@ -126,7 +126,7 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
             newLine();
             try {
                 depth++;
-                attributesWithCompatibilityRules.forEach(a -> writeAttribute(maxC, a));
+                attributesWithCompatibilityRules.forEach(a -> writeAttribute(maxC, a, false));
                 newLine();
             } finally {
                 depth--;
@@ -140,10 +140,15 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
             newLine();
             try {
                 depth++;
-                attributesWithDisambiguationRules.forEach(a -> writeAttribute(maxD, a));
+                attributesWithDisambiguationRules.forEach(a -> writeAttribute(maxD, a, spec.isShowAttributePrecedence()));
                 newLine();
             } finally {
                 depth--;
+            }
+
+            if (spec.isShowAttributePrecedence()) {
+                writeDescription("(#): Attribute disambiguation precedence");
+                newLine();
             }
         }
     }
@@ -289,17 +294,21 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     private void writeAttributes(List<ReportAttribute> attributes) {
         if (!attributes.isEmpty()) {
             Integer max = attributes.stream().map(attr -> attr.getName().length()).max(Integer::compare).orElse(0);
-            printSection("Attributes", () -> attributes.forEach(attr -> writeAttribute(max, attr)));
+            printSection("Attributes", () -> attributes.forEach(attr -> writeAttribute(max, attr, false)));
         }
     }
 
-    private void writeAttribute(Integer max, ReportAttribute attr) {
+    private void writeAttribute(Integer max, ReportAttribute attr, boolean includePrecedence) {
         indent(true);
         if (attr.getValue().isPresent()) {
             valuePair(StringUtils.rightPad(attr.getName(), max), String.valueOf(attr.getValue().orElse("")));
         } else {
             output.style(StyledTextOutput.Style.Identifier).text(attr.getName());
+            if (includePrecedence && attr.getDisambiguationPrecedence() != null) {
+                output.text(" (" + attr.getDisambiguationPrecedence() + ")");
+            }
         }
+
         newLine();
     }
 

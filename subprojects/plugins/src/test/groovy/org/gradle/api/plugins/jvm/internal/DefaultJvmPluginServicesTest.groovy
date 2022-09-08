@@ -28,12 +28,11 @@ import org.gradle.api.attributes.HasConfigurableAttributes
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.java.TargetJvmEnvironment
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.util.AttributeTestUtil
@@ -154,20 +153,14 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         def variant = Mock(ConfigurationVariantInternal)
         def attrs = AttributeTestUtil.attributesFactory().mutable()
         def output = Mock(DefaultSourceSetOutput)
-        def classes = Stub(ConfigurableFileCollection) {
-            getFiles() >> [
-                Stub(File) {
-                    getName() >> 'toto'
-                }
-            ]
+        def classesDir = Stub(File) {
+            getName() >> 'toto'
         }
 
         when:
-        services.configureClassesDirectoryVariant("apiElements", sourceSet)
+        services.configureClassesDirectoryVariant(apiElements, sourceSet)
 
         then:
-        1 * configurations.all(_) >> { args -> args[0].execute(apiElements) }
-        1 * apiElements.getName() >> 'apiElements'
         1 * apiElements.getOutgoing() >> outgoing
         1 * outgoing.getVariants() >> variants
         1 * variants.maybeCreate('classes') >> variant
@@ -180,8 +173,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         }
         1 * variant.setDescription(_)
         _ * sourceSet.getOutput() >> output
-        1 * output.getClassesDirs() >> classes
-        1 * output.getClassesContributors() >> Stub(TaskDependency)
+        1 * output.getClassesContributors() >> Collections.singletonList(new DefaultSourceSetOutput.DirectoryContribution(Providers.of(classesDir), Stub(TaskProvider)))
         1 * sourceSet.getName()
         0 * _
     }

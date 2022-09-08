@@ -17,10 +17,12 @@
 package org.gradle.launcher.daemon.configuration;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.process.internal.JvmOptions;
-
+import java.util.List;
 import java.util.Properties;
 
 public class BuildProcess extends CurrentProcess {
@@ -43,7 +45,12 @@ public class BuildProcess extends CurrentProcess {
 
         boolean immutableJvmArgsMatch = true;
         if (requiredBuildParameters.hasUserDefinedImmutableJvmArgs()) {
-            immutableJvmArgsMatch = getJvmOptions().getAllImmutableJvmArgs().equals(requiredBuildParameters.getEffectiveSingleUseJvmArgs());
+            List<String> effectiveSingleUseJvmArgs = requiredBuildParameters.getEffectiveSingleUseJvmArgs();
+            logger.info(
+                "Checking if the launcher JVM can be re-used for build. To be re-used, the launcher JVM needs to match the parameters required for the build process: {}",
+                String.join(" ", effectiveSingleUseJvmArgs)
+            );
+            immutableJvmArgsMatch = getJvmOptions().getAllImmutableJvmArgs().equals(effectiveSingleUseJvmArgs);
         }
         if (javaHomeMatch && immutableJvmArgsMatch && !isLowDefaultMemory(requiredBuildParameters)) {
             // Set the system properties and use this process
@@ -68,4 +75,6 @@ public class BuildProcess extends CurrentProcess {
         }
         return "64m".equals(getJvmOptions().getMaxHeapSize());
     }
+
+    private final Logger logger = Logging.getLogger(BuildProcess.class);
 }

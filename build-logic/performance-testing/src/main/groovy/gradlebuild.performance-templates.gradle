@@ -25,11 +25,12 @@ import gradlebuild.performance.generator.tasks.NativeProjectWithDepsGeneratorTas
 import gradlebuild.performance.generator.tasks.RemoteProject
 
 import static gradlebuild.basics.BuildEnvironmentKt.repoRoot
+import static gradlebuild.basics.BuildParamsKt.getBuildCommitId
 
 // === Gradle Build ===
 performanceTest.registerTestProject("gradleBuildCurrent", RemoteProject) {
     remoteUri = repoRoot(project).asFile.absolutePath
-    ref = moduleIdentity.gradleBuildCommitId
+    ref = getBuildCommitId(project)
 }
 
 performanceTest.registerTestProject("gradleBuildBaseline", RemoteProject) {

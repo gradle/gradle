@@ -75,6 +75,7 @@ public abstract class SimpleReport implements ConfigurableReport {
     }
 
     @Override
+    @Deprecated
     public void setDestination(Provider<File> provider) {
         getOutputLocation().fileProvider(provider);
     }

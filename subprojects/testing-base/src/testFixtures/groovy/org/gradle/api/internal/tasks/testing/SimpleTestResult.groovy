@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing
 
+import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestResult
 
 class SimpleTestResult implements TestResult {
     TestResult.ResultType resultType = TestResult.ResultType.SUCCESS
     List<Throwable> exceptions = []
     Throwable exception = exceptions[0]
+    List<TestFailure> failures
     long startTime = 0
     long endTime = startTime + 100
     long testCount = 1

@@ -23,6 +23,8 @@ import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.scripts.ScriptOriginUtil;
+import org.gradle.internal.snapshot.impl.ImplementationValue;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
 
@@ -42,42 +44,46 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
     }
 
     private void visitImplementation(PropertyVisitor visitor) {
-        visitor.visitInputProperty(getPropertyName(), new ImplementationPropertyValue(getImplementationClass(getBean())), false);
+        Object unwrapped = unwrapBean(getBean());
+        String classIdentifier = ScriptOriginUtil.getOriginClassIdentifier(unwrapped);
+        visitor.visitInputProperty(
+            getPropertyName(),
+            new ImplementationPropertyValue(new ImplementationValue(classIdentifier, unwrapped)),
+            false
+        );
     }
 
     @VisibleForTesting
-    static Class<?> getImplementationClass(Object bean) {
+    static Object unwrapBean(Object bean) {
         // When Groovy coerces a Closure into an SAM type, then it creates a Proxy which is backed by the Closure.
         // We want to track the implementation of the Closure, since the class name and classloader of the proxy will not change.
         // Java and Kotlin Lambdas are coerced to SAM types at compile time, so no unpacking is necessary there.
         if (Proxy.isProxyClass(bean.getClass())) {
             InvocationHandler invocationHandler = Proxy.getInvocationHandler(bean);
             if (invocationHandler instanceof ConvertedClosure) {
-                Object delegate = ((ConvertedClosure) invocationHandler).getDelegate();
-                return delegate.getClass();
+                return ((ConvertedClosure) invocationHandler).getDelegate();
             }
-            return invocationHandler.getClass();
+            return invocationHandler;
         }
 
         // Same as above, if we have wrapped a closure in a WrappedConfigureAction or a ClosureBackedAction, we want to
         // track the closure itself, not the action class.
         if (bean instanceof ConfigureUtil.WrappedConfigureAction) {
-            return ((ConfigureUtil.WrappedConfigureAction)bean).getConfigureClosure().getClass();
+            return ((ConfigureUtil.WrappedConfigureAction<?>) bean).getConfigureClosure();
         }
 
         if (bean instanceof ClosureBackedAction) {
-            return ((ClosureBackedAction)bean).getClosure().getClass();
+            return ((ClosureBackedAction<?>) bean).getClosure();
         }
-
-        return bean.getClass();
+        return bean;
     }
 
     private static class ImplementationPropertyValue implements PropertyValue {
 
-        private final Class<?> beanClass;
+        private final ImplementationValue implementationValue;
 
-        public ImplementationPropertyValue(Class<?> beanClass) {
-            this.beanClass = beanClass;
+        public ImplementationPropertyValue(ImplementationValue implementationValue) {
+            this.implementationValue = implementationValue;
         }
 
         @Override
@@ -87,7 +93,7 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
 
         @Override
         public Object getUnprocessedValue() {
-            return beanClass;
+            return implementationValue;
         }
 
         @Override

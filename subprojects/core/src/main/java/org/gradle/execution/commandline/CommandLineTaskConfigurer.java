@@ -23,12 +23,21 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.ParsedCommandLineOption;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.TypeConversionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+@ServiceScope(Scopes.Gradle.class)
 public class CommandLineTaskConfigurer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineTaskConfigurer.class);
 
     private OptionReader optionReader;
 
@@ -48,8 +57,11 @@ public class CommandLineTaskConfigurer {
         List<String> remainingArguments = null;
         for (Task task : tasks) {
             CommandLineParser parser = new CommandLineParser();
-            final List<OptionDescriptor> commandLineOptions = optionReader.getOptions(task);
-            for (OptionDescriptor optionDescriptor : commandLineOptions) {
+            Map<Boolean, List<OptionDescriptor>> allCommandLineOptions = optionReader.getOptions(task, false).stream().collect(Collectors.groupingBy(OptionDescriptor::isClashing));
+            List<OptionDescriptor> validCommandLineOptions = allCommandLineOptions.getOrDefault(false, Collections.emptyList());
+            List<OptionDescriptor> clashingOptions = allCommandLineOptions.getOrDefault(true, Collections.emptyList());
+            clashingOptions.forEach(it -> LOGGER.warn("Built-in option '{}' in task {} was disabled for clashing with another option of same name", it.getName(), task.getPath()));
+            for (OptionDescriptor optionDescriptor : validCommandLineOptions) {
                 String optionName = optionDescriptor.getName();
                 org.gradle.cli.CommandLineOption option = parser.option(optionName);
                 option.hasDescription(optionDescriptor.getDescription());
@@ -64,7 +76,7 @@ public class CommandLineTaskConfigurer {
                 throw new TaskConfigurationException(task.getPath(), "Problem configuring task " + task.getPath() + " from command line.", e);
             }
 
-            for (OptionDescriptor commandLineOptionDescriptor : commandLineOptions) {
+            for (OptionDescriptor commandLineOptionDescriptor : validCommandLineOptions) {
                 final String name = commandLineOptionDescriptor.getName();
                 if (parsed.hasOption(name)) {
                     ParsedCommandLineOption o = parsed.option(name);

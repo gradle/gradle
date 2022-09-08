@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.repositories.descriptor.FlatDirRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource;
@@ -74,8 +75,10 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
                                             IvyMutableModuleMetadataFactory metadataFactory,
                                             InstantiatorFactory instantiatorFactory,
                                             ObjectFactory objectFactory,
-                                            ChecksumService checksumService) {
-        super(objectFactory);
+                                            ChecksumService checksumService,
+                                            VersionParser versionParser
+    ) {
+        super(objectFactory, versionParser);
         this.fileCollectionFactory = fileCollectionFactory;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;

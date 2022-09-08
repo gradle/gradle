@@ -21,8 +21,34 @@ import org.gradle.util.GradleVersion
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
+abstract class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
+    static class AndroidLintDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
+        AndroidLintDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
 
+        void expectAndroidLintDeprecations(String agpVersion, List<String> artifacts) {
+            artifacts.each { artifact ->
+                runner.expectLegacyDeprecationWarningIf(
+                    agpVersion.startsWith("4.1"),
+                    "In plugin 'com.android.internal.version-check' type 'com.android.build.gradle.tasks.LintPerVariantTask' property 'allInputs' cannot be resolved:  " +
+                        "Cannot convert the provided notation to a File or URI: $artifact. " +
+                        "The following types/formats are supported:  - A String or CharSequence path, for example 'src/main/java' or '/usr/include'. - A String or CharSequence URI, for example 'file:/usr/include'. - A File instance. - A Path instance. - A Directory instance. - A RegularFile instance. - A URI or URL instance. - A TextResource instance. " +
+                        "Reason: An input file collection couldn't be resolved, making it impossible to determine task inputs. " +
+                        "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                        "Execution optimizations are disabled to ensure correctness. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#unresolvable_input for more details."
+                )
+            }
+            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs")
+            if (agpVersion.startsWith("7.")) {
+                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "inputFiles", "resources")
+            }
+            expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+        }
+    }
+}
+
+class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTest {
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "check deprecation warnings produced by building Santa Tracker (agp=#agpVersion)"() {
 
@@ -42,7 +68,9 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         where:
         agpVersion << TESTED_AGP_VERSIONS
     }
+}
 
+class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTrackerSmokeTest {
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "incremental Java compilation works for Santa Tracker (agp=#agpVersion)"() {
 
@@ -79,7 +107,9 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         where:
         agpVersion << TESTED_AGP_VERSIONS
     }
+}
 
+class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
     @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_NO_CC_ITERATION_MATCHER])
     def "can lint Santa-Tracker (agp=#agpVersion)"() {
 
@@ -128,31 +158,5 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         where:
         agpVersion << TESTED_AGP_VERSIONS
-    }
-
-    static class AndroidLintDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
-        AndroidLintDeprecations(SmokeTestGradleRunner runner) {
-            super(runner)
-        }
-
-        void expectAndroidLintDeprecations(String agpVersion, List<String> artifacts) {
-            artifacts.each { artifact ->
-                runner.expectLegacyDeprecationWarningIf(
-                    agpVersion.startsWith("4.1"),
-                    "In plugin 'com.android.internal.version-check' type 'com.android.build.gradle.tasks.LintPerVariantTask' property 'allInputs' cannot be resolved:  " +
-                        "Cannot convert the provided notation to a File or URI: $artifact. " +
-                        "The following types/formats are supported:  - A String or CharSequence path, for example 'src/main/java' or '/usr/include'. - A String or CharSequence URI, for example 'file:/usr/include'. - A File instance. - A Path instance. - A Directory instance. - A RegularFile instance. - A URI or URL instance. - A TextResource instance. " +
-                        "Reason: An input file collection couldn't be resolved, making it impossible to determine task inputs. " +
-                        "Please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#unresolvable_input for more details about this problem. " +
-                        "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
-                        "Execution optimizations are disabled to ensure correctness. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
-                )
-            }
-            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs")
-            if (agpVersion.startsWith("7.")) {
-                expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "inputFiles", "resources")
-            }
-            expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
-        }
     }
 }

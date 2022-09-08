@@ -31,6 +31,7 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
     String typeName
     String property
     String section
+    String documentationId = "validation_problems"
     boolean includeLink = false
 
     T inPlugin(String pluginId) {
@@ -73,6 +74,16 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
         this
     }
 
+    T documentationSection(String documentationSection) {
+        section = documentationSection
+        this
+    }
+
+    T documentationId(String id) {
+        documentationId = id
+        this
+    }
+
     String getPropertyIntro() {
         "property"
     }
@@ -91,7 +102,7 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
     }
 
     private String getOutro() {
-        includeLink ? "${checker.learnAt("validation_problems", section)}." : ""
+        includeLink ? "${checker.learnAt(documentationId, section)}." : ""
     }
 
     static String formatEntry(String entry) {
@@ -121,9 +132,9 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
             } else {
                 sb.append("Possible solution: ${formatEntry(solutions[0])}$newLine")
             }
+            sb.append(newLine)
         }
         if (outro) {
-            sb.append(newLine)
             sb.append(outro)
         }
         sb.toString().trim()

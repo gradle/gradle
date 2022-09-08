@@ -60,6 +60,10 @@ dependencies {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+
+    testFixturesImplementation(project(":testing-base"))
+    testFixturesImplementation(libs.testng)
+    testFixturesImplementation(libs.bsh)
 }
 
 strictCompile {
@@ -67,18 +71,8 @@ strictCompile {
     ignoreDeprecations() // uses deprecated software model types
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
-}
-
-tasks.test {
-    exclude("org/gradle/api/internal/tasks/testing/junit/AJunit*.*")
-    exclude("org/gradle/api/internal/tasks/testing/junit/BJunit*.*")
-    exclude("org/gradle/api/internal/tasks/testing/junit/ATestClass*.*")
-    exclude("org/gradle/api/internal/tasks/testing/junit/ATestSetUp*.*")
-    exclude("org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*")
-    exclude("org/gradle/api/internal/tasks/testing/junit/ATestSetUpWithBrokenSetUp*.*")
-    exclude("org/gradle/api/internal/tasks/testing/testng/ATestNGFactoryClass*.*")
 }
 
 integTest.usesJavadocCodeSnippets.set(true)

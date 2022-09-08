@@ -87,6 +87,7 @@ class ProjectMetadataController(
 
     private
     suspend fun WriteContext.writeConfiguration(configuration: LocalConfigurationMetadata) {
+        configuration.prepareToResolveArtifacts()
         writeString(configuration.name)
         write(configuration.attributes)
         writeDependencies(configuration.dependencies)
@@ -141,7 +142,7 @@ class ProjectMetadataController(
         val configurationAttributes = readNonNull<ImmutableAttributes>()
         val configuration = metadata.addConfiguration(configurationName, null, emptySet(), ImmutableSet.of(configurationName), true, true, configurationAttributes, true, null, true, ImmutableCapabilities.EMPTY, { emptyList() })
         readDependenciesInto(metadata, configuration)
-        readVariantsInto(metadata, configurationName)
+        readVariantsInto(configuration)
     }
 
     private
@@ -171,14 +172,14 @@ class ProjectMetadataController(
     }
 
     private
-    suspend fun ReadContext.readVariantsInto(metadata: DefaultLocalComponentMetadata, configurationName: String) {
+    suspend fun ReadContext.readVariantsInto(configuration: BuildableLocalConfigurationMetadata) {
         readCollection {
-            readVariantInto(metadata, configurationName)
+            readVariantInto(configuration)
         }
     }
 
     private
-    suspend fun ReadContext.readVariantInto(metadata: DefaultLocalComponentMetadata, configurationName: String) {
+    suspend fun ReadContext.readVariantInto(configuration: BuildableLocalConfigurationMetadata) {
         val variantName = readString()
         val identifier = readNonNull<VariantResolveMetadata.Identifier>()
         val attributes = readNonNull<ImmutableAttributes>()
@@ -186,6 +187,6 @@ class ProjectMetadataController(
         val artifacts = readList {
             readNonNull<PublishArtifactLocalArtifactMetadata>().publishArtifact
         }
-        metadata.addVariant(configurationName, variantName, identifier, Describables.of(variantName), attributes, ImmutableCapabilities.EMPTY, artifacts)
+        configuration.addVariant(variantName, identifier, Describables.of(variantName), attributes, ImmutableCapabilities.EMPTY, artifacts)
     }
 }

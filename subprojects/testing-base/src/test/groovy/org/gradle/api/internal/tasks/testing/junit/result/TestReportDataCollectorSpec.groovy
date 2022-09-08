@@ -40,7 +40,7 @@ class TestReportDataCollectorSpec extends Specification {
         def result1 = new DefaultTestResult(SUCCESS, 100, 200, 1, 1, 0, [])
 
         def test2 = new DecoratingTestDescriptor(new DefaultTestDescriptor("1.1.2", "FooTest", "testMethod2"), clazz)
-        def result2 = new DefaultTestResult(FAILURE, 250, 300, 1, 0, 1, asList(new RuntimeException("Boo!")))
+        def result2 = new DefaultTestResult(FAILURE, 250, 300, 1, 0, 1, asList(org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new RuntimeException("Boo!"))))
 
         when:
         //simulating TestNG, where we don't receive beforeSuite for classes
@@ -104,7 +104,7 @@ class TestReportDataCollectorSpec extends Specification {
 
     def "writes test outputs for failed suite"() {
         def suite = new DefaultTestSuiteDescriptor("1", "Suite")
-        def failure = new RuntimeException("failure")
+        def failure = org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new RuntimeException("failure"))
         def result = new DefaultTestResult(FAILURE, 0, 0, 0, 0, 0, [failure])
 
         when:
@@ -119,8 +119,8 @@ class TestReportDataCollectorSpec extends Specification {
 
     def "collects failures for test"() {
         def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
-        def failure1 = new RuntimeException("failure1")
-        def failure2 = new IOException("failure2")
+        def failure1 = org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new RuntimeException("failure1"))
+        def failure2 = org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new IOException("failure2"))
         def result = new DefaultTestResult(SUCCESS, 0, 0, 1, 0, 1, [failure1, failure2])
 
         when:
@@ -131,16 +131,16 @@ class TestReportDataCollectorSpec extends Specification {
         def failures = results["FooTest"].results[0].failures
         failures.size() == 2
         failures[0].exceptionType == RuntimeException.name
-        failures[0].message == failure1.toString()
-        failures[0].stackTrace.startsWith(failure1.toString())
+        failures[0].message == failure1.rawFailure.toString()
+        failures[0].stackTrace.startsWith(failure1.rawFailure.toString())
         failures[1].exceptionType == IOException.name
-        failures[1].message == failure2.toString()
-        failures[1].stackTrace.startsWith(failure2.toString())
+        failures[1].message == failure2.rawFailure.toString()
+        failures[1].stackTrace.startsWith(failure2.rawFailure.toString())
     }
 
     def "handle PlaceholderExceptions for test failures"() {
         def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
-        def failure = new PlaceholderException("OriginalClassName", "failure2", null, "toString()", null, null)
+        def failure = org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new PlaceholderException("OriginalClassName", "failure2", null, "toString()", null, null))
         def result = new DefaultTestResult(SUCCESS, 0, 0, 1, 0, 1, [failure])
 
         when:
@@ -157,13 +157,13 @@ class TestReportDataCollectorSpec extends Specification {
 
     def "handles exception whose toString() method fails"() {
         def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
-        def failure2 = new RuntimeException("failure2")
-        def failure1 = new RuntimeException("failure1") {
+        def failure2 = org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new RuntimeException("failure2"))
+        def failure1 = org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new RuntimeException("failure1") {
             @Override
             String toString() {
-                throw failure2
+                throw failure2.rawFailure
             }
-        }
+        })
         def result = new DefaultTestResult(SUCCESS, 0, 0, 1, 0, 1, [failure1])
 
         when:
@@ -173,19 +173,19 @@ class TestReportDataCollectorSpec extends Specification {
         then:
         def failures = results["FooTest"].results[0].failures
         failures.size() == 1
-        failures[0].message == "Could not determine failure message for exception of type ${failure1.class.name}: ${failure2.toString()}"
-        failures[0].stackTrace.startsWith(failure2.toString())
+        failures[0].message == "Could not determine failure message for exception of type ${failure1.rawFailure.class.name}: ${failure2.rawFailure.toString()}"
+        failures[0].stackTrace.startsWith(failure2.rawFailure.toString())
     }
 
     def "handles exception whose printStackTrace() method fails"() {
         def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
-        def failure2 = new RuntimeException("failure2")
-        def failure1 = new RuntimeException("failure1") {
+        def failure2 = org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new RuntimeException("failure2"))
+        def failure1 = org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new RuntimeException("failure1") {
             @Override
             void printStackTrace(PrintWriter s) {
-                throw failure2
+                throw failure2.rawFailure
             }
-        }
+        })
         def result = new DefaultTestResult(SUCCESS, 0, 0, 1, 0, 1, [failure1])
 
         when:
@@ -195,8 +195,8 @@ class TestReportDataCollectorSpec extends Specification {
         then:
         def failures = results["FooTest"].results[0].failures
         failures.size() == 1
-        failures[0].message == failure1.toString()
-        failures[0].stackTrace.startsWith(failure2.toString())
+        failures[0].message == failure1.rawFailure.toString()
+        failures[0].stackTrace.startsWith(failure2.rawFailure.toString())
     }
 
     def "reports suite failures"() {
@@ -207,7 +207,7 @@ class TestReportDataCollectorSpec extends Specification {
         //simulating a scenario with suite failing badly enough so that no tests are executed
         collector.beforeSuite(root)
         collector.beforeSuite(testWorker)
-        collector.afterSuite(testWorker, new DefaultTestResult(FAILURE, 50, 450, 2, 1, 1, [new RuntimeException("Boo!")]))
+        collector.afterSuite(testWorker, new DefaultTestResult(FAILURE, 50, 450, 2, 1, 1, [org.gradle.api.tasks.testing.TestFailure.fromTestFrameworkFailure(new RuntimeException("Boo!"))]))
         collector.afterSuite(root, new DefaultTestResult(FAILURE, 0, 500, 2, 1, 1, []))
 
         then:

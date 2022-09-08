@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.results;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class TestState {
     final TestStartEvent startEvent;
     private final Map<Object, TestState> executing;
     public boolean failedChild;
-    public List<Throwable> failures = new ArrayList<Throwable>();
+    public List<TestFailure> failures = new ArrayList<TestFailure>();
     public long testCount;
     public long successfulCount;
     public long failedCount;

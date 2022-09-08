@@ -16,7 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
-import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 public class AttachParentTestResultProcessor implements TestResultProcessor {
@@ -39,7 +43,7 @@ public class AttachParentTestResultProcessor implements TestResultProcessor {
     }
 
     @Override
-    public void failure(Object testId, Throwable result) {
+    public void failure(Object testId, TestFailure result) {
         processor.failure(testId, result);
     }
 

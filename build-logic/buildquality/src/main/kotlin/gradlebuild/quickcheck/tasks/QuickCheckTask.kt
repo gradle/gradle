@@ -130,7 +130,7 @@ enum class Check(private val extension: String) {
             }
 
             project.javaexec {
-                mainClass.set("com.github.shyiko.ktlint.Main")
+                mainClass.set("com.pinterest.ktlint.Main")
                 nonTeamCityKtFiles.forEach { args(it) }
                 args("--reporter=plain")
                 args("--color")
@@ -140,8 +140,8 @@ enum class Check(private val extension: String) {
 
         override fun addDependencies(project: Project) {
             project.dependencies.add("quickCheck", project.files(project.gradleKotlinDslKtlintRulesetJar()))
-            project.dependencies.add("quickCheck", "com.github.shyiko:ktlint:0.30.0") {
-                exclude(group = "com.github.shyiko.ktlint", module = "ktlint-ruleset-standard")
+            project.dependencies.add("quickCheck", "com.pinterest.ktlint:ktlint:0.45.2") {
+                exclude(group = "com.pinterest.ktlint", module = "ktlint-ruleset-standard")
             }
         }
 

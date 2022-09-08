@@ -81,8 +81,9 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
     @Override
     protected DaemonForkOptions toDaemonForkOptions(T spec) {
         MinimalJavaCompilerDaemonForkOptions javaOptions = spec.getCompileOptions().getForkOptions();
-        MinimalScalaCompilerDaemonForkOptions scalaOptions = spec.getScalaCompileOptions().getForkOptions();
-        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, scalaOptions));
+        MinimalScalaCompileOptions compileOptions = spec.getScalaCompileOptions();
+        MinimalScalaCompilerDaemonForkOptions forkOptions = compileOptions.getForkOptions();
+        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, forkOptions));
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         String javaExecutable = javaOptions.getExecutable();
         if (javaExecutable != null) {
@@ -98,7 +99,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)
             .withClassLoaderStructure(classLoaderStructure)
-            .keepAliveMode(KeepAliveMode.SESSION)
+            .keepAliveMode(KeepAliveMode.valueOf(compileOptions.getKeepAliveMode().name()))
             .build();
     }
 

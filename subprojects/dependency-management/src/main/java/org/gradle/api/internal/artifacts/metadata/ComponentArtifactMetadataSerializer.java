@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.metadata;
 import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.IvyArtifactNameSerializer;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -35,11 +35,7 @@ public class ComponentArtifactMetadataSerializer extends AbstractSerializer<Comp
         if (value instanceof ModuleComponentArtifactMetadata) {
             ModuleComponentArtifactMetadata moduleComponentArtifactMetadata = (ModuleComponentArtifactMetadata) value;
             componentIdentifierSerializer.write(encoder, moduleComponentArtifactMetadata.getComponentId());
-            IvyArtifactName ivyArtifactName = moduleComponentArtifactMetadata.getName();
-            encoder.writeString(ivyArtifactName.getName());
-            encoder.writeString(ivyArtifactName.getType());
-            encoder.writeNullableString(ivyArtifactName.getExtension());
-            encoder.writeNullableString(ivyArtifactName.getClassifier());
+            IvyArtifactNameSerializer.INSTANCE.write(encoder,  moduleComponentArtifactMetadata.getName());
         } else {
             throw new IllegalArgumentException("Unknown artifact metadata type.");
         }
@@ -48,11 +44,8 @@ public class ComponentArtifactMetadataSerializer extends AbstractSerializer<Comp
     @Override
     public ComponentArtifactMetadata read(Decoder decoder) throws Exception {
         ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
-        String artifactName = decoder.readString();
-        String type = decoder.readString();
-        String extension = decoder.readNullableString();
-        String classifier = decoder.readNullableString();
-        return new DefaultModuleComponentArtifactMetadata(componentIdentifier, new DefaultIvyArtifactName(artifactName, type, extension, classifier));
+        IvyArtifactName name = IvyArtifactNameSerializer.INSTANCE.read(decoder);
+        return new DefaultModuleComponentArtifactMetadata(componentIdentifier, name);
     }
 
     @Override

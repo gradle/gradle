@@ -21,6 +21,7 @@ import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+@Requires(TestPrecondition.NOT_MAC_OS_X_M1)
 abstract class AbstractXcodeCppProjectIntegrationTest extends AbstractXcodeNativeProjectIntegrationTest {
     @Override
     protected void assertXcodeProjectSources(List<String> rootChildren) {

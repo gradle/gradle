@@ -265,7 +265,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             val foundTestCoverage = testCoverages.firstOrNull {
                 it.testType == TestType.platform &&
                     it.os == testCoverage.os &&
-                    it.buildJvmVersion == testCoverage.buildJvmVersion
+                    it.buildJvm == testCoverage.buildJvm
             }
             foundTestCoverage?.let {
                 buildProjectClassTimes[it.asId(MASTER_CHECK_CONFIGURATION)]

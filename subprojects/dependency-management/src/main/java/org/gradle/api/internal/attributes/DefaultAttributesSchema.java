@@ -156,14 +156,14 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     }
 
     @Override
-    public void setAttributeDisambiguationPrecedence(Collection<Attribute<?>> attributes) {
+    public void setAttributeDisambiguationPrecedence(List<Attribute<?>> attributes) {
         precedence.clear();
         attributeDisambiguationPrecedence(attributes.toArray(new Attribute<?>[0]));
     }
 
     @Override
-    public Collection<Attribute<?>> getAttributeDisambiguationPrecedence() {
-        return Collections.unmodifiableCollection(precedence);
+    public List<Attribute<?>> getAttributeDisambiguationPrecedence() {
+        return Collections.unmodifiableList(new ArrayList<>(precedence));
     }
 
     private static class DefaultAttributeMatcher implements AttributeMatcher {
@@ -318,15 +318,15 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         }
 
         @Override
-        public PrecedenceResult orderByPrecedence(ImmutableAttributes requested) {
+        public PrecedenceResult orderByPrecedence(Set<Attribute<?>> requested) {
             if (precedence.isEmpty() && producerSchema.getAttributeDisambiguationPrecedence().isEmpty()) {
                 // if no attribute precedence has been set anywhere, we can just iterate in order
-                return new PrecedenceResult(IntStream.range(0, requested.keySet().size()).boxed().collect(Collectors.toList()));
+                return new PrecedenceResult(IntStream.range(0, requested.size()).boxed().collect(Collectors.toList()));
             } else {
                 // Populate requested attribute -> position in requested attribute list
                 final Map<String, Integer> remaining = new LinkedHashMap<>();
                 int position = 0;
-                for (Attribute<?> requestedAttribute : requested.keySet()) {
+                for (Attribute<?> requestedAttribute : requested) {
                     remaining.put(requestedAttribute.getName(), position++);
                 }
                 List<Integer> sorted = new ArrayList<>(remaining.size());

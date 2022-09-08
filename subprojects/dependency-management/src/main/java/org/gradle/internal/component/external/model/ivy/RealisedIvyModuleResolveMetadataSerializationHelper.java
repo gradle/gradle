@@ -26,6 +26,7 @@ import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.IvyArtifactNameSerializer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -43,7 +44,6 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -216,7 +216,7 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
             encoder.writeString(exclude.getModuleId().getGroup());
             encoder.writeString(exclude.getModuleId().getName());
             IvyArtifactName artifact = exclude.getArtifact();
-            writeNullableArtifact(encoder, artifact);
+            IvyArtifactNameSerializer.INSTANCE.writeNullable(encoder, artifact);
             writeStringSet(encoder, exclude.getConfigurations());
             encoder.writeNullableString(exclude.getMatcher());
         }
@@ -225,11 +225,7 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
     private void writeArtifacts(Encoder encoder, List<Artifact> artifacts) throws IOException {
         encoder.writeSmallInt(artifacts.size());
         for (Artifact artifact : artifacts) {
-            IvyArtifactName artifactName = artifact.getArtifactName();
-            encoder.writeString(artifactName.getName());
-            encoder.writeString(artifactName.getType());
-            encoder.writeNullableString(artifactName.getExtension());
-            encoder.writeNullableString(artifactName.getClassifier());
+            IvyArtifactNameSerializer.INSTANCE.write(encoder, artifact.getArtifactName());
             writeStringSet(encoder, artifact.getConfigurations());
         }
     }
@@ -265,7 +261,7 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
         int size = decoder.readSmallInt();
         List<Artifact> result = Lists.newArrayListWithCapacity(size);
         for (int i = 0; i < size; i++) {
-            IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(decoder.readString(), decoder.readString(), decoder.readNullableString(), decoder.readNullableString());
+            IvyArtifactName ivyArtifactName = IvyArtifactNameSerializer.INSTANCE.read(decoder);
             result.add(new Artifact(ivyArtifactName, readStringSet(decoder)));
         }
         return result;

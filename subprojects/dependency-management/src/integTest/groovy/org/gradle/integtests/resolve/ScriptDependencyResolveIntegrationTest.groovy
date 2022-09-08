@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
@@ -91,7 +90,6 @@ rootProject.name = 'testproject'
         failureHasCause("Conflict(s) found for the following module(s):")
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     @Issue("gradle/gradle#19300")
     def 'carries implicit constraint for log4j-core'() {
         given:
@@ -144,7 +142,6 @@ rootProject.name = 'testproject'
         failureCauseContains('Cannot find a version of \'org.apache.logging.log4j:log4j-core\' that satisfies the version constraints')
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     @Issue("gradle/gradle#19300")
     def 'allows to upgrade log4j to 3.x one day'() {
         given:

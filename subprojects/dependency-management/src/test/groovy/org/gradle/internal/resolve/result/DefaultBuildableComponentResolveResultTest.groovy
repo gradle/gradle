@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
-import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
@@ -31,9 +31,26 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class DefaultBuildableComponentResolveResultTest extends Specification {
     def result = new DefaultBuildableComponentResolveResult()
 
-    def "can query id and meta-data when resolved"() {
+    def "can query id and metadata when resolved"() {
         ModuleVersionIdentifier id = Stub()
-        ModuleComponentResolveMetadata metaData = Stub() {
+        def metadata = Stub(ModuleComponentResolveMetadata) {
+            getModuleVersionId() >> id
+        }
+        def state = Stub(ComponentGraphResolveState) {
+            getMetadata() >> metadata
+        }
+
+        when:
+        result.resolved(state)
+
+        then:
+        result.moduleVersionId == id
+        result.state == state
+    }
+
+    def "can query id and metadata when resolved from metadata"() {
+        ModuleVersionIdentifier id = Stub()
+        def metaData = Stub(ModuleComponentResolveMetadata) {
             getModuleVersionId() >> id
         }
 
@@ -42,7 +59,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
         then:
         result.moduleVersionId == id
-        result.metadata == metaData
+        result.state.metadata == metaData
     }
 
     def "cannot get id when no result has been specified"() {
@@ -56,7 +73,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
     def "cannot get meta-data when no result has been specified"() {
         when:
-        result.metadata
+        result.state
 
         then:
         IllegalStateException e = thrown()
@@ -91,7 +108,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
         when:
         result.failed(failure)
-        result.metadata
+        result.state
 
         then:
         ModuleVersionResolveException e = thrown()
@@ -122,12 +139,12 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
     def "copies results to an id resolve result"() {
         def idResult = Mock(BuildableComponentIdResolveResult)
-        def metaData = Stub(ComponentResolveMetadata)
+        def state = Stub(ComponentGraphResolveState)
 
         given:
         result.attempted("a")
         result.attempted("b")
-        result.resolved(metaData)
+        result.resolved(state)
 
         when:
         result.applyTo(idResult)
@@ -135,7 +152,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         then:
         1 * idResult.attempted("a")
         1 * idResult.attempted("b")
-        1 * idResult.resolved(metaData)
+        1 * idResult.resolved(state)
     }
 
     def "copies failure result to an id resolve result"() {

@@ -401,6 +401,20 @@ trait ValidationMessageChecker {
     @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
+    String dummyValidationProblemWithLink(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
+        display(SimpleMessage, 'dummy') {
+            type(onType).property(onProperty)
+            description(desc)
+            reason(testReason)
+            includeLink()
+            documentationId("id")
+            documentationSection("section")
+        }.render()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.TEST_PROBLEM
+    )
     String dummyValidationProblem(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         display(SimpleMessage, 'dummy') {
             type('InvalidTask').property('dummy')

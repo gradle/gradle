@@ -28,7 +28,7 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
     def "doesn't fail when using Ivy in a plugin"() {
 
         when:
-        buildFile << testablePluginProjectWithAddOpens()
+        buildFile << testablePluginProject()
         file('src/main/groovy/MyPlugin.groovy') << """
             import org.gradle.api.Plugin
             import org.gradle.api.Project
@@ -54,7 +54,7 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
 
     private static String pluginTest() {
         """
-            class MyPluginTest extends groovy.util.GroovyTestCase {
+            class MyPluginTest extends groovy.test.GroovyTestCase {
 
                 void testCanUseProjectBuilder() {
                     def project = ${ProjectBuilder.name}.builder().build()
@@ -68,7 +68,7 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
     def "can read resources both with relative and absolute path in relocated and original path"() {
 
         when:
-        buildFile << testablePluginProjectWithAddOpens()
+        buildFile << testablePluginProject()
         file('src/main/groovy/MyPlugin.groovy') << '''
             import org.gradle.api.Plugin
             import org.gradle.api.Project

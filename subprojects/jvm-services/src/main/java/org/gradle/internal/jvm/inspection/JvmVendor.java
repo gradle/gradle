@@ -25,7 +25,7 @@ public interface JvmVendor {
         ADOPTOPENJDK("adoptopenjdk", "AdoptOpenJDK"),
         AMAZON("amazon", "Amazon Corretto"),
         APPLE("apple", "Apple"),
-        AZUL("azul systems", "Zulu"),
+        AZUL("azul systems", "Azul Zulu"),
         BELLSOFT("bellsoft", "BellSoft Liberica"),
         GRAAL_VM("graalvm community", "GraalVM Community"),
         HEWLETT_PACKARD("hewlett-packard", "HP-UX"),

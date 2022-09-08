@@ -117,9 +117,7 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -181,9 +179,7 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -212,9 +208,7 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -292,9 +286,7 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation project(':transitive')
@@ -326,9 +318,7 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -465,9 +455,7 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -483,9 +471,7 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {

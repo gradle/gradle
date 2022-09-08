@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-@ServiceScope(Scopes.Build.class)
+@ServiceScope(Scopes.BuildTree.class)
 public class ProjectArtifactSetResolver {
     private final ArtifactResolver artifactResolver;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;

@@ -35,9 +35,7 @@ class IdeaSourceDirTypesIntegrationTests extends AbstractIntegrationSpec {
                 id 'idea'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {

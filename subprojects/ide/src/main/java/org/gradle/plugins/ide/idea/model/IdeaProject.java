@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -173,7 +174,7 @@ public class IdeaProject implements IdeWorkspace {
      * <p>
      * See the examples in the docs for {@link IdeaProject}
      */
-    public void ipr(Closure closure) {
+    public void ipr(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
         configure(closure, ipr);
     }
 

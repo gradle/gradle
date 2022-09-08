@@ -17,7 +17,7 @@
 package org.gradle.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
+import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
@@ -27,7 +27,7 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 @IgnoreIf({ GradleContextualExecuter.parallel })
-class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implements MissingTaskDependenciesFixture {
+class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec implements ExecutionOptimizationDeprecationFixture {
     def setup() {
         settingsFile << "include 'a', 'b'"
         buildFile << '''

@@ -50,7 +50,7 @@ tasks.jar {
     }
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/testkit/runner/internal/**")
 }
 

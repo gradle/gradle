@@ -35,6 +35,8 @@ import javax.annotation.Nullable
 @SuppressWarnings("GrMethodMayBeStatic")
 class GradleEnterprisePluginCheckInFixture {
 
+    private static final String EXECUTION_PHASE_STARTED_CALLBACK_MSG = "gradleEnterprisePlugin.executionPhaseStarted"
+
     private final TestFile projectDir
     private final MavenFileRepository mavenRepo
     private final GradleExecuter pluginBuildExecuter
@@ -54,11 +56,19 @@ class GradleEnterprisePluginCheckInFixture {
         this.pluginBuildExecuter = pluginBuildExecuter
     }
 
+    String pluginRepository() {
+        return "maven { url '${mavenRepo.uri}' }"
+    }
+
+    String pluginDependency() {
+        return "id '$id' version '$runtimeVersion'"
+    }
+
     String pluginManagement() {
         """
             pluginManagement {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    ${pluginRepository()}
                 }
             }
         """
@@ -66,7 +76,7 @@ class GradleEnterprisePluginCheckInFixture {
 
     String plugins() {
         """
-            plugins { id "$id" version "$runtimeVersion" }
+            plugins { ${pluginDependency()} }
         """
     }
 
@@ -138,6 +148,10 @@ class GradleEnterprisePluginCheckInFixture {
                                 }
                             }
 
+                            void executionPhaseStarted() {
+                                println "$EXECUTION_PHASE_STARTED_CALLBACK_MSG"
+                            }
+
                             $GradleEnterprisePluginEndOfBuildListener.name getEndOfBuildListener() {
                                 return { $GradleEnterprisePluginEndOfBuildListener.BuildResult.name buildResult ->
                                     println "gradleEnterprisePlugin.endOfBuild.buildResult.failure = \$buildResult.failure"
@@ -174,6 +188,24 @@ class GradleEnterprisePluginCheckInFixture {
 
     void assertUnsupportedMessage(String output, String unsupported) {
         assert output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $unsupported")
+    }
+
+    void invokedExecutionPhaseStartedCallbackOnce(String output) {
+        assert output.count(EXECUTION_PHASE_STARTED_CALLBACK_MSG) == 1
+    }
+
+    void didNotInvokeExecutionPhaseStartedCallback(String output) {
+        assert !output.contains(EXECUTION_PHASE_STARTED_CALLBACK_MSG)
+    }
+
+    void assertMessagePrecedesExecutionPhaseStartedCallback(String output, String message) {
+        int messagePos = output.indexOf(message)
+        assert messagePos >= 0 && messagePos < output.indexOf(EXECUTION_PHASE_STARTED_CALLBACK_MSG)
+    }
+
+    void assertMessageFollowsExecutionPhaseStartedCallback(String output, String message) {
+        int messagePos = output.indexOf(message)
+        assert messagePos >= 0 && messagePos > output.indexOf(EXECUTION_PHASE_STARTED_CALLBACK_MSG)
     }
 
     void assertEndOfBuildWithFailure(String output, @Nullable String failure) {

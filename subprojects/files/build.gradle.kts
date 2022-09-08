@@ -9,6 +9,7 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     implementation(project(":base-annotations"))
+    implementation(project(":functional"))
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 

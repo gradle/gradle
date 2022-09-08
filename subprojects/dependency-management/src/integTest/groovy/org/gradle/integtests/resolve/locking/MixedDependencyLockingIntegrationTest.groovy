@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class MixedDependencyLockingIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -139,7 +138,6 @@ dependencies {
         outputContains('dependency was locked to version \'1.0\'')
     }
 
-    @ToBeFixedForConfigurationCache
     def 'writes lock file entries for inherited dependencies'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()

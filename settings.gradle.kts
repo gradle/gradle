@@ -8,8 +8,6 @@ pluginManagement {
             content {
                 val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
-                includeVersionByRegex("com.gradle.enterprise", "test-distribution-gradle-plugin", rcAndMilestonesPattern)
-                includeVersionByRegex("com.gradle.enterprise.test-distribution", "com.gradle.enterprise.test-distribution.gradle.plugin", rcAndMilestonesPattern)
             }
         }
         gradlePluginPortal()
@@ -17,10 +15,9 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.10.2")
+    id("com.gradle.enterprise").version("3.11.1") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("gradlebuild.base.allprojects")
-    id("com.gradle.enterprise.test-distribution").version("2.3") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("gradlebuild.internal.cc-experiment")
 }
 
@@ -124,7 +121,6 @@ include("file-watching")
 include("build-cache-packaging")
 include("execution")
 include("build-profile")
-include("kotlin-compiler-embeddable")
 include("kotlin-dsl")
 include("kotlin-dsl-provider-plugins")
 include("kotlin-dsl-tooling-models")
@@ -150,6 +146,7 @@ include("architecture-test")
 include("internal-testing")
 include("internal-integ-testing")
 include("internal-performance-testing")
+include("internal-architecture-testing")
 include("internal-build-reports")
 include("integ-test")
 include("kotlin-dsl-integ-tests")

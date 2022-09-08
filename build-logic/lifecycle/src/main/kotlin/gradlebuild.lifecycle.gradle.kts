@@ -16,8 +16,6 @@
 
 import gradlebuild.basics.BuildEnvironment
 import java.time.Duration
-import java.util.Timer
-import kotlin.concurrent.timerTask
 
 // Lifecycle tasks used to to fan out the build into multiple builds in a CI pipeline.
 
@@ -39,7 +37,6 @@ val soakTest = "soakTest"
 
 val smokeTest = "smokeTest"
 
-
 setupTimeoutMonitorOnCI()
 setupGlobalState()
 
@@ -52,23 +49,10 @@ tasks.registerEarlyFeedbackRootLifecycleTasks()
  */
 fun setupTimeoutMonitorOnCI() {
     if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
-        val timer = Timer(true).apply {
-            schedule(
-                timerTask {
-                    exec {
-                        commandLine(
-                            "${System.getProperty("java.home")}/bin/java",
-                            project.layout.projectDirectory.file("subprojects/internal-integ-testing/src/main/groovy/org/gradle/integtests/fixtures/timeout/JavaProcessStackTracesMonitor.java").asFile,
-                            project.layout.projectDirectory.asFile.absolutePath
-                        )
-                    }
-                },
-                determineTimeoutMillis()
-            )
-        }
-        gradle.buildFinished {
-            timer.cancel()
-        }
+        project.gradle.sharedServices.registerIfAbsent("printStackTracesOnTimeoutBuildService", PrintStackTracesOnTimeoutBuildService::class.java) {
+            parameters.timeoutMillis.set(determineTimeoutMillis())
+            parameters.projectDirectory.set(layout.projectDirectory)
+        }.get()
     }
 }
 

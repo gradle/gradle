@@ -15,30 +15,29 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.gradle.api.artifacts.Configuration;
-
-import java.io.IOException;
-
 /**
  * Renders the model of a project dependency report.
  */
 public interface DependencyReportRenderer extends ReportRenderer {
+
     /**
      * Starts rendering the given configuration.
+     *
      * @param configuration The configuration.
      */
-    void startConfiguration(Configuration configuration);
+    void startConfiguration(ConfigurationDetails configuration);
 
     /**
      * Writes the given dependency graph for the current configuration.
      *
      * @param configuration The configuration.
      */
-    void render(Configuration configuration) throws IOException;
+    void render(ConfigurationDetails configuration);
 
     /**
      * Completes the rendering of the given configuration.
+     *
      * @param configuration The configuration
      */
-    void completeConfiguration(Configuration configuration);
+    void completeConfiguration(ConfigurationDetails configuration);
 }

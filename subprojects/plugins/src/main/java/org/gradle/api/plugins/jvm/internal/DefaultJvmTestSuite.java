@@ -21,7 +21,9 @@ import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.DependencyAdder;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -36,6 +38,8 @@ import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
@@ -47,11 +51,11 @@ import java.util.Map;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     public enum Frameworks {
-        JUNIT4("junit:junit", "4.13"),
-        JUNIT_JUPITER("org.junit.jupiter:junit-jupiter", "5.7.2"),
+        JUNIT4("junit:junit", "4.13.2"),
+        JUNIT_JUPITER("org.junit.jupiter:junit-jupiter", "5.8.2"),
         SPOCK("org.spockframework:spock-core", "2.1-groovy-3.0"),
-        KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit", "1.6.21"),
-        TESTNG("org.testng:testng", "7.4.0"),
+        KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit5", "1.7.10"),
+        TESTNG("org.testng:testng", "7.5"),
         NONE(null, null);
 
         @Nullable
@@ -107,7 +111,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     protected abstract Property<VersionedTestingFramework> getVersionedTestingFramework();
 
     @Inject
-    public DefaultJvmTestSuite(String name, ConfigurationContainer configurations, DependencyHandler dependencies, SourceSetContainer sourceSets) {
+    public DefaultJvmTestSuite(String name, DependencyFactory dependencyFactory, ConfigurationContainer configurations, SourceSetContainer sourceSets) {
         this.name = name;
         this.sourceSet = sourceSets.create(getName());
 
@@ -116,12 +120,23 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
         Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
 
+        this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
+        this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
+
+        this.dependencies = getObjectFactory().newInstance(
+            DefaultJvmComponentDependencies.class,
+            getObjectFactory().newInstance(DefaultDependencyAdder.class, implementation),
+            getObjectFactory().newInstance(DefaultDependencyAdder.class, compileOnly),
+            getObjectFactory().newInstance(DefaultDependencyAdder.class, runtimeOnly),
+            getObjectFactory().newInstance(DefaultDependencyAdder.class, annotationProcessor)
+        );
+
         this.attachedDependencies = false;
         // This complexity is to keep the built-in test suite from automatically adding dependencies
         // unless a user explicitly calls one of the useXXX methods
         // Eventually, we should deprecate this behavior and provide a way for users to opt out
         // We could then always add these dependencies.
-        this.attachDependencyAction = x -> attachDependenciesForTestFramework(dependencies, implementation);
+        this.attachDependencyAction = x -> attachDependenciesForTestFramework(dependencyFactory, dependencies.getImplementation());
 
         if (!name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             useJUnitJupiter();
@@ -131,11 +146,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             // and add dependencies automatically.
             getVersionedTestingFramework().convention(NO_OPINION);
         }
-
-        this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
-        this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
-
-        this.dependencies = getObjectFactory().newInstance(DefaultJvmComponentDependencies.class, implementation, compileOnly, runtimeOnly, annotationProcessor);
 
         addDefaultTestTarget();
 
@@ -149,9 +159,9 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 task.getTestFrameworkProperty().convention(getVersionedTestingFramework().map(vtf -> {
                     switch(vtf.type) {
                         case NONE: // fall-through
-                        case JUNIT4: // fall-through
-                        case KOTLIN_TEST:
+                        case JUNIT4:
                             return frameworkLookup.computeIfAbsent(vtf.type, f -> new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter()));
+                        case KOTLIN_TEST: // fall-through
                         case JUNIT_JUPITER: // fall-through
                         case SPOCK:
                             return frameworkLookup.computeIfAbsent(vtf.type, f -> new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter()));
@@ -165,16 +175,16 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         });
     }
 
-    private void attachDependenciesForTestFramework(DependencyHandler dependencies, Configuration implementation) {
+    private void attachDependenciesForTestFramework(DependencyFactory dependencyFactory, DependencyAdder implementation) {
         if (!attachedDependencies) {
-            dependencies.addProvider(implementation.getName(), getVersionedTestingFramework().map(framework -> {
+            implementation.add(getVersionedTestingFramework().map(framework -> {
                 switch (framework.type) {
                     case JUNIT4: // fall-through
                     case JUNIT_JUPITER: // fall-through
                     case SPOCK: // fall-through
                     case TESTNG: // fall-through
                     case KOTLIN_TEST:
-                        return framework.type.getDependency(framework.version);
+                        return dependencyFactory.create(framework.type.getDependency(framework.version));
                     default:
                         throw new IllegalStateException("do not know how to handle " + framework);
                 }
@@ -190,6 +200,9 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Inject
     public abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    public abstract ProviderFactory getProviderFactory();
 
     public SourceSet getSources() {
         return sourceSet;
@@ -220,7 +233,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useJUnit(String version) {
-        setFrameworkTo(new VersionedTestingFramework(Frameworks.JUNIT4, version));
+        useJUnit(getProviderFactory().provider(() -> version));
+    }
+
+    @Override
+    public void useJUnit(Provider<String> version) {
+        setFrameworkTo(Frameworks.JUNIT4, version);
     }
 
     @Override
@@ -230,7 +248,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useJUnitJupiter(String version) {
-        setFrameworkTo(new VersionedTestingFramework(Frameworks.JUNIT_JUPITER, version));
+        useJUnitJupiter(getProviderFactory().provider(() -> version));
+    }
+
+    @Override
+    public void useJUnitJupiter(Provider<String> version) {
+        setFrameworkTo(Frameworks.JUNIT_JUPITER, version);
     }
 
     @Override
@@ -240,7 +263,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useSpock(String version) {
-        setFrameworkTo(new VersionedTestingFramework(Frameworks.SPOCK, version));
+        useSpock(getProviderFactory().provider(() -> version));
+    }
+
+    @Override
+    public void useSpock(Provider<String> version) {
+        setFrameworkTo(Frameworks.SPOCK, version);
     }
 
     @Override
@@ -250,7 +278,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useKotlinTest(String version) {
-        setFrameworkTo(new VersionedTestingFramework(Frameworks.KOTLIN_TEST, version));
+        useKotlinTest(getProviderFactory().provider(() -> version));
+    }
+
+    @Override
+    public void useKotlinTest(Provider<String> version) {
+        setFrameworkTo(Frameworks.KOTLIN_TEST, version);
     }
 
     @Override
@@ -260,11 +293,16 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useTestNG(String version) {
-        setFrameworkTo(new VersionedTestingFramework(Frameworks.TESTNG, version));
+        useTestNG(getProviderFactory().provider(() -> version));
     }
 
-    private void setFrameworkTo(VersionedTestingFramework framework) {
-        getVersionedTestingFramework().set(framework);
+    @Override
+    public void useTestNG(Provider<String> version) {
+        setFrameworkTo(Frameworks.TESTNG, version);
+    }
+
+    private void setFrameworkTo(Frameworks framework, Provider<String> versionProvider) {
+        getVersionedTestingFramework().set(versionProvider.map(v -> new VersionedTestingFramework(framework, v)));
         attachDependencyAction.execute(null);
     }
 

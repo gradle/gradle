@@ -36,19 +36,23 @@ import java.util.Properties;
 
 public class Download implements IDownload {
     public static final String UNKNOWN_VERSION = "0";
+    public static final int DEFAULT_NETWORK_TIMEOUT_MILLISECONDS = 10 * 1000;
 
     private static final int BUFFER_SIZE = 10 * 1024;
     private static final int PROGRESS_CHUNK = 1024 * 1024;
-    private static final int CONNECTION_TIMEOUT_MILLISECONDS = 10 * 1000;
-    private static final int READ_TIMEOUT_MILLISECONDS = 10 * 1000;
     private final Logger logger;
     private final String appName;
     private final String appVersion;
     private final DownloadProgressListener progressListener;
     private final Map<String, String> systemProperties;
+    private final int networkTimeout;
 
     public Download(Logger logger, String appName, String appVersion) {
         this(logger, null, appName, appVersion, convertSystemProperties(System.getProperties()));
+    }
+
+    public Download(Logger logger, String appName, String appVersion, int networkTimeout) {
+        this(logger, null, appName, appVersion, convertSystemProperties(System.getProperties()), networkTimeout);
     }
 
     private static Map<String, String> convertSystemProperties(Properties properties) {
@@ -60,11 +64,16 @@ public class Download implements IDownload {
     }
 
     public Download(Logger logger, DownloadProgressListener progressListener, String appName, String appVersion, Map<String, String> systemProperties) {
+        this(logger, progressListener, appName, appVersion, systemProperties, DEFAULT_NETWORK_TIMEOUT_MILLISECONDS);
+    }
+
+    public Download(Logger logger, DownloadProgressListener progressListener, String appName, String appVersion, Map<String, String> systemProperties, int networkTimeout) {
         this.logger = logger;
         this.appName = appName;
         this.appVersion = appVersion;
         this.systemProperties = systemProperties;
         this.progressListener = new DefaultDownloadProgressListener(logger, progressListener);
+        this.networkTimeout = networkTimeout;
         configureProxyAuthentication();
     }
 
@@ -95,8 +104,8 @@ public class Download implements IDownload {
             addBasicAuthentication(address, conn);
             final String userAgentValue = calculateUserAgent();
             conn.setRequestProperty("User-Agent", userAgentValue);
-            conn.setConnectTimeout(CONNECTION_TIMEOUT_MILLISECONDS);
-            conn.setReadTimeout(READ_TIMEOUT_MILLISECONDS);
+            conn.setConnectTimeout(networkTimeout);
+            conn.setReadTimeout(networkTimeout);
             in = conn.getInputStream();
             byte[] buffer = new byte[BUFFER_SIZE];
             int numRead;
@@ -119,7 +128,7 @@ public class Download implements IDownload {
                 out.write(buffer, 0, numRead);
             }
         } catch (SocketTimeoutException e) {
-            throw new IOException("Downloading from " + safeUrl + " failed: timeout", e);
+            throw new IOException("Downloading from " + safeUrl + " failed: timeout (" + networkTimeout + "ms)", e);
         } finally {
             logger.log("");
             if (in != null) {

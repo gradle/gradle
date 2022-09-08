@@ -6,9 +6,9 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "2.3.4"
+version = "2.4.2"
 
-base.archivesBaseName = "plugins"
+base.archivesName.set("plugins")
 
 dependencies {
     compileOnly(project(":base-services"))
@@ -41,6 +41,8 @@ dependencies {
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(testFixtures(project(":kotlin-dsl")))
 
+    integTestImplementation(libs.futureKotlin("compiler-embeddable"))
+
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.mockitoKotlin)
 
@@ -50,7 +52,7 @@ dependencies {
     integTestLocalRepository(project)
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/plugins/base/**")
 }
 
