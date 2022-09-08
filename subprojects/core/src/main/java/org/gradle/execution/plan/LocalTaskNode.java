@@ -216,7 +216,7 @@ public class LocalTaskNode extends TaskNode {
     @Override
     public void cancelExecution(Consumer<Node> completionAction) {
         super.cancelExecution(completionAction);
-        if (!resolveMutationsNode.isComplete() && !resolveMutationsNode.isExecuting()) {
+        if (resolveMutationsNode.isRequired()) {
             resolveMutationsNode.cancelExecution(completionAction);
         }
     }

@@ -17,21 +17,17 @@
 package org.gradle.execution.plan;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.NavigableSet;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
 
 public abstract class TaskNode extends Node {
     private final NavigableSet<Node> mustSuccessors = newSortedNodeSet();
-    private final Set<Node> mustPredecessors = Sets.newHashSet();
     private final NavigableSet<Node> shouldSuccessors = newSortedNodeSet();
-    private final NavigableSet<Node> finalizers = newSortedNodeSet();
     private final NavigableSet<Node> finalizingSuccessors = newSortedNodeSet();
 
     @Override
@@ -70,16 +66,6 @@ public abstract class TaskNode extends Node {
     public abstract void setLifecycleSuccessors(Set<Node> successors);
 
     @Override
-    public Set<Node> getFinalizers() {
-        return finalizers;
-    }
-
-    @Override
-    public void addFinalizer(Node finalizer) {
-        finalizers.add(finalizer);
-    }
-
-    @Override
     public Set<Node> getFinalizingSuccessors() {
         return finalizingSuccessors;
     }
@@ -91,7 +77,11 @@ public abstract class TaskNode extends Node {
     public void addMustSuccessor(TaskNode toNode) {
         deprecateLifecycleHookReferencingNonLocalTask("mustRunAfter", toNode);
         mustSuccessors.add(toNode);
-        toNode.mustPredecessors.add(this);
+        toNode.addMustPredecessor(this);
+    }
+
+    void addMustPredecessor(TaskNode fromNode) {
+        updateDependentNodes(getDependentNodes().addMustPredecessor(fromNode));
     }
 
     public void addFinalizingSuccessor(Node finalized) {
@@ -135,17 +125,6 @@ public abstract class TaskNode extends Node {
             getGroup().getSuccessorsInReverseOrderFor(this),
             shouldSuccessors.descendingSet()
         );
-    }
-
-    @Override
-    protected void visitAllNodesWaitingForThisNode(Consumer<Node> visitor) {
-        super.visitAllNodesWaitingForThisNode(visitor);
-        for (Node node : mustPredecessors) {
-            visitor.accept(node);
-        }
-        for (Node node : finalizers) {
-            node.getFinalizerGroup().visitAllMembers(visitor);
-        }
     }
 
     public abstract TaskInternal getTask();
