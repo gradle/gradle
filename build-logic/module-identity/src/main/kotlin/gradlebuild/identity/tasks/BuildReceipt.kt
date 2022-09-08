@@ -22,33 +22,17 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
-
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Properties
-import java.util.TimeZone
 
 
 @DisableCachingByDefault(because = "Not worth caching")
 abstract class BuildReceipt : DefaultTask() {
     companion object {
-        private
-        val timestampFormat = newSimpleDateFormatUTC("yyyyMMddHHmmssZ")
-
-        private
-        val isoTimestampFormat = newSimpleDateFormatUTC("yyyy-MM-dd HH:mm:ss z")
-
-        private
-        fun newSimpleDateFormatUTC(pattern: String) = SimpleDateFormat(pattern).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
-
         fun readBuildReceiptFromString(buildReceipt: String) =
             Properties().apply { load(buildReceipt.reader()) }
 
@@ -72,16 +56,8 @@ abstract class BuildReceipt : DefaultTask() {
     @get:Input
     abstract val promotionBuild: Property<Boolean>
 
-    @get:Input
-    @get:Optional
-    abstract val buildTimestamp: Property<Date>
-
     @get:OutputDirectory
     abstract val receiptFolder: DirectoryProperty
-
-    fun buildTimestampFrom(provider: Provider<String>) {
-        buildTimestamp.set(provider.map { buildTimestampString -> timestampFormat.parse(buildTimestampString) })
-    }
 
     @TaskAction
     fun generate() {
@@ -97,27 +73,16 @@ abstract class BuildReceipt : DefaultTask() {
                 put("versionNumber", version.get())
                 put("baseVersion", baseVersion.get())
                 put("isSnapshot", snapshot.get().toString())
-                put("buildTimestamp", getBuildTimestampAsString())
-                put("buildTimestampIso", getBuildTimestampAsIsoString())
             },
             file
         )
     }
 
     private
-    fun getBuildTimestampAsString() =
-        buildTimestamp.get().let { timestampFormat.format(it) }
-
-    private
-    fun getBuildTimestampAsIsoString() =
-        buildTimestamp.get().let { isoTimestampFormat.format(it) }
-
-    private
     fun Logger.logBuildVersion() {
         lifecycle(
             "Version: ${version.get()} " +
                 "(base version: ${baseVersion.get()}," +
-                " timestamp: ${buildTimestamp.get()}," +
                 " snapshot: ${snapshot.get()})"
         )
         if (BuildEnvironment.isCiServer) {

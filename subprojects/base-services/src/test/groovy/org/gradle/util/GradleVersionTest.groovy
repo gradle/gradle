@@ -53,13 +53,6 @@ class GradleVersionTest extends Specification {
         GradleVersion.version('5.1-commit-123abc').commitId == '123abc'
     }
 
-    @Issue("https://issues.gradle.org/browse/GRADLE-1892")
-    def "build time should always print in UTC"() {
-        expect:
-        // Note: buildTime is null when running a local build
-        version.buildTimestamp == null || version.buildTimestamp.endsWith("UTC")
-    }
-
     def equalsAndHashCode() {
         expect:
         Matchers.strictlyEquals(GradleVersion.version('0.9'), GradleVersion.version('0.9'))

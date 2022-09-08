@@ -20,15 +20,12 @@ import gradlebuild.basics.buildRcNumber
 import gradlebuild.basics.buildRunningOnCi
 import gradlebuild.basics.buildTimestamp
 import gradlebuild.basics.buildVersionQualifier
-import gradlebuild.basics.ignoreIncomingBuildReceipt
 import gradlebuild.basics.isPromotionBuild
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.identity.extension.ReleasedVersionsDetails
-import gradlebuild.identity.provider.BuildTimestampFromBuildReceiptValueSource
 import gradlebuild.identity.provider.BuildTimestampValueSource
-import gradlebuild.identity.tasks.BuildReceipt
 
 plugins {
     `java-base`
@@ -82,7 +79,6 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
 
     moduleIdentity.version.convention(GradleVersion.version(versionNumber))
     moduleIdentity.snapshot.convention(isSnapshot)
-    moduleIdentity.buildTimestamp.convention(buildTimestamp)
     moduleIdentity.promotionBuild.convention(isPromotionBuild)
 
     moduleIdentity.releasedVersions.set(
@@ -108,7 +104,6 @@ fun Project.trimmedContentsOfFile(path: String): String =
 fun Project.buildTimestamp(): Provider<String> =
     providers.of(BuildTimestampValueSource::class) {
         parameters {
-            buildTimestampFromBuildReceipt.set(buildTimestampFromBuildReceipt())
             buildTimestampFromGradleProperty.set(buildTimestamp)
             runningOnCi.set(buildRunningOnCi)
             runningInstallTask.set(
@@ -116,21 +111,6 @@ fun Project.buildTimestamp(): Provider<String> =
             )
             runningDocsTestTask.set(
                 provider { isRunningDocsTestTask() }
-            )
-        }
-    }
-
-
-fun Project.buildTimestampFromBuildReceipt(): Provider<String> =
-    providers.of(BuildTimestampFromBuildReceiptValueSource::class) {
-        parameters {
-            ignoreIncomingBuildReceipt.set(project.ignoreIncomingBuildReceipt)
-            buildReceiptFileContents.set(
-                repoRoot()
-                    .dir("incoming-distributions")
-                    .file(BuildReceipt.buildReceiptFileName)
-                    .let(providers::fileContents)
-                    .asText
             )
         }
     }

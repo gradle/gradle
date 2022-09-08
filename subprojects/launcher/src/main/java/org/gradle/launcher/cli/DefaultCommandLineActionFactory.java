@@ -197,8 +197,6 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             final StringBuilder sb = new StringBuilder();
             sb.append("%n------------------------------------------------------------%nGradle ");
             sb.append(currentVersion.getVersion());
-            sb.append("%n------------------------------------------------------------%n%nBuild time:   ");
-            sb.append(currentVersion.getBuildTimestamp());
             sb.append("%nRevision:     ");
             sb.append(currentVersion.getGitRevision());
             sb.append("%n%nKotlin:       ");

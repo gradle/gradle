@@ -23,7 +23,6 @@ import gradlebuild.basics.BuildParams.BUILD_COMMIT_ID
 import gradlebuild.basics.BuildParams.BUILD_CONFIGURATION_ID
 import gradlebuild.basics.BuildParams.BUILD_FINAL_RELEASE
 import gradlebuild.basics.BuildParams.BUILD_ID
-import gradlebuild.basics.BuildParams.BUILD_IGNORE_INCOMING_BUILD_RECEIPT
 import gradlebuild.basics.BuildParams.BUILD_MILESTONE_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_PROMOTION_COMMIT_ID
 import gradlebuild.basics.BuildParams.BUILD_RC_NUMBER
@@ -76,7 +75,6 @@ object BuildParams {
     const val BUILD_CONFIGURATION_ID = "BUILD_TYPE_ID"
     const val BUILD_FINAL_RELEASE = "finalRelease"
     const val BUILD_ID = "BUILD_ID"
-    const val BUILD_IGNORE_INCOMING_BUILD_RECEIPT = "ignoreIncomingBuildReceipt"
     const val BUILD_MILESTONE_NUMBER = "milestoneNumber"
     const val BUILD_PROMOTION_COMMIT_ID = "promotionCommitId"
     const val BUILD_RC_NUMBER = "rcNumber"
@@ -242,10 +240,6 @@ val Project.flakyTestStrategy: FlakyTestStrategy
             return FlakyTestStrategy.valueOf(it.get().toUpperCaseAsciiOnly())
         }
     }
-
-
-val Project.ignoreIncomingBuildReceipt: Provider<Boolean>
-    get() = gradleProperty(BUILD_IGNORE_INCOMING_BUILD_RECEIPT).presence()
 
 
 val Project.performanceDependencyBuildIds: Provider<String>

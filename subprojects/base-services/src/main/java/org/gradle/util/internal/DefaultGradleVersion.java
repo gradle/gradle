@@ -43,7 +43,6 @@ public final class DefaultGradleVersion extends GradleVersion {
 
     private final String version;
     private final int majorPart;
-    private final String buildTime;
     private final String commitId;
     private final Long snapshot;
     private final String versionPart;
@@ -79,10 +78,9 @@ public final class DefaultGradleVersion extends GradleVersion {
                 version = overrideVersion;
             }
 
-            String buildTimestamp = properties.get("buildTimestampIso").toString();
             String commitId = properties.get("commitId").toString();
 
-            CURRENT = new DefaultGradleVersion(version, "unknown".equals(buildTimestamp) ? null : buildTimestamp, commitId);
+            CURRENT = new DefaultGradleVersion(version, commitId);
         } catch (Exception e) {
             throw new GradleException(format("Could not load version details from resource '%s'.", resource), e);
         } finally {
@@ -102,12 +100,11 @@ public final class DefaultGradleVersion extends GradleVersion {
      * @throws IllegalArgumentException On unrecognized version string.
      */
     public static DefaultGradleVersion version(String version) throws IllegalArgumentException {
-        return new DefaultGradleVersion(version, null, null);
+        return new DefaultGradleVersion(version, null);
     }
 
-    private DefaultGradleVersion(String version, String buildTime, String commitId) {
+    private DefaultGradleVersion(String version, String commitId) {
         this.version = version;
-        this.buildTime = buildTime;
         Matcher matcher = VERSION_PATTERN.matcher(version);
         if (!matcher.matches()) {
             throw new IllegalArgumentException(format("'%s' is not a valid Gradle version string (examples: '1.0', '1.0-rc-1')", version));
@@ -186,11 +183,7 @@ public final class DefaultGradleVersion extends GradleVersion {
     @Override
     @Deprecated
     public String getBuildTime() {
-        return getBuildTimestamp();
-    }
-
-    public String getBuildTimestamp() {
-        return buildTime;
+        return "";
     }
 
     @Override

@@ -32,7 +32,6 @@ abstract class ModuleIdentityExtension(val tasks: TaskContainer, val objects: Ob
 
     abstract val baseName: Property<String>
 
-    abstract val buildTimestamp: Property<String>
     abstract val snapshot: Property<Boolean>
     abstract val promotionBuild: Property<Boolean>
 
@@ -44,7 +43,6 @@ abstract class ModuleIdentityExtension(val tasks: TaskContainer, val objects: Ob
             this.baseVersion.set(this@ModuleIdentityExtension.version.map { it.baseVersion.version })
             this.snapshot.set(this@ModuleIdentityExtension.snapshot)
             this.promotionBuild.set(this@ModuleIdentityExtension.promotionBuild)
-            this.buildTimestampFrom(this@ModuleIdentityExtension.buildTimestamp)
             this.commitId.set(project.buildCommitId)
             this.receiptFolder.set(project.layout.buildDirectory.dir("generated-resources/build-receipt"))
         }

@@ -29,10 +29,6 @@ import java.util.TimeZone
 abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampValueSource.Parameters>, Describable {
 
     interface Parameters : ValueSourceParameters {
-
-        @get:Optional
-        val buildTimestampFromBuildReceipt: Property<String>
-
         @get:Optional
         val buildTimestampFromGradleProperty: Property<String>
 
@@ -43,13 +39,6 @@ abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampVal
     }
 
     override fun obtain(): String? = parameters.run {
-
-        val buildTimestampFromReceipt = buildTimestampFromBuildReceipt.orNull
-        if (buildTimestampFromReceipt != null) {
-            println("Using timestamp from incoming build receipt: $buildTimestampFromReceipt")
-            return buildTimestampFromReceipt
-        }
-
         val timestampFormat = SimpleDateFormat("yyyyMMddHHmmssZ").apply {
             timeZone = TimeZone.getTimeZone("UTC")
         }
@@ -75,7 +64,6 @@ abstract class BuildTimestampValueSource : ValueSource<String, BuildTimestampVal
     val timestampSource: String
         get() = parameters.run {
             when {
-                buildTimestampFromBuildReceipt.isPresent -> "from build receipt"
                 buildTimestampFromGradleProperty.isPresent -> "from buildTimestamp property"
                 runningInstallTask.get() -> "from current time because installing"
                 runningDocsTestTask.get() -> "from current time because testing docs"
