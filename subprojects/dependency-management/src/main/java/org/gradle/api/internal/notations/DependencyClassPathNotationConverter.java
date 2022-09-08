@@ -81,14 +81,14 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private SelfResolvingDependency create(final DependencyFactoryInternal.ClassPathNotation notation) {
         boolean runningFromInstallation = currentGradleInstallation.getInstallation() != null;
         FileCollectionInternal fileCollectionInternal;
-        if (runningFromInstallation && notation.equals(org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_API)) {
+        if (runningFromInstallation && notation.equals(DependencyFactoryInternal.ClassPathNotation.GRADLE_API)) {
             fileCollectionInternal = fileCollectionFactory.create(new GeneratedFileCollection(notation.displayName) {
                 @Override
                 Set<File> generateFileCollection() {
                     return gradleApiFileCollection(getClassPath(notation));
                 }
             });
-        } else if (runningFromInstallation && notation.equals(org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT)) {
+        } else if (runningFromInstallation && notation.equals(DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT)) {
             fileCollectionInternal = fileCollectionFactory.create(new GeneratedFileCollection(notation.displayName) {
                 @Override
                 Set<File> generateFileCollection() {
@@ -146,7 +146,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     }
 
     private Set<File> gradleTestKitFileCollection(Collection<File> testKitClasspath) {
-        List<File> gradleApi = getClassPath(org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_API);
+        List<File> gradleApi = getClassPath(DependencyFactoryInternal.ClassPathNotation.GRADLE_API);
         testKitClasspath.removeAll(gradleApi);
 
         ImmutableSet.Builder<File> builder = ImmutableSet.builder();

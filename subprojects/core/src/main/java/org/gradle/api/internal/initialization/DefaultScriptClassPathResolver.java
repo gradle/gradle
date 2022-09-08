@@ -24,7 +24,6 @@ import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 
 import java.util.List;
 
-@SuppressWarnings("deprecation")
 public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
     private final List<ScriptClassPathInitializer> initializers;
 
