@@ -856,9 +856,6 @@ tasks.named("docsTest") { task ->
                 "snippet-java-cross-compilation_groovy_java7CrossCompilation.sample",
                 "snippet-java-cross-compilation_kotlin_java7CrossCompilation.sample",
 
-                "snippet-java-fixtures_groovy_javaTestFixtures.sample",
-                "snippet-java-fixtures_kotlin_javaTestFixtures.sample",
-
                 "snippet-kotlin-dsl-multi-project-build_kotlin_build.sample",
 
                 "snippet-tasks-incremental-build-custom-task-class_groovy_customTaskClassWithInputOutputAnnotations.sample",
