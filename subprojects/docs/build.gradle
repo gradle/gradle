@@ -846,13 +846,6 @@ tasks.named("docsTest") { task ->
                 "snippet-files-archives-changed-base-name_groovy_zipWithArchivesBaseName.sample",
                 "snippet-files-archives-changed-base-name_kotlin_zipWithArchivesBaseName.sample",
 
-                "snippet-files-file-collections_groovy_fileCollectionsFiltering.sample",
-                "snippet-files-file-collections_groovy_fileCollectionsUsage.sample",
-                "snippet-files-file-collections_groovy_fileCollectionsWithClosure.sample",
-                "snippet-files-file-collections_kotlin_fileCollectionsFiltering.sample",
-                "snippet-files-file-collections_kotlin_fileCollectionsUsage.sample",
-                "snippet-files-file-collections_kotlin_fileCollectionsWithClosure.sample",
-
                 "snippet-java-cross-compilation_groovy_java7CrossCompilation.sample",
                 "snippet-java-cross-compilation_kotlin_java7CrossCompilation.sample",
 
