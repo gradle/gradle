@@ -27,6 +27,7 @@ import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCach
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CleanupActionDecorator;
+import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
@@ -61,9 +62,10 @@ public class DependencyManagementGradleUserHomeScopeServices {
         DefaultArtifactCaches.WritableArtifactCacheLockingParameters parameters,
         ListenerManager listenerManager,
         DocumentationRegistry documentationRegistry,
-        CleanupActionDecorator cleanupActionDecorator
+        CleanupActionDecorator cleanupActionDecorator,
+        CacheConfigurations cacheConfigurations
     ) {
-        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(globalScopedCache, cacheRepository, parameters, documentationRegistry, cleanupActionDecorator);
+        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(globalScopedCache, cacheRepository, parameters, documentationRegistry, cleanupActionDecorator, cacheConfigurations);
         listenerManager.addListener(new BuildAdapter() {
             @SuppressWarnings("deprecation")
             @Override
@@ -100,7 +102,8 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
-        CleanupActionDecorator cleanupActionDecorator
+        CleanupActionDecorator cleanupActionDecorator,
+        CacheConfigurations cacheConfigurations
     ) {
         return new ImmutableTransformationWorkspaceServices(
             cacheRepository
@@ -110,7 +113,8 @@ public class DependencyManagementGradleUserHomeScopeServices {
             fileAccessTimeJournal,
             executionHistoryStore,
             crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(Try::isSuccessful),
-            cleanupActionDecorator
+            cleanupActionDecorator,
+            cacheConfigurations
         );
     }
 }
