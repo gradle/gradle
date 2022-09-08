@@ -187,10 +187,7 @@ public final class DefaultGradleVersion extends GradleVersion {
     @Override
     @Deprecated
     public String getBuildTime() {
-        DeprecationLogger.deprecateMethod(GradleVersion.class, "getBuildTime()")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
-            .nagUser();
+        logMethodDeprecation("getBuildTime()");
         return getBuildTimestamp();
     }
 
@@ -201,10 +198,7 @@ public final class DefaultGradleVersion extends GradleVersion {
     @Override
     @Deprecated
     public String getRevision() {
-        DeprecationLogger.deprecateMethod(GradleVersion.class, "getRevision()")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
-            .nagUser();
+        logMethodDeprecation("getRevision()");
         return getGitRevision();
     }
 
@@ -228,12 +222,7 @@ public final class DefaultGradleVersion extends GradleVersion {
     @Deprecated
     public GradleVersion getNextMajor() {
         // TODO add nagging once Spring dependency management plugin is fixed
-        /*
-        DeprecationLogger.deprecateMethod(GradleVersion.class, "getNextMajor()")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
-            .nagUser();
-        */
+        // logDeprecation("getNextMajor()");
         return getNextMajorVersion();
     }
 
@@ -313,11 +302,15 @@ public final class DefaultGradleVersion extends GradleVersion {
     @Override
     @Deprecated
     public boolean isValid() {
-        DeprecationLogger.deprecateMethod(GradleVersion.class, "isValid()")
+        logMethodDeprecation("isValid()");
+        return versionPart != null;
+    }
+
+    private static void logMethodDeprecation(String method) {
+        DeprecationLogger.deprecateMethod(GradleVersion.class, method)
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
             .nagUser();
-        return versionPart != null;
     }
 
     static final class Stage implements Comparable<Stage> {
