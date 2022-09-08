@@ -27,7 +27,7 @@ val junit5Version = "5.8.2"
 val mavenVersion = "3.6.3"
 val nativePlatformVersion = "0.22-milestone-23"
 val slf4jVersion = "1.7.30"
-val spockVersion = if (isBundleGroovy4) "2.2-M3-groovy-4.0" else "2.2-M3-groovy-3.0"
+val spockVersion = if (isBundleGroovy4) "2.2-groovy-4.0" else "2.2-groovy-3.0"
 val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
 val tomljVersion = "1.0.0"
 
