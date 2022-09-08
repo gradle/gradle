@@ -31,14 +31,16 @@ class DeferrableExecutionTest extends Specification {
             return DeferrableExecution.deferred { Try.successful(input + 25) }
         }
 
+        expect:
+        composed.getCompleted().empty
+
         when:
-        def result = composed.getResult()
-        composed.getCompletedResult()
+        def result = composed.get()
         then:
         result.get() == 30
         creationCount.get() == 1
 
         where:
-        first << [DeferrableExecution.deferred { Try.successful(5) }, DeferrableExecution.immediate(Try.successful(5))]
+        first << [DeferrableExecution.deferred { Try.successful(5) }, DeferrableExecution.successful(5)]
     }
 }
