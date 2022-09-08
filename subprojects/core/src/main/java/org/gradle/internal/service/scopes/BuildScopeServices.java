@@ -125,6 +125,7 @@ import org.gradle.initialization.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
+import org.gradle.initialization.DefaultToolchainManagementSpec;
 import org.gradle.initialization.Environment;
 import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.GradleUserHomeDirProvider;
@@ -654,5 +655,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             scriptExecutionListener,
             instantiatorFactory.inject()
         );
+    }
+
+    protected DefaultToolchainManagementSpec createToolchainManagementSpec(ObjectFactory objectFactory) {
+        return objectFactory.newInstance(DefaultToolchainManagementSpec.class);
     }
 }
