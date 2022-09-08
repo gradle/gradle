@@ -519,6 +519,6 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         TransformationSubject subject,
         InputFingerprinter inputFingerprinter
     ) {
-        return invoker.createInvocation(transformer, inputArtifact, dependencies, subject, inputFingerprinter).getResult()
+        return invoker.createInvocation(transformer, inputArtifact, dependencies, subject, inputFingerprinter).get()
     }
 }

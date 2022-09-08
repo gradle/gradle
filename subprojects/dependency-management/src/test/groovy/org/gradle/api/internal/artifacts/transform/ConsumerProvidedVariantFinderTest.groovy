@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
-import org.gradle.internal.Try
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.internal.execution.DeferrableExecution
 import org.gradle.util.AttributeTestUtil
@@ -208,7 +207,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         steps.drop(1).forEach { step ->
             invocation = invocation.flatMap { subject -> step.createInvocation(subject, Mock(TransformUpstreamDependencies), null) }
         }
-        return invocation.invoke().get()
+        return invocation.get().get()
     }
 
     def "prefers direct transformation over indirect"() {
@@ -442,7 +441,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def transformationStep = Stub(TransformationStep)
         _ * transformationStep.visitTransformationSteps(_) >> { Action action -> action.execute(transformationStep) }
         _ * transformationStep.createInvocation(_ as TransformationSubject, _ as TransformUpstreamDependencies, null) >> { TransformationSubject subject, TransformUpstreamDependencies dependenciesResolver, services ->
-            return DeferrableExecution.immediate(Try.successful(subject.createSubjectFromResult(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))))
+            return DeferrableExecution.successful(subject.createSubjectFromResult(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) })))
         }
         _ * reg.transformationStep >> transformationStep
         reg
