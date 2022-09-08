@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.CacheCleanupEnablementFixture
-import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
@@ -42,7 +42,7 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 import static org.hamcrest.Matchers.containsString
 
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, ValidationMessageChecker, CacheCleanupEnablementFixture {
-    private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+    private final static int MAX_CACHE_AGE_IN_DAYS = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES
 
     @Rule
     BlockingHttpServer blockingHttpServer = new BlockingHttpServer()

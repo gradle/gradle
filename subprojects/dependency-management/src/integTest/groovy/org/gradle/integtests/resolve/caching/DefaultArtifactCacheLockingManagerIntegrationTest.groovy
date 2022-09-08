@@ -21,7 +21,7 @@ import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.cache.internal.CacheCleanupEnablementFixture
-import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
@@ -32,7 +32,7 @@ import org.gradle.test.fixtures.maven.MavenModule
 import static java.util.concurrent.TimeUnit.DAYS
 
 class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, CacheCleanupEnablementFixture {
-    private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES
+    private final static int MAX_CACHE_AGE_IN_DAYS = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES
 
     def snapshotModule = mavenHttpRepo.module('org.example', 'example', '1.0-SNAPSHOT').publish().allowAll()
 

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.classpath
 
-import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
@@ -28,7 +28,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
-    static final long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+    static final int MAX_CACHE_AGE_IN_DAYS = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES
 
     @Rule
     public final HttpServer server = new HttpServer()
