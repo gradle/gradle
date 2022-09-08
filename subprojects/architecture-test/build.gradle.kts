@@ -23,6 +23,12 @@ dependencies {
     testRuntimeOnly(project(":distributions-full"))
 }
 
+val verifyAcceptedApiChangesOrdering = tasks.register<gradlebuild.binarycompatibility.AlphabeticalAcceptedApiChangesTask>("verifyAcceptedApiChangesOrdering") {
+    group = "verification"
+    description = "Ensures the accepted api changes file is kept alphabetically ordered to make merging changes to it easier"
+    apiChangesFile.set(layout.projectDirectory.file("src/changes/accepted-public-api-changes.json"))
+}
+
 tasks.test {
     // Looks like loading all the classes requires more than the default 512M
     maxHeapSize = "900M"
@@ -36,6 +42,8 @@ tasks.test {
         project.file("src/changes/archunit_store"),
         providers.gradleProperty("archunitRefreeze").map { true })
     )
+
+    dependsOn(verifyAcceptedApiChangesOrdering)
 }
 
 class ArchUnitFreezeConfiguration(

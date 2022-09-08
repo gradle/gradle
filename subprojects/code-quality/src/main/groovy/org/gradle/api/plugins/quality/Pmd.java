@@ -124,7 +124,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
 
     /**
      * JavaLauncher for toolchain support
-     * @since 7.7
+     * @since 8.0
      */
     @Incubating
     @Nested
@@ -481,7 +481,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @since 7.5
      */
     @Input
-    @Incubating
     public Property<Integer> getThreads() {
         return threads;
     }
