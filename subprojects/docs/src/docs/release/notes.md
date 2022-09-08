@@ -85,6 +85,10 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+### Promoted features in the Eclipse plugin
+
+- The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
+
 ## Fixed issues
 
 ## Known issues
