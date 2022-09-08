@@ -36,7 +36,7 @@ public class DefaultBuildTreeWorkGraphPreparer implements BuildTreeWorkGraphPrep
         RootBuildState targetBuild = buildRegistry.getRootBuild();
         Set<String> excludedTaskNames = targetBuild.getMutableModel().getStartParameter().getExcludedTaskNames();
         for (String taskName : excludedTaskNames) {
-            BuildTaskSelector.Filter filter = taskSelector.resolveExcludedTaskName(taskName, targetBuild);
+            BuildTaskSelector.Filter filter = taskSelector.resolveExcludedTaskName(targetBuild, taskName);
             workGraph.addFilter(filter.getBuild(), filter.getFilter());
         }
     }
