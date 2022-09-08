@@ -15,6 +15,7 @@ We would like to thank the following community members for their contributions t
 [Björn Kautler](https://github.com/Vampire)
 [Ricardo Jiang](https://github.com/RicardoJiang)
 [Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy),
+[Matthew Haughton](https://github.com/3flex),
 [Siddardha Bezawada](https://github.com/SidB3)
 [Stephen Topley](https://github.com/stopley)
 
