@@ -24,7 +24,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.DeferrableExecution;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +73,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         return 1;
     }
 
-    public CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
+    public DeferrableExecution<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
@@ -83,9 +85,9 @@ public class TransformationStep implements Transformation, TaskDependencyContain
             .map(dependencies -> {
                 ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
                 if (inputArtifacts.isEmpty()) {
-                    return CacheableInvocation.cached(Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of())));
+                    return DeferrableExecution.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of()));
                 } else if (inputArtifacts.size() > 1) {
-                    return CacheableInvocation.nonCached(() ->
+                    return DeferrableExecution.deferred(() ->
                         doTransform(subjectToTransform, inputFingerprinter, dependencies, inputArtifacts)
                     );
                 } else {
@@ -94,16 +96,18 @@ public class TransformationStep implements Transformation, TaskDependencyContain
                         .map(subjectToTransform::createSubjectFromResult);
                 }
             })
-            .getOrMapFailure(failure -> CacheableInvocation.cached(Try.failure(failure)));
+            .getOrMapFailure(DeferrableExecution::failed);
     }
 
     private Try<TransformationSubject> doTransform(TransformationSubject subjectToTransform, InputFingerprinter inputFingerprinter, ArtifactTransformDependencies dependencies, ImmutableList<File> inputArtifacts) {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File inputArtifact : inputArtifacts) {
-            Try<ImmutableList<File>> result = transformerInvocationFactory.createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, inputFingerprinter).invoke();
+            Try<ImmutableList<File>> result = transformerInvocationFactory
+                .createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, inputFingerprinter)
+                .get();
 
             if (result.getFailure().isPresent()) {
-                return Try.failure(result.getFailure().get());
+                return Cast.uncheckedCast(result);
             }
             builder.addAll(result.get());
         }

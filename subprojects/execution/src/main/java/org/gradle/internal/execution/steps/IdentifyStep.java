@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.DeferredExecutionHandler;
+import org.gradle.internal.execution.DeferrableExecution;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -45,8 +45,8 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
     }
 
     @Override
-    public <T, O> T executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<O>> cache, DeferredExecutionHandler<O, T> handler) {
-        return delegate.executeDeferred(work, createIdentityContext(work, context), cache, handler);
+    public <T> DeferrableExecution<T> executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<T>> cache) {
+        return delegate.executeDeferred(work, createIdentityContext(work, context), cache);
     }
 
     @Nonnull

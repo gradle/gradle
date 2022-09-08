@@ -706,7 +706,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     String executeDeferred(UnitOfWork unitOfWork, Cache<UnitOfWork.Identity, Try<Object>> cache) {
         virtualFileSystem.invalidateAll()
         executor.createRequest(unitOfWork)
-            .withIdentityCache(cache)
+            .executeDeferred(cache)
             .getOrDeferExecution(new DeferredExecutionHandler<Object, String>() {
                 @Override
                 String processCachedOutput(Try<Object> cachedResult) {

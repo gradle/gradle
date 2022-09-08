@@ -135,7 +135,7 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
             TransformationSubject.initial(artifact),
             inputFingerprinter
         )
-        invocation.invoke()
+        invocation.getResult()
     }
 
     static abstract class IdentityTransform implements TransformAction<TransformParameters.None> {
