@@ -26,7 +26,6 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterExecutionState;
 
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public interface ExecutionEngine {
     Request createRequest(UnitOfWork work);
@@ -50,20 +49,13 @@ public interface ExecutionEngine {
         Result execute();
 
         /**
-         * Use an identity cache to store execution results.
-         */
-        <O> CachedRequest<O> withIdentityCache(Cache<Identity, Try<O>> cache);
-    }
-
-    interface CachedRequest<O> {
-        /**
          * Load the unit of work from the given cache, or defer its execution.
          *
-         * If the cache already contains the outputs for the given work, it is passed directly to {@link DeferredExecutionHandler#processCachedOutput(Try)}.
-         * Otherwise the execution is wrapped in deferred via {@link DeferredExecutionHandler#processDeferredOutput(Supplier)}.
+         * If the cache already contains the outputs for the given work, an already finished {@link DeferrableExecution} will be returned.
+         * Otherwise, the execution is wrapped in a not-yet-complete {@link DeferrableExecution} to be evaluated later.
          * The work is looked up by its {@link UnitOfWork.Identity identity} in the given cache.
          */
-        <T> T getOrDeferExecution(DeferredExecutionHandler<O, T> handler);
+        <O> DeferrableExecution<O> executeDeferred(Cache<Identity, Try<O>> cache);
     }
 
     interface Result {

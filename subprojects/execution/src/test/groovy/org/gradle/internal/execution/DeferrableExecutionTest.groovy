@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform
+package org.gradle.internal.execution
 
 import org.gradle.internal.Try
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicInteger
 
-class CacheableInvocationTest extends Specification {
+class DeferrableExecutionTest extends Specification {
 
     def "composed invocation only creates the second invocation once"() {
         def creationCount = new AtomicInteger(0)
 
         def composed = first.flatMap { Integer input ->
             creationCount.incrementAndGet()
-            return CacheableInvocation.nonCached { Try.successful(input + 25) }
+            return DeferrableExecution.deferred { Try.successful(input + 25) }
         }
 
         when:
-        def result = composed.invoke()
-        composed.getCachedResult()
+        def result = composed.getResult()
+        composed.getCompletedResult()
         then:
         result.get() == 30
         creationCount.get() == 1
 
         where:
-        first << [CacheableInvocation.nonCached { Try.successful(5) }, CacheableInvocation.cached(Try.successful(5))]
+        first << [DeferrableExecution.deferred { Try.successful(5) }, DeferrableExecution.immediate(Try.successful(5))]
     }
 }
