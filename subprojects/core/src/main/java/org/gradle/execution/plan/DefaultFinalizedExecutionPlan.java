@@ -19,6 +19,7 @@ package org.gradle.execution.plan;
 import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.NonNullApi;
+import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.Pair;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -29,11 +30,14 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
@@ -43,8 +47,25 @@ import static java.lang.String.format;
 @NonNullApi
 public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, FinalizedExecutionPlan {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFinalizedExecutionPlan.class);
+    public static final Comparator<Node> NODE_EXECUTION_ORDER = new Comparator<Node>() {
+        @Override
+        public int compare(Node node1, Node node2) {
+            if (node1.isPriority() && !node2.isPriority()) {
+                return -1;
+            } else if (!node1.isPriority() && node2.isPriority()) {
+                return 1;
+            }
+            if (node1.getIndex() > node2.getIndex()) {
+                return 1;
+            } else if (node1.getIndex() < node2.getIndex()) {
+                return -1;
+            }
+            return NodeComparator.INSTANCE.compare(node1, node2);
+        }
+    };
 
-    private final ExecutionQueue executionQueue = new ExecutionQueue();
+    private final Set<Node> waitingToStartNodes = new HashSet<>();
+    private final ExecutionQueue readyNodes = new ExecutionQueue();
     private final List<Throwable> failures = new ArrayList<>();
     private final String displayName;
     private final ExecutionNodeAccessHierarchy outputHierarchy;
@@ -61,10 +82,6 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
     private final OrdinalNodeAccess ordinalNodeAccess;
     private final Consumer<LocalTaskNode> completionHandler;
-
-    // When true, there may be nodes that are "ready", which means their dependencies have completed and the action is ready to execute
-    // When false, there are definitely no nodes that are "ready"
-    private boolean maybeNodesReady;
 
     // When true, there may be nodes that are both ready and "selectable", which means their project and resources are able to be locked
     // When false, there are definitely no nodes that are "selectable"
@@ -92,14 +109,15 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         this.contents = contents;
         this.completionHandler = completionHandler;
 
-        executionQueue.setNodes(scheduledNodes);
-
-        executionQueue.restart();
-        while (executionQueue.hasNext()) {
-            Node node = executionQueue.next();
+        for (int i = 0; i < scheduledNodes.size(); i++) {
+            Node node = scheduledNodes.get(i);
+            node.setIndex(i);
             node.prepareForExecution(this::monitoredNodeReady);
             node.updateAllDependenciesComplete();
             maybeNodeReady(node);
+            if (node.getDependencyPredecessors().isEmpty()) {
+                waitingToStartNodes.add(node);
+            }
         }
         lockCoordinator.addLockReleaseListener(resourceUnlockListener);
     }
@@ -122,14 +140,15 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     @Override
     public void close() {
         lockCoordinator.removeLockReleaseListener(resourceUnlockListener);
-        executionQueue.clear();
+        waitingToStartNodes.clear();
+        readyNodes.clear();
         runningNodes.clear();
         producedButNotYetConsumed.clear();
         reachableCache.clear();
     }
 
     private void resourceUnlocked(ResourceLock resourceLock) {
-        if (!(resourceLock instanceof WorkerLeaseRegistry.WorkerLease) && maybeNodesReady) {
+        if (!(resourceLock instanceof WorkerLeaseRegistry.WorkerLease) && !readyNodes.isEmpty()) {
             maybeNodesSelectable = true;
         }
     }
@@ -137,9 +156,9 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     @Override
     public State executionState() {
         lockCoordinator.assertHasStateLock();
-        if (executionQueue.isEmpty()) {
+        if (waitingToStartNodes.isEmpty()) {
             return State.NoMoreWorkToStart;
-        } else if (maybeNodesSelectable) {
+        } else if (!readyNodes.isEmpty() && maybeNodesSelectable) {
             return State.MaybeWorkReadyToStart;
         } else {
             return State.NoWorkReadyToStart;
@@ -155,47 +174,59 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             ordinalGroups.add(group.diagnostics());
         }
 
-        List<String> queuedNodes = new ArrayList<>(executionQueue.size());
-        List<String> otherNodes = new ArrayList<>();
-        List<Node> queue = new ArrayList<>();
-        Set<Node> reported = new HashSet<>();
-        executionQueue.restart();
-        while (executionQueue.hasNext()) {
-            Node node = executionQueue.next();
-            queuedNodes.add(node.healthDiagnostics());
-            reported.add(node);
-            for (Node successor : node.getHardSuccessors()) {
-                queue.add(successor);
-            }
+        List<String> waitingForNodeNames = new ArrayList<>(this.waitingToStartNodes.size());
+        for (Node node : waitingToStartNodes) {
+            waitingForNodeNames.add(node.healthDiagnostics());
         }
-        while (!queue.isEmpty()) {
-            Node node = queue.remove(0);
-            if (reported.add(node)) {
-                otherNodes.add(node.healthDiagnostics());
-                for (Node successor : node.getHardSuccessors()) {
-                    queue.add(successor);
-                }
+        List<String> otherNodeNames = new ArrayList<>();
+        visitWaitingNodes(node -> {
+            if (!waitingToStartNodes.contains(node)) {
+                otherNodeNames.add(node.healthDiagnostics());
             }
-        }
+        });
 
-        return new Diagnostics(displayName, ordinalGroups, queuedNodes, otherNodes);
+        return new Diagnostics(displayName, ordinalGroups, waitingForNodeNames, otherNodeNames);
+    }
+
+    /**
+     * Visits the waiting nodes and their dependencies, dependencies first. Does not visit nodes that have completed.
+     */
+    private void visitWaitingNodes(Consumer<Node> visitor) {
+        List<Node> queue = new ArrayList<>(waitingToStartNodes);
+        Set<Node> visited = new HashSet<>();
+        Set<Node> visiting = new HashSet<>();
+        while (!queue.isEmpty()) {
+            Node node = queue.get(0);
+            if (node.isComplete() || visited.contains(node)) {
+                queue.remove(0);
+                continue;
+            }
+            if (visiting.add(node)) {
+                int pos = 0;
+                for (Node successor : node.getHardSuccessors()) {
+                    queue.add(pos++, successor);
+                }
+            } else {
+                visitor.accept(node);
+                visited.add(node);
+            }
+        }
     }
 
     @Override
     public Selection<Node> selectNext() {
         lockCoordinator.assertHasStateLock();
-        if (executionQueue.isEmpty()) {
+        if (waitingToStartNodes.isEmpty()) {
             return Selection.noMoreWorkToStart();
         }
-        if (!maybeNodesSelectable) {
+        if (readyNodes.isEmpty() || !maybeNodesSelectable) {
             return Selection.noWorkReadyToStart();
         }
 
         List<ResourceLock> resources = new ArrayList<>();
-        boolean foundReadyNode = false;
-        executionQueue.restart();
-        while (executionQueue.hasNext()) {
-            Node node = executionQueue.next();
+        readyNodes.restart();
+        while (readyNodes.hasNext()) {
+            Node node = readyNodes.next();
             if (node.allDependenciesComplete()) {
                 if (!node.allDependenciesSuccessful()) {
                     // Cannot execute this node due to failed dependencies - skip it
@@ -204,39 +235,39 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
                     } else {
                         node.markFailedDueToDependencies(this::recordNodeCompleted);
                     }
-                    executionQueue.remove();
                     // Skipped some nodes, which may invalidate some earlier nodes (for example a shared dependency of multiple finalizers when all finalizers are skipped), so start again
-                    executionQueue.restart();
+                    readyNodes.removeAndRestart(node);
                     continue;
                 }
 
                 if (node.hasPendingPreExecutionNodes()) {
                     // The node is ready to execute and its pre-execution nodes have not been scheduled, so do this now
-                    executionQueue.startInsert();
                     node.visitPreExecutionNodes(prepareNode -> {
+                        prepareNode.setIndex(node.getIndex());
                         prepareNode.require();
                         prepareNode.updateAllDependenciesComplete();
                         node.addDependencySuccessor(prepareNode);
-                        executionQueue.insert(prepareNode);
+                        addNodeToPlan(prepareNode);
                     });
-                    if (executionQueue.restartFromInsertPoint()) {
+                    node.forceAllDependenciesCompleteUpdate();
+                    if (!node.allDependenciesComplete()) {
                         // Some pre-execution nodes were scheduled, so try to execute them now
-                        node.forceAllDependenciesCompleteUpdate();
+                        readyNodes.removeAndRestart(node);
                         continue;
                     }
                 }
 
-                // Node is read to execute and all dependencies and pre-execution nodes have completed
-                foundReadyNode = true;
+                // Node is ready to execute and all dependencies and pre-execution nodes have completed
                 if (attemptToStart(node, resources)) {
-                    executionQueue.remove();
+                    readyNodes.remove();
+                    waitingToStartNodes.remove(node);
                     return Selection.of(node);
                 }
             }
             if (node.isComplete()) {
                 // Is already complete
                 // - is a pre-execution node that is also scheduled but not yet executed
-                executionQueue.remove();
+                readyNodes.remove();
             }
             // Else, node is not yet complete
             // - its dependencies are not yet complete
@@ -244,19 +275,23 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             // - it is a finalizer for nodes that are not yet complete
         }
 
-        LOGGER.debug("No node could be selected, nodes ready: {}", foundReadyNode);
-        maybeNodesReady = foundReadyNode;
         maybeNodesSelectable = false;
-        if (executionQueue.isEmpty()) {
+        if (waitingToStartNodes.isEmpty()) {
             return Selection.noMoreWorkToStart();
-        } else {
-            // No nodes are able to start
-            // - they are ready to execute but cannot acquire the resources they need to start
-            // - they are waiting for their dependencies to complete
-            // - they are waiting for some external event
-            // - they are a finalizer for nodes that are not yet complete
-            return Selection.noWorkReadyToStart();
         }
+        // No nodes are able to start
+        // - they are ready to execute but cannot acquire the resources they need to start
+        // - they are waiting for their dependencies to complete
+        // - they are waiting for some external event
+        // - they are a finalizer for nodes that are not yet complete
+        return Selection.noWorkReadyToStart();
+    }
+
+    private void addNodeToPlan(Node node) {
+        if (node.getDependencyPredecessors().isEmpty()) {
+            waitingToStartNodes.add(node);
+        }
+        maybeNodeReady(node);
     }
 
     private boolean attemptToStart(Node node, List<ResourceLock> resources) {
@@ -463,6 +498,16 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
 
     private void recordNodeCompleted(Node node) {
         LOGGER.debug("Node {} completed, executed: {}", node, node.isExecuted());
+        waitingToStartNodes.remove(node);
+        if (continueOnFailure && !node.allDependenciesComplete()) {
+            // Wait for any dependencies of this node that have not started yet
+            for (Node successor : node.getDependencySuccessors()) {
+                if (successor.isRequired()) {
+                    waitingToStartNodes.add(successor);
+                }
+            }
+        }
+
         MutationInfo mutations = node.getMutationInfo();
         for (Node producer : node.getDependencySuccessors()) {
             MutationInfo producerMutations = producer.getMutationInfo();
@@ -506,7 +551,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
                 throw new IllegalStateException(format("Cannot finish executing %s as it is in an unexpected state %s.", node, node.getState()));
             }
 
-            if (maybeNodesReady) {
+            if (!readyNodes.isEmpty()) {
                 maybeNodesSelectable = true;
             }
 
@@ -516,16 +561,18 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
                 handleFailure(node);
             } else {
                 LOGGER.debug("Node {} finished executing", node);
-                executionQueue.restart();
-                executionQueue.startInsert();
                 node.visitPostExecutionNodes(postNode -> {
+                    postNode.setIndex(node.getIndex());
                     postNode.require();
                     postNode.updateAllDependenciesComplete();
+                    addNodeToPlan(postNode);
                     for (Node predecessor : node.getDependencyPredecessors()) {
                         predecessor.addDependencySuccessor(postNode);
                         predecessor.forceAllDependenciesCompleteUpdate();
+                        if (!predecessor.allDependenciesComplete()) {
+                            readyNodes.removeAndRestart(predecessor);
+                        }
                     }
-                    executionQueue.insert(postNode);
                 });
             }
         } finally {
@@ -537,11 +584,8 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
 
     private void maybeNodeReady(Node node) {
         if (node.allDependenciesComplete()) {
-            maybeNodesReady = true;
             maybeNodesSelectable = true;
-            if (node.isPriority()) {
-                executionQueue.priorityNode(node);
-            }
+            readyNodes.insert(node);
         }
     }
 
@@ -582,22 +626,21 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     }
 
     private boolean abortExecution(boolean abortAll) {
-        boolean aborted = false;
-        executionQueue.restart();
-        while (executionQueue.hasNext()) {
-            Node node = executionQueue.next();
-            if (abortAll || node.isCanCancel()) {
+        MutableBoolean cancelled = new MutableBoolean();
+        visitWaitingNodes(node -> {
+            if (node.isRequired() && (abortAll || node.isCanCancel())) {
                 // Allow currently executing and enforced tasks to complete, but skip everything else.
                 // If abortAll is set, also stop everything.
                 node.cancelExecution(this::recordNodeCompleted);
-                executionQueue.remove();
-                aborted = true;
+                cancelled.set(true);
             }
-        }
-        if (aborted) {
+        });
+        if (cancelled.get()) {
             maybeNodesSelectable = true;
+            return true;
+        } else {
+            return false;
         }
-        return aborted;
     }
 
     @Override
@@ -610,22 +653,19 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
 
     @Override
     public boolean allExecutionComplete() {
-        return executionQueue.isEmpty() && runningNodes.isEmpty();
+        return waitingToStartNodes.isEmpty() && runningNodes.isEmpty();
     }
 
+    /**
+     * An ordered queue of nodes, sorted by {@link #NODE_EXECUTION_ORDER}.
+     */
     static class ExecutionQueue {
-        private final List<Node> nodes = new ArrayList<>();
-        private int nextPos = 0;
-        private int insertPos;
-
-        public void setNodes(Collection<? extends Node> nodes) {
-            this.nodes.clear();
-            this.nodes.addAll(nodes);
-            nextPos = 0;
-        }
+        private final Set<Node> nodes = new TreeSet<>(NODE_EXECUTION_ORDER);
+        private Iterator<Node> current;
 
         public void clear() {
             nodes.clear();
+            current = null;
         }
 
         public boolean isEmpty() {
@@ -637,85 +677,42 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         }
 
         public void restart() {
-            nextPos = 0;
+            current = nodes.iterator();
         }
 
         public boolean hasNext() {
-            return nextPos < nodes.size();
+            return current.hasNext();
         }
 
         /**
          * Move to the next node.
          */
         public Node next() {
-            return nodes.get(nextPos++);
+            if (current == null) {
+                throw new IllegalStateException();
+            }
+            return current.next();
         }
 
         /**
          * Remove the current node.
          */
         public void remove() {
-            nextPos--;
-            nodes.remove(nextPos);
+            current.remove();
+        }
+
+        public void removeAndRestart(Node node) {
+            nodes.remove(node);
+            restart();
         }
 
         /**
-         * Move the given node to the front of the queue. Leave the current node unchanged.
-         */
-        public void priorityNode(Node node) {
-            int previousPos = nodes.indexOf(node);
-            nodes.remove(previousPos);
-            nodes.add(0, node);
-            if (previousPos >= nextPos) {
-                nextPos++;
-            }
-        }
-
-        /**
-         * Start inserting nodes before the current node.
-         */
-        public void startInsert() {
-            if (nextPos > 0) {
-                nextPos--;
-            }
-            insertPos = nextPos;
-        }
-
-        /**
-         * Insert the given node at the current insert position.
+         * Insert the given node.
          */
         public void insert(Node node) {
-            nodes.add(nextPos, node);
-            nextPos++;
-        }
-
-        /**
-         * Finish inserting nodes and make the first inserted node the next node.
-         */
-        public boolean restartFromInsertPoint() {
-            if (nextPos > insertPos) {
-                nextPos = insertPos;
-                return true;
-            } else {
-                nextPos++;
-                return false;
+            if (nodes.add(node)) {
+                current = null;
             }
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder str = new StringBuilder("ExecutionQueue[");
-            for (int i = 0; i < nodes.size(); ++i) {
-                if (i > 0) {
-                    str.append(", ");
-                }
-                if (i == nextPos) {
-                    str.append("(next)");
-                }
-                str.append(nodes.get(i));
-            }
-            str.append("]");
-            return str.toString();
         }
     }
 }

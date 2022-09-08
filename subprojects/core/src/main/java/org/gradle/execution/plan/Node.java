@@ -20,17 +20,16 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.VerificationException;
+import org.gradle.execution.plan.edges.DependentNodesSet;
 import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Collections;
 import java.util.List;
-import java.util.NavigableSet;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.function.Consumer;
-
-import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
 
 /**
  * A node in the execution graph that represents some executable code with potential dependencies on other nodes.
@@ -67,8 +66,9 @@ public abstract class Node {
     private DependenciesState dependenciesState = DependenciesState.NOT_COMPLETE;
     private Throwable executionFailure;
     private boolean filtered;
+    private int index;
     private final NodeDependencySet dependencySuccessors = new NodeDependencySet(this);
-    private final NavigableSet<Node> dependencyPredecessors = newSortedNodeSet();
+    private DependentNodesSet dependentNodes = DependentNodesSet.EMPTY;
     private final MutationInfo mutationInfo = new MutationInfo(this);
     private NodeGroup group = NodeGroup.DEFAULT_GROUP;
 
@@ -324,6 +324,14 @@ public abstract class Node {
         }
     }
 
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
+
     /**
      * Mark this node as filtered from the current plan. The node will be considered complete and successful.
      */
@@ -339,6 +347,7 @@ public abstract class Node {
      */
     public void reset() {
         group = NodeGroup.DEFAULT_GROUP;
+        index = 0;
         if (!isCannotRunInAnyPlan()) {
             filtered = false;
             dependenciesProcessed = false;
@@ -362,8 +371,8 @@ public abstract class Node {
         return this.executionFailure;
     }
 
-    public Set<Node> getDependencyPredecessors() {
-        return dependencyPredecessors;
+    public SortedSet<Node> getDependencyPredecessors() {
+        return dependentNodes.getDependencyPredecessors();
     }
 
     public Set<Node> getDependencySuccessors() {
@@ -376,8 +385,20 @@ public abstract class Node {
 
     public void addDependencySuccessor(Node toNode) {
         dependencySuccessors.addDependency(toNode);
-        toNode.getDependencyPredecessors().add(this);
-        toNode.getMutationInfo().consumingNodes.add(this);
+        toNode.addDependencyPredecessor(this);
+    }
+
+    void addDependencyPredecessor(Node fromNode) {
+        dependentNodes = dependentNodes.addDependencyPredecessors(fromNode);
+        mutationInfo.consumingNodes.add(fromNode);
+    }
+
+    protected DependentNodesSet getDependentNodes() {
+        return dependentNodes;
+    }
+
+    protected void updateDependentNodes(DependentNodesSet newDependents) {
+        dependentNodes = newDependents;
     }
 
     /**
@@ -465,9 +486,7 @@ public abstract class Node {
      * Should visit the nodes in a deterministic order, but the order can be whatever best makes sense for the node implementation.
      */
     protected void visitAllNodesWaitingForThisNode(Consumer<Node> visitor) {
-        for (Node node : getDependencyPredecessors()) {
-            visitor.accept(node);
-        }
+        dependentNodes.visitAllNodes(visitor);
     }
 
     /**
@@ -524,11 +543,12 @@ public abstract class Node {
         return dependencySuccessors.getOrderedNodes().descendingSet();
     }
 
-    public Set<Node> getFinalizers() {
-        return Collections.emptySet();
+    public SortedSet<Node> getFinalizers() {
+        return dependentNodes.getFinalizers();
     }
 
     public void addFinalizer(Node finalizer) {
+        dependentNodes = dependentNodes.addFinalizer(finalizer);
     }
 
     public Set<Node> getFinalizingSuccessors() {
