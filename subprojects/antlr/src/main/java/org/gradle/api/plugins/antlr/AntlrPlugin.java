@@ -21,12 +21,12 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.antlr.internal.DefaultAntlrSourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
 
 import javax.inject.Inject;
@@ -72,14 +72,11 @@ public class AntlrPlugin implements Plugin<Project> {
                 public void execute(final SourceSet sourceSet) {
                     // for each source set we will:
                     // 1) Add a new 'antlr' virtual directory mapping
-                    org.gradle.api.plugins.antlr.internal.AntlrSourceVirtualDirectoryImpl antlrDirectoryDelegate
-                        = new org.gradle.api.plugins.antlr.internal.AntlrSourceVirtualDirectoryImpl(((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
-                    new DslObject(sourceSet).getConvention().getPlugins().put(
-                        AntlrSourceVirtualDirectory.NAME, antlrDirectoryDelegate);
-                    sourceSet.getExtensions().add(AntlrSourceDirectorySet.class, AntlrSourceVirtualDirectory.NAME, antlrDirectoryDelegate.getAntlr());
+                    AntlrSourceDirectorySet antlrSourceSet = createAntlrSourceDirectorySet(((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
+                    sourceSet.getExtensions().add(AntlrSourceDirectorySet.class, AntlrSourceDirectorySet.NAME, antlrSourceSet);
                     final String srcDir = "src/" + sourceSet.getName() + "/antlr";
-                    antlrDirectoryDelegate.getAntlr().srcDir(srcDir);
-                    sourceSet.getAllSource().source(antlrDirectoryDelegate.getAntlr());
+                    antlrSourceSet.srcDir(srcDir);
+                    sourceSet.getAllSource().source(antlrSourceSet);
 
                     // 2) create an AntlrTask for this sourceSet following the gradle
                     //    naming conventions via call to sourceSet.getTaskName()
@@ -95,7 +92,7 @@ public class AntlrPlugin implements Plugin<Project> {
                         public void execute(AntlrTask antlrTask) {
                             antlrTask.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
                             // 4) set up convention mapping for default sources (allows user to not have to specify)
-                            antlrTask.setSource(antlrDirectoryDelegate.getAntlr());
+                            antlrTask.setSource(antlrSourceSet);
                             antlrTask.setOutputDirectory(outputDirectory);
                         }
                     });
@@ -109,5 +106,14 @@ public class AntlrPlugin implements Plugin<Project> {
                     });
                 }
             });
+    }
+
+    private static AntlrSourceDirectorySet createAntlrSourceDirectorySet(String parentDisplayName, ObjectFactory objectFactory) {
+        String name = parentDisplayName + ".antlr";
+        String displayName = parentDisplayName + " Antlr source";
+        AntlrSourceDirectorySet antlrSourceSet = new DefaultAntlrSourceDirectorySet(objectFactory.sourceDirectorySet(name, displayName));
+        antlrSourceSet.getFilter().include("**/*.g");
+        antlrSourceSet.getFilter().include("**/*.g4");
+        return antlrSourceSet;
     }
 }

@@ -147,7 +147,6 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
      * @return the java launcher property
      * @since 7.2
      */
-    @Incubating
     @Nested
     @Optional
     public Property<JavaLauncher> getJavaLauncher() {
