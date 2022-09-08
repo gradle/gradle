@@ -19,6 +19,7 @@ package org.gradle.internal.jvm.inspection;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.JavaInfo;
+import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.process.internal.ExecException;
 
 import java.io.File;
@@ -49,7 +50,7 @@ public class DefaultJvmVersionDetector implements JvmVersionDetector {
     }
 
     private JavaVersion getVersionFromJavaHome(File javaHome) {
-        return validate(detector.getMetadata(javaHome)).getLanguageVersion();
+        return validate(detector.getMetadata(new InstallationLocation(javaHome, "specific path"))).getLanguageVersion();
     }
 
     private JvmInstallationMetadata validate(JvmInstallationMetadata metadata) {

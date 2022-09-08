@@ -33,11 +33,12 @@ import java.util.List;
 import java.util.Set;
 
 class SelectorStateResolverResults {
-    private static final VersionParser VERSION_PARSER = new VersionParser();
     private final Comparator<Version> versionComparator;
+    private final VersionParser versionParser;
     private final List<Registration> results;
 
-    public SelectorStateResolverResults(Comparator<Version> versionComparator, int size) {
+    public SelectorStateResolverResults(Comparator<Version> versionComparator, VersionParser versionParser, int size) {
+        this.versionParser = versionParser;
         results = Lists.newArrayListWithCapacity(size);
         this.versionComparator = versionComparator;
     }
@@ -104,7 +105,7 @@ class SelectorStateResolverResults {
     }
 
     public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
-        T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());
+        T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getState());
         if (idResolveResult.isRejected()) {
             component.reject();
         }
@@ -133,7 +134,7 @@ class SelectorStateResolverResults {
             ComponentIdResolveResult previous = registration.result;
             ResolvableSelectorState previousSelector = registration.selector;
             if (emptyVersion(previous) || sameVersion(previous, candidate) ||
-                    (selectorAcceptsCandidate(previousSelector, candidate, isFromLock) && lowerVersion(previous, candidate))) {
+                (selectorAcceptsCandidate(previousSelector, candidate, isFromLock) && lowerVersion(previous, candidate))) {
                 registration.result = candidate;
                 replaces = true;
             }
@@ -161,8 +162,8 @@ class SelectorStateResolverResults {
 
     private boolean lowerVersion(ComponentIdResolveResult existing, ComponentIdResolveResult resolveResult) {
         if (existing.getFailure() == null && resolveResult.getFailure() == null) {
-            Version existingVersion = VERSION_PARSER.transform(existing.getModuleVersionId().getVersion());
-            Version candidateVersion = VERSION_PARSER.transform(resolveResult.getModuleVersionId().getVersion());
+            Version existingVersion = versionParser.transform(existing.getModuleVersionId().getVersion());
+            Version candidateVersion = versionParser.transform(resolveResult.getModuleVersionId().getVersion());
 
             int comparison = versionComparator.compare(candidateVersion, existingVersion);
             return comparison < 0;
@@ -180,7 +181,7 @@ class SelectorStateResolverResults {
         }
         VersionSelector versionSelector = versionConstraint.getRequiredSelector();
         if (versionSelector != null &&
-                (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
+            (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
 
             if (candidateIsFromLock && versionSelector instanceof LatestVersionSelector) {
                 // Always assume a candidate from a lock will satisfy the latest version selector

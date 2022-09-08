@@ -22,6 +22,7 @@ import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.codec
 import org.gradle.configurationcache.serialization.logPropertyProblem
 import org.gradle.configurationcache.serialization.readCollectionInto
+import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readMapInto
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeMap
@@ -29,6 +30,8 @@ import java.util.LinkedList
 import java.util.TreeMap
 import java.util.TreeSet
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CopyOnWriteArraySet
 
 
 internal
@@ -37,6 +40,17 @@ val arrayListCodec: Codec<ArrayList<Any?>> = collectionCodec { ArrayList(it) }
 
 internal
 val linkedListCodec: Codec<LinkedList<Any?>> = collectionCodec { LinkedList<Any?>() }
+
+
+internal
+val copyOnWriteArrayListCodec: Codec<CopyOnWriteArrayList<Any?>> = codec(
+    { writeCollection(it) },
+    {
+        // Avoid the overhead of copying the underlying array for each inserted element
+        // by creating the COW data structure from a list.
+        CopyOnWriteArrayList(readList())
+    }
+)
 
 
 /**
@@ -127,6 +141,17 @@ val treeSetCodec: Codec<TreeSet<Any?>> = codec(
         @Suppress("unchecked_cast")
         val comparator = read() as Comparator<Any?>?
         readCollectionInto { TreeSet(comparator) }
+    }
+)
+
+
+internal
+val copyOnWriteArraySetCodec: Codec<CopyOnWriteArraySet<Any?>> = codec(
+    { writeCollection(it) },
+    {
+        // Avoid the overhead of copying the underlying array for each inserted element
+        // by creating the COW data structure from a list.
+        CopyOnWriteArraySet(readList())
     }
 )
 

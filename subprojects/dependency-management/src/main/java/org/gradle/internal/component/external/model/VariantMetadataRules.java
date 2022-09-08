@@ -81,7 +81,7 @@ public class VariantMetadataRules {
         return capabilities;
     }
 
-    public <T extends ModuleDependencyMetadata> List<T> applyDependencyMetadataRules(VariantResolveMetadata variant, List<T> configDependencies) {
+    public <T extends ModuleDependencyMetadata> List<? extends ModuleDependencyMetadata> applyDependencyMetadataRules(VariantResolveMetadata variant, List<T> configDependencies) {
         if (dependencyMetadataRules != null) {
             return dependencyMetadataRules.execute(variant, configDependencies);
         }

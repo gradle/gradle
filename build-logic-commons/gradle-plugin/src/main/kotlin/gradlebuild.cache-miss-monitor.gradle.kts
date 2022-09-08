@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-import com.gradle.scan.plugin.BuildScanExtension
+@file:Suppress("UNCHECKED_CAST")
+
+import gradlebuild.AbstractBuildScanInfoCollectingService
+import gradlebuild.registerBuildScanInfoCollectingService
+import org.gradle.internal.os.OperatingSystem
+import org.gradle.tooling.events.task.TaskOperationResult
+import org.gradle.tooling.events.task.TaskSuccessResult
+import java.io.Serializable
 import java.util.concurrent.atomic.AtomicBoolean
 
-val cacheMissTagged = AtomicBoolean(false)
-plugins.withId("com.gradle.build-scan") {
-    val buildScan = extensions.findByType<BuildScanExtension>()
-
-    if (System.getenv("TEAMCITY_VERSION") != null) {
-        gradle.taskGraph.afterTask {
-            if (buildCacheEnabled() && isCacheMiss() && isNotTaggedYet()) {
-                buildScan?.tag("CACHE_MISS")
+/**
+ * Register a build service that monitors a list of tasks and reports CACHE_MISS if they're actually executed.
+ */
+if (buildCacheEnabled()) {
+    registerBuildScanInfoCollectingService(CacheMissMonitorBuildService::class.java, ::isCacheMissMonitoredTask) { cacheMissInBuildLogic, cacheMissInMainBuild ->
+        buildFinished {
+            if ((cacheMissInBuildLogic as AtomicBoolean).get() || (cacheMissInMainBuild as AtomicBoolean).get()) {
+                tag("CACHE_MISS")
             }
         }
     }
@@ -32,15 +39,32 @@ plugins.withId("com.gradle.build-scan") {
 
 fun buildCacheEnabled() = gradle.startParameter.isBuildCacheEnabled
 
-fun isNotTaggedYet() = cacheMissTagged.compareAndSet(false, true)
+abstract class CacheMissMonitorBuildService : AbstractBuildScanInfoCollectingService() {
+    private val cacheMiss: AtomicBoolean = AtomicBoolean(false)
+    override val collectedInformation: Serializable = cacheMiss
 
-fun Task.isCacheMiss() = !state.skipped && state.failure == null && (isCompileCacheMiss() || isAsciidoctorCacheMiss())
+    override fun action(taskPath: String, taskResult: TaskOperationResult) {
+        if (taskResult is TaskSuccessResult && !taskResult.isFromCache && !taskResult.isUpToDate) {
+            println("CACHE_MISS in task $taskPath")
+            cacheMiss.set(true)
+        }
+    }
+}
 
-fun Task.isCompileCacheMiss() = isMonitoredCompileTask() && !isExpectedCompileCacheMiss()
 
-fun isAsciidoctorCacheMiss() = isMonitoredAsciidoctorTask() && !isExpectedAsciidoctorCacheMiss()
+/**
+ *  We monitor some tasks in non-seed builds. If a task executed in a non-seed build, we think it as "CACHE_MISS".
+ */
+fun isCacheMissMonitoredTask(task: Task) = task.isCompileCacheMissMonitoredTask() || task.project.isAsciidoctorCacheMissTask()
 
-fun Task.isMonitoredCompileTask() = (this is AbstractCompile || this.isClasspathManifest()) && !this.isKotlinJsIrLink()
+fun Task.isCompileCacheMissMonitoredTask() = isMonitoredCompileTask() && !project.isExpectedCompileCacheMiss()
+
+fun Project.isAsciidoctorCacheMissTask() = isMonitoredAsciidoctorTask() && !isExpectedAsciidoctorCacheMiss()
+
+fun Task.isMonitoredCompileTask() = (this is AbstractCompile || this.isClasspathManifest()) && !isKotlinJsIrLink() && !isOnM1Mac()
+
+// vendor is an input of GroovyCompile, so GroovyCompile on M1 mac is definitely a cache miss
+fun Task.isOnM1Mac() = OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64"
 
 fun Task.isClasspathManifest() = this.javaClass.simpleName.startsWith("ClasspathManifest")
 
@@ -49,7 +73,7 @@ fun Task.isKotlinJsIrLink() = this.javaClass.simpleName.startsWith("KotlinJsIrLi
 
 fun isMonitoredAsciidoctorTask() = false // No asciidoctor tasks are cacheable for now
 
-fun isExpectedAsciidoctorCacheMiss() =
+fun Project.isExpectedAsciidoctorCacheMiss() =
 // Expected cache-miss for asciidoctor task:
 // 1. CompileAll is the seed build for docs:distDocs
 // 2. BuildDistributions is the seed build for other asciidoctor tasks
@@ -62,7 +86,7 @@ fun isExpectedAsciidoctorCacheMiss() =
         "Component_GradlePlugin_Performance_PerformanceLatestReleased"
     )
 
-fun isExpectedCompileCacheMiss() =
+fun Project.isExpectedCompileCacheMiss() =
 // Expected cache-miss:
 // 1. CompileAll is the seed build
 // 2. Gradleception which re-builds Gradle with a new Gradle version
@@ -80,6 +104,6 @@ val Project.isBuildCommitDistribution: Boolean
     get() = providers.gradleProperty("buildCommitDistribution").map { it.toBoolean() }.orElse(false).get()
 
 
-fun isInBuild(vararg buildTypeIds: String) = providers.environmentVariable("BUILD_TYPE_ID").orNull?.let { currentBuildTypeId ->
+fun Project.isInBuild(vararg buildTypeIds: String) = providers.environmentVariable("BUILD_TYPE_ID").orNull?.let { currentBuildTypeId ->
     buildTypeIds.any { currentBuildTypeId.endsWith(it) }
 } ?: false

@@ -23,19 +23,17 @@ class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
     def "buildSrc classes are not visible in settings"() {
         file('buildSrc/build.gradle') << """
             apply plugin: 'groovy'
-            
-            repositories {
-                ${mavenCentralRepository()}
-            }
 
-            dependencies {  
-                implementation 'org.apache.commons:commons-math3:3.6.1'                
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation 'org.apache.commons:commons-math3:3.6.1'
             }
         """
 
         file('buildSrc/src/main/java/org/acme/build/SomeBuildSrcClass.java') << """
         package org.acme.build;
-        
+
         public class SomeBuildSrcClass {
             public static void foo(String foo){
                 System.out.println(foo);
@@ -44,7 +42,7 @@ class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
         """
         file('buildSrc/src/main/java/org/acme/build/SomeOtherBuildSrcClass.java') << """
         package org.acme.build;
-        
+
         public class SomeOtherBuildSrcClass {
             public static void foo(String foo){
                 System.out.println(foo);
@@ -56,22 +54,22 @@ class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
         def dependencyClassName = "org.apache.commons.math3.util.FastMath"
 
         settingsFile << """
-            
+
             gradle.ext.tryClass = { String from, String name, ClassLoader classLoader ->
                 try {
                     classLoader.loadClass(name)
-                    println "FOUND [\$from] \$name" 
+                    println "FOUND [\$from] \$name"
                 } catch (ClassNotFoundException e) {
-                    println "NOT FOUND [\$from] \$name" 
-                }              
+                    println "NOT FOUND [\$from] \$name"
+                }
             }
 
-            gradle.tryClass("settings", "$localClassName", getClass().classLoader)            
+            gradle.tryClass("settings", "$localClassName", getClass().classLoader)
             gradle.tryClass("settings", "$dependencyClassName", getClass().classLoader)
         """
 
         buildFile << """
-            gradle.tryClass("project", "$localClassName", project.buildscript.classLoader)            
+            gradle.tryClass("project", "$localClassName", project.buildscript.classLoader)
             gradle.tryClass("project", "$dependencyClassName", project.buildscript.classLoader)
         """
 

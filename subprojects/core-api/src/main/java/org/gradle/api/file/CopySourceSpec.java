@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 
 /**
@@ -37,7 +38,7 @@ public interface CopySourceSpec {
      * @param sourcePath Path to source for the copy
      * @param configureClosure closure for configuring the child CopySourceSpec
      */
-    CopySourceSpec from(Object sourcePath, Closure configureClosure);
+    CopySourceSpec from(Object sourcePath, @DelegatesTo(CopySpec.class) Closure configureClosure);
 
     /**
      * Specifies the source files or directories for a copy and creates a child {@code CopySpec}. The given source

@@ -16,10 +16,10 @@
 
 package org.gradle.internal.jvm.inspection;
 
-import java.io.File;
+import org.gradle.jvm.toolchain.internal.InstallationLocation;
 
 public interface JvmMetadataDetector {
 
-    JvmInstallationMetadata getMetadata(File javaHome);
+    JvmInstallationMetadata getMetadata(InstallationLocation javaInstallationLocation);
 
 }

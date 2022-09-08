@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories
 
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class AbstractArtifactRepositoryChangingNameAfterContainerInclusion extends AbstractProjectBuilderSpec {
@@ -36,7 +37,7 @@ class AbstractArtifactRepositoryChangingNameAfterContainerInclusion extends Abst
 
     class TestRepo extends AbstractArtifactRepository {
         def TestRepo() {
-            super(null)
+            super(null, new VersionParser())
         }
     }
 }

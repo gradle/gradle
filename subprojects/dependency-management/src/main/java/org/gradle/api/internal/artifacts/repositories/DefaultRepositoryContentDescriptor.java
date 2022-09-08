@@ -54,9 +54,16 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     private final VersionSelectorScheme versionSelectorScheme;
     private final ConcurrentHashMap<String, VersionSelector> versionSelectors = new ConcurrentHashMap<>();
 
-    public DefaultRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier) {
-        this.versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser());
+    private final VersionParser versionParser;
+
+    public DefaultRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier, VersionParser versionParser) {
+        this.versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), versionParser);
         this.repositoryNameSupplier = repositoryNameSupplier;
+        this.versionParser = versionParser;
+    }
+
+    protected VersionParser getVersionParser() {
+        return versionParser;
     }
 
     private void assertMutable() {
@@ -87,7 +94,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
 
     @Override
     public RepositoryContentDescriptorInternal asMutableCopy() {
-        DefaultRepositoryContentDescriptor copy = new DefaultRepositoryContentDescriptor(repositoryNameSupplier);
+        DefaultRepositoryContentDescriptor copy = new DefaultRepositoryContentDescriptor(repositoryNameSupplier, getVersionParser());
         if (includedConfigurations != null) {
             copy.includedConfigurations = Sets.newHashSet(includedConfigurations);
         }

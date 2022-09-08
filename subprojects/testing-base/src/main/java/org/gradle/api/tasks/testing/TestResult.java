@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.Incubating;
+
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -47,10 +49,20 @@ public interface TestResult {
     Throwable getException();
 
     /**
+     * If the test failed with any exceptions, this will contain the exceptions and a description of the failure types.
+     *
+     * @return The failures, if any, logged for this test. If none, an empty list is returned.
+     * @see #getExceptions()
+     * @since 7.6
+     */
+    @Incubating
+    List<TestFailure> getFailures();
+
+    /**
      * If the test failed with any exceptions, this will contain the exceptions.  Some test frameworks do not fail
      * without an exception (JUnit), so in those cases this method will never return an empty list.
      *
-     * @return The exceptions, if any, logged for this test.  If none, an empty list is returned.
+     * @return The exceptions, if any, logged for this test. If none, an empty list is returned.
      */
     List<Throwable> getExceptions();
 

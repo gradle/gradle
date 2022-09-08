@@ -16,6 +16,9 @@
 
 package org.gradle.language.scala.tasks;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
@@ -25,6 +28,7 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.List;
 
 /**
@@ -59,6 +63,13 @@ public class BaseScalaCompileOptions extends AbstractOptions {
     private ScalaForkOptions forkOptions = new ScalaForkOptions();
 
     private IncrementalCompileOptions incrementalOptions;
+
+    private final Property<KeepAliveMode> keepAliveMode = getObjectFactory().property(KeepAliveMode.class);
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Fail the build on compilation errors.
@@ -224,5 +235,16 @@ public class BaseScalaCompileOptions extends AbstractOptions {
 
     public void setIncrementalOptions(IncrementalCompileOptions incrementalOptions) {
         this.incrementalOptions = incrementalOptions;
+    }
+
+    /**
+     * Keeps Scala compiler daemon alive across builds for faster build times
+     *
+     * @since 7.6
+     */
+    @Incubating
+    @Input
+    public Property<KeepAliveMode> getKeepAliveMode() {
+        return this.keepAliveMode;
     }
 }

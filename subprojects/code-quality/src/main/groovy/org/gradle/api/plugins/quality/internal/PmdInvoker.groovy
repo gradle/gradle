@@ -68,7 +68,7 @@ abstract class PmdInvoker {
 
     private static runPmd(IsolatedAntBuilder antBuilder, FileCollection pmdClasspath, rulePriority, targetJdk, ruleSets, incrementalAnalysis, incrementalCacheFile, maxFailures, source, ruleSetFiles, ruleSetConfig, classpath, reports, consoleOutput, stdOutIsAttachedToTerminal, ignoreFailures, logger, threads) {
         antBuilder.withClasspath(pmdClasspath).execute { a ->
-            VersionNumber version = determinePmdVersion(Thread.currentThread().getContextClassLoader())
+            VersionNumber version = PmdInvoker.determinePmdVersion(Thread.currentThread().getContextClassLoader())
 
             def antPmdArgs = [
                     failOnRuleViolation: false,

@@ -201,10 +201,6 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             String groovyAllCoordinates = groovyGroupName(groovyVersion) + ":" + (constraintsDefined ? "groovy-all" : "groovy-all:" + groovyVersion);
             buildScriptBuilder.implementationDependency("Use the latest Groovy version for building this library", groovyAllCoordinates);
         }
-        if (getLanguage() == Language.KOTLIN) {
-            buildScriptBuilder.dependencies().platformDependency("implementation", "Align versions of all Kotlin components", "org.jetbrains.kotlin:kotlin-bom");
-            buildScriptBuilder.implementationDependency("Use the Kotlin JDK 8 standard library.", "org.jetbrains.kotlin:kotlin-stdlib-jdk8");
-        }
         if (getLanguage() == Language.SCALA) {
             String scalaVersion = libraryVersionProvider.getVersion("scala");
             String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
@@ -219,10 +215,6 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
 
         if (getLanguage() == Language.GROOVY) {
             buildScriptBuilder.implementationDependencyConstraint(null, groovyModuleDependency("groovy-all", libraryVersionProvider.getVersion("groovy")));
-        }
-        if (getLanguage() == Language.KOTLIN) {
-            buildScriptBuilder.dependencies().platformDependency("implementation", "Align versions of all Kotlin components", "org.jetbrains.kotlin:kotlin-bom");
-            buildScriptBuilder.implementationDependencyConstraint(null, "org.jetbrains.kotlin:kotlin-stdlib-jdk8");
         }
         if (getLanguage() == Language.SCALA) {
             String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
@@ -278,8 +270,13 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                         "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
                 break;
             case KOTLINTEST:
-                buildScriptBuilder.testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test");
-                buildScriptBuilder.testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
+                buildScriptBuilder.testImplementationDependency("Use the Kotlin JUnit 5 integration.", "org.jetbrains.kotlin:kotlin-test-junit5");
+                // TODO: Make this work with JUnit 5.6.0 again, see https://github.com/gradle/gradle/issues/13955
+                buildScriptBuilder.testImplementationDependency("Use the JUnit 5 integration.", "org.junit.jupiter:junit-jupiter-engine:" + libraryVersionProvider.getVersion("junit-jupiter"));
+
+                buildScriptBuilder.taskMethodInvocation(
+                        "Use JUnit Platform for unit tests.",
+                        "test", "Test", "useJUnitPlatform");
                 break;
             default:
                 buildScriptBuilder.testImplementationDependency("Use JUnit test framework.", "junit:junit:" + libraryVersionProvider.getVersion("junit"));

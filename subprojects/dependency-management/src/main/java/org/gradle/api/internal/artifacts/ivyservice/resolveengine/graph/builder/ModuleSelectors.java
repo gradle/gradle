@@ -35,28 +35,30 @@ import java.util.List;
 import java.util.function.Function;
 
 public class ModuleSelectors<T extends ResolvableSelectorState> implements Iterable<T> {
-    private static final VersionParser VERSION_PARSER = new VersionParser();
-    private static final Version EMPTY_VERSION = VERSION_PARSER.transform("");
+
+    private final Version emptyVersion;
 
     private static <T, U extends Comparable<? super U>> Comparator<T> reverse(
         Function<? super T, ? extends U> keyExtractor) {
         return Cast.uncheckedCast(Comparator.comparing(keyExtractor).reversed());
     }
 
-
+    private final VersionParser versionParser;
     private final List<T> selectors = Lists.newArrayList();
     private boolean deferSelection;
     private boolean forced;
     final Comparator<ResolvableSelectorState> selectorComparator;
 
-    public ModuleSelectors(Comparator<Version> versionComparator) {
+    public ModuleSelectors(Comparator<Version> versionComparator, VersionParser versionParser) {
+        this.versionParser = versionParser;
+        this.emptyVersion = versionParser.transform("");
         Comparator<Version> reversed = versionComparator.reversed();
         selectorComparator = reverse(ResolvableSelectorState::isProject)
             .thenComparing(reverse(ResolvableSelectorState::isFromLock))
             .thenComparing(reverse(ModuleSelectors::hasLatestSelector))
             .thenComparing(ModuleSelectors::isDynamicSelector)
-            .thenComparing(ModuleSelectors::requiredVersion, reversed)
-            .thenComparing(ModuleSelectors::preferredVersion, reversed);
+            .thenComparing(this::requiredVersion, reversed)
+            .thenComparing(this::preferredVersion, reversed);
     }
 
     public boolean checkDeferSelection() {
@@ -139,27 +141,27 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
         return versionSelector instanceof LatestVersionSelector;
     }
 
-    private static Version requiredVersion(ResolvableSelectorState selector) {
+    private Version requiredVersion(ResolvableSelectorState selector) {
         ResolvedVersionConstraint versionConstraint = selector.getVersionConstraint();
         if (versionConstraint == null) {
-            return EMPTY_VERSION;
+            return emptyVersion;
         }
         return versionOf(versionConstraint.getRequiredSelector());
     }
 
-    private static Version preferredVersion(ResolvableSelectorState selector) {
+    private Version preferredVersion(ResolvableSelectorState selector) {
         ResolvedVersionConstraint versionConstraint = selector.getVersionConstraint();
         if (versionConstraint == null) {
-            return EMPTY_VERSION;
+            return emptyVersion;
         }
         return versionOf(versionConstraint.getPreferredSelector());
     }
 
-    private static Version versionOf(@Nullable VersionSelector selector) {
+    private Version versionOf(@Nullable VersionSelector selector) {
         if (!(selector instanceof ExactVersionSelector)) {
-            return EMPTY_VERSION;
+            return emptyVersion;
         }
-        return VERSION_PARSER.transform(selector.getSelector());
+        return versionParser.transform(selector.getSelector());
     }
 
     public int size() {

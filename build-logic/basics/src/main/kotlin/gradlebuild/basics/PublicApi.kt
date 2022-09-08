@@ -6,6 +6,7 @@ package gradlebuild.basics
  *
  * A type is part of the Gradle public API if and only if its FQCN matches {@link #includes} and does not match {@link #excludes}.
  */
+// NOTE: If you update this, please also change .idea/scopes/Gradle_public_API.xml
 object PublicApi {
     val includes = listOf(
         "org/gradle/*",

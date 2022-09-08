@@ -18,17 +18,15 @@ import com.gradle.scan.plugin.BuildScanExtension
 import gradlebuild.basics.BuildEnvironment.isCiServer
 import gradlebuild.basics.BuildEnvironment.isCodeQl
 import gradlebuild.basics.BuildEnvironment.isGhActions
-import gradlebuild.basics.BuildEnvironment.isJenkins
+import gradlebuild.basics.BuildEnvironment.isTeamCity
 import gradlebuild.basics.BuildEnvironment.isTravis
-import gradlebuild.basics.buildConfigurationId
-import gradlebuild.basics.buildId
-import gradlebuild.basics.buildServerUrl
+import gradlebuild.basics.buildBranch
 import gradlebuild.basics.environmentVariable
+import gradlebuild.basics.isPromotionBuild
 import gradlebuild.basics.kotlindsl.execAndGetStdout
+import gradlebuild.basics.logicalBranch
+import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.testDistributionEnabled
-import gradlebuild.buildscan.tasks.ExtractCheckstyleBuildScanData
-import gradlebuild.buildscan.tasks.ExtractCodeNarcBuildScanData
-import gradlebuild.identity.extension.ModuleIdentityExtension
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.operations.BuildOperationDescriptor
@@ -45,6 +43,7 @@ import java.net.InetAddress
 import java.net.URLEncoder
 
 plugins {
+    id("gradlebuild.collect-failed-tasks")
     id("gradlebuild.cache-miss-monitor")
     id("gradlebuild.module-identity")
 }
@@ -63,56 +62,22 @@ inline fun buildScan(configure: BuildScanExtension.() -> Unit) {
 
 extractCiData()
 
-if (isCiServer) {
-    if (!isTravis && !isJenkins) {
-        extractAllReportsFromCI()
-    }
-}
-
 if (project.testDistributionEnabled) {
     buildScan?.tag("TEST_DISTRIBUTION")
 }
 
-extractCheckstyleAndCodenarcData()
+if (project.predictiveTestSelectionEnabled.orNull == true) {
+    buildScan?.tag("PTS")
+}
 
 extractWatchFsData()
 
-project.the<ModuleIdentityExtension>().apply {
-    if (logicalBranch.get() != gradleBuildBranch.get()) {
-        buildScan?.tag("PRE_TESTED_COMMIT")
-    }
+if (logicalBranch.orNull != buildBranch.orNull) {
+    buildScan?.tag("PRE_TESTED_COMMIT")
 }
 
 if ((project.gradle as GradleInternal).services.get(BuildType::class.java) != BuildType.TASKS) {
     buildScan?.tag("SYNC")
-}
-
-fun extractCheckstyleAndCodenarcData() {
-
-    val extractCheckstyleBuildScanData by tasks.registering(ExtractCheckstyleBuildScanData::class) {
-        rootDir.set(layout.projectDirectory)
-        buildScanExt = buildScan
-    }
-
-    val extractCodeNarcBuildScanData by tasks.registering(ExtractCodeNarcBuildScanData::class) {
-        rootDir.set(layout.projectDirectory)
-        buildScanExt = buildScan
-    }
-
-    allprojects {
-        tasks.withType<Checkstyle>().configureEach {
-            finalizedBy(extractCheckstyleBuildScanData)
-            extractCheckstyleBuildScanData {
-                xmlOutputs.from(reports.xml.outputLocation)
-            }
-        }
-        tasks.withType<CodeNarc>().configureEach {
-            finalizedBy(extractCodeNarcBuildScanData)
-            extractCodeNarcBuildScanData {
-                xmlOutputs.from(reports.xml.outputLocation)
-            }
-        }
-    }
 }
 
 fun isEc2Agent() = InetAddress.getLocalHost().hostName.startsWith("ip-")
@@ -138,6 +103,14 @@ fun Project.extractCiData() {
     if (isCodeQl) {
         buildScan {
             tag("CODEQL")
+        }
+    }
+    if (isTeamCity && !isPromotionBuild) {
+        // don't overwrite the nightly version in promotion build
+        buildScan {
+            buildScanPublished {
+                println("##teamcity[buildStatus text='{build.status.text}: ${this.buildScanUri}']")
+            }
         }
     }
 }
@@ -180,27 +153,6 @@ open class FileSystemWatchingBuildOperationListener(private val buildOperationLi
                     }
                 }
             }
-        }
-    }
-}
-
-fun Project.extractAllReportsFromCI() {
-    val teamCityServerUrl = buildServerUrl.orNull ?: return
-    val capturedReportingTypes = listOf("html") // can add xml, text, junitXml if wanted
-    val basePath = "$teamCityServerUrl/repository/download/${buildConfigurationId.get()}/${buildId.get()}:id/.teamcity/gradle-logs"
-
-    gradle.taskGraph.afterTask {
-        if (state.failure != null && this is Reporting<*>) {
-            this.reports.filter { it.name in capturedReportingTypes && it.required.get() && it.outputLocation.get().asFile.exists() }
-                .forEach { report ->
-                    val linkName = "${this::class.java.simpleName.split("_")[0]} Report ($path)" // Strip off '_Decorated' addition to class names
-                    // see: ciReporting.gradle
-                    val reportPath =
-                        if (report.outputLocation.get().asFile.isDirectory) "report-${project.name}-${report.outputLocation.get().asFile.name}.zip"
-                        else "report-${project.name}-${report.outputLocation.get().asFile.parentFile.name}-${report.outputLocation.get().asFile.name}"
-                    val reportLink = "$basePath/$reportPath"
-                    buildScan?.link(linkName, reportLink)
-                }
         }
     }
 }

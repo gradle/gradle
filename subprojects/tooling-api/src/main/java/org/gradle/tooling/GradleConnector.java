@@ -157,6 +157,9 @@ public abstract class GradleConnector {
     /**
      * Creates a connection to the project in the specified project directory. You should call {@link org.gradle.tooling.ProjectConnection#close()} when you are finished with the connection.
      *
+     * <p>
+     * Note, that the returned instance does not automatically pick up changes if the connection configuration (e.g. the gradle.properties file) changes. It's the client's responsibility to close the connection and create a new one in that scenario.
+     *
      * @return The connection. Never return null.
      * @throws UnsupportedVersionException When the target Gradle version does not support this version of the tooling API.
      * @throws GradleConnectionException On failure to establish a connection with the target Gradle version.

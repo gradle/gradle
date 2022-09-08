@@ -21,10 +21,7 @@ plugins {
     id("gradlebuild.ci-reporting")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
+java.configureJavaToolChain()
 
 dependencies {
     api(platform(project(":build-platform")))
@@ -46,8 +43,6 @@ tasks.withType<GroovyCompile>().configureEach {
         encoding = "utf-8"
         compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
     }
-    val vendor = System.getProperty("java.vendor")
-    inputs.property("javaInstallation", "$vendor ${JavaVersion.current()}")
 }
 
 tasks.withType<Test>().configureEach {

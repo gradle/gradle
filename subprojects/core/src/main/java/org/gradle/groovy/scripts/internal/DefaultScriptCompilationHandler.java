@@ -195,6 +195,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
         CompilerConfiguration configuration = new CompilerConfiguration();
         configuration.setScriptBaseClass(scriptBaseClass.getName());
+        configuration.setTargetBytecode(CompilerConfiguration.JDK8);
         return configuration;
     }
 

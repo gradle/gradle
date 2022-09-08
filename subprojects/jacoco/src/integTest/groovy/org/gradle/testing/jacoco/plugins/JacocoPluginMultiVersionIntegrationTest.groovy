@@ -19,7 +19,6 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 import spock.lang.Issue
@@ -195,7 +194,6 @@ public class ThingTest {
     }
 
     @Issue("GRADLE-2917")
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "configures default jacoco dependencies even if the configuration was resolved before"() {
         expect:
         //dependencies task forces resolution of the configurations

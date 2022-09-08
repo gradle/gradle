@@ -20,7 +20,11 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
+import org.gradle.util.Requires
 
+import static org.gradle.util.TestPrecondition.NOT_MAC_OS_X_M1
+
+@Requires(NOT_MAC_OS_X_M1)
 class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "app.cpp"

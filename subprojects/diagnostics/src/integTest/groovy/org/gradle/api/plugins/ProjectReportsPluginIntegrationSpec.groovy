@@ -55,7 +55,7 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         file("build/reports/custom/dependencies").assertIsDir()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(iterationMatchers = [".*dependencyReport", ".*htmlDependencyReport"])
     def "prints link to default #task"(String task) {
         when:
         succeeds(task)
@@ -67,7 +67,6 @@ class ProjectReportsPluginIntegrationSpec extends AbstractIntegrationSpec {
         task << ["taskReport", "propertyReport", "dependencyReport", "htmlDependencyReport"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "given no output file, does not print link to default #task"(String task) {
         given:
         buildFile << """

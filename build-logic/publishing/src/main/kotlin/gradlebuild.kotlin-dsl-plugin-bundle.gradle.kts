@@ -58,12 +58,13 @@ val localRepository = layout.buildDirectory.dir("repository")
 
 val publishPluginsToTestRepository by tasks.registering {
     dependsOn("publishPluginMavenPublicationToTestRepository")
+    val repoDir = localRepository // Prevent capturing the Gradle script instance for configuration cache compatibility
     // This should be unified with publish-public-libraries if possible
     doLast {
-        localRepository.get().asFileTree.matching { include("**/maven-metadata.xml") }.forEach {
+        repoDir.get().asFileTree.matching { include("**/maven-metadata.xml") }.forEach {
             it.writeText(it.readText().replace("\\Q<lastUpdated>\\E\\d+\\Q</lastUpdated>\\E".toRegex(), "<lastUpdated>${Year.now().value}0101000000</lastUpdated>"))
         }
-        localRepository.get().asFileTree.matching { include("**/*.module") }.forEach {
+        repoDir.get().asFileTree.matching { include("**/*.module") }.forEach {
             val content = it.readText()
                 .replace("\"buildId\":\\s+\"\\w+\"".toRegex(), "\"buildId\": \"\"")
                 .replace("\"size\":\\s+\\d+".toRegex(), "\"size\": 0")

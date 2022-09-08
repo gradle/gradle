@@ -16,6 +16,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 
@@ -45,7 +46,7 @@ public interface ScalaSourceSet {
      * @return this
      */
     @SuppressWarnings("rawtypes")
-    ScalaSourceSet scala(Closure configureClosure);
+    ScalaSourceSet scala(@DelegatesTo(SourceDirectorySet.class) Closure configureClosure);
 
     /**
      * Configures the Scala source for this set.

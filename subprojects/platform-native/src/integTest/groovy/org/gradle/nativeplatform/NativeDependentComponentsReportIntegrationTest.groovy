@@ -20,8 +20,11 @@ package org.gradle.nativeplatform
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
+@Requires(TestPrecondition.NOT_MAC_OS_X_M1)
 class NativeDependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

@@ -338,8 +338,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
     public byte[] getClassLoaderHashBytes() {
         return getBeforeExecutionState()
             .map(InputExecutionState::getImplementation)
-            .map(ImplementationSnapshot::getClassLoaderHash)
-            .map(HashCode::toByteArray)
+            .map(SnapshotTaskInputsBuildOperationResult::getClassLoaderHashBytesOrNull)
             .orElse(null);
     }
 
@@ -349,9 +348,15 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             .map(BeforeExecutionState::getAdditionalImplementations)
             .filter(additionalImplementation -> !additionalImplementation.isEmpty())
             .map(additionalImplementations -> additionalImplementations.stream()
-                .map(input -> input.getClassLoaderHash() == null ? null : input.getClassLoaderHash().toByteArray())
+                .map(SnapshotTaskInputsBuildOperationResult::getClassLoaderHashBytesOrNull) // preserve nulls
                 .collect(Collectors.toList()))
             .orElse(null);
+    }
+
+    @Nullable
+    private static byte[] getClassLoaderHashBytesOrNull(ImplementationSnapshot implementation) {
+        HashCode hash = implementation.getClassLoaderHash();
+        return hash == null ? null : hash.toByteArray();
     }
 
     @Nullable
@@ -361,7 +366,7 @@ public class SnapshotTaskInputsBuildOperationResult implements SnapshotTaskInput
             .map(BeforeExecutionState::getAdditionalImplementations)
             .filter(additionalImplementations -> !additionalImplementations.isEmpty())
             .map(additionalImplementations -> additionalImplementations.stream()
-                .map(ImplementationSnapshot::getTypeName)
+                .map(ImplementationSnapshot::getClassIdentifier)
                 .collect(Collectors.toList())
             )
             .orElse(null);

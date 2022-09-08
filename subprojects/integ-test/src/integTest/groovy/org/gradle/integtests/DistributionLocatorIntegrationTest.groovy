@@ -21,7 +21,6 @@ import org.gradle.util.internal.DistributionLocator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 import spock.lang.Specification
 
 @Requires(TestPrecondition.ONLINE)
@@ -39,7 +38,6 @@ class DistributionLocatorIntegrationTest extends Specification {
         urlExist(locator.getDistributionFor(GradleVersion.version("1.12")))
     }
 
-    @Ignore
     def "locates snapshot versions"() {
         expect:
         urlExist(locator.getDistributionFor(distributions.mostRecentReleaseSnapshot.version))

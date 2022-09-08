@@ -137,16 +137,16 @@ include::sample[dir="snippets/providers/fileAndDirectoryProperty/groovy",files="
 include::sample[dir="snippets/providers/fileAndDirectoryProperty/kotlin",files="build.gradle.kts[]"]
 ====
 
-.Output of **`gradle print`**
+.Output of **`gradle generate`**
 [.multi-language-text.lang-groovy]
 ----
-$ gradle print
+$ gradle generate
 include::{snippetsPath}/providers/fileAndDirectoryProperty/tests/workingWithFilesGroovy.out[]
 ----
-.Output of **`gradle print`**
+.Output of **`gradle generate`**
 [.multi-language-text.lang-kotlin]
 ----
-$ gradle print
+$ gradle generate
 include::{snippetsPath}/providers/fileAndDirectoryProperty/tests/workingWithFilesKotlin.out[]
 ----
 

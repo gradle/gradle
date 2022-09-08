@@ -35,6 +35,7 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -1027,6 +1028,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         }
         return dependencyHandler;
     }
+
+    @Override
+    @Inject
+    public abstract DependencyFactory getDependencyFactory();
 
     public void setDependencyHandler(DependencyHandler dependencyHandler) {
         this.dependencyHandler = dependencyHandler;

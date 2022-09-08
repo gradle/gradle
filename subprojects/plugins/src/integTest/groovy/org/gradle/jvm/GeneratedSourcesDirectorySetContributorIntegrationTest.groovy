@@ -27,7 +27,7 @@ class GeneratedSourcesDirectorySetContributorIntegrationTest extends AbstractInt
             plugins {
                 id 'jvm-ecosystem'
             }
-            def jvm = extensions.create(org.gradle.api.plugins.jvm.internal.JvmPluginExtension, "jvm", org.gradle.api.plugins.jvm.internal.DefaultJvmPluginExtension)
+            def jvm = project.services.get(org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities)
 
             group = 'com.acme'
             version = '1.4'
@@ -57,7 +57,7 @@ class GeneratedSourcesDirectorySetContributorIntegrationTest extends AbstractInt
                 outputDir.set(project.layout.buildDirectory.dir("generated-sources"))
             }
 
-            jvm.utilities.registerJvmLanguageGeneratedSourceDirectory(sourceSets.main) {
+            jvm.registerJvmLanguageGeneratedSourceDirectory(sourceSets.main) {
                 forSourceGeneratingTask(sourceGen) { it.outputDir }
                 compiledWithJava {
                     sourceCompatibility = '8'
@@ -80,7 +80,7 @@ class GeneratedSourcesDirectorySetContributorIntegrationTest extends AbstractInt
                 outputDir.set(project.layout.buildDirectory.dir("generated-sources"))
             }
 
-            jvm.utilities.registerJvmLanguageGeneratedSourceDirectory(sourceSets.main) {
+            jvm.registerJvmLanguageGeneratedSourceDirectory(sourceSets.main) {
                 forSourceGeneratingTask(sourceGen) { it.outputDir }
             }
         """
@@ -98,7 +98,7 @@ class GeneratedSourcesDirectorySetContributorIntegrationTest extends AbstractInt
                 outputDir.set(project.layout.buildDirectory.dir("generated-sources"))
             }
 
-            jvm.utilities.registerJvmLanguageGeneratedSourceDirectory(sourceSets.main) {
+            jvm.registerJvmLanguageGeneratedSourceDirectory(sourceSets.main) {
                 forSourceGeneratingTask(sourceGen) { it.outputDir }
                 compiledBy {
                     compileTask = tasks.register("compileSourceGen") {

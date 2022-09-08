@@ -69,6 +69,6 @@ public abstract class ResolvableConfigurationsReportTask extends AbstractConfigu
 
     @Override
     protected AbstractConfigurationReportSpec buildReportSpec() {
-        return new ResolvableConfigurationsSpec(getConfigurationName().getOrNull(), getShowAll().get(), getRecursive().get());
+        return new ResolvableConfigurationsSpec(getConfigurationName().getOrNull(), getShowAll().get(), getRecursive().get(), true);
     }
 }

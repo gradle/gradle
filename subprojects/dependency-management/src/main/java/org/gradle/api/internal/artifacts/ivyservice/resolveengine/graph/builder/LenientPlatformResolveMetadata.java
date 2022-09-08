@@ -39,6 +39,7 @@ import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -116,7 +117,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     }
 
     @Override
-    public Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal() {
+    public Optional<List<? extends VariantGraphResolveMetadata>> getVariantsForGraphTraversal() {
         return Optional.absent();
     }
 

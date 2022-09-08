@@ -35,7 +35,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     TestFile homeDir
 
-    String kotlinVersion = TestedVersions.kotlin.latest()
+    String kotlinVersion = TestedVersions.kotlin.latestStable()
 
     def setup() {
         homeDir = temporaryFolder.createDir("test-kit-home")

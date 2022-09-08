@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.repositories.descriptor.MavenRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
@@ -99,6 +100,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final ChecksumService checksumService;
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
     private final InstantiatorFactory instantiatorFactory;
+    private VersionParser versionParser;
 
     public DefaultMavenArtifactRepository(FileResolver fileResolver,
                                           RepositoryTransportFactory transportFactory,
@@ -115,10 +117,12 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           ObjectFactory objectFactory,
                                           DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                                           ChecksumService checksumService,
-                                          ProviderFactory providerFactory) {
+                                          ProviderFactory providerFactory,
+                                          VersionParser versionParser
+    ) {
         this(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory,
             artifactFileStore, pomParser, metadataParser, authenticationContainer,
-            resourcesFileStore, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, providerFactory);
+            resourcesFileStore, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, providerFactory, versionParser);
     }
 
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
@@ -137,8 +141,10 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
                                           ObjectFactory objectFactory,
                                           DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                                           ChecksumService checksumService,
-                                          ProviderFactory providerFactory) {
-        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, providerFactory);
+                                          ProviderFactory providerFactory,
+                                          VersionParser versionParser
+    ) {
+        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, providerFactory, versionParser);
         this.describer = describer;
         this.fileResolver = fileResolver;
         this.urlArtifactRepository = urlArtifactRepositoryFactory.create("Maven", this::getDisplayName);
@@ -154,6 +160,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         this.checksumService = checksumService;
         this.metadataSources.setDefaults();
         this.instantiatorFactory = instantiatorFactory;
+        this.versionParser = versionParser;
     }
 
     @Override
@@ -354,7 +361,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     @Override
     public RepositoryContentDescriptorInternal createRepositoryDescriptor() {
-        return new DefaultMavenRepositoryContentDescriptor(this::getDisplayName);
+        return new DefaultMavenRepositoryContentDescriptor(this::getDisplayName, versionParser);
     }
 
     @Override

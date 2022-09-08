@@ -41,7 +41,7 @@ import java.util.TreeSet;
  *
  * Preserved for backward compatibility.
  *
- * @deprecated Use {@link ProjectBasedReportTask} instead.
+ * @deprecated Use {@link AbstractProjectBasedReportTask} instead.
  */
 @Deprecated
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")

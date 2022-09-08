@@ -26,6 +26,7 @@ import org.codehaus.groovy.runtime.StringGroovyMethods
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.PluginManager
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.bytecode.InternalName
@@ -40,6 +41,7 @@ import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 import org.gradle.kotlin.dsl.support.zipTo
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil.replaceLineSeparatorsOf
 import org.gradle.util.internal.ToBeImplemented
 
@@ -583,7 +585,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     Declaration(
                         "",
                         "JavaProjectPlugin",
-                        null
+                        Visibilities.Public
                     )
                 )
             )
@@ -684,10 +686,30 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         withPrecompiledScriptApplying(pluginId, pluginJar)
 
-        gradleExecuterFor(arrayOf("classes")).withStackTraceChecksDisabled().run().apply {
+        executer.beforeExecute {
+            it.expectDeprecationWarning(
+                "Non-strict accessors generation for Kotlin DSL precompiled script plugins has been deprecated. " +
+                    "This will change in Gradle 8.0. " +
+                    "Strict accessor generation will become the default. " +
+                    "To opt in to the strict behavior, set the 'org.gradle.kotlin.dsl.precompiled.accessors.strict' system property to `true`. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#strict-kotlin-dsl-precompiled-scripts-accessors"
+            )
+        }
+
+        val assertions: ExecutionResult.() -> Unit = {
             assertOutputContains("An exception occurred applying plugin request [id: '$pluginId']")
             assertOutputContains("'InvalidPlugin' is neither a plugin or a rule source and cannot be applied.")
         }
+
+        gradleExecuterFor(arrayOf("classes", "-Dorg.gradle.kotlin.dsl.precompiled.accessors.strict="))
+            .withStackTraceChecksDisabled()
+            .run()
+            .assertions()
+
+        gradleExecuterFor(arrayOf("--rerun-tasks", "classes", "-Dorg.gradle.kotlin.dsl.precompiled.accessors.strict=false"))
+            .withStackTraceChecksDisabled()
+            .run()
+            .assertions()
     }
 
     @Test

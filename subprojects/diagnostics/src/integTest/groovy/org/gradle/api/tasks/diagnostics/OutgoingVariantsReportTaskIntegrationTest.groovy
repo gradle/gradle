@@ -310,7 +310,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -463,7 +463,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -630,7 +630,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -728,7 +728,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -866,7 +866,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -1020,7 +1020,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -1136,7 +1136,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library
@@ -1263,7 +1263,7 @@ Secondary Variants (*)
     --------------------------------------------------
     Secondary Variant resources
     --------------------------------------------------
-    Directories containing the project's assembled resource files for use at runtime.
+    Directories containing assembled resource files for main.
 
     Attributes
         - org.gradle.category            = library

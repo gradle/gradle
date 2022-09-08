@@ -34,10 +34,9 @@ import java.util.Set;
  * @since 7.3
  */
 public class ScalaCompileOptionsConfigurer {
-    private static final VersionParser VERSION_PARSER = new VersionParser();
     private static final DefaultVersionComparator VERSION_COMPARATOR = new DefaultVersionComparator();
 
-    public static void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
+    public static void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath, VersionParser versionParser) {
         if (toolchain == null) {
             return;
         }
@@ -57,7 +56,7 @@ public class ScalaCompileOptionsConfigurer {
         }
 
         Integer jvmVersion = toolchain.getLanguageVersion().asInt();
-        String targetParameter = determineTargetParameter(scalaVersion, jvmVersion);
+        String targetParameter = determineTargetParameter(scalaVersion, jvmVersion, versionParser);
         if(scalaCompileOptions.getAdditionalParameters() == null) {
             scalaCompileOptions.setAdditionalParameters(Collections.singletonList(targetParameter));
         } else {
@@ -65,9 +64,9 @@ public class ScalaCompileOptionsConfigurer {
         }
     }
 
-    private static String determineTargetParameter(String scalaVersion, Integer jvmVersion) {
-        VersionInfo currentScalaVersion = new VersionInfo(VERSION_PARSER.transform(scalaVersion));
-        int compareWith2131 = VERSION_COMPARATOR.compare(currentScalaVersion, new VersionInfo(VERSION_PARSER.transform("2.13.1")));
+    private static String determineTargetParameter(String scalaVersion, Integer jvmVersion, VersionParser versionParser) {
+        VersionInfo currentScalaVersion = new VersionInfo(versionParser.transform(scalaVersion));
+        int compareWith2131 = VERSION_COMPARATOR.compare(currentScalaVersion, new VersionInfo(versionParser.transform("2.13.1")));
         if(compareWith2131 < 0) {
             return String.format("-target:jvm-1.%s", jvmVersion);
         } else {

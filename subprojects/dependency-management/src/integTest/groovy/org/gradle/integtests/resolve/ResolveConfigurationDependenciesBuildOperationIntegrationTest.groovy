@@ -33,7 +33,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
     @SuppressWarnings("GroovyUnusedDeclaration")
     def operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "resolved configurations are exposed via build operation"() {
         setup:
         buildFile << """
@@ -171,7 +171,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolveOperations[1].result.resolvedDependenciesCount == 1
     }
 
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     def "resolved configurations of composite builds as build dependencies are exposed"() {
         setup:
         def m1 = mavenHttpRepo.module('org.foo', 'root-dep').publish()
@@ -441,7 +440,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.result.resolvedDependenciesCount == 1
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "access to configuration container in task action")
     def "resolved components contain their source repository name, even when taken from the cache"() {
         setup:
         def secondMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
@@ -573,7 +572,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolvedComponents.'org.foo:transitive1:1.0'.repoName == 'maven1'
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "access to configuration container in task action")
     def "resolved components contain their source repository id, even when they are structurally identical"() {
         setup:
         buildFile << """

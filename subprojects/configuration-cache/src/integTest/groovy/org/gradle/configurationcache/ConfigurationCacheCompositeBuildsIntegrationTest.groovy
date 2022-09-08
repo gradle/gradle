@@ -21,6 +21,7 @@ import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 import java.util.regex.Pattern
 
@@ -268,6 +269,60 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
             withUniqueProblems(expectedProblem)
             withProblemsWithStackTraceCount(0)
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20945")
+    def "composite build with dependency substitution can include builds in any order"() {
+        given:
+        order.each {
+            settingsFile "includeBuild '$it'\n"
+        }
+        buildFile '''
+            ['clean', 'compileJava'].each { name ->
+                tasks.register(name) {
+                    gradle.includedBuilds.each { build ->
+                        dependsOn(build.task(':' + name))
+                    }
+                }
+            }
+        '''
+        createDir('lib') {
+            file('settings.gradle') << 'rootProject.name = "lib"'
+            file('build.gradle') << '''
+                plugins { id 'java-library' }
+                group = 'com.example'
+                version = '1.0'
+            '''
+        }
+        createDir('util') {
+            file('settings.gradle') << 'rootProject.name = "util"'
+            file('build.gradle') << '''
+                plugins { id 'java-library' }
+                dependencies {
+                    api 'com.example:lib:1.0'
+                }
+            '''
+        }
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun 'clean', 'compileJava'
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun 'clean', 'compileJava'
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        and:
+        result.assertTaskOrder(':lib:compileJava', ':util:compileJava', ':compileJava')
+
+        where:
+        order << ['lib', 'util'].permutations()
     }
 
     private static withEnterprisePlugin(TestFile settingsDir) {

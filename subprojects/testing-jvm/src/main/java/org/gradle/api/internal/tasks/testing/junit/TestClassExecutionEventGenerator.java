@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
@@ -50,7 +51,7 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
     }
 
     @Override
-    public void testClassFinished(Throwable failure) {
+    public void testClassFinished(TestFailure failure) {
         long now = clock.getCurrentTime();
         try {
             if (failure != null) {
@@ -94,7 +95,7 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
     }
 
     @Override
-    public void failure(Object testId, Throwable result) {
+    public void failure(Object testId, TestFailure result) {
         resultProcessor.failure(testId, result);
     }
 }

@@ -23,7 +23,7 @@ import org.gradle.internal.HasInternalProtocol;
  * @since 6.8
  */
 @HasInternalProtocol
-public interface MinimalExternalModuleDependency {
+public interface MinimalExternalModuleDependency extends ExternalModuleDependency {
     ModuleIdentifier getModule();
     VersionConstraint getVersionConstraint();
 }

@@ -1026,18 +1026,18 @@ class DependencyGraphBuilderTest extends Specification {
         // TODO Shouldn't really be using the local component implementation here
         def id = newId("group", name, revision)
         def metaData = new DefaultLocalComponentMetadata(id, DefaultModuleComponentIdentifier.newId(id), "release", attributesSchema)
-        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ImmutableSet.of("default"), true, true, attributes, true, null, true, ImmutableCapabilities.EMPTY, configuration.getConsistentResolutionConstraints())
-        metaData.addArtifacts("default", [new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip"))])
+        def defaultConfiguration = metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ImmutableSet.of("default"), true, true, attributes, true, null, true, ImmutableCapabilities.EMPTY, configuration.getConsistentResolutionConstraints())
+        defaultConfiguration.addArtifacts([new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip"))])
         return metaData
     }
 
     def rootProject(String name, String revision = '1.0', List<String> extraConfigs = []) {
         def metaData = new RootLocalComponentMetadata(newId("group", name, revision), newProjectId(":${name}"), "release", attributesSchema, NoOpDependencyLockingProvider.instance)
-        metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ImmutableSet.of("default"), true, true, attributes, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
+        def defaultConfiguration = metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ImmutableSet.of("default"), true, true, attributes, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
         extraConfigs.each { String config ->
             metaData.addConfiguration(config, "${config}Config", ["default"] as Set<String>, ImmutableSet.of("default", config), true, true, attributes, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
         }
-        metaData.addArtifacts("default", [new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip"))])
+        defaultConfiguration.addArtifacts([new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip"))])
         return metaData
     }
 

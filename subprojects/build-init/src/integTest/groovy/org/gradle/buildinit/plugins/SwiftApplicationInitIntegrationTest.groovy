@@ -16,7 +16,6 @@
 
 package org.gradle.buildinit.plugins
 
-
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains

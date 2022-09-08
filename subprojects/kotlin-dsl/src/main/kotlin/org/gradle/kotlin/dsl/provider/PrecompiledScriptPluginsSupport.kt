@@ -25,6 +25,14 @@ import java.io.File
 import java.util.function.Consumer
 
 
+/**
+ * Protocol between `:kotlin-dsl-plugins` and `:kotlin-dsl-provider-plugins`.
+ *
+ * `:kotlin-dsl-plugins` is published to the plugin portal.
+ * `:kotlin-dsl-provider-plugins` is shipped with the distribution.
+ *
+ * This needs to be cross-version compatible.
+ */
 interface PrecompiledScriptPluginsSupport {
 
     @Deprecated("Use enableOn(Target)")

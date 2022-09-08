@@ -1,3 +1,84 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.diagnostics.PropertyReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.PropertyReportTask.generate(org.gradle.api.Project)",
+            "acceptation": "Make PropertyReportTask compatible with configuration caching",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.generate(org.gradle.api.Project)",
+            "acceptation": "Make ProjectReportTask compatible with configuration caching",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.generate(org.gradle.api.Project)",
+            "acceptation": "Make AbstractDependencyReportTask compatible with configuration caching",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.AttributesSchema",
+            "member": "Method org.gradle.api.attributes.AttributesSchema.setAttributeDisambiguationPrecedence(java.util.List)",
+            "acceptation": "Changed argument type to List to better signify usage of the argument",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.PluginDeclaration",
+            "member": "Class org.gradle.plugin.devel.PluginDeclaration",
+            "acceptation": "Added a SetProperty to it and this change is needed for it to be automatically handled",
+            "changes": [
+                "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyAdderExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependencyAdderExtensionsKt.invoke(org.gradle.api.artifacts.dsl.DependencyAdder,org.gradle.api.artifacts.Dependency,org.gradle.api.Action)",
+            "acceptation": "@since was added, but the Kotlin ABI checker cannot match the method due to generics",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyAdderExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependencyAdderExtensionsKt.invoke(org.gradle.api.artifacts.dsl.DependencyAdder,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String)",
+            "acceptation": "@since was added, but the Kotlin ABI checker cannot match the method due to default parameters",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyAdderExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependencyAdderExtensionsKt.invoke(org.gradle.api.artifacts.dsl.DependencyAdder,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,org.gradle.api.Action)",
+            "acceptation": "@since was added, but the Kotlin ABI checker cannot match the method due to default parameters",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyAdderExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependencyAdderExtensionsKt.invoke$default(org.gradle.api.artifacts.dsl.DependencyAdder,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,int,java.lang.Object)",
+            "acceptation": "@since was added, but the Kotlin ABI checker cannot match the method due to default parameters",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyAdderExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependencyAdderExtensionsKt.invoke$default(org.gradle.api.artifacts.dsl.DependencyAdder,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,org.gradle.api.Action,int,java.lang.Object)",
+            "acceptation": "@since was added, but the Kotlin ABI checker cannot match the method due to default parameters",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        }
+    ]
 }

@@ -24,19 +24,20 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.util.Set;
+import java.util.function.Supplier;
 
 class TasksFromProjectDependencies extends AbstractTaskDependency {
     private final String taskName;
-    private final DependencySet dependencies;
+    private final Supplier<DependencySet> dependencies;
 
-    public TasksFromProjectDependencies(String taskName, DependencySet dependencies) {
+    public TasksFromProjectDependencies(String taskName, Supplier<DependencySet> dependencies) {
         this.taskName = taskName;
         this.dependencies = dependencies;
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        resolveProjectDependencies(context, dependencies.withType(ProjectDependency.class));
+        resolveProjectDependencies(context, dependencies.get().withType(ProjectDependency.class));
     }
 
     void resolveProjectDependencies(TaskDependencyResolveContext context, Set<ProjectDependency> projectDependencies) {

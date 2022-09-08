@@ -22,6 +22,7 @@ import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLoaderHierarchyHasher {
@@ -32,14 +33,11 @@ public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLo
     private static Map<ClassLoader, String> collectKnownClassLoaders(ClassLoaderRegistry registry) {
         Map<ClassLoader, String> knownClassLoaders = Maps.newHashMap();
 
-        String javaVmVersion = String.format("%s|%s", System.getProperty("java.vm.name"), System.getProperty("java.vm.vendor"));
-        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
-        if (systemClassLoader != null) {
-            addClassLoader(knownClassLoaders, systemClassLoader, "system-app" + javaVmVersion);
-            addClassLoader(knownClassLoaders, systemClassLoader.getParent(), "system-ext" + javaVmVersion);
-        }
-
         String gradleVersion = GradleVersion.current().getVersion();
+
+        // Some implementations may use null to represent the bootstrap class loader and in such cases
+        // Class.getClassLoader() will return null when the class was loaded by the bootstrap class loader.
+        addClassLoader(knownClassLoaders, null, "bootstrap");
         addClassLoader(knownClassLoaders, registry.getRuntimeClassLoader(), "runtime:" + gradleVersion);
         addClassLoader(knownClassLoaders, registry.getGradleApiClassLoader(), "gradle-api:" + gradleVersion);
         addClassLoader(knownClassLoaders, registry.getGradleCoreApiClassLoader(), "gradle-core-api:" + gradleVersion);
@@ -48,9 +46,7 @@ public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLo
         return knownClassLoaders;
     }
 
-    private static void addClassLoader(Map<ClassLoader, String> knownClassLoaders, ClassLoader classLoader, String id) {
-        if (classLoader != null) {
-            knownClassLoaders.put(classLoader, id);
-        }
+    private static void addClassLoader(Map<ClassLoader, String> knownClassLoaders, @Nullable ClassLoader classLoader, String id) {
+        knownClassLoaders.put(classLoader, id);
     }
 }

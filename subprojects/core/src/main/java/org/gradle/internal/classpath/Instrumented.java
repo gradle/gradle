@@ -17,17 +17,23 @@
 package org.gradle.internal.classpath;
 
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
-import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
-import org.codehaus.groovy.runtime.wrappers.Wrapper;
+import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.classpath.intercept.CallInterceptor;
+import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
+import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
+import org.gradle.internal.classpath.intercept.InterceptScope;
+import org.gradle.internal.classpath.intercept.Invocation;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +73,10 @@ public class Instrumented {
         }
 
         @Override
+        public void fileObserved(File file, String consumer) {
+        }
+
+        @Override
         public void fileCollectionObserved(FileCollection fileCollection, String consumer) {
         }
     };
@@ -81,56 +91,47 @@ public class Instrumented {
         setListener(NO_OP);
     }
 
+    private static final CallInterceptorsSet CALL_INTERCEPTORS = new CallInterceptorsSet(
+        new SystemGetPropertyInterceptor(),
+        new SystemSetPropertyInterceptor(),
+        new SystemGetPropertiesInterceptor(),
+        new SystemSetPropertiesInterceptor(),
+        new SystemClearPropertyInterceptor(),
+        new IntegerGetIntegerInterceptor(),
+        new LongGetLongInterceptor(),
+        new BooleanGetBooleanInterceptor(),
+        new SystemGetenvInterceptor(),
+        new RuntimeExecInterceptor(),
+        new ProcessGroovyMethodsExecuteInterceptor(),
+        new ProcessBuilderStartInterceptor(),
+        new ProcessBuilderStartPipelineInterceptor(),
+        new FileInputStreamConstructorInterceptor());
+
+
     // Called by generated code
     @SuppressWarnings("unused")
     public static void groovyCallSites(CallSiteArray array) {
         for (CallSite callSite : array.array) {
-            switch (callSite.getName()) {
-                case "getProperty":
-                    array.array[callSite.getIndex()] = new SystemPropertyCallSite(callSite);
-                    break;
-                case "setProperty":
-                    array.array[callSite.getIndex()] = new SetSystemPropertyCallSite(callSite);
-                    break;
-                case "setProperties":
-                    array.array[callSite.getIndex()] = new SetSystemPropertiesCallSite(callSite);
-                    break;
-                case "clearProperty":
-                    array.array[callSite.getIndex()] = new ClearSystemPropertyCallSite(callSite);
-                    break;
-                case "properties":
-                case "getProperties":
-                    array.array[callSite.getIndex()] = new SystemPropertiesCallSite(callSite);
-                    break;
-                case "getInteger":
-                    array.array[callSite.getIndex()] = new IntegerSystemPropertyCallSite(callSite);
-                    break;
-                case "getLong":
-                    array.array[callSite.getIndex()] = new LongSystemPropertyCallSite(callSite);
-                    break;
-                case "getBoolean":
-                    array.array[callSite.getIndex()] = new BooleanSystemPropertyCallSite(callSite);
-                    break;
-                case "getenv":
-                    array.array[callSite.getIndex()] = new GetEnvCallSite(callSite);
-                    break;
-                case "exec":
-                    array.array[callSite.getIndex()] = new ExecCallSite(callSite);
-                    break;
-                case "execute":
-                    array.array[callSite.getIndex()] = new ExecuteCallSite(callSite);
-                    break;
-                case "start":
-                    array.array[callSite.getIndex()] = new ProcessBuilderStartCallSite(callSite);
-                    break;
-                case "startPipeline":
-                    array.array[callSite.getIndex()] = new ProcessBuilderStartPipelineCallSite(callSite);
-                    break;
-                case "<$constructor$>":
-                    array.array[callSite.getIndex()] = new FileInputStreamConstructorCallSite(callSite);
-                    break;
-            }
+            array.array[callSite.getIndex()] = CALL_INTERCEPTORS.maybeDecorateGroovyCallSite(callSite);
         }
+    }
+
+    /**
+     * The bootstrap method for method calls from Groovy compiled code with indy enabled.
+     * Gradle's bytecode processor replaces the Groovy's original {@link IndyInterface#bootstrap(MethodHandles.Lookup, String, MethodType, String, int)}
+     * with this method to intercept potentially "interesting" calls and do some additional work.
+     *
+     * @param caller the lookup for the caller (JVM-supplied)
+     * @param callType the type of the call (corresponds to {@link IndyInterface.CallType} constant)
+     * @param type the call site type
+     * @param name the real method name
+     * @param flags call flags
+     * @return the produced CallSite
+     * @see IndyInterface
+     */
+    public static java.lang.invoke.CallSite bootstrap(MethodHandles.Lookup caller, String callType, MethodType type, String name, int flags) {
+        return CALL_INTERCEPTORS.maybeDecorateIndyCallSite(
+            IndyInterface.bootstrap(caller, callType, type, name, flags), caller, callType, name, flags);
     }
 
     // Called by generated code.
@@ -357,6 +358,10 @@ public class Instrumented {
         listener().fileCollectionObserved(fileCollection, consumer);
     }
 
+    public static void fileObserved(File file, String consumer) {
+        listener().fileObserved(absoluteFileOf(file), consumer);
+    }
+
     public static void fileOpened(File file, String consumer) {
         listener().fileOpened(absoluteFileOf(file), consumer);
     }
@@ -399,13 +404,6 @@ public class Instrumented {
 
     private static Listener listener() {
         return LISTENER.get();
-    }
-
-    private static Object unwrap(Object obj) {
-        if (obj instanceof Wrapper) {
-            return ((Wrapper) obj).unwrap();
-        }
-        return obj;
     }
 
     private static String convertToString(Object arg) {
@@ -483,287 +481,203 @@ public class Instrumented {
          */
         void fileOpened(File file, String consumer);
 
+        void fileObserved(File file, String consumer);
+
         /**
          * Invoked when configuration logic observes the given file collection.
          */
         void fileCollectionObserved(FileCollection inputs, String consumer);
     }
 
-    private static class IntegerSystemPropertyCallSite extends AbstractCallSite {
-        public IntegerSystemPropertyCallSite(CallSite callSite) {
-            super(callSite);
+    /**
+     * The interceptor for {@link Integer#getInteger(String)}, {@link Integer#getInteger(String, int)}, and {@link Integer#getInteger(String, Integer)}.
+     */
+    private static class IntegerGetIntegerInterceptor extends ClassBoundCallInterceptor {
+        public IntegerGetIntegerInterceptor() {
+            super(Integer.class, InterceptScope.methodsNamed("getInteger"));
         }
 
         @Override
-        public Object call(Object receiver, Object arg) throws Throwable {
-            if (receiver.equals(Integer.class)) {
-                return getInteger(arg.toString(), array.owner.getName());
-            } else {
-                return super.call(receiver, arg);
+        protected Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable {
+            switch (invocation.getArgsCount()) {
+                case 1:
+                    return getInteger(invocation.getArgument(0).toString(), consumer);
+                case 2:
+                    return getInteger(invocation.getArgument(0).toString(), (Integer) invocation.getArgument(1), consumer);
             }
-        }
-
-        @Override
-        public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
-            if (receiver.equals(Integer.class)) {
-                return getInteger(arg1.toString(), (Integer) unwrap(arg2), array.owner.getName());
-            } else {
-                return super.call(receiver, arg1, arg2);
-            }
-        }
-    }
-
-    private static class LongSystemPropertyCallSite extends AbstractCallSite {
-        public LongSystemPropertyCallSite(CallSite callSite) {
-            super(callSite);
-        }
-
-        @Override
-        public Object call(Object receiver, Object arg) throws Throwable {
-            if (receiver.equals(Long.class)) {
-                return getLong(arg.toString(), array.owner.getName());
-            } else {
-                return super.call(receiver, arg);
-            }
-        }
-
-        @Override
-        public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
-            if (receiver.equals(Long.class)) {
-                return getLong(arg1.toString(), (Long) unwrap(arg2), array.owner.getName());
-            } else {
-                return super.call(receiver, arg1, arg2);
-            }
-        }
-    }
-
-    private static class BooleanSystemPropertyCallSite extends AbstractCallSite {
-        public BooleanSystemPropertyCallSite(CallSite callSite) {
-            super(callSite);
-        }
-
-        @Override
-        public Object call(Object receiver, Object arg) throws Throwable {
-            if (receiver.equals(Boolean.class)) {
-                return getBoolean(arg.toString(), array.owner.getName());
-            } else {
-                return super.call(receiver, arg);
-            }
-        }
-    }
-
-    private static class SystemPropertyCallSite extends AbstractCallSite {
-        public SystemPropertyCallSite(CallSite callSite) {
-            super(callSite);
-        }
-
-        @Override
-        public Object call(Object receiver, Object arg) throws Throwable {
-            if (receiver.equals(System.class)) {
-                return systemProperty(arg.toString(), array.owner.getName());
-            } else {
-                return super.call(receiver, arg);
-            }
-        }
-
-        @Override
-        public Object callStatic(Class receiver, Object arg1) throws Throwable {
-            if (receiver.equals(System.class)) {
-                return systemProperty(arg1.toString(), array.owner.getName());
-            } else {
-                return super.callStatic(receiver, arg1);
-            }
-        }
-
-        @Override
-        public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
-            if (receiver.equals(System.class)) {
-                return systemProperty(arg1.toString(), convertToString(arg2), array.owner.getName());
-            } else {
-                return super.call(receiver, arg1, arg2);
-            }
-        }
-
-        @Override
-        public Object callStatic(Class receiver, Object arg1, Object arg2) throws Throwable {
-            if (receiver.equals(System.class)) {
-                return systemProperty(arg1.toString(), convertToString(arg2), array.owner.getName());
-            } else {
-                return super.callStatic(receiver, arg1, arg2);
-            }
-        }
-    }
-
-    private static class SetSystemPropertyCallSite extends AbstractCallSite {
-        public SetSystemPropertyCallSite(CallSite callSite) {
-            super(callSite);
-        }
-
-        @Override
-        public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
-            if (receiver.equals(System.class)) {
-                return setSystemProperty(convertToString(arg1), convertToString(arg2), array.owner.getName());
-            } else {
-                return super.call(receiver, arg1, arg2);
-            }
-        }
-
-        @Override
-        public Object callStatic(Class receiver, Object arg1, Object arg2) throws Throwable {
-            if (receiver.equals(System.class)) {
-                return setSystemProperty(convertToString(arg1), convertToString(arg2), array.owner.getName());
-            } else {
-                return super.callStatic(receiver, arg1, arg2);
-            }
-        }
-    }
-
-    private static class SetSystemPropertiesCallSite extends AbstractCallSite {
-        public SetSystemPropertiesCallSite(CallSite callSite) {
-            super(callSite);
-        }
-
-        @Override
-        public Object call(Object receiver, Object arg1) throws Throwable {
-            if (receiver.equals(System.class) && arg1 instanceof Properties) {
-                setSystemProperties((Properties) arg1, array.owner.getName());
-                return null;
-            } else {
-                return super.call(receiver, arg1);
-            }
-        }
-
-        @Override
-        public Object callStatic(Class receiver, Object arg1) throws Throwable {
-            if (receiver.equals(System.class) && arg1 instanceof Properties) {
-                setSystemProperties((Properties) arg1, array.owner.getName());
-                return null;
-            } else {
-                return super.callStatic(receiver, arg1);
-            }
-        }
-    }
-
-    private static class ClearSystemPropertyCallSite extends AbstractCallSite {
-        public ClearSystemPropertyCallSite(CallSite callSite) {
-            super(callSite);
-        }
-
-        @Override
-        public Object call(Object receiver, Object arg1) throws Throwable {
-            if (receiver.equals(System.class)) {
-                return clearSystemProperty(convertToString(arg1), array.owner.getName());
-            } else {
-                return super.call(receiver, arg1);
-            }
-        }
-
-        @Override
-        public Object callStatic(Class receiver, Object arg1) throws Throwable {
-            if (receiver.equals(System.class)) {
-                return clearSystemProperty(convertToString(arg1), array.owner.getName());
-            } else {
-                return super.callStatic(receiver, arg1);
-            }
-        }
-    }
-
-    private static class SystemPropertiesCallSite extends AbstractCallSite {
-        public SystemPropertiesCallSite(CallSite callSite) {
-            super(callSite);
-        }
-
-        @Override
-        public Object callGetProperty(Object receiver) throws Throwable {
-            if (receiver.equals(System.class)) {
-                return systemProperties(array.owner.getName());
-            } else {
-                return super.callGetProperty(receiver);
-            }
-        }
-
-        @Override
-        public Object call(Object receiver) throws Throwable {
-            if (receiver.equals(System.class)) {
-                return systemProperties(array.owner.getName());
-            } else {
-                return super.call(receiver);
-            }
-        }
-
-        @Override
-        public Object callStatic(Class receiver) throws Throwable {
-            if (receiver.equals(System.class)) {
-                return systemProperties(array.owner.getName());
-            } else {
-                return super.callStatic(receiver);
-            }
-        }
-    }
-
-    private static class GetEnvCallSite extends AbstractCallSite {
-        public GetEnvCallSite(CallSite prev) {
-            super(prev);
-        }
-
-        @Override
-        public Object call(Object receiver) throws Throwable {
-            if (receiver.equals(System.class)) {
-                return getenv(array.owner.getName());
-            }
-            return super.call(receiver);
-        }
-
-        @Override
-        public Object call(Object receiver, Object arg1) throws Throwable {
-            if (receiver.equals(System.class) && arg1 instanceof CharSequence) {
-                return getenv(convertToString(arg1), array.owner.getName());
-            }
-            return super.call(receiver, arg1);
+            return invocation.callOriginal();
         }
     }
 
     /**
-     * The call site for {@code Runtime.exec}.
+     * The interceptor for {@link Long#getLong(String)}, {@link Long#getLong(String, long)}, and {@link Long#getLong(String, Long)}.
      */
-    private static class ExecCallSite extends AbstractCallSite {
-        public ExecCallSite(CallSite prev) {
-            super(prev);
+    private static class LongGetLongInterceptor extends ClassBoundCallInterceptor {
+        public LongGetLongInterceptor() {
+            super(Long.class, InterceptScope.methodsNamed("getLong"));
         }
 
         @Override
-        public Object call(Object receiver, Object arg1) throws Throwable {
-            Optional<Process> result = tryCallExec(receiver, arg1, null, null);
-            if (result.isPresent()) {
-                return result.get();
+        protected Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable {
+            switch (invocation.getArgsCount()) {
+                case 1:
+                    return getLong(invocation.getArgument(0).toString(), consumer);
+                case 2:
+                    return getLong(invocation.getArgument(0).toString(), (Long) invocation.getArgument(1), consumer);
             }
-            return super.call(receiver, arg1);
+            return invocation.callOriginal();
+        }
+    }
+
+    /**
+     * The interceptor for {@link Boolean#getBoolean(String)}.
+     */
+    private static class BooleanGetBooleanInterceptor extends ClassBoundCallInterceptor {
+        public BooleanGetBooleanInterceptor() {
+            super(Boolean.class, InterceptScope.methodsNamed("getBoolean"));
         }
 
         @Override
-        public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
-            Optional<Process> result = tryCallExec(receiver, arg1, arg2, null);
-            if (result.isPresent()) {
-                return result.get();
+        protected Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable {
+            if (invocation.getArgsCount() == 1) {
+                return getBoolean(invocation.getArgument(0).toString(), consumer);
             }
-            return super.call(receiver, arg1, arg2);
+            return invocation.callOriginal();
+        }
+    }
+
+    /**
+     * The interceptor for {@link System#getProperty(String)} and {@link System#getProperty(String, String)}.
+     */
+    private static class SystemGetPropertyInterceptor extends ClassBoundCallInterceptor {
+        public SystemGetPropertyInterceptor() {
+            super(System.class, InterceptScope.methodsNamed("getProperty"));
         }
 
         @Override
-        public Object call(Object receiver, Object arg1, Object arg2, Object arg3) throws Throwable {
-            Optional<Process> result = tryCallExec(receiver, arg1, arg2, arg3);
-            if (result.isPresent()) {
-                return result.get();
+        protected Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable {
+            switch (invocation.getArgsCount()) {
+                case 1:
+                    return systemProperty(invocation.getArgument(0).toString(), consumer);
+                case 2:
+                    return systemProperty(invocation.getArgument(0).toString(), convertToString(invocation.getArgument(1)), consumer);
             }
-            return super.call(receiver, arg1, arg2, arg3);
+            return invocation.callOriginal();
+        }
+    }
+
+    /**
+     * The interceptor for {@link System#setProperty(String, String)}.
+     */
+    private static class SystemSetPropertyInterceptor extends ClassBoundCallInterceptor {
+        public SystemSetPropertyInterceptor() {
+            super(System.class, InterceptScope.methodsNamed("setProperty"));
         }
 
-        private Optional<Process> tryCallExec(Object runtimeArg, Object commandArg, @Nullable Object envpArg, @Nullable Object fileArg) throws Throwable {
-            runtimeArg = unwrap(runtimeArg);
-            commandArg = unwrap(commandArg);
-            envpArg = unwrap(envpArg);
-            fileArg = unwrap(fileArg);
+        @Override
+        protected Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable {
+            if (invocation.getArgsCount() == 2) {
+                return setSystemProperty(convertToString(invocation.getArgument(0)), convertToString(invocation.getArgument(1)), consumer);
+            }
+            return invocation.callOriginal();
+        }
+    }
 
+    /**
+     * The interceptor for {@link System#getProperties()} and {@code System.properties} reads.
+     */
+    private static class SystemGetPropertiesInterceptor extends ClassBoundCallInterceptor {
+        public SystemGetPropertiesInterceptor() {
+            super(System.class,
+                InterceptScope.readsOfPropertiesNamed("properties"),
+                InterceptScope.methodsNamed("getProperties"));
+        }
+
+        @Override
+        protected Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable {
+            if (invocation.getArgsCount() == 0) {
+                return systemProperties(consumer);
+            }
+            return invocation.callOriginal();
+        }
+    }
+
+    /**
+     * The interceptor for {@link System#setProperties(Properties)}.
+     */
+    private static class SystemSetPropertiesInterceptor extends ClassBoundCallInterceptor {
+        public SystemSetPropertiesInterceptor() {
+            super(System.class, InterceptScope.methodsNamed("setProperties"));
+        }
+
+        @Override
+        protected Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable {
+            if (invocation.getArgsCount() == 1) {
+                setSystemProperties((Properties) invocation.getArgument(0), consumer);
+                return null;
+            }
+            return invocation.callOriginal();
+        }
+    }
+
+    /**
+     * The interceptor for {@link System#clearProperty(String)}.
+     */
+    private static class SystemClearPropertyInterceptor extends ClassBoundCallInterceptor {
+        public SystemClearPropertyInterceptor() {
+            super(System.class, InterceptScope.methodsNamed("clearProperty"));
+        }
+
+        @Override
+        protected Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable {
+            if (invocation.getArgsCount() == 1) {
+                return clearSystemProperty(convertToString(invocation.getArgument(0)), consumer);
+            }
+            return invocation.callOriginal();
+        }
+    }
+
+    /**
+     * The interceptor for {@link System#getenv()} and {@link System#getenv(String)}.
+     */
+    private static class SystemGetenvInterceptor extends ClassBoundCallInterceptor {
+        public SystemGetenvInterceptor() {
+            super(System.class, InterceptScope.methodsNamed("getenv"));
+        }
+
+        @Override
+        protected Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable {
+            switch (invocation.getArgsCount()) {
+                case 0:
+                    return getenv(consumer);
+                case 1:
+                    return getenv(convertToString(invocation.getArgument(0)), consumer);
+            }
+            return invocation.callOriginal();
+        }
+    }
+
+    /**
+     * The interceptor for all overloads of {@code Runtime.exec}.
+     */
+    private static class RuntimeExecInterceptor extends CallInterceptor {
+        public RuntimeExecInterceptor() {
+            super(InterceptScope.methodsNamed("exec"));
+        }
+
+        @Override
+        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+            int argsCount = invocation.getArgsCount();
+            if (1 <= argsCount && argsCount <= 3) {
+                Optional<Process> result = tryCallExec(invocation.getReceiver(), invocation.getArgument(0), invocation.getOptionalArgument(1), invocation.getOptionalArgument(2), consumer);
+                if (result.isPresent()) {
+                    return result.get();
+                }
+            }
+            return invocation.callOriginal();
+        }
+
+        private Optional<Process> tryCallExec(Object runtimeArg, Object commandArg, @Nullable Object envpArg, @Nullable Object fileArg, String consumer) throws Throwable {
             if (runtimeArg instanceof Runtime) {
                 Runtime runtime = (Runtime) runtimeArg;
 
@@ -775,10 +689,10 @@ public class Instrumented {
 
                         if (commandArg instanceof CharSequence) {
                             String command = convertToString(commandArg);
-                            return Optional.of(exec(runtime, command, envp, file, array.owner.getName()));
+                            return Optional.of(exec(runtime, command, envp, file, consumer));
                         } else if (commandArg instanceof String[]) {
                             String[] command = (String[]) commandArg;
-                            return Optional.of(exec(runtime, command, envp, file, array.owner.getName()));
+                            return Optional.of(exec(runtime, command, envp, file, consumer));
                         }
                     }
                 }
@@ -788,86 +702,39 @@ public class Instrumented {
     }
 
     /**
-     * The call site for Groovy's {@code String.execute}, {@code String[].execute}, and {@code List.execute}. This also handles {@code ProcessGroovyMethods.execute}.
+     * The interceptor for Groovy's {@code String.execute}, {@code String[].execute}, and {@code List.execute}. This also handles {@code ProcessGroovyMethods.execute}.
      */
-    private static class ExecuteCallSite extends AbstractCallSite {
-        public ExecuteCallSite(CallSite prev) {
-            super(prev);
+    private static class ProcessGroovyMethodsExecuteInterceptor extends CallInterceptor {
+        protected ProcessGroovyMethodsExecuteInterceptor() {
+            super(InterceptScope.methodsNamed("execute"));
         }
 
-        // String|String[]|List.execute()
         @Override
-        public Object call(Object receiver) throws Throwable {
-            Optional<Process> result = tryCallExecute(receiver, null, null);
+        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+            // Static calls have Class<ProcessGroovyMethods> as a receiver, command as a first argument, optional arguments follow.
+            // "Extension" calls have command as a receiver and optional arguments as arguments.
+            boolean isStaticCall = invocation.getReceiver().equals(ProcessGroovyMethods.class);
+            int argsCount = invocation.getArgsCount();
+            // Offset accounts for the command being in the list of arguments.
+            int nonCommandArgsOffset = isStaticCall ? 1 : 0;
+            int nonCommandArgsCount = argsCount - nonCommandArgsOffset;
+
+            if (nonCommandArgsCount != 0 && nonCommandArgsCount != 2) {
+                // This is an unsupported overload, skip interception.
+                return invocation.callOriginal();
+            }
+
+            Object commandArg = isStaticCall ? invocation.getArgument(0) : invocation.getReceiver();
+            Object envpArg = invocation.getOptionalArgument(nonCommandArgsOffset);
+            Object fileArg = invocation.getOptionalArgument(nonCommandArgsOffset + 1);
+            Optional<Process> result = tryCallExecute(commandArg, envpArg, fileArg, consumer);
             if (result.isPresent()) {
                 return result.get();
             }
-            return super.call(receiver);
+            return invocation.callOriginal();
         }
 
-        // ProcessGroovyMethod.execute(String|String[]|List)
-        @Override
-        public Object call(Object receiver, Object arg1) throws Throwable {
-            if (receiver.equals(ProcessGroovyMethods.class)) {
-                Optional<Process> process = tryCallExecute(arg1, null, null);
-                if (process.isPresent()) {
-                    return process.get();
-                }
-            }
-            return super.call(receiver, arg1);
-        }
-
-        // static import execute(String|String[]|List)
-        @Override
-        public Object callStatic(Class receiver, Object arg1) throws Throwable {
-            if (receiver.equals(ProcessGroovyMethods.class)) {
-                Optional<Process> process = tryCallExecute(arg1, null, null);
-                if (process.isPresent()) {
-                    return process.get();
-                }
-            }
-            return super.callStatic(receiver, arg1);
-        }
-
-        // String|String[]|List.execute(String[]|List, File)
-        @Override
-        public Object call(Object receiver, @Nullable Object arg1, @Nullable Object arg2) throws Throwable {
-            Optional<Process> result = tryCallExecute(receiver, arg1, arg2);
-            if (result.isPresent()) {
-                return result.get();
-            }
-            return super.call(receiver, arg1, arg2);
-        }
-
-        // ProcessGroovyMethod.execute(String|String[]|List, String[]|List, File)
-        @Override
-        public Object call(Object receiver, Object arg1, @Nullable Object arg2, @Nullable Object arg3) throws Throwable {
-            if (receiver.equals(ProcessGroovyMethods.class)) {
-                Optional<Process> result = tryCallExecute(arg1, arg2, arg3);
-                if (result.isPresent()) {
-                    return result.get();
-                }
-            }
-            return super.call(receiver, arg1, arg2, arg3);
-        }
-
-        // static import execute(String|String[]|List, String[]|List, File)
-        @Override
-        public Object callStatic(Class receiver, Object arg1, @Nullable Object arg2, @Nullable Object arg3) throws Throwable {
-            if (receiver.equals(ProcessGroovyMethods.class)) {
-                Optional<Process> result = tryCallExecute(arg1, arg2, arg3);
-                if (result.isPresent()) {
-                    return result.get();
-                }
-            }
-            return super.callStatic(receiver, arg1, arg2, arg3);
-        }
-
-        private Optional<Process> tryCallExecute(Object commandArg, @Nullable Object envpArg, @Nullable Object fileArg) throws Throwable {
-            commandArg = unwrap(commandArg);
-            envpArg = unwrap(envpArg);
-            fileArg = unwrap(fileArg);
-
+        private Optional<Process> tryCallExecute(Object commandArg, @Nullable Object envpArg, @Nullable Object fileArg, String consumer) throws Throwable {
             if (fileArg == null || fileArg instanceof File) {
                 File file = (File) fileArg;
 
@@ -875,25 +742,25 @@ public class Instrumented {
                     String command = convertToString(commandArg);
 
                     if (envpArg == null || envpArg instanceof String[]) {
-                        return Optional.of(execute(command, (String[]) envpArg, file, array.owner.getName()));
+                        return Optional.of(execute(command, (String[]) envpArg, file, consumer));
                     } else if (envpArg instanceof List) {
-                        return Optional.of(execute(command, (List<?>) envpArg, file, array.owner.getName()));
+                        return Optional.of(execute(command, (List<?>) envpArg, file, consumer));
                     }
                 } else if (commandArg instanceof String[]) {
                     String[] command = (String[]) commandArg;
 
                     if (envpArg == null || envpArg instanceof String[]) {
-                        return Optional.of(execute(command, (String[]) envpArg, file, array.owner.getName()));
+                        return Optional.of(execute(command, (String[]) envpArg, file, consumer));
                     } else if (envpArg instanceof List) {
-                        return Optional.of(execute(command, (List<?>) envpArg, file, array.owner.getName()));
+                        return Optional.of(execute(command, (List<?>) envpArg, file, consumer));
                     }
                 } else if (commandArg instanceof List) {
                     List<?> command = (List<?>) commandArg;
 
                     if (envpArg == null || envpArg instanceof String[]) {
-                        return Optional.of(execute(command, (String[]) envpArg, file, array.owner.getName()));
+                        return Optional.of(execute(command, (String[]) envpArg, file, consumer));
                     } else if (envpArg instanceof List) {
-                        return Optional.of(execute(command, (List<?>) envpArg, file, array.owner.getName()));
+                        return Optional.of(execute(command, (List<?>) envpArg, file, consumer));
                     }
                 }
             }
@@ -902,73 +769,65 @@ public class Instrumented {
     }
 
     /**
-     * The call site for {@code ProcessBuilder.start}.
+     * The interceptor for {@link ProcessBuilder#start()}.
      */
-    private static class ProcessBuilderStartCallSite extends AbstractCallSite {
-        public ProcessBuilderStartCallSite(CallSite prev) {
-            super(prev);
+    private static class ProcessBuilderStartInterceptor extends CallInterceptor {
+        ProcessBuilderStartInterceptor() {
+            super(InterceptScope.methodsNamed("start"));
         }
 
-        // ProcessBuilder.start()
         @Override
-        public Object call(Object receiver) throws Throwable {
+        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+            Object receiver = invocation.getReceiver();
             if (receiver instanceof ProcessBuilder) {
-                return start((ProcessBuilder) receiver, array.owner.getName());
+                return start((ProcessBuilder) receiver, consumer);
             }
-            return super.call(receiver);
+            return invocation.callOriginal();
         }
     }
 
     /**
-     * The call site for {@code ProcessBuilder.start}.
+     * The interceptor for {@code ProcessBuilder.startPipeline(List)}.
      */
-    private static class ProcessBuilderStartPipelineCallSite extends AbstractCallSite {
-        public ProcessBuilderStartPipelineCallSite(CallSite prev) {
-            super(prev);
+    private static class ProcessBuilderStartPipelineInterceptor extends ClassBoundCallInterceptor {
+        public ProcessBuilderStartPipelineInterceptor() {
+            super(ProcessBuilder.class, InterceptScope.methodsNamed("startPipeline"));
         }
 
-        // ProcessBuilder.startPipeline(List<ProcessBuilder> pbs)
         @SuppressWarnings("unchecked")
         @Override
-        public Object call(Object receiver, Object arg1) throws Throwable {
-            if (receiver.equals(ProcessBuilder.class) && arg1 instanceof List) {
-                return startPipeline((List<ProcessBuilder>) arg1, array.owner.getName());
+        protected Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable {
+            if (invocation.getArgsCount() == 1 && invocation.getArgument(0) instanceof List) {
+                return startPipeline((List<ProcessBuilder>) invocation.getArgument(0), consumer);
             }
-            return super.call(receiver, arg1);
-        }
-
-        // ProcessBuilder.startPipeline(List<ProcessBuilder> pbs) with static import
-        @SuppressWarnings("unchecked")
-        @Override
-        public Object callStatic(Class receiver, Object arg1) throws Throwable {
-            if (receiver.equals(ProcessBuilder.class) && arg1 instanceof List) {
-                return startPipeline((List<ProcessBuilder>) arg1, array.owner.getName());
-            }
-            return super.callStatic(receiver, arg1);
+            return invocation.callOriginal();
         }
     }
 
-    private static class FileInputStreamConstructorCallSite extends AbstractCallSite {
-        public FileInputStreamConstructorCallSite(CallSite prev) {
-            super(prev);
+    /**
+     * The interceptor for {@link FileInputStream#FileInputStream(File)} and {@link FileInputStream#FileInputStream(String)}.
+     */
+    private static class FileInputStreamConstructorInterceptor extends CallInterceptor {
+        public FileInputStreamConstructorInterceptor() {
+            super(InterceptScope.constructorsOf(FileInputStream.class));
         }
 
         @Override
-        public Object callConstructor(Object receiver, Object arg1) throws Throwable {
-            if (receiver.equals(FileInputStream.class)) {
-                Object unwrappedArg1 = unwrap(arg1);
-                if (unwrappedArg1 instanceof CharSequence) {
-                    String path = convertToString(unwrappedArg1);
-                    fileOpened(path, array.owner.getName());
+        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+            if (invocation.getArgsCount() == 1) {
+                Object argument = invocation.getArgument(0);
+                if (argument instanceof CharSequence) {
+                    String path = convertToString(argument);
+                    fileOpened(path, consumer);
                     return new FileInputStream(path);
-                } else if (unwrappedArg1 instanceof File) {
-                    File file = (File) unwrappedArg1;
-                    fileOpened(file, array.owner.getName());
+                } else if (argument instanceof File) {
+                    File file = (File) argument;
+                    fileOpened(file, consumer);
                     return new FileInputStream(file);
                 }
             }
+            return invocation.callOriginal();
 
-            return super.callConstructor(receiver, arg1);
         }
     }
 }

@@ -29,7 +29,7 @@ class GradleImplDepsVisibilityIntegrationTest extends BaseGradleImplDepsIntegrat
         buildFile << testablePluginProject()
 
         file('src/test/groovy/MyTest.groovy') << """
-            class MyTest extends groovy.util.GroovyTestCase {
+            class MyTest extends groovy.test.GroovyTestCase {
 
                 void testImplIsHidden() {
                     try {
@@ -106,12 +106,12 @@ class GradleImplDepsVisibilityIntegrationTest extends BaseGradleImplDepsIntegrat
 
     def "can use ProjectBuilder to unit test a plugin"() {
         when:
-        buildFile << testablePluginProjectWithAddOpens()
+        buildFile << testablePluginProject()
 
         file('src/main/groovy/MyPlugin.groovy') << customGroovyPlugin()
 
         file('src/test/groovy/MyTest.groovy') << """
-            class MyTest extends groovy.util.GroovyTestCase {
+            class MyTest extends groovy.test.GroovyTestCase {
 
                 void testCanUseProjectBuilder() {
                     def project = ${ProjectBuilder.name}.builder().build()

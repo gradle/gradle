@@ -65,6 +65,14 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         return new WithDeprecationTimeline(this);
     }
 
+    /**
+     * Output: This will change in Gradle 8.0.
+     */
+    public WithDeprecationTimeline willChangeInGradle8() {
+        this.deprecationTimeline = DeprecationTimeline.willChangeInVersion(GRADLE8);
+        return new WithDeprecationTimeline(this);
+    }
+
     void setIndirectUsage() {
         this.usageType = DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT;
     }

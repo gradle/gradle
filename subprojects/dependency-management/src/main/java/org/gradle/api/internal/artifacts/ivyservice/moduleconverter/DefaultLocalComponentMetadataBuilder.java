@@ -49,17 +49,17 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         configuration.collectVariants(new ConfigurationInternal.VariantVisitor() {
             @Override
             public void visitArtifacts(Collection<? extends PublishArtifact> artifacts) {
-                metaData.addArtifacts(configuration.getName(), artifacts);
+                configurationMetadata.addArtifacts(artifacts);
             }
 
             @Override
             public void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends Capability> capabilities, Collection<? extends PublishArtifact> artifacts) {
-                metaData.addVariant(configuration.getName(), configuration.getName(), configurationIdentifier, displayName, attributes, ImmutableCapabilities.of(capabilities), artifacts);
+                configurationMetadata.addVariant(configuration.getName(), configurationIdentifier, displayName, attributes, ImmutableCapabilities.of(capabilities), artifacts);
             }
 
             @Override
             public void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends Capability> capabilities, Collection<? extends PublishArtifact> artifacts) {
-                metaData.addVariant(configuration.getName(), configuration.getName() + "-" + name, new NestedVariantIdentifier(configurationIdentifier, name), displayName, attributes, ImmutableCapabilities.of(capabilities), artifacts);
+                configurationMetadata.addVariant(configuration.getName() + "-" + name, new NestedVariantIdentifier(configurationIdentifier, name), displayName, attributes, ImmutableCapabilities.of(capabilities), artifacts);
             }
         });
         return configurationMetadata;

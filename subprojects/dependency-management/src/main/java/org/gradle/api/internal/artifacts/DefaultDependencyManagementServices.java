@@ -44,6 +44,7 @@ import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyConstraintHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.GradlePluginVariantsSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
@@ -57,6 +58,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
@@ -296,7 +298,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 NamedObjectInstantiator instantiator,
                 DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                 ChecksumService checksumService,
-                ProviderFactory providerFactory
+                ProviderFactory providerFactory,
+                VersionParser versionParser
         ) {
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
@@ -320,7 +323,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 callbackDecorator,
                 urlArtifactRepositoryFactory,
                 checksumService,
-                providerFactory
+                providerFactory,
+                versionParser
             );
         }
 
@@ -388,7 +392,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         DependencyHandler createDependencyHandler(Instantiator instantiator,
                                                   ConfigurationContainerInternal configurationContainer,
-                                                  @SuppressWarnings("deprecation") org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory dependencyFactory,
+                                                  DependencyFactoryInternal dependencyFactory,
                                                   ProjectFinder projectFinder,
                                                   DependencyConstraintHandler dependencyConstraintHandler,
                                                   ComponentMetadataHandler componentMetadataHandler,
@@ -441,7 +445,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return dependencyLockingProvider;
         }
 
-        DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, @SuppressWarnings("deprecation") org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory dependencyFactory, ObjectFactory objects, PlatformSupport platformSupport) {
+        DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactoryInternal dependencyFactory, ObjectFactory objects, PlatformSupport platformSupport) {
             return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyFactory, objects, platformSupport);
         }
 
