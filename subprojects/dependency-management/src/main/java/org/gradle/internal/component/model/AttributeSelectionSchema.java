@@ -22,6 +22,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public interface AttributeSelectionSchema {
@@ -34,13 +35,16 @@ public interface AttributeSelectionSchema {
     @Nullable
     Attribute<?> getAttribute(String name);
 
+    /**
+     * Collects attributes that were present on the candidates, but which the consumer did not ask for.
+     */
     Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidates, ImmutableAttributes requested);
 
     class PrecedenceResult {
-        private final Collection<Integer> sortedIndices;
+        private final List<Integer> sortedIndices;
         private final Collection<Integer> unsortedIndices;
 
-        public PrecedenceResult(Collection<Integer> sortedIndices, Collection<Integer> unsortedIndices) {
+        public PrecedenceResult(List<Integer> sortedIndices, Collection<Integer> unsortedIndices) {
             this.sortedIndices = sortedIndices;
             this.unsortedIndices = unsortedIndices;
         }
@@ -49,7 +53,7 @@ public interface AttributeSelectionSchema {
             this(Collections.emptyList(), unsortedIndices);
         }
 
-        public Collection<Integer> getSortedOrder() {
+        public List<Integer> getSortedOrder() {
             return sortedIndices;
         }
 
@@ -62,9 +66,9 @@ public interface AttributeSelectionSchema {
      * Given a set of attributes, order those attributes based on the precedence defined by
      * this schema.
      *
-     * @param requested The attributes to order. Must have a consistent iteration ordering.
+     * @param requested The attributes to order. <strong>Must have a consistent iteration ordering and cannot contain duplicates</strong>.
      *
      * @return The ordered attributes.
      */
-    PrecedenceResult orderByPrecedence(Set<Attribute<?>> requested);
+    PrecedenceResult orderByPrecedence(Collection<Attribute<?>> requested);
 }
