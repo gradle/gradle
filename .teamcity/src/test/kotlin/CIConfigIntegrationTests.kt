@@ -188,7 +188,7 @@ class CIConfigIntegrationTests {
 
         assertTrue(!rootProject.subProjectContainsSlowTests("Gradle_Check_Stage_QuickFeedbackLinuxOnly"))
         assertTrue(!rootProject.subProjectContainsSlowTests("Gradle_Check_Stage_QuickFeedback"))
-        assertTrue(!rootProject.subProjectContainsSlowTests("Gradle_Check_Stage_ReadyforMerge"))
+        assertTrue(!rootProject.subProjectContainsSlowTests("Gradle_Check_Stage_PullRequestFeedback"))
         assertTrue(rootProject.subProjectContainsSlowTests("Gradle_Check_Stage_ReadyforNightly"))
         assertTrue(rootProject.subProjectContainsSlowTests("Gradle_Check_Stage_ReadyforRelease"))
     }

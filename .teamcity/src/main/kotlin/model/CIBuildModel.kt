@@ -17,7 +17,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 enum class StageNames(override val stageName: String, override val description: String, override val uuid: String) : StageName {
     QUICK_FEEDBACK_LINUX_ONLY("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer, Linux)", "QuickFeedbackLinuxOnly"),
     QUICK_FEEDBACK("Quick Feedback", "Run checks and functional tests (embedded executer, Windows)", "QuickFeedback"),
-    READY_FOR_MERGE("Ready for Merge", "Run performance and functional tests (against distribution)", "BranchBuildAccept"),
+    PULL_REQUEST_FEEDBACK("Pull Request Feedback", "Run performance and functional tests (against distribution)", "PullRequestFeedback"),
     READY_FOR_NIGHTLY("Ready for Nightly", "Rerun tests in different environments / 3rd party components", "MasterAccept"),
     READY_FOR_RELEASE("Ready for Release", "Once a day: Rerun tests in more environments", "ReleaseAccept"),
     HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions", "HistoricalPerformance"),
@@ -52,7 +52,7 @@ data class CIBuildModel(
             dependsOnSanityCheck = true
         ),
         Stage(
-            StageNames.READY_FOR_MERGE,
+            StageNames.PULL_REQUEST_FEEDBACK,
             specificBuilds = listOf(
                 SpecificBuild.BuildDistributions,
                 SpecificBuild.Gradleception,
