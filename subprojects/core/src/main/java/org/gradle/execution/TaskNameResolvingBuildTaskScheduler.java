@@ -19,6 +19,7 @@ import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.selection.BuildTaskSelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,9 +33,9 @@ import java.util.List;
 public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskNameResolvingBuildTaskScheduler.class);
     private final CommandLineTaskParser commandLineTaskParser;
-    private final TaskSelector taskSelector;
+    private final BuildTaskSelector.BuildSpecificSelector taskSelector;
 
-    public TaskNameResolvingBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, TaskSelector taskSelector) {
+    public TaskNameResolvingBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, BuildTaskSelector.BuildSpecificSelector taskSelector) {
         this.commandLineTaskParser = commandLineTaskParser;
         this.taskSelector = taskSelector;
     }
@@ -63,7 +64,7 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
 
         @Override
         public TaskSelection getSelection(String taskPath) {
-            return taskSelector.getSelection(taskPath);
+            return taskSelector.resolveTaskName(taskPath);
         }
 
         @Override

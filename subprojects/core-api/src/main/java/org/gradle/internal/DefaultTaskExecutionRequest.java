@@ -34,10 +34,6 @@ public class DefaultTaskExecutionRequest implements TaskExecutionRequest, Serial
         this(args, null, null);
     }
 
-    public DefaultTaskExecutionRequest(Iterable<String> args, @Nullable String projectPath) {
-        this(args, projectPath, null);
-    }
-
     public DefaultTaskExecutionRequest(Iterable<String> args, @Nullable String projectPath, @Nullable File rootDir) {
         this.args = Lists.newArrayList(args);
         this.projectPath = projectPath;

@@ -22,7 +22,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.execution.TaskSelector;
+import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.layout.ResolvedBuildLayout;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -65,7 +65,7 @@ public class Help extends DefaultTask {
     }
 
     @Inject
-    protected TaskSelector getTaskSelector() {
+    protected BuildTaskSelector.BuildSpecificSelector getTaskSelector() {
         throw new UnsupportedOperationException();
     }
 

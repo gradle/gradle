@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
- *
  * Contract for a Gradle extension that acts as a handler for what I call a virtual directory mapping,
  * injecting a virtual directory named 'antlr' into the project's various {@link org.gradle.api.tasks.SourceSet source
  * sets}.
@@ -29,4 +28,11 @@ import org.gradle.api.file.SourceDirectorySet;
  */
 @Incubating
 public interface AntlrSourceDirectorySet extends SourceDirectorySet {
+
+    /**
+     * Name of the source set extension contributed by the antlr plugin.
+     *
+     * @since 8.0
+     */
+    String NAME = "antlr";
 }

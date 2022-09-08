@@ -22,6 +22,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.execution.commandline.CommandLineTaskParser
 import org.gradle.execution.plan.ExecutionPlan
+import org.gradle.execution.selection.BuildTaskSelector
 import spock.lang.Specification
 
 class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
@@ -36,7 +37,7 @@ class TaskNameResolvingBuildTaskSchedulerSpec extends Specification {
         executionPlan = Mock(ExecutionPlan)
         parser = Mock(CommandLineTaskParser)
         selector = Mock(EntryTaskSelector)
-        action = new TaskNameResolvingBuildTaskScheduler(parser, Stub(TaskSelector))
+        action = new TaskNameResolvingBuildTaskScheduler(parser, Stub(BuildTaskSelector.BuildSpecificSelector))
     }
 
     def "empty task parameters are no-op action"() {
