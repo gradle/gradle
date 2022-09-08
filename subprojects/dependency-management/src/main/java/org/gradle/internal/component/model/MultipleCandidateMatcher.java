@@ -27,9 +27,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.IntFunction;
@@ -100,9 +98,9 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
 
     private BitSet remaining;
 
-    <E extends T> MultipleCandidateMatcher(AttributeSelectionSchema schema, Collection<E> candidates, ImmutableAttributes requested, AttributeMatchingExplanationBuilder explanationBuilder) {
+    <E extends T> MultipleCandidateMatcher(AttributeSelectionSchema schema, List<E> candidates, ImmutableAttributes requested, AttributeMatchingExplanationBuilder explanationBuilder) {
         this.schema = schema;
-        this.candidates = (candidates instanceof List) ? (List<E>) candidates : ImmutableList.copyOf(candidates);
+        this.candidates = candidates;
         this.requested = requested;
         this.explanationBuilder = explanationBuilder;
 
@@ -231,7 +229,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             return getCandidates(remaining);
         }
 
-        Attribute<?>[] extraAttributes = collectExtraAttributes();
+        Attribute<?>[] extraAttributes = schema.collectExtraAttributes(candidateAttributeSets, requested);
         if (remaining.cardinality() > 1) {
             disambiguateWithExtraAttributes(extraAttributes);
         }
@@ -379,8 +377,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     private void disambiguateWithExtraAttributes(Attribute<?>[] extraAttributes) {
-        Set<Attribute<?>> extra = new LinkedHashSet<>(Arrays.asList(extraAttributes));
-        final AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(extra);
+        final AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(Arrays.asList(extraAttributes));
 
         for (int a : precedenceResult.getSortedOrder()) {
             disambiguateExtraAttribute(extraAttributes[a]);
@@ -401,17 +398,6 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
                 return;
             }
         }
-    }
-
-    /**
-     * Collects attributes that were present on the candidates, but which the consumer did
-     * not ask for. Some of these attributes might be weakly typed, e.g. coming as Strings
-     * from an artifact repository. We always check whether the schema has a more strongly
-     * typed version of an attribute and use that one instead to apply its disambiguation
-     * rules.
-     */
-    private Attribute<?>[] collectExtraAttributes() {
-        return schema.collectExtraAttributes(candidateAttributeSets, requested);
     }
 
     private List<T> getCandidates(BitSet liveSet) {
