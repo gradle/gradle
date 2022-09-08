@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -29,11 +30,12 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
     def 'run Jetty with Gretty #grettyConfig.version'() {
         given:
+        def grettyVersion = VersionNumber.parse(grettyConfig.version)
         useSample('gretty-example')
         buildFile << """
             plugins {
                 id "war"
-                id "org.gretty" version "${grettyConfig.version}"
+                id "org.gretty" version "${grettyVersion}"
             }
 
             ${jcenterRepository()}
@@ -60,7 +62,8 @@ class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         def result = runner('checkContainerUp')
-            .expectDeprecationWarning(
+            .expectDeprecationWarningIf(
+                grettyVersion < new VersionNumber(4, 0, 0, null),
                 "Internal API DependencyFactory.ClassPathNotation has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use an appropriate call to DependencyHandler instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#dependency_factory_renamed",
                 "https://github.com/gretty-gradle-plugin/gretty/pull/263"
             )
