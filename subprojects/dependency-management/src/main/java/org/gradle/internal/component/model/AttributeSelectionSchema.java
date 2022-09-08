@@ -57,5 +57,14 @@ public interface AttributeSelectionSchema {
             return unsortedIndices;
         }
     }
-    PrecedenceResult orderByPrecedence(ImmutableAttributes requested);
+
+    /**
+     * Given a set of attributes, order those attributes based on the precedence defined by
+     * this schema.
+     *
+     * @param requested The attributes to order. Must have a consistent iteration ordering.
+     *
+     * @return The ordered attributes.
+     */
+    PrecedenceResult orderByPrecedence(Set<Attribute<?>> requested);
 }
