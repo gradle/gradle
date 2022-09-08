@@ -308,12 +308,12 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs deprecation without scheduled removal"() {
         when:
-        DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level - this behavior is deprecated.", "Consider using 'transitive = false' at the dependency level if you need this to be published.")
+        DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level", "Consider using 'transitive = false' at the dependency level if you need this to be published.")
             .undocumented()
             .nagUser()
 
         then:
-        expectMessage "Publication ignores 'transitive = false' at configuration level - this behavior is deprecated. Consider using 'transitive = false' at the dependency level if you need this to be published."
+        expectMessage "Publication ignores 'transitive = false' at configuration level. This behavior is deprecated. Consider using 'transitive = false' at the dependency level if you need this to be published."
     }
 
     def "logs documentation reference"() {
