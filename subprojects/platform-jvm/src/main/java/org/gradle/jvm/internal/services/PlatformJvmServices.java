@@ -23,7 +23,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.env.internal.DefaultBuildEnvironment;
-import org.gradle.initialization.DefaultToolchainManagementSpec;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.event.ListenerManager;
@@ -93,10 +92,6 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
 
         protected JavaInstallationRegistry createJavaInstallationRegistry(ObjectFactory objectFactory, List<InstallationSupplier> suppliers, BuildOperationExecutor executor, OperatingSystem os) {
             return objectFactory.newInstance(JavaInstallationRegistry.class, suppliers, executor, os);
-        }
-
-        protected DefaultToolchainManagementSpec createToolchainManagementSpec(ObjectFactory objectFactory) {
-            return objectFactory.newInstance(DefaultToolchainManagementSpec.class); //TODO (#21082): is it ok to create this here? conceptually it should be in core, but where to put it there?
         }
 
     }
