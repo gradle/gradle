@@ -24,7 +24,7 @@ import org.gradle.api.Incubating;
  * @since 7.6
  */
 @Incubating
-public interface BuildEnvironment {
+public interface BuildEnvironment { //TODO (#21082): merge this into a unique param of the "toURI" method in the registry
 
     OperatingSystem getOperatingSystem();
 

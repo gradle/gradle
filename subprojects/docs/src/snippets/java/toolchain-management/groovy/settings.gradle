@@ -1,14 +1,13 @@
-rootProject.name = 'toolchain-management'
+import java.util.Optional
+import javax.inject.Inject
+
+apply plugin: AzulPlugin
+apply plugin: AdoptiumPlugin
 
 // tag::toolchain-management[]
-plugins {
-    id 'org.gradle.adopt-open-jdk-repo' version '1.0'
-    id 'com.azul.zulu-toolchain-management' version '0.6'
-} // <1>
-
 toolchainManagement {
-    jdks { // <2>
-        add("com_azul_zulu") // <3>
+    jdks { // <1>
+        add("com_azul_zulu") // <2>
             {
                 credentials {
                     username "user"
@@ -17,8 +16,50 @@ toolchainManagement {
                 authentication {
                     digest(BasicAuthentication)
                 }
-            } // <4>
-        add("org_gradle_adopt_open_jdk") // <5>
+            } // <3>
+        add("org_gradle_adopt_open_jdk") // <4>
     }
 }
 // end::toolchain-management[]
+
+rootProject.name = 'toolchain-management'
+
+abstract class AzulPlugin extends DummyPlugin {
+
+    AzulPlugin() {
+        super("com_azul_zulu")
+    }
+}
+
+abstract class AdoptiumPlugin extends DummyPlugin {
+
+    AdoptiumPlugin() {
+        super("org_gradle_adopt_open_jdk")
+    }
+}
+
+abstract class DummyPlugin implements Plugin<Settings> {
+
+    private final String name;
+
+    @Inject
+    protected abstract JavaToolchainRepositoryRegistry getToolchainRepositoryRegistry();
+
+    DummyPlugin(String name) {
+        this.name = name
+    }
+
+    void apply(Settings settings) {
+        settings.getPlugins().apply("jdk-toolchains");
+
+        JavaToolchainRepositoryRegistry registry = getToolchainRepositoryRegistry();
+        registry.register(name, DummyRepo.class, JavaToolchainSpecVersion.currentSpecVersion)
+    }
+}
+
+abstract class DummyRepo implements JavaToolchainRepository {
+    @Override
+    Optional<URI> toUri(JavaToolchainSpec spec, org.gradle.env.BuildEnvironment env) {
+        return Optional.empty();
+    }
+}

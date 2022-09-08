@@ -591,7 +591,6 @@ tasks.named("docsTest") { task ->
     filter {
         // workaround for https://github.com/gradle/dotcom/issues/5958
         failOnNoMatchingTests = false
-        excludeTestsMatching "org.gradle.docs.samples.*.snippet-java-toolchain-management*.sample" //TODO (#21082): try to make these tests actually work
         // Only execute C++ sample tests on Linux because it is the configured target
         if (!OperatingSystem.current().linux) {
             excludeTestsMatching "org.gradle.docs.samples.*.building-cpp-*.sample"
