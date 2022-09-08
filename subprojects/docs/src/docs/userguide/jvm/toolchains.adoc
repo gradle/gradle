@@ -202,7 +202,7 @@ In order to disable auto-detection, you can use the `org.gradle.java.installatio
 * Or put `org.gradle.java.installations.auto-detect=false` into your `gradle.properties` file.
 
 [[sec:provisioning]]
-== Auto Provisioning
+== Auto-Provisioning
 
 If Gradle can't find a locally available toolchain, which matches the requirements of the build, it can automatically download one.
 By default, downloading happens from Adoptium or AdoptOpenJDK, but this behaviour
@@ -274,11 +274,10 @@ To actually make use of these two repositories in your build, you would use the 
 include::sample[dir="snippets/java/toolchain-management/groovy/",files="settings.gradle[tags=toolchain-management]"]
 include::sample[dir="snippets/java/toolchain-management/kotlin/",files="settings.gradle.kts[tags=toolchain-management]"]
 ====
-<1> apply the settings plugins providing the toolchain download repository implementations
-<2> `toolchainManagement` is intended to cover more than Java toolchains, so the `jdks` sub-block provides the container for Java Toolchain Management related configuration
-<3> the `add` method explicitly names a Java toolchain download repository to be used for Java toolchain auto-provisioning
-<4> toolchain download repositories primarily provide URIs to download toolchains from, but they can also be configured with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options that are available for artifact repositories used in dependency management>>
-<5> multiple calls of `add` methods form an ordered list of repositories; when a specific toolchain needs to be downloaded, the list of repositories is examined in order and the first repository, that can provide the target toolchain, will be used; this mechanism is the reason why explicit `add` methods are used instead just relying on the registration done by the plugin application
+<1> `toolchainManagement` is intended to cover more than Java toolchains, so the `jdks` sub-block provides the container for Java Toolchain Management related configuration
+<2> the `add` method explicitly names a Java toolchain download repository to be used for Java toolchain auto-provisioning
+<3> toolchain download repositories primarily provide URIs to download toolchains from, but they can also be configured with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options that are available for artifact repositories used in dependency management>>
+<4> multiple calls of `add` methods form an ordered list of repositories; when a specific toolchain needs to be downloaded, the list of repositories is examined in order and the first repository, that can provide the target toolchain, will be used; this mechanism is the reason why explicit `add` methods are used instead just relying on the registration done by the plugin application
 
 [WARNING]
 ====
