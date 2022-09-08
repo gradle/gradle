@@ -208,7 +208,6 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         });
     }
 
-    @SuppressWarnings("deprecation")
     private static boolean excludeGradleApi(ComponentIdentifier componentId) {
         if (componentId instanceof OpaqueComponentIdentifier) {
             DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();

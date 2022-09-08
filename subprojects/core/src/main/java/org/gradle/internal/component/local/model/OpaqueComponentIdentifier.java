@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 
 public class OpaqueComponentIdentifier implements ComponentIdentifier {
-
     private final DependencyFactoryInternal.ClassPathNotation classPathNotation;
 
     public OpaqueComponentIdentifier(DependencyFactoryInternal.ClassPathNotation classPathNotation) {

@@ -39,6 +39,7 @@ import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.component.Artifact;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -251,13 +252,12 @@ public class IdeDependencySet {
             return javaModuleDetector.isModule(inferModulePath && !testOnly, artifact);
         }
 
-        @SuppressWarnings("deprecation")
         private boolean isLocalGroovyDependency(ResolvedArtifactResult artifact) {
             String artifactFileName = artifact.getFile().getName();
             String componentIdentifier = artifact.getId().getComponentIdentifier().getDisplayName();
-            return (componentIdentifier.equals(org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API.displayName)
-                    || componentIdentifier.equals(org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT.displayName)
-                    || componentIdentifier.equals(org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.LOCAL_GROOVY.displayName))
+            return (componentIdentifier.equals(DependencyFactoryInternal.ClassPathNotation.GRADLE_API.displayName)
+                    || componentIdentifier.equals(DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT.displayName)
+                    || componentIdentifier.equals(DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY.displayName))
                 && artifactFileName.startsWith("groovy-");
         }
 

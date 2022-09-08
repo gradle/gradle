@@ -23,7 +23,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
  * It should be removed after they release a version that doesn't use this.
  * </p>
  *
- * @deprecated - Replaced by more type-safe means of parsing dependencies, will be removed in Gradle 8.0.
+ * @deprecated - Replaced by {@link DependencyFactoryInternal} or more type-safe means of parsing dependencies, will be removed in Gradle 8.0.
  */
 @Deprecated
 public interface DependencyFactory {
