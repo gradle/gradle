@@ -34,14 +34,15 @@ import java.util.Optional;
 public interface JavaToolchainRepository extends BuildService<BuildServiceParameters.None> {
 
     /**
-     * Returns the URI from which a Java Toolchain matching the provided specification can be downloaded.
-     * The URI must point to either a ZIP or a TAR archive file and has to be secure (so simple HTTP is
-     * not allowed, only HTTPS).
-     * <p>
-     * Returns an empty Optional if and only if the provided specification can't be matched.
+     * Returns the URI from which a Java Toolchain matching the provided specification
+     * can be downloaded. The URI must point to either a ZIP or a TAR archive file and
+     * has to be secure (so simple HTTP is not allowed, only HTTPS).
+     *
+     * @param spec  toolchain specification for which a download URI is requested
+     * @param env   information about the environment Gradle is running in
+     * @return      empty Optional if and only if the provided specification can't be
+     *              matched
      */
-    Optional<URI> toUri(JavaToolchainSpec spec, BuildEnvironment buildEnvironment);
-
-    //TODO (#21082): update the design spec with the build environment addition
+    Optional<URI> toUri(JavaToolchainSpec spec, BuildEnvironment env);
 
 }
