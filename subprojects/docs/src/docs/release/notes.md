@@ -12,6 +12,7 @@ Include only their name, impactful features should be called out separately belo
 We would like to thank the following community members for their contributions to this release of Gradle:
 
 [altrisi](https://github.com/altrisi),
+[Aurimas](https://github.com/liutikas)
 [Rob Bavey](https://github.com/robbavey),
 [aSemy](https://github.com/aSemy),
 [Ashwin Pankaj](https://github.com/ashwinpankaj),
