@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
     private void expectDeprecationWarningForIneligibleTypes() {
         executer.expectDocumentedDeprecationWarning("Using internal convention mapping with a Provider backed property. " +
-                "This behaviour has been deprecated. " +
+                "This behavior has been deprecated. " +
                 "This will fail with an error in Gradle 8.0. " +
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_7.html#convention_mapping")
