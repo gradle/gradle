@@ -17,11 +17,6 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.ExternalModuleDependency;
-import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderConvertible;
 
 /**
  * Dependency APIs for using <a href="https://docs.gradle.org/current/userguide/java_testing.html#sec:java_test_fixtures">Test Fixtures</a> in {@code dependencies} blocks.
@@ -33,43 +28,8 @@ import org.gradle.api.provider.ProviderConvertible;
  * @since 7.6
  */
 @Incubating
-public interface TestFixturesDependencyModifiers extends Dependencies {
-    /**
-     * Create an {@link ExternalModuleDependency} from the given notation and modifies it to select the Test Fixtures variant of the given module.
-     *
-     * @param dependencyNotation the dependency notation
-     * @return the modified dependency
-     * @see DependencyFactory#create(CharSequence)
-     */
-    default ExternalModuleDependency testFixtures(CharSequence dependencyNotation) {
-        return testFixtures(getDependencyFactory().create(dependencyNotation));
-    }
-
-    /**
-     * Takes a given {@link ModuleDependency} and modifies it to select the Test Fixtures variant of the given module.
-     *
-     * @param dependency the dependency
-     * @return the modified dependency
-     */
-    <D extends ModuleDependency> D testFixtures(D dependency);
-
-    /**
-     * Takes a given {@code Provider} to a {@link MinimalExternalModuleDependency} and modifies the dependency to select the Test Fixtures variant of the given module.
-     *
-     * @param providerConvertibleToDependency the provider
-     * @return a provider to the modified dependency
-     */
-    default Provider<? extends MinimalExternalModuleDependency> testFixtures(ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
-        return providerConvertibleToDependency.asProvider().map(this::testFixtures);
-    }
-
-    /**
-     * Takes a given {@code Provider} to a {@link ExternalModuleDependency} and modifies the dependency to select the Test Fixtures variant of the given module.
-     *
-     * @param providerToDependency the provider
-     * @return a provider to the modified dependency
-     */
-    default Provider<? extends ExternalModuleDependency> testFixtures(Provider<? extends ExternalModuleDependency> providerToDependency) {
-        return providerToDependency.map(this::testFixtures);
+public interface TestFixturesDependencyModifiers {
+    TestFixturesDependencyModifier getTestFixtures();
+    interface TestFixturesDependencyModifier extends DependencyModifier {
     }
 }

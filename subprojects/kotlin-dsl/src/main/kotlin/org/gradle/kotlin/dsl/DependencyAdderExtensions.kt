@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.artifacts.dsl.Dependencies
 import org.gradle.api.artifacts.dsl.DependencyAdder
 import org.gradle.api.artifacts.dsl.DependencyFactory
+import org.gradle.api.artifacts.dsl.DependencyModifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
@@ -57,6 +58,17 @@ import org.gradle.api.provider.ProviderConvertible
  * There are {@code invoke(...)} equivalents for all the {@code add(...)} methods in {@code DependencyAdder}.
  *
  */
+
+
+/**
+ * Creates a dependency based on the group, name and version (GAV) coordinates.
+ *
+ * @since 7.6
+ */
+operator fun DependencyModifier.invoke(dependencyNotation: CharSequence) = modify(dependencyNotation)
+
+
+operator fun DependencyModifier.invoke(dependency: Dependency) = modify(dependency)
 
 
 /**
