@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.api.provider.Property
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.LockOptions
@@ -29,6 +30,10 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainSpec
+import org.gradle.jvm.toolchain.JvmImplementation
+import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory
 import org.gradle.util.internal.Resources
@@ -109,12 +114,12 @@ class JdkCacheDirectoryTest extends Specification {
         def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector())
 
         when:
-        def installedJdk = jdkCacheDirectory.provisionFromArchive(jdkArchive, URI.create("uri"))
+        def installedJdk = jdkCacheDirectory.provisionFromArchive(mockSpec(), jdkArchive, URI.create("uri"))
 
         then:
         installedJdk.exists()
         installedJdk.getParentFile().getParentFile().getName() == "jdks"
-        installedJdk.getParentFile().getName() == "vendor-11-arch-${os()}"
+        installedJdk.getParentFile().getName() == "ibm-11-arch-${os()}"
         installedJdk.getName() == "jdk"
         new File(installedJdk, "provisioned.ok").exists()
         new File(installedJdk, "file").exists()
@@ -125,12 +130,12 @@ class JdkCacheDirectoryTest extends Specification {
         def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector())
 
         when:
-        def installedJdk = jdkCacheDirectory.provisionFromArchive(jdkArchive, URI.create("uri"))
+        def installedJdk = jdkCacheDirectory.provisionFromArchive(mockSpec(), jdkArchive, URI.create("uri"))
 
         then:
         installedJdk.exists()
         installedJdk.getParentFile().getParentFile().getName() == "jdks"
-        installedJdk.getParentFile().getName() == "vendor-11-arch-${os()}"
+        installedJdk.getParentFile().getName() == "ibm-11-arch-${os()}"
         installedJdk.getName() == "jdk-123"
         new File(installedJdk, "provisioned.ok").exists()
         new File(installedJdk, "file").exists()
@@ -142,7 +147,7 @@ class JdkCacheDirectoryTest extends Specification {
         def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector())
 
         when:
-        def installedJdk = jdkCacheDirectory.provisionFromArchive(jdkArchive, URI.create("uri"))
+        def installedJdk = jdkCacheDirectory.provisionFromArchive(mockSpec(), jdkArchive, URI.create("uri"))
 
         then:
         installedJdk.exists()
@@ -193,13 +198,32 @@ class JdkCacheDirectoryTest extends Specification {
     JvmMetadataDetector mockDetector() {
         JvmInstallationMetadata metadata = Mock(JvmInstallationMetadata)
         metadata.isValidInstallation() >> true
-        metadata.getVendor() >> JvmVendor.fromString("vendor")
+        metadata.getVendor() >> JvmVendor.KnownJvmVendor.IBM.asJvmVendor()
         metadata.getLanguageVersion() >> JavaVersion.VERSION_11
         metadata.getArchitecture() >> "arch"
+        metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE) >> true
 
         def detector = Mock(JvmMetadataDetector)
         detector.getMetadata(_ as InstallationLocation) >> metadata
         detector
+    }
+
+    JavaToolchainSpec mockSpec() {
+        Property<JavaLanguageVersion> javaLanguageVersionProperty = Mock(Property.class)
+        javaLanguageVersionProperty.get() >> JavaLanguageVersion.of(11)
+
+        Property<JvmImplementation> implementationProperty = Mock(Property.class)
+        implementationProperty.get() >> JvmImplementation.J9
+
+        Property<JvmVendorSpec> vendorProperty = Mock(Property.class)
+        vendorProperty.get() >> JvmVendorSpec.IBM
+
+        JavaToolchainSpec spec = Mock(JavaToolchainSpec)
+        spec.getLanguageVersion() >> javaLanguageVersionProperty
+        spec.getImplementation() >> implementationProperty
+        spec.getVendor() >> vendorProperty
+        spec.getDisplayName() >> "mock spec"
+        spec
     }
 
     private static String os() {
