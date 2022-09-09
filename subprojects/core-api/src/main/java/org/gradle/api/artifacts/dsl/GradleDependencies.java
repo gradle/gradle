@@ -22,6 +22,10 @@ import org.gradle.api.artifacts.Dependency;
 /**
  * Dependency APIs available for {@code dependencies} blocks that can build software that relies on Gradle APIs.
  *
+ * <p>
+ * NOTE: This API is <strong>incubating</strong> and is likely to change until it's made stable.
+ * </p>
+ *
  * @since 7.6
  */
 @Incubating
