@@ -27,7 +27,7 @@ public class EclipseJavaVersionMapper {
     }
 
     /**
-     * Converts the target Java version to to its Eclipse-specific representation.
+     * Converts the target Java version to its Eclipse-specific representation.
      *
      * @param version the target Java version
      * @return the Eclipse-specific representation of the version

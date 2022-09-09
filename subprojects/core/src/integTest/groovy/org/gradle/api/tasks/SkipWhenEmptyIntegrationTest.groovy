@@ -76,34 +76,12 @@ class SkipWhenEmptyIntegrationTest extends AbstractIntegrationSpec {
         "tar tree with files"                           | "tarTree(file('inputTar.tar'))"
     }
 
-    def "emit a deprecation warning when file tree source does not ignore directories"() {
-        def inputDir = file("inputDir").createDir()
-        inputDir.file("input.txt").createFile()
-
-        buildFile << getSourceTask(false)
-        buildFile << """
-            tasks.register("sourceTask", MySourceTask) {
-                sources.setFrom(fileTree("inputDir"))
-                outputFile.set(file("build/output.txt"))
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Relying on FileTrees for ignoring empty directories when using @SkipWhenEmpty has been deprecated. " +
-            "This is scheduled to be removed in Gradle 8.0. " +
-            "Annotate the property sources with @IgnoreEmptyDirectories or remove @SkipWhenEmpty. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#empty_directories_file_tree")
-        run ":sourceTask"
-        then:
-        executedAndNotSkipped(":sourceTask")
-    }
-
-    private String getSourceTask(boolean ignoreEmptyDirectories = true) {
+    private String getSourceTask() {
         """
             import java.nio.file.Files
 
             abstract class MySourceTask extends DefaultTask {
-                @SkipWhenEmpty ${ignoreEmptyDirectories ? "@IgnoreEmptyDirectories" : ""}
+                @SkipWhenEmpty @IgnoreEmptyDirectories
                 @InputFiles
                 abstract ConfigurableFileCollection getSources()
 

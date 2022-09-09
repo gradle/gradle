@@ -19,14 +19,12 @@ package org.gradle.internal.execution.fingerprint.impl;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -127,11 +125,13 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             }
 
             FileCollectionFingerprint previousFingerprint = previousFingerprints.get(propertyName);
+            FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(
+                value.getNormalizer(),
+                value.getDirectorySensitivity(),
+                value.getLineEndingNormalization());
+            FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
             try {
                 FileCollectionSnapshotter.Result result = snapshotter.snapshot(value.getFiles());
-                DirectorySensitivity directorySensitivity = determineDirectorySensitivity(propertyName, type, value, result);
-                FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(value.getNormalizer(), directorySensitivity, value.getLineEndingNormalization());
-                FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
                 CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(result.getSnapshot(), previousFingerprint);
                 fingerprintsBuilder.put(propertyName, fingerprint);
                 if (result.containsArchiveTrees()) {
@@ -139,23 +139,6 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                 }
             } catch (Exception e) {
                 throw new InputFileFingerprintingException(propertyName, e);
-            }
-        }
-
-        @SuppressWarnings("deprecation")
-        private DirectorySensitivity determineDirectorySensitivity(String propertyName, InputPropertyType type, FileValueSupplier value, FileCollectionSnapshotter.Result result) {
-            if (value.getDirectorySensitivity() != DirectorySensitivity.UNSPECIFIED) {
-                return value.getDirectorySensitivity();
-            }
-            if (result.isFileTreeOnly() && type.isSkipWhenEmpty()) {
-                DeprecationLogger.deprecateIndirectUsage("Relying on FileTrees for ignoring empty directories when using @SkipWhenEmpty")
-                    .withAdvice("Annotate the property " + propertyName + " with @IgnoreEmptyDirectories or remove @SkipWhenEmpty.")
-                    .willBeRemovedInGradle8()
-                    .withUpgradeGuideSection(7, "empty_directories_file_tree")
-                    .nagUser();
-                return DirectorySensitivity.IGNORE_DIRECTORIES;
-            } else {
-                return DirectorySensitivity.DEFAULT;
             }
         }
 

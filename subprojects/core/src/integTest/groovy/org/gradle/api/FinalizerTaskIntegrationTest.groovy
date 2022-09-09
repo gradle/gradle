@@ -326,6 +326,87 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/21325")
+    def "finalizer can have dependencies that are not reachable from first discovered finalized task and reachable from second discovered finalized task"() {
+        buildFile '''
+            task classes(type: BreakingTask) {
+            }
+
+            task jar(type: BreakingTask) {
+                dependsOn classes
+            }
+
+            task shadowJar(type: BreakingTask) {
+                // Finalized and also depends on some of the finalizer dependencies
+                finalizedBy 'copyJars'
+                dependsOn classes
+            }
+
+            task jarOne(type: BreakingTask) {
+                finalizedBy 'copyJars'
+            }
+
+            task lifecycleTwo(type: BreakingTask) {
+                dependsOn shadowJar
+            }
+
+            task entry(type: BreakingTask) {
+                // jarOne is ordered first, so will trigger the discovery of the dependencies of the finalizer
+                // lifecycleTwo is ordered second and also depends on some of these dependencies
+                dependsOn jarOne, lifecycleTwo
+            }
+
+            task copyJars(type: BreakingTask) {
+                dependsOn jar
+                dependsOn shadowJar
+            }
+        '''
+
+        expect:
+        2.times {
+            succeeds 'entry'
+            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo', ':entry'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
+        }
+        2.times {
+            fails 'entry', '-PjarOne.broken'
+            result.assertTaskExecuted(':jarOne')
+            result.assertTaskExecuted(':classes')
+            result.assertTaskExecuted(':shadowJar')
+            result.assertTaskExecuted(':jar')
+            result.assertTaskExecuted(':copyJars')
+            // lifecycleTwo may or may not run
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
+        }
+        2.times {
+            fails 'entry', '-PjarOne.broken', '--continue'
+            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
+        }
+        2.times {
+            fails 'entry', '-PlifecycleTwo.broken'
+            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
+        }
+        2.times {
+            fails 'entry', '-PshadowJar.broken'
+            // TODO - should not run jar as finalizer will not run
+            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar'
+        }
+
+        2.times {
+            succeeds 'jarOne', 'lifecycleTwo'
+            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
+        }
+        2.times {
+            fails 'jarOne', 'lifecycleTwo', '-PjarOne.broken', '--continue'
+            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
+        }
+    }
+
     void 'finalizer tasks are scheduled as expected (#requestedTasks)'() {
         given:
         setupProject()
@@ -681,32 +762,44 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     void 'finalizedBy dependencies can run before finalized task to honour mustRunAfter constraints'() {
         given:
         buildFile '''
-            task dockerTest {
+            task dockerTest(type: BreakingTask) {
                 dependsOn 'dockerUp'     // dependsOn createContainer mustRunAfter removeContainer
                 finalizedBy 'dockerStop' // dependsOn removeContainer
             }
 
-            task dockerUp {
+            task dockerUp(type: BreakingTask) {
                 dependsOn 'createContainer'
             }
 
-            task dockerStop {
+            task dockerStop(type: BreakingTask) {
                 dependsOn 'removeContainer'
             }
 
-            task createContainer {
+            task createContainer(type: BreakingTask) {
                 mustRunAfter 'removeContainer'
             }
 
-            task removeContainer {
+            task removeContainer(type: BreakingTask) {
             }
         '''
 
         expect:
-        succeeds 'dockerTest'
-
-        and:
-        result.assertTasksExecutedInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest', ':dockerStop'
+        2.times {
+            succeeds 'dockerTest'
+            result.assertTasksExecutedInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest', ':dockerStop'
+        }
+        2.times {
+            fails 'dockerTest', '-PdockerTest.broken'
+            result.assertTasksExecutedInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest', ':dockerStop'
+        }
+        2.times {
+            fails 'dockerTest', '-PremoveContainer.broken'
+            result.assertTasksExecutedInOrder ':removeContainer'
+        }
+        2.times {
+            fails 'dockerTest', '-PremoveContainer.broken', '--continue'
+            result.assertTasksExecutedInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest'
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5415")

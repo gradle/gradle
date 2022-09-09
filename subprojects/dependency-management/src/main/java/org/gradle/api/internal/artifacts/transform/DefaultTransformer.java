@@ -47,7 +47,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.Describables;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
@@ -95,8 +94,10 @@ import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
 
-public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> {
+public class DefaultTransformer implements Transformer {
 
+    private final Class<? extends TransformAction<?>> implementationClass;
+    private final ImmutableAttributes fromAttributes;
     private final Class<? extends FileNormalizer> fileNormalizer;
     private final Class<? extends FileNormalizer> dependenciesNormalizer;
     private final FileLookup fileLookup;
@@ -134,7 +135,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         ServiceLookup internalServices,
         DocumentationRegistry documentationRegistry
     ) {
-        super(implementationClass, fromAttributes);
+        this.implementationClass = implementationClass;
+        this.fromAttributes = fromAttributes;
         this.fileNormalizer = inputArtifactNormalizer;
         this.dependenciesNormalizer = dependenciesNormalizer;
         this.fileLookup = fileLookup;
@@ -170,7 +172,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         LineEndingSensitivity artifactLineEndingSensitivity,
         LineEndingSensitivity dependenciesLineEndingSensitivity
     ) {
-        super(implementationClass, fromAttributes);
+        this.implementationClass = implementationClass;
+        this.fromAttributes = fromAttributes;
         this.fileNormalizer = inputArtifactNormalizer;
         this.dependenciesNormalizer = dependenciesNormalizer;
         this.fileLookup = fileLookup;
@@ -258,7 +261,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     }
 
     @Override
-    public ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
+    public TransformationResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
         TransformAction<?> transformAction = newTransformAction(inputArtifactProvider, dependencies, inputChanges);
         DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifactProvider.get().getAsFile(), outputDir, fileLookup);
         transformAction.transform(transformOutputs);
@@ -396,6 +399,21 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         return isolatedParameters;
     }
 
+    @Override
+    public ImmutableAttributes getFromAttributes() {
+        return fromAttributes;
+    }
+
+    @Override
+    public Class<? extends TransformAction<?>> getImplementationClass() {
+        return implementationClass;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return implementationClass.getSimpleName();
+    }
+
     private static class TransformServiceLookup implements ServiceLookup {
         private static final Type FILE_SYSTEM_LOCATION_PROVIDER = new TypeToken<Provider<FileSystemLocation>>() {
         }.getType();
@@ -406,15 +424,6 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         public TransformServiceLookup(Provider<FileSystemLocation> inputFileProvider, @Nullable ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges, ServiceLookup delegate) {
             this.delegate = delegate;
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
-            builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, File.class, () -> {
-                DeprecationLogger
-                    .deprecate("Injecting the input artifact of a transform as a File")
-                    .withAdvice("Declare the input artifact as Provider<FileSystemLocation> instead.")
-                    .willBecomeAnErrorInGradle8()
-                    .withUserManual("artifact_transforms", "sec:implementing-artifact-transforms")
-                    .nagUser();
-                return inputFileProvider.get().getAsFile();
-            }));
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
             if (artifactTransformDependencies != null) {
                 builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, () -> artifactTransformDependencies.getFiles().orElseThrow(() -> new IllegalStateException("Transform does not use artifact dependencies."))));
@@ -652,7 +661,8 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             Isolatable<TransformParameters> isolatedParameterObject = isolatableFactory.isolate(parameterObject);
 
             Hasher hasher = Hashing.newHasher();
-            appendActionImplementation(implementationClass, hasher, classLoaderHierarchyHasher);
+            hasher.putString(implementationClass.getName());
+            hasher.putHash(classLoaderHierarchyHasher.getClassLoaderHash(implementationClass.getClassLoader()));
 
             if (parameterObject != null) {
                 TransformParameters isolatedTransformParameters = isolatedParameterObject.isolate();

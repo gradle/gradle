@@ -6,7 +6,6 @@ import model.CIBuildModel
 import model.Stage
 import model.StageName
 import model.TestCoverage
-import model.TestType
 
 const val functionalTestTag = "FunctionalTest"
 
@@ -53,12 +52,9 @@ class FunctionalTest(
         preSteps = preBuildSteps
     )
 
-    if (testCoverage.testType == TestType.soak || testTasks.contains("plugins:")) {
-        failureConditions {
-            // JavaExecDebugIntegrationTest.debug session fails without debugger might cause JVM crash
-            // Some soak tests produce OOM exceptions
-            javaCrash = false
-        }
+    failureConditions {
+        // We have test-retry to handle the crash in tests
+        javaCrash = false
     }
 })
 
@@ -74,6 +70,7 @@ fun getTestTaskName(testCoverage: TestCoverage, subprojects: List<String>): Stri
         subprojects.isEmpty() -> {
             testTaskName
         }
+
         else -> {
             subprojects.joinToString(" ") { "$it:$testTaskName" }
         }
