@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
+import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -56,7 +57,8 @@ public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadat
 
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            return artifactSelector.resolveArtifacts(component, () -> buildAllVariants(), graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
+            // We do not currently cache ResolvedVariants beyond this invocation yet
+            return artifactSelector.resolveArtifacts(component, new HashMap<>(), () -> buildAllVariants(), graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
         }
 
         private Set<? extends VariantResolveMetadata> buildAllVariants() {
