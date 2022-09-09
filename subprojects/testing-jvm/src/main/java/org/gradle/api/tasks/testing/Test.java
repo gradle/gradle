@@ -197,7 +197,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         forkOptions.setExecutable(null);
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
         javaLauncher = getObjectFactory().property(JavaLauncher.class);
-        testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
+        testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
     }
 
     @Inject
@@ -1040,7 +1040,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 3.5
      */
     public void useJUnit(Action<? super JUnitOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()), testFrameworkConfigure);
+        useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true), testFrameworkConfigure);
     }
 
     /**
@@ -1072,7 +1072,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 4.6
      */
     public void useJUnitPlatform(Action<? super JUnitPlatformOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter()), testFrameworkConfigure);
+        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), true), testFrameworkConfigure);
     }
 
     /**
