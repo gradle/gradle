@@ -32,7 +32,7 @@ class DeferrableExecutionTest extends Specification {
         }
 
         expect:
-        composed.getCompleted().empty
+        !composed.getCompleted().present
 
         when:
         def result = composed.get()
