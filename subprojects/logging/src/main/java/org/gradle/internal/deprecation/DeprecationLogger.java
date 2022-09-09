@@ -244,7 +244,7 @@ public class DeprecationLogger {
             nagUserWith(featureUsage);
 
             if (!featureUsage.formattedMessage().contains("deprecated")) {
-                throw new RuntimeException("NO DEPRECATION Message: " + featureUsage.formattedMessage());
+                throw new RuntimeException("Deprecation message does not contain the word 'deprecated'. Message: \n" + featureUsage.formattedMessage());
             }
         }
     }
