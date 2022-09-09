@@ -32,6 +32,7 @@ import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -74,7 +75,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     private static class DefaultLocalVariantArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
         private final LocalComponentMetadata component;
         private final LocalConfigurationMetadata graphSelectedVariant;
-
         public DefaultLocalVariantArtifactResolveState(LocalComponentMetadata component, LocalConfigurationMetadata graphSelectedVariant) {
             this.component = component;
             this.graphSelectedVariant = graphSelectedVariant;
@@ -94,7 +94,8 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
             graphSelectedVariant.prepareToResolveArtifacts();
-            return artifactSelector.resolveArtifacts(component, () -> buildAllVariants(), graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
+            // We do not currently cache ResolvedVariants beyond this invocation yet
+            return artifactSelector.resolveArtifacts(component, new HashMap<>(), () -> buildAllVariants(), graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
         }
 
         private Set<? extends VariantResolveMetadata> buildAllVariants() {
