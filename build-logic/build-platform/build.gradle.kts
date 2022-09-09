@@ -12,8 +12,7 @@ val groovyVersion = GroovySystem.getVersion()
 val asmVersion = "9.2"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
-val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
-    .getOrElse(embeddedKotlinVersion)
+val kotlinVersion = "1.8.0-dev-2494"
 
 dependencies {
     constraints {

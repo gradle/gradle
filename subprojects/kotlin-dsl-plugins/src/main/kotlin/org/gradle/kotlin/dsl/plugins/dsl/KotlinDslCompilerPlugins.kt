@@ -25,6 +25,8 @@ import org.gradle.kotlin.dsl.provider.KotlinDslPluginSupport
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugin
+import org.jetbrains.kotlin.container.assignment.gradle.ValueContainerAssignmentExtension
+import org.jetbrains.kotlin.container.assignment.gradle.ValueContainerAssignmentSubplugin
 
 
 /**
@@ -39,14 +41,18 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
         extensions.configure(SamWithReceiverExtension::class.java) { samWithReceiver ->
             samWithReceiver.annotation(HasImplicitReceiver::class.qualifiedName!!)
         }
+        plugins.apply(ValueContainerAssignmentGradleSubplugin::class.java)
+        extensions.configure(ValueContainerAssignmentExtension::class.java) { valueContainerAssignment ->
+            valueContainerAssignment.annotation("SupportsAssign")
+        }
 
         afterEvaluate {
             kotlinDslPluginOptions {
                 tasks.withType<KotlinCompile>().configureEach {
                     it.kotlinOptions {
                         jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
-                        apiVersion = "1.4"
-                        languageVersion = "1.4"
+                        apiVersion = "1.7"
+                        languageVersion = "1.7"
                         freeCompilerArgs += KotlinDslPluginSupport.kotlinCompilerArgs
                     }
                     it.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf("-XXLanguage:+DisableCompatibilityModeForNewInference")))

@@ -41,5 +41,5 @@ tasks.compileGroovy.configure {
     classpath = sourceSets.main.get().compileClasspath
 }
 tasks.compileKotlin.configure {
-    classpath += files(tasks.compileGroovy)
+    libraries.from(files(tasks.compileGroovy))
 }

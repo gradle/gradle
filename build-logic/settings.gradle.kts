@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+
 pluginManagement {
     repositories {
+        mavenLocal()
         gradlePluginPortal()
     }
 }
+
 
 dependencyResolutionManagement {
     repositories {
@@ -32,6 +35,7 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        mavenLocal()
         gradlePluginPortal()
     }
 }

@@ -10,6 +10,7 @@ pluginManagement {
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
             }
         }
+        mavenLocal()
         gradlePluginPortal()
     }
 }

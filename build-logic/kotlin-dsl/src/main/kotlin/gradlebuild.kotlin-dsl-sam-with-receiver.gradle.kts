@@ -16,8 +16,13 @@
 
 plugins {
     id("kotlin-sam-with-receiver")
+    id("kotlin-value-container-assignment") version "1.8.0-dev-2494"
 }
 
 samWithReceiver {
     annotation("org.gradle.api.HasImplicitReceiver")
+}
+
+valueContainerAssignment {
+    annotation("SupportsAssign")
 }

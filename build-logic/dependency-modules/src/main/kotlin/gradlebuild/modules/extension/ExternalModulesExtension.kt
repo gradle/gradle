@@ -22,7 +22,7 @@ abstract class ExternalModulesExtension {
 
     val groovyVersion = "3.0.12"
     val configurationCacheReportVersion = "1.1"
-    val kotlinVersion = "1.7.10"
+    val kotlinVersion = "1.8.0-dev-2494"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 
