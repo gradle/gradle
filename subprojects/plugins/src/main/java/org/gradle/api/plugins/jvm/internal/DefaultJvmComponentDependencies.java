@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -98,18 +99,27 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
         return dependency;
     }
 
+
     @Override
-    public <D extends ModuleDependency> D testFixtures(D dependency) {
-        if (dependency instanceof ExternalDependency) {
-            dependency.capabilities(capabilities -> {
-                capabilities.requireCapability(new ImmutableCapability(dependency.getGroup(), dependency.getName() + TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX, null));
-            });
-        } else if (dependency instanceof ProjectDependency) {
-            ProjectDependency projectDependency = Cast.uncheckedCast(dependency);
-            projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
-        } else {
-            throw new IllegalStateException("Unknown dependency type: " + dependency.getClass());
+    public TestFixturesDependencyModifier getTestFixtures() {
+        // TODO: Only do this once
+        return getObjectFactory().newInstance(DefaultTestFixturesDependencyModifier.class);
+    }
+
+    public static abstract class DefaultTestFixturesDependencyModifier implements TestFixturesDependencyModifier {
+        @Override
+        public <D extends Dependency> D modify(D dependency) {
+            if (dependency instanceof ExternalDependency) {
+                ((ExternalDependency)dependency).capabilities(capabilities -> {
+                    capabilities.requireCapability(new ImmutableCapability(dependency.getGroup(), dependency.getName() + TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX, null));
+                });
+            } else if (dependency instanceof ProjectDependency) {
+                ProjectDependency projectDependency = Cast.uncheckedCast(dependency);
+                projectDependency.capabilities(new ProjectTestFixtures(projectDependency.getDependencyProject()));
+            } else {
+                throw new IllegalStateException("Unknown dependency type: " + dependency.getClass());
+            }
+            return dependency;
         }
-        return dependency;
     }
 }
