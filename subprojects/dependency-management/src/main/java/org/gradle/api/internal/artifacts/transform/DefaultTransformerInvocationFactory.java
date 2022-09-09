@@ -26,7 +26,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.execution.DeferrableExecution;
+import org.gradle.internal.execution.DeferrableSupplier;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -100,7 +100,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     }
 
     @Override
-    public DeferrableExecution<ImmutableList<File>> createInvocation(
+    public DeferrableSupplier<ImmutableList<File>> createInvocation(
         Transformer transformer,
         File inputArtifact,
         ArtifactTransformDependencies dependencies,

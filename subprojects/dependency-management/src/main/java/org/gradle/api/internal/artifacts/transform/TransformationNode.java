@@ -167,7 +167,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
 
                         return transformationStep
                             .createInvocation(initialArtifactTransformationSubject, upstreamDependencies, context)
-                            .get()
+                            .completeAndGet()
                             .get();
                     }
 
@@ -232,8 +232,9 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
                     @Override
                     protected TransformationSubject transform() {
                         return previousTransformationNode.getTransformedSubject()
-                            .flatMap(transformedSubject ->
-                                transformationStep.createInvocation(transformedSubject, upstreamDependencies, context).get())
+                            .flatMap(transformedSubject -> transformationStep
+                                .createInvocation(transformedSubject, upstreamDependencies, context)
+                                .completeAndGet())
                             .get();
                     }
 

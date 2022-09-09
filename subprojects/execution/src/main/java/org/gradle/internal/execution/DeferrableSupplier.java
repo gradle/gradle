@@ -27,115 +27,118 @@ import java.util.function.Supplier;
  *
  * @param <T> The type which will be computed.
  */
-public interface DeferrableExecution<T> {
+public interface DeferrableSupplier<T> {
 
     /**
      * The result of the invocation when it is already available.
      */
-    Optional<Try<T>> getCompleted();
+    Optional<Try<T>> completed();
 
     /**
-     * Obtain the result of the invocation, either by returning the already known result or by computing it.
+     * Obtain the result of the invocation, either by returning the already computed result or by computing it synchronously.
+     *
+     * A result is only calculated once.
      */
-    Try<T> get();
+    Try<T> completeAndGet();
 
     /**
      * Maps the result of the invocation via a mapper.
      *
      * @param mapper An inexpensive function on the result.
      */
-    default <U> DeferrableExecution<U> map(Function<? super T, U> mapper) {
-        return new DeferrableExecution<U>() {
+    default <U> DeferrableSupplier<U> map(Function<? super T, U> mapper) {
+        return new DeferrableSupplier<U>() {
             @Override
-            public Optional<Try<U>> getCompleted() {
-                return DeferrableExecution.this.getCompleted()
+            public Optional<Try<U>> completed() {
+                return DeferrableSupplier.this.completed()
                     .map(result -> result.map(mapper));
             }
 
             @Override
-            public Try<U> get() {
-                return DeferrableExecution.this.get()
+            public Try<U> completeAndGet() {
+                return DeferrableSupplier.this.completeAndGet()
                     .map(mapper);
             }
         };
     }
 
-    default DeferrableExecution<T> mapFailure(Function<? super Throwable, ? extends Throwable> mapper) {
-        return new DeferrableExecution<T>() {
+    default DeferrableSupplier<T> mapFailure(Function<? super Throwable, ? extends Throwable> mapper) {
+        return new DeferrableSupplier<T>() {
             @Override
-            public Optional<Try<T>> getCompleted() {
-                return DeferrableExecution.this.getCompleted()
+            public Optional<Try<T>> completed() {
+                return DeferrableSupplier.this.completed()
                     .map(result -> result.mapFailure(mapper));
             }
 
             @Override
-            public Try<T> get() {
-                return DeferrableExecution.this.get()
+            public Try<T> completeAndGet() {
+                return DeferrableSupplier.this.completeAndGet()
                     .mapFailure(mapper);
             }
         };
     }
 
     /**
-     * Chains two {@link DeferrableExecution}s.
+     * Chains two {@link DeferrableSupplier}s.
      *
-     * @param mapper A function which creates the next {@link DeferrableExecution} from the result of the first one.
+     * @param mapper A function which creates the next {@link DeferrableSupplier} from the result of the first one.
      * Creating the invocation may be expensive, so this method avoids calling the mapper twice if possible.
      */
-    default <U> DeferrableExecution<U> flatMap(Function<? super T, DeferrableExecution<U>> mapper) {
-        return getCompleted()
+    default <U> DeferrableSupplier<U> flatMap(Function<? super T, DeferrableSupplier<U>> mapper) {
+        return completed()
             .map(cachedResult -> cachedResult
                 .tryMap(mapper)
-                .getOrMapFailure(DeferrableExecution::failed))
-            .orElseGet(() -> deferred(() -> get()
-                .flatMap(intermediateResult -> mapper.apply(intermediateResult).get())));
+                .getOrMapFailure(DeferrableSupplier::failed))
+            .orElseGet(() -> deferred(() -> completeAndGet()
+                .flatMap(intermediateResult -> mapper.apply(intermediateResult)
+                    .completeAndGet())));
     }
 
     /**
      * An already completed result, can be successful or failed.
      */
-    static <T> DeferrableExecution<T> completed(Try<T> successfulResult) {
-        return new DeferrableExecution<T>() {
+    static <T> DeferrableSupplier<T> completed(Try<T> successfulResult) {
+        return new DeferrableSupplier<T>() {
             @Override
-            public Optional<Try<T>> getCompleted() {
+            public Optional<Try<T>> completed() {
                 return Optional.of(successfulResult);
             }
 
             @Override
-            public Try<T> get() {
+            public Try<T> completeAndGet() {
                 return successfulResult;
             }
         };
     }
 
     /**
-     * An already successful result.
+     * A successfully completed result.
      */
-    static <T> DeferrableExecution<T> successful(T result) {
+    static <T> DeferrableSupplier<T> successful(T result) {
         return completed(Try.successful(result));
     }
 
     /**
-     * An already failed result.
+     * A failed result.
      */
-    static <T> DeferrableExecution<T> failed(Throwable failure) {
+    static <T> DeferrableSupplier<T> failed(Throwable failure) {
         return completed(Try.failure(failure));
     }
 
     /**
      * An invocation with no pre-computed result, requiring to do the expensive computation on {@link #get}.
      */
-    static <T> DeferrableExecution<T> deferred(Supplier<Try<T>> result) {
-        return new DeferrableExecution<T>() {
+    static <T> DeferrableSupplier<T> deferred(Supplier<Try<T>> result) {
+        return new DeferrableSupplier<T>() {
             private transient volatile Try<T> value;
 
             @Override
-            public Optional<Try<T>> getCompleted() {
+            public Optional<Try<T>> completed() {
                 return Optional.ofNullable(value);
             }
 
             @Override
-            public Try<T> get() {
+            public Try<T> completeAndGet() {
                 if (value == null) {
                     synchronized (this) {
                         if (value == null) {
