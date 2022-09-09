@@ -127,7 +127,7 @@ Artifacts
         """
 
         when:
-        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':integTestElements' and configuration ':apiElements' contain identical attribute sets. This behaviour has been deprecated.")
+        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':integTestElements' and configuration ':apiElements' contain identical attribute sets. This behavior has been deprecated.")
         run 'outgoingVariants'
 
         then:

@@ -105,12 +105,12 @@ class DeprecationMessagesTest extends Specification {
         expectMessage "Something has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
     }
 
-    def "logs deprecated behaviour message"() {
+    def "logs deprecated behavior message"() {
         when:
-        DeprecationLogger.deprecateBehaviour("Some behaviour.").willBeRemovedInGradle9().undocumented().nagUser()
+        DeprecationLogger.deprecateBehaviour("Some behavior.").willBeRemovedInGradle9().undocumented().nagUser()
 
         then:
-        expectMessage "Some behaviour. This behaviour has been deprecated. This behaviour is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
+        expectMessage "Some behavior. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
     }
 
     def "logs deprecated indirect user code cause message"() {
@@ -318,14 +318,14 @@ class DeprecationMessagesTest extends Specification {
 
     def "logs documentation reference"() {
         when:
-        DeprecationLogger.deprecateBehaviour("Some behaviour.")
+        DeprecationLogger.deprecateBehaviour("Some behavior.")
             .willBeRemovedInGradle9()
             .withUserManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
             .nagUser()
 
         then:
         def expectedDocumentationUrl = DOCUMENTATION_REGISTRY.getDocumentationFor("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
-        expectMessage "Some behaviour. This behaviour has been deprecated. This behaviour is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. See ${expectedDocumentationUrl} for more details."
+        expectMessage "Some behavior. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. See ${expectedDocumentationUrl} for more details."
     }
 
     def "logs DSL property documentation reference"() {
