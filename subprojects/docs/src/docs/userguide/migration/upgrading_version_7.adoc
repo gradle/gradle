@@ -251,6 +251,14 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 ```
 
+==== Upgrade to Groovy 3.0.12
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.12.html[Groovy 3.0.12].
+
+==== Upgrade to PMD 6.48.0
+
+PMD has been updated to https://pmd.github.io/pmd-6.48.0/pmd_release_notes.html[PMD 6.48.0].
+
 === Deprecations
 
 [[dependency_factory_renamed]]
