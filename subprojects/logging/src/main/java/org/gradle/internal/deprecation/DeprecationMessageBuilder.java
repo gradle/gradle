@@ -494,7 +494,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         /**
-         * Output: This behaviour is scheduled to be removed in Gradle 8.0.
+         * Output: This behavior is scheduled to be removed in Gradle 8.0.
          */
         public WithDeprecationTimeline willBeRemovedInGradle8() {
             setDeprecationTimeline(DeprecationTimeline.behaviourWillBeRemovedInVersion(GRADLE8));
@@ -502,7 +502,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         /**
-         * Output: This behaviour is scheduled to be removed in Gradle 9.0.
+         * Output: This behavior is scheduled to be removed in Gradle 9.0.
          */
         public WithDeprecationTimeline willBeRemovedInGradle9() {
             setDeprecationTimeline(DeprecationTimeline.behaviourWillBeRemovedInVersion(GRADLE9));
@@ -511,7 +511,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         @Override
         DeprecationMessage build() {
-            setSummary(String.format("%s This behaviour has been deprecated.", behaviour));
+            setSummary(String.format("%s This behavior has been deprecated.", behaviour));
             return super.build();
         }
     }
