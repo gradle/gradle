@@ -34,7 +34,8 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":normalization-java"))
     implementation(project(":wrapper-shared"))
-    implementation(project(":platform-jvm"))
+
+    compileOnly(project(":platform-jvm")) //TODO (#21082): why does all hell break loose if this is "implementation"
 
     implementation(libs.groovy)
     implementation(libs.groovyJson)
