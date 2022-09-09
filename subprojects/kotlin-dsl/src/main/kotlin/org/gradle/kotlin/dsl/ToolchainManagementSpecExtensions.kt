@@ -43,6 +43,6 @@ fun ToolchainManagementSpec.jdks(block: JdksBlockForToolchainManagement.() -> Un
  *
  * @since 7.6
  */
+@get:Incubating
 val ToolchainManagementSpec.jdks: JdksBlockForToolchainManagement
-    @Incubating
     get() = the()
