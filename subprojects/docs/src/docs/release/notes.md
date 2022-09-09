@@ -22,6 +22,7 @@ We would like to thank the following community members for their contributions t
 [Edmund Mok](https://github.com/edmundmok),
 [Frosty-J](https://github.com/Frosty-J),
 [Gabriel Feo](https://github.com/gabrielfeo),
+[Ivan Gavrilovic](https://github.com/gavra0),
 [Jendrik Johannes](https://github.com/jjohannes),
 [John](https://github.com/goughy000),
 [Joseph Woolf](https://github.com/jsmwoolf),
