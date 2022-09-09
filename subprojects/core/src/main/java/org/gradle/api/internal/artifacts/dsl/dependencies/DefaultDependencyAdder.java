@@ -18,13 +18,11 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
@@ -114,36 +112,6 @@ public class DefaultDependencyAdder implements DependencyAdder {
     @Override
     public void add(CharSequence dependencyNotation, Action<? super ExternalModuleDependency> configuration) {
         doAddEager(dependencyFactory.create(dependencyNotation), configuration);
-    }
-
-    @Override
-    public void add(@Nullable String group, String name, @Nullable String version) {
-        doAddEager(dependencyFactory.create(group, name, version), null);
-    }
-
-    @Override
-    public void add(@Nullable String group, String name, @Nullable String version, Action<? super ExternalModuleDependency> configuration) {
-        doAddEager(dependencyFactory.create(group, name, version), configuration);
-    }
-
-    @Override
-    public void add(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String ext) {
-        doAddEager(dependencyFactory.create(group, name, version, classifier, ext), null);
-    }
-
-    @Override
-    public void add(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String ext, Action<? super ExternalModuleDependency> configuration) {
-        doAddEager(dependencyFactory.create(group, name, version, classifier, ext), configuration);
-    }
-
-    @Override
-    public void add(Project project) {
-        doAddEager(dependencyFactory.create(project), null);
-    }
-
-    @Override
-    public void add(Project project, Action<? super ProjectDependency> configuration) {
-        doAddEager(dependencyFactory.create(project), configuration);
     }
 
     @Override
