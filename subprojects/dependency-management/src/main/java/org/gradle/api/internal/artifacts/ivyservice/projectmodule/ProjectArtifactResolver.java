@@ -62,16 +62,23 @@ public class ProjectArtifactResolver implements ArtifactResolver {
 
     @Override
     public void resolveArtifact(ModuleVersionIdentifier ownerId, ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
-        ResolvableArtifact resolvableArtifact = allResolvedArtifacts.computeIfAbsent(artifact.getId(), id -> {
+        // NOTE: This isn't thread-safe because we're not locking around allResolvedArtifacts to ensure we're not inserting multiple resolvableArtifacts for
+        // the same artifact id.
+        // 
+        // This should be replaced by a computeIfAbsent(...) to be thread-safe and ensure there's only ever one DefaultResolvableArtifact created for a single id.
+        // This is not thread-safe because of lock juggling that happens for project state. When calculating the dependencies for an IDEA model, we can easily
+        // deadlock when there are multiple projects that need to be locked at the same time.
+        ResolvableArtifact resolvableArtifact = allResolvedArtifacts.get(artifact.getId());
+        if (resolvableArtifact==null) {
             LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getComponentId();
             File localArtifactFile = projectStateRegistry.stateFor(projectId).fromMutableState(p -> projectArtifact.getFile());
-            if (localArtifactFile == null) {
-                return null;
+            if (localArtifactFile != null) {
+                CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), resolveArtifactLater(artifact));
+                resolvableArtifact = new DefaultResolvableArtifact(ownerId, artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
+                allResolvedArtifacts.put(artifact.getId(), resolvableArtifact);
             }
-            CalculatedValue<File> artifactSource = calculatedValueContainerFactory.create(Describables.of(artifact.getId()), resolveArtifactLater(artifact));
-            return new DefaultResolvableArtifact(ownerId, artifact.getName(), artifact.getId(), context -> context.add(artifact.getBuildDependencies()), artifactSource, calculatedValueContainerFactory);
-        });
+        }
         if (resolvableArtifact != null) {
             result.resolved(resolvableArtifact);
         } else {
