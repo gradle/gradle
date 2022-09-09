@@ -73,7 +73,7 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
         }
 
         if (!name.equals("libs") && !name.endsWith("Libs")) {
-            DeprecationLogger.deprecateBehaviour("The name of version catalogs must end with 'Libs' to reduce chances of extension conflicts - catalog names without this suffix are deprecated.")
+            DeprecationLogger.deprecateBehaviour("Catalog names must end with 'Libs' to reduce the chance of naming conflicts. Catalog names without this suffix are deprecated.")
                 .willBecomeAnErrorInGradle8()
                 .withUserManual("platforms", "sec:multiple")
                 .nagUser();
