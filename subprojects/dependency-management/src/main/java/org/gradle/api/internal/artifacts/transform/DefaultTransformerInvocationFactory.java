@@ -276,6 +276,15 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public WorkOutput execute(ExecutionRequest executionRequest) {
+            artifactTransformListener.beforeTransformerInvocation(transformer, subject);
+            try {
+                return executeWithinTransformerListener(executionRequest);
+            } finally {
+                artifactTransformListener.afterTransformerInvocation(transformer, subject);
+            }
+        }
+
+        private WorkOutput executeWithinTransformerListener(ExecutionRequest executionRequest) {
             TransformationResult result = buildOperationExecutor.call(new CallableBuildOperation<TransformationResult>() {
                 @Override
                 public TransformationResult call(BuildOperationContext context) {
@@ -306,16 +315,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     return result;
                 }
             };
-        }
-
-        @Override
-        public void fireLegacyEventsBeforeExecution() {
-            artifactTransformListener.beforeTransformerInvocation(transformer, subject);
-        }
-
-        @Override
-        public void fireLegacyEventsAfterExecution() {
-            artifactTransformListener.afterTransformerInvocation(transformer, subject);
         }
 
         @Override

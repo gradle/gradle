@@ -241,12 +241,6 @@ public interface UnitOfWork extends Describable {
      */
     default void markLegacySnapshottingInputsFinished(CachingState cachingState) {}
 
-    default void fireLegacyEventsBeforeExecution() {
-    }
-
-    default void fireLegacyEventsAfterExecution() {
-    }
-
     /**
      * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.
      */
