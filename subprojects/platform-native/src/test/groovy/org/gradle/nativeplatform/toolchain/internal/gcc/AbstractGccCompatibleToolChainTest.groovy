@@ -46,8 +46,11 @@ import org.gradle.platform.base.internal.toolchain.ToolSearchResult
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
+import spock.lang.IgnoreIf
+import spock.lang.Requires
 import spock.lang.Specification
 
+import static org.gradle.nativeplatform.platform.internal.ArchitectureInternal.InstructionSet.ARM
 import static org.gradle.nativeplatform.platform.internal.ArchitectureInternal.InstructionSet.X86
 
 @UsesNativeServices
@@ -255,6 +258,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         assert platformActionApplied == 2
     }
 
+    @IgnoreIf(value = {os.macOs}, reason = "Not true on MacOS with multi-arch support")
     def "supplies no additional arguments to target native binary for tool chain default"() {
         def action = Mock(Action)
 
@@ -284,6 +288,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         ["-m64"]  | ["-m64"]
     }
 
+    @IgnoreIf(value = {os.macOs}, reason = "Code under test depends on current platform")
     def "supplies args for supported architecture for non-macOS platforms"() {
         def action = Mock(Action)
 
@@ -314,6 +319,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         "x86_64" | ["-m64"]  | ["-m64"]
     }
 
+    @Requires(value = {os.macOs}, reason = "Code under test depends on current platform")
     def "supplies args for supported architecture for macOS platforms"() {
         def action = Mock(Action)
 
@@ -341,9 +347,10 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         })
 
         where:
-        arch     | instructionSet | registerSize | linkerArg | compilerArg | assemblerArgs
-        "i386"   | X86            | 32           | []        | []          | []
-        "x86_64" | X86            | 64           | []        | []          | []
+        arch      | instructionSet | registerSize | linkerArg | compilerArg | assemblerArgs
+        "i386"    | X86            | 32           | []        | []          | []
+        "x86_64"  | X86            | 64           | []        | []          | []
+        "aarch64" | ARM            | 64           | []        | []          | []
     }
 
     def "uses supplied platform configurations in order to target binary"() {
@@ -430,7 +437,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
     }
 
     def argsFor(GccCommandLineToolConfiguration tool) {
-        assert tool in GccCommandLineToolConfigurationInternal : "Expected argument to be an instance of GccCommandLineToolConfigurationInternal"
+        assert tool instanceof GccCommandLineToolConfigurationInternal : "Expected argument to be an instance of GccCommandLineToolConfigurationInternal"
         def args = []
         tool.getArgAction().execute(args)
         args
