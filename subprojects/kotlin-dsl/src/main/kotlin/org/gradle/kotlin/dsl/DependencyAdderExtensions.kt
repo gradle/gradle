@@ -20,12 +20,11 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
 import org.gradle.api.Incubating
-import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
-import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.dsl.Dependencies
 import org.gradle.api.artifacts.dsl.DependencyAdder
 import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.file.FileCollection
@@ -61,6 +60,14 @@ import org.gradle.api.provider.ProviderConvertible
 
 
 /**
+ * Creates a dependency based on the group, name and version (GAV) coordinates.
+ *
+ * @since 7.6
+ */
+fun Dependencies.module(group: String?, name: String, version: String?) = module(group, name, version)
+
+
+/**
  * Add a dependency.
  *
  * @param dependencyNotation dependency to add
@@ -79,54 +86,6 @@ operator fun DependencyAdder.invoke(dependencyNotation: CharSequence) = add(depe
  * @since 7.6
  */
 operator fun DependencyAdder.invoke(dependencyNotation: CharSequence, configuration: Action<in ExternalModuleDependency>) = add(dependencyNotation, configuration)
-
-
-/**
- * Add a dependency.
- *
- * @param group the group
- * @param name the name
- * @param version the version
- * @param classifier the classifier
- * @param extension the extension
- * @since 7.6
- */
-operator fun DependencyAdder.invoke(group: String?, name: String, version: String? = null, classifier: String? = null, extension: String? = null) =
-    add(group, name, version, classifier, extension)
-
-
-/**
- * Add a dependency.
- *
- * @param group the group
- * @param name the name
- * @param version the version
- * @param classifier the classifier
- * @param extension the extension
- * @param configuration an action to configure the dependency
- * @since 7.6
- */
-operator fun DependencyAdder.invoke(group: String?, name: String, version: String? = null, classifier: String? = null, extension: String? = null, configuration: Action<in ExternalModuleDependency>) =
-    add(group, name, version, classifier, extension, configuration)
-
-
-/**
- * Add a dependency.
- *
- * @param project project to add as a dependency
- * @since 7.6
- */
-operator fun DependencyAdder.invoke(project: Project) = add(project)
-
-
-/**
- * Add a dependency.
- *
- * @param project project to add as a dependency
- * @param configuration an action to configure the dependency
- * @since 7.6
- */
-operator fun DependencyAdder.invoke(project: Project, configuration: Action<in ProjectDependency>) = add(project, configuration)
 
 
 /**

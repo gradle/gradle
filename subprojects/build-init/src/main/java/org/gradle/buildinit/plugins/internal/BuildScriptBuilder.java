@@ -772,7 +772,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            printer.println(printer.syntax.dependencySpec(configuration, "project"));
+            printer.println(printer.syntax.dependencySpec(configuration, "project()"));
         }
     }
 
