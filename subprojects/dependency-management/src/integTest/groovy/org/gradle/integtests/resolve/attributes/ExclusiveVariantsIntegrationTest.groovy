@@ -49,7 +49,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             }""".stripIndent()
 
         expect:
-        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets - this is deprecated.")
+        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets. This behaviour has been deprecated.")
         succeeds("outgoingVariants")
     }
 
@@ -87,7 +87,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             }""".stripIndent()
 
         expect:
-        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets - this is deprecated.")
+        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets. This behaviour has been deprecated.")
         succeeds("outgoingVariants")
         outputContains("org.gradle:sample:1.0 (default capability)")
     }
@@ -131,7 +131,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             }""".stripIndent()
 
         expect:
-        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets - this is deprecated.")
+        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets. This behaviour has been deprecated.")
         succeeds("outgoingVariants")
         outputContains("org.gradle:sample:1.0 (default capability)")
     }
