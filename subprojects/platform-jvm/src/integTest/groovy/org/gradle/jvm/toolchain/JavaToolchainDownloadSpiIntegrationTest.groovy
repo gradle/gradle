@@ -157,9 +157,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
                 .withToolchainDownloadEnabled()
-                .expectDocumentedDeprecationWarning("Starting from Gradle 8.0 there will be no default Java Toolchain Registry. " +
+                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
                         "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
-                        "Need to inject such registries via settings plugins and explicitly request them via the 'toolchainManagement' block. " +
+                        "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
                         "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
                 .runWithFailure()
 

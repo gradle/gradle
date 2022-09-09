@@ -48,4 +48,5 @@ public interface JavaToolchainRepositoryRegistry {
      */
     <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType, int highestToolchainSpecVersionKnown);
 
+    //TODO (#21082): could we ease the naming restriction by automatically replacing dots for example?
 }
