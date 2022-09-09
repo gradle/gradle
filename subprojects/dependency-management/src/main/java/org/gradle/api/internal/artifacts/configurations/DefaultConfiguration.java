@@ -1120,7 +1120,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             final Consumer<ConfigurationInternal> warnIfDuplicate = otherConfiguration -> {
                 if (hasSameCapabilitiesAs(allCapabilities, otherConfiguration) && hasSameAttributesAs(otherConfiguration)) {
-                    DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project must have unique attributes, but " + getDisplayName() + " and " + otherConfiguration.getDisplayName() + " contain identical attribute sets - this is deprecated.")
+                    DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project must have unique attributes, but " + getDisplayName() + " and " + otherConfiguration.getDisplayName() + " contain identical attribute sets.")
                         .withAdvice("Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details.")
                         .willBecomeAnErrorInGradle8()
                         .withUpgradeGuideSection(7, "unique_attribute_sets")

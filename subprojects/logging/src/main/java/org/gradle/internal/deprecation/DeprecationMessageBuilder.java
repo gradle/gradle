@@ -199,6 +199,22 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
     }
 
+    public static class DeprecateAction extends WithReplacement<String, DeprecateAction> {
+        DeprecateAction(String subject) {
+            super(subject);
+        }
+
+        @Override
+        String formatSummary(String subject) {
+            return String.format("%s has been deprecated.", subject);
+        }
+
+        @Override
+        String formatAdvice(String replacement) {
+            return String.format("Please use %s instead.", replacement);
+        }
+    }
+
     public static class DeprecateNamedParameter extends WithReplacement<String, DeprecateNamedParameter> {
 
         DeprecateNamedParameter(String parameter) {
@@ -478,7 +494,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         /**
-         * Output: This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0.
+         * Output: This behaviour is scheduled to be removed in Gradle 8.0.
          */
         public WithDeprecationTimeline willBeRemovedInGradle8() {
             setDeprecationTimeline(DeprecationTimeline.behaviourWillBeRemovedInVersion(GRADLE8));
@@ -486,7 +502,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         /**
-         * Output: This behaviour has been deprecated and is scheduled to be removed in Gradle 9.0.
+         * Output: This behaviour is scheduled to be removed in Gradle 9.0.
          */
         public WithDeprecationTimeline willBeRemovedInGradle9() {
             setDeprecationTimeline(DeprecationTimeline.behaviourWillBeRemovedInVersion(GRADLE9));
@@ -495,9 +511,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         @Override
         DeprecationMessage build() {
-            setSummary(behaviour);
+            setSummary(String.format("%s This behaviour has been deprecated.", behaviour));
             return super.build();
         }
     }
-
 }

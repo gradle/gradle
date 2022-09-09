@@ -59,7 +59,6 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
     private static String undeclaredBuildServiceUsage(BuildServiceProvider<?, ?> provider, TaskInternal task) {
         return "Build service '" + provider.getName() + "'" +
             " is being used by task '" + task.getIdentityPath() + "'" +
-            " without the corresponding declaration via 'Task#usesService'." +
-            " This behavior is deprecated.";
+            " without the corresponding declaration via 'Task#usesService'.";
     }
 }
