@@ -6,7 +6,7 @@ This release features [1](), [2](), ... [n](), and more.
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
- THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+ THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
 
@@ -15,6 +15,7 @@ We would like to thank the following community members for their contributions t
 [Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy)
 [Eliezer Graber](https://github.com/eygraber)
 [Fedor Ihnatkevich](https://github.com/Jeffset)
+[Gabriel Rodriguez](https://github.com/gabrielrodriguez2746)
 [Herbert von Broeuschmeul](https://github.com/HvB)
 [Matthew Haughton](https://github.com/3flex)
 [Ricardo Jiang](https://github.com/RicardoJiang)
