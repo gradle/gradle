@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.execution;
+package org.gradle.internal.execution.steps;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.TaskExecuterResult;
-import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.properties.FilePropertySpec;
-import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.TreeType;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -41,53 +37,56 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class CleanupStaleOutputsExecuter implements TaskExecuter {
-
+public class CleanupStaleOutputsStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
+    @VisibleForTesting
     public static final String CLEAN_STALE_OUTPUTS_DISPLAY_NAME = "Clean stale outputs";
 
-    private final Logger logger = LoggerFactory.getLogger(CleanupStaleOutputsExecuter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CleanupStaleOutputsStep.class);
+
     private final BuildOperationExecutor buildOperationExecutor;
+    private final BuildOutputCleanupRegistry cleanupRegistry;
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
-    private final TaskExecuter executer;
     private final OutputFilesRepository outputFilesRepository;
-    private final BuildOutputCleanupRegistry cleanupRegistry;
+    private final Step<? super C, ? extends R> delegate;
 
-    public CleanupStaleOutputsExecuter(
+    public CleanupStaleOutputsStep(
         BuildOperationExecutor buildOperationExecutor,
         BuildOutputCleanupRegistry cleanupRegistry,
         Deleter deleter,
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
-        TaskExecuter executer
+        Step<? super C, ? extends R> delegate
     ) {
-        this.cleanupRegistry = cleanupRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.cleanupRegistry = cleanupRegistry;
         this.deleter = deleter;
         this.outputChangeListener = outputChangeListener;
-        this.executer = executer;
         this.outputFilesRepository = outputFilesRepository;
+        this.delegate = delegate;
     }
 
     @Override
-    public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        if (!task.getReasonNotToTrackState().isPresent()) {
-            cleanupStaleOutputs(context);
+    public R execute(UnitOfWork work, C context) {
+        if (work.shouldCleanupStaleOutputs()) {
+            cleanupStaleOutputs(work, context);
         }
-        return executer.execute(task, state, context);
+        return delegate.execute(work, context);
     }
 
-    private void cleanupStaleOutputs(TaskExecutionContext context) {
+    private void cleanupStaleOutputs(UnitOfWork work, C context) {
         Set<File> filesToDelete = new HashSet<>();
-        TaskProperties properties = context.getTaskProperties();
-        for (FilePropertySpec outputFileSpec : properties.getOutputFileProperties()) {
-            FileCollection files = outputFileSpec.getPropertyFiles();
-            for (File file : files) {
-                if (cleanupRegistry.isOutputOwnedByBuild(file) && !outputFilesRepository.isGeneratedByGradle(file) && file.exists()) {
-                    filesToDelete.add(file);
+        work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
+            @Override
+            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+                if (cleanupRegistry.isOutputOwnedByBuild(root)
+                    && !outputFilesRepository.isGeneratedByGradle(root)
+                    && root.exists()
+                ) {
+                    filesToDelete.add(root);
                 }
             }
-        }
+        });
         if (!filesToDelete.isEmpty()) {
             outputChangeListener.invalidateCachesFor(
                 filesToDelete.stream()
@@ -99,7 +98,7 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
                 public void run(BuildOperationContext context) throws IOException {
                     for (File file : filesToDelete) {
                         if (file.exists()) {
-                            logger.info("Deleting stale output file: {}", file.getAbsolutePath());
+                            LOGGER.info("Deleting stale output file: {}", file.getAbsolutePath());
                             deleter.deleteRecursively(file);
                         }
                     }
@@ -114,5 +113,4 @@ public class CleanupStaleOutputsExecuter implements TaskExecuter {
             });
         }
     }
-
 }
