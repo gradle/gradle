@@ -55,7 +55,7 @@ public interface ExecutionEngine {
          * Otherwise, the execution is wrapped in a not-yet-complete {@link DeferrableExecution} to be evaluated later.
          * The work is looked up by its {@link UnitOfWork.Identity identity} in the given cache.
          */
-        <O> DeferrableExecution<O> executeDeferred(Cache<Identity, Try<O>> cache);
+        <T> DeferrableExecution<T> executeDeferred(Cache<Identity, Try<T>> cache);
     }
 
     interface Result {

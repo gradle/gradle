@@ -77,7 +77,7 @@ public class DefaultExecutionEngine implements ExecutionEngine {
             }
 
             @Override
-            public <O> DeferrableExecution<O> executeDeferred(Cache<Identity, Try<O>> cache) {
+            public <T> DeferrableExecution<T> executeDeferred(Cache<Identity, Try<T>> cache) {
                 return executeStep.executeDeferred(work, createExecutionRequestContext(), cache);
             }
         };
