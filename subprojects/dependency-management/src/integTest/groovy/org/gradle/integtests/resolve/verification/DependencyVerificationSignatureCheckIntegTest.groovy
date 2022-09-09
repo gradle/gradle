@@ -324,6 +324,41 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
+    def "doesn't report failures when exporting keys"() {
+        createMetadataFile {
+            noMetadataVerification()
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addTrustedKey("org:foo:1.0", validPublicKeyHexString)
+        }
+
+        given:
+        terseConsoleOutput(true)
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                signAsciiArmored(it)
+                if (name.endsWith(".jar")) {
+                    // change contents of original file so that the signature doesn't match anymore
+                    tamperWithFile(it)
+                }
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+
+        then:
+        succeeds ":compileJava", "--export-keys"
+        result.assertNotOutput("A verification file was generated but some problems were discovered")
+    }
+
+
     def "doesn't check the same artifact multiple times during a build (terse output=#terse)"() {
         createMetadataFile {
             noMetadataVerification()

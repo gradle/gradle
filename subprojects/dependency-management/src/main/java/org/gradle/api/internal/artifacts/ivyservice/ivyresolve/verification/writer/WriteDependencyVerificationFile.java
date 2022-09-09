@@ -142,9 +142,15 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         this.isExportKeyring = exportKeyRing;
     }
 
+    private boolean isWriteVerificationFile() {
+        return !checksums.isEmpty();
+    }
+
     private void validateChecksums() {
-        assertSupportedChecksums();
-        warnAboutInsecureChecksums();
+        if (isWriteVerificationFile()) {
+            assertSupportedChecksums();
+            warnAboutInsecureChecksums();
+        }
     }
 
     private void assertSupportedChecksums() {
@@ -154,9 +160,6 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                 // in the build and the user feedback isn't great ("cannot create service blah!")
                 LOGGER.warn("Invalid checksum type: '" + checksum + "'. You must choose one or more in " + SUPPORTED_CHECKSUMS);
             }
-        }
-        if (checksums.isEmpty()) {
-            throw new DependencyVerificationException("You must specify at least one checksum type to use. You must choose one or more in " + SUPPORTED_CHECKSUMS);
         }
         assertPgpHasChecksumFallback(checksums);
     }
@@ -218,10 +221,12 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
             verificationsBuilder.setVerifySignatures(true);
         }
         DependencyVerifier verifier = verificationsBuilder.build();
-        DependencyVerificationsXmlWriter.serialize(
-            verifier,
-            new FileOutputStream(out)
-        );
+        if (isWriteVerificationFile()) {
+            DependencyVerificationsXmlWriter.serialize(
+                verifier,
+                new FileOutputStream(out)
+            );
+        }
         if (isExportKeyring) {
             exportKeys(signatureVerificationService, verifier);
         }
