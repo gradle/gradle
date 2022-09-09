@@ -22,6 +22,7 @@ dependencies {
     testFixturesImplementation(project(":tooling-api"))
     testFixturesImplementation(project(":wrapper-shared"))
     testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation(libs.guava)
 
     testImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))
