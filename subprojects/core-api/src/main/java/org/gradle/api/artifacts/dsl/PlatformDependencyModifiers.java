@@ -26,6 +26,10 @@ import org.gradle.api.provider.ProviderConvertible;
 /**
  * Dependency APIs for using <a href="https://docs.gradle.org/current/userguide/java_platform_plugin.html#java_platform_plugin">Platforms</a> in {@code dependencies} blocks.
  *
+ * <p>
+ * NOTE: This API is <strong>incubating</strong> and is likely to change until it's made stable.
+ * </p>
+ *
  * @since 7.6
  */
 @Incubating

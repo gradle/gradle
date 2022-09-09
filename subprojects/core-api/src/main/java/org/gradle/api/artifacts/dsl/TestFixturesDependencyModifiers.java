@@ -26,6 +26,10 @@ import org.gradle.api.provider.ProviderConvertible;
 /**
  * Dependency APIs for using <a href="https://docs.gradle.org/current/userguide/java_testing.html#sec:java_test_fixtures">Test Fixtures</a> in {@code dependencies} blocks.
  *
+ * <p>
+ * NOTE: This API is <strong>incubating</strong> and is likely to change until it's made stable.
+ * </p>
+ *
  * @since 7.6
  */
 @Incubating
@@ -62,10 +66,10 @@ public interface TestFixturesDependencyModifiers extends Dependencies {
     /**
      * Takes a given {@code Provider} to a {@link ExternalModuleDependency} and modifies the dependency to select the Test Fixtures variant of the given module.
      *
-     * @param providerConvertibleToDependency the provider
+     * @param providerToDependency the provider
      * @return a provider to the modified dependency
      */
-    default Provider<? extends ExternalModuleDependency> testFixtures(Provider<? extends ExternalModuleDependency> providerConvertibleToDependency) {
-        return providerConvertibleToDependency.map(this::testFixtures);
+    default Provider<? extends ExternalModuleDependency> testFixtures(Provider<? extends ExternalModuleDependency> providerToDependency) {
+        return providerToDependency.map(this::testFixtures);
     }
 }
