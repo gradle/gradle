@@ -88,9 +88,9 @@ $ gradle [--built-in-option-name...] -- [taskName...] [--task-option-name...]
 
 Consider a task named "mytask" that accepts an option named "profile":
 
-If you run `gradle mytask --profile`, Gradle accepts `--profile` as the built-in Gradle option.
+- If you run `gradle mytask --profile`, Gradle accepts `--profile` as the built-in Gradle option.
 
-If you run `gradle -- mytask --profile=exampleValue`, Gradle passes `--profile` as a task option.
+- If you run `gradle -- mytask --profile=exampleValue`, Gradle passes `--profile` as a task option.
 
 [[executing_tasks_in_multi_project_builds]]
 === Executing tasks in multi-project builds
