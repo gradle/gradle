@@ -18,8 +18,8 @@ TIP: Want faster Gradle Builds? https://gradle.com/training/#build-cache-deep-di
 Before you make any changes, <<inspect.adoc#build_scans,inspect your build>> with a build scan or profile report. A proper build inspection helps
 you understand:
 
-- how long it takes to build your project
-- which parts of your build are slow
+* how long it takes to build your project
+* which parts of your build are slow
 
 Inspecting provides a comparison point to better understand the impact of the changes recommended on this page.
 
@@ -67,7 +67,7 @@ $ gradle <task> --parallel
 ----
 ====
 
-To execute project tasks in parallel by default, add the following setting to the `gradle.properties` file in the project root:
+To execute project tasks in parallel by default, add the following setting to the `gradle.properties` file in the project root or your Gradle home:
 
 ====
 .gradle.properties
@@ -99,20 +99,20 @@ reduces the overall build time from 8 seconds to 5 seconds:
 image::performance/parallel-task-fast.png[title="Optimized parallel execution"]
 
 [[enable_daemon]]
-== Re-enable the Gradle daemon
+== Re-enable the Gradle Daemon
 
-The Gradle daemon reduces build times by:
+The Gradle Daemon reduces build times by:
 
-- caching project information across builds
-- running in the background so every Gradle build doesn't have to wait for JVM startup
-- continuous runtime JVM optimization thanks to HotSpot in OpenJDK
-- watching the file system to calculate exactly what needs to be rebuilt before you run a build
+* caching project information across builds
+* running in the background so every Gradle build doesn't have to wait for JVM startup
+* benefiting from continuous runtime optimization in the JVM
+* watching the file system to calculate exactly what needs to be rebuilt before you run a build
 
-Gradle enables the daemon by default, but some builds override this preference.
-If your build disables the daemon, you could see a significant performance improvement
+Gradle enables the Daemon by default, but some builds override this preference.
+If your build disables the Daemon, you could see a significant performance improvement
 from enabling the daeomon.
 
-You can enable the daemon at build time with the `daemon` flag:
+You can enable the Daemon at build time with the `daemon` flag:
 
 ====
 [listing.terminal]
@@ -121,8 +121,8 @@ $ gradle <task> --daemon
 ----
 ====
 
-To enable the daemon by default in older Gradle versions, add the following setting to the
-`gradle.properties` file in the project root:
+To enable the Daemon by default in older Gradle versions, add the following setting to the
+`gradle.properties` file in the project root or your Gradle home:
 
 ====
 .gradle.properties
@@ -133,8 +133,8 @@ org.gradle.daemon=true
 ====
 
 On developer machines, you should see a significant performance improvement.
-On CI machines, long-lived agents benefit from the daemon. But short-lived machines don't benefit much.
-Daemons automatically shut down on memory pressure in Gradle 3.0 and above, so it's always safe to leave the daemon enabled.
+On CI machines, long-lived agents benefit from the Daemon. But short-lived machines don't benefit much.
+Daemons automatically shut down on memory pressure in Gradle 3.0 and above, so it's always safe to leave the Daemon enabled.
 
 [[enable_configuration_cache]]
 == Enable the configuration cache
@@ -143,9 +143,9 @@ Daemons automatically shut down on memory pressure in Gradle 3.0 and above, so i
 ====
 This feature is currently *_incubating_* and not enabled by default. This feature has the following limitations:
 
-- The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress.
-- Your build and the plugins you depend on might require changes to fulfill the <<configuration_cache#config_cache:requirements, requirements>>.
-- IDE imports and syncs do not use the configuration cache.
+* The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress.
+* Your build and the plugins you depend on might require changes to fulfill the <<configuration_cache#config_cache:requirements, requirements>>.
+* IDE imports and syncs do not use the configuration cache.
 ====
 
 You can cache the result of the configuration phase by enabling the configuration cache.
@@ -154,14 +154,14 @@ allows Gradle to skip the configuration phase entirely.
 
 Build configuration inputs include:
 
-- Init scripts
-- Settings scripts
-- Build scripts
-- System properties used during the configuration phase
-- Gradle properties used during the configuration phase
-- Environment variables used during the configuration phase
-- Configuration files accessed using value suppliers such as providers
-- `buildSrc` inputs, including build configuration inputs and source files
+* Init scripts
+* Settings scripts
+* Build scripts
+* System properties used during the configuration phase
+* Gradle properties used during the configuration phase
+* Environment variables used during the configuration phase
+* Configuration files accessed using value suppliers such as providers
+* `buildSrc` inputs, including build configuration inputs and source files
 
 By default, Gradle does not use the configuration cache.
 To enable the configuration cache at build time, use the `configuration-cache` flag:
@@ -173,7 +173,7 @@ $ gradle <task> --configuration-cache
 ----
 ====
 
-To enable the configuration cache by default, add the following setting to the `gradle.properties` file in the project root:
+To enable the configuration cache by default, add the following setting to the `gradle.properties` file in the project root or your Gradle home:
 ====
 .gradle.properties
 [source,properties]
@@ -189,8 +189,8 @@ For more information about the configuration cache, check out the
 
 The configuration cache enables additional benefits as well. When enabled, Gradle:
 
-- Executes all tasks in parallel, even those in the same subproject.
-- Caches dependency resolution results.
+* Executes all tasks in parallel, even those in the same subproject.
+* Caches dependency resolution results.
 
 == Enable incremental build for custom tasks
 
@@ -234,7 +234,7 @@ $ gradle <task> --build-cache
 ----
 ====
 
-To enable the build cache by default, add the following setting to the `gradle.properties` file in the project root:
+To enable the build cache by default, add the following setting to the `gradle.properties` file in the project root or your Gradle home:
 
 ====
 .gradle.properties
@@ -257,9 +257,9 @@ For more information about the build cache, check out the
 Build scans can help you investigate build cache effectiveness.
 In the performance screen, the _"Build cache"_ tab shows you statistics about:
 
-- how many tasks interacted with a cache
-- which cache was used
-- transfer and pack/unpack rates for these cache entries
+* how many tasks interacted with a cache
+* which cache was used
+* transfer and pack/unpack rates for these cache entries
 
 image::performance/cache-performance.png[title="Inspecting the performance of the build cache for a build"]
 
@@ -293,15 +293,16 @@ the task graph: turn that view into a Gradle workflow that excludes unnecessary 
 
 Gradle provides several features to create these workflows:
 
-- Assign tasks to appropriate link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:group[groups]
-- Create _aggregate tasks_: tasks with no action that only depend on other tasks, such as `assemble`
-- Defer configuration via `gradle.taskGraph.whenReady()` and others, so you can perform verification only when it's necessary
+* Assign tasks to appropriate link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:group[groups]
+* Create _aggregate tasks_: tasks with no action that only depend on other tasks, such as `assemble`
+* Defer configuration via `gradle.taskGraph.whenReady()` and others, so you can perform verification only when it's necessary
 
 == Increase the heap size
 
 By default, Gradle reserves 512MB of heap space for your build. This is plenty for most projects.
 However, some very large builds might need more memory to hold Gradle's model and caches.
-If this is the case for you, you can check in this larger memory requirement in your `gradle.properties` file:
+If this is the case for you, you can specify a larger memory requirement.
+Specify the following property in the `gradle.properties` file in your project root or your Gradle home:
 
 ====
 .gradle.properties
@@ -349,11 +350,11 @@ This script takes 1 second to run. Since it applies to 3 subprojects,
 this script cumulatively delays the configuration phase by 3 seconds.
 In this situation, there are several ways to reduce the delay:
 
-- If only one subproject uses the script, you could remove the script
+* If only one subproject uses the script, you could remove the script
   application from the other subprojects. This reduces the configuration delay
   by two seconds in each Gradle invocation.
 
-- If multiple subprojects, but not all, use the script, you could refactor the script and
+* If multiple subprojects, but not all, use the script, you could refactor the script and
   all surrounding logic into a custom plugin located in <<organizing_gradle_projects#sec:build_sources,`buildSrc`>>.
   Apply the custom plugin to only the relevant subprojects, reducing configuration delay and avoiding code duplication.
 
@@ -390,8 +391,8 @@ which accepts a task type.
 
 When you use static compilation, an IDE can:
 
-- quickly show errors related to unrecognised types, properties, and methods
-- auto-complete method names
+* quickly show errors related to unrecognised types, properties, and methods
+* auto-complete method names
 
 [[dependency_resolution]]
 == Optimize Dependency resolution
@@ -412,8 +413,8 @@ to identify unused dependencies.
 
 If you only use a small number of methods or classes in a third-party library, consider:
 
-- implementing the required code yourself in your project
-- copying the required code from the library (with attribution!) if it is open source
+* implementing the required code yourself in your project
+* copying the required code from the library (with attribution!) if it is open source
 
 === Optimize repository order
 
@@ -435,8 +436,8 @@ Dynamic versions (e.g. “2.+”), and changing versions (snapshots) force Gradl
 repositories to find new releases. By default, Gradle only checks once every 24 hours.
 But you can change this programmatically with the following settings:
 
-- `cacheDynamicVersionsFor`
-- `cacheChangingModulesFor`
+* `cacheDynamicVersionsFor`
+* `cacheChangingModulesFor`
 
 If a build file or initialization script lowers these values, Gradle queries repositories more often.
 When you don't need the absolute latest release of a dependency every time you build, consider
@@ -514,9 +515,9 @@ Several things could cause this, including a slow internet connection or an over
 On the "Performance" page of a build scan, you'll find a "Network Activity" tab.
 This tab lists information including:
 
-- the time spent downloading dependencies
-- the transfer rate of dependency downloads
-- a list of downloads sorted by download time
+* the time spent downloading dependencies
+* the transfer rate of dependency downloads
+* a list of downloads sorted by download time
 
 In the following example, two slow dependency downloads took 20 and 40 seconds and slowed down the overall
 performance of a build:
@@ -544,9 +545,9 @@ The above build scan shows an interactive test report for all projects in which 
 
 Gradle has several ways to speed up tests:
 
-- Execute tests in parallel
-- Fork tests into multiple processes
-- Disable reports
+* Execute tests in parallel
+* Fork tests into multiple processes
+* Disable reports
 
 Let’s look at each of these in turn.
 
@@ -585,8 +586,8 @@ WARNING: Forking a VM is an expensive operation. Setting too small a value here 
 Gradle automatically creates test reports regardless of whether you want to look at them.
 That report generation slows down the overall build. You may not need reports if:
 
-- you only care if the tests succeeded (rather than why)
-- you use build scans, which provide more information than a local report
+* you only care if the tests succeeded (rather than why)
+* you use build scans, which provide more information than a local report
 
 To disable test reports, set `reports.html.required` and `reports.junitXml.required` to `false` in the `Test` task:
 
@@ -632,7 +633,7 @@ $ gradle <task> -PcreateReports
 ----
 ====
 
-Or configure the property in the `gradle.properties` file in the root of your project:
+Or configure the property in the `gradle.properties` file in the project root or your Gradle home:
 
 ====
 .gradle.properties
@@ -647,8 +648,8 @@ createReports=true
 The Java compiler is fast. But if you’re compiling hundreds of Java classes, even a short compilation time adds up.
 Gradle offers a several optimizations for Java compilation:
 
-- Run the compiler as a separate process
-- Switch internal-only dependencies to implementation visibility
+* Run the compiler as a separate process
+* Switch internal-only dependencies to implementation visibility
 
 ==== Run the compiler as a separate process
 
@@ -723,9 +724,9 @@ to optimize older versions of Gradle.
 
 === Enable the Daemon
 
-Gradle 3.0 and above enable the daemon by default. If you are using an older version,
+Gradle 3.0 and above enable the Daemon by default. If you are using an older version,
 you should <<update_gradle,update to the latest version of Gradle>>.
-If you cannot update your Gradle version, you can <<enable_daemon,enable the daemon manually>>.
+If you cannot update your Gradle version, you can <<enable_daemon,enable the Daemon manually>>.
 
 === Use incremental compilation
 
