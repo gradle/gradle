@@ -61,6 +61,44 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    def "downloaded JDK is checked against the spec"() {
+        settingsFile << """
+            ${applyToolchainRegistryPlugin("brokenRegistry", "CustomToolchainRegistry", brokenToolchainRegistryCode())}               
+            toolchainManagement {
+                jdks {
+                    add("brokenRegistry")
+                }
+            }
+        """
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+                .withTasks("compileJava")
+                .requireOwnGradleUserHomeDir()
+                .withToolchainDownloadEnabled()
+                .runWithFailure()
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+                .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'")
+                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
+                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any, implementation=vendor-specific}) from: https://api.adoptium.net/v3/binary/latest/8/ga/${os()}/x64/jdk/hotspot/normal/eclipse")
+                .assertHasCause("Toolchain provisioned from 'https://api.adoptium.net/v3/binary/latest/8/ga/${os()}/x64/jdk/hotspot/normal/eclipse' doesn't satisfy the specification: {languageVersion=11, vendor=any, implementation=vendor-specific}")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "custom toolchain registries are consulted in order"() {
         settingsFile << """
             ${applyToolchainRegistryPlugin("customRegistry", "CustomToolchainRegistry", customToolchainRegistryCode())}
@@ -304,6 +342,20 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 @Override
                 public Optional<URI> toUri(JavaToolchainSpec spec, BuildEnvironment env) {
                     return Optional.empty();
+                }
+            }
+            """
+    }
+
+    private static String brokenToolchainRegistryCode() {
+        """
+            import java.util.Optional;
+            import org.gradle.env.BuildEnvironment;
+
+            public abstract class CustomToolchainRegistry implements JavaToolchainRepository {
+                @Override
+                public Optional<URI> toUri(JavaToolchainSpec spec, BuildEnvironment env) {
+                    return Optional.of(URI.create("https://api.adoptium.net/v3/binary/latest/8/ga/${os()}/x64/jdk/hotspot/normal/eclipse"));
                 }
             }
             """
