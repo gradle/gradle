@@ -22,16 +22,17 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class DeferrableTest extends Specification {
 
-    def "composed invocation only creates the second invocation once"() {
+    def "composing #description invocations only creates the second invocation once"() {
         def creationCount = new AtomicInteger(0)
 
         def composed = first.flatMap { Integer input ->
             creationCount.incrementAndGet()
-            return Deferrable.deferred { input + 25 }
+            return second(input)
         }
 
         expect:
-        !composed.getCompleted().present
+        composed.getCompleted().present == expectCompleted
+        creationCount.get() == (resolveSecondEagerly ? 1 : 0)
 
         when:
         def result = composed.completeAndGet()
@@ -40,6 +41,10 @@ class DeferrableTest extends Specification {
         creationCount.get() == 1
 
         where:
-        first << [Deferrable.deferred { 5 }, Deferrable.completed(5)]
+        description              | first                     | second                                          | expectCompleted | resolveSecondEagerly
+        "deferred -> deferred"   | Deferrable.deferred { 5 } | { input -> Deferrable.deferred { input + 25 } } | false           | false
+        "deferred -> completed"  | Deferrable.deferred { 5 } | { input -> Deferrable.completed(input + 25) }   | false           | false
+        "completed -> deferred"  | Deferrable.completed(5)   | { input -> Deferrable.deferred { input + 25 } } | false           | true
+        "completed -> completed" | Deferrable.completed(5)   | { input -> Deferrable.completed(input + 25) }   | true            | true
     }
 }
