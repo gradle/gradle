@@ -68,7 +68,9 @@ public interface Deferrable<T> {
     default <U> Deferrable<U> flatMap(Function<? super T, Deferrable<U>> mapper) {
         return getCompleted()
             .map(mapper)
-            .orElseGet(() -> mapper.apply(completeAndGet()));
+            .orElseGet(() -> Deferrable.deferred(() -> mapper
+                .apply(Deferrable.this.completeAndGet())
+                .completeAndGet()));
     }
 
     /**
