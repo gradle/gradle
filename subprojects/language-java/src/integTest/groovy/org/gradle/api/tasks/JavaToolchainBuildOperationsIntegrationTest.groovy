@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
@@ -81,14 +81,14 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
 
         when:
-        runWithInstallation(jdkMetadata, task)
+        withInstallations(jdkMetadata).run(task)
         def events = toolchainEvents(task)
         then:
         executedAndNotSkipped(task)
         assertToolchainUsages(events, jdkMetadata, tool)
 
         when:
-        runWithInstallation(jdkMetadata, task)
+        withInstallations(jdkMetadata).run(task)
         events = toolchainEvents(task)
         then:
         skipped(task)
@@ -140,14 +140,14 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
 
         when:
-        runWithInstallation(jdkMetadata, task)
+        withInstallations(jdkMetadata).run(task)
         def events = toolchainEvents(task)
         then:
         executedAndNotSkipped(task)
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
 
         when:
-        runWithInstallation(jdkMetadata, task)
+        withInstallations(jdkMetadata).run(task)
         events = toolchainEvents(task)
         then:
         skipped(task)
@@ -188,10 +188,8 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             }
         """
 
-        def installationPaths = [jdkMetadata1, jdkMetadata2].collect { it.javaHome.toAbsolutePath().toString() }.join(",")
-
         when:
-        runWithInstallationPaths(installationPaths, task)
+        withInstallations(jdkMetadata1, jdkMetadata2).run(task)
         def events = toolchainEvents(task)
         def events1 = filterByJavaVersion(events, jdkMetadata1)
         def events2 = filterByJavaVersion(events, jdkMetadata2)
@@ -203,7 +201,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events2, jdkMetadata2, "JavaLauncher")
 
         when:
-        runWithInstallationPaths(installationPaths, task)
+        withInstallations(jdkMetadata1, jdkMetadata2).run(task)
         events = toolchainEvents(task)
         events1 = filterByJavaVersion(events, jdkMetadata1)
         events2 = filterByJavaVersion(events, jdkMetadata2)
@@ -248,10 +246,8 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             }
         """
 
-        def installationPaths = [jdkMetadata1, jdkMetadata2].collect { it.javaHome.toAbsolutePath().toString() }.join(",")
-
         when:
-        runWithInstallationPaths(installationPaths, ":myToolchainTask1", ":myToolchainTask2")
+        withInstallations(jdkMetadata1, jdkMetadata2).run(":myToolchainTask1", ":myToolchainTask2")
         def events1 = toolchainEvents(":myToolchainTask1")
         def events2 = toolchainEvents(":myToolchainTask2")
         then:
@@ -260,7 +256,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events2, jdkMetadata2, "JavaLauncher")
 
         when:
-        runWithInstallationPaths(installationPaths, ":myToolchainTask1", ":myToolchainTask2")
+        withInstallations(jdkMetadata1, jdkMetadata2).run(":myToolchainTask1", ":myToolchainTask2")
         events1 = toolchainEvents(":myToolchainTask1")
         events2 = toolchainEvents(":myToolchainTask2")
         then:
@@ -285,14 +281,14 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         def task = ":compileJava"
 
         when:
-        runWithInstallation(jdkMetadata, task)
+        withInstallations(jdkMetadata).run(task)
         def events = toolchainEvents(task)
         then:
         executedAndNotSkipped(task)
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
 
         when:
-        runWithInstallation(jdkMetadata, task)
+        withInstallations(jdkMetadata).run(task)
         events = toolchainEvents(task)
         then:
         skipped(task)
@@ -316,21 +312,20 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         def task = ":compileJava"
 
         when:
-        runWithInstallation(jdkMetadata1, task)
+        withInstallations(jdkMetadata1).run(task)
         def events = toolchainEvents(task)
         then:
         executedAndNotSkipped(task)
         assertToolchainUsages(events, jdkMetadata2, "JavaCompiler")
 
         when:
-        runWithInstallation(jdkMetadata1, task)
+        withInstallations(jdkMetadata1).run(task)
         events = toolchainEvents(task)
         then:
         skipped(task)
         assertToolchainUsages(events, jdkMetadata2, "JavaCompiler")
     }
 
-    @ToBeImplemented("finding a used toolchain by the path of the launcher executable")
     @Issue("https://github.com/gradle/gradle/issues/21367")
     def "emits toolchain usages for test that configures executable path"() {
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
@@ -361,30 +356,23 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         def task = ":test"
 
         when:
-        runWithInstallation(jdkMetadata, task)
+        withInstallations(jdkMetadata).run(task)
         def events = toolchainEvents(task)
         then:
         executedAndNotSkipped(task)
-        // TODO: replace when fixed
-        events.size() == 0
-//        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
+        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
 
         when:
-        runWithInstallation(jdkMetadata, task)
+        withInstallations(jdkMetadata).run(task)
         events = toolchainEvents(task)
         then:
         skipped(task)
-        // TODO: replace when fixed
-        events.size() == 0
-//        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
+        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Kotlin plugin extracts metadata from the JavaLauncher and wraps it into a custom property")
     @Issue("https://github.com/gradle/gradle/issues/21368")
-    def "emits toolchain usages when configuring toolchains for Kotlin plugin '#kotlinPlugin'"() {
+    def "emits toolchain usages when configuring toolchains for #kotlinPlugin Kotlin plugin '#kotlinPluginVersion'"() {
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
-
-        def kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestKotlinPluginVersion(kotlinPlugin)
 
         // override setup
         buildFile.text = """
@@ -421,7 +409,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
 
         when:
-        runWithInstallation(jdkMetadata, ":compileKotlin", ":test")
+        withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         def eventsOnCompile = toolchainEvents(":compileKotlin")
         def eventsOnTest = toolchainEvents(":test")
         then:
@@ -433,19 +421,26 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(eventsOnTest, jdkMetadata, "JavaLauncher")
 
         when:
-        runWithInstallation(jdkMetadata, ":compileKotlin", ":test")
+        withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         eventsOnCompile = toolchainEvents(":compileKotlin")
         eventsOnTest = toolchainEvents(":test")
         then:
-        skipped(":compileKotlin", ":test")
+        if (!isAlwaysUpToDate && Jvm.current().javaVersion.java8 && GradleContextualExecuter.configCache) {
+            // For Kotlin 1.6 the compilation is not up-to-date with configuration caching when running on Java 8
+            executedAndNotSkipped(":compileKotlin")
+        } else {
+            skipped(":compileKotlin", ":test")
+        }
         assertToolchainUsages(eventsOnCompile, jdkMetadata, "JavaLauncher")
         assertToolchainUsages(eventsOnTest, jdkMetadata, "JavaLauncher")
 
         where:
-        kotlinPlugin | _
-        "latest"     | _
-        "1.7"        | _
-        "1.6"        | _
+        kotlinPlugin | isAlwaysUpToDate
+        "latest"     | true
+        "1.7"        | true
+        "1.6"        | false
+
+        kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestStableKotlinPluginVersion(kotlinPlugin)
     }
 
     def "emits toolchain usages when task fails for 'compileJava' task"() {
@@ -460,7 +455,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
 
         when:
-        runWithInstallationExpectingFailure(jdkMetadata, task)
+        withInstallations(jdkMetadata).fails(task)
         def events = toolchainEvents(task)
         then:
         failureDescriptionStartsWith("Execution failed for task '${task}'.")
@@ -484,7 +479,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
 
         when:
-        runWithInstallationExpectingFailure(jdkMetadata, task)
+        withInstallations(jdkMetadata).fails(task)
         def events = toolchainEvents(task)
         then:
         failureDescriptionStartsWith("Execution failed for task '${task}'.")
@@ -507,7 +502,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
 
         when:
-        runWithInstallationExpectingFailure(jdkMetadata, task)
+        withInstallations(jdkMetadata).fails(task)
         def events = toolchainEvents(task)
         then:
         failureDescriptionStartsWith("Execution failed for task '${task}'.")
@@ -530,7 +525,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
 
         when:
-        runWithInstallation(jdkMetadata, ":myTask")
+        withInstallations(jdkMetadata).run(":myTask")
         def events = toolchainEvents(":myTask")
 
         then:
@@ -576,27 +571,14 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    def runWithInstallation(JvmInstallationMetadata jdkMetadata, String... tasks) {
-        runWithInstallationPaths(jdkMetadata.javaHome.toAbsolutePath().toString(), tasks)
-    }
-
-    def runWithInstallationPaths(String installationPaths, String... tasks) {
-        result = prepareRunWithInstallationPaths(installationPaths, tasks)
-            .run()
-    }
-
-    def runWithInstallationExpectingFailure(JvmInstallationMetadata jdkMetadata, String... tasks) {
-        failure = prepareRunWithInstallationPaths(jdkMetadata.javaHome.toAbsolutePath().toString(), tasks)
-            .runWithFailure()
-    }
-
-    def prepareRunWithInstallationPaths(String installationPaths, String... tasks) {
+    private withInstallations(JvmInstallationMetadata... jdkMetadata) {
+        def installationPaths = jdkMetadata.collect { it.javaHome.toAbsolutePath().toString() }.join(",")
         executer
             .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
-            .withTasks(tasks)
+        this
     }
 
-    private String latestKotlinPluginVersion(String major) {
-        return kgpLatestVersions.findAll { it.startsWith(major) }.last()
+    private static String latestStableKotlinPluginVersion(String major) {
+        return kgpLatestVersions.findAll { it.startsWith(major) && !it.contains("-") }.last()
     }
 }

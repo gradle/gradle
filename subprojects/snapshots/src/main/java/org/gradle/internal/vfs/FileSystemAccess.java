@@ -48,7 +48,7 @@ public interface FileSystemAccess {
     /**
      * Visits the hierarchy of files which match the filter at the given location.
      *
-     * The consumer is only called if if something matches the filter.
+     * The consumer is only called if something matches the filter.
      */
     void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor);
 

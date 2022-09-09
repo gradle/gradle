@@ -79,7 +79,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
             null,
             DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal),
             new DefaultWorkValidationContext(documentationRegistry, WorkValidationContext.TypeOriginInspector.NO_OP),
-            { historyMaintained, context -> }
+            { context -> }
         )
         project.gradle.services.get(BuildOutputCleanupRegistry).resolveOutputs()
         executionServices.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, taskExecutionContext)

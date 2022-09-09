@@ -22,7 +22,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
-import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainUsageProgressDetails.JavaTool;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,26 +41,19 @@ public class DefaultToolchainJavaCompiler implements JavaCompiler {
     @Override
     @Nested
     public JavaInstallationMetadata getMetadata() {
-        emitUsageEvent();
         return javaToolchain;
     }
 
     @Override
     @Internal
     public RegularFile getExecutablePath() {
-        emitUsageEvent();
         return javaToolchain.findExecutable("javac");
     }
 
     @SuppressWarnings("unchecked")
     public <T extends CompileSpec> WorkResult execute(T spec) {
         LOGGER.info("Compiling with toolchain '{}'.", javaToolchain.getDisplayName());
-        emitUsageEvent();
         final Class<T> specType = (Class<T>) spec.getClass();
         return compilerFactory.create(specType).execute(spec);
-    }
-
-    private void emitUsageEvent() {
-        javaToolchain.emitUsageEvent(JavaTool.COMPILER);
     }
 }

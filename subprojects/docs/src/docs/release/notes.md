@@ -6,9 +6,21 @@ This release features [1](), [2](), ... [n](), and more.
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
- THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+ THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
+
+[Björn Kautler](https://github.com/Vampire)
+[David Marin](https://github.com/dmarin)
+[Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy)
+[Eliezer Graber](https://github.com/eygraber)
+[Fedor Ihnatkevich](https://github.com/Jeffset)
+[Gabriel Rodriguez](https://github.com/gabrielrodriguez2746)
+[Herbert von Broeuschmeul](https://github.com/HvB)
+[Matthew Haughton](https://github.com/3flex)
+[Ricardo Jiang](https://github.com/RicardoJiang)
+[Siddardha Bezawada](https://github.com/SidB3)
+[Stephen Topley](https://github.com/stopley)
 
 ## Upgrade instructions
 
@@ -51,7 +63,6 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 #### PMD and CodeNarc tasks execute in parallel by default
-
 The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/pmd_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process and therefore their tasks may now run in parallel within one project.
 
 In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.

@@ -263,7 +263,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     @Issue('https://github.com/gradle/gradle/issues/9576')
-    def "unreadable #type not produced by task causes a deprecation warning"() {
+    def "unreadable #type not produced by task fails"() {
         given:
         def input = file("readableFile.txt").createFile()
 
@@ -280,12 +280,10 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
 
         when:
         executer.withStackTraceChecksDisabled()
-        expectUnreadableCopyDestinationDeprecationWarning()
-        succeeds "copy", "--info"
+        runAndFail "copy", "--info"
         then:
-        outputDirectory.list().contains input.name
         outputContains("Cannot access output property 'destinationDir' of task ':copy'")
-        outputContains(expectedError(unreadableOutput))
+        expectUnreadableCopyDestinationFailure()
 
         cleanup:
         unreadableOutput.makeReadable()
