@@ -25,6 +25,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
 
@@ -53,6 +54,12 @@ public interface ProjectStateRegistry {
      * Locates the state objects for all projects of the given build.
      */
     BuildProjectRegistry projectsFor(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
+
+    /**
+     * Locates the state objects for all projects of the given build, or {@code null} if these are not available yet.
+     */
+    @Nullable
+    BuildProjectRegistry findProjectsFor(BuildIdentifier buildIdentifier);
 
     /**
      * Registers the projects of a build.
