@@ -18,8 +18,8 @@ package org.gradle.internal.execution.impl;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.cache.Cache;
+import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.DeferrableSupplier;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
@@ -77,7 +77,7 @@ public class DefaultExecutionEngine implements ExecutionEngine {
             }
 
             @Override
-            public <T> DeferrableSupplier<T> executeDeferred(Cache<Identity, Try<T>> cache) {
+            public <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, Try<T>> cache) {
                 return executeStep.executeDeferred(work, createExecutionRequestContext(), cache);
             }
         };
