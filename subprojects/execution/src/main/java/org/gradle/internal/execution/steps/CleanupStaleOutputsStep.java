@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Streams;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.OutputChangeListener;
@@ -33,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -79,12 +81,11 @@ public class CleanupStaleOutputsStep<C extends WorkspaceContext, R extends Resul
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
-                if (cleanupRegistry.isOutputOwnedByBuild(root)
-                    && !outputFilesRepository.isGeneratedByGradle(root)
-                    && root.exists()
-                ) {
-                    filesToDelete.add(root);
-                }
+                Streams.stream(contents)
+                    .filter(cleanupRegistry::isOutputOwnedByBuild)
+                    .filter(file -> !outputFilesRepository.isGeneratedByGradle(file))
+                    .filter(file -> file.exists() || Files.isSymbolicLink(file.toPath()))
+                    .forEach(filesToDelete::add);
             }
         });
         if (!filesToDelete.isEmpty()) {
@@ -97,10 +98,8 @@ public class CleanupStaleOutputsStep<C extends WorkspaceContext, R extends Resul
                 @Override
                 public void run(BuildOperationContext context) throws IOException {
                     for (File file : filesToDelete) {
-                        if (file.exists()) {
-                            LOGGER.info("Deleting stale output file: {}", file.getAbsolutePath());
-                            deleter.deleteRecursively(file);
-                        }
+                        LOGGER.info("Deleting stale output file: {}", file.getAbsolutePath());
+                        deleter.deleteRecursively(file);
                     }
                 }
 
