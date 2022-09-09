@@ -61,7 +61,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         cache.acquireWriteLock(_ as File, _ as String) >> archiveFileLock
         cache.getDownloadLocation() >> temporaryFolder
-        cache.provisionFromArchive(_ as File, _ as URI) >> new File(temporaryFolder, "install_dir")
+        cache.provisionFromArchive(_ as JavaToolchainSpec, _ as File, _ as URI) >> new File(temporaryFolder, "install_dir")
     }
 
     def "cache is properly locked around provisioning a jdk"() {

@@ -115,21 +115,21 @@ public class JavaToolchainQueryService {
         }
     }
 
-    private JavaToolchain query(JavaToolchainSpec filter) {
-        if (filter instanceof CurrentJvmToolchainSpec) {
-            return asToolchain(new InstallationLocation(Jvm.current().getJavaHome(), "current JVM"), filter).get();
+    private JavaToolchain query(JavaToolchainSpec spec) {
+        if (spec instanceof CurrentJvmToolchainSpec) {
+            return asToolchain(new InstallationLocation(Jvm.current().getJavaHome(), "current JVM"), spec).get();
         }
-        if (filter instanceof SpecificInstallationToolchainSpec) {
-            return asToolchain(new InstallationLocation(((SpecificInstallationToolchainSpec) filter).getJavaHome(), "specific installation"), filter).get();
+        if (spec instanceof SpecificInstallationToolchainSpec) {
+            return asToolchain(new InstallationLocation(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation"), spec).get();
         }
 
         return registry.listInstallations().stream()
-            .map(javaHome -> asToolchain(javaHome, filter))
+            .map(javaHome -> asToolchain(javaHome, spec))
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .filter(new ToolchainMatcher(filter))
+            .filter(new JavaToolchainMatcher(spec))
             .min(new JavaToolchainComparator())
-            .orElseGet(() -> downloadToolchain(filter));
+            .orElseGet(() -> downloadToolchain(spec));
     }
 
     private JavaToolchain downloadToolchain(JavaToolchainSpec spec) {

@@ -123,7 +123,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("No compatible toolchains found for request filter: {languageVersion=14, vendor=any, implementation=vendor-specific} (auto-detect false, auto-download false)")
+            .assertHasCause("No compatible toolchains found for request specification: {languageVersion=14, vendor=any, implementation=vendor-specific} (auto-detect false, auto-download false)")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")

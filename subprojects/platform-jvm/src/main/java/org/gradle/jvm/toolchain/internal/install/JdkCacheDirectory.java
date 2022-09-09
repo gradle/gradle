@@ -29,7 +29,9 @@ import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
+import org.gradle.jvm.toolchain.internal.JavaToolchainMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,7 +117,7 @@ public class JdkCacheDirectory {
     /**
      * Unpacks and installs the given JDK archive. Returns a file pointing to the java home directory.
      */
-    public File provisionFromArchive(File jdkArchive, URI uri) {
+    public File provisionFromArchive(JavaToolchainSpec spec, File jdkArchive, URI uri) {
         final File unpackFolder = unpack(jdkArchive);
         File markedLocation = markedLocation(unpackFolder);
         markAsReady(markedLocation);
@@ -124,6 +126,12 @@ public class JdkCacheDirectory {
         JvmInstallationMetadata metadata = detector.getMetadata(new InstallationLocation(javaHome, "provisioned toolchain"));
         if (!metadata.isValidInstallation()) {
             throw new GradleException("Provisioned toolchain '" + javaHome + "' could not be probed.");
+        }
+        if (!new JavaToolchainMatcher(spec).test(metadata)) {
+            throw new GradleException("Toolchain provisioned from '" + uri + "' doesn't satisfy the specification: " + spec.getDisplayName());
+            //TODO (#21082): remove spec versioning
+            //TODO (#21082): write test for this
+            //TODO (#21082): update design document with this change
         }
 
         File installFolder = new File(jdkDirectory, toDirectoryName(metadata));

@@ -135,7 +135,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                             return null;
                         });
                     }
-                    return wrapInOperation("Unpacking toolchain archive " + archiveFile.getName(), () -> cacheDirProvider.provisionFromArchive(archiveFile, uri));
+                    return wrapInOperation("Unpacking toolchain archive " + archiveFile.getName(), () -> cacheDirProvider.provisionFromArchive(spec, archiveFile, uri));
                 } finally {
                     fileLock.close();
                 }
