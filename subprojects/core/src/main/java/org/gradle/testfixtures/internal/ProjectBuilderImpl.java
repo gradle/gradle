@@ -55,9 +55,6 @@ import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
@@ -149,15 +146,9 @@ public class ProjectBuilderImpl {
         // Lock root project; this won't ever be released as ProjectBuilder has no lifecycle
         coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(project.getOwner().getAccessLock()));
 
-        BuildOperationRunner buildOperationRunner = buildServices.get(BuildOperationRunner.class);
-        BuildOperationDescriptor.Builder rootBuildOperationDescriptor = BuildOperationDescriptor.displayName("Build in progress for ProjectBuilder");
-        BuildOperationContext rootBuildOperationContext = buildOperationRunner.start(rootBuildOperationDescriptor);
-        Stoppable stopRootBuildOperation = () -> rootBuildOperationContext.setResult(null);
-
         project.getExtensions().getExtraProperties().set(
             "ProjectBuilder.stoppable",
             stoppable(
-                stopRootBuildOperation,
                 (Stoppable) workerLeaseService::runAsIsolatedTask,
                 (Stoppable) workerLease::leaseFinish,
                 buildServices,
