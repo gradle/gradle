@@ -87,9 +87,10 @@ by default and [Groovy incremental compilation](userguide/groovy_plugin.html#sec
 as an opt-in experimental feature.
 
 In previous versions, a compilation failure caused the next compilation to perform a full recompile.
-Starting in Gradle 7.6, Java and Groovy incremental compilation works even after a failure.
+Starting in Gradle 7.6, Java and Groovy incremental compilation can work even after a failure.
 
-For Java this feature is enabled by default and for Groovy it's disabled by default.
+For Java this feature is enabled by default.
+For Groovy it's an opt-in feature, but also incremental compilation has to be enabled.
 The feature can be enabled or disabled with the [`incrementalAfterFailure`](javadoc/org/gradle/api/tasks/compile/CompileOptions.html#getIncrementalAfterFailure--) compile option.
 
 #### Relocated convention plugins in projects generated with `init`
