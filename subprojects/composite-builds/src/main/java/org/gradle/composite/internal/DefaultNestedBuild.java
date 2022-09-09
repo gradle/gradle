@@ -64,15 +64,8 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
         BuildTreeWorkExecutor workExecutor = new DefaultBuildTreeWorkExecutor();
         BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildScopeServices.get(BuildTreeLifecycleControllerFactory.class);
 
-        // On completion of the action, finish only this build and do not finish any other builds
-        // When the build model is required, then do not finish anything on completion of the action
-        // The root build will take care of finishing this build later, if not finished now
-        BuildTreeFinishExecutor finishExecutor;
-        if (modelParameters.isRequiresBuildModel()) {
-            finishExecutor = new DoNothingBuildFinishExecutor(exceptionAnalyser);
-        } else {
-            finishExecutor = new FinishThisBuildOnlyFinishExecutor(exceptionAnalyser);
-        }
+        // On completion of the action, do not finish this build. The root build will take care of finishing this build later
+        BuildTreeFinishExecutor finishExecutor = new DoNothingBuildFinishExecutor(exceptionAnalyser);
         buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createController(getBuildController(), workExecutor, finishExecutor);
     }
 
@@ -94,6 +87,11 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     @Override
     public boolean isImplicitBuild() {
         return true;
+    }
+
+    @Override
+    public BuildState getOwner() {
+        return owner;
     }
 
     @Override

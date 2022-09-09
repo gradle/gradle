@@ -49,7 +49,7 @@ public interface BuildStateRegistry {
     RootBuildState getRootBuild() throws IllegalStateException;
 
     /**
-     * Returns all children of the root build.
+     * Returns all included builds.
      */
     Collection<? extends IncludedBuildState> getIncludedBuilds();
 
@@ -66,7 +66,7 @@ public interface BuildStateRegistry {
     /**
      * Notification that the settings have been loaded for the root build.
      *
-     * This shouldn't be on this interface, as this is state for the root build that should be managed internally by the {@link RootBuildState} instance instead. This method is here to allow transition towards that structure.
+     * <p>This shouldn't be on this interface, as this is state for the root build that should be managed internally by the {@link RootBuildState} instance instead. This method is here to allow transition towards that structure.
      */
     void finalizeIncludedBuilds();
 
