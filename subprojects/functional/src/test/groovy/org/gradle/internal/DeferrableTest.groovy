@@ -14,33 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution
+package org.gradle.internal
 
-import org.gradle.internal.Try
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicInteger
 
-class DeferrableSupplierTest extends Specification {
+class DeferrableTest extends Specification {
 
     def "composed invocation only creates the second invocation once"() {
         def creationCount = new AtomicInteger(0)
 
         def composed = first.flatMap { Integer input ->
             creationCount.incrementAndGet()
-            return DeferrableSupplier.deferred { Try.successful(input + 25) }
+            return Deferrable.deferred { input + 25 }
         }
 
         expect:
-        !composed.completed().present
+        !composed.getCompleted().present
 
         when:
         def result = composed.completeAndGet()
         then:
-        result.get() == 30
+        result == 30
         creationCount.get() == 1
 
         where:
-        first << [DeferrableSupplier.deferred { Try.successful(5) }, DeferrableSupplier.successful(5)]
+        first << [Deferrable.deferred { 5 }, Deferrable.completed(5)]
     }
 }

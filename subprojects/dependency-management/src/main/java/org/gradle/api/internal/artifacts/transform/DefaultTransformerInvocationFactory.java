@@ -26,7 +26,8 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.execution.DeferrableSupplier;
+import org.gradle.internal.Deferrable;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -100,7 +101,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     }
 
     @Override
-    public DeferrableSupplier<ImmutableList<File>> createInvocation(
+    public Deferrable<Try<ImmutableList<File>>> createInvocation(
         Transformer transformer,
         File inputArtifact,
         ArtifactTransformDependencies dependencies,
@@ -142,8 +143,9 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         return executionEngine.createRequest(execution)
             .executeDeferred(workspaceServices.getIdentityCache())
-            .map(result -> result.resolveOutputsForInputArtifact(inputArtifact))
-            .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
+            .map(result -> result
+                .map(successfulResult -> successfulResult.resolveOutputsForInputArtifact(inputArtifact))
+                .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure)));
     }
 
     private TransformationWorkspaceServices determineWorkspaceServices(@Nullable ProjectInternal producerProject) {
