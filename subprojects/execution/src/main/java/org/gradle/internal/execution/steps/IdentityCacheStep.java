@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.DeferrableExecution;
+import org.gradle.internal.execution.DeferrableSupplier;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
@@ -38,13 +38,13 @@ public class IdentityCacheStep<C extends IdentityContext, R extends Result> impl
     }
 
     @Override
-    public <T> DeferrableExecution<T> executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<T>> cache) {
+    public <T> DeferrableSupplier<T> executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<T>> cache) {
         Identity identity = context.getIdentity();
         Try<T> cachedOutput = cache.getIfPresent(identity);
         if (cachedOutput != null) {
-            return DeferrableExecution.completed(cachedOutput);
+            return DeferrableSupplier.completed(cachedOutput);
         } else {
-            return DeferrableExecution.deferred(() -> cache.get(
+            return DeferrableSupplier.deferred(() -> cache.get(
                 identity,
                 () -> execute(work, context).getExecutionResult()
                     .map(ExecutionResult::getOutput)

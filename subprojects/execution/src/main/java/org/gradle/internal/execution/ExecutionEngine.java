@@ -51,11 +51,11 @@ public interface ExecutionEngine {
         /**
          * Load the unit of work from the given cache, or defer its execution.
          *
-         * If the cache already contains the outputs for the given work, an already finished {@link DeferrableExecution} will be returned.
-         * Otherwise, the execution is wrapped in a not-yet-complete {@link DeferrableExecution} to be evaluated later.
+         * If the cache already contains the outputs for the given work, an already finished {@link DeferrableSupplier} will be returned.
+         * Otherwise, the execution is wrapped in a not-yet-complete {@link DeferrableSupplier} to be evaluated later.
          * The work is looked up by its {@link UnitOfWork.Identity identity} in the given cache.
          */
-        <T> DeferrableExecution<T> executeDeferred(Cache<Identity, Try<T>> cache);
+        <T> DeferrableSupplier<T> executeDeferred(Cache<Identity, Try<T>> cache);
     }
 
     interface Result {

@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.DeferrableExecution;
+import org.gradle.internal.execution.DeferrableSupplier;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +73,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         return 1;
     }
 
-    public DeferrableExecution<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
+    public DeferrableSupplier<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
@@ -85,9 +85,9 @@ public class TransformationStep implements Transformation, TaskDependencyContain
             .map(dependencies -> {
                 ImmutableList<File> inputArtifacts = subjectToTransform.getFiles();
                 if (inputArtifacts.isEmpty()) {
-                    return DeferrableExecution.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of()));
+                    return DeferrableSupplier.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of()));
                 } else if (inputArtifacts.size() > 1) {
-                    return DeferrableExecution.deferred(() ->
+                    return DeferrableSupplier.deferred(() ->
                         doTransform(subjectToTransform, inputFingerprinter, dependencies, inputArtifacts)
                     );
                 } else {
@@ -96,7 +96,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
                         .map(subjectToTransform::createSubjectFromResult);
                 }
             })
-            .getOrMapFailure(DeferrableExecution::failed);
+            .getOrMapFailure(DeferrableSupplier::failed);
     }
 
     private Try<TransformationSubject> doTransform(TransformationSubject subjectToTransform, InputFingerprinter inputFingerprinter, ArtifactTransformDependencies dependencies, ImmutableList<File> inputArtifacts) {
@@ -104,7 +104,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         for (File inputArtifact : inputArtifacts) {
             Try<ImmutableList<File>> result = transformerInvocationFactory
                 .createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, inputFingerprinter)
-                .get();
+                .completeAndGet();
 
             if (result.getFailure().isPresent()) {
                 return Cast.uncheckedCast(result);

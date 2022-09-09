@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.internal.component.model.AttributeMatcher
-import org.gradle.internal.execution.DeferrableExecution
+import org.gradle.internal.execution.DeferrableSupplier
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -198,7 +198,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     TransformationSubject run(Transformation transformation, TransformationSubject initialSubject) {
-        def steps = []
+        def steps = [] as List<TransformationStep>
         transformation.visitTransformationSteps { step ->
             steps.add(step)
         }
@@ -207,7 +207,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         steps.drop(1).forEach { step ->
             invocation = invocation.flatMap { subject -> step.createInvocation(subject, Mock(TransformUpstreamDependencies), null) }
         }
-        return invocation.get().get()
+        return invocation.completeAndGet().get()
     }
 
     def "prefers direct transformation over indirect"() {
@@ -441,7 +441,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def transformationStep = Stub(TransformationStep)
         _ * transformationStep.visitTransformationSteps(_) >> { Action action -> action.execute(transformationStep) }
         _ * transformationStep.createInvocation(_ as TransformationSubject, _ as TransformUpstreamDependencies, null) >> { TransformationSubject subject, TransformUpstreamDependencies dependenciesResolver, services ->
-            return DeferrableExecution.successful(subject.createSubjectFromResult(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) })))
+            return DeferrableSupplier.successful(subject.createSubjectFromResult(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) })))
         }
         _ * reg.transformationStep >> transformationStep
         reg

@@ -21,26 +21,26 @@ import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicInteger
 
-class DeferrableExecutionTest extends Specification {
+class DeferrableSupplierTest extends Specification {
 
     def "composed invocation only creates the second invocation once"() {
         def creationCount = new AtomicInteger(0)
 
         def composed = first.flatMap { Integer input ->
             creationCount.incrementAndGet()
-            return DeferrableExecution.deferred { Try.successful(input + 25) }
+            return DeferrableSupplier.deferred { Try.successful(input + 25) }
         }
 
         expect:
-        !composed.getCompleted().present
+        !composed.completed().present
 
         when:
-        def result = composed.get()
+        def result = composed.completeAndGet()
         then:
         result.get() == 30
         creationCount.get() == 1
 
         where:
-        first << [DeferrableExecution.deferred { Try.successful(5) }, DeferrableExecution.successful(5)]
+        first << [DeferrableSupplier.deferred { Try.successful(5) }, DeferrableSupplier.successful(5)]
     }
 }
