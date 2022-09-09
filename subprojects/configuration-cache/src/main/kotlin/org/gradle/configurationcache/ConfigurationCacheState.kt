@@ -208,6 +208,9 @@ class ConfigurationCacheState(
             writeRequiredBuildServicesOf(gradle, buildTreeState)
             writeWorkGraphOf(gradle, scheduledNodes)
         }
+        withDebugFrame({ "cleanup registrations" }) {
+            writeBuildOutputCleanupRegistrations(gradle)
+        }
     }
 
     internal
@@ -233,6 +236,7 @@ class ConfigurationCacheState(
         readRequiredBuildServicesOf(gradle)
 
         val workGraph = readWorkGraph(gradle)
+        readBuildOutputCleanupRegistrations(gradle)
         return CachedBuildState(build, workGraph, children)
     }
 
@@ -353,9 +357,6 @@ class ConfigurationCacheState(
             withDebugFrame({ "included builds" }) {
                 writeChildBuilds(gradle, buildTreeState)
             }
-            withDebugFrame({ "cleanup registrations" }) {
-                writeBuildOutputCleanupRegistrations(gradle)
-            }
         }
     }
 
@@ -367,9 +368,7 @@ class ConfigurationCacheState(
         withGradleIsolate(gradle, userTypesCodec) {
             // per build
             readStartParameterOf(gradle)
-            val children = readChildBuildsOf(build)
-            readBuildOutputCleanupRegistrations(gradle)
-            return children
+            return readChildBuildsOf(build)
         }
     }
 
@@ -581,15 +580,19 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultWriteContext.writeBuildOutputCleanupRegistrations(gradle: GradleInternal) {
         val buildOutputCleanupRegistry = gradle.serviceOf<BuildOutputCleanupRegistry>()
-        writeCollection(buildOutputCleanupRegistry.registeredOutputs)
+        withGradleIsolate(gradle, userTypesCodec) {
+            writeCollection(buildOutputCleanupRegistry.registeredOutputs)
+        }
     }
 
     private
     suspend fun DefaultReadContext.readBuildOutputCleanupRegistrations(gradle: GradleInternal) {
         val buildOutputCleanupRegistry = gradle.serviceOf<BuildOutputCleanupRegistry>()
-        readCollection {
-            val files = readNonNull<FileCollection>()
-            buildOutputCleanupRegistry.registerOutputs(files)
+        withGradleIsolate(gradle, userTypesCodec) {
+            readCollection {
+                val files = readNonNull<FileCollection>()
+                buildOutputCleanupRegistry.registerOutputs(files)
+            }
         }
     }
 
@@ -634,21 +637,31 @@ class ConfigurationCacheState(
     private
     fun Encoder.writeRelevantProjects(relevantProjects: List<ProjectState>) {
         writeCollection(relevantProjects) { project ->
-            val mutableModel = project.mutableModel
-            writeString(mutableModel.path)
-            writeFile(mutableModel.projectDir)
-            writeFile(mutableModel.buildDir)
+            writeProjectState(project)
         }
     }
 
     private
     fun Decoder.readRelevantProjects(build: ConfigurationCacheBuild) {
         readCollection {
-            val projectPath = readString()
-            val projectDir = readFile()
-            val buildDir = readFile()
-            build.createProject(projectPath, projectDir, buildDir)
+            readProjectState(build)
         }
+    }
+
+    private
+    fun Encoder.writeProjectState(project: ProjectState) {
+        val mutableModel = project.mutableModel
+        writeString(mutableModel.path)
+        writeFile(mutableModel.projectDir)
+        writeFile(mutableModel.layout.buildDirectory.apply { finalizeValue() }.get().asFile)
+    }
+
+    private
+    fun Decoder.readProjectState(build: ConfigurationCacheBuild) {
+        val projectPath = readString()
+        val projectDir = readFile()
+        val buildDir = readFile()
+        build.createProject(projectPath, projectDir, buildDir)
     }
 
     private
