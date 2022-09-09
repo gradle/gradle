@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.ProjectSelectionException;
 import org.gradle.execution.TaskSelection;
@@ -55,6 +56,10 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
 
     @Override
     public Filter resolveExcludedTaskName(BuildState defaultBuild, String taskName) {
+        if (!defaultBuild.isProjectsLoaded()) {
+            // Too early to resolve excludes
+            return new Filter(defaultBuild, Specs.satisfyNone());
+        }
         TaskSelector.SelectionContext selection = sanityCheckPath(taskName, "excluded tasks");
         ProjectResolutionResult resolutionResult = resolveProject(selection, selection.getOriginalPath(), defaultBuild);
         return new Filter(resolutionResult.build, new LazyFilter(selection, resolutionResult));

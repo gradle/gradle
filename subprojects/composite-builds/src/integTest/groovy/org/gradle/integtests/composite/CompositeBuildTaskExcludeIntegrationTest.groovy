@@ -146,7 +146,71 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
         result.assertTaskNotExecuted(":sub:test")
     }
 
-    def "can exclude task from included build that is also required to produce a plugin used from root build"() {
+    def "can exclude task from main build when root build uses project plugin from included build"() {
+        setup:
+        settingsFile << "includeBuild('build-logic')"
+        def rootDir = file("build-logic")
+        addPluginIncludedBuild(rootDir)
+        buildFile.text = """
+            plugins {
+                id("test.plugin")
+                id("java-library")
+            }
+        """
+
+        expect:
+        2.times {
+            succeeds("assemble", "-x", "jar")
+            result.assertTaskNotExecuted(":jar")
+        }
+    }
+
+    def "can exclude task from main build when root build uses settings plugin from included build"() {
+        setup:
+        def rootDir = file("build-logic")
+        addSettingsPluginIncludedBuild(rootDir)
+        settingsFile.text = """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            plugins {
+                id("test.plugin")
+            }
+        """
+        buildFile.text = """
+            plugins {
+                id("java-library")
+            }
+        """
+
+        expect:
+        2.times {
+            succeeds("assemble", "-x", "jar")
+            result.assertTaskNotExecuted(":jar")
+        }
+    }
+
+    def "can exclude task from included build that produces a project plugin used from root build"() {
+        setup:
+        settingsFile << "includeBuild('build-logic')"
+        def rootDir = file("build-logic")
+        addPluginIncludedBuild(rootDir)
+        buildFile.text = """
+            plugins {
+                id("test.plugin")
+                id("java-library")
+            }
+        """
+
+        expect:
+        succeeds("greeting", ":build-logic:classes")
+        2.times {
+            succeeds("greeting", "-x", ":build-logic:classes")
+            result.assertTaskNotExecuted(":build-logic:classes")
+        }
+    }
+
+    def "can exclude task from included build that is a dependency of the root build and also produces a project plugin used from root build"() {
         setup:
         settingsFile << "includeBuild('build-logic')"
         def rootDir = file("build-logic")
@@ -170,7 +234,7 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21708")
-    def "can exclude task from included build that requires a plugin from another build"() {
+    def "can exclude task from included build that requires a project plugin from another build"() {
         setup:
         settingsFile << """
             includeBuild('build-logic')
