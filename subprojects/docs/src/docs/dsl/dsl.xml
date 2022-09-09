@@ -184,9 +184,6 @@
                 <td>org.gradle.api.plugins.ExtraPropertiesExtension</td>
             </tr>
             <tr>
-                <td>org.gradle.api.plugins.jvm.JvmComponentDependencies</td>
-            </tr>
-            <tr>
                 <td>org.gradle.plugin.use.PluginDependenciesSpec</td>
             </tr>
             <tr>
@@ -584,6 +581,21 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.testing.Test</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.dsl.Dependencies</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.dsl.GradleDependencies</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.dsl.TestFixturesDependencyModifiers</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.dsl.PlatformDependencyModifiers</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.plugins.jvm.JvmComponentDependencies</td>
             </tr>
         </table>
     </section>

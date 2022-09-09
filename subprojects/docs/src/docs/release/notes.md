@@ -286,9 +286,9 @@ testing {
         val test by getting(JvmTestSuite::class) {
             useJUnitJupiter()
             dependencies {
-                implementation(group = "com.google.guava", 
+                implementation(module(group = "com.google.guava", 
                                name = "guava", 
-                               version = "31.1-jre")
+                               version = "31.1-jre"))
             }
         }
     }
