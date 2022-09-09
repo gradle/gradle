@@ -139,6 +139,14 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
     }
 
+    @Nullable
+    @Override
+    public BuildProjectRegistry findProjectsFor(BuildIdentifier buildIdentifier) {
+        synchronized (lock) {
+            return projectsByBuild.get(buildIdentifier);
+        }
+    }
+
     @Override
     public <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
         return workerLeaseService.allowUncontrolledAccessToAnyProject(factory);
