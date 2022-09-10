@@ -24,7 +24,9 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.io.StreamByteBuffer;
+import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -63,12 +65,24 @@ import static java.util.Collections.emptyList;
  * Plugins should prefer external collection frameworks over this class.
  * Internally, all code should use {@link org.gradle.util.internal.GUtil}.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public class GUtil {
+
+    private static void logDeprecation() {
+        DeprecationLogger.deprecateType(GUtil.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
+
     private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
     private static final Pattern UPPER_LOWER = Pattern.compile("(?m)([A-Z]*)([a-z0-9]*)");
+
+    public GUtil() {
+        logDeprecation();
+    }
 
     public static <T extends Collection<?>> T flatten(Object[] elements, T addTo, boolean flattenMaps) {
         return flatten(asList(elements), addTo, flattenMaps);
@@ -93,6 +107,7 @@ public class GUtil {
     }
 
     public static <T extends Collection<?>> T flatten(Collection<?> elements, T addTo, boolean flattenMaps, boolean flattenArrays) {
+        logDeprecation();
         Iterator<?> iter = elements.iterator();
         while (iter.hasNext()) {
             Object element = iter.next();
@@ -140,10 +155,12 @@ public class GUtil {
     }
 
     public static String asPath(Iterable<?> collection) {
+        logDeprecation();
         return CollectionUtils.join(File.pathSeparator, collection);
     }
 
     public static List<String> prefix(String prefix, Collection<String> strings) {
+        logDeprecation();
         List<String> prefixed = new ArrayList<String>();
         for (String string : strings) {
             prefixed.add(prefix + string);
@@ -152,6 +169,7 @@ public class GUtil {
     }
 
     public static boolean isTrue(@Nullable Object object) {
+        logDeprecation();
         if (object == null) {
             return false;
         }
@@ -162,6 +180,7 @@ public class GUtil {
         }
         return true;
     }
+
     /**
      * Prefer {@link #getOrDefault(Object, Factory)} if the value is expensive to compute or
      * would trigger early configuration.
@@ -177,6 +196,7 @@ public class GUtil {
     }
 
     public static <V, T extends Collection<? super V>> T addToCollection(T dest, boolean failOnNull, Iterable<? extends V> src) {
+        logDeprecation();
         for (V v : src) {
             if (failOnNull && v == null) {
                 throw new IllegalArgumentException("Illegal null value provided in this collection: " + src);
@@ -192,6 +212,7 @@ public class GUtil {
 
     @Deprecated
     public static <V, T extends Collection<? super V>> T addToCollection(T dest, boolean failOnNull, Iterable<? extends V>... srcs) {
+        logDeprecation();
         for (Iterable<? extends V> src : srcs) {
             for (V v : src) {
                 if (failOnNull && v == null) {
@@ -209,6 +230,7 @@ public class GUtil {
     }
 
     public static Comparator<String> caseInsensitive() {
+        logDeprecation();
         return new Comparator<String>() {
             @Override
             public int compare(String o1, String o2) {
@@ -222,6 +244,7 @@ public class GUtil {
     }
 
     public static <K, V> Map<K, V> addMaps(Map<K, V> map1, Map<K, V> map2) {
+        logDeprecation();
         HashMap<K, V> map = new HashMap<K, V>();
         map.putAll(map1);
         map.putAll(map2);
@@ -229,12 +252,14 @@ public class GUtil {
     }
 
     public static void addToMap(Map<String, String> dest, Map<?, ?> src) {
+        logDeprecation();
         for (Map.Entry<?, ?> entry : src.entrySet()) {
             dest.put(entry.getKey().toString(), entry.getValue().toString());
         }
     }
 
     public static Properties loadProperties(File propertyFile) {
+        logDeprecation();
         try {
             FileInputStream inputStream = new FileInputStream(propertyFile);
             try {
@@ -248,6 +273,7 @@ public class GUtil {
     }
 
     public static Properties loadProperties(URL url) {
+        // TODO log deprecation when nebula-lint plugin and idea are fixed
         try {
             URLConnection uc = url.openConnection();
             uc.setUseCaches(false);
@@ -258,6 +284,7 @@ public class GUtil {
     }
 
     public static Properties loadProperties(InputStream inputStream) {
+        // TODO log deprecation when nebula-lint plugin and idea are fixed
         Properties properties = new Properties();
         try {
             properties.load(inputStream);
@@ -270,6 +297,7 @@ public class GUtil {
     }
 
     public static void saveProperties(Properties properties, File propertyFile) {
+        logDeprecation();
         try {
             FileOutputStream propertiesFileOutputStream = new FileOutputStream(propertyFile);
             try {
@@ -283,6 +311,7 @@ public class GUtil {
     }
 
     public static void saveProperties(Properties properties, OutputStream outputStream) {
+        logDeprecation();
         try {
             try {
                 properties.store(outputStream, null);
@@ -295,6 +324,7 @@ public class GUtil {
     }
 
     public static Map<Object, Object> map(Object... objects) {
+        logDeprecation();
         Map<Object, Object> map = new HashMap<Object, Object>();
         assert objects.length % 2 == 0;
         for (int i = 0; i < objects.length; i += 2) {
@@ -304,6 +334,7 @@ public class GUtil {
     }
 
     public static String toString(Iterable<?> names) {
+        logDeprecation();
         Formatter formatter = new Formatter();
         boolean first = true;
         for (Object name : names) {
@@ -329,6 +360,10 @@ public class GUtil {
     }
 
     private static String toCamelCase(CharSequence string, boolean lower) {
+        // TODO log deprecation once protobuf plugin and idea are fixed
+        if (lower) {
+            logDeprecation();
+        }
         if (string == null) {
             return null;
         }
@@ -365,6 +400,7 @@ public class GUtil {
      */
     public static String toConstant(CharSequence string) {
         if (string == null) {
+            logDeprecation();
             return null;
         }
         return toWords(string, '_').toUpperCase();
@@ -378,6 +414,7 @@ public class GUtil {
     }
 
     public static String toWords(CharSequence string, char separator) {
+        // TODO log deprecation once android plugin is fixed
         if (string == null) {
             return null;
         }
@@ -415,12 +452,14 @@ public class GUtil {
     }
 
     public static byte[] serialize(Object object) {
+        logDeprecation();
         StreamByteBuffer buffer = new StreamByteBuffer();
         serialize(object, buffer.getOutputStream());
         return buffer.readAsByteArray();
     }
 
     public static void serialize(Object object, OutputStream outputStream) {
+        logDeprecation();
         try {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
             objectOutputStream.writeObject(object);
@@ -431,6 +470,7 @@ public class GUtil {
     }
 
     public static <T> Comparator<T> last(final Comparator<? super T> comparator, final T lastValue) {
+        logDeprecation();
         return new Comparator<T>() {
             @Override
             public int compare(T o1, T o2) {
@@ -459,6 +499,7 @@ public class GUtil {
      */
     @Nullable
     public static <T> T uncheckedCall(Callable<T> callable) {
+        logDeprecation();
         try {
             return callable.call();
         } catch (Exception e) {
@@ -467,6 +508,7 @@ public class GUtil {
     }
 
     public static <T extends Enum<T>> T toEnum(Class<? extends T> enumType, Object value) {
+        logDeprecation();
         if (enumType.isInstance(value)) {
             return enumType.cast(value);
         }
@@ -514,6 +556,7 @@ public class GUtil {
     }
 
     public static <T extends Enum<T>> EnumSet<T> toEnumSet(Class<T> enumType, Iterable<?> values) {
+        logDeprecation();
         EnumSet<T> result = EnumSet.noneOf(enumType);
         for (Object value : values) {
             result.add(toEnum(enumType, value));
@@ -528,6 +571,7 @@ public class GUtil {
      * this check is faster than converting them to Strings and using {@link String#endsWith(String)}.
      */
     public static boolean endsWith(CharSequence longer, CharSequence shorter) {
+        logDeprecation();
         if (longer instanceof String && shorter instanceof String) {
             return ((String) longer).endsWith((String) shorter);
         }
@@ -545,6 +589,7 @@ public class GUtil {
     }
 
     public static URI toSecureUrl(URI scriptUri) {
+        logDeprecation();
         try {
             return new URI("https", null, scriptUri.getHost(), scriptUri.getPort(), scriptUri.getPath(), scriptUri.getQuery(), scriptUri.getFragment());
         } catch (URISyntaxException e) {
@@ -553,6 +598,7 @@ public class GUtil {
     }
 
     public static boolean isSecureUrl(URI url) {
+        logDeprecation();
         /*
          * TL;DR: http://127.0.0.1 will bypass this validation, http://localhost will fail this validation.
          *
