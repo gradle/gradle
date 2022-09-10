@@ -427,6 +427,17 @@ Description""") // include the next header to make sure all options are listed
         targetDir.list().size() == 0 // ensure nothing generated
     }
 
+    def "warns when initializing in a project directory that is not empty"() {
+        when:
+        targetDir.file("README.md") << """
+            // empty
+        """
+
+        then:
+        succeeds "init"
+        outputContains("The directory '${targetDir.name}' is not empty.")
+    }
+
     def "can create build in user home directory"() {
         when:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
