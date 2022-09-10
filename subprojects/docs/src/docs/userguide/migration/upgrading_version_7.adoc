@@ -75,6 +75,29 @@ Invalid specifications are deprecated and will become build errors in Gradle 8.0
 
 See more details about toolchain configuration in the <<toolchains#sec:configuring_toolchain_specifications,user manual>>.
 
+[[org_gradle_util_reports_deprecations]]
+=== Deprecated members of the `org.gradle.util` package now report their deprecation
+
+These members will be removed in Gradle 9.0.
+
+* `ClosureBackedAction`
+* `CollectionUtils`
+* `ConfigureUtil`
+* `DistributionLocator`
+* `GFileUtils`
+* `GradleVersion.getBuildTime()`
+* `GradleVersion.getNextMajor()`
+* `GradleVersion.getRevision()`
+* `GradleVersion.isValid()`
+* `GUtil`
+* `NameMatcher`
+* `NameValidator`
+* `RelativePathUtil`
+* `TextUtil`
+* `SingleMessageLogger`
+* `VersionNumber`
+* `WrapUtil`
+
 === Potential breaking changes
 
 [[kotlin_1_7_10]]

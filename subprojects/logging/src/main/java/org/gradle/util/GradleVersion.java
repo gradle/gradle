@@ -26,7 +26,7 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
     /**
      * This field only kept here to maintain binary compatibility.
      *
-     * @deprecated will be removed in Gradle 8.
+     * @deprecated will be removed in Gradle 9.
      */
     @Deprecated
     public static final String URL = "https://www.gradle.org";
@@ -34,7 +34,7 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
     /**
      * This field only kept here to maintain binary compatibility.
      *
-     * @deprecated will be removed in Gradle 8.
+     * @deprecated will be removed in Gradle 9.
      */
     @Deprecated
     public static final String RESOURCE_NAME = "/org/gradle/build-receipt.properties";
@@ -42,7 +42,7 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
     /**
      * This field only kept here to maintain binary compatibility.
      *
-     * @deprecated will be removed in Gradle 8.
+     * @deprecated will be removed in Gradle 9.
      */
     @Deprecated
     public static final String VERSION_OVERRIDE_VAR = "GRADLE_VERSION_OVERRIDE";
@@ -50,7 +50,7 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
     /**
      * This field only kept here to maintain binary compatibility.
      *
-     * @deprecated will be removed in Gradle 8.
+     * @deprecated will be removed in Gradle 9.
      */
     @Deprecated
     public static final String VERSION_NUMBER_PROPERTY = "versionNumber";
@@ -83,7 +83,7 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
     /**
      * This method only kept here to maintain binary compatibility.
      *
-     * @deprecated will be removed in Gradle 8.
+     * @deprecated will be removed in Gradle 9.
      */
     @Deprecated
     public abstract String getBuildTime();
@@ -91,7 +91,7 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
     /**
      * This method only kept here to maintain binary compatibility.
      *
-     * @deprecated will be removed in Gradle 8.
+     * @deprecated will be removed in Gradle 9.
      */
     @Deprecated
     public abstract String getRevision();
@@ -115,7 +115,7 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
     /**
      * This method only kept here to maintain binary compatibility.
      *
-     * @deprecated will be removed in Gradle 8.
+     * @deprecated will be removed in Gradle 9.
      */
     @Deprecated
     public abstract GradleVersion getNextMajor();
@@ -123,7 +123,7 @@ public abstract class GradleVersion implements Comparable<GradleVersion> {
     /**
      * This method only kept here to maintain binary compatibility.
      *
-     * @deprecated will be removed in Gradle 8.
+     * @deprecated will be removed in Gradle 9.
      */
     @Deprecated
     public abstract boolean isValid();
