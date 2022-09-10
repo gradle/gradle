@@ -230,4 +230,70 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
     def setup() {
         configureGroovyIncrementalCompilation()
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/21644")
+    def "removes all classes for a recompiled source from output to stash dir for Spock tests when super class is changed"() {
+        given:
+        buildScript"""
+    plugins {
+        id 'groovy'
+        id 'java-library'
+    }
+    ${mavenCentralRepository()}
+    dependencies {
+        testImplementation 'org.codehaus.groovy:groovy:3.0.10'
+        testImplementation 'org.spockframework:spock-core:2.1-groovy-3.0'
+    }
+    tasks.withType(GroovyCompile) {
+        options.incremental = true
+    }
+    tasks.named('test') {
+        useJUnitPlatform()
+    }
+"""
+        file("src/test/groovy/BaseTest.groovy").text = """
+import spock.lang.Specification
+class BaseTest extends Specification {}
+"""
+        file("src/test/groovy/UnrelatedClass.groovy").text = "class UnrelatedClass {}"
+        file("src/test/groovy/AppTest.groovy").text = """
+        class AppTest extends BaseTest {
+            def "some test"() {
+                // These nested closures create nested \$closureXY.class
+                with("") {
+                    with("") {
+                    }
+                }
+            }
+        }
+        """
+        def compileTransactionDir = file("build/tmp/compileTestGroovy/compileTransaction")
+        def stashDirClasses = {
+            compileTransactionDir.file("stash-dir")
+                .list()
+                .collect { it.replaceAll(".uniqueId.", "") }
+                .sort() as Set<String>
+        }
+
+        when: "First compilation is always full compilation"
+        run "compileTestGroovy"
+
+        then:
+        outputs.recompiledClasses("AppTest", "AppTest\$_some_test_closure1", "AppTest\$_some_test_closure1\$_closure2", "BaseTest", "UnrelatedClass")
+        !compileTransactionDir.exists()
+
+        when:
+        outputs.snapshot {
+            file("src/test/groovy/BaseTest.groovy").text = """
+import spock.lang.Specification
+class BaseTest extends Specification { void hello() {} }
+"""
+        }
+        run "compileTestGroovy"
+
+        then:
+        outputs.recompiledClasses("AppTest", "AppTest\$_some_test_closure1", "AppTest\$_some_test_closure1\$_closure2", "BaseTest")
+        compileTransactionDir.exists()
+        stashDirClasses() == ["AppTest.class", "AppTest\$_some_test_closure1.class", "AppTest\$_some_test_closure1\$_closure2.class", "BaseTest.class"] as Set<String>
+    }
 }
