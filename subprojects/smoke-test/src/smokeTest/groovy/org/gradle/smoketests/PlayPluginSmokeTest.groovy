@@ -62,8 +62,8 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     }
 
     private String orgGradleUtilTypeDeprecation(String type) {
-        return "The org.gradle.util.$type type has been deprecated." +
-            "This is scheduled to be removed in Gradle 9.0." +
+        return "The org.gradle.util.$type type has been deprecated. " +
+            "This is scheduled to be removed in Gradle 9.0. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
     }
 
