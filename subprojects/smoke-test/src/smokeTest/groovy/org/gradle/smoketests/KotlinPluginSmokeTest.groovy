@@ -198,7 +198,8 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
     @Override
     Map<String, String> getExtraPluginsRequiredForValidation(String testedPluginId, String version) {
-        def androidVersion = TestedVersions.androidGradle.latestStable()
+        // We should use TestedVersions.androidGradle.latestStable() once AGP 7.3.0 stable version is released
+        def androidVersion = TestedVersions.androidGradle.latestStableOrRc()
         if (testedPluginId in ['org.jetbrains.kotlin.kapt', 'org.jetbrains.kotlin.plugin.scripting']) {
             return ['org.jetbrains.kotlin.jvm': version]
         }
