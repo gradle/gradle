@@ -401,7 +401,7 @@ hamcrest-core-1.3.jar
                     ])
                     firstLevelConfigurations = ['testFixturesApiElements']
                     module('com.acme:external-module:1.3') {
-                        variant("api", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                        variant("api", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', 'org.gradle.compile-view': 'java-complete'])
                         artifact(name: 'external-module', version: '1.3')
                     }
                     artifact(name: 'external-module', version: '1.3', classifier: 'test-fixtures')
