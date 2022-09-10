@@ -273,13 +273,13 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org.test:moduleA:1.0') {
-                    variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar',
+                    variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.compile-view': 'java-complete', 'org.gradle.libraryelements': 'jar',
                                             'org.gradle.category': 'documentation', 'org.gradle.docstype': 'all-files'])
                     artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'jar')
                     artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'pom')
                     if (hasModuleFile) { artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'module') }
                     module('org.test:moduleB:1.0') {
-                        variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar',
+                        variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.compile-view': 'java-complete', 'org.gradle.libraryelements': 'jar',
                                                 'org.gradle.category': 'documentation', 'org.gradle.docstype': 'all-files'])
                         artifact(group: 'org.test', name: 'moduleB', version: '1.0', type: 'jar')
                         artifact(group: 'org.test', name: 'moduleB', version: '1.0', type: 'pom')
