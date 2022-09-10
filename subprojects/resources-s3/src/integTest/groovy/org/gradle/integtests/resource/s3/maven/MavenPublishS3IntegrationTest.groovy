@@ -126,6 +126,8 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         expectPublish(module.rootMetaData)
 
         if (TestPrecondition.MAC_OS_X_M1.fulfilled) {
+            // FIXME KM M1 support might require aws-sdk-java-v2:2.17.198 and higher; see https://github.com/aws/aws-sdk-java-v2/issues/2942
+            //   ...or this is just a harmless ST, see https://github.com/aws/aws-sdk-java/issues/2365
             executer.withStackTraceChecksDisabled()
         }
         succeeds 'publish'
