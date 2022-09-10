@@ -16,9 +16,12 @@
 
 package org.gradle.buildinit.plugins;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
@@ -30,6 +33,7 @@ import org.gradle.internal.file.RelativeFilePathResolver;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.Callable;
 
 /**
@@ -55,9 +59,12 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
                 File settingsFile = projectInternal.getGradle().getSettings().getSettingsScript().getResource().getLocation().getFile();
                 FileDetails settingsFileDetails = FileDetails.of(settingsFile, resolver);
 
+                Logger logger = initBuild.getLogger();
+                warnIfProjectDirNotEmpty(project.getProjectDir(), logger);
+
                 initBuild.onlyIf(
                     "There is no build script or settings script",
-                    new InitBuildOnlyIfSpec(buildFileDetails, settingsFileDetails, initBuild.getLogger())
+                    new InitBuildOnlyIfSpec(buildFileDetails, settingsFileDetails, logger)
                 );
                 initBuild.finalizedBy(new InitBuildDependsOnCallable(buildFileDetails, settingsFileDetails));
 
@@ -116,6 +123,16 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
             } else {
                 return null;
             }
+        }
+    }
+
+    private static void warnIfProjectDirNotEmpty(File projectDir, Logger logger) {
+        try {
+            if (!FileUtils.isEmptyDirectory(projectDir)) {
+                logger.warn("The directory '" + projectDir.getName() + "' is not empty.");
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
