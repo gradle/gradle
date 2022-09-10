@@ -17,62 +17,60 @@
 package org.gradle.execution.plan.edges;
 
 import org.gradle.execution.plan.Node;
-import org.gradle.execution.plan.NodeSets;
+import org.gradle.execution.plan.TaskNode;
 
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.function.Consumer;
+import java.util.NavigableSet;
 
-class ComplexDependencyNodesSet implements DependentNodesSet {
-    private final DependencyPredecessorsOnlyNodeSet dependencyPredecessors;
-    private final SortedSet<Node> mustPredecessors = NodeSets.newSortedNodeSet();
-    private final SortedSet<Node> finalizers = NodeSets.newSortedNodeSet();
+import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
 
-    public ComplexDependencyNodesSet(DependencyPredecessorsOnlyNodeSet dependencyPredecessors) {
-        this.dependencyPredecessors = dependencyPredecessors;
+public class ComplexDependencyNodesSet implements DependencyNodesSet {
+    private final DependencySuccessorsOnlyNodeSet delegate;
+    private final NavigableSet<Node> orderedMustSuccessors = newSortedNodeSet();
+
+    public ComplexDependencyNodesSet(DependencySuccessorsOnlyNodeSet delegate) {
+        this.delegate = delegate;
     }
 
     @Override
-    public SortedSet<Node> getDependencyPredecessors() {
-        return dependencyPredecessors.getDependencyPredecessors();
+    public NavigableSet<Node> getDependencySuccessors() {
+        return delegate.getDependencySuccessors();
     }
 
     @Override
-    public DependentNodesSet addDependencyPredecessors(Node fromNode) {
-        dependencyPredecessors.addDependencyPredecessors(fromNode);
+    public DependencyNodesSet addDependency(Node toNode) {
+        delegate.addDependency(toNode);
         return this;
     }
 
     @Override
-    public SortedSet<Node> getFinalizers() {
-        return finalizers;
+    public NavigableSet<Node> getMustSuccessors() {
+        return orderedMustSuccessors;
     }
 
     @Override
-    public DependentNodesSet addFinalizer(Node finalizer) {
-        finalizers.add(finalizer);
+    public DependencyNodesSet addMustSuccessor(TaskNode toNode) {
+        orderedMustSuccessors.add(toNode);
         return this;
     }
 
     @Override
-    public Set<Node> getMustPredecessors() {
-        return mustPredecessors;
+    public void onNodeComplete(Node node, Node dependency) {
+        delegate.onNodeComplete(node, dependency);
     }
 
     @Override
-    public DependentNodesSet addMustPredecessor(Node fromNode) {
-        mustPredecessors.add(fromNode);
-        return this;
-    }
-
-    @Override
-    public void visitAllNodes(Consumer<Node> visitor) {
-        dependencyPredecessors.visitAllNodes(visitor);
-        for (Node node : mustPredecessors) {
-            visitor.accept(node);
+    public Node.DependenciesState getState(Node node) {
+        Node.DependenciesState state = delegate.getState(node);
+        if (state != Node.DependenciesState.COMPLETE_AND_SUCCESSFUL) {
+            return state;
         }
-        for (Node node : finalizers) {
-            node.getFinalizerGroup().visitAllMembers(visitor);
+
+        for (Node dependency : orderedMustSuccessors) {
+            if (!dependency.isComplete()) {
+                return Node.DependenciesState.NOT_COMPLETE;
+            }
         }
+
+        return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
     }
 }

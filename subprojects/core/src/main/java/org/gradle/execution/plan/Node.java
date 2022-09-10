@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.VerificationException;
+import org.gradle.execution.plan.edges.DependencyNodesSet;
 import org.gradle.execution.plan.edges.DependentNodesSet;
 import org.gradle.internal.resources.ResourceLock;
 
@@ -67,9 +68,9 @@ public abstract class Node {
     private Throwable executionFailure;
     private boolean filtered;
     private int index;
-    private final NodeDependencySet dependencySuccessors = new NodeDependencySet(this);
+    private DependencyNodesSet dependencyNodes = DependencyNodesSet.EMPTY;
     private DependentNodesSet dependentNodes = DependentNodesSet.EMPTY;
-    private final MutationInfo mutationInfo = new MutationInfo(this);
+    private final MutationInfo mutationInfo = new MutationInfo();
     private NodeGroup group = NodeGroup.DEFAULT_GROUP;
 
     @VisibleForTesting
@@ -86,7 +87,7 @@ public abstract class Node {
             return this + " (state=" + state
                 + ", dependencies=" + dependenciesState
                 + ", group=" + group
-                + ", dependencies=" + formatNodes(dependencySuccessors.getOrderedNodes())
+                + ", dependencies=" + formatNodes(dependencyNodes.getDependencySuccessors())
                 + specificState + " )";
         }
     }
@@ -376,21 +377,29 @@ public abstract class Node {
     }
 
     public Set<Node> getDependencySuccessors() {
-        return dependencySuccessors.getOrderedNodes();
+        return dependencyNodes.getDependencySuccessors();
     }
 
     public Iterable<Node> getDependencySuccessorsInReverseOrder() {
-        return dependencySuccessors.getOrderedNodes().descendingSet();
+        return dependencyNodes.getDependencySuccessors().descendingSet();
     }
 
     public void addDependencySuccessor(Node toNode) {
-        dependencySuccessors.addDependency(toNode);
+        dependencyNodes = dependencyNodes.addDependency(toNode);
         toNode.addDependencyPredecessor(this);
     }
 
     void addDependencyPredecessor(Node fromNode) {
         dependentNodes = dependentNodes.addDependencyPredecessors(fromNode);
-        mutationInfo.consumingNodes.add(fromNode);
+        mutationInfo.addConsumer(fromNode);
+    }
+
+    protected DependencyNodesSet getDependencyNodes() {
+        return dependencyNodes;
+    }
+
+    protected void updateDependencyNodes(DependencyNodesSet newDependencies) {
+        dependencyNodes = newDependencies;
     }
 
     protected DependentNodesSet getDependentNodes() {
@@ -405,13 +414,13 @@ public abstract class Node {
      * Called when a node that this node may be waiting for has completed.
      */
     public void onNodeComplete(Node node) {
-        dependencySuccessors.onNodeComplete(node);
+        dependencyNodes.onNodeComplete(this, node);
         updateAllDependenciesComplete();
     }
 
     @OverridingMethodsMustInvokeSuper
     protected DependenciesState doCheckDependenciesComplete() {
-        DependenciesState state = dependencySuccessors.getState();
+        DependenciesState state = dependencyNodes.getState(this);
         if (state == DependenciesState.NOT_COMPLETE || state == DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL) {
             return state;
         }
@@ -423,12 +432,10 @@ public abstract class Node {
     /**
      * Returns if all dependencies completed, but have not been completed in the last check.
      */
-    public boolean updateAllDependenciesComplete() {
+    public void updateAllDependenciesComplete() {
         if (dependenciesState == DependenciesState.NOT_COMPLETE) {
             forceAllDependenciesCompleteUpdate();
-            return dependenciesState != DependenciesState.NOT_COMPLETE;
         }
-        return false;
     }
 
     public void forceAllDependenciesCompleteUpdate() {
@@ -467,7 +474,7 @@ public abstract class Node {
      * @return true if the successor task was successful, or failed but a "recoverable" verification failure and this Node may continue execution; false otherwise
      * @see <a href="https://github.com/gradle/gradle/issues/18912">gradle/gradle#18912</a>
      */
-    protected boolean shouldContinueExecution(Node dependency) {
+    public boolean shouldContinueExecution(Node dependency) {
         return dependency.isSuccessful() || (dependency.isVerificationFailure() && !dependsOnOutcome(dependency));
     }
 
@@ -535,12 +542,12 @@ public abstract class Node {
      */
     @OverridingMethodsMustInvokeSuper
     public Iterable<Node> getHardSuccessors() {
-        return dependencySuccessors.getOrderedNodes();
+        return dependencyNodes.getDependencySuccessors();
     }
 
     @OverridingMethodsMustInvokeSuper
     public Iterable<Node> getAllSuccessorsInReverseOrder() {
-        return dependencySuccessors.getOrderedNodes().descendingSet();
+        return dependencyNodes.getDependencySuccessors().descendingSet();
     }
 
     public SortedSet<Node> getFinalizers() {

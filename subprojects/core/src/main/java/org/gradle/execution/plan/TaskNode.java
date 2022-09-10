@@ -26,31 +26,14 @@ import java.util.Set;
 import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
 
 public abstract class TaskNode extends Node {
-    private final NavigableSet<Node> mustSuccessors = newSortedNodeSet();
     private final NavigableSet<Node> shouldSuccessors = newSortedNodeSet();
     private final NavigableSet<Node> finalizingSuccessors = newSortedNodeSet();
 
     @Override
-    public DependenciesState doCheckDependenciesComplete() {
-        DependenciesState state = super.doCheckDependenciesComplete();
-        if (state != DependenciesState.COMPLETE_AND_SUCCESSFUL) {
-            return state;
-        }
-
-        for (Node dependency : mustSuccessors) {
-            if (!dependency.isComplete()) {
-                return DependenciesState.NOT_COMPLETE;
-            }
-        }
-
-        return DependenciesState.COMPLETE_AND_SUCCESSFUL;
-    }
-
-    @Override
     protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
         builder.append(", groupSuccessors=").append(formatNodes(getGroup().getSuccessorsFor(this)));
-        if (!mustSuccessors.isEmpty()) {
-            builder.append(", mustSuccessors=").append(formatNodes(mustSuccessors));
+        if (!getMustSuccessors().isEmpty()) {
+            builder.append(", mustSuccessors=").append(formatNodes(getMustSuccessors()));
         }
         if (!finalizingSuccessors.isEmpty()) {
             builder.append(", finalizes=").append(formatNodes(finalizingSuccessors));
@@ -58,7 +41,7 @@ public abstract class TaskNode extends Node {
     }
 
     public Set<Node> getMustSuccessors() {
-        return mustSuccessors;
+        return getDependencyNodes().getMustSuccessors();
     }
 
     public abstract Set<Node> getLifecycleSuccessors();
@@ -76,7 +59,7 @@ public abstract class TaskNode extends Node {
 
     public void addMustSuccessor(TaskNode toNode) {
         deprecateLifecycleHookReferencingNonLocalTask("mustRunAfter", toNode);
-        mustSuccessors.add(toNode);
+        updateDependencyNodes(getDependencyNodes().addMustSuccessor(toNode));
         toNode.addMustPredecessor(this);
     }
 
@@ -103,7 +86,7 @@ public abstract class TaskNode extends Node {
         return Iterables.concat(
             shouldSuccessors,
             getGroup().getSuccessorsFor(this),
-            mustSuccessors,
+            getMustSuccessors(),
             super.getAllSuccessors()
         );
     }
@@ -112,7 +95,7 @@ public abstract class TaskNode extends Node {
     public Iterable<Node> getHardSuccessors() {
         return Iterables.concat(
             getGroup().getSuccessorsFor(this),
-            mustSuccessors,
+            getMustSuccessors(),
             super.getHardSuccessors()
         );
     }
@@ -121,7 +104,7 @@ public abstract class TaskNode extends Node {
     public Iterable<Node> getAllSuccessorsInReverseOrder() {
         return Iterables.concat(
             super.getAllSuccessorsInReverseOrder(),
-            mustSuccessors.descendingSet(),
+            getDependencyNodes().getMustSuccessors().descendingSet(),
             getGroup().getSuccessorsInReverseOrderFor(this),
             shouldSuccessors.descendingSet()
         );

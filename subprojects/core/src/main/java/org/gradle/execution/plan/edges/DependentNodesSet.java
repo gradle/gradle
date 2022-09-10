@@ -36,7 +36,7 @@ public interface DependentNodesSet {
 
         @Override
         public DependentNodesSet addFinalizer(Node finalizer) {
-            return new ComplexDependencyNodesSet(new DependencyPredecessorsOnlyNodeSet()).addFinalizer(finalizer);
+            return new ComplexDependentNodesSet(new DependencyPredecessorsOnlyNodeSet()).addFinalizer(finalizer);
         }
 
         @Override
