@@ -20,7 +20,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
-import org.gradle.internal.MutableReference
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -75,8 +74,6 @@ class DefaultOutputFilesRepositoryTest extends Specification {
     }
 
     private FileSystemLocationSnapshot snapshot(File file) {
-        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
-        fileSystemAccess.read(file.getAbsolutePath(), result.&set)
-        return result.get()
+        return fileSystemAccess.read(file.getAbsolutePath())
     }
 }
