@@ -21,6 +21,7 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
@@ -92,11 +93,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.lint')
-<<<<<<< HEAD
     @ToBeFixedForConfigurationCache(because = "Invocation of 'Task.project' by task ':autoLintGradle' at execution time")
-=======
-    @ToBeFixedForConfigurationCache(because = "Task.project at execution time")
->>>>>>> origin/release
     def 'nebula lint plugin'() {
         given:
         buildFile << """
