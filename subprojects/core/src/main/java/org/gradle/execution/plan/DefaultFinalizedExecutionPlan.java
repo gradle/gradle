@@ -78,7 +78,6 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     private final QueryableExecutionPlan contents;
 
     private final Set<Node> runningNodes = newIdentityHashSet();
-    private final Set<Node> producedButNotYetConsumed = newIdentityHashSet();
     private final Map<Pair<Node, Node>, Boolean> reachableCache = new HashMap<>();
     private final OrdinalNodeAccess ordinalNodeAccess;
     private final Consumer<LocalTaskNode> completionHandler;
@@ -143,7 +142,6 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         waitingToStartNodes.clear();
         readyNodes.clear();
         runningNodes.clear();
-        producedButNotYetConsumed.clear();
         reachableCache.clear();
     }
 
@@ -261,6 +259,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
                 if (attemptToStart(node, resources)) {
                     readyNodes.remove();
                     waitingToStartNodes.remove(node);
+                    node.getMutationInfo().started();
                     return Selection.of(node);
                 }
             }
@@ -445,12 +444,11 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             if (current) {
                 return current;
             }
-            if (!producedButNotYetConsumed.contains(producingNode)) {
+            if (!producingNode.getMutationInfo().isOutputProducedButNotYetConsumed()) {
                 return false;
             }
             MutationInfo producingNodeMutations = producingNode.getMutationInfo();
-            assert !producingNodeMutations.consumingNodes.isEmpty();
-            for (Node consumer : producingNodeMutations.consumingNodes) {
+            for (Node consumer : producingNodeMutations.getNodesYetToConsumeOutput()) {
                 if (doesConsumerDependOnDestroyer(consumer, destroyer)) {
                     // If there's an explicit dependency from consuming node to destroyer,
                     // then we accept that as the will of the user
@@ -508,16 +506,9 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             }
         }
 
-        MutationInfo mutations = node.getMutationInfo();
         for (Node producer : node.getDependencySuccessors()) {
             MutationInfo producerMutations = producer.getMutationInfo();
-            if (producerMutations.consumingNodes.remove(node) && producerMutations.consumingNodes.isEmpty()) {
-                producedButNotYetConsumed.remove(producer);
-            }
-        }
-
-        if (!mutations.consumingNodes.isEmpty() && !mutations.outputPaths.isEmpty()) {
-            producedButNotYetConsumed.add(node);
+            producerMutations.consumerCompleted(node);
         }
 
         updateAllDependenciesCompleteForPredecessors(node);
@@ -533,9 +524,8 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
 
     private void monitoredNodeReady(Node node) {
         lockCoordinator.assertHasStateLock();
-        if (node.updateAllDependenciesComplete()) {
-            maybeNodeReady(node);
-        }
+        node.updateAllDependenciesComplete();
+        maybeNodeReady(node);
     }
 
     @Override

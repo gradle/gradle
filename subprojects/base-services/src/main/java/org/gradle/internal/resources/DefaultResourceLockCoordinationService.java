@@ -96,18 +96,18 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
 
     @Override
     public boolean withStateLock(Transformer<ResourceLockState.Disposition, ResourceLockState> stateLockAction) {
-        while (true) {
+        synchronized (lock) {
             DefaultResourceLockState resourceLockState = new DefaultResourceLockState();
-            ResourceLockState.Disposition disposition;
-            synchronized (lock) {
-                DefaultResourceLockState previous = startOperation(resourceLockState);
-                try {
+            DefaultResourceLockState previous = startOperation(resourceLockState);
+            try {
+                while (true) {
+                    ResourceLockState.Disposition disposition;
                     disposition = stateLockAction.transform(resourceLockState);
-
                     switch (disposition) {
                         case RETRY:
                             resourceLockState.releaseLocks();
                             maybeNotifyStateChange(resourceLockState);
+                            resourceLockState.reset();
                             finishOperation(previous);
                             try {
                                 lock.wait();
@@ -125,12 +125,12 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                         default:
                             throw new IllegalArgumentException("Unhandled disposition type: " + disposition.name());
                     }
-                } catch (Throwable t) {
-                    resourceLockState.releaseLocks();
-                    throw UncheckedException.throwAsUncheckedException(t);
-                } finally {
-                    finishOperation(previous);
                 }
+            } catch (Throwable t) {
+                resourceLockState.releaseLocks();
+                throw UncheckedException.throwAsUncheckedException(t);
+            } finally {
+                finishOperation(previous);
             }
         }
     }
@@ -228,6 +228,16 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                     rollback = false;
                 }
             }
+        }
+
+        public void reset() {
+            if (lockedResources != null) {
+                lockedResources.clear();
+            }
+            if (unlockedResources != null) {
+                unlockedResources.clear();
+            }
+            rollback = false;
         }
     }
 

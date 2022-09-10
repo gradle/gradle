@@ -19,40 +19,60 @@ package org.gradle.execution.plan.edges;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeSets;
 
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.function.Consumer;
 
-/**
- * Only incoming dependencies, no incoming must-run-after or finalizes relationships.
- */
-class DependencyPredecessorsOnlyNodeSet implements DependentNodesSet {
-    private final SortedSet<Node> dependencyPredecessors = NodeSets.newSortedNodeSet();
+class ComplexDependentNodesSet implements DependentNodesSet {
+    private final DependencyPredecessorsOnlyNodeSet dependencyPredecessors;
+    private final SortedSet<Node> mustPredecessors = NodeSets.newSortedNodeSet();
+    private final SortedSet<Node> finalizers = NodeSets.newSortedNodeSet();
+
+    public ComplexDependentNodesSet(DependencyPredecessorsOnlyNodeSet dependencyPredecessors) {
+        this.dependencyPredecessors = dependencyPredecessors;
+    }
 
     @Override
     public SortedSet<Node> getDependencyPredecessors() {
-        return dependencyPredecessors;
+        return dependencyPredecessors.getDependencyPredecessors();
     }
 
     @Override
     public DependentNodesSet addDependencyPredecessors(Node fromNode) {
-        dependencyPredecessors.add(fromNode);
+        dependencyPredecessors.addDependencyPredecessors(fromNode);
         return this;
     }
 
     @Override
+    public SortedSet<Node> getFinalizers() {
+        return finalizers;
+    }
+
+    @Override
     public DependentNodesSet addFinalizer(Node finalizer) {
-        return new ComplexDependentNodesSet(this).addFinalizer(finalizer);
+        finalizers.add(finalizer);
+        return this;
+    }
+
+    @Override
+    public Set<Node> getMustPredecessors() {
+        return mustPredecessors;
     }
 
     @Override
     public DependentNodesSet addMustPredecessor(Node fromNode) {
-        return new ComplexDependentNodesSet(this).addMustPredecessor(fromNode);
+        mustPredecessors.add(fromNode);
+        return this;
     }
 
     @Override
     public void visitAllNodes(Consumer<Node> visitor) {
-        for (Node node : dependencyPredecessors) {
+        dependencyPredecessors.visitAllNodes(visitor);
+        for (Node node : mustPredecessors) {
             visitor.accept(node);
+        }
+        for (Node node : finalizers) {
+            node.getFinalizerGroup().visitAllMembers(visitor);
         }
     }
 }
