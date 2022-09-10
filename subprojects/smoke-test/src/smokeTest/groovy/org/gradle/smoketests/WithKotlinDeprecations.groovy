@@ -21,7 +21,7 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
 @SelfType(BaseDeprecations)
-trait WithKotlinDeprecations {
+trait WithKotlinDeprecations implements WithReportDeprecations{
     private static final VersionNumber KOTLIN_VERSION_USING_NEW_WORKERS_API = VersionNumber.parse('1.5.0')
     private static final VersionNumber KOTLIN_VERSION_USING_INPUT_CHANGES_API = VersionNumber.parse('1.6.0')
 
