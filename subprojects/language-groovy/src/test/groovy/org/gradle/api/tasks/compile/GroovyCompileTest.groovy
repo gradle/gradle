@@ -31,11 +31,11 @@ class GroovyCompileTest extends AbstractProjectBuilderSpec {
         launcherMethod.isAnnotationPresent(Optional)
     }
 
-    def "incremental compilation is disabled by default"() {
+    def "incremental compilation is disabled and incrementalAfterFailure is enabled by default"() {
         def groovyCompile = project.tasks.create("compileGroovy", GroovyCompile)
 
         expect:
         !groovyCompile.options.incremental
-        groovyCompile.options.incrementalAfterFailure.get() == false
+        groovyCompile.options.incrementalAfterFailure.get() == true
     }
 }

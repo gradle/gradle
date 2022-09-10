@@ -75,28 +75,22 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     /**
-     * This method collects all source paths, while collecting paths it additionally also
-     * collects all classes that are inside these sources, but were not detected as a dependency of a changed class.
-     * This is important so all .class files that will be created are removed before compilation.
-     * </p>
-     * Example:
-     * A.java
-     * class A {}
-     * </p>
-     * Test.java (has C as an independent class)
-     * class B extends A {}
-     * class C {}
-     * </p>
-     * If/when we change A, B and C will be recompiled, since we will pass Test.java to a compiler, but we won't delete origin C.class. So C.class will be on classpath at the compile time.
-     * That can confuse for example Groovy compiler when it generates test methods for Spock.
+     * This method collects all source paths that will be passed to a compiler. While collecting paths it additionally also
+     * collects all classes that are inside these sources, but were not detected as a dependency of changed classes.
+     * This is important so all .class files that will be re-created are removed before compilation, otherwise
+     * it confuse a compiler: for example Groovy compiler could generate incorrect classes for Spock.
+     * <p>
+     * We will use name "independent classes" for classes that are in the sources that are passed to a compiler but are not a dependency to a changed class.
+     * <p>
+     * Check also: <a href="https://github.com/gradle/gradle/issues/21644" />
      */
     private void collectAllSourcePathsAndIndependentClasses(PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
         Set<String> classesToCompile = new LinkedHashSet<>(spec.getClassesToCompile());
         while (!classesToCompile.isEmpty() && !spec.isFullRebuildNeeded()) {
             Set<String> independentClasses = collectSourcePathsAndIndependentClasses(classesToCompile, spec, sourceFileClassNameConverter);
-            // Since these independent classes didn't actually change, they will be just recreated without any change.
-            // That is why we just have to collect annotation dependencies, so they are correctly deleted before compilation.
+            // Since these independent classes didn't actually change, they will be just recreated without any change, so we don't need to collect all transitive dependencies.
+            // But we have to collect annotation processor dependencies, so these classes are correctly deleted, since annotation processor is able to output classes from these independent classes.
             classesToCompile = independentClasses.isEmpty()
                 ? Collections.emptySet()
                 : sourceFileChangeProcessor.processAnnotationDependenciesOfIndependentClasses(independentClasses, spec);
@@ -133,6 +127,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         Set<String> typesToReprocess = previous.getTypesToReprocess(spec.getClassesToCompile());
         for (String typeToReprocess : typesToReprocess) {
             if (typeToReprocess.endsWith("package-info") || typeToReprocess.equals("module-info")) {
+                // Fixes: https://github.com/gradle/gradle/issues/17572
                 // package-info classes cannot be passed as classes to reprocess to the Java compiler.
                 // Therefore, we need to recompile them every time anything changes if they are processed by an aggregating annotation processor.
                 spec.addClassToCompile(typeToReprocess);

@@ -96,7 +96,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         ObjectFactory objectFactory = getObjectFactory();
         CompileOptions compileOptions = objectFactory.newInstance(CompileOptions.class);
         compileOptions.setIncremental(false);
-        compileOptions.getIncrementalAfterFailure().convention(false);
+        compileOptions.getIncrementalAfterFailure().convention(true);
         this.compileOptions = compileOptions;
         this.javaLauncher = objectFactory.property(JavaLauncher.class);
         this.astTransformationClasspath = objectFactory.fileCollection();
