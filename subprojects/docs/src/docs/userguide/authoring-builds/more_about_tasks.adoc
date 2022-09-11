@@ -533,7 +533,7 @@ include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskC
 .Output of `gradle processTemplates` (run again)
 ----
 > gradle processTemplates
-include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithInputOutputAnnotationsUpToDate.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithInputOutputAnnotationsUpToDateWithoutCC.out[]
 ----
 ====
 
