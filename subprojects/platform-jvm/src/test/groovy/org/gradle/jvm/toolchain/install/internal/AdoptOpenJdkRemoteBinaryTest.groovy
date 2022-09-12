@@ -19,7 +19,7 @@ package org.gradle.jvm.toolchain.install.internal
 import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.env.internal.DefaultBuildEnvironment
+import org.gradle.platform.internal.DefaultBuildPlatform
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmImplementation
@@ -41,7 +41,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory())
 
         when:
-        def uri = binary.toUri(spec, new DefaultBuildEnvironment(systemInfo, operatingSystem)).get()
+        def uri = binary.toUri(spec, new DefaultBuildPlatform(systemInfo, operatingSystem)).get()
 
         then:
         uri.toString() == expectedPath
@@ -70,7 +70,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory)
 
         when:
-        def uri = binary.toUri(spec, new DefaultBuildEnvironment(systemInfo, operatingSystem)).get()
+        def uri = binary.toUri(spec, new DefaultBuildPlatform(systemInfo, operatingSystem)).get()
 
         then:
         uri.toString() == "http://foobar/v3/binary/latest/11/ga/mac/x64/jdk/hotspot/normal/eclipse"
@@ -89,7 +89,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
 
         when:
-        Optional<URI> uri = binary.toUri(spec, new DefaultBuildEnvironment(systemInfo, operatingSystem))
+        Optional<URI> uri = binary.toUri(spec, new DefaultBuildPlatform(systemInfo, operatingSystem))
 
         then:
         !uri.isPresent()
@@ -108,7 +108,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory())
 
         when:
-        Optional<URI> uri = binary.toUri(spec, new DefaultBuildEnvironment(systemInfo, operatingSystem))
+        Optional<URI> uri = binary.toUri(spec, new DefaultBuildPlatform(systemInfo, operatingSystem))
 
         then:
         !uri.isPresent()
@@ -127,7 +127,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory())
 
         when:
-        Optional<URI> uri = binary.toUri(spec, new DefaultBuildEnvironment(systemInfo, operatingSystem))
+        Optional<URI> uri = binary.toUri(spec, new DefaultBuildPlatform(systemInfo, operatingSystem))
 
         then:
         uri.isPresent()
@@ -147,7 +147,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory())
 
         when:
-        Optional<URI> uri = binary.toUri(spec, new DefaultBuildEnvironment(systemInfo, operatingSystem))
+        Optional<URI> uri = binary.toUri(spec, new DefaultBuildPlatform(systemInfo, operatingSystem))
 
         then:
         uri.isPresent()

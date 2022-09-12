@@ -19,7 +19,6 @@ package org.gradle.jvm.toolchain;
 import org.gradle.api.Incubating;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
-import org.gradle.env.BuildEnvironment;
 
 import java.net.URI;
 import java.util.Optional;
@@ -38,11 +37,11 @@ public interface JavaToolchainRepository extends BuildService<BuildServiceParame
      * can be downloaded. The URI must point to either a ZIP or a TAR archive file and
      * has to be secure (so simple HTTP is not allowed, only HTTPS).
      *
-     * @param spec  toolchain specification for which a download URI is requested
-     * @param env   information about the environment Gradle is running in
-     * @return      empty Optional if and only if the provided specification can't be
-     *              matched
+     * @param request   information about the toolchain needed and the environment it's
+     *                  needed in
+     * @return          empty Optional if and only if the provided specification can't be
+     *                  matched
      */
-    Optional<URI> toUri(JavaToolchainSpec spec, BuildEnvironment env);
+    Optional<URI> toUri(JavaToolchainRequest request);
 
 }

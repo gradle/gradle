@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
+package org.gradle.platform;
+
+import org.gradle.api.Incubating;
+
 /**
- * Types to define build environment.
+ * Constants for various operating systems Gradle runs on.
+ *
+ * @since 7.6
  */
-@org.gradle.api.Incubating
-package org.gradle.env;
+@Incubating
+public enum OperatingSystem {
+    LINUX, UNIX, WINDOWS, MAC_OS, SOLARIS, FREE_BSD, OTHER
+}
