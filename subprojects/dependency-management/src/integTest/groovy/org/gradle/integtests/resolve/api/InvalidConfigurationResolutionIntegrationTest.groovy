@@ -19,9 +19,10 @@ package org.gradle.integtests.resolve.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 /**
- * As of Gradle 8.0 these are no longer merely deprecated, but fully invalid.
+ * This used to be called {@code DeprecatedConfigurationsIntegrationTest}, but as of Gradle 8.0 these are no longer merely deprecated,
+ * but fully invalid.  The name has changed to reflect this.
  */
-class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
+class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         mavenRepo.module("module", "foo", '1.0').publish()
