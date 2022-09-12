@@ -84,25 +84,31 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-### Promoted features in the groovy plugin
-
-- The `GroovyCompileOptions.getDisabledGlobalASTTransformations()` method is now considered stable.
-
 ### Promoted features in the Tooling API
 
 - The `GradleConnector.disconnect()` method is now considered stable.
 
-<!--
-### Example promoted
--->
+### Promoted features in the antlr plugin
 
-### Promoted features in the Eclipse plugin
-
-- The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
+- The `AntlrSourceDirectorySet` interface is now considered stable.
 
 ### Promoted features in the ear plugin
 
 - The `Ear.getAppDirectory()` method is now considered stable.
+
+### Promoted features in the eclipse plugin
+
+- The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
+
+### Promoted features in the groovy plugin
+
+The following type and method are now considered stable:
+- `GroovySourceDirectorySet`
+- `GroovyCompileOptions.getDisabledGlobalASTTransformations()`
+
+### Promoted features in the scala plugin
+
+- The `ScalaSourceDirectorySet` interface is now considered stable.
 
 ### Promoted features in the war plugin
 
