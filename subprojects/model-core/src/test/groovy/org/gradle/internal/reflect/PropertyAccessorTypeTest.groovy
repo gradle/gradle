@@ -145,24 +145,29 @@ class PropertyAccessorTypeTest extends Specification {
         bean.idore == true
     }
 
-    def "is methods with Boolean return type are considered as such by Gradle and Groovy but not Java"() {
+    def "is methods with non-primitive boolean return type are not considered properties by Gradle, Groovy nor Java"() {
+        given:
         def bean = new DeviantBean()
-        def propertyNames = Introspector.getBeanInfo(DeviantBean).propertyDescriptors.collect { it.name }
+
+        when:
+        bean.notBoolean
+        then:
+        thrown MissingPropertyException
+
+        when:
+        bean.notString
+        then:
+        thrown MissingPropertyException
 
         expect:
-        bean.notBoolean == true
-        try {
-            bean.notString
-            assert false
-        } catch (MissingPropertyException e) {
-            assert e.property == "notString"
-        }
-
         PropertyAccessorType.fromName('isNotBoolean') == PropertyAccessorType.IS_GETTER
-        PropertyAccessorType.of(DeviantBean.class.getMethod("isNotBoolean")) == PropertyAccessorType.IS_GETTER
+        PropertyAccessorType.of(DeviantBean.class.getMethod("isNotBoolean")) == null
         PropertyAccessorType.fromName('isNotString') == PropertyAccessorType.IS_GETTER
         PropertyAccessorType.of(DeviantBean.class.getMethod("isNotString")) == null
 
+        when:
+        def propertyNames = Introspector.getBeanInfo(DeviantBean).propertyDescriptors.collect { it.name }
+        then:
         !propertyNames.contains("notBoolean")
         !propertyNames.contains("notString")
     }
