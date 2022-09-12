@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing
 
 import org.apache.commons.io.FileUtils
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.FileCollectionInternal
@@ -26,12 +27,13 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.tasks.testing.TestExecuter
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec
-import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider
 import org.gradle.api.internal.tasks.testing.report.TestReporter
 import org.gradle.api.tasks.AbstractConventionTaskTest
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
@@ -58,7 +60,6 @@ class TestTest extends AbstractConventionTaskTest {
     private File reportDir
 
     def testExecuterMock = Mock(TestExecuter)
-    def testFrameworkMock = Mock(TestFramework)
 
     private FileCollection classpathMock = TestFiles.fixed(new File("classpath"))
     private Test test
@@ -258,6 +259,29 @@ class TestTest extends AbstractConventionTaskTest {
         e.message == "Must not use `executable` property on `Test` together with `javaLauncher` property"
     }
 
+    def 'javaLauncher is annotated with @Nested and @Optional'() {
+        given:
+        def launcherMethod = Test.class.getMethod('getJavaLauncher', [] as Class[])
+
+        expect:
+        launcherMethod.isAnnotationPresent(Nested)
+        launcherMethod.isAnnotationPresent(Optional)
+    }
+
+    def 'fails if custom executable does not exist'() {
+        def testTask = project.tasks.create("test", Test)
+        def invalidJava = "invalidjava"
+
+        when:
+        testTask.executable = invalidJava
+        testTask.javaVersion
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("The configured executable does not exist")
+        e.message.contains(invalidJava)
+    }
+
     private void assertIsDirectoryTree(FileTreeInternal classFiles, Set<String> includes, Set<String> excludes) {
         classFiles.visitStructure(new FileCollectionStructureVisitor() {
             @Override
@@ -281,7 +305,6 @@ class TestTest extends AbstractConventionTaskTest {
     }
 
     private void configureTask() {
-        test.useTestFramework(testFrameworkMock)
         test.setTestExecuter(testExecuterMock)
 
         test.setTestClassesDirs(TestFiles.fixed(classesDir))

@@ -985,11 +985,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return options;
     }
 
-    TestFramework useTestFramework(TestFramework testFramework) {
-        return useTestFramework(testFramework, null);
-    }
-
-    private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, @Nullable Action<? super T> testFrameworkConfigure) {
+    private void useTestFramework(TestFramework testFramework) {
         if (optionsAccessed) {
             DeprecationLogger.deprecateAction("Accessing test options prior to setting test framework")
                 .withContext("\nTest options have already been accessed for task: '" + getProject().getName() + ":" + getName() + "' prior to setting the test framework to: '" + testFramework.getClass().getSimpleName() + "'. Any previous configuration will be discarded.\n")
@@ -1004,12 +1000,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
         userHasConfiguredTestFramework = true;
         this.testFramework.set(testFramework);
-
-        if (testFrameworkConfigure != null) {
-            testFrameworkConfigure.execute(Cast.<T>uncheckedNonnullCast(this.testFramework.get().getOptions()));
-        }
-
-        return this.testFramework.get();
     }
 
     /**
@@ -1041,7 +1031,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 3.5
      */
     public void useJUnit(Action<? super JUnitOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true), testFrameworkConfigure);
+        useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
+        if (testFrameworkConfigure != null) {
+            testFrameworkConfigure.execute(Cast.uncheckedNonnullCast(this.testFramework.get().getOptions()));
+        }
     }
 
     /**
@@ -1073,7 +1066,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 4.6
      */
     public void useJUnitPlatform(Action<? super JUnitPlatformOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), true), testFrameworkConfigure);
+        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), true));
+        if (testFrameworkConfigure != null) {
+            testFrameworkConfigure.execute(Cast.uncheckedNonnullCast(this.testFramework.get().getOptions()));
+        }
     }
 
     /**
@@ -1105,7 +1101,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 3.5
      */
     public void useTestNG(Action<? super TestNGOptions> testFrameworkConfigure) {
-        useTestFramework(new TestNGTestFramework(this, stableClasspath, (DefaultTestFilter) getFilter(), getObjectFactory()), testFrameworkConfigure);
+        useTestFramework(new TestNGTestFramework(this, stableClasspath, (DefaultTestFilter) getFilter(), getObjectFactory()));
+        if (testFrameworkConfigure != null) {
+            testFrameworkConfigure.execute(Cast.uncheckedNonnullCast(this.testFramework.get().getOptions()));
+        }
     }
 
     /**
