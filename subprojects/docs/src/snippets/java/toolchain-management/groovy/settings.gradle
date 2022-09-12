@@ -59,7 +59,7 @@ abstract class DummyPlugin implements Plugin<Settings> {
 
 abstract class DummyRepo implements JavaToolchainRepository {
     @Override
-    Optional<URI> toUri(JavaToolchainSpec spec, org.gradle.platform.BuildEnvironment env) {
+    Optional<URI> toUri(JavaToolchainRequest request) {
         return Optional.empty();
     }
 }

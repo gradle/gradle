@@ -62,7 +62,7 @@ abstract class DummyPlugin(val repoName: String): Plugin<Settings> {
 }
 
 abstract class DummyRepo: JavaToolchainRepository {
-    override fun toUri(spec: JavaToolchainSpec, env: org.gradle.env.BuildEnvironment): Optional<URI> {
+    override fun toUri(request: JavaToolchainRequest): Optional<URI> {
         return Optional.empty()
     }
 }
