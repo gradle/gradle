@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.env;
+package org.gradle.platform;
 
 import org.gradle.api.Incubating;
 
 /**
- * Information about the environment the build is running in.
+ * Information about the machine host Gradle is running on.
  *
  * @since 7.6
  */
 @Incubating
-public interface BuildEnvironment { //TODO (#21082): merge this into a unique param of the "toURI" method in the registry
+public interface BuildPlatform {
 
     OperatingSystem getOperatingSystem();
 

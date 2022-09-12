@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.env;
+package org.gradle.platform;
 
 import org.gradle.api.Incubating;
 
 /**
- * Constants for various operating systems Gradle runs on.
+ * Constants for various processor architectures Gradle runs on.
  *
  * @since 7.6
  */
 @Incubating
-public enum OperatingSystem {
-    MAC_OS, LINUX, WINDOWS, OTHER;
+public enum Architecture {
+    I386, AMD64, AARCH64, OTHER
 }

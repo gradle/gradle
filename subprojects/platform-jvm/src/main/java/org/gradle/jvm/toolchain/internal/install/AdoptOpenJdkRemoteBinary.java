@@ -19,10 +19,11 @@ package org.gradle.jvm.toolchain.internal.install;
 import org.gradle.api.GradleException;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.env.BuildEnvironment;
+import org.gradle.platform.BuildPlatform;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.JavaToolchainRequest;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
@@ -45,9 +46,10 @@ public class AdoptOpenJdkRemoteBinary {
         this.adoptiumRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptium.baseUri");
     }
 
-    public Optional<URI> toUri(JavaToolchainSpec spec, BuildEnvironment env) {
+    public Optional<URI> toUri(JavaToolchainRequest request) {
+        JavaToolchainSpec spec = request.getJavaToolchainSpec();
         if (canProvide(spec)) {
-            return Optional.of(constructUri(spec, env));
+            return Optional.of(constructUri(spec, request.getBuildPlatform()));
         } else {
             return Optional.empty();
         }
@@ -78,15 +80,15 @@ public class AdoptOpenJdkRemoteBinary {
         return vendorSpec.test(JvmVendor.KnownJvmVendor.IBM_SEMERU.asJvmVendor());
     }
 
-    private URI constructUri(JavaToolchainSpec spec, BuildEnvironment env) {
+    private URI constructUri(JavaToolchainSpec spec, BuildPlatform platform) {
         return URI.create(determineServerBaseUri(spec) +
                 "v3/binary/latest/" + determineLanguageVersion(spec) +
                 "/" +
                 determineReleaseState() +
                 "/" +
-                determineOs(env) +
+                determineOs(platform) +
                 "/" +
-                determineArch(env) +
+                determineArch(platform) +
                 "/jdk/" +
                 determineImplementation(spec) +
                 "/normal/" +
@@ -101,8 +103,8 @@ public class AdoptOpenJdkRemoteBinary {
         return spec.getLanguageVersion().get();
     }
 
-    private String determineArch(BuildEnvironment env) {
-        switch (env.getArchitecture()) {
+    private String determineArch(BuildPlatform platform) {
+        switch (platform.getArchitecture()) {
             case I386:
                 return "x32";
             case AMD64:
@@ -110,14 +112,14 @@ public class AdoptOpenJdkRemoteBinary {
             case AARCH64:
                 return "aarch64";
             case OTHER:
-                return env.getArchitectureName();
+                return platform.getArchitectureName();
             default:
-                throw new GradleException("Unhandled architecture type " + env.getArchitecture().name());
+                throw new GradleException("Unhandled architecture type " + platform.getArchitecture().name());
         }
     }
 
-    private String determineOs(BuildEnvironment env) {
-        switch (env.getOperatingSystem()) {
+    private String determineOs(BuildPlatform platform) {
+        switch (platform.getOperatingSystem()) {
             case LINUX:
                 return "linux";
             case WINDOWS:
@@ -125,9 +127,9 @@ public class AdoptOpenJdkRemoteBinary {
             case MAC_OS:
                 return "mac";
             case OTHER:
-                return env.getOperatingSystemName();
+                return platform.getOperatingSystemName();
             default:
-                throw new GradleException("Unhandle operating system type " + env.getOperatingSystem().name());
+                throw new GradleException("Unhandle operating system type " + platform.getOperatingSystem().name());
         }
     }
 

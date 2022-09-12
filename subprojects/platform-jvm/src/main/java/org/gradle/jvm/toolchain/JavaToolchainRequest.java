@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.env;
+package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
+import org.gradle.platform.BuildPlatform;
 
 /**
- * Constants for various processor architectures Gradle runs on.
+ * Describes Java toolchains that need to be auto-provisioned, including
+ * their properties (see {@link JavaToolchainSpec}} and the build
+ * environment they are needed in.
  *
  * @since 7.6
  */
 @Incubating
-public enum Architecture {
-    I386, AMD64, AARCH64, OTHER
+public interface JavaToolchainRequest {
+
+    JavaToolchainSpec getJavaToolchainSpec();
+
+    BuildPlatform getBuildPlatform();
+
 }

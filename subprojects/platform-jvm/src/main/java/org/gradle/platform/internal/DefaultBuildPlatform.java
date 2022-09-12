@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.env.internal;
+package org.gradle.platform.internal;
 
 import net.rubygrapefruit.platform.SystemInfo;
-import org.gradle.env.Architecture;
-import org.gradle.env.BuildEnvironment;
-import org.gradle.env.OperatingSystem;
+import org.gradle.platform.Architecture;
+import org.gradle.platform.BuildPlatform;
+import org.gradle.platform.OperatingSystem;
 
 import javax.inject.Inject;
 
-public class DefaultBuildEnvironment implements BuildEnvironment {
+public class DefaultBuildPlatform implements BuildPlatform {
 
     private final SystemInfo systemInfo;
 
     private final org.gradle.internal.os.OperatingSystem operatingSystem;
 
     @Inject
-    public DefaultBuildEnvironment(SystemInfo systemInfo, org.gradle.internal.os.OperatingSystem operatingSystem) {
+    public DefaultBuildPlatform(SystemInfo systemInfo, org.gradle.internal.os.OperatingSystem operatingSystem) {
         this.systemInfo = systemInfo;
         this.operatingSystem = operatingSystem;
     }
@@ -43,6 +43,11 @@ public class DefaultBuildEnvironment implements BuildEnvironment {
             return OperatingSystem.MAC_OS;
         } else if (operatingSystem.isLinux()) {
             return OperatingSystem.LINUX;
+        } else if (operatingSystem.isUnix()) {
+            if (operatingSystem.getFamilyName().toLowerCase().contains("solaris")) {
+                return OperatingSystem.SOLARIS;
+            }
+            return OperatingSystem.UNIX;
         }
         return OperatingSystem.OTHER;
     }

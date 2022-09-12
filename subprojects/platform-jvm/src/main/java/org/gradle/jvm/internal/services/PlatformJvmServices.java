@@ -22,7 +22,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.FileLockManager;
-import org.gradle.env.internal.DefaultBuildEnvironment;
+import org.gradle.platform.internal.DefaultBuildPlatform;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.event.ListenerManager;
@@ -67,8 +67,8 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
 
     protected static class BuildServices {
 
-        protected DefaultBuildEnvironment createBuildEnvironment(ObjectFactory objectFactory, SystemInfo systemInfo, OperatingSystem operatingSystem) {
-            return objectFactory.newInstance(DefaultBuildEnvironment.class, systemInfo, operatingSystem);
+        protected DefaultBuildPlatform createBuildEnvironment(ObjectFactory objectFactory, SystemInfo systemInfo, OperatingSystem operatingSystem) {
+            return objectFactory.newInstance(DefaultBuildPlatform.class, systemInfo, operatingSystem);
         }
 
         protected DefaultJavaToolchainRepositoryRegistry createJavaToolchainRepositoryRegistry(
