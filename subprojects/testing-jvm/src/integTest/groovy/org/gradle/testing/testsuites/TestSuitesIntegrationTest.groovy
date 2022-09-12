@@ -513,7 +513,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         fails("check")
 
         then:
-        failure.assertHasErrorOutput("Cannot set test framework after accessing test options.  Framework was previously: JUnitTestFramework, attempting to set: TestNGTestFramework.")
+        failure.assertHasErrorOutput("You cannot change the test framework to: Test NG after accessing test options. The current framework is: JUnit 4.")
     }
 
     def "can change not the test framework multiple times before execution when not using test suites"() {
@@ -552,7 +552,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         fails("test")
 
         then:
-        failure.assertHasErrorOutput("Cannot set test framework after accessing test options.  Framework was previously: JUnitTestFramework, attempting to set: JUnitPlatformTestFramework.")
+        failure.assertHasErrorOutput("You cannot change the test framework to: JUnit Platform after accessing test options. The current framework is: JUnit 4.")
     }
 
     // This is not the behavior we want in the long term because this makes build configuration sensitive to the order

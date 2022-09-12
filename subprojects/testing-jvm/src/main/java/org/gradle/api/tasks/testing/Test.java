@@ -972,7 +972,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         final TestFramework oldFramework = Test.this.testFramework.get();
 
         if (optionsAccessed) {
-            throw new GradleException("Cannot set test framework after accessing test options.  Framework was previously: " + oldFramework.getClass().getSimpleName() + ", attempting to set: " + testFramework.getClass().getSimpleName() + ".");
+            throw new GradleException(String.format("You cannot %s the test framework to: %s after accessing test options. The current framework is: %s.",
+                    testFramework.getClass() == oldFramework.getClass() ? "set" : "change",
+                    testFramework.getDisplayName(),
+                    oldFramework.getDisplayName()));
         }
 
         userHasConfiguredTestFramework = true;

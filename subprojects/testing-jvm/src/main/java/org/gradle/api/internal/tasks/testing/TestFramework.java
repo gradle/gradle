@@ -61,4 +61,10 @@ public interface TestFramework extends Closeable {
      */
     @Internal
     List<String> getTestWorkerImplementationModules();
+
+    /**
+     * This property controls how we describe this test framework to the user (i.e., in error messages).
+     */
+    @Internal
+    String getDisplayName();
 }

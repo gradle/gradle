@@ -76,6 +76,11 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     @Override
+    public String getDisplayName() {
+        return "JUnit Platform";
+    }
+
+    @Override
     public JUnitPlatformOptions getOptions() {
         return options;
     }

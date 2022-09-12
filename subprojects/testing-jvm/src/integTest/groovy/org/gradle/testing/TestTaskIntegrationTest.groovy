@@ -308,7 +308,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         fails("test")
 
         then:
-        failure.assertHasErrorOutput("Cannot set test framework after accessing test options.  Framework was previously: JUnitTestFramework, attempting to set: JUnitTestFramework.")
+        failure.assertHasErrorOutput("You cannot set the test framework to: JUnit 4 after accessing test options. The current framework is: JUnit 4.")
     }
 
     def "options set prior to changing test framework will cause error"() {
@@ -340,7 +340,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         fails("test")
 
         then:
-        failure.assertHasErrorOutput("Cannot set test framework after accessing test options.  Framework was previously: JUnitTestFramework, attempting to set: JUnitPlatformTestFramework.")
+        failure.assertHasErrorOutput("You cannot change the test framework to: JUnit Platform after accessing test options. The current framework is: JUnit 4.")
     }
 
     def "options accessed and not explicitly configured prior to setting test framework will also warn"() {
@@ -369,7 +369,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         fails("test")
 
         then:
-        failure.assertHasErrorOutput("Cannot set test framework after accessing test options.  Framework was previously: JUnitTestFramework, attempting to set: JUnitPlatformTestFramework.")
+        failure.assertHasErrorOutput("You cannot change the test framework to: JUnit Platform after accessing test options. The current framework is: JUnit 4.")
     }
 
     def "options configured after setting test framework works"() {

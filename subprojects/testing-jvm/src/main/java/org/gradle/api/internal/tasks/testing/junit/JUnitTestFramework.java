@@ -74,6 +74,11 @@ public class JUnitTestFramework implements TestFramework {
     }
 
     @Override
+    public String getDisplayName() {
+        return "JUnit 4";
+    }
+
+    @Override
     public JUnitOptions getOptions() {
         return options;
     }
