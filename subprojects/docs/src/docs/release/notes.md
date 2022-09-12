@@ -30,6 +30,7 @@ We would like to thank the following community members for their contributions t
 [Konstantin Gribov](https://github.com/grossws),
 [Leonardo Brondani Schenkel](https://github.com/lbschenkel),
 [Martin d'Anjou](https://github.com/martinda),
+[Pete Bentley](https://github.com/prbprbprb),
 [Sam Snyder](https://github.com/sambsnyd),
 [sll552](https://github.com/sll552),
 [teawithbrownsugar](https://github.com/teawithbrownsugar),
