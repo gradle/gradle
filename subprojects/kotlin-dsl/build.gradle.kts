@@ -13,6 +13,8 @@ dependencies {
     api(project(":kotlin-dsl-tooling-models"))
     api(libs.futureKotlin("stdlib-jdk8"))
 
+    compileOnly(project(":platform-jvm"))
+
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
@@ -34,8 +36,6 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":normalization-java"))
     implementation(project(":wrapper-shared"))
-
-    compileOnly(project(":platform-jvm")) //TODO (#21082): why does all hell break loose if this is "implementation"
 
     implementation(libs.groovy)
     implementation(libs.groovyJson)

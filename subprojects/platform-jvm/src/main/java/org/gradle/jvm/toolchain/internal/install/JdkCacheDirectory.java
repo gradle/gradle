@@ -129,9 +129,6 @@ public class JdkCacheDirectory {
         }
         if (!new JavaToolchainMatcher(spec).test(metadata)) {
             throw new GradleException("Toolchain provisioned from '" + uri + "' doesn't satisfy the specification: " + spec.getDisplayName());
-            //TODO (#21082): remove spec versioning
-            //TODO (#21082): write test for this
-            //TODO (#21082): update design document with this change
         }
 
         File installFolder = new File(jdkDirectory, toDirectoryName(metadata));

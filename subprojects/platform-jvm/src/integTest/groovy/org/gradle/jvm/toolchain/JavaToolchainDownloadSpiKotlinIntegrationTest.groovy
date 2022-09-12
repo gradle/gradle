@@ -117,7 +117,7 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
                 override fun apply(settings: Settings) {
                     settings.plugins.apply("jdk-toolchains")
                     val registry: JavaToolchainRepositoryRegistry = toolchainRepositoryRegistry
-                    registry.register("${name}", ${className}::class.java, ${JavaToolchainSpecVersion.currentSpecVersion})
+                    registry.register("${name}", ${className}::class.java)
                 }
                 
             }

@@ -4,7 +4,6 @@ import org.gradle.api.initialization.Settings
 import org.gradle.jvm.toolchain.JavaToolchainRepository
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry
 import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.gradle.jvm.toolchain.JavaToolchainSpecVersion
 import java.net.URI
 import java.util.Optional
 import javax.inject.Inject
@@ -57,7 +56,7 @@ abstract class DummyPlugin(val repoName: String): Plugin<Settings> {
         settings.plugins.apply("jdk-toolchains")
 
         val registry: JavaToolchainRepositoryRegistry = toolchainRepositoryRegistry
-        registry.register(repoName, DummyRepo::class.java, JavaToolchainSpecVersion.currentSpecVersion)
+        registry.register(repoName, DummyRepo::class.java)
     }
 
 }

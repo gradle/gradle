@@ -53,7 +53,7 @@ abstract class DummyPlugin implements Plugin<Settings> {
         settings.getPlugins().apply("jdk-toolchains");
 
         JavaToolchainRepositoryRegistry registry = getToolchainRepositoryRegistry();
-        registry.register(name, DummyRepo.class, JavaToolchainSpecVersion.currentSpecVersion)
+        registry.register(name, DummyRepo.class)
     }
 }
 
