@@ -158,7 +158,7 @@ public class ThingTest {
         otherTest(JvmTestSuite) {
             useJUnit()
             dependencies {
-                implementation project
+                implementation project()
             }
         }
     }

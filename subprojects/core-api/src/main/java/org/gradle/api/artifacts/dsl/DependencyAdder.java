@@ -19,17 +19,13 @@ package org.gradle.api.artifacts.dsl;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-
-import javax.annotation.Nullable;
 
 /**
  * <p>A {@code DependencyAdder} is used to add dependencies to a specific configuration.</p>
@@ -39,7 +35,11 @@ import javax.annotation.Nullable;
 @Incubating
 @NonExtensible
 public interface DependencyAdder {
-    /* IF YOU UPDATE THIS, ALSO UPDATE THE DSL IN DependencyAdderExtensionModule.java AND DependencyAdderExtensions.kt */
+    /*
+    NOTE: If you add new dependency notations, you also need to consider how this affects these files:
+    - DependencyAdderExtensionModule.java
+    - DependencyAdderExtensions.kt
+    */
 
     /**
      * Add a dependency.
@@ -50,7 +50,7 @@ public interface DependencyAdder {
     void add(CharSequence dependencyNotation);
 
     /**
-     * Add a dependency.
+     * Add a dependency and configure it.
      *
      * @param dependencyNotation dependency to add
      * @param configuration an action to configure the dependency
@@ -61,72 +61,17 @@ public interface DependencyAdder {
     /**
      * Add a dependency.
      *
-     * @param group the group
-     * @param name the name
-     * @param version the version
-     */
-    void add(@Nullable String group, String name, @Nullable String version);
-
-    /**
-     * Add a dependency.
-     *
-     * @param group the group
-     * @param name the name
-     * @param version the version
-     * @param configuration an action to configure the dependency
-     */
-    void add(@Nullable String group, String name, @Nullable String version, Action<? super ExternalModuleDependency> configuration);
-
-    /**
-     * Add a dependency.
-     *
-     * @param group the group
-     * @param name the name
-     * @param version the version
-     * @param classifier the classifier
-     * @param extension the extension
-     */
-    void add(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension);
-
-    /**
-     * Add a dependency.
-     *
-     * @param group the group
-     * @param name the name
-     * @param version the version
-     * @param classifier the classifier
-     * @param extension the extension
-     * @param configuration an action to configure the dependency
-     */
-    void add(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension, Action<? super ExternalModuleDependency> configuration);
-
-    /**
-     * Add a dependency.
-     *
-     * @param project project to add as a dependency
-     */
-    void add(Project project);
-
-    /**
-     * Add a dependency.
-     *
-     * @param project project to add as a dependency
-     * @param configuration an action to configure the dependency
-     */
-    void add(Project project, Action<? super ProjectDependency> configuration);
-
-    /**
-     * Add a dependency.
-     *
      * @param files files to add as a dependency
+     * @see DependencyFactory#create(FileCollection)
      */
     void add(FileCollection files);
 
     /**
-     * Add a dependency.
+     * Add a dependency and configure it.
      *
      * @param files files to add as a dependency
      * @param configuration an action to configure the dependency
+     * @see DependencyFactory#create(FileCollection)
      */
     void add(FileCollection files, Action<? super FileCollectionDependency> configuration);
 
@@ -138,7 +83,7 @@ public interface DependencyAdder {
     void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule);
 
     /**
-     * Add a dependency.
+     * Add a dependency and configure it.
      *
      * @param externalModule external module to add as a dependency
      * @param configuration an action to configure the dependency
@@ -153,7 +98,7 @@ public interface DependencyAdder {
     void add(Dependency dependency);
 
     /**
-     * Add a dependency.
+     * Add a dependency and configure it.
      *
      * @param dependency dependency to add
      * @param configuration an action to configure the dependency
@@ -168,7 +113,7 @@ public interface DependencyAdder {
     void add(Provider<? extends Dependency> dependency);
 
     /**
-     * Add a dependency.
+     * Add a dependency and configure it.
      *
      * @param dependency dependency to add
      * @param configuration an action to configure the dependency
@@ -183,7 +128,7 @@ public interface DependencyAdder {
     <D extends Dependency> void bundle(Iterable<? extends D> bundle);
 
     /**
-     * Add a bundle.
+     * Add a bundle and configure them.
      *
      * @param bundle the bundle to add
      * @param configuration an action to configure each dependency in the bundle
@@ -198,7 +143,7 @@ public interface DependencyAdder {
     <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle);
 
     /**
-     * Add a bundle.
+     * Add a bundle and configure them.
      *
      * @param bundle the bundle to add
      * @param configuration an action to configure each dependency in the bundle
@@ -213,7 +158,7 @@ public interface DependencyAdder {
     <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle);
 
     /**
-     * Add a bundle.
+     * Add a bundle and configure them.
      *
      * @param bundle the bundle to add
      * @param configuration an action to configure each dependency in the bundle

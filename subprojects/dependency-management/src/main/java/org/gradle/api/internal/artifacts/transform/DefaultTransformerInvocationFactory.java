@@ -57,7 +57,6 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.INCREMENTAL;
 import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL;
@@ -193,7 +192,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             super.visitIdentityInputs(visitor);
             // This is a performance hack. We could use the regular fingerprint of the input artifact, but that takes longer than
             // capturing the normalized path and the snapshot of the raw contents, so we are using these to determine the identity
-            FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity());
+            FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath());
             visitor.visitInputProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, inputArtifactSnapshot::getHash);
         }
 
