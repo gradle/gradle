@@ -92,8 +92,7 @@ class DetermineExecutionPlanAction {
         processNodeQueue();
         createOrdinalRelationships();
 
-        ordinalNodeAccess.createInterNodeRelationships();
-        ordinalNodeAccess.getAllNodes().forEach(nodeMapping::add);
+        nodeMapping.addAll(ordinalNodeAccess.getAllNodes());
     }
 
     private void updateFinalizerGroups() {
@@ -331,25 +330,9 @@ class DetermineExecutionPlanAction {
         TaskClassifier taskClassifier = classifyTask(taskNode);
 
         if (taskClassifier.isDestroyer()) {
-            // Create (or get) a destroyer ordinal node that depends on the dependencies of this task node
-            OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateDestroyableLocationNode(ordinal);
-            ordinalNode.addDependenciesFrom(taskNode);
-
-            Node precedingProducersNode = ordinalNodeAccess.getPrecedingProducerLocationNode(ordinal);
-            if (precedingProducersNode != null) {
-                // Depend on any previous producer ordinal nodes (i.e. any producer ordinal nodes with a lower ordinal)
-                taskNode.addDependencySuccessor(precedingProducersNode);
-            }
+            ordinalNodeAccess.addDestroyerNode(ordinal, taskNode);
         } else if (taskClassifier.isProducer()) {
-            // Create (or get) a producer ordinal node that depends on the dependencies of this task node
-            OrdinalNode ordinalNode = ordinalNodeAccess.getOrCreateOutputLocationNode(ordinal);
-            ordinalNode.addDependenciesFrom(taskNode);
-
-            Node precedingDestroyersNode = ordinalNodeAccess.getPrecedingDestroyerLocationNode(ordinal);
-            if (precedingDestroyersNode != null) {
-                // Depend on any previous destroyer ordinal nodes (i.e. any destroyer ordinal nodes with a lower ordinal)
-                taskNode.addDependencySuccessor(precedingDestroyersNode);
-            }
+            ordinalNodeAccess.addProducerNode(ordinal, taskNode);
         }
     }
 

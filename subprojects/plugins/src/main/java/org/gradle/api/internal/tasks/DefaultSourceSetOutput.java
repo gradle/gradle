@@ -25,13 +25,14 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetOutput;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -44,7 +45,9 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     private final ConfigurableFileCollection dirs;
     private final ConfigurableFileCollection generatedSourcesDirs;
     private final FileResolver fileResolver;
-    private final DefaultTaskDependency compileTasks;
+
+    private final List<DirectoryContribution> classesContributions = new ArrayList<>();
+    private DirectoryContribution resourcesContributor;
 
     public DefaultSourceSetOutput(String sourceSetDisplayName, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
         this.fileResolver = fileResolver;
@@ -54,12 +57,11 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         classesDirs.builtBy(this);
 
         this.outputDirectories = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " classes");
-        outputDirectories.from(classesDirs, (Callable) this::getResourcesDir);
+        outputDirectories.from(classesDirs, (Callable<File>) this::getResourcesDir);
 
         this.dirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " dirs");
 
         this.generatedSourcesDirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " generatedSourcesDirs");
-        this.compileTasks = new DefaultTaskDependency();
     }
 
     @Override
@@ -86,14 +88,26 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         return classesDirs;
     }
 
-
     /**
      * Adds a new classes directory that compiled classes are assembled into.
      *
-     * @param directory the classes dir provider. Should not be null.
+     * @param directory The classes directory provider.
+     * @param task The task which generates {@code directory}.
      */
-    public void addClassesDir(Provider<Directory> directory) {
+    public void addClassesDir(Provider<Directory> directory, TaskProvider<?> task) {
         classesDirs.from(directory);
+        classesContributions.add(new DirectoryContribution(directory.map(Directory::getAsFile), task));
+    }
+
+    /**
+     * Set the task contributor to the provided resources directory. The provided resources
+     * directory provider should resolve to the same directory set by {@link #setResourcesDir}.
+     *
+     * @param directory The resources directory provider.
+     * @param task The task which generates {@code directory}.
+     */
+    public void setResourcesContributor(Provider<File> directory, TaskProvider<?> task) {
+        this.resourcesContributor = new DirectoryContribution(directory, task);
     }
 
     @Override
@@ -146,12 +160,33 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         return generatedSourcesDirs;
     }
 
-    public void registerClassesContributor(TaskProvider<?> task) {
-        compileTasks.add(task);
+    public List<DirectoryContribution> getClassesContributors() {
+        return new ArrayList<>(classesContributions);
     }
 
-    public TaskDependency getClassesContributors() {
-        return compileTasks;
+    @Nullable
+    public DirectoryContribution getResourcesContribution() {
+        return resourcesContributor;
     }
 
+    /**
+     * A mapping from a directory to the task which provides that directory.
+     */
+    public static class DirectoryContribution {
+        private final Provider<File> directory;
+        private final TaskProvider<?> task;
+
+        public DirectoryContribution(Provider<File> directory, TaskProvider<?> task) {
+            this.directory = directory;
+            this.task = task;
+        }
+
+        public Provider<File> getDirectory() {
+            return directory;
+        }
+
+        public TaskProvider<?> getTask() {
+            return task;
+        }
+    }
 }

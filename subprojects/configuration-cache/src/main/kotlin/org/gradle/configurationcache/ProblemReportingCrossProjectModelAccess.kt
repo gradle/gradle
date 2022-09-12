@@ -30,6 +30,7 @@ import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
+import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -118,6 +119,10 @@ class ProblemReportingCrossProjectModelAccess(
 
     override fun getAllprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
         return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
+    }
+
+    override fun gradleInstanceForProject(referrerProject: ProjectInternal, gradle: GradleInternal): GradleInternal {
+        return CrossProjectConfigurationReportingGradle.from(gradle, referrerProject)
     }
 
     private
@@ -675,6 +680,11 @@ class ProblemReportingCrossProjectModelAccess(
         override fun dependencies(configureClosure: Closure<*>) {
             onAccess()
             delegate.dependencies(configureClosure)
+        }
+
+        override fun getDependencyFactory(): DependencyFactory {
+            onAccess()
+            return delegate.dependencyFactory
         }
 
         override fun buildscript(configureClosure: Closure<*>) {

@@ -16,11 +16,14 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
@@ -40,10 +43,15 @@ public class JavaToolchainQueryService {
     private final JavaToolchainProvisioningService installService;
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
-    private final Map<JavaToolchainSpec, JavaToolchain> matchingToolchains;
+    private final Map<JavaToolchainSpecInternal.Key, JavaToolchain> matchingToolchains;
 
     @Inject
-    public JavaToolchainQueryService(JavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService, ProviderFactory factory) {
+    public JavaToolchainQueryService(
+        JavaInstallationRegistry registry,
+        JavaToolchainFactory toolchainFactory,
+        JavaToolchainProvisioningService provisioningService,
+        ProviderFactory factory
+    ) {
         this.registry = registry;
         this.toolchainFactory = toolchainFactory;
         this.installService = provisioningService;
@@ -52,17 +60,33 @@ public class JavaToolchainQueryService {
         this.matchingToolchains = new ConcurrentHashMap<>();
     }
 
-    <T> Provider<T> toolFor(JavaToolchainSpec spec, Transformer<T, JavaToolchain> toolFunction) {
-        return findMatchingToolchain(spec).map(toolFunction);
+    <T> Provider<T> toolFor(
+        JavaToolchainSpec spec,
+        Transformer<T, JavaToolchain> toolFunction,
+        DefaultJavaToolchainUsageProgressDetails.JavaTool requestedTool
+    ) {
+        return findMatchingToolchain(spec)
+            .withSideEffect(toolchain -> toolchain.emitUsageEvent(requestedTool))
+            .map(toolFunction);
     }
 
-    Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
+    @VisibleForTesting
+    ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
+        JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) filter;
+        if (!filterInternal.isValid()) {
+            throw DocumentedFailure.builder()
+                .withSummary("Using toolchain specifications without setting a language version is not supported.")
+                .withAdvice("Consider configuring the language version.")
+                .withUpgradeGuideSection(7, "invalid_toolchain_specification_deprecation")
+                .build();
+        }
+
         return new DefaultProvider<>(() -> {
-            if (((ToolchainSpecInternal) filter).isConfigured()) {
-                return matchingToolchains.computeIfAbsent(filter, k -> query(k));
-            } else {
+            if (!filterInternal.isConfigured()) {
                 return null;
             }
+
+            return matchingToolchains.computeIfAbsent(filterInternal.toKey(), k -> query(filterInternal));
         });
     }
 

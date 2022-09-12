@@ -288,6 +288,8 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
             return "i386";
         } else if (architectureName.equals(MachineArchitecture.X86_64)) {
             return "x86_64";
+        } else if (architectureName.equals(MachineArchitecture.ARM64)) {
+            return "arm64e";
         }
 
         return architectureName;

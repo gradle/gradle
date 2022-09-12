@@ -112,6 +112,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.flattenTaskPaths;
+import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.normalizeLambdaIds;
 import static org.gradle.internal.hash.Hashing.hashString;
 import static org.gradle.util.Matchers.normalizedLineSeparators;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -691,7 +692,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             List<String> causes = new ArrayList<>();
             extractCauses(failure, causes);
 
-            String failureMessage = failure.getMessage() == null ? "" : failure.getMessage();
+            String failureMessage = failure.getMessage() == null ? "" : normalizeLambdaIds(failure.getMessage());
             java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failureMessage);
             if (matcher.find()) {
                 fileNames.add(matcher.group(1));
@@ -836,7 +837,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             }
             StringDescription description = new StringDescription();
             matcher.describeTo(description);
-            throw new AssertionFailedError(String.format("Could not find any failure with description %s, failures:%s\n", description.toString(), Joiner.on("\n").join(failures)));
+            throw new AssertionFailedError(String.format("Could not find any failure with description %s, failures:%s\n", description, Joiner.on("\n").join(failures)));
         }
 
         @Override

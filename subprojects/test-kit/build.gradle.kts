@@ -11,6 +11,7 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":build-option"))
+    implementation(project(":logging"))
     implementation(project(":wrapper-shared"))
     implementation(project(":tooling-api"))
     implementation(project(":file-temp"))
@@ -22,6 +23,7 @@ dependencies {
     testFixturesImplementation(project(":tooling-api"))
     testFixturesImplementation(project(":wrapper-shared"))
     testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation(libs.guava)
 
     testImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))

@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.execution.BuildWorkExecutor
 import org.gradle.execution.plan.ExecutionPlan
+import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.initialization.internal.InternalBuildFinishedListener
@@ -45,6 +46,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     def exceptionAnalyser = Mock(ExceptionAnalyser)
     def buildFinishedListener = Mock(InternalBuildFinishedListener.class)
     def executionPlan = Mock(ExecutionPlan)
+    def finalizedPlan = Mock(FinalizedExecutionPlan)
     def toolingControllerFactory = Mock(BuildToolingModelControllerFactory)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
@@ -304,14 +306,14 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         t3 == failure
     }
 
-    void testCannotExecuteTasksWhenNothingHasBeenScheduled() {
+    void testCanExecuteTasksWhenNothingHasBeenScheduled() {
         when:
         def controller = controller()
         def workGraph = controller.newWorkGraph()
-        controller.executeTasks(workGraph)
+        def result = controller.executeTasks(workGraph)
 
         then:
-        def t = thrown IllegalStateException
+        result.failures.empty
 
         when:
         def finishResult = controller.finishBuild(null)
@@ -325,7 +327,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
         given:
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
-        1 * buildModelController.scheduleRequestedTasks(executionPlan) >> { throw failure }
+        1 * buildModelController.scheduleRequestedTasks(null, executionPlan) >> { throw failure }
 
         when:
         def controller = this.controller()
@@ -508,25 +510,25 @@ class DefaultBuildLifecycleControllerTest extends Specification {
     private void expectRequestedTasksScheduled() {
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * buildModelController.prepareToScheduleTasks()
-        1 * buildModelController.initializeWorkGraph(executionPlan)
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
-        1 * buildModelController.scheduleRequestedTasks(executionPlan)
+        1 * buildModelController.scheduleRequestedTasks(null, executionPlan)
+        1 * workPreparer.finalizeWorkGraph(gradleMock, executionPlan) >> finalizedPlan
     }
 
     private void expectTasksScheduled() {
         1 * workPreparer.newExecutionPlan() >> executionPlan
         1 * buildModelController.prepareToScheduleTasks()
-        1 * buildModelController.initializeWorkGraph(executionPlan)
         1 * workPreparer.populateWorkGraph(gradleMock, executionPlan, _) >> { GradleInternal gradle, ExecutionPlan executionPlan, Consumer consumer -> consumer.accept(executionPlan) }
+        1 * workPreparer.finalizeWorkGraph(gradleMock, executionPlan) >> finalizedPlan
     }
 
     private void expectTasksRun() {
-        1 * workExecutor.execute(gradleMock, executionPlan) >> ExecutionResult.succeeded()
+        1 * workExecutor.execute(gradleMock, finalizedPlan) >> ExecutionResult.succeeded()
     }
 
     private void expectTasksRunWithFailure(Throwable failure, Throwable other = null) {
         def failures = other == null ? [failure] : [failure, other]
-        1 * workExecutor.execute(gradleMock, executionPlan) >> ExecutionResult.maybeFailed(failures)
+        1 * workExecutor.execute(gradleMock, finalizedPlan) >> ExecutionResult.maybeFailed(failures)
     }
 
     private void expectBuildFinished(String action = "Build") {

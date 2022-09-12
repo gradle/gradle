@@ -39,11 +39,6 @@ public interface InputFingerprinter {
         Consumer<InputVisitor> inputs
     ) throws InputFingerprintingException, InputFileFingerprintingException;
 
-    /**
-     * Hack require to get normalized input path without fingerprinting contents.
-     */
-    FileCollectionFingerprinterRegistry getFingerprinterRegistry();
-
     interface InputVisitor {
         default void visitInputProperty(
             String propertyName,
@@ -188,11 +183,6 @@ public interface InputFingerprinter {
 
         public InputFileFingerprintingException(String propertyName, Throwable cause) {
             super(String.format("Cannot fingerprint input file property '%s': %s", propertyName, cause.getMessage()), cause);
-            this.propertyName = propertyName;
-        }
-
-        private InputFileFingerprintingException(String formattedMessage, Throwable cause, String propertyName) {
-            super(formattedMessage, cause);
             this.propertyName = propertyName;
         }
 

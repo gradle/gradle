@@ -35,7 +35,7 @@ class JvmVariantBuilderIntegrationTest extends AbstractIntegrationSpec {
                 id 'java-test-fixtures'
                 id 'maven-publish'
             }
-            def jvm = extensions.create(org.gradle.api.plugins.jvm.internal.JvmPluginExtension, "jvm", org.gradle.api.plugins.jvm.internal.DefaultJvmPluginExtension)
+            def jvm = project.services.get(org.gradle.api.plugins.jvm.internal.JvmModelingServices)
 
             group = 'com.acme'
             version = '1.4'

@@ -22,7 +22,7 @@ import spock.lang.Unroll
 
 class MavenBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @ToBeFixedForConfigurationCache
-    public void "reports and recovers from missing module"() {
+    void "reports and recovers from missing module"() {
         given:
         def repo = mavenHttpRepo("repo1")
         def module = repo.module("group", "projectA", "1.2").publish()
@@ -82,7 +82,7 @@ Required by:
     }
 
     @ToBeFixedForConfigurationCache
-    public void "reports and recovers from multiple missing modules"() {
+    void "reports and recovers from multiple missing modules"() {
         given:
         def repo = mavenHttpRepo("repo1")
         def moduleA = repo.module("group", "projectA", "1.2").publish()
@@ -139,7 +139,7 @@ Required by:
     }
 
     @ToBeFixedForConfigurationCache
-    public void "reports and recovers from multiple missing transitive modules"() {
+    void "reports and recovers from multiple missing transitive modules"() {
         settingsFile << "include 'child1'"
 
         given:
@@ -407,8 +407,7 @@ task showBroken { doLast { println configurations.broken.files } }
         retries << (1..3)
     }
 
-    @ToBeFixedForConfigurationCache
-    public void "reports and recovers from failed artifact download"() {
+    void "reports and recovers from failed artifact download"() {
         given:
         buildFile << """
 repositories {

@@ -19,7 +19,6 @@ package org.gradle.process.internal.worker;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -71,8 +70,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private List<URL> implementationClassPath;
     private List<URL> implementationModulePath;
     private boolean shouldPublishJvmMemoryInfo;
-
-    private boolean useLegacyAddOpens = true;
 
     DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<Long> idGenerator, ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory, OutputEventListener outputEventListener, MemoryManager memoryManager, JvmVersionDetector jvmVersionDetector) {
         this.javaCommand = execHandleFactory.newJavaExec();
@@ -195,13 +192,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         this.shouldPublishJvmMemoryInfo = shouldPublish;
     }
 
-    @Deprecated
-    @Override
-    public WorkerProcessBuilder setUseLegacyAddOpens(boolean useLegacyAddOpens) {
-        this.useLegacyAddOpens = useLegacyAddOpens;
-        return this;
-    }
-
     @Override
     public WorkerProcess build() {
         final WorkerJvmMemoryStatus memoryStatus = shouldPublishJvmMemoryInfo ? new WorkerJvmMemoryStatus() : null;
@@ -240,10 +230,6 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         javaCommand.setDisplayName(displayName);
 
         boolean java9Compatible = jvmVersionDetector.getJavaVersion(javaCommand.getExecutable()).isJava9Compatible();
-        if (java9Compatible && useLegacyAddOpens) {
-            javaCommand.jvmArgs(JpmsConfiguration.GRADLE_WORKER_JPMS_ARGS);
-        }
-
         workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, implementationModulePath, localAddress, javaCommand, shouldPublishJvmMemoryInfo, java9Compatible);
 
         javaCommand.args("'" + displayName + "'");

@@ -156,31 +156,35 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         fails ":checkDeps"
 
         then:
-        failure.assertHasCause('''No matching variant of project :platform was found. The consumer was configured to find an API of a library compatible with Java 8, preferably in the form of class files, preferably optimized for standard JVMs, and its dependencies declared externally but:
-  - Variant 'apiElements' capability org.test:platform:1.9 declares an API of a component:
+        failure.assertHasCause('''No matching variant of project :platform was found. The consumer was configured to find the API view of a library for use during compile-time, compatible with Java 8, preferably in the form of class files, preferably optimized for standard JVMs, and its dependencies declared externally but:
+  - Variant 'apiElements' capability org.test:platform:1.9 declares a component for use during compile-time:
       - Incompatible because this component declares a platform and the consumer needed a library
       - Other compatible attributes:
+          - Doesn't say anything about its compile view (required the API view)
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
           - Doesn't say anything about its target Java version (required compatibility with Java 8)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-  - Variant 'enforcedApiElements' capability org.test:platform-derived-enforced-platform:1.9 declares an API of a component:
+  - Variant 'enforcedApiElements' capability org.test:platform-derived-enforced-platform:1.9 declares a component for use during compile-time:
       - Incompatible because this component declares an enforced platform and the consumer needed a library
       - Other compatible attributes:
+          - Doesn't say anything about its compile view (required the API view)
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
           - Doesn't say anything about its target Java version (required compatibility with Java 8)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-  - Variant 'enforcedRuntimeElements' capability org.test:platform-derived-enforced-platform:1.9 declares a runtime of a component:
+  - Variant 'enforcedRuntimeElements' capability org.test:platform-derived-enforced-platform:1.9 declares a component for use during runtime:
       - Incompatible because this component declares an enforced platform and the consumer needed a library
       - Other compatible attributes:
+          - Doesn't say anything about its compile view (required the API view)
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
           - Doesn't say anything about its target Java version (required compatibility with Java 8)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-  - Variant 'runtimeElements' capability org.test:platform:1.9 declares a runtime of a component:
+  - Variant 'runtimeElements' capability org.test:platform:1.9 declares a component for use during runtime:
       - Incompatible because this component declares a platform and the consumer needed a library
       - Other compatible attributes:
+          - Doesn't say anything about its compile view (required the API view)
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
           - Doesn't say anything about its target Java version (required compatibility with Java 8)
@@ -371,7 +375,8 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                                             'org.gradle.dependency.bundling':'external',
                                             'org.gradle.jvm.version': JavaVersion.current().majorVersion,
                                             'org.gradle.usage':'java-api',
-                                            'org.gradle.libraryelements': 'jar'])
+                                            'org.gradle.libraryelements': 'jar',
+                                            'org.gradle.compile-view': 'java-api'])
                     constraint("org:platform:1.0", "org:platform:1.0") {
                         variant("platform-compile", [
                             'org.gradle.usage': 'java-api',

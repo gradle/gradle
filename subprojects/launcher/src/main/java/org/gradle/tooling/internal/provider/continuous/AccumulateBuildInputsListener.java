@@ -54,11 +54,6 @@ public class AccumulateBuildInputsListener implements WorkInputListener {
                         }
 
                         @Override
-                        public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                            fileTree.forEach(location -> taskInputs.add(location.getAbsolutePath()));
-                        }
-
-                        @Override
                         public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                             if (patterns.isEmpty()) {
                                 taskInputs.add(root.getAbsolutePath());

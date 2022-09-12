@@ -27,6 +27,10 @@ import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
@@ -54,7 +58,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  */
 public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
-    public static final String DEFAULT_PMD_VERSION = "6.39.0";
+    public static final String DEFAULT_PMD_VERSION = "6.48.0";
     private static final String PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION = "pmdAux";
 
     private PmdExtension extension;
@@ -73,6 +77,11 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     @Override
     protected Class<Pmd> getTaskType() {
         return Pmd.class;
+    }
+
+    @Inject
+    protected JavaToolchainService getToolchainService() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -117,6 +126,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
+        configureToolchains(task);
     }
 
     private void configureDefaultDependencies(Configuration configuration) {
@@ -157,6 +167,15 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
                 }))
             );
         }));
+    }
+
+    private void configureToolchains(Pmd task) {
+        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(new CurrentJvmToolchainSpec(project.getObjects()));
+        task.getJavaLauncher().convention(javaLauncherProvider);
+        project.getPluginManager().withPlugin("java-base", p -> {
+            JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
+            task.getJavaLauncher().convention(getToolchainService().launcherFor(toolchain).orElse(javaLauncherProvider));
+        });
     }
 
     private String calculateDefaultDependencyNotation(VersionNumber toolVersion) {

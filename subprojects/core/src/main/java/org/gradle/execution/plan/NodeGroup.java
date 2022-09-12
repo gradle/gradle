@@ -97,6 +97,10 @@ public abstract class NodeGroup {
         return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
     }
 
+    public boolean isCanCancel() {
+        return true;
+    }
+
     public void addMember(Node node) {
     }
 

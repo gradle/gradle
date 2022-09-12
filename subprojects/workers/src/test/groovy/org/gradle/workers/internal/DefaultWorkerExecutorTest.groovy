@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.Actions
 import org.gradle.internal.classloader.VisitableURLClassLoader
+import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.AsyncWorkTracker
@@ -65,18 +66,18 @@ class DefaultWorkerExecutorTest extends Specification {
     def worker = Mock(BuildOperationAwareWorker)
     def actionExecutionSpecFactory = Mock(ActionExecutionSpecFactory)
     def instantiator = Mock(Instantiator)
-    def parameters = Mock(AdapterWorkParameters)
+    def classpathTransformer = Mock(CachedClasspathTransformer)
     ConditionalExecution task
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
         _ * executionQueueFactory.create() >> executionQueue
-        _ * instantiator.newInstance(AdapterWorkParameters) >> parameters
         _ * instantiator.newInstance(DefaultWorkerSpec) >> { args -> new DefaultWorkerSpec() }
         _ * instantiator.newInstance(DefaultClassLoaderWorkerSpec) >> { args -> new DefaultClassLoaderWorkerSpec(objectFactory) }
         _ * instantiator.newInstance(DefaultProcessWorkerSpec, _) >> { args -> new DefaultProcessWorkerSpec(args[1][0], objectFactory) }
         _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1], args[1][2]) }
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerThreadRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, temporaryFolder.testDirectory)
+        _ * classpathTransformer.transform(_, _) >> { args -> args[0] }
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerThreadRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder.testDirectory)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 
@@ -158,8 +159,6 @@ class DefaultWorkerExecutorTest extends Specification {
         workerExecutor.processIsolation().submit(TestExecutable.class, Actions.doNothing())
 
         then:
-        _ * parameters.implementationClassName >> TestExecutable.class.getName()
-        _ * parameters.params >> []
         1 * workerThreadRegistry.workerThread >> true
         1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
@@ -179,8 +178,6 @@ class DefaultWorkerExecutorTest extends Specification {
         workerExecutor.classLoaderIsolation().submit(TestExecutable.class, Actions.doNothing())
 
         then:
-        _ * parameters.implementationClassName >> TestExecutable.class.getName()
-        _ * parameters.params >> []
         1 * workerThreadRegistry.workerThread >> true
         1 * executionQueue.submit(_) >> { args -> task = args[0] }
 
@@ -200,8 +197,6 @@ class DefaultWorkerExecutorTest extends Specification {
         workerExecutor.noIsolation().submit(TestExecutable.class, Actions.doNothing())
 
         then:
-        _ * parameters.implementationClassName >> TestExecutable.class.getName()
-        _ * parameters.params >> []
         1 * workerThreadRegistry.workerThread >> true
         1 * executionQueue.submit(_) >> { args -> task = args[0] }
 

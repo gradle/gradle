@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures
 
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.Config
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
@@ -135,6 +136,11 @@ class AbstractIntegrationSpec extends Specification {
      */
     void initGitDir() {
         Git.init().setDirectory(testDirectory).call().withCloseable { Git git ->
+            // Clear config hierarchy to avoid global configuration loaded from user home
+            for (Config config = git.repository.config; config != null; config = config.getBaseConfig()) {
+                //noinspection GroovyAccessibility
+                config.clear()
+            }
             testDirectory.file('initial-commit').createNewFile()
             git.add().addFilepattern("initial-commit").call()
             git.commit().setMessage("Initial commit").call()
@@ -172,9 +178,24 @@ class AbstractIntegrationSpec extends Specification {
         'build.gradle.kts'
     }
 
+    /**
+     * Sets (replacing) the contents of the build.gradle file.
+     *
+     * To append, use #buildFile(String).
+     */
     protected TestFile buildScript(@GroovyBuildScriptLanguage String script) {
         buildFile.text = script
         buildFile
+    }
+
+    /**
+     * Sets (replacing) the contents of the settings.gradle file.
+     *
+     * To append, use #settingsFile(String)
+     */
+    protected TestFile settingsScript(@GroovyBuildScriptLanguage String script) {
+        settingsFile.text = script
+        settingsFile
     }
 
     protected TestFile getSettingsFile() {
@@ -528,6 +549,15 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
 
     public MavenLocalRepository mavenLocal(Object repo) {
         return new MavenLocalRepository(file(repo))
+    }
+
+    protected configureRepositoryCredentials(String username, String password, String repositoryName = "maven") {
+        // configuration property prefix - the identity - is determined from the repository name
+        // https://docs.gradle.org/current/userguide/userguide_single.html#sec:handling_credentials
+        propertiesFile << """
+        ${repositoryName}Username=${username}
+        ${repositoryName}Password=${password}
+        """
     }
 
     public MavenFileRepository publishedMavenModules(String... modulesToPublish) {

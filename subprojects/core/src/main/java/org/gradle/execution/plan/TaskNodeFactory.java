@@ -25,11 +25,13 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.internal.Cast;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.use.PluginId;
@@ -50,6 +52,7 @@ public class TaskNodeFactory {
     private final Map<Task, TaskNode> nodes = new HashMap<>();
     private final BuildTreeWorkGraphController workGraphController;
     private final NodeValidator nodeValidator;
+    private final BuildOperationRunner buildOperationRunner;
     private final GradleInternal thisBuild;
     private final DocumentationRegistry documentationRegistry;
     private final DefaultTypeOriginInspectorFactory typeOriginInspectorFactory;
@@ -58,12 +61,14 @@ public class TaskNodeFactory {
         GradleInternal thisBuild,
         DocumentationRegistry documentationRegistry,
         BuildTreeWorkGraphController workGraphController,
-        NodeValidator nodeValidator
+        NodeValidator nodeValidator,
+        BuildOperationRunner buildOperationRunner
     ) {
         this.thisBuild = thisBuild;
         this.documentationRegistry = documentationRegistry;
         this.workGraphController = workGraphController;
         this.nodeValidator = nodeValidator;
+        this.buildOperationRunner = buildOperationRunner;
         this.typeOriginInspectorFactory = new DefaultTypeOriginInspectorFactory();
     }
 
@@ -79,8 +84,8 @@ public class TaskNodeFactory {
     public TaskNode getOrCreateNode(Task task) {
         TaskNode node = nodes.get(task);
         if (node == null) {
-            if (task.getProject().getGradle() == thisBuild) {
-                node = new LocalTaskNode((TaskInternal) task, nodeValidator, new DefaultWorkValidationContext(documentationRegistry, typeOriginInspectorFactory.forTask(task)));
+            if (((ProjectInternal) task.getProject()).getGradle().getIdentityPath().equals(thisBuild.getIdentityPath())) {
+                node = new LocalTaskNode((TaskInternal) task, nodeValidator, new DefaultWorkValidationContext(documentationRegistry, typeOriginInspectorFactory.forTask(task)), buildOperationRunner);
             } else {
                 node = TaskInAnotherBuild.of((TaskInternal) task, workGraphController);
             }

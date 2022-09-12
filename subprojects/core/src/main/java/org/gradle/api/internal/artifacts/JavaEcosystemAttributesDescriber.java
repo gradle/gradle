@@ -24,6 +24,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.CompileView;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AttributeDescriber;
@@ -37,6 +38,7 @@ import java.util.Set;
 class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     private final static Set<Attribute<?>> ATTRIBUTES = ImmutableSet.of(
         Usage.USAGE_ATTRIBUTE,
+        CompileView.VIEW_ATTRIBUTE,
         Category.CATEGORY_ATTRIBUTE,
         LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
         Bundling.BUNDLING_ATTRIBUTE,
@@ -56,6 +58,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     public String describeAttributeSet(Map<Attribute<?>, ?> attributes) {
         Object category = attr(attributes, Category.CATEGORY_ATTRIBUTE);
         Object usage = attr(attributes, Usage.USAGE_ATTRIBUTE);
+        Object view = attr(attributes, CompileView.VIEW_ATTRIBUTE);
         Object le = attr(attributes, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
         Object bundling = attr(attributes, Bundling.BUNDLING_ATTRIBUTE);
         Object targetJvmEnvironment = attr(attributes, TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE);
@@ -64,8 +67,8 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         Object status = attr(attributes, ProjectInternal.STATUS_ATTRIBUTE);
 
         StringBuilder sb = new StringBuilder();
-        if (usage != null) {
-            describeUsage(usage, sb);
+        if (view != null) {
+            describeCompileView(view, sb);
             sb.append(" of ");
         }
         if (category != null) {
@@ -81,12 +84,16 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
                 sb.append("a component");
             }
         }
+        if (usage != null) {
+            sb.append(" for use during ");
+            describeUsage(usage, sb);
+        }
         if (status != null) {
-            sb.append(" with a ");
+            sb.append(", with a ");
             describeStatus(status, sb);
         }
         if (targetJvm != null) {
-            sb.append(" compatible with ");
+            sb.append(", compatible with ");
             describeTargetJvm(targetJvm, sb);
         }
         if (le != null) {
@@ -137,6 +144,10 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
             sb.append("its usage (required ");
             describeUsage(consumerValue, sb);
             sb.append(")");
+        } else if (CompileView.VIEW_ATTRIBUTE.equals(attribute)) {
+            sb.append("its compile view (required ");
+            describeCompileView(consumerValue, sb);
+            sb.append(")");
         } else if (TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE.equals(attribute)) {
             sb.append("its target Java environment (preferred optimized for ");
             describeTargetJvmEnvironment(consumerValue, sb);
@@ -180,6 +191,8 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         StringBuilder sb = new StringBuilder();
         if (sameAttribute(Usage.USAGE_ATTRIBUTE, attribute)) {
             describeUsage(producerValue, sb);
+        } else if (CompileView.VIEW_ATTRIBUTE.equals(attribute)) {
+            describeCompileView(producerValue, sb);
         } else if (sameAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, attribute)) {
             sb.append("compatibility with ");
             describeTargetJvm(producerValue, sb);
@@ -249,16 +262,31 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
             case Usage.JAVA_API:
             case Usage.JAVA_API_CLASSES:
             case Usage.JAVA_API_JARS:
-                sb.append("an API");
+                sb.append("compile-time");
                 break;
             case Usage.JAVA_RUNTIME:
             case Usage.JAVA_RUNTIME_CLASSES:
             case Usage.JAVA_RUNTIME_JARS:
-                sb.append("a runtime");
+                sb.append("runtime");
                 break;
             default:
-                sb.append("a usage of '").append(str).append("'");
+                sb.append("'").append(str).append("'");
         }
+    }
+
+    private static void describeCompileView(Object compileView, StringBuilder sb) {
+        String str = toName(compileView);
+        switch (str) {
+            case CompileView.JAVA_API:
+                sb.append("the API");
+                break;
+            case CompileView.JAVA_COMPLETE:
+                sb.append("the complete");
+                break;
+            default:
+                sb.append("the '").append(str).append("'");
+        }
+        sb.append(" view");
     }
 
     private static void describeTargetJvm(Object targetJvm, StringBuilder sb) {

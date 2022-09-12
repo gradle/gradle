@@ -27,6 +27,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class CapabilityNotationParserFactory implements Factory<NotationParser<Object, Capability>> {
@@ -46,7 +47,7 @@ public class CapabilityNotationParserFactory implements Factory<NotationParser<O
             .toComposite();
     }
 
-    @Nullable
+    @Nonnull
     @Override
     public NotationParser<Object, Capability> create() {
         // Currently the converter is stateless, doesn't need any external context, so for performance we return a singleton

@@ -24,46 +24,26 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.pullRequests
 import model.CIBuildModel
 import model.StageName
 
-val m2CleanScriptUnixLike = """
-    REPO=%teamcity.agent.jvm.user.home%/.m2/repository
+fun checkCleanDirUnixLike(dir: String, exitOnFailure: Boolean = true) = """
+    REPO=$dir
     if [ -e ${'$'}REPO ] ; then
         tree ${'$'}REPO
         rm -rf ${'$'}REPO
         echo "${'$'}REPO was polluted during the build"
-        exit 1
+        ${if (exitOnFailure) "exit 1" else ""}
     else
         echo "${'$'}REPO does not exist"
     fi
 
 """.trimIndent()
 
-val m2CleanScriptWindows = """
-    IF exist %teamcity.agent.jvm.user.home%\.m2\repository (
-        TREE %teamcity.agent.jvm.user.home%\.m2\repository
-        RMDIR /S /Q %teamcity.agent.jvm.user.home%\.m2\repository
-        EXIT 1
+fun checkCleanDirWindows(dir: String, exitOnFailure: Boolean = true) = """
+    IF exist $dir (
+        TREE $dir
+        RMDIR /S /Q $dir
+        ${if (exitOnFailure) "EXIT 1" else ""}
     )
 
-""".trimIndent()
-
-val checkCleanAndroidUserHomeScriptUnixLike = """
-    ANDROID_USER_HOME=%teamcity.agent.jvm.user.home%/.android
-    if [ -e ${'$'}ANDROID_USER_HOME ] ; then
-        tree ${'$'}ANDROID_USER_HOME
-        rm -rf ${'$'}ANDROID_USER_HOME
-        echo "${'$'}ANDROID_USER_HOME was polluted during the build"
-        # exit 1
-    else
-        echo "${'$'}ANDROID_USER_HOME does not exist"
-    fi
-""".trimIndent()
-
-val checkCleanAndroidUserHomeScriptWindows = """
-    IF exist %teamcity.agent.jvm.user.home%\.android (
-        TREE %teamcity.agent.jvm.user.home%\.android
-        RMDIR /S /Q %teamcity.agent.jvm.user.home%\.android
-        REM EXIT 1
-    )
 """.trimIndent()
 
 fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
@@ -74,7 +54,7 @@ fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
 
 fun BuildFeatures.enablePullRequestFeature() {
     pullRequests {
-        vcsRootExtId = "GradleMaster"
+        vcsRootExtId = VersionedSettingsBranch.fromDslContext().vcsRootId()
         provider = github {
             authType = token {
                 token = "%github.bot-teamcity.token%"
@@ -87,7 +67,7 @@ fun BuildFeatures.enablePullRequestFeature() {
 
 fun BuildFeatures.publishBuildStatusToGithub() {
     commitStatusPublisher {
-        vcsRootExtId = "GradleMaster"
+        vcsRootExtId = VersionedSettingsBranch.fromDslContext().vcsRootId()
         publisher = github {
             githubUrl = "https://api.github.com"
             authType = personalToken {
@@ -137,7 +117,7 @@ fun applyDefaults(
 ) {
     buildType.applyDefaultSettings(os, timeout = timeout)
 
-    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon)
+    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", os)
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
     buildType.steps {
@@ -168,11 +148,11 @@ fun applyTestDefaults(
         preSteps()
     }
 
-    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon)
+    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", os, arch)
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
-    buildType.killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", daemon)
+    buildType.killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", os, arch)
 
     buildType.steps {
         extraSteps()

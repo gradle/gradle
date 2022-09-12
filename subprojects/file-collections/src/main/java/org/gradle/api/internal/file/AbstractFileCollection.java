@@ -36,7 +36,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.GUtil;
 
@@ -140,11 +140,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             }
 
             @Override
-            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                addTreeContents(fileTree);
-            }
-
-            @Override
             public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                 addTreeContents(fileTree);
             }
@@ -188,17 +183,17 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             .collect(Collectors.toList());
         if (!filesAsPaths.isEmpty()) {
             String displayedFilePaths = filesAsPaths.stream().map(path -> "'" + path + "'").collect(Collectors.joining(","));
-            DeprecationLogger.deprecateBehaviour(String.format(
-                    "Converting files to a classpath string when their paths contain the path separator '%s' has been deprecated." +
-                        " The path separator is not a valid element of a file path. Problematic paths in '%s' are: %s.",
-                    File.pathSeparator,
+            throw DocumentedFailure.builder()
+                .withSummary(String.format(
+                    "Converting files to a classpath string when their paths contain the path separator '%s' is not supported. " +
+                        "The path separator is not a valid element of a file path.", File.pathSeparator))
+                .withContext(String.format("Problematic paths in '%s' are: %s.",
                     getDisplayName(),
                     displayedFilePaths
                 ))
                 .withAdvice("Add the individual files to the file collection instead.")
-                .willBecomeAnErrorInGradle8()
                 .withUpgradeGuideSection(7, "file_collection_to_classpath")
-                .nagUser();
+                .build();
         }
     }
 
@@ -304,16 +299,11 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             }
 
             @Override
-            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                 // Visit the contents of the tree to generate the tree
                 if (visitAll(sourceTree)) {
                     fileTrees.add(sourceTree.getMirror());
                 }
-            }
-
-            @Override
-            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                visitGenericFileTree(fileTree, sourceTree);
             }
         });
         return fileTrees;

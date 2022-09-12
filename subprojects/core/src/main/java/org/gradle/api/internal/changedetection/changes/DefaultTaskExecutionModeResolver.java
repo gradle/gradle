@@ -22,7 +22,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
-import org.gradle.api.internal.project.taskfactory.AbstractIncrementalTaskAction;
+import org.gradle.api.internal.project.taskfactory.IncrementalTaskAction;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.specs.AndSpec;
@@ -64,7 +64,7 @@ public class DefaultTaskExecutionModeResolver implements TaskExecutionModeResolv
 
     private static boolean requiresInputChanges(TaskInternal task) {
         for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
-            if (taskAction instanceof AbstractIncrementalTaskAction) {
+            if (taskAction instanceof IncrementalTaskAction) {
                 return true;
             }
         }

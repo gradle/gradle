@@ -55,11 +55,13 @@ public class DefaultArtifactIdentifier implements ArtifactIdentifier {
         return name.getType();
     }
 
+    @Nullable
     @Override
     public String getExtension() {
         return name.getExtension();
     }
 
+    @Nullable
     @Override
     public String getClassifier() {
         return name.getClassifier();

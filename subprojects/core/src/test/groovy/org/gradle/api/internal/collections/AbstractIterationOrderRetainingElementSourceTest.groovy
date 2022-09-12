@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.collections
 
-abstract class AbstractIterationOrderRetainingElementSourceTest extends AbstractElementSourceTest {
+abstract class AbstractIterationOrderRetainingElementSourceTest extends ElementSourceSpec {
     @Override
     List<CharSequence> iterationOrder(CharSequence... values) {
         return values as List

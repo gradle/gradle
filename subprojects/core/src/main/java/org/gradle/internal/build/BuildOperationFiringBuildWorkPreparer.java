@@ -25,8 +25,10 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
+import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.initialization.DefaultPlannedTask;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -67,8 +69,8 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
     }
 
     @Override
-    public void finalizeWorkGraph(GradleInternal gradle, ExecutionPlan plan) {
-        delegate.finalizeWorkGraph(gradle, plan);
+    public FinalizedExecutionPlan finalizeWorkGraph(GradleInternal gradle, ExecutionPlan plan) {
+        return delegate.finalizeWorkGraph(gradle, plan);
     }
 
     private static class PopulateWorkGraph implements RunnableBuildOperation {
@@ -89,9 +91,10 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             populateTaskGraph();
 
             // create copy now - https://github.com/gradle/gradle/issues/12527
-            Set<Task> requestedTasks = plan.getRequestedTasks();
-            Set<Task> filteredTasks = plan.getFilteredTasks();
-            ExecutionPlan.ScheduledNodes scheduledWork = plan.getScheduledNodes();
+            QueryableExecutionPlan contents = plan.getContents();
+            Set<Task> requestedTasks = contents.getRequestedTasks();
+            Set<Task> filteredTasks = contents.getFilteredTasks();
+            QueryableExecutionPlan.ScheduledNodes scheduledWork = contents.getScheduledNodes();
 
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
                 @Override
@@ -109,7 +112,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                     return toPlannedTasks(scheduledWork);
                 }
 
-                private List<CalculateTaskGraphBuildOperationType.PlannedTask> toPlannedTasks(ExecutionPlan.ScheduledNodes scheduledWork) {
+                private List<CalculateTaskGraphBuildOperationType.PlannedTask> toPlannedTasks(QueryableExecutionPlan.ScheduledNodes scheduledWork) {
                     List<CalculateTaskGraphBuildOperationType.PlannedTask> tasks = new ArrayList<>();
                     scheduledWork.visitNodes(nodes -> {
                         for (Node node : nodes) {

@@ -76,6 +76,7 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
+import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.service.CachingServiceLocator;
@@ -143,12 +144,12 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultBuildOperationListenerManager();
     }
 
-    BuildOperationProgressEventEmitter createBuildOperationProgressEventEmitter(
+    protected BuildOperationProgressEventEmitter createBuildOperationProgressEventEmitter(
         Clock clock,
         CurrentBuildOperationRef currentBuildOperationRef,
         BuildOperationListenerManager listenerManager
     ) {
-        return new BuildOperationProgressEventEmitter(
+        return new DefaultBuildOperationProgressEventEmitter(
             clock,
             currentBuildOperationRef,
             listenerManager.getBroadcaster()

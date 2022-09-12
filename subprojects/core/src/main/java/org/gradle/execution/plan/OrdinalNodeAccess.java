@@ -16,91 +16,73 @@
 
 package org.gradle.execution.plan;
 
-import javax.annotation.Nullable;
-import java.util.IdentityHashMap;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import static com.google.common.collect.Streams.concat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A factory for creating and accessing ordinal nodes
  */
 public class OrdinalNodeAccess {
     private final OrdinalGroupFactory ordinalGroups;
-    private final IdentityHashMap<OrdinalGroup, OrdinalNode> destroyerLocationNodes = new IdentityHashMap<>();
-    private final IdentityHashMap<OrdinalGroup, OrdinalNode> producerLocationNodes = new IdentityHashMap<>();
+    private final Set<OrdinalNode> requiredNodes = new LinkedHashSet<>();
 
     public OrdinalNodeAccess(OrdinalGroupFactory ordinalGroups) {
         this.ordinalGroups = ordinalGroups;
     }
 
-    OrdinalNode getOrCreateDestroyableLocationNode(OrdinalGroup ordinal) {
-        return destroyerLocationNodes.computeIfAbsent(ordinal, this::createDestroyerLocationNode);
+    void addDestroyerNode(OrdinalGroup ordinal, LocalTaskNode destroyer) {
+        // Create (or get) a destroyer ordinal node that depends on the output locations of this task node
+        ordinal.getDestroyerLocationsNode().addDependenciesFrom(destroyer);
+
+        // Depend on any previous producer ordinal nodes (i.e. any producer ordinal nodes with a lower ordinal)
+        if (ordinal.getPrevious() != null) {
+            OrdinalNode producerLocations = ordinal.getPrevious().getProducerLocationsNode();
+            requiredNodes.add(producerLocations);
+            destroyer.addDependencySuccessor(producerLocations);
+        }
     }
 
-    OrdinalNode getOrCreateOutputLocationNode(OrdinalGroup ordinal) {
-        return producerLocationNodes.computeIfAbsent(ordinal, this::createProducerLocationNode);
+    void addProducerNode(OrdinalGroup ordinal, LocalTaskNode producer) {
+        // Create (or get) a producer ordinal node that depends on the dependencies of this task node
+        ordinal.getProducerLocationsNode().addDependenciesFrom(producer);
+
+        // Depend on any previous destroyer ordinal nodes (i.e. any destroyer ordinal nodes with a lower ordinal)
+        if (ordinal.getPrevious() != null) {
+            OrdinalNode destroyerLocations = ordinal.getPrevious().getDestroyerLocationsNode();
+            requiredNodes.add(destroyerLocations);
+            producer.addDependencySuccessor(destroyerLocations);
+        }
     }
 
-    Stream<OrdinalNode> getAllNodes() {
-        return concat(destroyerLocationNodes.values().stream(), producerLocationNodes.values().stream());
+    List<OrdinalGroup> getAllGroups() {
+        return ordinalGroups.getAllGroups();
     }
 
-    /**
-     * Create relationships between the ordinal nodes such that destroyer ordinals cannot complete until all preceding producer
-     * ordinals have completed (and vice versa).  This ensures that an ordinal does not complete early simply because the nodes in
-     * the ordinal group it represents have no explicit dependencies.
-     */
-    void createInterNodeRelationships() {
-        createInterNodeRelationshipsFor(destroyerLocationNodes);
-        createInterNodeRelationshipsFor(producerLocationNodes);
-    }
-
-    private void createInterNodeRelationshipsFor(Map<OrdinalGroup, OrdinalNode> nodes) {
-        nodes.forEach((ordinal, node) -> {
-            for (int i = 0; i < ordinal.getOrdinal(); i++) {
-                Node precedingNode = nodes.get(group(i));
-                if (precedingNode != null) {
-                    node.addDependencySuccessor(precedingNode);
+    Collection<OrdinalNode> getAllNodes() {
+        Set<OrdinalNode> result = new LinkedHashSet<>();
+        List<OrdinalNode> queue = new ArrayList<>(requiredNodes);
+        while (!queue.isEmpty()) {
+            OrdinalNode node = queue.remove(0);
+            if (result.add(node)) {
+                for (Node successor : node.getDependencySuccessors()) {
+                    if (successor instanceof OrdinalNode && !result.contains(successor)) {
+                        queue.add((OrdinalNode) successor);
+                    }
                 }
             }
-        });
-    }
-
-    private OrdinalNode createDestroyerLocationNode(OrdinalGroup ordinal) {
-        return createOrdinalNode(OrdinalNode.Type.DESTROYER, ordinal);
-    }
-
-    private OrdinalNode createProducerLocationNode(OrdinalGroup ordinal) {
-        return createOrdinalNode(OrdinalNode.Type.PRODUCER, ordinal);
-    }
-
-    private OrdinalNode createOrdinalNode(OrdinalNode.Type type, OrdinalGroup ordinal) {
-        OrdinalNode ordinalNode = new OrdinalNode(type, ordinal);
-        ordinalNode.require();
-        return ordinalNode;
+        }
+        return result;
     }
 
     public OrdinalGroup group(int ordinal) {
         return ordinalGroups.group(ordinal);
     }
 
-    @Nullable
-    public Node getPrecedingProducerLocationNode(OrdinalGroup ordinal) {
-        if (ordinal.getOrdinal() == 0) {
-            return null;
-        } else {
-            return getOrCreateOutputLocationNode(group(ordinal.getOrdinal() - 1));
-        }
-    }
-
-    @Nullable
-    public Node getPrecedingDestroyerLocationNode(OrdinalGroup ordinal) {
-        if (ordinal.getOrdinal() == 0) {
-            return null;
-        } else {
-            return getOrCreateDestroyableLocationNode(group(ordinal.getOrdinal() - 1));
-        }
+    public void reset() {
+        requiredNodes.clear();
+        ordinalGroups.reset();
     }
 }

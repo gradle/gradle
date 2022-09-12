@@ -105,10 +105,6 @@ public final class FileTreeAdapter extends AbstractFileTree {
     @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
         tree.visitStructure(new MinimalFileTree.MinimalFileTreeStructureVisitor() {
-            @Override
-            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                visitor.visitGenericFileTree(fileTree, sourceTree);
-            }
 
             @Override
             public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
