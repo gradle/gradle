@@ -248,19 +248,20 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                     TaskInternal task = findTaskNode(taskPath);
                     if (task == null) {
                         // Assume not scheduled yet
-                        return IncludedBuildTaskResource.State.Waiting;
+                        return IncludedBuildTaskResource.State.NotScheduled;
                     }
                     taskNode = taskNodeFactory.getOrCreateNode(task);
                 }
                 if (taskNode.isExecuted() && taskNode.isSuccessful()) {
                     return IncludedBuildTaskResource.State.Success;
-                } else if (taskNode.isComplete()) {
-                    // The task has failed or is not scheduled to run, so the consuming node can proceed
-                    // Here "failed" means "output is not available, so do not run dependents"
+                } else if (taskNode.isExecuted()) {
                     return IncludedBuildTaskResource.State.Failed;
+                } else if (taskNode.isComplete()) {
+                    // Not scheduled
+                    return IncludedBuildTaskResource.State.NotScheduled;
                 } else {
                     // Scheduled but not completed
-                    return IncludedBuildTaskResource.State.Waiting;
+                    return IncludedBuildTaskResource.State.Scheduled;
                 }
             }
         }
