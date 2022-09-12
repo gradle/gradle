@@ -88,8 +88,8 @@ public class IncrementalCompileFilesFactory {
          * @return true if this source file requires recompilation, false otherwise.
          */
         private boolean visitSourceFile(File sourceFile) {
-            return fileSystemAccess.readRegularFileContentHash(sourceFile.getAbsolutePath(),
-                fileContent -> {
+            return fileSystemAccess.readRegularFileContentHash(sourceFile.getAbsolutePath())
+                .map(fileContent -> {
                     SourceFileState previousState = previous.getState(sourceFile);
 
                     if (previousState != null) {
@@ -120,8 +120,8 @@ public class IncrementalCompileFilesFactory {
                     }
                     return true;
                 })
-            // Skip things that aren't files
-            .orElse(false);
+                // Skip things that aren't files
+                .orElse(false);
         }
 
         private boolean graphHasNotChanged(File sourceFile, HashCode fileHash, SourceFileState previousState, Set<File> existingHeaders) {

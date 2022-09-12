@@ -330,6 +330,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
     @Requires(TestPrecondition.XCODE)
     @ToBeFixedForConfigurationCache
+    @Ignore("https://github.com/gradle/gradle-native-private/issues/274")
     def "can configure test only when xctest plugin is applied"() {
         useXcodebuildTool()
 
@@ -369,6 +370,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
     @Requires(TestPrecondition.XCODE)
     @ToBeFixedForConfigurationCache
+    @Ignore("https://github.com/gradle/gradle-native-private/issues/274")
     def "can run tests for Swift library from xcode"() {
         useXcodebuildTool()
         def lib = new SwiftLibWithXCTest()
@@ -399,6 +401,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
 
     @Requires(TestPrecondition.XCODE)
     @ToBeFixedForConfigurationCache
+    @Ignore("https://github.com/gradle/gradle-native-private/issues/274")
     def "can run tests for Swift application from xcode"() {
         useXcodebuildTool()
         def app = new SwiftAppWithXCTest()

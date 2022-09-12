@@ -58,6 +58,18 @@ interface JvmEcosystemAttributesDetails {
     JvmEcosystemAttributesDetails runtimeUsage();
 
     /**
+     * Provides the API view of a component during compile time. Only applicable
+     * when combined with {@link #apiUsage()}.
+     */
+    JvmEcosystemAttributesDetails apiCompileView();
+
+    /**
+     * Provides the complete view of a component during compile time. Only applicable
+     * when combined with {@link #apiUsage()}.
+     */
+    JvmEcosystemAttributesDetails completeCompileView();
+
+    /**
      * Provides or requires a component which dependencies are found
      * as independent components (typically through external dependencies)
      */

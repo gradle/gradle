@@ -191,6 +191,11 @@ public class DeprecationLogger {
         return new DeprecationMessageBuilder.DeprecateInvocation(methodWithParams);
     }
 
+    @CheckReturnValue
+    public static DeprecationMessageBuilder.DeprecateType deprecateType(Class<?> type) {
+        return new DeprecationMessageBuilder.DeprecateType(type.getCanonicalName());
+    }
+
     /**
      * Output: The ${task} task has been deprecated.
      */

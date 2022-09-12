@@ -407,6 +407,23 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
     }
 
+    public static class DeprecateType extends WithReplacement<String, DeprecateType> {
+
+        DeprecateType(String type) {
+            super(type);
+        }
+
+        @Override
+        String formatSummary(String type) {
+            return String.format("The %s type has been deprecated.", type);
+        }
+
+        @Override
+        String formatAdvice(String replacement) {
+            return String.format("Please use the %s type instead.", replacement);
+        }
+    }
+
     public static class DeprecateTask extends WithReplacement<String, DeprecateTask> {
         DeprecateTask(String task) {
             super(task);
