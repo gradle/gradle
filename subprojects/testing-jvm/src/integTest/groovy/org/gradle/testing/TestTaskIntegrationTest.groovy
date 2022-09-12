@@ -343,7 +343,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         failure.assertHasErrorOutput("You cannot change the test framework to: JUnit Platform after accessing test options. The current framework is: JUnit 4.")
     }
 
-    def "options accessed and not explicitly configured prior to setting test framework will also warn"() {
+    def "options accessed and not explicitly configured prior to setting test framework also fails"() {
         given:
         file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
 
