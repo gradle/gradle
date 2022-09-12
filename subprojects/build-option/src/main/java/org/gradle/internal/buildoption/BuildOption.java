@@ -23,12 +23,12 @@ import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
- * Represents a option for a build provided by the user via Gradle property and/or a command line option.
+ * Represents an option for a build provided by the user via Gradle property and/or a command line option.
  *
  * @param <T> the type of object that ultimately expresses the option to consumers
  * @since 4.3
  */
-public interface BuildOption<T> {
+public interface BuildOption<T> extends Option {
 
     @Nullable
     String getGradleProperty();
