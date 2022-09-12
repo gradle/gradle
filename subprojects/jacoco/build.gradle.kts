@@ -13,7 +13,6 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":platform-base"))
     implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
     implementation(project(":plugins"))
     implementation(project(":reporting"))
     implementation(project(":file-collections"))

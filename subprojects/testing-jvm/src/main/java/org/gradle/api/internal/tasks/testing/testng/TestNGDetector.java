@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.testng;
 import org.gradle.api.internal.tasks.testing.detection.AbstractTestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 
-class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetector> {
+public class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetector> {
     TestNGDetector(ClassFileExtractionManager classFileExtractionManager) {
         super(classFileExtractionManager);
     }

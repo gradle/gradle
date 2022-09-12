@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Constructor;
 
 public class AllExceptIgnoredTestRunnerBuilder extends AllDefaultPossibilitiesBuilder {
-
+    @SuppressWarnings("deprecation")
     public AllExceptIgnoredTestRunnerBuilder() {
         super(true);
     }

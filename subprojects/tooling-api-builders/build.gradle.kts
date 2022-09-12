@@ -19,11 +19,11 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":model-core"))
     implementation(project(":native"))
+    implementation(project(":plugins"))
     implementation(project(":process-services"))
     implementation(project(":reporting"))
     implementation(project(":resources"))
     implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
     implementation(project(":tooling-api"))
     implementation(project(":workers"))
 
@@ -33,6 +33,7 @@ dependencies {
 
     testImplementation(project(":file-collections"))
     testImplementation(project(":platform-jvm"))
+    testImplementation(project(":testing-jvm"))
     testImplementation(testFixtures(project(":core")))
 }
 

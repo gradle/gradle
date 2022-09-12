@@ -4,37 +4,25 @@ plugins {
 
 gradlebuildJava.usedInWorkers()
 
-description = """JVM-specific testing functionality, including the Test type and support for configuring options for, detecting
-tests written in and running various JVM testing frameworks.  This project "extends" the testing-base project by sub-typing many
-of its abstractions with JVM-specific abstractions or implementations.
+description = """JVM-specific testing functionality, including support for bootstrapping and configuring test workers, detecting
+tests written with various JVM testing frameworks, and executing those tests. This project "extends" the testing-base
+project by sub-typing many of its abstractions with JVM-specific abstractions or implementations.
 
-This project is a implementation dependency of many other testing-related subprojects in the Gradle build, and is a necessary
-dependency for any projects working directly with Test tasks.
+Few projects should need to depend on this module directly. Most external interactions with this module are through the
+various implementations of WorkerTestClassProcessorFactory.
 """
 
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))
-    implementation(project(":native"))
     implementation(project(":logging"))
-    implementation(project(":process-services"))
-    implementation(project(":file-collections"))
     implementation(project(":file-temp"))
-    implementation(project(":jvm-services"))
     implementation(project(":core-api"))
-    implementation(project(":model-core"))
     implementation(project(":core"))
-    implementation(project(":dependency-management"))
-    implementation(project(":reporting"))
-    implementation(project(":diagnostics"))
-    implementation(project(":platform-base"))
-    implementation(project(":platform-jvm"))
-    implementation(project(":language-java"))
     implementation(project(":testing-base"))
 
     implementation(libs.slf4jApi)
-    implementation(libs.groovy)
-    implementation(libs.groovyXml)
+    implementation(libs.groovy) // for 'Closure'
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
@@ -49,6 +37,8 @@ dependencies {
     testImplementation(libs.guice) {
         because("This is for TestNG")
     }
+    testImplementation(project(":reporting"))
+    testImplementation(project(":platform-jvm"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":testing-base")))
     testImplementation(testFixtures(project(":diagnostics")))
@@ -65,11 +55,6 @@ dependencies {
     testFixturesImplementation(project(":testing-base"))
     testFixturesImplementation(libs.testng)
     testFixturesImplementation(libs.bsh)
-}
-
-strictCompile {
-    ignoreRawTypes() // raw types used in public API (org.gradle.api.tasks.testing.Test)
-    ignoreDeprecations() // uses deprecated software model types
 }
 
 packageCycles {

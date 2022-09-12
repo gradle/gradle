@@ -22,11 +22,11 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":messaging"))
     implementation(project(":model-core"))
+    implementation(project(":plugins"))
     implementation(project(":process-services"))
     implementation(project(":reporting"))
     implementation(project(":snapshots"))
     implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
 
     compileOnly(libs.groovy) {
         because("some used APIs (e.g. FileTree.visit) provide methods taking Groovy closures which causes compile errors")

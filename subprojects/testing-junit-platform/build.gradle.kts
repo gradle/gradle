@@ -5,7 +5,12 @@ plugins {
 
 description = """Support classes used to run tests with the JUnit Platform testing framework.
 
-This project should NOT be used as an implementation dependency anywhere."""
+This project is separate from :testing-jvm since it requires junit-platform which itself requires Java 8+.
+
+This project should only be used by :testing-jvm, however it is not depended upon directly. Instead :testing-jvm loads
+classes from this project via reflection due to the above noted Java version issue. We make sure to include this subproject
+as a runtime dependency in :distributions-core to ensure we include it with the Gradle distribution.
+"""
 
 dependencies {
     implementation(project(":base-services"))

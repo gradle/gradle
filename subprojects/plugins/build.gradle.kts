@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":file-collections"))
     implementation(project(":persistent-cache"))
     implementation(project(":core-api"))
+    implementation(project(":messaging"))
     implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":workers"))
@@ -29,6 +30,7 @@ dependencies {
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
+    implementation(libs.groovyXml)
     implementation(libs.ant)
     implementation(libs.guava)
     implementation(libs.commonsLang)

@@ -19,7 +19,6 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":reporting"))
     implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
     implementation(project(":plugins"))
     implementation(project(":plugin-use"))
     implementation(project(":publish"))

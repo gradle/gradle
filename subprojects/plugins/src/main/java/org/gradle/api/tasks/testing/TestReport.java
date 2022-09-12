@@ -45,7 +45,7 @@ import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
- * Generates an HTML test report from the results of one or more {@link Test} tasks.
+ * Generates an HTML test report from the results of one or more {@code Test} tasks.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public class TestReport extends DefaultTask {
@@ -83,20 +83,6 @@ public class TestReport extends DefaultTask {
     @PathSensitive(PathSensitivity.NONE)
     public ConfigurableFileCollection getTestResults() {
         return resultDirs;
-    }
-
-    private void addTo(Object result, ConfigurableFileCollection dirs) {
-        if (result instanceof Test) {
-            Test test = (Test) result;
-            dirs.from(test.getBinaryResultsDirectory());
-        } else if (result instanceof Iterable<?>) {
-            Iterable<?> iterable = (Iterable<?>) result;
-            for (Object nested : iterable) {
-                addTo(nested, dirs);
-            }
-        } else {
-            dirs.from(result);
-        }
     }
 
     @TaskAction

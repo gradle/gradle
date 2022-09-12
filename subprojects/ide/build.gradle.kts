@@ -23,7 +23,6 @@ dependencies {
     implementation(project(":ear"))
     implementation(project(":tooling-api"))
     implementation(project(":testing-base"))
-    implementation(project(":testing-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.groovyXml)

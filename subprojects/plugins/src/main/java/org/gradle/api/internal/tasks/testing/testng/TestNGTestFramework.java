@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.testing.TestClassLoaderFactory;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
@@ -33,16 +32,11 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.internal.Factory;
-import org.gradle.internal.actor.ActorFactory;
-import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -116,12 +110,20 @@ public class TestNGTestFramework implements TestFramework {
         verifyPreserveOrder();
         verifyGroupByInstances();
         List<File> suiteFiles = options.getSuites(testTaskTemporaryDir.create());
-        TestNGSpec spec = new TestNGSpec(options, filter);
-        return new TestClassProcessorFactoryImpl(this.options.getOutputDirectory(), spec, suiteFiles);
+        TestNGSpec spec = toSpec(options, filter);
+        return new TestNgTestClassProcessorFactory(this.options.getOutputDirectory(), spec, suiteFiles);
+    }
+
+    private static TestNGSpec toSpec(TestNGOptions options, DefaultTestFilter filter) {
+        return new TestNGSpec(options.getSuiteName(), options.getTestName(), options.getParallel(), options.getThreadCount(),
+            options.getUseDefaultListeners(), options.getIncludeGroups(), options.getExcludeGroups(), options.getListeners(),
+            filter.getIncludePatterns(), filter.getExcludePatterns(), filter.getCommandLineIncludePatterns(),
+            options.getConfigFailurePolicy(), options.getPreserveOrder(), options.getGroupByInstances()
+        );
     }
 
     private void verifyConfigFailurePolicy() {
-        if (!options.getConfigFailurePolicy().equals(TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY)) {
+        if (!options.getConfigFailurePolicy().equals(TestNGTestClassProcessor.DEFAULT_CONFIG_FAILURE_POLICY)) {
             String message = String.format("The version of TestNG used does not support setting config failure policy to '%s'.", options.getConfigFailurePolicy());
             try {
                 // for TestNG v6.9.12 and higher
@@ -233,22 +235,5 @@ public class TestNGTestFramework implements TestFramework {
         // This should probably be a part of the test task and managed there.
         testClassLoader = null;
         detector = null;
-    }
-
-    private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
-        private final File testReportDir;
-        private final TestNGSpec options;
-        private final List<File> suiteFiles;
-
-        public TestClassProcessorFactoryImpl(File testReportDir, TestNGSpec options, List<File> suiteFiles) {
-            this.testReportDir = testReportDir;
-            this.options = options;
-            this.suiteFiles = suiteFiles;
-        }
-
-        @Override
-        public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(Clock.class), serviceRegistry.get(ActorFactory.class));
-        }
     }
 }

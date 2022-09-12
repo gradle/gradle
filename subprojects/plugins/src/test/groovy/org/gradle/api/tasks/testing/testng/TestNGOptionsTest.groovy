@@ -17,6 +17,7 @@ package org.gradle.api.tasks.testing.testng
 
 import org.gradle.api.file.Directory
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.tasks.testing.testng.TestNGTestClassProcessor
 import spock.lang.Specification
 
 class TestNGOptionsTest extends Specification {
@@ -40,7 +41,7 @@ class TestNGOptionsTest extends Specification {
             threadCount == -1
             suiteName == 'Gradle suite'
             testName == 'Gradle test'
-            configFailurePolicy == DEFAULT_CONFIG_FAILURE_POLICY
+            configFailurePolicy == TestNGTestClassProcessor.DEFAULT_CONFIG_FAILURE_POLICY
             !preserveOrder
             !groupByInstances
         }

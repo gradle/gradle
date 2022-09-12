@@ -19,9 +19,6 @@ package org.gradle.api.internal.tasks.testing.testng;
 import java.io.Serializable;
 import java.util.Set;
 
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.tasks.testing.testng.TestNGOptions;
-
 public class TestNGSpec implements Serializable {
     private static final long serialVersionUID = 1;
 
@@ -40,21 +37,36 @@ public class TestNGSpec implements Serializable {
     private final boolean preserveOrder;
     private final boolean groupByInstances;
 
-    public TestNGSpec(TestNGOptions options, DefaultTestFilter filter) {
-        this.defaultSuiteName = options.getSuiteName();
-        this.defaultTestName = options.getTestName();
-        this.parallel = options.getParallel();
-        this.threadCount = options.getThreadCount();
-        this.useDefaultListener = options.getUseDefaultListeners();
-        this.includeGroups = options.getIncludeGroups();
-        this.excludeGroups = options.getExcludeGroups();
-        this.listeners = options.getListeners();
-        this.includedTests = filter.getIncludePatterns();
-        this.excludedTests = filter.getExcludePatterns();
-        this.includedTestsCommandLine = filter.getCommandLineIncludePatterns();
-        this.configFailurePolicy = options.getConfigFailurePolicy();
-        this.preserveOrder = options.getPreserveOrder();
-        this.groupByInstances = options.getGroupByInstances();
+    public TestNGSpec(
+        String defaultSuiteName,
+        String defaultTestName,
+        String parallel,
+        int threadCount,
+        boolean useDefaultListener,
+        Set<String> includeGroups,
+        Set<String> excludeGroups,
+        Set<String> listeners,
+        Set<String> includedTests,
+        Set<String> excludedTests,
+        Set<String> includedTestsCommandLine,
+        String configFailurePolicy,
+        boolean preserveOrder,
+        boolean groupByInstances
+    ) {
+        this.defaultSuiteName = defaultSuiteName;
+        this.defaultTestName = defaultTestName;
+        this.parallel = parallel;
+        this.threadCount = threadCount;
+        this.useDefaultListener = useDefaultListener;
+        this.includeGroups = includeGroups;
+        this.excludeGroups = excludeGroups;
+        this.listeners = listeners;
+        this.includedTests = includedTests;
+        this.excludedTests = excludedTests;
+        this.includedTestsCommandLine = includedTestsCommandLine;
+        this.configFailurePolicy = configFailurePolicy;
+        this.preserveOrder = preserveOrder;
+        this.groupByInstances = groupByInstances;
     }
 
     public Set<String> getListeners() {
