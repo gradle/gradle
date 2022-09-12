@@ -21,6 +21,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -37,6 +38,14 @@ import java.util.regex.Pattern;
  */
 @Deprecated
 public class TextUtil {
+
+    private static void logDeprecation() {
+        DeprecationLogger.deprecateType(TextUtil.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
+
     private static final Pattern WHITESPACE = Pattern.compile("\\s*");
     private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
     private static final Joiner KEBAB_JOINER = Joiner.on("-");
@@ -48,10 +57,15 @@ public class TextUtil {
     };
     private static final Pattern NON_UNIX_LINE_SEPARATORS = Pattern.compile("\r\n|\r");
 
+    public TextUtil() {
+        logDeprecation();
+    }
+
     /**
      * Returns the line separator for Windows.
      */
     public static String getWindowsLineSeparator() {
+        logDeprecation();
         return "\r\n";
     }
 
@@ -59,6 +73,7 @@ public class TextUtil {
      * Returns the line separator for Unix.
      */
     public static String getUnixLineSeparator() {
+        logDeprecation();
         return "\n";
     }
 
@@ -66,6 +81,11 @@ public class TextUtil {
      * Returns the line separator for this platform.
      */
     public static String getPlatformLineSeparator() {
+        logDeprecation();
+        return getPlatformLineSeparatorInternal();
+    }
+
+    private static String getPlatformLineSeparatorInternal() {
         return SystemProperties.getInstance().getLineSeparator();
     }
 
@@ -74,6 +94,7 @@ public class TextUtil {
      */
     @Nullable
     public static String convertLineSeparators(@Nullable String str, String sep) {
+        logDeprecation();
         return str == null ? null : replaceLineSeparatorsOf(str, sep);
     }
 
@@ -81,6 +102,11 @@ public class TextUtil {
      * Converts all line separators in the specified non-null string to the Unix line separator {@code \n}.
      */
     public static String convertLineSeparatorsToUnix(String str) {
+        logDeprecation();
+        return convertLineSeparatorsToUnixInternal(str);
+    }
+
+    private static String convertLineSeparatorsToUnixInternal(String str) {
         return replaceAll(NON_UNIX_LINE_SEPARATORS, str, "\n");
     }
 
@@ -88,6 +114,12 @@ public class TextUtil {
      * Converts all line separators in the specified non-null {@link CharSequence} to the specified line separator.
      */
     public static String replaceLineSeparatorsOf(CharSequence string, String bySeparator) {
+        logDeprecation();
+        return replaceLineSeparatorsInternalOf(string, bySeparator);
+    }
+
+    private static String replaceLineSeparatorsInternalOf(CharSequence string, String bySeparator) {
+        logDeprecation();
         return replaceAll("\r\n|\r|\n", string, bySeparator);
     }
 
@@ -103,7 +135,8 @@ public class TextUtil {
      * Converts all line separators in the specified string to the platform's line separator.
      */
     public static String toPlatformLineSeparators(String str) {
-        return str == null ? null : replaceLineSeparatorsOf(str, getPlatformLineSeparator());
+        logDeprecation();
+        return str == null ? null : replaceLineSeparatorsInternalOf(str, getPlatformLineSeparatorInternal());
     }
 
     /**
@@ -113,13 +146,23 @@ public class TextUtil {
      */
     @Nullable
     public static String normaliseLineSeparators(@Nullable String str) {
-        return str == null ? null : convertLineSeparatorsToUnix(str);
+        logDeprecation();
+        return normaliseLineSeparatorsInternal(str);
+    }
+
+    private static String normaliseLineSeparatorsInternal(@Nullable String str) {
+        return str == null ? null : convertLineSeparatorsToUnixInternal(str);
     }
 
     /**
      * Converts all native file separators in the specified string to '/'.
      */
     public static String normaliseFileSeparators(String path) {
+        logDeprecation();
+        return normaliseFileSeparatorsInternal(path);
+    }
+
+    private static String normaliseFileSeparatorsInternal(String path) {
         return path.replace(File.separatorChar, '/');
     }
 
@@ -128,6 +171,7 @@ public class TextUtil {
      * This is useful for interpolating variables into script strings, as well as in other situations.
      */
     public static String escapeString(Object obj) {
+        logDeprecation();
         return obj == null ? null : StringEscapeUtils.escapeJava(obj.toString());
     }
 
@@ -135,6 +179,7 @@ public class TextUtil {
      * Tells whether the specified string contains any whitespace characters.
      */
     public static boolean containsWhitespace(String str) {
+        logDeprecation();
         for (int i = 0; i < str.length(); i++) {
             if (Character.isWhitespace(str.charAt(i))) {
                 return true;
@@ -148,6 +193,7 @@ public class TextUtil {
      * and lines that only contain whitespace are not indented.
      */
     public static String indent(String text, String indent) {
+        logDeprecation();
         StringBuilder builder = new StringBuilder();
         String[] lines = text.split("\n");
 
@@ -166,6 +212,7 @@ public class TextUtil {
     }
 
     public static String shorterOf(String s1, String s2) {
+        logDeprecation();
         if (s2.length() >= s1.length()) {
             return s1;
         } else {
@@ -181,6 +228,7 @@ public class TextUtil {
      * @return string with removeString removed or the original string if it did not contain removeString
      */
     public static String minus(String originalString, String removeString) {
+        logDeprecation();
         String s = originalString.toString();
         int index = s.indexOf(removeString);
         if (index == -1) {
@@ -194,10 +242,12 @@ public class TextUtil {
     }
 
     public static String normaliseFileAndLineSeparators(String in) {
-        return normaliseLineSeparators(normaliseFileSeparators(in));
+        logDeprecation();
+        return normaliseLineSeparatorsInternal(normaliseFileSeparatorsInternal(in));
     }
 
     public static String camelToKebabCase(String camelCase) {
+        logDeprecation();
         return KEBAB_JOINER.join(Iterables.transform(Arrays.asList(UPPER_CASE.split(camelCase)), TO_LOWERCASE));
     }
 
@@ -208,11 +258,11 @@ public class TextUtil {
      *
      * @param s string to be made lowercase
      * @return a lowercase string that ignores locale
-     *
      * @see <a href="https://issues.gradle.org/browse/GRADLE-3470">GRADLE-3470</a>
      * @see <a href="https://haacked.com/archive/2012/07/05/turkish-i-problem-and-why-you-should-care.aspx/">Turkish i problem</a>
      */
     public static String toLowerCaseLocaleSafe(String s) {
+        logDeprecation();
         return s.toLowerCase(Locale.ENGLISH);
     }
 }
