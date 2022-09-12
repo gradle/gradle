@@ -46,7 +46,7 @@ val rules by configurations.creating {
 }
 
 val isBundleGroovy4 = System.getProperty("bundleGroovy4", "false") == "true"
-val groovyVersion = if (isBundleGroovy4) "4.0.5-SNAPSHOT" else GroovySystem.getVersion()
+val groovyVersion = if (isBundleGroovy4) "4.0.5" else GroovySystem.getVersion()
 val codenarcVersion = if (isBundleGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
 
 dependencies {
