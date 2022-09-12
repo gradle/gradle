@@ -829,9 +829,6 @@ tasks.named("docsTest") { task ->
                 "snippet-dependency-management-customizing-resolution-metadata-rule_groovy_comonentMetadataRules.sample",
                 "snippet-dependency-management-customizing-resolution-metadata-rule_kotlin_comonentMetadataRules.sample",
 
-                "snippet-dependency-management-defining-using-configurations-custom_groovy_custom-configuration.sample",
-                "snippet-dependency-management-defining-using-configurations-custom_kotlin_custom-configuration.sample",
-
                 "snippet-dependency-management-dependency-verification-disabling-verification_groovy_disabling_verification.sample",
                 "snippet-dependency-management-dependency-verification-disabling-verification_kotlin_disabling_verification.sample",
 
