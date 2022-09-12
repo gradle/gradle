@@ -33,6 +33,7 @@ import gradlebuild.basics.BuildParams.BUILD_VCS_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_VERSION_QUALIFIER
 import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
 import gradlebuild.basics.BuildParams.DEFAULT_PERFORMANCE_BASELINES
+import gradlebuild.basics.BuildParams.ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS
 import gradlebuild.basics.BuildParams.FLAKY_TEST
 import gradlebuild.basics.BuildParams.GRADLE_INSTALL_PATH
 import gradlebuild.basics.BuildParams.INCLUDE_PERFORMANCE_TEST_SCENARIOS
@@ -48,6 +49,7 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
 import gradlebuild.basics.BuildParams.PREDICTIVE_TEST_SELECTION_ENABLED
 import gradlebuild.basics.BuildParams.RERUN_ALL_TESTS
 import gradlebuild.basics.BuildParams.RUN_ANDROID_STUDIO_IN_HEADLESS_MODE
+import gradlebuild.basics.BuildParams.RUN_BROKEN_CONFIGURATION_CACHE_DOCS_TESTS
 import gradlebuild.basics.BuildParams.STUDIO_HOME
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_ENABLED
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_PARTITION_SIZE
@@ -121,6 +123,15 @@ object BuildParams {
     const val AUTO_DOWNLOAD_ANDROID_STUDIO = "autoDownloadAndroidStudio"
     const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
     const val STUDIO_HOME = "studioHome"
+
+    /**
+     * Run docs tests with the configuration cache enabled.
+     */
+    const val ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS = "enableConfigurationCacheForDocsTests"
+    /**
+     * Run docs tests that are knowingly broken when running with the configuration cache enabled. Only applied when #ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS is also set.
+     */
+    const val RUN_BROKEN_CONFIGURATION_CACHE_DOCS_TESTS = "runBrokenConfigurationCacheDocsTests"
 
     internal
     val VENDOR_MAPPING = mapOf("oracle" to JvmVendorSpec.ORACLE, "openjdk" to JvmVendorSpec.ADOPTIUM)
@@ -361,7 +372,26 @@ val Project.androidStudioHome: Provider<String>
 
 
 /**
+ * If set to `true`, run docs tests with the configuration cache enabled.
+ */
+val Project.configurationCacheEnabledForDocsTests: Boolean
+    @JvmName("isConfigurationCacheEnabledForDocsTests") get() = gradleProperty(ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS).orNull.toBoolean()
+
+
+/**
+ * If set to `true`, run docs tests that are knowingly broken when running with the configuration cache enabled. Only applied when #configurationCacheEnabledForDocsTests is also set.
+ */
+val Project.runBrokenForConfigurationCacheDocsTests: Boolean
+    @JvmName("shouldRunBrokenForConfigurationCacheDocsTests") get() = gradleProperty(RUN_BROKEN_CONFIGURATION_CACHE_DOCS_TESTS).orNull.toBoolean()
+
+
+/**
  * Is a promotion build task called?
  */
 val Project.isPromotionBuild: Boolean
-    get() = gradle.startParameter.taskNames.contains("promotionBuild")
+    get() {
+        val taskNames = gradle.startParameter.taskNames
+        return taskNames.contains("promotionBuild") ||
+            // :updateReleasedVersionsToLatestNightly and :updateReleasedVersions
+            taskNames.any { it.contains("updateReleasedVersions") }
+    }

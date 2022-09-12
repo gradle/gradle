@@ -48,7 +48,7 @@ testing {
         create("archTest", JvmTestSuite::class) {
             useJUnitJupiter()
             dependencies {
-                implementation(project)
+                implementation(project.dependencies.create(project))
                 notForAccessorGeneration {
                     implementation(project.dependencies.platform(project(":distributions-dependencies")))
                     implementation(project(":internal-architecture-testing"))

@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmImplementation
 import spock.lang.Specification
@@ -35,7 +36,7 @@ class JavaToolchainTest extends Specification {
             getLanguageVersion() >> JavaLanguageVersion.of(languageVersion)
             getVendor() >> DefaultJvmVendorSpec.any().toString()
             getImplementation() >> JvmImplementation.VENDOR_SPECIFIC.toString()
-        })
+        }, Stub(BuildOperationProgressEventEmitter))
         then:
         javaToolchain.languageVersion.asInt() == languageVersion
         javaToolchain.javaRuntimeVersion == runtimeVersion

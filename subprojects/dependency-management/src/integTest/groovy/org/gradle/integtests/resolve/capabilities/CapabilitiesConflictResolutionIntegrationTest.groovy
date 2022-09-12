@@ -19,13 +19,11 @@ package org.gradle.integtests.resolve.capabilities
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForConfigurationCache
     def "reasonable error message when a user rule throws an exception (#rule)"() {
         given:
         repository {

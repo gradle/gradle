@@ -27,9 +27,13 @@ import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
 import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import org.gradle.execution.selection.BuildTaskSelector
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices
+import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
+import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.RunTasksRequirements
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.util.internal.IncubationLogger
@@ -105,9 +109,25 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(BeanStateWriterLookup::class.java)
             registration.add(BeanStateReaderLookup::class.java)
             registration.add(JavaSerializationEncodingLookup::class.java)
+            registration.addProvider(ConfigurationCacheBuildTreeProvider())
         } else {
             registration.add(VintageInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(VintageBuildTreeLifecycleControllerFactory::class.java)
+            registration.addProvider(VintageBuildTreeProvider())
+        }
+    }
+
+    private
+    class ConfigurationCacheBuildTreeProvider {
+        fun createBuildTreeWorkGraphPreparer(buildRegistry: BuildStateRegistry, buildTaskSelector: BuildTaskSelector, cache: BuildTreeConfigurationCache): BuildTreeWorkGraphPreparer {
+            return ConfigurationCacheAwareBuildTreeWorkGraphPreparer(DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector), cache)
+        }
+    }
+
+    private
+    class VintageBuildTreeProvider {
+        fun createBuildTreeWorkGraphPreparer(buildRegistry: BuildStateRegistry, buildTaskSelector: BuildTaskSelector): BuildTreeWorkGraphPreparer {
+            return DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector)
         }
     }
 }

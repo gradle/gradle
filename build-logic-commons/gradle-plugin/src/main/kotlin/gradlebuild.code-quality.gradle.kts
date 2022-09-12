@@ -79,10 +79,10 @@ plugins.withType<GroovyBasePlugin> {
 
 codenarc {
     config = configFile("codenarc.xml")
+    reportFormat = "console"
 }
 
 tasks.withType<CodeNarc>().configureEach {
-    reports.xml.required.set(true)
     if (name.contains("IntegTest")) {
         config = configFile("codenarc-integtests.xml")
     }

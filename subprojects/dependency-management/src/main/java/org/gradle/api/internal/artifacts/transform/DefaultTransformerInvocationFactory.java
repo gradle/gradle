@@ -58,7 +58,6 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.INCREMENTAL;
@@ -209,7 +208,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             super.visitIdentityInputs(visitor);
             // This is a performance hack. We could use the regular fingerprint of the input artifact, but that takes longer than
             // capturing the normalized path and the snapshot of the raw contents, so we are using these to determine the identity
-            FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath(), Function.identity());
+            FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemAccess.read(inputArtifact.getAbsolutePath());
             visitor.visitInputProperty(INPUT_ARTIFACT_SNAPSHOT_PROPERTY_NAME, inputArtifactSnapshot::getHash);
         }
 
@@ -287,9 +286,10 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 public TransformationResult call(BuildOperationContext context) {
                     File workspace = executionRequest.getWorkspace();
                     InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
-                    ImmutableList<File> result = transformer.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
-                    TransformationResultSerializer resultSerializer = new TransformationResultSerializer(inputArtifact, getOutputDir(workspace));
-                    return resultSerializer.writeToFile(getResultsFile(workspace), result);
+                    TransformationResult result = transformer.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
+                    TransformationResultSerializer resultSerializer = new TransformationResultSerializer(getOutputDir(workspace));
+                    resultSerializer.writeToFile(getResultsFile(workspace), result);
+                    return result;
                 }
 
                 @Override
@@ -315,7 +315,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public Object loadRestoredOutput(File workspace) {
-            TransformationResultSerializer resultSerializer = new TransformationResultSerializer(inputArtifact, getOutputDir(workspace));
+            TransformationResultSerializer resultSerializer = new TransformationResultSerializer(getOutputDir(workspace));
             return resultSerializer.readResultsFile(getResultsFile(workspace));
         }
 

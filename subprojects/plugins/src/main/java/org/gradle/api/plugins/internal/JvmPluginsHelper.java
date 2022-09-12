@@ -57,11 +57,11 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -149,8 +149,7 @@ public class JvmPluginsHelper {
         sourceDirectorySet.getDestinationDirectory().convention(target.getLayout().getBuildDirectory().dir(sourceSetChildPath));
 
         DefaultSourceSetOutput sourceSetOutput = Cast.cast(DefaultSourceSetOutput.class, sourceSet.getOutput());
-        sourceSetOutput.addClassesDir(sourceDirectorySet.getDestinationDirectory());
-        sourceSetOutput.registerClassesContributor(compileTask);
+        sourceSetOutput.addClassesDir(sourceDirectorySet.getDestinationDirectory(), compileTask);
         sourceSetOutput.getGeneratedSourcesDirs().from(options.flatMap(CompileOptions::getGeneratedSourceOutputDirectory));
         sourceDirectorySet.compiledBy(compileTask, classesDirectoryExtractor);
     }
@@ -169,43 +168,6 @@ public class JvmPluginsHelper {
                 }
             });
         }
-    }
-
-    /**
-     * @deprecated Use {@link #configureDocumentationVariantWithArtifact(String, String, String, List, String, Object, AdhocComponentWithVariants, ConfigurationContainer, TaskContainer, ObjectFactory, FileResolver)}
-     * instead. Passing {@code null} for the FileResolver will not be legal after this is removed, please provide one.
-     */
-    @Deprecated
-    public static void configureDocumentationVariantWithArtifact(
-        String variantName,
-        @Nullable String featureName,
-        String docsType,
-        List<Capability> capabilities,
-        String jarTaskName,
-        Object artifactSource,
-        @Nullable AdhocComponentWithVariants component,
-        ConfigurationContainer configurations,
-        TaskContainer tasks,
-        ObjectFactory objectFactory
-    ) {
-        DeprecationLogger.deprecateInternalApi("configureDocumentationVariantWithArtifact (no FileResolver)")
-            .replaceWith("configureDocumentationVariantWithArtifact (with FileResolver)")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
-            .nagUser();
-        configureDocumentationVariantWithArtifact(
-            variantName,
-            featureName,
-            docsType,
-            capabilities,
-            jarTaskName,
-            artifactSource,
-            component,
-            configurations,
-            tasks,
-            objectFactory,
-            null
-        );
     }
 
     public static void configureDocumentationVariantWithArtifact(
@@ -332,6 +294,25 @@ public class JvmPluginsHelper {
         @Override
         public boolean shouldBePublished() {
             return false;
+        }
+    }
+
+    /**
+     * An {@link IntermediateJavaArtifact} which achieves lazy file access via a {@link Provider} instead
+     * of inheritance.
+     */
+    public static class ProviderBasedIntermediateJavaArtifact extends IntermediateJavaArtifact {
+
+        private final Provider<File> fileProvider;
+
+        public ProviderBasedIntermediateJavaArtifact(String type, Object task, Provider<File> fileProvider) {
+            super(type, task);
+            this.fileProvider = fileProvider;
+        }
+
+        @Override
+        public File getFile() {
+            return fileProvider.get();
         }
     }
 }

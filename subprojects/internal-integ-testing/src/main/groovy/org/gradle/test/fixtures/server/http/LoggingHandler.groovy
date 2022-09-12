@@ -39,7 +39,8 @@ class LoggingHandler extends AbstractHandler {
 
     @Override
     void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        allHeaders.add(request.getHeaderNames().toList().collectEntries { headerName -> [headerName, request.getHeader(headerName as String)] })
+        Map<String, String> entries = request.getHeaderNames().toList().collectEntries { headerName -> [headerName, request.getHeader(headerName as String)] }
+        allHeaders.add(entries)
         String authorization = getAuthorizationHeader(request)
         if (authorization != null) {
             synchronized (authenticationAttempts) {

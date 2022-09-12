@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,16 @@
 
 package org.gradle.internal.execution;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +33,9 @@ import java.util.stream.Collectors;
  */
 @Contextual
 public class WorkValidationException extends GradleException {
+    private static final String MAX_ERR_COUNT_PROPERTY = "org.gradle.internal.max.validation.errors";
+    private static final int DEFAULT_MAX_ERR_COUNT = 5;
+
     private final List<String> problems;
 
     private WorkValidationException(String message, Collection<String> problems) {
@@ -47,38 +51,58 @@ public class WorkValidationException extends GradleException {
         return new Builder(problems);
     }
 
-    public static class Builder {
+    /**
+     * A Stepwise builder for a {@code WorkValidationException}.
+     *
+     * This class represents step 1, call {@link #withSummaryForContext(String, WorkValidationContext)} or {@link #withSummaryForPlugin()} to return Step 2.
+     */
+    public final static class Builder {
         private final List<String> problems;
-        private final int size;
 
         public Builder(Collection<String> problems) {
-            this.problems = ImmutableList.copyOf(problems);
-            this.size = problems.size();
+            this.problems = problems.stream()
+                    .limit(Integer.getInteger(MAX_ERR_COUNT_PROPERTY, DEFAULT_MAX_ERR_COUNT)) // Only retrieve the property upon building an error report
+                    .collect(ImmutableList.toImmutableList());
         }
 
         public Builder limitTo(int maxProblems) {
             return new Builder(problems.stream().limit(maxProblems).collect(Collectors.toList()));
         }
 
-        public BuilderWithSummary withSummary(Function<SummaryHelper, String> summaryBuilder) {
-            return new BuilderWithSummary(problems, summaryBuilder.apply(new SummaryHelper()));
+        public BuilderWithSummary withSummaryForContext(String validatedObjectName, WorkValidationContext validationContext) {
+            String summary = summarizeInContext(validatedObjectName, validationContext);
+            return new BuilderWithSummary(problems, summary);
         }
 
-        public class SummaryHelper  {
-            public int size() {
-                return size;
-            }
-
-            public String pluralize(String term) {
-                if (size > 1) {
-                    return term + "s";
-                }
-                return term;
-            }
+        public BuilderWithSummary withSummaryForPlugin() {
+            String summary = "Plugin validation failed with " + problems.size() + " problem" + (problems.size() == 1 ? "" : "s");
+            return new BuilderWithSummary(problems, summary);
         }
+
+        private String summarizeInContext(String validatedObjectName, WorkValidationContext validationContext) {
+            return String.format("%s found with the configuration of %s (%s).",
+                    problems.size() == 1 ? "A problem was" : "Some problems were",
+                    validatedObjectName,
+                    describeTypesChecked(validationContext.getValidatedTypes()));
+        }
+
+        private String describeTypesChecked(ImmutableCollection<Class<?>> types) {
+            return types.size() == 1
+                    ? "type '" + getTypeDisplayName(types.iterator().next()) + "'"
+                    : "types '" + types.stream().map(this::getTypeDisplayName).collect(Collectors.joining("', '")) + "'";
+        }
+
+        private String getTypeDisplayName(Class<?> type) {
+                return ModelType.of(type).getDisplayName();
+            }
     }
 
-    public static class BuilderWithSummary {
+    /**
+     * A builder for a {@code WorkValidationException} that has a summary attached.
+     *
+     * The {@link WorkValidationException#Builder} class is a Stepwise builder, this is step 2.
+     */
+    public final static class BuilderWithSummary {
         private final List<String> problems;
         private final String summary;
 

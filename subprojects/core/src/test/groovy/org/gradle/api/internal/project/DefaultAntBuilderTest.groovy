@@ -163,7 +163,7 @@ class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
         ant.antProject.targets.size() == 0
 
         when:
-        Field field = groovy.util.AntBuilder.class.getDeclaredField('collectorTarget')
+        Field field = groovy.ant.AntBuilder.class.getDeclaredField('collectorTarget')
         field.accessible = true
         Target target = field.get(ant)
         field = target.class.getDeclaredField('children')

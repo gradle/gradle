@@ -166,12 +166,16 @@ trait ValidationMessageChecker {
     )
     String incorrectUseOfInputAnnotation(@DelegatesTo(value = IncorrectUseOfInputAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(IncorrectUseOfInputAnnotation, 'incorrect_use_of_input_annotation', spec)
-        config.description("has @Input annotation used on property of type '${config.propertyType}'")
+        def incorrectUseOfInputAnnotation = config.description("has @Input annotation used on property of type '${config.propertyType}'")
             .reason("A property of type '${config.propertyType}' annotated with @Input cannot determine how to interpret the file")
-            .solution("Annotate with @InputFile for regular files")
-            .solution("Annotate with @InputDirectory for directories")
-            .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
-            .render()
+        if (config.propertyType == "DirectoryProperty" || config.propertyType == "Directory") {
+            return incorrectUseOfInputAnnotation.solution("Annotate with @InputDirectory for directories").render()
+        } else {
+            return incorrectUseOfInputAnnotation.solution("Annotate with @InputFile for regular files")
+                .solution("Annotate with @InputFiles for collections of files")
+                .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
+                .render()
+        }
     }
 
     @ValidationTestFor(
@@ -183,17 +187,6 @@ trait ValidationMessageChecker {
             .reason("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
             .solution("Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath")
             .render()
-    }
-
-    @ValidationTestFor(
-        ValidationProblemId.UNRESOLVABLE_INPUT
-    )
-    String unresolvableInput(@DelegatesTo(value = UnresolvableInput, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}, boolean renderSolutions = true) {
-        def config = display(UnresolvableInput, 'unresolvable_input', spec)
-        config.description("cannot be resolved: ${config.conversionProblem}")
-            .reason("An input file collection couldn't be resolved, making it impossible to determine task inputs")
-            .solution("Consider using Task.dependsOn instead")
-            .render(renderSolutions)
     }
 
     @ValidationTestFor(

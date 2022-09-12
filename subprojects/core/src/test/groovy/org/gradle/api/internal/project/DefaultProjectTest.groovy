@@ -29,6 +29,7 @@ import org.gradle.api.UnknownProjectException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
+import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -135,6 +136,7 @@ class DefaultProjectTest extends Specification {
     ConfigurationContainer configurationContainerMock = Stub(ConfigurationContainer)
     RepositoryHandler repositoryHandlerMock = Stub(RepositoryHandler)
     DependencyHandler dependencyHandlerMock = Stub(DependencyHandler)
+    DependencyFactory dependencyFactoryMock = Stub(DependencyFactory)
     ComponentMetadataHandler moduleHandlerMock = Stub(ComponentMetadataHandler)
     ScriptHandlerInternal scriptHandlerMock = Mock(ScriptHandlerInternal)
     DependencyMetaDataProvider dependencyMetaDataProviderMock = Stub(DependencyMetaDataProvider)
@@ -191,6 +193,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(ConfigurationContainer) >> configurationContainerMock
         serviceRegistryMock.get(ArtifactHandler) >> Stub(ArtifactHandler)
         serviceRegistryMock.get(DependencyHandler) >> dependencyHandlerMock
+        serviceRegistryMock.get(DependencyFactory) >> dependencyFactoryMock
         serviceRegistryMock.get((Type) ComponentMetadataHandler) >> moduleHandlerMock
         serviceRegistryMock.get((Type) ConfigurationTargetIdentifier) >> configurationTargetIdentifier
         serviceRegistryMock.get((Type) SoftwareComponentContainer) >> softwareComponentsMock
@@ -309,6 +312,7 @@ class DefaultProjectTest extends Specification {
         assert project.defaultTasks == []
         assert project.configurations.is(configurationContainerMock)
         assert project.repositories.is(repositoryHandlerMock)
+        assert project.dependencyFactory.is(dependencyFactoryMock)
         assert !project.state.executed
         assert project.components.is(softwareComponentsMock)
     }

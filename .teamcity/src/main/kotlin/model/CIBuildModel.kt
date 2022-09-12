@@ -14,6 +14,7 @@ import configurations.BaseGradleBuildType
 import configurations.BuildDistributions
 import configurations.CheckLinks
 import configurations.CompileAllProduction
+import configurations.ConfigCacheDocsTest
 import configurations.FlakyTestQuarantine
 import configurations.FunctionalTest
 import configurations.Gradleception
@@ -79,7 +80,8 @@ data class CIBuildModel(
                 SpecificBuild.ConfigCacheSantaTrackerSmokeTests,
                 SpecificBuild.GradleBuildSmokeTests,
                 SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
-                SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion
+                SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion,
+                SpecificBuild.ConfigCacheDocsTestMaxJavaVersion
             ),
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
@@ -393,6 +395,11 @@ enum class SpecificBuild {
     ConfigCacheSmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, "configCacheSmokeTest", splitNumber = 4)
+        }
+    },
+    ConfigCacheDocsTestMaxJavaVersion {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return ConfigCacheDocsTest(model, stage, JvmCategory.MAX_VERSION)
         }
     },
     FlakyTestQuarantineLinux {

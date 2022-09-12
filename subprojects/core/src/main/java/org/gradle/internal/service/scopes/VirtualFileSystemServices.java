@@ -59,12 +59,10 @@ import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFinge
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter;
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter;
 import org.gradle.internal.file.Stat;
-import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
-import org.gradle.internal.fingerprint.impl.DefaultGenericFileTreeSnapshotter;
 import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileHasher;
@@ -307,12 +305,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return Optional.empty();
         }
 
-        GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
-            return new DefaultGenericFileTreeSnapshotter(hasher, stringInterner);
-        }
-
-        FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
-            return new DefaultFileCollectionSnapshotter(fileSystemAccess, genericFileTreeSnapshotter, stat);
+        FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, Stat stat) {
+            return new DefaultFileCollectionSnapshotter(fileSystemAccess, stat);
         }
 
         ResourceSnapshotterCacheService createResourceSnapshotterCacheService(CrossBuildFileHashCache store) {
@@ -383,12 +377,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return buildSessionsScopedVirtualFileSystem;
         }
 
-        GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
-            return new DefaultGenericFileTreeSnapshotter(hasher, stringInterner);
-        }
-
-        FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
-            return new DefaultFileCollectionSnapshotter(fileSystemAccess, genericFileTreeSnapshotter, stat);
+        FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, Stat stat) {
+            return new DefaultFileCollectionSnapshotter(fileSystemAccess, stat);
         }
 
         OutputSnapshotter createOutputSnapshotter(FileCollectionSnapshotter fileCollectionSnapshotter) {
