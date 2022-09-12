@@ -21,8 +21,10 @@ import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
@@ -45,81 +47,60 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
-    private static class Module {
-        private final String group;
-        private final String name;
-        private final String version;
-
-        public Module(String group, String name, @Nullable String version) {
-            this.group = group;
-            this.name = name;
-            this.version = version;
-        }
-
-        public String getDefaultVersionNotation() {
-            return getNotationForVersion(version);
-        }
-
-        public String getNotationForVersion(@Nullable String specified) {
-            return group + ":" + name + (specified != null ?  ":" + specified : "");
-        }
-    }
-
-    // Should be the same as the version listed in the junit-bom corresponding to the default junit-jupiter version.
-    // Only used here for testing, but defined in this class to keep it near the default junit-jupiter version.
-    @VisibleForTesting
-    public static final String JUNIT_PLATFORM_DEFAULT_VERSION = "1.8.2";
-
+    /**
+     * Dependency information and default versions for supported testing frameworks.
+     * When updating these versions, be sure to update the default versions noted in `JvmTestSuite` javadoc
+     */
     @VisibleForTesting
     public enum TestingFramework {
-        // When updating these versions, be sure to update the default versions noted in `JvmTestSuite` javadoc
         JUNIT4("junit", "junit", "4.13.2"),
         JUNIT_JUPITER("org.junit.jupiter", "junit-jupiter", "5.8.2", Collections.singletonList(
             // junit-jupiter's BOM, junit-bom, specifies the platform version
-            new Module("org.junit.platform", "junit-platform-launcher", null)
+            DefaultModuleVersionIdentifier.newId("org.junit.platform", "junit-platform-launcher", "")
         )),
+        // Should be the same as the version listed in the junit-bom corresponding to the default junit-jupiter version.
+        JUNIT_PLATFORM("org.junit.platform", "junit-platform-launcher", "1.8.2"),
         SPOCK("org.spockframework", "spock-core", "2.1-groovy-3.0"),
         KOTLIN_TEST("org.jetbrains.kotlin", "kotlin-test-junit5", "1.7.10", Collections.singletonList(
             // kotlin-test-junit5 depends on junit-jupiter, which in turn specifies the platform version
-            new Module("org.junit.platform", "junit-platform-launcher", null)
+            DefaultModuleVersionIdentifier.newId("org.junit.platform", "junit-platform-launcher", "")
         )),
         TESTNG("org.testng", "testng", "7.5");
 
-        private final Module module;
-        private final List<Module> dependencies;
+        private final ModuleVersionIdentifier module;
+        private final List<ModuleVersionIdentifier> dependencies;
 
         TestingFramework(String group, String name, String defaultVersion) {
             this(group, name, defaultVersion, Collections.emptyList());
         }
 
-        TestingFramework(String group, String name, String defaultVersion, List<Module> dependencies) {
-            this.module = new Module(group, name, defaultVersion);
+        TestingFramework(String group, String name, String defaultVersion, List<ModuleVersionIdentifier> dependencies) {
+            this.module = DefaultModuleVersionIdentifier.newId(group, name, defaultVersion);
             this.dependencies = dependencies;
         }
 
         public String getDefaultVersion() {
-            return module.version;
+            return module.getVersion();
         }
 
-        public List<Dependency> getDependencies(String version, DependencyFactory dependencyFactory) {
-            List<Dependency> deps = new ArrayList<>(1 + dependencies.size());
-            deps.add(dependencyFactory.create(module.getNotationForVersion(version)));
-            for (Module dep : dependencies) {
-                // TODO: Should we separate these between implementation and runtime dependencies?
-                // Do we need junit-platform-launcher on the compile classpath or only during runtime?
-                deps.add(dependencyFactory.create(dep.getDefaultVersionNotation()));
-            }
-            return deps;
+        public List<ModuleVersionIdentifier> getImplementationDependencies(String version) {
+            return Collections.singletonList(DefaultModuleVersionIdentifier.newId(module.getModule(), version));
+        }
+
+        public List<ModuleVersionIdentifier> getRuntimeOnlyDependencies(String version) {
+            // In the future we might need a better way to manage versions. Thankfully,
+            // JUnit Platform has a BOM, so we don't need to manage versions of
+            // these runtime dependencies.
+            return dependencies;
         }
     }
 
@@ -136,8 +117,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             return framework;
         }
 
-        public List<Dependency> getDependencies(DependencyFactory dependencyFactory) {
-            return framework.getDependencies(version, dependencyFactory);
+        public List<ModuleVersionIdentifier> getImplementationDependencies() {
+            return framework.getImplementationDependencies(version);
+        }
+
+        public List<ModuleVersionIdentifier> getRuntimeOnlyDependencies() {
+            return framework.getRuntimeOnlyDependencies(version);
         }
     }
 
@@ -196,6 +181,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                             return frameworkLookup.computeIfAbsent(vtf.getFramework(), f -> new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), false));
                         case KOTLIN_TEST: // fall-through
                         case JUNIT_JUPITER: // fall-through
+                        case JUNIT_PLATFORM: // fall-through
                         case SPOCK:
                             return frameworkLookup.computeIfAbsent(vtf.getFramework(), f -> new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter(), false));
                         case TESTNG:
@@ -209,6 +195,13 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 }).orElse(new DefaultProvider<>(() -> frameworkLookup.computeIfAbsent(null, f -> new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), true)))));
             });
         });
+    }
+
+    private List<ExternalModuleDependency> createDependencies(List<ModuleVersionIdentifier> dependencies) {
+        return dependencies.stream().map(id -> {
+            String notation = id.getGroup() + ":" + id.getName() + ("".equals(id.getVersion()) ?  "" : (":" + id.getVersion()));
+            return dependencyFactory.create(notation);
+        }).collect(Collectors.toList());
     }
 
     private void setFrameworkTo(TestingFramework framework, Provider<String> version) {
@@ -233,7 +226,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         // where the below line is instead located in the constructor.
         // See: https://github.com/JetBrains/kotlin/commit/4a172286217a1a7d4e7a7f0eb6a0bc53ebf56515
         if (!attachedDependencies) {
-            this.dependencies.getImplementation().bundle(getVersionedTestingFramework().map(vtf -> vtf.getDependencies(dependencyFactory)));
+            this.dependencies.getImplementation().bundle(getVersionedTestingFramework().map(vtf -> createDependencies(vtf.getImplementationDependencies())));
+            this.dependencies.getRuntimeOnly().bundle(getVersionedTestingFramework().map(vtf -> createDependencies(vtf.getRuntimeOnlyDependencies())));
             attachedDependencies = true;
         }
     }
@@ -249,13 +243,17 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     @Inject
     public abstract ProviderFactory getProviderFactory();
 
+    @Override
     public SourceSet getSources() {
         return sourceSet;
     }
+
+    @Override
     public void sources(Action<? super SourceSet> configuration) {
         configuration.execute(getSources());
     }
 
+    @Override
     public ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> getTargets() {
         return targets;
     }
@@ -284,6 +282,21 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     @Override
     public void useJUnit(Provider<String> version) {
         setFrameworkTo(TestingFramework.JUNIT4, version);
+    }
+
+    @Override
+    public void useJUnitPlatform() {
+        useJUnitPlatform(TestingFramework.JUNIT_PLATFORM.getDefaultVersion());
+    }
+
+    @Override
+    public void useJUnitPlatform(String version) {
+        useJUnitPlatform(getProviderFactory().provider(() -> version));
+    }
+
+    @Override
+    public void useJUnitPlatform(Provider<String> version) {
+        setFrameworkTo(TestingFramework.JUNIT_PLATFORM, version);
     }
 
     @Override

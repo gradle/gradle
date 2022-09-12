@@ -178,7 +178,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     assert test.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
                     assert configurations.testRuntimeClasspath.files.size() == 8
-                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-platform-launcher-${DefaultJvmTestSuite.JUNIT_PLATFORM_DEFAULT_VERSION}.jar" }
+                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-platform-launcher-${DefaultJvmTestSuite.TestingFramework.JUNIT_PLATFORM.getDefaultVersion()}.jar" }
                     assert configurations.testRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
@@ -268,7 +268,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     assert integTest.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
                     assert configurations.integTestRuntimeClasspath.files.size() == 8
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-platform-launcher-${DefaultJvmTestSuite.JUNIT_PLATFORM_DEFAULT_VERSION}.jar" }
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-platform-launcher-${DefaultJvmTestSuite.TestingFramework.JUNIT_PLATFORM.getDefaultVersion()}.jar" }
                     assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
@@ -378,7 +378,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     assert integTest.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
                     assert configurations.integTestRuntimeClasspath.files.size() == 8
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-platform-launcher-${DefaultJvmTestSuite.JUNIT_PLATFORM_DEFAULT_VERSION}.jar" }
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-platform-launcher-${DefaultJvmTestSuite.TestingFramework.JUNIT_PLATFORM.getDefaultVersion()}.jar" }
                     assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
@@ -438,7 +438,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
                     // but test suite still adds JUnit Jupiter
                     assert configurations.integTestRuntimeClasspath.files.size() == 8
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-platform-launcher-${DefaultJvmTestSuite.JUNIT_PLATFORM_DEFAULT_VERSION}.jar" }
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-platform-launcher-${DefaultJvmTestSuite.TestingFramework.JUNIT_PLATFORM.getDefaultVersion()}.jar" }
                     assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
