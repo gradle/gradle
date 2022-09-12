@@ -41,12 +41,8 @@ public interface JavaToolchainRepositoryRegistry {
      * Dots and dashes need to be avoided in the repository names because at a later stage we will be generating
      * accessors for the repositories and that mechanism will not be able to handle them. In general, names
      * must start with a lowercase letter and contain only letters, numbers, and underscore characters.
-     * <p>
-     * The toolchain specification version provided describes the highest version the repository being
-     * registered is capable of handling. In case it's lower than what the current build might use a
-     * <code>GradleException</code> will be thrown. See {@link JavaToolchainSpecVersion}.
      */
-    <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType, int highestToolchainSpecVersionKnown);
+    <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType);
 
     //TODO (#21082): could we ease the naming restriction by automatically replacing dots for example?
 }

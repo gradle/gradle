@@ -35,7 +35,6 @@ import org.gradle.internal.authentication.DefaultAuthenticationContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryRequestConfiguration;
-import org.gradle.jvm.toolchain.JavaToolchainSpecVersion;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -82,16 +81,8 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
     }
 
     @Override
-    public <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType, int highestToolchainSpecVersionKnown) {
+    public <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType) {
         validateName(name);
-
-        if (highestToolchainSpecVersionKnown < JavaToolchainSpecVersion.currentSpecVersion) {
-            throw new GradleException("Can't register " + JavaToolchainRepository.class.getSimpleName() + " named '" + name + "' because it only supports java toolchain specifications " +
-                    "up to version " + highestToolchainSpecVersionKnown + ", while the Gradle version used by this build is on version " + JavaToolchainSpecVersion.currentSpecVersion);
-            //TODO (#21082): write a test for this behaviour
-            //TODO (#21082): most likely not how we want to use versions in the end, needs some rethinking
-            //TODO (#21082): update design spaces with the new way of using spec versions
-        }
 
         Provider<T> provider = sharedServices.registerIfAbsent(name, implementationType, EMPTY_CONFIGURE_ACTION);
         JavaToolchainRepositoryRegistrationInternal registration = new DefaultJavaToolchainRepositoryRegistration(name, provider);
