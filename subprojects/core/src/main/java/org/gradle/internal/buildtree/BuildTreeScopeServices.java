@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -32,6 +33,10 @@ import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
+import org.gradle.internal.buildoption.DefaultFeatureFlags;
+import org.gradle.internal.buildoption.DefaultInternalOptions;
+import org.gradle.internal.buildoption.FeatureFlags;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
@@ -68,6 +73,14 @@ public class BuildTreeScopeServices {
         registration.add(DeprecationsReporter.class);
         registration.add(TaskPathProjectEvaluator.class);
         modelServices.applyServicesTo(registration);
+    }
+
+    protected InternalOptions createInternalOptions(StartParameter startParameter) {
+        return new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
+    }
+
+    protected FeatureFlags createFeatureFlags() {
+        return new DefaultFeatureFlags();
     }
 
     protected TaskSelector createTaskSelector(ProjectConfigurer projectConfigurer) {
