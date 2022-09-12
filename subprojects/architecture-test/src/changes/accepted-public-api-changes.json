@@ -249,6 +249,54 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Class org.gradle.api.plugins.WarPluginConvention",
+            "acceptation": "WarPluginConvention was removed in Gradle 8.0",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Constructor org.gradle.api.plugins.WarPluginConvention()",
+            "acceptation": "WarPluginConvention was removed in Gradle 8.0",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Method org.gradle.api.plugins.WarPluginConvention.getProject()",
+            "acceptation": "WarPluginConvention was removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Method org.gradle.api.plugins.WarPluginConvention.getWebAppDir()",
+            "acceptation": "WarPluginConvention was removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Method org.gradle.api.plugins.WarPluginConvention.getWebAppDirName()",
+            "acceptation": "WarPluginConvention was removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Method org.gradle.api.plugins.WarPluginConvention.setWebAppDirName(java.lang.String)",
+            "acceptation": "WarPluginConvention was removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory",
             "member": "Class org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory",
             "acceptation": "Removed deprecated class in Gradle 8.0",

@@ -18,9 +18,6 @@
     <plugin id="antlr" description="Antlr Plugin">
         <extends targetClass="org.gradle.api.tasks.SourceSet" id="antlr" extensionClass="org.gradle.api.plugins.antlr.AntlrSourceDirectorySet"/>
     </plugin>
-    <plugin id="war" description="War Plugin">
-        <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.api.plugins.WarPluginConvention"/>
-    </plugin>
     <plugin id="ear" description="Ear Plugin">
         <extends targetClass="org.gradle.api.Project" mixinClass="org.gradle.plugins.ear.EarPluginConvention"/>
     </plugin>

@@ -75,6 +75,11 @@ The legacy `AntlrSourceVirtualDirectory` API has been removed.
 This change affects the `antlr` plugin.
 In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
 
+==== Legacy convention configuration for `war` API
+
+The deprecated `war` convention (of type `WarPluginConvention`) defined by the `war` plugin has been removed.
+In Gradle 8.0 and above you need to configure the `war` task directly.
+
 === Potential breaking changes
 
 === Remove implicit `--add-opens` for Gradle workers

@@ -31,7 +31,6 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         project.getPlugins().hasPlugin(JavaPlugin)
-        project.convention.plugins.war instanceof WarPluginConvention
     }
 
     def "creates configurations"() {
