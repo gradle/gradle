@@ -32,6 +32,9 @@ public class AttributeSelectionUtils {
         Attribute<?>[] extraAttributesArray = extraAttributes.toArray(new Attribute<?>[0]);
         for (int i = 0; i < extraAttributesArray.length; i++) {
             Attribute<?> extraAttribute = extraAttributesArray[i];
+            // Some of these attributes might be weakly typed, e.g. coming as Strings from an
+            // artifact repository. We always check whether the schema has a more strongly typed
+            // version of an attribute and use that one instead to apply its disambiguation rules.
             Attribute<?> schemaAttribute = schema.getAttribute(extraAttribute.getName());
             if (schemaAttribute != null) {
                 extraAttributesArray[i] = schemaAttribute;
