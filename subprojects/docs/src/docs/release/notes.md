@@ -91,6 +91,14 @@ The following are the features that have been promoted in this Gradle release.
 
 - The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
 
+### Promoted features in the ear plugin
+
+- The `Ear.getAppDirectory()` method is now considered stable.
+
+### Promoted features in the war plugin
+
+- The `War.getWebAppDirectory()` method is now considered stable.
+
 ## Fixed issues
 
 ## Known issues

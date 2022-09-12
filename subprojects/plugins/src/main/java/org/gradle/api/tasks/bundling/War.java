@@ -18,7 +18,6 @@ package org.gradle.api.tasks.bundling;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -191,7 +190,6 @@ public class War extends Jar {
      * @return The app directory.
      * @since 7.1
      */
-    @Incubating
     @Internal
     public DirectoryProperty getWebAppDirectory() {
         return webAppDirectory;
