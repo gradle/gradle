@@ -19,7 +19,6 @@ package org.gradle.plugins.ide.tooling.r33
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 @ToolingApiVersion('>=3.3')
@@ -44,13 +43,38 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5167")
-    def "Can run no-op build action against root of composite build with substitutions"() {
+    @ToolingApiVersion('<6.6')
+    def "Can run no-op build action against root of composite build with substitutions pre Gradle 6.6"() {
         given:
         singleProjectBuildInRootFolder("root") {
             settingsFile << """
                 includeBuild('includedBuild') {
                     dependencySubstitution {
-                        substitute module('group:name') ${targetSpecificationMethod()} project(':')
+                        substitute module('group:name') with project(':')
+                    }
+                }
+            """
+        }
+        singleProjectBuildInSubfolder("includedBuild")
+
+        when:
+        def result = withConnection {
+            action(new NoOpBuildAction()).run()
+        }
+
+        then:
+        result == "result"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5167")
+    @ToolingApiVersion('>=6.6')
+    def "Can run no-op build action against root of composite build with substitutions post Gradle 6.6"() {
+        given:
+        singleProjectBuildInRootFolder("root") {
+            settingsFile << """
+                includeBuild('includedBuild') {
+                    dependencySubstitution {
+                        substitute module('group:name') using project(':')
                     }
                 }
             """
@@ -85,13 +109,38 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5167")
-    def "Can fetch build scoped models from included builds with substitutions"() {
+    @ToolingApiVersion('<6.6')
+    def "Can fetch build scoped models from included builds with substitutions pre Gradle 6.6"() {
         given:
         singleProjectBuildInRootFolder("root") {
             settingsFile << """
                 includeBuild('includedBuild') {
                     dependencySubstitution {
-                        substitute module('group:name') ${targetSpecificationMethod()} project(':')
+                        substitute module('group:name') with project(':')
+                    }
+                }
+            """
+        }
+        singleProjectBuildInSubfolder("includedBuild")
+
+        when:
+        def builds = withConnection {
+            action(new FetchBuilds()).run()
+        }
+
+        then:
+        builds.rootProject.name == ["root", "includedBuild"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5167")
+    @ToolingApiVersion('>=6.6')
+    def "Can fetch build scoped models from included builds with substitutions post Gradle 6.6"() {
+        given:
+        singleProjectBuildInRootFolder("root") {
+            settingsFile << """
+                includeBuild('includedBuild') {
+                    dependencySubstitution {
+                        substitute module('group:name') using project(':')
                     }
                 }
             """
@@ -126,13 +175,14 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5167")
-    def "Can fetch project scoped models from included builds with substitutions"() {
+    @ToolingApiVersion('<6.6')
+    def "Can fetch project scoped models from included builds with substitutions pre Gradle 6.6"() {
         given:
         multiProjectBuildInRootFolder("root", ["a", "b"]) {
             settingsFile << """
                 includeBuild('includedBuild') {
                     dependencySubstitution {
-                        substitute module('group:name') ${targetSpecificationMethod()} project(':')
+                        substitute module('group:name') with project(':')
                     }
                 }
             """
@@ -148,7 +198,27 @@ class BuildActionCompositeBuildCrossVersionSpec extends ToolingApiSpecification 
         eclipseProjects*.name == ['root', 'a', 'b', 'includedBuild', 'c', 'd']
     }
 
-    private targetSpecificationMethod() {
-        return (GradleVersion.current() >= GradleVersion.version("6.6")) ? "using" : "with"
+    @Issue("https://github.com/gradle/gradle/issues/5167")
+    @ToolingApiVersion('>=6.6')
+    def "Can fetch project scoped models from included builds with substitutions post Gradle 6.6"() {
+        given:
+        multiProjectBuildInRootFolder("root", ["a", "b"]) {
+            settingsFile << """
+                includeBuild('includedBuild') {
+                    dependencySubstitution {
+                        substitute module('group:name') using project(':')
+                    }
+                }
+            """
+        }
+        multiProjectBuildInSubFolder("includedBuild", ["c", "d"])
+
+        when:
+        def eclipseProjects = withConnection {
+            action(new FetchEclipseProjects()).run()
+        }
+
+        then:
+        eclipseProjects*.name == ['root', 'a', 'b', 'includedBuild', 'c', 'd']
     }
 }
