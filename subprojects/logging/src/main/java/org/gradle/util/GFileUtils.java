@@ -20,6 +20,8 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.LimitedDescription;
 
 import javax.annotation.Nullable;
@@ -46,12 +48,24 @@ import java.util.zip.Checksum;
  * <p>
  * Plugins should prefer java.io, java.nio or external packages over this class.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public class GFileUtils {
 
+    private static void logDeprecation() {
+        DeprecationLogger.deprecateType(GFileUtils.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
+
+    public GFileUtils() {
+        logDeprecation();
+    }
+
     public static FileInputStream openInputStream(File file) {
+        logDeprecation();
         try {
             return FileUtils.openInputStream(file);
         } catch (IOException e) {
@@ -64,9 +78,10 @@ public class GFileUtils {
      * (or directory) does not exist, a new file is created.
      */
     public static void touch(File file) {
+        logDeprecation();
         try {
             if (!file.createNewFile()) {
-                touchExisting(file);
+                touchExistingInternal(file);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -78,6 +93,11 @@ public class GFileUtils {
      * (or directory) must exist.
      */
     public static void touchExisting(File file) {
+        logDeprecation();
+        touchExistingInternal(file);
+    }
+
+    private static void touchExistingInternal(File file) {
         try {
             Files.setLastModifiedTime(file.toPath(), FileTime.fromMillis(System.currentTimeMillis()));
         } catch (IOException e) {
@@ -105,6 +125,11 @@ public class GFileUtils {
     }
 
     public static void moveFile(File source, File destination) {
+        logDeprecation();
+        moveFileInternal(source, destination);
+    }
+
+    private static void moveFileInternal(File source, File destination) {
         try {
             FileUtils.moveFile(source, destination);
         } catch (IOException e) {
@@ -113,9 +138,10 @@ public class GFileUtils {
     }
 
     public static void moveExistingFile(File source, File destination) {
+        logDeprecation();
         boolean rename = source.renameTo(destination);
         if (!rename) {
-            moveFile(source, destination);
+            moveFileInternal(source, destination);
         }
     }
 
@@ -125,6 +151,7 @@ public class GFileUtils {
      * @see FileUtils#copyFile(File, File)
      */
     public static void copyFile(File source, File destination) {
+        logDeprecation();
         try {
             FileUtils.copyFile(source, destination);
         } catch (IOException e) {
@@ -133,6 +160,7 @@ public class GFileUtils {
     }
 
     public static void copyDirectory(File source, File destination) {
+        logDeprecation();
         try {
             FileUtils.copyDirectory(source, destination);
         } catch (IOException e) {
@@ -141,6 +169,11 @@ public class GFileUtils {
     }
 
     public static void moveDirectory(File source, File destination) {
+        logDeprecation();
+        moveDirectoryInternal(source, destination);
+    }
+
+    private static void moveDirectoryInternal(File source, File destination) {
         try {
             FileUtils.moveDirectory(source, destination);
         } catch (IOException e) {
@@ -149,6 +182,7 @@ public class GFileUtils {
     }
 
     public static void moveExistingDirectory(File source, File destination) {
+        logDeprecation();
         boolean rename = source.renameTo(destination);
         if (!rename) {
             moveDirectory(source, destination);
@@ -160,6 +194,7 @@ public class GFileUtils {
     }
 
     public static String readFile(File file, String encoding) {
+        logDeprecation();
         try {
             return FileUtils.readFileToString(file, encoding);
         } catch (IOException e) {
@@ -187,6 +222,7 @@ public class GFileUtils {
     }
 
     public static void writeFile(String content, File destination, String encoding) {
+        logDeprecation();
         try {
             FileUtils.writeStringToFile(destination, content, encoding);
         } catch (IOException e) {
@@ -195,10 +231,12 @@ public class GFileUtils {
     }
 
     public static Collection<File> listFiles(File directory, String[] extensions, boolean recursive) {
+        logDeprecation();
         return FileUtils.listFiles(directory, extensions, recursive);
     }
 
     public static List<String> toPaths(Collection<File> files) {
+        logDeprecation();
         List<String> paths = new ArrayList<String>();
         for (File file : files) {
             paths.add(file.getAbsolutePath());
@@ -207,6 +245,7 @@ public class GFileUtils {
     }
 
     public static void copyURLToFile(URL source, File destination) {
+        logDeprecation();
         try {
             FileUtils.copyURLToFile(source, destination);
         } catch (IOException e) {
@@ -215,6 +254,7 @@ public class GFileUtils {
     }
 
     public static void deleteDirectory(File directory) {
+        logDeprecation();
         try {
             FileUtils.deleteDirectory(directory);
         } catch (IOException e) {
@@ -223,6 +263,7 @@ public class GFileUtils {
     }
 
     public static boolean deleteQuietly(@Nullable File file) {
+        logDeprecation();
         return FileUtils.deleteQuietly(file);
     }
 
@@ -231,8 +272,16 @@ public class GFileUtils {
      */
     @Deprecated
     public static class TailReadingException extends RuntimeException {
+
         public TailReadingException(Throwable throwable) {
+            this(throwable, true);
+        }
+
+        private TailReadingException(Throwable throwable, boolean logDeprecation) {
             super(throwable);
+            if (logDeprecation) {
+                logDeprecation();
+            }
         }
     }
 
@@ -245,6 +294,7 @@ public class GFileUtils {
      * @throws org.gradle.util.GFileUtils.TailReadingException when reading failed
      */
     public static String tail(File file, int maxLines) throws TailReadingException {
+        logDeprecation();
         BufferedReader reader = null;
         FileReader fileReader = null;
         try {
@@ -259,7 +309,7 @@ public class GFileUtils {
             }
             return description.toString();
         } catch (Exception e) {
-            throw new TailReadingException(e);
+            throw new TailReadingException(e, false);
         } finally {
             IoActions.closeQuietly(fileReader);
             IoActions.closeQuietly(reader);
@@ -267,6 +317,7 @@ public class GFileUtils {
     }
 
     public static void forceDelete(File file) {
+        logDeprecation();
         try {
             FileUtils.forceDelete(file);
         } catch (IOException e) {
@@ -275,6 +326,7 @@ public class GFileUtils {
     }
 
     public static Checksum checksum(File file, Checksum checksum) {
+        logDeprecation();
         try {
             return FileUtils.checksum(file, checksum);
         } catch (IOException e) {
@@ -301,6 +353,7 @@ public class GFileUtils {
      * @param dir The dir to create, including any non existent parent dirs.
      */
     public static void mkdirs(File dir) {
+        logDeprecation();
         dir = dir.getAbsoluteFile();
         if (dir.isDirectory()) {
             return;
@@ -346,6 +399,7 @@ public class GFileUtils {
      * @return the path of target relative to base.
      */
     public static String relativePathOf(File target, File base) {
+        logDeprecation();
         String separatorChars = "/" + File.separator;
         List<String> basePath = splitAbsolutePathOf(base, separatorChars);
         List<String> targetPath = new ArrayList<String>(splitAbsolutePathOf(target, separatorChars));
