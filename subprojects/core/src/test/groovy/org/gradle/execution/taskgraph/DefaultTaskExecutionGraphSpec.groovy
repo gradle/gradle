@@ -43,6 +43,7 @@ import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
 import org.gradle.execution.plan.AbstractExecutionPlanSpec
 import org.gradle.execution.plan.DefaultExecutionPlan
 import org.gradle.execution.plan.DefaultPlanExecutor
+import org.gradle.execution.plan.ExecutionNodeAccessHierarchies
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchy
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.LocalTaskNode
@@ -81,7 +82,8 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def parallelismConfiguration = new DefaultParallelismConfiguration(true, 1)
     def workerLeases = new DefaultWorkerLeaseService(coordinator, parallelismConfiguration)
     def executorFactory = Mock(ExecutorFactory)
-    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor())
+    def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
+    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor(), accessHierarchies)
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
     def projectStateRegistry = Stub(ProjectStateRegistry)
     def executionPlan = newExecutionPlan()

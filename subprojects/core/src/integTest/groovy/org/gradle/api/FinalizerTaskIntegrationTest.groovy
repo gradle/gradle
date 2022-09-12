@@ -189,8 +189,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
         2.times {
             fails 'entryPoint', '-PentryPoint.broken'
-            // TODO - shouldn't run the finalizer dependencies, as the finalizer will never run
-            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep'
+            result.assertTasksExecuted ':entryPoint'
         }
         2.times {
             fails 'entryPoint', '-PfinalizerDepDep.broken'
@@ -390,11 +389,8 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
         2.times {
             fails 'entry', '-PshadowJar.broken'
-            // TODO - should not run jar as finalizer will not run
-            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar'
-            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar'
+            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar'
         }
-
         2.times {
             succeeds 'jarOne', 'lifecycleTwo'
             result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
