@@ -18,10 +18,6 @@ package org.gradle.api.plugins
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
-import org.gradle.api.attributes.CompatibilityCheckDetails
-import org.gradle.api.attributes.MultipleCandidatesDetails
-import org.gradle.api.attributes.Usage
-import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -31,15 +27,12 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
-import org.gradle.internal.component.model.DefaultMultipleCandidateResult
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestUtil
 import org.junit.Rule
-import spock.lang.Issue
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
 import static org.gradle.api.reflect.TypeOf.typeOf
@@ -400,79 +393,5 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         def buildNeeded = project.tasks[JavaBasePlugin.BUILD_NEEDED_TASK_NAME]
         TaskDependencyMatchers.dependsOn(JavaBasePlugin.BUILD_TASK_NAME).matches(buildNeeded)
-    }
-
-    def "check Java usage compatibility rules (consumer value=#consumer, producer value=#producer, compatible=#compatible)"() {
-        given:
-        JavaEcosystemSupport.UsageCompatibilityRules rules = new JavaEcosystemSupport.UsageCompatibilityRules()
-        def details = Mock(CompatibilityCheckDetails)
-        when:
-        rules.execute(details)
-
-        then:
-        1 * details.getConsumerValue() >> Stub(Usage) { getName() >> consumer }
-        1 * details.getProducerValue() >> Stub(Usage) { getName() >> producer }
-        if (producer == consumer) {
-            // implementations are NOT required to say "compatible" because
-            // they should not even be called in this case
-            0 * details._()
-        } else if (compatible) {
-            1 * details.compatible()
-        } else {
-            0 * details._()
-        }
-
-        where:
-        consumer                     | producer                     | compatible
-        Usage.JAVA_API               | Usage.JAVA_API               | true
-        Usage.JAVA_API               | Usage.JAVA_RUNTIME           | true
-
-        Usage.JAVA_RUNTIME           | Usage.JAVA_API               | false
-        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME           | true
-
-        // Temporary compatibility
-        Usage.JAVA_API               | Usage.JAVA_RUNTIME_JARS      | true
-        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_JARS      | true
-
-    }
-
-    @Issue("gradle/gradle#8700")
-    def "check default disambiguation rules (consumer=#consumer, candidates=#candidates, selected=#preferred)"() {
-        given:
-        JavaEcosystemSupport.UsageDisambiguationRules rules = new JavaEcosystemSupport.UsageDisambiguationRules(
-                usage(Usage.JAVA_API),
-                usage(Usage.JAVA_API_JARS),
-                usage(Usage.JAVA_RUNTIME),
-                usage(Usage.JAVA_RUNTIME_JARS)
-        )
-        MultipleCandidatesDetails details = new DefaultMultipleCandidateResult(usage(consumer), candidates.collect { usage(it)} as Set)
-
-        when:
-        rules.execute(details)
-
-        then:
-        details.hasResult()
-        !details.matches.empty
-        details.matches == [usage(preferred)] as Set
-
-        details
-
-        where: // not exhaustive, tests pathological cases
-        consumer                | candidates                                     | preferred
-        Usage.JAVA_API          | [Usage.JAVA_API, Usage.JAVA_RUNTIME]           | Usage.JAVA_API
-        Usage.JAVA_RUNTIME      | [Usage.JAVA_RUNTIME, Usage.JAVA_API]           | Usage.JAVA_RUNTIME
-
-        //Temporary compatibility
-        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
-        Usage.JAVA_RUNTIME      | [Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS]      | Usage.JAVA_RUNTIME_JARS
-
-        // while unlikely that a candidate would expose both JAVA_API_JARS and JAVA_API,
-        // this confirms that JAVA_API_JARS takes precedence, per JavaEcosystemSupport
-        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
-
-    }
-
-    private Usage usage(String value) {
-        TestUtil.objectFactory().named(Usage, value)
     }
 }

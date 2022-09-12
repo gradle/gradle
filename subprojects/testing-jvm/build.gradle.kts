@@ -55,6 +55,7 @@ dependencies {
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":platform-native")))
+    testImplementation(testFixtures(project(":language-groovy")))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

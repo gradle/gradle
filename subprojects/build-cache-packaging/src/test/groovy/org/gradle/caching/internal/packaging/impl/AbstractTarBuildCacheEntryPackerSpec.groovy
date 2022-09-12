@@ -53,10 +53,7 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
         Map<String, FileSystemSnapshot> snapshots = treeDefs.collectEntries { treeDef ->
             FileSystemSnapshot result = FileSystemSnapshot.EMPTY
             if (treeDef.root != null) {
-                fileSystemAccess.read(treeDef.root.absolutePath) { snapshot ->
-                    //noinspection GrReassignedInClosureLocalVar
-                    result = snapshot
-                }
+                result = fileSystemAccess.read(treeDef.root.absolutePath)
             }
             return [(treeDef.name): result]
         }

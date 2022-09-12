@@ -812,15 +812,10 @@ tasks.named("docsTest") { task ->
             // Tests that can and has to be fixed to run with the configuration cache enabled.
             // Set the Gradle property runBrokenConfigurationCacheDocsTests=true to run tests from this list or any of the lists above.
             def testsToBeFixedForConfigurationCache = [
-                "snippet-artifacts-define-repository_groovy_defineMavenCentral.sample",
-
                 "snippet-build-cache-cacheable-bundle_groovy_cacheableBundle-caching.sample",
                 "snippet-build-cache-cacheable-bundle_groovy_cacheableBundle.sample",
                 "snippet-build-cache-cacheable-bundle_kotlin_cacheableBundle-caching.sample",
                 "snippet-build-cache-cacheable-bundle_kotlin_cacheableBundle.sample",
-
-                "snippet-buildlifecycle-project-evaluate-events_groovy_projectEvaluateEvents.sample",
-                "snippet-buildlifecycle-project-evaluate-events_kotlin_projectEvaluateEvents.sample",
 
                 "snippet-dependency-management-customizing-resolution-capability-substitution-rule_groovy_capability_substitution.sample",
                 "snippet-dependency-management-customizing-resolution-capability-substitution-rule_kotlin_capability_substitution.sample",
@@ -848,24 +843,11 @@ tasks.named("docsTest") { task ->
                 "snippet-dependency-management-managing-transitive-dependencies-exclude-for-dependency_groovy_exclude-transitive-for-dependency.sample",
                 "snippet-dependency-management-managing-transitive-dependencies-exclude-for-dependency_kotlin_exclude-transitive-for-dependency.sample",
 
-                "snippet-files-archive-naming_groovy_archiveNaming.sample",
-                "snippet-files-archive-naming_kotlin_archiveNaming.sample",
-
                 "snippet-files-archives-changed-base-name_groovy_zipWithArchivesBaseName.sample",
                 "snippet-files-archives-changed-base-name_kotlin_zipWithArchivesBaseName.sample",
 
-                "snippet-files-file-collections_groovy_fileCollectionsFiltering.sample",
-                "snippet-files-file-collections_groovy_fileCollectionsUsage.sample",
-                "snippet-files-file-collections_groovy_fileCollectionsWithClosure.sample",
-                "snippet-files-file-collections_kotlin_fileCollectionsFiltering.sample",
-                "snippet-files-file-collections_kotlin_fileCollectionsUsage.sample",
-                "snippet-files-file-collections_kotlin_fileCollectionsWithClosure.sample",
-
                 "snippet-java-cross-compilation_groovy_java7CrossCompilation.sample",
                 "snippet-java-cross-compilation_kotlin_java7CrossCompilation.sample",
-
-                "snippet-java-fixtures_groovy_javaTestFixtures.sample",
-                "snippet-java-fixtures_kotlin_javaTestFixtures.sample",
 
                 "snippet-kotlin-dsl-multi-project-build_kotlin_build.sample",
 
@@ -878,8 +860,6 @@ tasks.named("docsTest") { task ->
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_incrementalAdHocTaskNoSource.sample",
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep.sample",
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep2.sample",
-
-                "snippet-testing-test-suite-multi-configure-each-extracted_groovy_checkTask.sample"
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
