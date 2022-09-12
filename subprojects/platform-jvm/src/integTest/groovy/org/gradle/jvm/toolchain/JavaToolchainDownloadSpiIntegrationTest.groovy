@@ -322,12 +322,12 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
     private static String customToolchainRegistryCode() {
         """
             import java.util.Optional;
-            import org.gradle.env.BuildEnvironment;
+            import org.gradle.platform.BuildPlatform;
 
             public abstract class CustomToolchainRegistry implements JavaToolchainRepository {
                 @Override
-                public Optional<URI> toUri(JavaToolchainSpec spec, BuildEnvironment env) {
-                    return Optional.of(URI.create("https://exoticJavaToolchain.com/java-" + spec.getLanguageVersion().get()));
+                public Optional<URI> toUri(JavaToolchainRequest request) {
+                    return Optional.of(URI.create("https://exoticJavaToolchain.com/java-" + request.getJavaToolchainSpec().getLanguageVersion().get()));
                 }
             }
             """
@@ -336,11 +336,11 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
     private static String uselessToolchainRegistryCode(String className) {
         """
             import java.util.Optional;
-            import org.gradle.env.BuildEnvironment;
+            import org.gradle.platform.BuildPlatform;
 
             public abstract class ${className} implements JavaToolchainRepository {
                 @Override
-                public Optional<URI> toUri(JavaToolchainSpec spec, BuildEnvironment env) {
+                public Optional<URI> toUri(JavaToolchainRequest request) {
                     return Optional.empty();
                 }
             }
@@ -350,11 +350,11 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
     private static String brokenToolchainRegistryCode() {
         """
             import java.util.Optional;
-            import org.gradle.env.BuildEnvironment;
+            import org.gradle.platform.BuildPlatform;
 
             public abstract class CustomToolchainRegistry implements JavaToolchainRepository {
                 @Override
-                public Optional<URI> toUri(JavaToolchainSpec spec, BuildEnvironment env) {
+                public Optional<URI> toUri(JavaToolchainRequest request) {
                     return Optional.of(URI.create("https://api.adoptium.net/v3/binary/latest/8/ga/${os()}/x64/jdk/hotspot/normal/eclipse"));
                 }
             }
