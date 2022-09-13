@@ -56,8 +56,7 @@ class SourceDirectorySetJvmPluginServicesTest extends AbstractJvmPluginServicesT
         _ * sourceSet.getName() >> 'main'
         1 * sourceSet.getOutput() >> sourceSetOutput
         1 * sourceSetOutput.getGeneratedSourcesDirs() >> Stub(ConfigurableFileCollection)
-        1 * sourceSetOutput.addClassesDir(_)
-        1 * sourceSetOutput.registerClassesContributor(_)
+        1 * sourceSetOutput.addClassesDir(_, _)
         1 * tasks.register("compileMylang", JavaCompile, _) >> compileTaskProvider
         1 * compileTask.getDestinationDirectory() >> objectFactory().directoryProperty()
         1 * sourceSet.getAllJava() >> allJava

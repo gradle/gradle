@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
 
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.api.internal.file.FileCollectionInternal
 
 import org.gradle.api.plugins.Convention
@@ -241,7 +241,7 @@ inline fun <reified T : Any> Project.container(noinline factory: (String) -> T):
  */
 fun Project.gradleKotlinDsl(): Dependency =
     DefaultSelfResolvingDependency(
-        OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation.GRADLE_KOTLIN_DSL),
+        OpaqueComponentIdentifier(DependencyFactoryInternal.ClassPathNotation.GRADLE_KOTLIN_DSL),
         project.fileCollectionOf(
             gradleKotlinDslOf(project),
             "gradleKotlinDsl"

@@ -20,14 +20,28 @@ import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.kotlin.dsl.*
 
 
-fun Project.repoRoot() = layout.projectDirectory.parentOrRoot()
+abstract class BuildEnvironmentExtension {
+    abstract val gitCommitId: Property<String>
+    abstract val gitBranch: Property<String>
+    abstract val repoRoot: DirectoryProperty
+}
 
 
+// `generatePrecompiledScriptPluginAccessors` task invokes this method without `gradle.build-environment` applied
 private
+fun Project.getBuildEnvironmentExtension(): BuildEnvironmentExtension? = rootProject.extensions.findByType(BuildEnvironmentExtension::class.java)
+
+
+fun Project.repoRoot(): Directory = getBuildEnvironmentExtension()?.repoRoot?.get() ?: layout.projectDirectory.parentOrRoot()
+
+
 fun Directory.parentOrRoot(): Directory = if (this.file("version.txt").asFile.exists()) {
     this
 } else {
@@ -46,35 +60,25 @@ fun Project.releasedVersionsFile() = repoRoot().file("released-versions.json")
 /**
  * We use command line Git instead of JGit, because JGit's [Repository.resolve] does not work with worktrees.
  */
-fun Project.currentGitBranch() = git(layout.projectDirectory, "rev-parse", "--abbrev-ref", "HEAD")
+fun Project.currentGitBranchViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtension()?.gitBranch ?: objects.property(String::class.java)
 
 
-fun Project.currentGitCommit() = git(layout.projectDirectory, "rev-parse", "HEAD")
+fun Project.currentGitCommitViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtension()?.gitCommitId ?: objects.property(String::class.java)
 
 
 @Suppress("UnstableApiUsage")
-private
-fun Project.git(checkoutDir: Directory, vararg args: String): Provider<String> {
+fun Project.git(vararg args: String): String {
+    val projectDir = layout.projectDirectory.asFile
     val execOutput = providers.exec {
-        workingDir = checkoutDir.asFile
+        workingDir = projectDir
         isIgnoreExitValue = true
         commandLine = listOf("git", *args)
         if (OperatingSystem.current().isWindows) {
             commandLine = listOf("cmd", "/c") + commandLine
         }
     }
-    return execOutput.result.zip(execOutput.standardOutput.asBytes) { execResult, output ->
-        when {
-            execResult.exitValue == 0 -> String(output).trim()
-            checkoutDir.asFile.resolve(".git/HEAD").exists() -> {
-                // Read commit id directly from filesystem
-                val headRef = checkoutDir.asFile.resolve(".git/HEAD").readText()
-                    .replace("ref: ", "").trim()
-                checkoutDir.asFile.resolve(".git/$headRef").readText().trim()
-            }
-            else -> "<unknown>" // It's a source distribution, we don't know.
-        }
-    }
+    return if (execOutput.result.get().exitValue == 0) execOutput.standardOutput.asText.get().trim()
+    else "<unknown>" // It's a source distribution, we don't know.
 }
 
 
@@ -107,8 +111,8 @@ object BuildEnvironment {
 
     val isCiServer = CI_ENVIRONMENT_VARIABLE in System.getenv()
     val isTravis = "TRAVIS" in System.getenv()
-    val isJenkins = "JENKINS_HOME" in System.getenv()
     val isGhActions = "GITHUB_ACTIONS" in System.getenv()
+    val isTeamCity = "TEAMCITY_VERSION" in System.getenv()
     val isCodeQl: Boolean by lazy {
         // This logic is kept here instead of `codeql-analysis.init.gradle` because that file will hopefully be removed in the future.
         // Removing that file is waiting on the GitHub team fixing an issue in Autobuilder logic.

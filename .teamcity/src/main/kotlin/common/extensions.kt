@@ -19,11 +19,9 @@ package common
 import configurations.branchesFilterExcluding
 import configurations.buildScanCustomValue
 import configurations.buildScanTag
-import configurations.checkCleanAndroidUserHomeScriptUnixLike
-import configurations.checkCleanAndroidUserHomeScriptWindows
+import configurations.checkCleanDirUnixLike
+import configurations.checkCleanDirWindows
 import configurations.enablePullRequestFeature
-import configurations.m2CleanScriptUnixLike
-import configurations.m2CleanScriptWindows
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
@@ -86,6 +84,8 @@ const val hiddenArtifactDestination = ".teamcity/gradle-logs"
 
 fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, buildJvm: Jvm = BuildToolBuildJvm, timeout: Int = 30) {
     artifactRules = """
+        *.psoutput => $hiddenArtifactDestination
+        build/*.threaddump => $hiddenArtifactDestination
         build/report-* => $hiddenArtifactDestination
         build/tmp/test files/** => $hiddenArtifactDestination/test-files
         build/errorLogs/** => $hiddenArtifactDestination/errorLogs
@@ -100,7 +100,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
     }
 
     vcs {
-        root(AbsoluteId("GradleMaster"))
+        root(AbsoluteId(VersionedSettingsBranch.fromDslContext().vcsRootId()))
         checkoutMode = CheckoutMode.ON_AGENT
         branchFilter = branchesFilterExcluding()
     }
@@ -159,7 +159,11 @@ fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX) {
     script {
         name = "CHECK_CLEAN_M2_ANDROID_USER_HOME"
         executionMode = BuildStep.ExecutionMode.ALWAYS
-        scriptContent = if (os == Os.WINDOWS) m2CleanScriptWindows + checkCleanAndroidUserHomeScriptWindows else m2CleanScriptUnixLike + checkCleanAndroidUserHomeScriptUnixLike
+        scriptContent = if (os == Os.WINDOWS) {
+            checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\repository") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.gradle-enterprise") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.android", false)
+        } else {
+            checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.android", false)
+        }
     }
 }
 
@@ -178,14 +182,18 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         if (isContinue) "--continue" else ""
     )
 
-fun Dependencies.compileAllDependency(compileAllId: String) {
-    // Compile All has to succeed before anything else is started
-    dependency(RelativeId(compileAllId)) {
+fun Dependencies.dependsOn(buildTypeId: RelativeId) {
+    dependency(buildTypeId) {
         snapshot {
             onDependencyFailure = FailureAction.FAIL_TO_START
             onDependencyCancel = FailureAction.FAIL_TO_START
         }
     }
+}
+
+fun Dependencies.compileAllDependency(compileAllId: String) {
+    // Compile All has to succeed before anything else is started
+    dependsOn(RelativeId(compileAllId))
     // Get the build receipt from sanity check to reuse the timestamp
     artifacts(RelativeId(compileAllId)) {
         id = "ARTIFACT_DEPENDENCY_$compileAllId"
@@ -219,14 +227,12 @@ fun functionalTestParameters(os: Os): List<String> {
     )
 }
 
-fun BuildType.killProcessStep(stepName: String, daemon: Boolean) {
+fun BuildType.killProcessStep(stepName: String, os: Os, arch: Arch = Arch.AMD64) {
     steps {
-        gradleWrapper {
+        script {
             name = stepName
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            tasks = "killExistingProcessesStartedByGradle"
-            gradleParams =
-                (buildToolGradleParameters(daemon) + buildScanTag("CleanUpBuild")).joinToString(separator = " ")
+            scriptContent = "\"${javaHome(BuildToolBuildJvm, os, arch)}/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $stepName"
         }
     }
 }

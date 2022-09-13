@@ -461,11 +461,29 @@ BUILD SUCCESSFUL"""
     def "error message contains possible candidates"() {
         buildFile.text = """
         task aTask
-"""
+        """
         when:
         fails "help", "--task", "bTask"
         then:
         failure.assertHasCause("Task 'bTask' not found in root project '${testDirectory.getName()}'. Some candidates are: 'aTask', 'tasks'")
+
+        when:
+        run "help", "--task", "aTask"
+        then:
+        output.contains "Detailed task information for aTask"
+
+        when:
+        fails "help", "--task", "bTask"
+        then:
+        failure.assertHasCause("Task 'bTask' not found in root project '${testDirectory.getName()}'. Some candidates are: 'aTask', 'tasks'")
+
+        when:
+        buildFile << """
+        task bTask
+        """
+        run "help", "--task", "bTask"
+        then:
+        output.contains "Detailed task information for bTask"
     }
 
     def "tasks can be defined by camelCase matching"() {

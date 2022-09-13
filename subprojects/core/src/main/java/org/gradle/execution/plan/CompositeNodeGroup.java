@@ -16,6 +16,8 @@
 
 package org.gradle.execution.plan;
 
+import com.google.common.collect.ImmutableSet;
+
 import javax.annotation.Nullable;
 import java.util.Set;
 
@@ -27,10 +29,30 @@ public class CompositeNodeGroup extends HasFinalizers {
     private final Set<FinalizerGroup> finalizerGroups;
     private final boolean reachableFromEntryPoint;
 
-    public CompositeNodeGroup(NodeGroup ordinalGroup, Set<FinalizerGroup> finalizerGroups) {
-        this.ordinalGroup = ordinalGroup;
+    public static HasFinalizers mergeInto(OrdinalGroup original, HasFinalizers finalizers) {
+        return new CompositeNodeGroup(original.isReachableFromEntryPoint() || finalizers.isReachableFromEntryPoint(), original, finalizers.getFinalizerGroups());
+    }
+
+    public static HasFinalizers mergeInto(HasFinalizers original, HasFinalizers finalizers) {
+        if (original.isReachableFromEntryPoint() == finalizers.isReachableFromEntryPoint() && original.getFinalizerGroups().containsAll(finalizers.getFinalizerGroups())) {
+            return original;
+        }
+        boolean reachableFromEntryPoint = original.isReachableFromEntryPoint() || finalizers.isReachableFromEntryPoint();
+        ImmutableSet.Builder<FinalizerGroup> builder = ImmutableSet.builder();
+        builder.addAll(original.getFinalizerGroups());
+        builder.addAll(finalizers.getFinalizerGroups());
+        return new CompositeNodeGroup(reachableFromEntryPoint, original.getOrdinalGroup(), builder.build());
+    }
+
+    public CompositeNodeGroup(boolean reachableFromEntryPoint, NodeGroup newOrdinal, Set<FinalizerGroup> finalizerGroups) {
+        this.ordinalGroup = newOrdinal;
         this.finalizerGroups = finalizerGroups;
-        this.reachableFromEntryPoint = reachableFromEntryPoint();
+        this.reachableFromEntryPoint = reachableFromEntryPoint;
+    }
+
+    @Override
+    public String toString() {
+        return "composite group, entry point: " + isReachableFromEntryPoint() + ", ordinal: " + ordinalGroup + ", groups: " + finalizerGroups;
     }
 
     @Nullable
@@ -41,7 +63,7 @@ public class CompositeNodeGroup extends HasFinalizers {
 
     @Override
     public NodeGroup withOrdinalGroup(OrdinalGroup newOrdinal) {
-        return new CompositeNodeGroup(newOrdinal, finalizerGroups);
+        return new CompositeNodeGroup(reachableFromEntryPoint, newOrdinal, finalizerGroups);
     }
 
     public NodeGroup getOrdinalGroup() {
@@ -51,18 +73,6 @@ public class CompositeNodeGroup extends HasFinalizers {
     @Override
     public boolean isReachableFromEntryPoint() {
         return reachableFromEntryPoint;
-    }
-
-    private boolean reachableFromEntryPoint() {
-        if (ordinalGroup.isReachableFromEntryPoint()) {
-            return true;
-        }
-        for (FinalizerGroup group : finalizerGroups) {
-            if (group.isReachableFromEntryPoint()) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -85,17 +95,8 @@ public class CompositeNodeGroup extends HasFinalizers {
     }
 
     @Override
-    public void maybeAddToOwnedMembers(Node node) {
-        // Intentionally empty.
-        // Trying to add a node here means that this node is already owned by some
-        // FinalizerGroup or is a part of the OrdinalGroup.
-    }
-
-    @Override
-    public void removeFromOwnedMembers(Node node) {
-        for (FinalizerGroup group : finalizerGroups) {
-            group.removeFromOwnedMembers(node);
-        }
+    public boolean isCanCancel() {
+        return isCanCancel(finalizerGroups);
     }
 
     @Override
@@ -119,4 +120,5 @@ public class CompositeNodeGroup extends HasFinalizers {
         // No finalizer group is ready to run, and either all of them have failed or some are not yet complete
         return state;
     }
+
 }

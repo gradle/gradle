@@ -15,7 +15,7 @@
 [[build_environment]]
 = Build Environment
 
-TIP: Interested in configuring your Build Cache to speed up builds? https://gradle.com/training/build-cache-deep-dive/?bid=docs-build-environment[Register here] for our Build Cache training session to learn some of the tips and tricks top engineering teams are using to increase build speed.
+TIP: Interested in configuring your Build Cache to speed up builds? https://gradle.com/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn some of the tips and tricks top engineering teams are using to increase build speed.
 
 [.lead]
 Gradle provides multiple mechanisms for configuring behavior of Gradle itself and specific projects. The following is a reference for using these mechanisms.
@@ -77,6 +77,11 @@ _Default is `10800000` (3 hours)._
 `org.gradle.debug=(true,false)`::
 When set to `true`, Gradle will run the build with remote debugging enabled, listening on port 5005. Note that this is the equivalent of adding `-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005` to the JVM command line and will suspend the virtual machine until a debugger is attached.
 _Default is `false`._
+
+`org.gradle.debug.host=(host address)`::
+Specifies the host address to listen on or connect to when debug is enabled.
+In the server mode on Java 9 and above, passing `*` for the host will make the server listen on all network interfaces.
+By default, no host address is passed to JDWP, so on Java 9 and above, the loopback address is used, while earlier versions listen on all interfaces.
 
 `org.gradle.debug.port=(port number)`::
 Specifies the port number to listen on when debug is enabled.

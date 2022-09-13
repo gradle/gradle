@@ -16,8 +16,10 @@
 
 package org.gradle.process;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
 /**
  * Contains a subset of the <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/jpda/conninv.html">Java Debug Wire Protocol</a> properties.
@@ -30,6 +32,17 @@ public interface JavaDebugOptions {
      * Whether to attach a debug agent to the forked process.
      */
     @Input Property<Boolean> getEnabled();
+
+    /**
+     * Host address to listen on or connect to when debug is enabled.
+     * In the server mode on Java 9 and above, passing `*` for the host will make the server listen on all network interfaces.
+     * By default, no host address is passed to JDWP, so on Java 9 and above, the loopback address is used, while earlier versions listen on all interfaces.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    @Optional
+    @Input Property<String> getHost();
 
     /**
      * The debug port.

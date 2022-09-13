@@ -13,8 +13,9 @@ class PromotionProject(branch: VersionedSettingsBranch) : Project({
     buildType(SanityCheck)
     buildType(PublishNightlySnapshot(branch))
     buildType(PublishNightlySnapshotFromQuickFeedback(branch))
-    buildType(PublishNightlySnapshotFromQuickFeedbackStep1(branch))
-    buildType(PublishNightlySnapshotFromQuickFeedbackStep2(branch))
+    buildType(PublishNightlySnapshotFromQuickFeedbackStepCheckReady(branch))
+    buildType(PublishNightlySnapshotFromQuickFeedbackStepUpload(branch))
+    buildType(PublishNightlySnapshotFromQuickFeedbackStepPromote(branch))
     buildType(PublishBranchSnapshotFromQuickFeedback)
     buildType(PublishMilestone(branch))
 

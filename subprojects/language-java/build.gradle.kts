@@ -83,7 +83,7 @@ strictCompile {
     ignoreDeprecations() // this project currently uses many deprecated part from 'platform-jvm'
 }
 
-classycle {
+packageCycles {
     // These public packages have classes that are tangled with the corresponding internal package.
     excludePatterns.add("org/gradle/api/tasks/compile/**")
     excludePatterns.add("org/gradle/external/javadoc/**")

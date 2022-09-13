@@ -104,7 +104,7 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 

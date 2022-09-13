@@ -20,6 +20,9 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -68,13 +71,16 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private final Instantiator instantiator;
     private final IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme = new IsolationScheme<>(Cast.uncheckedCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class);
+    private final CachedClasspathTransformer classpathTransformer;
     private final File baseDir;
 
     public DefaultWorkerExecutor(
         WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
         JavaForkOptionsFactory forkOptionsFactory, WorkerThreadRegistry workerThreadRegistry, BuildOperationExecutor buildOperationExecutor,
         AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory,
-        ClassLoaderStructureProvider classLoaderStructureProvider, ActionExecutionSpecFactory actionExecutionSpecFactory, Instantiator instantiator, File baseDir
+        ClassLoaderStructureProvider classLoaderStructureProvider, ActionExecutionSpecFactory actionExecutionSpecFactory, Instantiator instantiator,
+        CachedClasspathTransformer classpathTransformer,
+        File baseDir
     ) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
@@ -88,6 +94,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         this.classLoaderStructureProvider = classLoaderStructureProvider;
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
         this.instantiator = instantiator;
+        this.classpathTransformer = classpathTransformer;
         this.baseDir = baseDir;
     }
 
@@ -279,13 +286,15 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             processConfiguration.getForkOptions().copyTo(forkOptions);
             forkOptions.setWorkingDir(workerDirectoryProvider.getWorkingDirectory());
 
+            ClassPath isolatedFromChanges = classpathTransformer.transform(DefaultClassPath.of(processConfiguration.getClasspath()), CachedClasspathTransformer.StandardTransform.None);
             builder.javaForkOptions(forkOptions)
-                .withClassLoaderStructure(classLoaderStructureProvider.getWorkerProcessClassLoaderStructure(processConfiguration.getClasspath(), getParamClasses(executionClass, parameters)));
+                .withClassLoaderStructure(classLoaderStructureProvider.getWorkerProcessClassLoaderStructure(isolatedFromChanges.getAsFiles(), getParamClasses(executionClass, parameters)));
 
             return new ForkedWorkerRequirement(baseDir, builder.build());
         } else if (configuration instanceof ClassLoaderWorkerSpec) {
             ClassLoaderWorkerSpec classLoaderConfiguration = (ClassLoaderWorkerSpec) configuration;
-            return new IsolatedClassLoaderWorkerRequirement(baseDir, classLoaderStructureProvider.getInProcessClassLoaderStructure(classLoaderConfiguration.getClasspath(), getParamClasses(executionClass, parameters)));
+            ClassPath isolatedFromChanges = classpathTransformer.transform(DefaultClassPath.of(classLoaderConfiguration.getClasspath()), CachedClasspathTransformer.StandardTransform.None);
+            return new IsolatedClassLoaderWorkerRequirement(baseDir, classLoaderStructureProvider.getInProcessClassLoaderStructure(isolatedFromChanges.getAsFiles(), getParamClasses(executionClass, parameters)));
         } else {
             return new FixedClassLoaderWorkerRequirement(baseDir, Thread.currentThread().getContextClassLoader());
         }

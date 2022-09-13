@@ -44,6 +44,7 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.logging.Logger;
@@ -54,7 +55,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
-import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
@@ -138,7 +138,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final Property<Duration> timeout;
 
-    private AndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
+    private DescribingAndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
 
     private String reasonNotToTrackState;
 
@@ -323,7 +323,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.onlyIf(Closure)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = onlyIfSpec.and(onlyIfClosure);
+                onlyIfSpec = onlyIfSpec.and(onlyIfClosure, "Task satisfies onlyIf closure");
             }
         });
     }
@@ -333,7 +333,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.onlyIf(Spec)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = onlyIfSpec.and(spec);
+                onlyIfSpec = onlyIfSpec.and(spec, "Task satisfies onlyIf spec");
+            }
+        });
+    }
+
+    @Override
+    public void onlyIf(final String onlyIfReason, final Spec<? super Task> spec) {
+        taskMutator.mutate("Task.onlyIf(String, Spec)", new Runnable() {
+            @Override
+            public void run() {
+                onlyIfSpec = onlyIfSpec.and(spec, onlyIfReason);
             }
         });
     }
@@ -343,7 +353,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.setOnlyIf(Spec)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = createNewOnlyIfSpec().and(spec);
+                onlyIfSpec = createNewOnlyIfSpec().and(spec, "Task satisfies onlyIf spec");
+            }
+        });
+    }
+
+    @Override
+    public void setOnlyIf(String onlyIfReason, Spec<? super Task> spec) {
+        taskMutator.mutate("Task.setOnlyIf(String, Spec)", new Runnable() {
+            @Override
+            public void run() {
+                onlyIfSpec = createNewOnlyIfSpec().and(spec, onlyIfReason);
             }
         });
     }
@@ -353,22 +373,22 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskMutator.mutate("Task.setOnlyIf(Closure)", new Runnable() {
             @Override
             public void run() {
-                onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure);
+                onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure, "Task satisfies onlyIf closure");
             }
         });
     }
 
-    private AndSpec<Task> createNewOnlyIfSpec() {
-        return new AndSpec<Task>(new Spec<Task>() {
+    private DescribingAndSpec<Task> createNewOnlyIfSpec() {
+        return new DescribingAndSpec<>(new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
                 return element == AbstractTask.this && enabled;
             }
-        });
+        }, "Task is enabled");
     }
 
     @Override
-    public Spec<? super TaskInternal> getOnlyIf() {
+    public DescribingAndSpec<? super TaskInternal> getOnlyIf() {
         return onlyIfSpec;
     }
 

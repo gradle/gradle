@@ -31,7 +31,7 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
             apply plugin: 'java-library'
-            
+
             repositories {
                 ivy { url "${ivyHttpRepo.uri}" }
             }
@@ -86,7 +86,7 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:main:1.0') {
-                    variant('api', ['org.gradle.status': 'integration', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('api', ['org.gradle.status': 'integration', 'org.gradle.usage': 'java-api', 'org.gradle.compile-view':'java-complete', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     edge('org:foo:{prefer 1.9}', 'org:foo:1.9')
                 }
             }
@@ -123,9 +123,9 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
         setup:
         buildFile.text = """
             apply plugin: 'java-library'
-            
+
             repositories {
-                ivy { 
+                ivy {
                     url "${ivyHttpRepo.uri}"
                     metadataSources {
                         ivyDescriptor()
@@ -134,7 +134,7 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
                     }
                 }
             }
-            
+
              dependencies {
                 api "org:main:1.0"
             }

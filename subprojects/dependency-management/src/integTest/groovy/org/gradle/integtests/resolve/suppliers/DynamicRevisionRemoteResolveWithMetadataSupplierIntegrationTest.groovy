@@ -312,7 +312,6 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can recover from --offline mode"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -355,7 +354,6 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "will not make network requests when run with --offline"() {
         given:
         buildFile << """
@@ -419,7 +417,6 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
         failure.assertHasCause("No cached resource '${server.uri}/repo/group/projectB/2.2/status-offline.txt' available for offline mode.")
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from remote failure"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -525,7 +522,6 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
         succeeds 'checkDeps'
     }
 
-    @ToBeFixedForConfigurationCache
     def "handles and recovers from errors in a custom metadata provider"() {
         given:
         buildFile << """
@@ -575,7 +571,6 @@ abstract class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest e
         succeeds 'checkDeps'
     }
 
-    @ToBeFixedForConfigurationCache
     def "handles failure to create custom metadata provider"() {
         given:
         buildFile << """
@@ -1215,7 +1210,6 @@ group:projectB:2.2;release
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "cross-build caching is resilient to failure"() {
         def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
         executer.requireIsolatedDaemons() // because we're going to --stop

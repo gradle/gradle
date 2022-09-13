@@ -18,6 +18,7 @@
 package org.gradle.process.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.process.JavaDebugOptions
 import org.gradle.process.JavaForkOptions
 import spock.lang.Specification
 
@@ -142,6 +143,21 @@ class JvmOptionsTest extends Specification {
             it == new TreeMap(["file.encoding": "UTF-16"] + localeProperties())
         })
         1 * target.getDebugOptions() >> new DefaultJavaDebugOptions()
+    }
+
+    def "copyTo copies debugOptions"() {
+        JavaDebugOptions debugOptions = new DefaultJavaDebugOptions();
+        JavaForkOptions target = Mock(JavaForkOptions) { it.debugOptions >> debugOptions }
+        JvmOptions source = parse("-Dx=y")
+        source.debugOptions.host.set("*")
+        source.debugOptions.port.set(1234)
+
+        when:
+        source.copyTo(target)
+
+        then: "Target should have the debugOptions copied from source"
+        target.debugOptions.host.get() == "*"
+        target.debugOptions.port.get() == 1234
     }
 
     def "#propDescr is immutable system property"() {

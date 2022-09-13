@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class ComponentMetadataRulesInjectionIntegrationTest extends AbstractHttpDependencyResolutionTest implements ComponentMetadataRulesSupport {
+class ComponentMetadataRulesInjectionIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def 'inject no-op RepositoryResourceAccessor for flat dir repo'() {
         file('lib', 'my-lib-1.0.jar').createFile()
@@ -34,7 +34,7 @@ configurations {
 
 class AssertingRule implements ComponentMetadataRule {
     RepositoryResourceAccessor accessor
-    
+
     @javax.inject.Inject
     public AssertingRule(RepositoryResourceAccessor accessor) {
         this.accessor = accessor
@@ -87,7 +87,7 @@ configurations {
 
 class AssertingRule implements ComponentMetadataRule {
     RepositoryResourceAccessor accessor
-    
+
     @javax.inject.Inject
     public AssertingRule(RepositoryResourceAccessor accessor) {
         this.accessor = accessor
@@ -139,7 +139,7 @@ configurations {
 
 class AssertingRule implements ComponentMetadataRule {
     RepositoryResourceAccessor accessor
-    
+
     @javax.inject.Inject
     public AssertingRule(RepositoryResourceAccessor accessor) {
         this.accessor = accessor

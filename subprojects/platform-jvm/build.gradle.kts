@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":platform-base"))
     implementation(project(":process-services"))
     implementation(project(":resources"))
+    implementation(project(":enterprise-operations"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
@@ -49,7 +50,7 @@ strictCompile {
     ignoreDeprecations() // most of this project has been deprecated
 }
 
-classycle {
+packageCycles {
     // Needed for the factory methods in the interface
     excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
     excludePatterns.add("org/gradle/jvm/toolchain/internal/**")

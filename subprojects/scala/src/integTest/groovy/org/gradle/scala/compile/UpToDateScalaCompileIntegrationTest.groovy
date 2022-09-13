@@ -19,12 +19,14 @@ package org.gradle.scala.compile
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.util.Requires
 
 import static org.gradle.api.JavaVersion.VERSION_11
 import static org.gradle.api.JavaVersion.VERSION_1_8
 
-class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
+class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainBuildOperationsFixture {
 
     def setup() {
         file('src/main/scala/Person.scala') << "class Person(name: String)"
@@ -64,7 +66,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_8) && AvailableJavaHomes.getJdk(VERSION_11) })
     def "compile is out of date when changing the java version"() {
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
-        def jdk9 = AvailableJavaHomes.getJdk(VERSION_11)
+        def jdk11 = AvailableJavaHomes.getJdk(VERSION_11)
 
         buildScript(scalaProjectBuildScript(ScalaBasePlugin.DEFAULT_ZINC_VERSION, '2.12.6'))
         when:
@@ -81,7 +83,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         skipped ':compileScala'
 
         when:
-        executer.withJavaHome(jdk9.javaHome)
+        executer.withJavaHome(jdk11.javaHome)
         run 'compileScala', '--info'
         then:
         executedAndNotSkipped(':compileScala')
@@ -106,4 +108,115 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
     }
 
+    def "compile is out of date when changing the java launcher"() {
+        def jdk8 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getJdk(VERSION_1_8))
+        def jdk11 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getJdk(VERSION_11))
+
+        buildScript """
+            apply plugin: 'scala'
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation "org.scala-lang:scala-library:2.13.8" // must be above 2.13.1
+            }
+
+            scala {
+                zincVersion = "1.7.1"
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(
+                        !providers.gradleProperty("changed").isPresent()
+                            ? ${jdk8.languageVersion.majorVersion}
+                            : ${jdk11.languageVersion.majorVersion}
+                    )
+                }
+            }
+
+            tasks.withType(ScalaCompile) {
+                scalaCompileOptions.with {
+                    additionalParameters = (additionalParameters ?: []) + "-target:8"
+                }
+            }
+        """
+
+        when:
+        withInstallations(jdk8, jdk11).run 'compileScala'
+
+        then:
+        executedAndNotSkipped ':compileScala'
+
+        when:
+        withInstallations(jdk8, jdk11).run 'compileScala'
+        then:
+        skipped ':compileScala'
+
+        when:
+        withInstallations(jdk8, jdk11).run 'compileScala', '-Pchanged', '--info'
+        then:
+        executedAndNotSkipped ':compileScala'
+        outputContains("Value of input property 'javaLauncher.metadata.taskInputs.languageVersion' has changed for task ':compileScala'")
+
+        when:
+        withInstallations(jdk8, jdk11).run 'compileScala', '-Pchanged', '--info'
+        then:
+        skipped ':compileScala'
+    }
+
+    def "compilation emits toolchain usage events"() {
+        captureBuildOperations()
+
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentJdk { it.languageVersion.isJava8Compatible() })
+
+        buildScript """
+            apply plugin: 'scala'
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation "org.scala-lang:scala-library:2.13.8" // must be above 2.13.1
+            }
+
+            scala {
+                zincVersion = "1.7.1"
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
+                }
+            }
+
+            tasks.withType(ScalaCompile) {
+                scalaCompileOptions.with {
+                    additionalParameters = (additionalParameters ?: []) + "-target:8"
+                }
+            }
+        """
+
+        when:
+        withInstallations(jdkMetadata).run ":compileScala"
+        def events = toolchainEvents(":compileScala")
+
+        then:
+        executedAndNotSkipped ":compileScala"
+        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
+
+        when:
+        withInstallations(jdkMetadata).run ":compileScala"
+        events = toolchainEvents(":compileScala")
+
+        then:
+        skipped ":compileScala"
+        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
+    }
+
+    private withInstallations(JvmInstallationMetadata... jdkMetadata) {
+        def installationPaths = jdkMetadata.collect { it.javaHome.toAbsolutePath().toString() }.join(",")
+        executer
+            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
+        this
+    }
 }

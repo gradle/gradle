@@ -30,7 +30,6 @@ class SwiftCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest
 
     def setup() {
         runner.minimumBaseVersion = '4.6'
-        runner.targetVersions = ["7.5-20220622180957+0000"]
     }
 
     def "clean assemble (swift)"() {

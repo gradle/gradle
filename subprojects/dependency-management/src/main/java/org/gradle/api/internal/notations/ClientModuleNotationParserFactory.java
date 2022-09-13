@@ -23,6 +23,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 
+import javax.annotation.Nonnull;
+
 public class ClientModuleNotationParserFactory implements Factory<NotationParser<Object, ClientModule>> {
 
     private final Instantiator instantiator;
@@ -33,6 +35,7 @@ public class ClientModuleNotationParserFactory implements Factory<NotationParser
         this.stringInterner = stringInterner;
     }
 
+    @Nonnull
     @Override
     public NotationParser<Object, ClientModule> create() {
         return NotationParserBuilder.toType(ClientModule.class)

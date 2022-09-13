@@ -33,6 +33,6 @@ dependencies {
     }
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/plugins/signing/type/pgp/**")
 }

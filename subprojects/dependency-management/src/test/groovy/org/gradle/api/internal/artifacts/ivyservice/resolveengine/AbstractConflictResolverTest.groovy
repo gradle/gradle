@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import spock.lang.Specification
 
@@ -98,6 +99,11 @@ abstract class AbstractConflictResolverTest extends Specification {
         TestComponent rejectAll() {
             constraint.rejectAll()
             this
+        }
+
+        @Override
+        ComponentGraphResolveMetadata getMetadataOrNull() {
+            return metadata
         }
 
         TestComponent release() {

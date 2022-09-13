@@ -48,18 +48,18 @@ testing {
 // end::multi-configure[]
 
 val checkDependencies by tasks.registering {
-    dependsOn(
-        configurations.getByName("testRuntimeClasspath"),
-        configurations.getByName("integrationTestRuntimeClasspath"),
-        configurations.getByName("functionalTestRuntimeClasspath")
-    )
+    val testRuntimeClasspath: FileCollection = configurations.getByName("testRuntimeClasspath")
+    val integrationTestRuntimeClasspath: FileCollection = configurations.getByName("integrationTestRuntimeClasspath")
+    val functionalTestRuntimeClasspath: FileCollection = configurations.getByName("functionalTestRuntimeClasspath")
+
+    dependsOn(testRuntimeClasspath, integrationTestRuntimeClasspath, functionalTestRuntimeClasspath)
     doLast {
-        assert(configurations.getByName("testRuntimeClasspath").files.size == 12)
-        assert(configurations.getByName("testRuntimeClasspath").files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
-        assert(configurations.getByName("integrationTestRuntimeClasspath").files.size == 12)
-        assert(configurations.getByName("integrationTestRuntimeClasspath").files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
-        assert(configurations.getByName("functionalTestRuntimeClasspath").files.size == 13)
-        assert(configurations.getByName("functionalTestRuntimeClasspath").files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
-        assert(configurations.getByName("functionalTestRuntimeClasspath").files.any { it.name == "commons-lang3-3.11.jar" })
+        assert(testRuntimeClasspath.files.size == 12)
+        assert(testRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
+        assert(integrationTestRuntimeClasspath.files.size == 12)
+        assert(integrationTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
+        assert(functionalTestRuntimeClasspath.files.size == 13)
+        assert(functionalTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
+        assert(functionalTestRuntimeClasspath.files.any { it.name == "commons-lang3-3.11.jar" })
     }
 }

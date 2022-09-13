@@ -364,6 +364,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "internal-architecture-testing",
+    "name": "internal-architecture-testing",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "internal-build-reports",
     "name": "internal-build-reports",
     "unitTests": false,
@@ -417,13 +424,6 @@
     "name": "jvm-services",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "dirName": "kotlin-compiler-embeddable",
-    "name": "kotlin-compiler-embeddable",
-    "unitTests": false,
-    "functionalTests": false,
     "crossVersionTests": false
   },
   {

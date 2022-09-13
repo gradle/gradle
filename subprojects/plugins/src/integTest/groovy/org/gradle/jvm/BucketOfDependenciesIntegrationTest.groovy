@@ -27,7 +27,7 @@ class BucketOfDependenciesIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id 'jvm-ecosystem'
             }
-            def jvm = extensions.create(org.gradle.api.plugins.jvm.internal.JvmPluginExtension, "jvm", org.gradle.api.plugins.jvm.internal.DefaultJvmPluginExtension)
+            def jvm = project.services.get(org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities)
 
             group = 'com.acme'
             version = '1.4'
@@ -36,11 +36,11 @@ class BucketOfDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     def "bucket of dependencies is registered lazily"() {
         buildFile << """
-            def bucket = jvm.utilities.registerDependencyBucket('test', 'some description')
+            def bucket = jvm.registerDependencyBucket('test', 'some description')
             bucket.configure {
                 throw new RuntimeException("Should't be called eagerly")
             }
-            def bucket2 = jvm.utilities.registerDependencyBucket('other', 'some other description')
+            def bucket2 = jvm.registerDependencyBucket('other', 'some other description')
 
             tasks.register("dump") {
                 doLast {

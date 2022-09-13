@@ -36,6 +36,7 @@ dependencies {
 
     testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":core"))
+    testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":model-core"))
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":base-services-groovy"))
@@ -78,7 +79,7 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/tooling/**")
 }
 

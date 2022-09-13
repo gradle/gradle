@@ -18,16 +18,15 @@ package org.gradle.smoketests
 
 import org.gradle.testkit.runner.TaskOutcome
 
+@spock.lang.Ignore("Disabling for 7.5.1 release, remind Rodrigo")
 class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
 
-    @spock.lang.Ignore
     def "can run Gradle sanityCheck with configuration cache enabled"() {
-
         given:
         // This is an approximation, running the whole build lifecycle 'sanityCheck' is too expensive
         // See build-logic/lifecycle/src/main/kotlin/gradlebuild.lifecycle.gradle.kts
         def tasks = [
-            ':configuration-cache:sanityCheck',
+            ":configuration-cache:sanityCheck",
             ":docs:checkstyleApi",
             ":internal-build-reports:allIncubationReportsZip",
             ":architecture-test:checkBinaryCompatibility",
@@ -63,7 +62,7 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
         result.task(":configuration-cache:validatePlugins").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:codenarcIntegTest").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:checkstyleIntegTestGroovy").outcome == TaskOutcome.FROM_CACHE
-        result.task(":configuration-cache:classycleIntegTest").outcome == TaskOutcome.FROM_CACHE
+        result.task(":configuration-cache:archTest").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:codeQuality").outcome == TaskOutcome.UP_TO_DATE
         result.task(":docs:checkstyleApi").outcome == TaskOutcome.FROM_CACHE
         result.task(":internal-build-reports:allIncubationReportsZip").outcome == TaskOutcome.SUCCESS

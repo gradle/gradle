@@ -114,6 +114,6 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
     }
 
     void withBasicAuth(String username, String password) {
-        requireAuthentication('/*', username, password)
+        requireAuthentication(username, password)
     }
 }

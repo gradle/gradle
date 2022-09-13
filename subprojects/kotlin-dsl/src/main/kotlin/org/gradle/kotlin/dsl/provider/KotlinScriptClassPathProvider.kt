@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.file.FileCollection
 
 import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -213,17 +213,17 @@ class KotlinScriptClassPathProvider(
 
 
 internal
-fun gradleApiJarsProviderFor(dependencyFactory: DependencyFactory): JarsProvider =
+fun gradleApiJarsProviderFor(dependencyFactory: DependencyFactoryInternal): JarsProvider =
     { (dependencyFactory.gradleApi() as SelfResolvingDependency).resolve() }
 
 
 private
-fun DependencyFactory.gradleApi(): Dependency =
+fun DependencyFactoryInternal.gradleApi(): Dependency =
     createDependency(gradleApiNotation)
 
 
 private
-val gradleApiNotation = DependencyFactory.ClassPathNotation.GRADLE_API
+val gradleApiNotation = DependencyFactoryInternal.ClassPathNotation.GRADLE_API
 
 
 private
