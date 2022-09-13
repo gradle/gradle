@@ -264,6 +264,7 @@ In future versions, the built-in default will be completely removed.
 
 Configuration toolchain download repositories starts by applying one or more settings plugins, which provide implementations for them.
 These plugins register named instances of their repositories.
+For details on writing plugins for toolchain provisioning, consult the <<toolchain_plugins.adoc#toolchain_plugins,Toolchain Repository Plugins>> page.
 
 Let's say there is a plugin replicating the deprecated AdoptOpenJDK download behavior and when applied, would register a repository with the name of `org_gradle_adopt_open_jdk` (`.` and `-` isn't allowed in the names and they are namespaced to avoid collisions).
 
