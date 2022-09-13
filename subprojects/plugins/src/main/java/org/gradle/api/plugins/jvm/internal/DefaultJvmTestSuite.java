@@ -62,6 +62,9 @@ import java.util.stream.Collectors;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
+    private static final String SPOCK_BASE_VERSION = "2.2";
+
+
     /**
      * Dependency information and default versions for supported testing frameworks.
      * When updating these versions, be sure to update the default versions noted in `JvmTestSuite` javadoc
@@ -75,7 +78,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         )),
         // Should be the same as the version listed in the junit-bom corresponding to the default junit-jupiter version.
         JUNIT_PLATFORM("org.junit.platform", "junit-platform-launcher", "1.8.2"),
-        SPOCK("org.spockframework", "spock-core", "2.1-groovy-3.0"),
+        SPOCK("org.spockframework", "spock-core", SPOCK_BASE_VERSION + "-groovy-3.0"),
         KOTLIN_TEST("org.jetbrains.kotlin", "kotlin-test-junit5", "1.7.10", Collections.singletonList(
             // kotlin-test-junit5 depends on junit-jupiter, which in turn specifies the platform version
             DefaultModuleVersionIdentifier.newId("org.junit.platform", "junit-platform-launcher", "")
@@ -330,7 +333,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
             return maybeGroovyJarVersionNumber.orElse(VersionNumber.parse(GroovySystem.getVersion()));
         });
-        useSpock(groovyVersionProvider.map(groovyVersion -> String.format("2.2-groovy-%s.%s", groovyVersion.getMajor(), groovyVersion.getMinor())));
+        useSpock(groovyVersionProvider.map(groovyVersion -> String.format("%s-groovy-%s.%s", SPOCK_BASE_VERSION, groovyVersion.getMajor(), groovyVersion.getMinor())));
     }
 
     @Override
