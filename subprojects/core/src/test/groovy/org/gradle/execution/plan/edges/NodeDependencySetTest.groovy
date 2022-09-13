@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.plan
+package org.gradle.execution.plan.edges
 
+import org.gradle.execution.plan.Node
 import spock.lang.Specification
 
 class NodeDependencySetTest extends Specification {
     def node = Stub(Node)
-    def set = new NodeDependencySet(node)
+    def set = new DependencySuccessorsOnlyNodeSet()
 
     def "does not wait when the set is empty"() {
         expect:
-        set.state == Node.DependenciesState.COMPLETE_AND_SUCCESSFUL
+        set.getState(node) == Node.DependenciesState.COMPLETE_AND_SUCCESSFUL
     }
 
     def "waits until all dependencies have completed successfully"() {
@@ -39,19 +40,19 @@ class NodeDependencySetTest extends Specification {
         set.addDependency(dep2)
 
         then:
-        set.state == Node.DependenciesState.NOT_COMPLETE
+        set.getState(node) == Node.DependenciesState.NOT_COMPLETE
 
         when:
-        set.onNodeComplete(dep1)
+        set.onNodeComplete(node, dep1)
 
         then:
-        set.state == Node.DependenciesState.NOT_COMPLETE
+        set.getState(node) == Node.DependenciesState.NOT_COMPLETE
 
         when:
-        set.onNodeComplete(dep2)
+        set.onNodeComplete(node, dep2)
 
         then:
-        set.state == Node.DependenciesState.COMPLETE_AND_SUCCESSFUL
+        set.getState(node) == Node.DependenciesState.COMPLETE_AND_SUCCESSFUL
     }
 
     def "waits until first failed dependency"() {
@@ -67,19 +68,19 @@ class NodeDependencySetTest extends Specification {
         set.addDependency(dep2)
 
         then:
-        set.state == Node.DependenciesState.NOT_COMPLETE
+        set.getState(node) == Node.DependenciesState.NOT_COMPLETE
 
         when:
-        set.onNodeComplete(dep1)
+        set.onNodeComplete(node, dep1)
 
         then:
-        set.state == Node.DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL
+        set.getState(node) == Node.DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL
 
         when:
-        set.onNodeComplete(dep2)
+        set.onNodeComplete(node, dep2)
 
         then:
-        set.state == Node.DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL
+        set.getState(node) == Node.DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL
     }
 
     def "ignores nodes that are not members of the set"() {
@@ -91,12 +92,12 @@ class NodeDependencySetTest extends Specification {
         set.addDependency(dep2)
 
         then:
-        set.state == Node.DependenciesState.NOT_COMPLETE
+        set.getState(node) == Node.DependenciesState.NOT_COMPLETE
 
         when:
-        set.onNodeComplete(dep2)
+        set.onNodeComplete(node, dep2)
 
         then:
-        set.state == Node.DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL
+        set.getState(node) == Node.DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL
     }
 }
