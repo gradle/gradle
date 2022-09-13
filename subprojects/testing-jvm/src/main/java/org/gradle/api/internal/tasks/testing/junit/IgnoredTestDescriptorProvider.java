@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.tasks.testing.TestSuiteExecutionException;
 import org.junit.internal.runners.InitializationError;
 import org.junit.internal.runners.JUnit38ClassRunner;
@@ -29,7 +30,7 @@ import org.junit.runners.AllTests;
 import java.util.List;
 
 public class IgnoredTestDescriptorProvider {
-    List<Description> getAllDescriptions(Description description, String className) {
+    public static List<Description> getAllDescriptions(Description description, String className) {
         try {
             final Class<?> testClass = description.getClass().getClassLoader().loadClass(className);
             Runner runner = getRunner(testClass);
@@ -40,7 +41,7 @@ public class IgnoredTestDescriptorProvider {
         }
     }
 
-    Runner getRunner(Class<?> testClass) throws Throwable {
+    private static Runner getRunner(Class<?> testClass) throws Throwable {
         try {
             final AllExceptIgnoredTestRunnerBuilder allExceptIgnoredTestRunnerBuilder = new AllExceptIgnoredTestRunnerBuilder();
             Runner runner = allExceptIgnoredTestRunnerBuilder.runnerForClass(testClass);
@@ -60,7 +61,9 @@ public class IgnoredTestDescriptorProvider {
      *
      * @see <a href="https://github.com/junit-team/junit4/commit/67e3edf20613b1278f4be05353b31b5129e21882">The relevant commit</a>
      */
-    Runner getRunnerLegacy(Class<?> testClass) throws Throwable {
+    @VisibleForTesting
+    @SuppressWarnings("deprecation")
+    static Runner getRunnerLegacy(Class<?> testClass) throws Throwable {
         RunWith annotation = testClass.getAnnotation(RunWith.class);
         if (annotation != null) {
             Class<? extends Runner> runnerClass = annotation.value();
@@ -80,7 +83,7 @@ public class IgnoredTestDescriptorProvider {
         }
     }
 
-    public boolean hasSuiteMethod(Class<?> testClass) {
+    private static boolean hasSuiteMethod(Class<?> testClass) {
         try {
             testClass.getMethod("suite");
         } catch (NoSuchMethodException e) {

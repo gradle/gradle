@@ -191,7 +191,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                     }
                     // In order to maintain compatibility for the default test suite, we need to load JUnit4 from the Gradle distribution
                     // instead of including it in testImplementation.
-                    // TODO: In 8.0 should we switch getVersionedTestingFramework() to use JUNIT4 as a convention?
                 }).orElse(new DefaultProvider<>(() -> frameworkLookup.computeIfAbsent(null, f -> new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), true)))));
             });
         });
@@ -207,23 +206,30 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private void setFrameworkTo(TestingFramework framework, Provider<String> version) {
         getVersionedTestingFramework().set(version.map(v -> new VersionedTestingFramework(framework, v)));
 
-        // This whole way of adding the implementation dependencies here is messed up. Once a user calls the useXXX method,
-        // they can't go back. Maybe that's no so terrible, except that we call useJunitJupiter() FOR ALL USER DEFINED TEST SUITES.
+        // This whole way of adding the dependencies here is messed up. Once a user calls the useXXX method, they can't
+        // go back. Maybe that's no so terrible, except that we call useJunitJupiter() FOR ALL USER DEFINED TEST SUITES.
         // This is a real problem. Users who want to use anything but JUnit Jupiter will always have the JUnit Jupiter
         // on their classpath and will have to manually declare the implementation dependencies for the test framework
         // they want to use.
 
-        // There is a nice-seeming solution: We could move the line below, `.getImplementation.bundle(...)`, into the constructor.
-        // This could seemingly work, except for if the configuration's dependencies ever get resolved early, before the user is
-        // able to call their useXXX method. If that happens, the provider gets resolved early, and the dependencies defined at
-        // that point are added to the configuration. Then, after the user calls their useXXX method, the provider is updated
-        // but the configuration never is. This is a problem with how we declare dependencies on configurations. We should be
-        // able to restrict users from resolving the configuration dependencies early OR make these dependencies even more lazy
-        // so that if dependencies are resolved early, the future changes in the lazy properties are still propagated to later resolutions.
+        // There is a nice-seeming solution: We could move the lines below, `this.dependencies.getX().bundle(...)`,
+        // into the constructor. This could seemingly work, except for if the configuration's dependencies ever get
+        // realized early, before the user is able to call their useXXX method (Note: here we're talking about the
+        // configuration's dependencies, not the configuration itself). If that happens, the provider gets resolved
+        // early by the backing DomainObjectCollection and the result is cached
+        // (see `AbstractIterationOrderRetainingElementSource`). Then, after the user calls their useXXX method, the
+        // provider is updated but is never queried again.
 
-        // A concrete example of this occurs when using the Kotlin Gradle Plugin. See the function `configureKotlinTestDependency` added
-        // at the below linked commit. This resolves the dependencies before configuration-time is over, and would break an implementation
-        // where the below line is instead located in the constructor.
+        // There are two different solutions here: 1) Restrict users from realizing configuration dependencies early
+        // OR 2) ensure that the DefaultDependencySet is aware of the changing nature of the dependency bundle
+        // we are passing it (see `ChangingValue` and `DefaultArtifactProvider` as an example implementation).
+        // Option 2 could potentially be expanded to a generic solution so that we can reduce similar problems
+        // in other places going forward.
+
+        // A concrete example of this occurs when using the Kotlin Gradle Plugin. See the function
+        // `configureKotlinTestDependency` added at the below linked commit. This resolves the dependencies before
+        // configuration-time is over, and would break an implementation where the below lines are instead located in
+        // the constructor.
         // See: https://github.com/JetBrains/kotlin/commit/4a172286217a1a7d4e7a7f0eb6a0bc53ebf56515
         if (!attachedDependencies) {
             this.dependencies.getImplementation().bundle(getVersionedTestingFramework().map(vtf -> createDependencies(vtf.getImplementationDependencies())));
