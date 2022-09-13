@@ -1,0 +1,50 @@
+[[toolchain_plugins]]
+= Toolchain Repository Plugins
+
+Starting with Gradle version 7.6, JVM auto-provisioning logic gets decoupled from Gradle's lifecycle and moves into independent plugins, hosted on the https://plugins.gradle.org[Plugin Portal].
+For details on how toolchain auto-provisioning is using these plugins, see <<toolchains.adoc#sub:download_repositories,here>>.
+This page is intended for authors of such plugins.
+
+[NOTE]
+====
+Code examples will be provided in Java, but plugin authors should feel free to use all the <<custom_plugins.adoc#custom_plugins,various ways of developing Gradle plugins>>.
+====
+
+== Core logic
+The main thing toolchain repository plugins need to provide is the logic of mapping a toolchain request to a download URI.
+They do this by implementing link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainRepository.html[JavaToolchainRepository]:
+
+[source, java]
+----
+public abstract class JavaToolchainRepositoryImplementation implements JavaToolchainRepository { // <1>
+
+    public Optional<URI> toUri(JavaToolchainRequest request) { // <2>
+        // custom mapping logic goes here
+    }
+}
+----
+<1> The implementation needs to be `abstract` because `JavaToolchainRepository` is a <<build_services.adoc#build_services,build service>> and those do have abstract methods with dynamic implementations provided by Gradle at runtime.
+<2> The mapping method returns a `URI` wrapped in an `Optional`, which is empty if, and only if, this repository implementation can't provide a download link for the requested toolchain.
+
+== Plugin application
+
+To wire the `JavaToolchainRepository` implementation into Gradle a settings plugin is needed (`Plugin<Settings>`):
+
+[source, java]
+----
+public abstract class JavaToolchainRepositoryPlugin implements Plugin<Settings> { // <1>
+    @Inject
+    protected abstract JavaToolchainRepositoryRegistry getToolchainRepositoryRegistry(); // <2>
+
+    void apply(Settings settings) {
+        settings.getPlugins().apply("jdk-toolchains"); // <3>
+
+        JavaToolchainRepositoryRegistry registry = getToolchainRepositoryRegistry();
+        registry.register("com_example_myrepo", JavaToolchainRepositoryImplementation.class); // <4>
+    }
+}
+----
+<1> The plugin needs to be a settings plugin and is abstract because it uses <<custom_gradle_types.adoc#property_injection,property injection>>.
+<2> Access is needed to the link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainRepositoryRegistry.html[JavaToolchainRepositoryRegistry] Gradle service to register the repository implementation.
+<3> These plugins are required to auto apply the `jdk-toolchains` base plugin, which dynamically adds the `jdks` block to `toolchainManagement`, thus making the registered toolchain repositories usable from the build.
+<4> The last step is to register the toolchain repository with the registry service injected by Gradle.
