@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.concurrent
 
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.kotlin.dsl.support.loggerFor
 
 import java.io.Closeable
 import java.time.Duration
@@ -45,9 +44,8 @@ interface AsyncIOScopeSettings {
 
 internal
 class JavaSystemPropertiesAsyncIOScopeSettings : AsyncIOScopeSettings {
+
     companion object {
-        private
-        val LOGGER = loggerFor<JavaSystemPropertiesAsyncIOScopeSettings>()
         const val IO_ACTION_TIMEOUT_SYSTEM_PROPERTY = "org.gradle.kotlin.dsl.internal.io.timeout"
         val DEFAULT_IO_ACTION_TIMEOUT = Duration.ofMinutes(1).toMillis()
     }
@@ -56,14 +54,10 @@ class JavaSystemPropertiesAsyncIOScopeSettings : AsyncIOScopeSettings {
         System.getProperty(IO_ACTION_TIMEOUT_SYSTEM_PROPERTY)
             .takeIf { !it.isNullOrBlank() }
             ?.let { property ->
-                var timeout = property.toPositiveLongOrNull()
-                if (timeout == null) {
-                    LOGGER.warn(
-                        "Invalid value for system property '{}': '{}'. Default timeout {}ms will be used.",
-                        IO_ACTION_TIMEOUT_SYSTEM_PROPERTY, property, DEFAULT_IO_ACTION_TIMEOUT,
+                property.toPositiveLongOrNull()
+                    ?: throw Exception(
+                        "Invalid value for system property '$IO_ACTION_TIMEOUT_SYSTEM_PROPERTY': '$property'. It must be a positive number of milliseconds."
                     )
-                }
-                timeout
             }
             ?: DEFAULT_IO_ACTION_TIMEOUT
     }
