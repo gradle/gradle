@@ -20,7 +20,7 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Determines the value for an {@link InternalOption}.
+ * A service that determines the value for an {@link InternalOption}.
  */
 @ServiceScope(Scopes.BuildTree.class)
 public interface InternalOptions {

@@ -401,6 +401,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getFeaturePreviews()",
+            "acceptation": "Changed type of injected property",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.setLegacyShowSinglePathToDependency(boolean)",
             "acceptation": "Deprecated method removed in Gradle 8.0",
