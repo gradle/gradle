@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
@@ -45,6 +46,8 @@ import org.gradle.api.tasks.TaskDependency;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     public enum Frameworks {
@@ -146,21 +149,27 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         addDefaultTestTarget();
 
-        // The values here can now be considered finalized upon the user setting them (see the org.gradle.api.tasks.testing.Test#testFramework(Closure) method).  So
-        // there is now no need to use a map to ensure a given test framework is only created once.
+        // We can still execute this innermost  provider lambda below used as the convention multiple times.
+        // So make sure, within a Test Suite, that we always return the same framework instance via computeIfAbsent() against this map.
+        // Doing so will ensure the UP-TO-DATE checking (tested in JUnitCategoriesIntegrationSpec, for instance) still works.
+        //
+        // You might think you can replace the map and just return a new instance (perhaps adding equals/hashCode implementations
+        // to the framework and options classes, but you cannot - tests should enforce this.
+        final Map<Frameworks, TestFramework> frameworkLookup = new HashMap<>(3);
+
         this.targets.withType(JvmTestSuiteTarget.class).configureEach(target -> {
             target.getTestTask().configure(task -> {
                 task.getTestFrameworkProperty().convention(getVersionedTestingFramework().map(vtf -> {
                     switch(vtf.type) {
                         case NONE: // fall-through
                         case JUNIT4:
-                            return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter());
+                            return frameworkLookup.computeIfAbsent(vtf.type, f -> new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter()));
                         case KOTLIN_TEST: // fall-through
                         case JUNIT_JUPITER: // fall-through
                         case SPOCK:
-                            return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter());
+                            return frameworkLookup.computeIfAbsent(vtf.type, f -> new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter()));
                         case TESTNG:
-                            return new TestNGTestFramework(task, task.getClasspath(), (DefaultTestFilter) task.getFilter(), getObjectFactory());
+                            return frameworkLookup.computeIfAbsent(vtf.type, f -> new TestNGTestFramework(task, task.getClasspath(), (DefaultTestFilter) task.getFilter(), getObjectFactory()));
                         default:
                             throw new IllegalStateException("do not know how to handle " + vtf);
                     }

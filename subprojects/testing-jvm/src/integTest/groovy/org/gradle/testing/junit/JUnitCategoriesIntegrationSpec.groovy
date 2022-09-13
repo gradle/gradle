@@ -115,7 +115,69 @@ public class MyTest {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4924')
-    def "re-executes test when #type is changed"() {
+    def "re-executes test when #type is changed in #suiteName"() {
+        given:
+        resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")
+        buildFile << """
+        |testing {
+        |   suites {
+        |       $suiteDeclaration {
+        |           useJUnit()
+        |           targets {
+        |               all {
+        |                   testTask.configure {
+        |                       options {
+        |                           ${type} 'org.gradle.CategoryA'
+        |                       }
+        |                   }
+        |               }
+        |           }
+        |       }
+        |   }
+        |}""".stripMargin()
+
+        when:
+        succeeds ":$task"
+
+        then:
+        executedAndNotSkipped ":$task"
+
+        when:
+        resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")
+        buildFile << """
+        |testing {
+        |   suites {
+        |       $suiteDeclaration {
+        |           useJUnit()
+        |           targets {
+        |               all {
+        |                   testTask.configure {
+        |                       options {
+        |                           ${type} 'org.gradle.CategoryB'
+        |                       }
+        |                   }
+        |               }
+        |           }
+        |       }
+        |   }
+        |}""".stripMargin()
+
+        and:
+        succeeds ":$task"
+
+        then:
+        executedAndNotSkipped ":$task"
+
+        where:
+        suiteName   | suiteDeclaration              | task        | type
+        'test'      | 'test'                        | 'test'      | 'includeCategories'
+        'test'      | 'test'                        | 'test'      | 'excludeCategories'
+        'integTest' | 'integTest(JvmTestSuite)'     | 'integTest' | 'includeCategories'
+        'integTest' | 'integTest(JvmTestSuite)'     | 'integTest' | 'excludeCategories'
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/4924')
+    def "skips test on re-run when #type is NOT changed"() {
         given:
         resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")
         buildFile << """
@@ -143,32 +205,12 @@ public class MyTest {
         executedAndNotSkipped ':test'
 
         when:
-        resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")
-        buildFile << """
-        |testing {
-        |   suites {
-        |       test {
-        |           useJUnit()
-        |           targets {
-        |               all {
-        |                   testTask.configure {
-        |                       options {
-        |                           ${type} 'org.gradle.CategoryB'
-        |                       }
-        |                   }
-        |               }
-        |           }
-        |       }
-        |   }
-        |}""".stripMargin()
-
-        and:
         succeeds ':test'
 
         then:
-        executedAndNotSkipped ':test'
+        skipped ':test'
 
         where:
-        type << ['includeCategories', 'excludeCategories']
+        type << ['includeCategories']
     }
 }
