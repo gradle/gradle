@@ -326,10 +326,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     private void useSpockForDerivedGroovyVersion() {
         final Set<String> groovyGroups = new HashSet<>(Arrays.asList("org.codehaus.groovy", "org.apache.groovy"));
+        final Set<String> groovyNames = new HashSet<>(Arrays.asList("groovy", "groovy-all"));
         Provider<VersionNumber> groovyVersionProvider = getProviderFactory().provider(() -> {
             Optional<VersionNumber> maybeGroovyJarVersionNumber = runtimeClasspath.getIncoming().getResolutionResult().getAllComponents().stream()
                 .map(ResolvedComponentResult::getModuleVersion)
-                .filter(mvi -> groovyGroups.contains(mvi.getGroup()) && "groovy".equals(mvi.getName()))
+                .filter(mvi -> groovyGroups.contains(mvi.getGroup()))
+                .filter(mvi -> groovyNames.contains(mvi.getName()))
                 .map(ModuleVersionIdentifier::getVersion)
                 .map(VersionNumber::parse)
                 .findFirst();
