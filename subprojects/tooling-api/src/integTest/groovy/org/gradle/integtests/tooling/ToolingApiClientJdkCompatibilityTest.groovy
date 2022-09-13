@@ -202,6 +202,7 @@ public class ToolingApiCompatibilityBuildAction implements BuildAction<String> {
         succeeds("runTask",
                 "-PclientJdk=" + clientJdkVersion.majorVersion,
                 "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
+                "-Porg.gradle.java.installations.paths=" + AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(","),
                 "-PgradleVersion=" + gradleVersion)
 
         then:
