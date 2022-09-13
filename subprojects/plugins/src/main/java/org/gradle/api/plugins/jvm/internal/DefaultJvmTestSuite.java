@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import groovy.lang.GroovySystem;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
@@ -24,8 +25,10 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
+import org.gradle.api.internal.plugins.GroovyJarFile;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -46,12 +49,15 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
@@ -135,6 +141,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     protected abstract Property<VersionedTestingFramework> getVersionedTestingFramework();
 
+    private final FileCollection runtimeClasspath;
+
     @Inject
     public DefaultJvmTestSuite(String name, DependencyFactory dependencyFactory, ConfigurationContainer configurations, SourceSetContainer sourceSets) {
         this.name = name;
@@ -145,6 +153,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
         Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
+
+        runtimeClasspath = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
 
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
@@ -307,7 +317,20 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useSpock() {
-        useSpock(TestingFramework.SPOCK.getDefaultVersion());
+        useSpockForDerivedGroovyVersion();
+    }
+
+    private void useSpockForDerivedGroovyVersion() {
+        Provider<VersionNumber> groovyVersionProvider = getProviderFactory().provider(() -> {
+            Optional<VersionNumber> maybeGroovyJarVersionNumber = runtimeClasspath.getFiles().stream()
+                .map(GroovyJarFile::parse)
+                .filter(Objects::nonNull)
+                .map(GroovyJarFile::getVersion)
+                .findFirst();
+
+            return maybeGroovyJarVersionNumber.orElse(VersionNumber.parse(GroovySystem.getVersion()));
+        });
+        useSpock(groovyVersionProvider.map(groovyVersion -> String.format("2.2-groovy-%s.%s", groovyVersion.getMajor(), groovyVersion.getMinor())));
     }
 
     @Override

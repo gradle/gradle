@@ -23,7 +23,7 @@ import javax.annotation.Nullable
 
 class GroovyCoverage {
     private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.12']
-    private static final String[] FUTURE = ['4.0.4']
+    private static final String[] FUTURE = ['4.0.5']
 
     static final Set<String> SUPPORTED_BY_JDK
 
@@ -32,6 +32,7 @@ class GroovyCoverage {
     static final Set<String> SUPPORTS_TIMESTAMP
     static final Set<String> SUPPORTS_PARAMETERS
     static final Set<String> SUPPORTS_DISABLING_AST_TRANSFORMATIONS
+    static final Set<String> SINCE_2_5
     static final Set<String> SINCE_3_0
 
     /**
@@ -52,6 +53,7 @@ class GroovyCoverage {
         SUPPORTS_TIMESTAMP = versionsAbove(SUPPORTED_BY_JDK, "2.4.6")
         SUPPORTS_PARAMETERS = versionsAbove(SUPPORTED_BY_JDK, "2.5.0")
         SUPPORTS_DISABLING_AST_TRANSFORMATIONS = versionsAbove(SUPPORTED_BY_JDK, "2.0.0")
+        SINCE_2_5 = versionsAbove(SUPPORTED_BY_JDK, "2.5.0")
         SINCE_3_0 = versionsAbove(SUPPORTED_BY_JDK, "3.0.0")
         CURRENT_STABLE = isCurrentGroovyVersionStable()
             ? GroovySystem.version
