@@ -108,7 +108,7 @@ class BuildActionSerializerTest extends SerializerSpec {
 
     def "serializes TestExecutionRequestAction"() {
         def startParameter = new StartParameterInternal()
-        def action = new TestExecutionRequestAction(new BuildEventSubscriptions([OperationType.TASK] as Set), startParameter, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), new DefaultDebugOptions(), Collections.emptyMap(), false, Collections.emptyList(), Collections.emptyList())
+        def action = new TestExecutionRequestAction(new BuildEventSubscriptions([OperationType.TASK] as Set), startParameter, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), new DefaultDebugOptions(), Collections.emptyMap(), false, Collections.emptyList())
 
         expect:
         def result = serialize(action, BuildActionSerializer.create())
