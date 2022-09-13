@@ -111,7 +111,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      *     Gradle will provide the version of JUnit Platform to use. Defaults to version {@code 1.8.2}
      * </p>
      *
-     * @since 7.6
+     * @since 8.0
      */
     void useJUnitPlatform();
 
@@ -120,7 +120,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      *
      * @param version version of JUnit Platform to use
      *
-     * @since 7.6
+     * @since 8.0
      */
     void useJUnitPlatform(String version);
 
@@ -129,7 +129,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      *
      * @param version provider supplying the version of JUnit Platform to use
      *
-     * @since 7.6
+     * @since 8.0
      */
     void useJUnitPlatform(Provider<String> version);
 
