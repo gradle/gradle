@@ -16,10 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal.install;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.platform.BuildPlatform;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
@@ -27,6 +25,7 @@ import org.gradle.jvm.toolchain.JavaToolchainRequest;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
+import org.gradle.platform.BuildPlatform;
 
 import javax.inject.Inject;
 import java.net.URI;
