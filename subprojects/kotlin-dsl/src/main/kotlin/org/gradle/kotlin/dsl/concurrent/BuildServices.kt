@@ -54,15 +54,23 @@ class JavaSystemPropertiesAsyncIOScopeSettings : AsyncIOScopeSettings {
 
     override val ioActionTimeoutMs: Long by lazy {
         System.getProperty(IO_ACTION_TIMEOUT_SYSTEM_PROPERTY)
-            .takeIf { !it.isNullOrBlank() }?.let { property ->
-                val timeout = property.toLongOrNull()
+            .takeIf { !it.isNullOrBlank() }
+            ?.let { property ->
+                var timeout = property.toPositiveLongOrNull()
                 if (timeout == null) {
-                    LOGGER.warn("Invalid value for java system property '{}': {}. Default timeout '{}' will be used.",
-                        IO_ACTION_TIMEOUT_SYSTEM_PROPERTY, property, DEFAULT_IO_ACTION_TIMEOUT)
+                    LOGGER.warn(
+                        "Invalid value for system property '{}': '{}'. Default timeout {}ms will be used.",
+                        IO_ACTION_TIMEOUT_SYSTEM_PROPERTY, property, DEFAULT_IO_ACTION_TIMEOUT,
+                    )
                 }
                 timeout
-            } ?: DEFAULT_IO_ACTION_TIMEOUT
+            }
+            ?: DEFAULT_IO_ACTION_TIMEOUT
     }
+
+    private
+    fun String.toPositiveLongOrNull() =
+        toLongOrNull()?.takeIf { it > 0 }
 }
 
 

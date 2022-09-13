@@ -31,7 +31,7 @@ class JavaSystemPropertiesAsyncIOScopeSettingsTest {
     val setSystemProperties = SetSystemProperties()
 
     @Test
-    fun `can retrieve default values`() {
+    fun `can retrieve default value`() {
         val settings = JavaSystemPropertiesAsyncIOScopeSettings()
         assertEquals(DEFAULT_IO_ACTION_TIMEOUT, settings.ioActionTimeoutMs)
     }
@@ -44,8 +44,22 @@ class JavaSystemPropertiesAsyncIOScopeSettingsTest {
     }
 
     @Test
-    fun `uses default value if provided connection timeout is not valid`() {
+    fun `uses default value if provided connection timeout is not a valid number`() {
         System.setProperty(IO_ACTION_TIMEOUT_SYSTEM_PROPERTY, "abc")
+        val settings = JavaSystemPropertiesAsyncIOScopeSettings()
+        assertEquals(DEFAULT_IO_ACTION_TIMEOUT, settings.ioActionTimeoutMs)
+    }
+
+    @Test
+    fun `uses default value if provided connection timeout is zero`() {
+        System.setProperty(IO_ACTION_TIMEOUT_SYSTEM_PROPERTY, "0")
+        val settings = JavaSystemPropertiesAsyncIOScopeSettings()
+        assertEquals(DEFAULT_IO_ACTION_TIMEOUT, settings.ioActionTimeoutMs)
+    }
+
+    @Test
+    fun `uses default value if provided connection timeout is a negative number`() {
+        System.setProperty(IO_ACTION_TIMEOUT_SYSTEM_PROPERTY, "-1")
         val settings = JavaSystemPropertiesAsyncIOScopeSettings()
         assertEquals(DEFAULT_IO_ACTION_TIMEOUT, settings.ioActionTimeoutMs)
     }
