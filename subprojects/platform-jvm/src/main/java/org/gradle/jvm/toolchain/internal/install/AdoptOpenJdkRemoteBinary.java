@@ -111,10 +111,8 @@ public class AdoptOpenJdkRemoteBinary {
                 return "x64";
             case AARCH64:
                 return "aarch64";
-            case OTHER:
-                return platform.getArchitectureName();
             default:
-                throw new GradleException("Unhandled architecture type " + platform.getArchitecture().name());
+                return platform.getArchitectureName();
         }
     }
 
@@ -126,10 +124,8 @@ public class AdoptOpenJdkRemoteBinary {
                 return "windows";
             case MAC_OS:
                 return "mac";
-            case OTHER:
-                return platform.getOperatingSystemName();
             default:
-                throw new GradleException("Unhandle operating system type " + platform.getOperatingSystem().name());
+                return platform.getOperatingSystemName();
         }
     }
 
