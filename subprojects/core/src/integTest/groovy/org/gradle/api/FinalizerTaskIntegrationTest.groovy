@@ -189,8 +189,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
         2.times {
             fails 'entryPoint', '-PentryPoint.broken'
-            // TODO - shouldn't run the finalizer dependencies, as the finalizer will never run
-            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep'
+            result.assertTasksExecuted ':entryPoint'
         }
         2.times {
             fails 'entryPoint', '-PfinalizerDepDep.broken'
@@ -327,6 +326,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21325")
+    @Ignore("https://github.com/gradle/gradle-private/issues/3574")
     def "finalizer can have dependencies that are not reachable from first discovered finalized task and reachable from second discovered finalized task"() {
         buildFile '''
             task classes(type: BreakingTask) {
@@ -390,11 +390,8 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
         2.times {
             fails 'entry', '-PshadowJar.broken'
-            // TODO - should not run jar as finalizer will not run
-            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar'
-            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar'
+            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar'
         }
-
         2.times {
             succeeds 'jarOne', 'lifecycleTwo'
             result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'

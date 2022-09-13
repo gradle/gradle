@@ -705,7 +705,6 @@ class DependencyManagementBuildScopeServices {
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Deleter deleter,
         ExecutionStateChangeDetector changeDetector,
-        InputFingerprinter inputFingerprinter,
         ListenerManager listenerManager,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,

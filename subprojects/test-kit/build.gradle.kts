@@ -11,6 +11,7 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":build-option"))
+    implementation(project(":logging"))
     implementation(project(":wrapper-shared"))
     implementation(project(":tooling-api"))
     implementation(project(":file-temp"))
