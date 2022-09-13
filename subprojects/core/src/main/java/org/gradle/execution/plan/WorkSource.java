@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -109,8 +110,10 @@ public interface WorkSource<T> {
         }
 
         public void describeTo(TreeFormatter formatter) {
+            formatter.node(StringUtils.capitalize(displayName));
+            formatter.startChildren();
             if (!queuedItems.isEmpty()) {
-                formatter.node("Queued nodes for " + displayName);
+                formatter.node("Waiting for nodes");
                 formatter.startChildren();
                 for (String item : queuedItems) {
                     formatter.node(item);
@@ -118,18 +121,19 @@ public interface WorkSource<T> {
                 formatter.endChildren();
             }
             if (!otherItems.isEmpty()) {
-                formatter.node("Non-queued nodes for " + displayName);
+                formatter.node("Reachable nodes");
                 formatter.startChildren();
                 for (String item : otherItems) {
                     formatter.node(item);
                 }
                 formatter.endChildren();
             }
-            formatter.node("Ordinal groups for " + displayName);
+            formatter.node("Ordinal groups");
             formatter.startChildren();
             for (String item : ordinalGroups) {
                 formatter.node(item);
             }
+            formatter.endChildren();
             formatter.endChildren();
         }
     }

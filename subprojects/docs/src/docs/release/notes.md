@@ -30,6 +30,7 @@ We would like to thank the following community members for their contributions t
 [Konstantin Gribov](https://github.com/grossws),
 [Leonardo Brondani Schenkel](https://github.com/lbschenkel),
 [Martin d'Anjou](https://github.com/martinda),
+[Pete Bentley](https://github.com/prbprbprb),
 [Sam Snyder](https://github.com/sambsnyd),
 [sll552](https://github.com/sll552),
 [teawithbrownsugar](https://github.com/teawithbrownsugar),
@@ -409,6 +410,11 @@ testLauncher.withTestsFor(spec -> {
 }).run();
 ```
 
+#### Added support for passing system properties to the build with the Tooling API
+
+Before 7.6, the Tooling API started builds with the system properties from the host JVM. This leaked configuration from the IDE to the build.
+Starting in Gradle 7.6, `LongRunningOperation.withSystemProperties(Map)` provides an isolated set of build system properties.
+For more information, see [`LongRunningOperation`](javadoc/org/gradle/tooling/LongRunningOperation.html#withSystemProperties-java.util.Map-).
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
