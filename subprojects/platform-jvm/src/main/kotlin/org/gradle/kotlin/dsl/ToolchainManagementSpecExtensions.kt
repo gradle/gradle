@@ -31,7 +31,7 @@ import org.gradle.jvm.toolchain.JdksBlockForToolchainManagement
  */
 @Incubating
 fun ToolchainManagementSpec.jdks(block: JdksBlockForToolchainManagement.() -> Unit) {
-    configure(block)
+    extensions.configure(JdksBlockForToolchainManagement::class.java, block)
 }
 
 
@@ -45,4 +45,4 @@ fun ToolchainManagementSpec.jdks(block: JdksBlockForToolchainManagement.() -> Un
  */
 @get:Incubating
 val ToolchainManagementSpec.jdks: JdksBlockForToolchainManagement
-    get() = the()
+    get() = extensions.getByType(JdksBlockForToolchainManagement::class.java)

@@ -37,8 +37,8 @@ import javax.inject.Inject;
 @Incubating
 public abstract class JdkToolchainsPlugin implements Plugin<Settings> {
 
-    //TODO (#21082): find a better name, we already hava a JvmToolchainsPlugin, together they aren't ok; maybe merge it with JvmToolchainsPlugin?
-    //TODO (#21082): update name in design specs too
+    //TODO (#21082): merge it with JvmToolchainsPlugin
+    //TODO (#21082): update design docs
 
     @Inject
     protected abstract DefaultJdksBlockForToolchainManagement getDefaultJdksBlockForToolchainManagement();
