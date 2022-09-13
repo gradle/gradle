@@ -16,11 +16,11 @@
 
 package org.gradle.configurationcache
 
-import groovy.transform.CompileStatic
+
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 
-class ConfigurationCacheLifecyclePluginIntegrationTest  extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheLifecyclePluginIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def 'buildDirectory is finalized when writing to the cache'() {
         given:
@@ -29,33 +29,23 @@ class ConfigurationCacheLifecyclePluginIntegrationTest  extends AbstractConfigur
         def buildDir = file(buildDirName)
         buildFile """
 
+            // lifecycle-base plugin registers layout.buildDirectory as a build output
             plugins { id 'lifecycle-base' }
 
-            @$CompileStatic.name
             abstract class MyBuildService implements $BuildService.name<${BuildServiceParameters.name}.None> {
-                String myBuildDir(Project project) {
-                    return '$buildDir.name'
+                String buildDirFor(Project project) {
+                    '$buildDir.name'
                 }
             }
 
-            @$CompileStatic.name
-            final class MyTransformer implements Transformer<String, MyBuildService> {
-                private final Project project
-
-                MyTransformer(Project project) {
-                    this.project = project
-                }
-
-                String transform(MyBuildService it) {
-                    return it.myBuildDir(project)
-                }
-            }
-
-            // lifecycle-base plugin registers layout.buildDirectory as a build output
             def service = gradle.sharedServices.registerIfAbsent('my', MyBuildService, {})
             layout.buildDirectory.set(
                 layout.projectDirectory.dir(
-                    service.map(new MyTransformer(project))
+                    service.map {
+                        // intentionally capture the `project` object to force a cc failure
+                        // in case this gets serialized
+                        it.buildDirFor(project)
+                    }
                 )
             )
         """
