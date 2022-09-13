@@ -91,7 +91,7 @@ public class DeprecationLogger {
         return new DeprecationMessageBuilder() {
             @Override
             DeprecationMessage build() {
-                setSummary(xHasBeenDeprecated(feature));
+                setSummary(feature + " has been deprecated.");
                 return super.build();
             }
         };
@@ -121,7 +121,7 @@ public class DeprecationLogger {
     }
 
     /**
-     * Output: ${behaviour}.
+     * Output: ${behaviour}. This behavior is deprecated.
      */
     @CheckReturnValue
     public static DeprecationMessageBuilder.DeprecateBehaviour deprecateBehaviour(String behaviour) {
@@ -129,7 +129,7 @@ public class DeprecationLogger {
     }
 
     /**
-     * Output: ${behaviour} ${advice}
+     * Output: ${behaviour}. This behavior is deprecated. ${advice}
      */
     @CheckReturnValue
     @SuppressWarnings("rawtypes")
@@ -137,7 +137,7 @@ public class DeprecationLogger {
         return new DeprecationMessageBuilder.WithDeprecationTimeline(new DeprecationMessageBuilder() {
             @Override
             DeprecationMessage build() {
-                return new DeprecationMessage(behaviour, "", advice, null, Documentation.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
+                return new DeprecationMessage(behaviour + ". This behavior is deprecated.", "", advice, null, Documentation.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
             }
         });
     }
@@ -148,13 +148,7 @@ public class DeprecationLogger {
     @CheckReturnValue
     @SuppressWarnings("rawtypes")
     public static DeprecationMessageBuilder<?> deprecateAction(final String action) {
-        return new DeprecationMessageBuilder() {
-            @Override
-            DeprecationMessage build() {
-                setSummary(xHasBeenDeprecated(action));
-                return super.build();
-            }
-        };
+        return new DeprecationMessageBuilder.DeprecateAction(action);
     }
 
     /**
@@ -245,7 +239,12 @@ public class DeprecationLogger {
     static void nagUserWith(DeprecationMessageBuilder<?> deprecationMessageBuilder, Class<?> calledFrom) {
         if (isEnabled()) {
             DeprecationMessage deprecationMessage = deprecationMessageBuilder.build();
-            nagUserWith(deprecationMessage.toDeprecatedFeatureUsage(calledFrom));
+            DeprecatedFeatureUsage featureUsage = deprecationMessage.toDeprecatedFeatureUsage(calledFrom);
+            nagUserWith(featureUsage);
+
+            if (!featureUsage.formattedMessage().contains("deprecated")) {
+                throw new RuntimeException("Deprecation message does not contain the word 'deprecated'. Message: \n" + featureUsage.formattedMessage());
+            }
         }
     }
 
@@ -275,9 +274,4 @@ public class DeprecationLogger {
     private synchronized static void nagUserWith(DeprecatedFeatureUsage usage) {
         DEPRECATED_FEATURE_HANDLER.featureUsed(usage);
     }
-
-    private static String xHasBeenDeprecated(String x) {
-        return String.format("%s has been deprecated.", x);
-    }
-
 }
