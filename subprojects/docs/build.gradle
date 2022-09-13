@@ -972,6 +972,6 @@ tasks.register("checkLinks") {
 tasks.named('javadocAll') {
     onlyIf {
         logger.lifecycle 'Temporarily disabling {} while testing Groovy 4 upgrade', path
+        false
     }
-    false
 }
