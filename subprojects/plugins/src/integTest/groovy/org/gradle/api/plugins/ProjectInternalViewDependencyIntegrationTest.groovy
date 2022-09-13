@@ -19,11 +19,11 @@ package org.gradle.api.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 /**
- * Tests that {@code JvmComponentDependencies#projectComplete()} behaves as expected.
+ * Tests that {@code JvmComponentDependencies#projectInternalView()} behaves as expected.
  */
-class ProjectCompleteDependencyIntegrationTest extends AbstractIntegrationSpec {
+class ProjectInternalViewDependencyIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can test against complete view of java application"() {
+    def "can test against the internal view of java application"() {
         given:
         buildFile << """
             plugins {
@@ -47,7 +47,7 @@ class ProjectCompleteDependencyIntegrationTest extends AbstractIntegrationSpec {
         result.assertTaskExecuted(":customTest")
     }
 
-    def "can test against complete view of java library"() {
+    def "can test against the internal view of java library"() {
         given:
         buildFile << """
             plugins {
@@ -83,7 +83,7 @@ class ProjectCompleteDependencyIntegrationTest extends AbstractIntegrationSpec {
                 suites {
                     customTest(JvmTestSuite) {
                         dependencies {
-                            implementation projectComplete()
+                            implementation projectInternalView()
                         }
                         useJUnit()
                     }
