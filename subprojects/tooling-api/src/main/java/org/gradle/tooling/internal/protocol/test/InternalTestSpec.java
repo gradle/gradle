@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.tooling.internal.protocol.test;
 
-import org.gradle.internal.Try;
+import java.util.List;
+import java.util.Map;
 
-import java.util.function.Supplier;
-
-public interface DeferredExecutionHandler<O, T> {
-    T processCachedOutput(Try<O> cachedResult);
-
-    T processDeferredOutput(Supplier<Try<O>> deferredExecution);
+/**
+ * Specifies a test pattern
+ *
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ *
+ * @since 7.6
+ */
+public interface InternalTestSpec extends InternalTaskSpec {
+    List<String> getPackages();
+    List<String> getClasses();
+    Map<String, List<String>> getMethods();
+    List<String> getPatterns();
 }

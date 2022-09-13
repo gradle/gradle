@@ -27,7 +27,6 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -36,6 +35,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * A {@link TaskNode} implementation for a task in the current build.
@@ -51,10 +51,10 @@ public class LocalTaskNode extends TaskNode {
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
 
-    public LocalTaskNode(TaskInternal task, NodeValidator nodeValidator, WorkValidationContext workValidationContext, BuildOperationRunner buildOperationRunner) {
+    public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext, Function<LocalTaskNode, ResolveMutationsNode> resolveNodeFactory) {
         this.task = task;
         this.validationContext = workValidationContext;
-        this.resolveMutationsNode = new ResolveMutationsNode(this, nodeValidator, buildOperationRunner);
+        this.resolveMutationsNode = resolveNodeFactory.apply(this);
     }
 
     /**
@@ -216,7 +216,7 @@ public class LocalTaskNode extends TaskNode {
     @Override
     public void cancelExecution(Consumer<Node> completionAction) {
         super.cancelExecution(completionAction);
-        if (!resolveMutationsNode.isComplete() && !resolveMutationsNode.isExecuting()) {
+        if (resolveMutationsNode.isRequired()) {
             resolveMutationsNode.cancelExecution(completionAction);
         }
     }

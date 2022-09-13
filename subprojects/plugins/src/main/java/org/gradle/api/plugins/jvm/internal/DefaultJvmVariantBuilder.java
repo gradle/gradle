@@ -191,6 +191,7 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
         Configuration apiElements = exposeApi ? jvmPluginServices.createOutgoingElements(apiElementsConfigurationName, builder -> {
             builder.fromSourceSet(sourceSet)
                 .providesApi()
+                .providesAttributes(JvmEcosystemAttributesDetails::apiCompileView)
                 .withDescription("API elements for " + displayName)
                 .extendsFrom(api, compileOnlyApi)
                 .withCapabilities(capabilities)

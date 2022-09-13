@@ -812,11 +812,6 @@ tasks.named("docsTest") { task ->
             // Tests that can and has to be fixed to run with the configuration cache enabled.
             // Set the Gradle property runBrokenConfigurationCacheDocsTests=true to run tests from this list or any of the lists above.
             def testsToBeFixedForConfigurationCache = [
-                "snippet-build-cache-cacheable-bundle_groovy_cacheableBundle-caching.sample",
-                "snippet-build-cache-cacheable-bundle_groovy_cacheableBundle.sample",
-                "snippet-build-cache-cacheable-bundle_kotlin_cacheableBundle-caching.sample",
-                "snippet-build-cache-cacheable-bundle_kotlin_cacheableBundle.sample",
-
                 "snippet-dependency-management-customizing-resolution-capability-substitution-rule_groovy_capability_substitution.sample",
                 "snippet-dependency-management-customizing-resolution-capability-substitution-rule_kotlin_capability_substitution.sample",
 
@@ -860,8 +855,6 @@ tasks.named("docsTest") { task ->
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_incrementalAdHocTaskNoSource.sample",
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep.sample",
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep2.sample",
-
-                "snippet-testing-test-suite-multi-configure-each-extracted_groovy_checkTask.sample"
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
