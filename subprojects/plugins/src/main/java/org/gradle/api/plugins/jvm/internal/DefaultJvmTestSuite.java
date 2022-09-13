@@ -19,6 +19,7 @@ package org.gradle.api.plugins.jvm.internal;
 import com.google.common.base.Preconditions;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
@@ -305,6 +306,16 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     private void setFrameworkTo(Frameworks framework, Provider<String> versionProvider) {
+        this.targets.withType(JvmTestSuiteTarget.class).configureEach(target -> {
+            target.getTestTask().configure(task -> {
+                if (task.getOptionsAccessed()) {
+                    throw new GradleException(String.format("You cannot set the test framework on suite: %s after accessing test options on an associated Test task: %s.",
+                            getName(),
+                            task.getName()));
+                }
+            });
+        });
+
         getVersionedTestingFramework().set(versionProvider.map(v -> new VersionedTestingFramework(framework, v)));
         attachDependencyAction.execute(null);
     }

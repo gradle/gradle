@@ -959,6 +959,18 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return options;
     }
 
+    /**
+     * Checks if the options for this test task have already been accessed; if so the framework cannot be changed on either the
+     * task or it's associated test suite.
+     *
+     * @since 8.0
+     */
+    @Internal
+    @Incubating
+    public Boolean getOptionsAccessed() {
+        return optionsAccessed;
+    }
+
     TestFramework useTestFramework(TestFramework testFramework) {
         return useTestFramework(testFramework, null);
     }
