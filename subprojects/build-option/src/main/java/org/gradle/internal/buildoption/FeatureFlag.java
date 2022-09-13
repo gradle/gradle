@@ -16,9 +16,12 @@
 
 package org.gradle.internal.buildoption;
 
+import javax.annotation.Nullable;
+
 /**
- * Represents some user configurable value that can be defined outside the Gradle model, for example via a command-line option or a Gradle
- * property. Some options may also be configurable via the Gradle API, for example feature previews.
+ * A feature flag. Can be enabled via the Settings object or optionally via a system property.
  */
-public interface Option {
+public interface FeatureFlag extends Option {
+    @Nullable
+    String getSystemPropertyName();
 }

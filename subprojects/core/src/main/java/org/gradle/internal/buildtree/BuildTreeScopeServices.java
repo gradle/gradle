@@ -72,15 +72,12 @@ public class BuildTreeScopeServices {
         registration.add(DefaultConfigurationTimeBarrier.class);
         registration.add(DeprecationsReporter.class);
         registration.add(TaskPathProjectEvaluator.class);
+        registration.add(DefaultFeatureFlags.class);
         modelServices.applyServicesTo(registration);
     }
 
     protected InternalOptions createInternalOptions(StartParameter startParameter) {
         return new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
-    }
-
-    protected FeatureFlags createFeatureFlags() {
-        return new DefaultFeatureFlags();
     }
 
     protected TaskSelector createTaskSelector(ProjectConfigurer projectConfigurer) {

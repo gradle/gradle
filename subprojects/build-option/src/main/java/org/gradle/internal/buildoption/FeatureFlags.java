@@ -16,9 +16,18 @@
 
 package org.gradle.internal.buildoption;
 
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
- * Represents some user configurable value that can be defined outside the Gradle model, for example via a command-line option or a Gradle
- * property. Some options may also be configurable via the Gradle API, for example feature previews.
+ * A service that determines whether a feature flag is enabled or not.
  */
-public interface Option {
+@ServiceScope(Scopes.BuildTree.class)
+public interface FeatureFlags {
+    boolean isEnabled(FeatureFlag flag);
+
+    /**
+     * Explicitly enable the given flag.
+     */
+    void enable(FeatureFlag flag);
 }
