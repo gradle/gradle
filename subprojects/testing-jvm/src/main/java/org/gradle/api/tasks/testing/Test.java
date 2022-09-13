@@ -173,12 +173,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private final ConfigurableFileCollection stableClasspath;
     private final Property<TestFramework> testFramework;
 
-    /*
-     * These fields are status variables that are used to keep track of the state of the test task
-     * to prevent potential errors or unexpected behavior caused by setting the test framework
-     * after setting options.
-     */
-    private boolean userHasConfiguredTestFramework;
     private boolean optionsAccessed;
 
     private boolean scanForTestClasses = true;
@@ -978,7 +972,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
                     oldFramework.getDisplayName()));
         }
 
-        userHasConfiguredTestFramework = true;
         this.testFramework.set(testFramework);
 
         if (testFrameworkConfigure != null) {
