@@ -48,7 +48,7 @@ class JavaSystemPropertiesAsyncIOScopeSettings : AsyncIOScopeSettings {
     companion object {
         private
         val LOGGER = loggerFor<JavaSystemPropertiesAsyncIOScopeSettings>()
-        const val IO_ACTION_TIMEOUT_SYSTEM_PROPERTY = "org.gradle.kotlin.dsl.io.timeout"
+        const val IO_ACTION_TIMEOUT_SYSTEM_PROPERTY = "org.gradle.kotlin.dsl.internal.io.timeout"
         val DEFAULT_IO_ACTION_TIMEOUT = Duration.ofMinutes(1).toMillis()
     }
 
