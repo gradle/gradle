@@ -35,6 +35,11 @@ testing {
                 annotationProcessor("com.google.auto.value:auto-value:1.9") // <3>
             }
         }
+        val integrationTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(projectInternalView()) // <4>
+            }
+        }
     }
 }
 // tag::configure-suite-dependencies[]

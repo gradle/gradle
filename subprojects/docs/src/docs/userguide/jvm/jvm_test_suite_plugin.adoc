@@ -139,6 +139,7 @@ include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies/ko
 <1> Configure the built-in `test` test suite.
 <2> Add the assertj library to the test's compile and runtime classpaths.  The `dependencies` block within a test suite is already scoped for that test suite.  Instead of having to know the global name of the configuration, test suites have a consistent name that you use in this block for declaring `implementation`, `compileOnly`, `runtimeOnly` and `annotationProcessor` dependencies.
 <3> Add the Auto Value annotation processor to the suite's annotation processor classpath so that it will be run when compiling the tests.
+<4> Add the `projectInternalView()` dependency to the integration test's compile and runtime classpaths. This dependency allows a test suite to access internal project dependencies which are declared on the project's `implementation` and `compileOnly` configurations, in addition to the `api` or `compileOnlyApi` configurations that the `project()` dependency provides.
 
 
 == Configure source directories of a test suite
