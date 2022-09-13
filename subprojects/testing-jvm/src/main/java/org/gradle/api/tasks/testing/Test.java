@@ -73,13 +73,14 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
+import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -276,7 +277,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Input
     public JavaVersion getJavaVersion() {
-        return getServices().get(JvmVersionDetector.class).getJavaVersion(getEffectiveExecutable());
+        return JavaVersion.toVersion(getLauncherTool().get().getMetadata().getLanguageVersion().asInt());
     }
 
     /**
@@ -1225,28 +1226,35 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private String getEffectiveExecutable() {
-        String executable = forkOptions.getExecutable();
-        if (executable != null) {
-            return executable;
-        }
-
-        return getLauncher().get().getExecutablePath().toString();
+        return getLauncherTool().get().getExecutablePath().toString();
     }
 
-    /**
-     * We create a launcher for the current JVM as well, so the progress event for toolchains is emitted.
-     */
-    private Provider<JavaLauncher> getLauncher() {
-        if (forkOptions.getExecutable() != null) {
-            throw new IllegalStateException("Explicit executable cannot be resolved into a toolchain");
+    private Provider<JavaLauncher> getLauncherTool() {
+        JavaToolchainSpec toolchainSpec = determineExplicitToolchain();
+        if (toolchainSpec == null) {
+            if (javaLauncher.isPresent()) {
+                return javaLauncher;
+            } else {
+                toolchainSpec = new CurrentJvmToolchainSpec(getObjectFactory());
+            }
         }
 
-        if (javaLauncher.isPresent()) {
-            return this.javaLauncher;
+        return getJavaToolchainService().launcherFor(toolchainSpec);
+    }
+
+    @Nullable
+    private JavaToolchainSpec determineExplicitToolchain() {
+        String customExecutable = forkOptions.getExecutable();
+        if (customExecutable != null) {
+            File executable = new File(customExecutable);
+            if (executable.exists()) {
+                // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
+                File parentJavaHome = executable.getParentFile().getParentFile();
+                return new SpecificInstallationToolchainSpec(getObjectFactory(), parentJavaHome);
+            }
         }
 
-        CurrentJvmToolchainSpec currentToolchainSpec = new CurrentJvmToolchainSpec(getObjectFactory());
-        return getJavaToolchainService().launcherFor(currentToolchainSpec);
+        return null;
     }
 
     @Inject

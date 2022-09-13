@@ -49,6 +49,8 @@ class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpe
             "sourceCompatibility = 12"
         } else if (versionNumber < VersionNumber.parse('6.22.0') && TestPrecondition.JDK14_OR_LATER.isFulfilled()) {
             "sourceCompatibility = 13"
+        } else if (versionNumber < VersionNumber.parse('6.48.0') && TestPrecondition.JDK19_OR_LATER.isFulfilled()) {
+            "sourceCompatibility = 18"
         } else {
             "" // do not set a source compatibility for the DEFAULT_PMD_VERSION running on latest Java, this way we will catch if it breaks with a new Java version
         }

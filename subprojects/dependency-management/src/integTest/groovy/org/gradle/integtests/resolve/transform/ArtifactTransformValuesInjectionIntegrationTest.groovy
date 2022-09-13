@@ -55,7 +55,7 @@ import static org.hamcrest.Matchers.containsString
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture, ValidationMessageChecker {
 
-    def "transform can receive parameters, workspace and input artifact (#inputArtifactType) via abstract getter"() {
+    def "transform can receive parameters, workspace and input artifact via abstract getter"() {
         settingsFile << """
             include 'a', 'b', 'c'
         """
@@ -88,10 +88,10 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 }
 
                 @InputArtifact
-                abstract ${inputArtifactType} getInput()
+                abstract Provider<FileSystemLocation> getInput()
 
                 void transform(TransformOutputs outputs) {
-                    File inputFile = input${convertToFile}
+                    File inputFile = input.get().asFile
                     println "processing \${inputFile.name}"
                     def output = outputs.file(inputFile.name + "." + parameters.extension)
                     output.text = "ok"
@@ -100,20 +100,12 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         """
 
         when:
-        if (expectedDeprecation) {
-            executer.expectDocumentedDeprecationWarning(expectedDeprecation)
-        }
         run(":a:resolve")
 
         then:
         outputContains("processing b.jar")
         outputContains("processing c.jar")
         outputContains("result = [b.jar.green, c.jar.green]")
-
-        where:
-        inputArtifactType              | convertToFile   | expectedDeprecation
-        'File'                         | ''              | "Injecting the input artifact of a transform as a File has been deprecated. This will fail with an error in Gradle 8.0. Declare the input artifact as Provider<FileSystemLocation> instead. See https://docs.gradle.org/current/userguide/artifact_transforms.html#sec:implementing-artifact-transforms for more details."
-        'Provider<FileSystemLocation>' | '.get().asFile' | null
     }
 
     def "transform can receive parameter of type #type"() {
@@ -914,10 +906,15 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription("A problem occurred evaluating root project")
         failure.assertHasCause("Could not register artifact transform MakeGreen (from {color=blue} to {color=green})")
-        failure.assertHasCause("Cannot use @InputArtifact annotation on property MakeGreen.getInput() of type ${typeName}. Allowed property types: java.io.File, org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
+        failure.assertHasCause("Cannot use @InputArtifact annotation on property MakeGreen.getInput() of type ${typeName}. Allowed property types: org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
 
         where:
-        propertyType << [FileCollection, new TypeToken<Provider<File>>() {}.getType(), new TypeToken<Provider<String>>() {}.getType()]
+        propertyType << [
+            File,
+            FileCollection,
+            new TypeToken<Provider<File>>() {}.getType(),
+            new TypeToken<Provider<String>>() {}.getType()
+        ]
     }
 
     def "transform cannot use @InputArtifactDependencies to receive #propertyType"() {

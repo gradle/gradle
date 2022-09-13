@@ -76,7 +76,7 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
         };
     }
 
-    private IncludedBuildTaskResource.State taskState = IncludedBuildTaskResource.State.Waiting;
+    private IncludedBuildTaskResource.State taskState = IncludedBuildTaskResource.State.Scheduled;
     private final Path taskIdentityPath;
     private final String taskPath;
     private final BuildIdentifier targetBuild;
@@ -102,6 +102,21 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
     @Override
     public TaskInternal getTask() {
         return getTarget().getTask();
+    }
+
+    @Override
+    protected ExecutionState getInitialState() {
+        switch (getTarget().getTaskState()) {
+            case Scheduled:
+            case NotScheduled:
+                return null;
+            case Success:
+                return ExecutionState.EXECUTED;
+            case Failed:
+                return ExecutionState.FAILED_DEPENDENCY;
+            default:
+                throw new IllegalStateException();
+        }
     }
 
     @Override
@@ -163,11 +178,12 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
             taskState = getTarget().getTaskState();
         }
         switch (taskState) {
-            case Waiting:
+            case Scheduled:
                 return DependenciesState.NOT_COMPLETE;
             case Success:
                 return DependenciesState.COMPLETE_AND_SUCCESSFUL;
             case Failed:
+            case NotScheduled:
                 return DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL;
             default:
                 throw new IllegalArgumentException();

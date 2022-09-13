@@ -42,7 +42,8 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultExecutionPlan executionPlan
     DefaultFinalizedExecutionPlan finalizedPlan
 
-    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor())
+    def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
+    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor(), accessHierarchies)
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
 
     def setup() {
@@ -51,7 +52,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
     private DefaultExecutionPlan newExecutionPlan() {
         executionPlan?.close()
-        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
+        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator)
     }
 
     def "schedules tasks in dependency order"() {
@@ -283,7 +284,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         }
 
         when:
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([finalized])
 
         then:
@@ -812,7 +813,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([a, b])
 
         then:
@@ -831,7 +832,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([c])
 
         then:
@@ -850,7 +851,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([b, c])
 
         then:
@@ -871,7 +872,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != b }
 
         when:
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([c])
 
         then:
@@ -918,7 +919,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task b = task("b", dependsOn: [a])
         Task c = task("c")
         def filter = { it != b } as Spec<Task>
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([b, c])
         executes(c)
 

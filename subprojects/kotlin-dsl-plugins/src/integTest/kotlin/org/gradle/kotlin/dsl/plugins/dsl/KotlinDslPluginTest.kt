@@ -288,39 +288,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    fun `nags user about experimentalWarning deprecation`() {
-
-        withBuildExercisingSamConversionForKotlinFunctions(
-            "kotlinDslPluginOptions.experimentalWarning.set(false)"
-        )
-
-        executer.expectDeprecationWarning(
-            "The KotlinDslPluginOptions.experimentalWarning property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 8.0. " +
-                "Flag has no effect since `kotlin-dsl` no longer relies on experimental features."
-        )
-
-        build("test").apply {
-
-            assertThat(
-                output.also(::println),
-                containsMultiLineString(
-                    """
-                    STRING
-                    foo
-                    bar
-                    """
-                )
-            )
-
-            assertThat(
-                output,
-                not(containsString(samConversionForKotlinFunctions))
-            )
-        }
-    }
-
-    @Test
     fun `can use a different jvmTarget to compile kotlin-dsl plugins`() {
 
         assumeJava11()

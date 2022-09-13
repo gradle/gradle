@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
     private void expectDeprecationWarningForIneligibleTypes() {
         executer.expectDocumentedDeprecationWarning("Using internal convention mapping with a Provider backed property. " +
+                "This behavior has been deprecated. " +
                 "This will fail with an error in Gradle 8.0. " +
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_7.html#convention_mapping")
@@ -31,13 +32,13 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             abstract class MyTask extends DefaultTask {
                 @Inject abstract ProviderFactory getProviderFactory()
-                
+
                 @Internal abstract Property<String> getOther()
-            
+
                 @Internal Provider<String> getFoo() {
                     return other;
                 }
-                
+
                 @TaskAction
                 void useIt() {
                     assert foo.get() == "foobar"
@@ -57,7 +58,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             abstract class MyTask extends DefaultTask {
                 @Internal abstract Property<String> getFoo()
-                
+
                 @TaskAction
                 void useIt() {
                     // convention mapping for Property is already ignored
@@ -78,7 +79,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             abstract class MyTask extends DefaultTask {
                 @Internal abstract MapProperty<String, String> getFoo()
-                
+
                 @TaskAction
                 void useIt() {
                     // convention mapping for MapProperty is already ignored
@@ -99,7 +100,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             abstract class MyTask extends DefaultTask {
                 @Internal abstract ListProperty<String> getFoo()
-                
+
                 @TaskAction
                 void useIt() {
                     // convention mapping for ListProperty is already ignored
@@ -120,7 +121,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             abstract class MyTask extends org.gradle.api.internal.ConventionTask {
                 @Internal abstract Property<String> getFoo()
-                
+
                 @TaskAction
                 void useIt() {
                     // convention mapping for Property is already ignored
@@ -141,7 +142,7 @@ class ProviderConventionMappingIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             abstract class MyExtension {
                 abstract Property<String> getOther()
-            
+
                 Provider<String> getFoo() {
                     return other
                 }

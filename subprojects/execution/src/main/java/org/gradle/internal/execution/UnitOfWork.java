@@ -150,17 +150,17 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
-     * Handles when an input cannot be read while fingerprinting.
+     * Decorate input file fingerprinting errors when appropriate.
      */
-    default void handleUnreadableInputs(InputFileFingerprintingException ex) {
-        throw ex;
+    default RuntimeException decorateInputFileFingerprintingException(InputFileFingerprintingException ex) {
+        return ex;
     }
 
     /**
-     * Handles when an output cannot be read while snapshotting.
+     * Decorate output file fingerprinting errors when appropriate.
      */
-    default void handleUnreadableOutputs(OutputFileSnapshottingException ex) {
-        throw ex;
+    default RuntimeException decorateOutputFileSnapshottingException(OutputFileSnapshottingException ex) {
+        return ex;
     }
 
     /**
@@ -208,6 +208,13 @@ public interface UnitOfWork extends Describable {
      */
     default boolean shouldCleanupOutputsOnNonIncrementalExecution() {
         return true;
+    }
+
+    /**
+     * Whether stale outputs should be cleanup up before execution.
+     */
+    default boolean shouldCleanupStaleOutputs() {
+        return false;
     }
 
     enum InputChangeTrackingStrategy {

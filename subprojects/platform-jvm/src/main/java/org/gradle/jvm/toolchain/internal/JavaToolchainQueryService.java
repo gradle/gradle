@@ -23,7 +23,7 @@ import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
@@ -43,7 +43,7 @@ public class JavaToolchainQueryService {
     private final JavaToolchainProvisioningService installService;
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
-    private final Map<JavaToolchainSpec, JavaToolchain> matchingToolchains;
+    private final Map<JavaToolchainSpecInternal.Key, JavaToolchain> matchingToolchains;
 
     @Inject
     public JavaToolchainQueryService(
@@ -74,11 +74,11 @@ public class JavaToolchainQueryService {
     ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
         JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) filter;
         if (!filterInternal.isValid()) {
-            DeprecationLogger.deprecate("Using toolchain specifications without setting a language version")
+            throw DocumentedFailure.builder()
+                .withSummary("Using toolchain specifications without setting a language version is not supported.")
                 .withAdvice("Consider configuring the language version.")
-                .willBecomeAnErrorInGradle8()
                 .withUpgradeGuideSection(7, "invalid_toolchain_specification_deprecation")
-                .nagUser();
+                .build();
         }
 
         return new DefaultProvider<>(() -> {
@@ -86,7 +86,7 @@ public class JavaToolchainQueryService {
                 return null;
             }
 
-            return matchingToolchains.computeIfAbsent(filterInternal, this::query);
+            return matchingToolchains.computeIfAbsent(filterInternal.toKey(), k -> query(filterInternal));
         });
     }
 

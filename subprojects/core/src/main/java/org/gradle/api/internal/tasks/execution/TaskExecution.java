@@ -345,18 +345,18 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public void handleUnreadableInputs(InputFingerprinter.InputFileFingerprintingException ex) {
-        nagUserAboutUnreadableInputsOrOutputs("input", ex.getPropertyName(), ex.getCause());
+    public RuntimeException decorateInputFileFingerprintingException(InputFingerprinter.InputFileFingerprintingException ex) {
+        return decorateSnapshottingException("input", ex.getPropertyName(), ex.getCause());
     }
 
     @Override
-    public void handleUnreadableOutputs(OutputSnapshotter.OutputFileSnapshottingException ex) {
-        nagUserAboutUnreadableInputsOrOutputs("output", ex.getPropertyName(), ex.getCause());
+    public RuntimeException decorateOutputFileSnapshottingException(OutputSnapshotter.OutputFileSnapshottingException ex) {
+        return decorateSnapshottingException("output", ex.getPropertyName(), ex.getCause());
     }
 
-    private void nagUserAboutUnreadableInputsOrOutputs(String propertyType, String propertyName, Throwable cause) {
+    private RuntimeException decorateSnapshottingException(String propertyType, String propertyName, Throwable cause) {
         if (!(cause instanceof UncheckedIOException || cause instanceof org.gradle.api.UncheckedIOException)) {
-            throw UncheckedException.throwAsUncheckedException(cause);
+            return UncheckedException.throwAsUncheckedException(cause);
         }
         LOGGER.info("Cannot access {} property '{}' of {}", propertyType, propertyName, getDisplayName(), cause);
         boolean isDestinationDir = propertyName.equals("destinationDir");
@@ -375,13 +375,18 @@ public class TaskExecution implements UnitOfWork {
                 .withContext("Accessing unreadable inputs or outputs is not supported.")
                 .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
         }
-        throw builder.withUserManual("more_about_tasks", "disable-state-tracking")
+        return builder.withUserManual("more_about_tasks", "disable-state-tracking")
             .build();
     }
 
     @Override
     public OverlappingOutputHandling getOverlappingOutputHandling() {
         return OverlappingOutputHandling.DETECT_OVERLAPS;
+    }
+
+    @Override
+    public boolean shouldCleanupStaleOutputs() {
+        return context.getTaskExecutionMode().isTaskHistoryMaintained();
     }
 
     @Override
@@ -414,7 +419,6 @@ public class TaskExecution implements UnitOfWork {
         return Optional.ofNullable(task.getTimeout().getOrNull());
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
         for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
