@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.api-kotlin")
 }
 
 dependencies {
@@ -30,6 +31,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.inject)
     implementation(libs.nativePlatform)
+    implementation(libs.futureKotlin("stdlib-jdk8"))
 
     testImplementation(project(":snapshots"))
     testImplementation(libs.ant)

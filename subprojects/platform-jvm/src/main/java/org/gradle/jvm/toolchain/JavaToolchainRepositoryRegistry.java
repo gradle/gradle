@@ -44,5 +44,6 @@ public interface JavaToolchainRepositoryRegistry {
      */
     <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType);
 
-    //TODO (#21082): could we ease the naming restriction by automatically replacing dots for example?
+    //TODO (#21082): switch to NamedDomainObjectContainer based API proposal
+    //TODO (#21082): update design docs
 }

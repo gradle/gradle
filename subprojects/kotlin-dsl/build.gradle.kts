@@ -13,8 +13,6 @@ dependencies {
     api(project(":kotlin-dsl-tooling-models"))
     api(libs.futureKotlin("stdlib-jdk8"))
 
-    compileOnly(project(":platform-jvm"))
-
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
