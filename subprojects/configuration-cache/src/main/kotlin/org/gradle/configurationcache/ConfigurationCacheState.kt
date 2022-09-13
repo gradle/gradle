@@ -203,7 +203,7 @@ class ConfigurationCacheState(
         withDebugFrame({ "Work Graph" }) {
             val scheduledNodes = build.scheduledWork
             val relevantProjects = getRelevantProjectsFor(scheduledNodes, gradle.serviceOf())
-            writeRelevantProjects(relevantProjects)
+            writeRelevantProjectRegistrations(relevantProjects)
             writeProjectStates(gradle, relevantProjects)
             writeRequiredBuildServicesOf(gradle, buildTreeState)
             writeWorkGraphOf(gradle, scheduledNodes)
@@ -226,7 +226,7 @@ class ConfigurationCacheState(
             }
         }
 
-        readRelevantProjects(build)
+        readRelevantProjectRegistrations(build)
 
         build.registerProjects()
 
@@ -635,21 +635,21 @@ class ConfigurationCacheState(
     }
 
     private
-    fun Encoder.writeRelevantProjects(relevantProjects: List<ProjectState>) {
+    fun Encoder.writeRelevantProjectRegistrations(relevantProjects: List<ProjectState>) {
         writeCollection(relevantProjects) { project ->
-            writeProjectState(project)
+            writeProjectRegistration(project)
         }
     }
 
     private
-    fun Decoder.readRelevantProjects(build: ConfigurationCacheBuild) {
+    fun Decoder.readRelevantProjectRegistrations(build: ConfigurationCacheBuild) {
         readCollection {
-            readProjectState(build)
+            readProjectRegistration(build)
         }
     }
 
     private
-    fun Encoder.writeProjectState(project: ProjectState) {
+    fun Encoder.writeProjectRegistration(project: ProjectState) {
         val mutableModel = project.mutableModel
         writeString(mutableModel.path)
         writeFile(mutableModel.projectDir)
@@ -657,7 +657,7 @@ class ConfigurationCacheState(
     }
 
     private
-    fun Decoder.readProjectState(build: ConfigurationCacheBuild) {
+    fun Decoder.readProjectRegistration(build: ConfigurationCacheBuild) {
         val projectPath = readString()
         val projectDir = readFile()
         val buildDir = readFile()
