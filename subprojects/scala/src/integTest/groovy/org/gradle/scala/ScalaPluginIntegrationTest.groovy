@@ -18,6 +18,7 @@ package org.gradle.scala
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -208,15 +209,7 @@ task someTask
         then:
         def expectedMessage = "The version of 'scala-library' was changed while using the default Zinc version." +
             " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.13:" + ScalaBasePlugin.DEFAULT_ZINC_VERSION
-        if (GradleContextualExecuter.isConfigCache()) {
-            // Nested in the CC problems report
-            failure.assertHasFailures(2)
-            failure.assertHasFailure("Configuration cache problems found in this build.") { fail ->
-                fail.assertHasCause(expectedMessage)
-            }
-        } else {
-            failureHasCause(expectedMessage)
-        }
+        failureHasCause(expectedMessage)
     }
 
     def "trying to use an old version of Zinc switches to Gradle-supported version"() {
@@ -257,5 +250,38 @@ task someTask
         def matcher = log4jOutput =~ versionPattern
         matcher.find()
         Integer.valueOf(matcher.group(1)) >= 16
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.noDaemon })
+    def "Scala compiler daemon respects keepalive option"() {
+        buildFile << """
+            plugins {
+                id 'scala'
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation('org.scala-lang:scala-library:2.12.6')
+            }
+
+            tasks.withType(AbstractScalaCompile) {
+                scalaCompileOptions.keepAliveMode = KeepAliveMode.SESSION
+            }
+        """
+        file('src/main/scala/Foo.scala') << '''
+            class Foo {
+            }
+        '''
+        expect:
+        succeeds(':compileScala', '--info')
+        postBuildOutputContains('Stopped 1 worker daemon')
+
+        when:
+        buildFile.text = buildFile.text.replace('SESSION', 'DAEMON')
+
+        then:
+        succeeds(':compileScala', '--info')
+        postBuildOutputDoesNotContain('Stopped 1 worker daemon')
     }
 }

@@ -60,7 +60,10 @@ public class ComponentResolversChain {
         for (ComponentResolvers provider : providers) {
             depToComponentIdResolvers.add(provider.getComponentIdResolver());
             componentMetaDataResolvers.add(provider.getComponentResolver());
-            artifactSelectors.add(provider.getArtifactSelector());
+            OriginArtifactSelector artifactSelector = provider.getArtifactSelector();
+            if (artifactSelector != null) {
+                artifactSelectors.add(artifactSelector);
+            }
             artifactResolvers.add(provider.getArtifactResolver());
         }
         dependencyToComponentIdResolver = new DependencyToComponentIdResolverChain(depToComponentIdResolvers);

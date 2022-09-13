@@ -16,6 +16,7 @@
 
 package org.gradle.api
 
+
 import org.gradle.integtests.fixtures.executer.TaskOrderSpecs
 import spock.lang.Issue
 
@@ -33,14 +34,15 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         writeAllFiles()
 
-        when:
-        args '--parallel', '--max-workers=2'
-        succeeds(clean.path, generate.path)
+        expect:
+        2.times {
+            args '--parallel', '--max-workers=2'
+            succeeds(clean.path, generate.path)
 
-        then:
-        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
-        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+        }
 
         where:
         type << ProductionType.values()
@@ -59,14 +61,15 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         writeAllFiles()
 
-        when:
-        args '--parallel', '--max-workers=2'
-        succeeds(clean.path, generate.path)
+        expect:
+        2.times {
+            args '--parallel', '--max-workers=2'
+            succeeds(clean.path, generate.path)
 
-        then:
-        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
-        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+        }
 
         where:
         type << ProductionType.values()
@@ -85,14 +88,15 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         writeAllFiles()
 
-        when:
-        args '--parallel', '--max-workers=2'
-        succeeds(clean.path, generate.path)
+        expect:
+        2.times {
+            args '--parallel', '--max-workers=2'
+            succeeds(clean.path, generate.path)
 
-        then:
-        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
-        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+        }
 
         where:
         type << ProductionType.values()
@@ -114,14 +118,15 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         writeAllFiles()
 
-        when:
-        args '--parallel', '--max-workers=2'
-        succeeds(clean.path, generate.path)
+        expect:
+        2.times {
+            args '--parallel', '--max-workers=2'
+            succeeds(clean.path, generate.path)
 
-        then:
-        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
-        result.assertTaskOrder(generateBar.fullPath, cleanBar.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+            result.assertTaskOrder(generateBar.fullPath, cleanBar.fullPath)
+        }
     }
 
     def "allows command line order to override shouldRunAfter relationship"() {
@@ -140,14 +145,15 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         writeAllFiles()
 
-        when:
-        args '--parallel', '--max-workers=2'
-        succeeds(clean.path, generate.path)
+        expect:
+        2.times {
+            args '--parallel', '--max-workers=2'
+            succeeds(clean.path, generate.path)
 
-        then:
-        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
-        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath)
+        }
     }
 
     def "destroyer task with a dependency in another project followed by a producer task followed by a destroyer task are run in the correct order"() {
@@ -164,14 +170,15 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         writeAllFiles()
 
-        when:
-        args '--parallel', '--max-workers=2'
-        succeeds(clean.path, generate.path, cleanFooLocal.path)
+        expect:
+        2.times {
+            args '--parallel', '--max-workers=2'
+            succeeds(clean.path, generate.path, cleanFooLocal.path)
 
-        then:
-        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, TaskOrderSpecs.any(generate.fullPath, cleanFooLocal.fullPath))
-        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, TaskOrderSpecs.any(generate.fullPath, cleanFooLocal.fullPath))
+            result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+        }
     }
 
     def "destroyer task with a dependency in another build followed by a producer task followed by a destroyer task are run in the correct order"() {
@@ -189,14 +196,17 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         writeAllFiles()
 
-        when:
-        args '--parallel', '--max-workers=2'
-        succeeds(clean.path, generate.path, cleanLocal.path)
+        expect:
+        // TODO - does not work with CC yet. cleanFoo starts, which blocks generateFoo. However, cleanFooLocalState can start and so runs before generateFoo
+        // However, the cleanFooLocalState should block because it conflicts with generateFoo
+        2.times {
+            args '--parallel', '--max-workers=2'
+            succeeds(clean.path, generate.path, cleanLocal.path)
 
-        then:
-        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, TaskOrderSpecs.any(generate.fullPath, cleanFooLocal.fullPath))
-        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, TaskOrderSpecs.any(generate.fullPath, cleanFooLocal.fullPath))
+            result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+        }
     }
 
     def "multiple destroyer tasks listed on the command line followed by producers can run concurrently and are executed in the correct order"() {
@@ -212,19 +222,21 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
 
         server.start()
-        server.expectConcurrent(cleanFoo.path, cleanBarLocal.path)
 
         writeAllFiles()
 
-        when:
-        args '--parallel', '--max-workers=2'
-        succeeds(clean.path, cleanBarLocal.path, generate.path)
+        expect:
+        2.times {
+            server.expectConcurrent(cleanFoo.path, cleanBarLocal.path)
 
-        then:
-        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanBarLocal.fullPath, generateBar.fullPath, generate.fullPath)
-        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
-        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+            args '--parallel', '--max-workers=2'
+            succeeds(clean.path, cleanBarLocal.path, generate.path)
+
+            result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+            result.assertTaskOrder(cleanBarLocal.fullPath, generateBar.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+        }
     }
 
     def "a destroyer task finalized by a task in another project will run before producer tasks if ordered first"() {
@@ -240,14 +252,15 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         writeAllFiles()
 
-        when:
-        args '--parallel', '--max-workers=2'
-        succeeds(clean.path, generate.path)
+        expect:
+        2.times {
+            args '--parallel', '--max-workers=2'
+            succeeds(clean.path, generate.path)
 
-        then:
-        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
-        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+        }
     }
 
     def "a destroyer task finalizing both a destroyer and a producer task will run after producer tasks"() {
@@ -263,14 +276,15 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         writeAllFiles()
 
-        when:
-        args '--parallel', '--max-workers=2'
-        succeeds(clean.path, generate.path)
+        expect:
+        2.times {
+            args '--parallel', '--max-workers=2'
+            succeeds(clean.path, generate.path)
 
-        then:
-        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
-        result.assertTaskOrder(generateBar.fullPath, TaskOrderSpecs.any(generate.fullPath, cleanBar.fullPath))
+            result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+            result.assertTaskOrder(generateBar.fullPath, TaskOrderSpecs.any(generate.fullPath, cleanBar.fullPath))
+        }
     }
 
     def "a task that is neither a producer nor a destroyer can run concurrently with destroyers"() {
@@ -281,13 +295,16 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         def exec = bar.task('exec').shouldBlock()
 
         server.start()
-        server.expectConcurrent(cleanFoo.path, exec.path)
 
         writeAllFiles()
 
         expect:
-        args '--parallel', '--max-workers=2'
-        succeeds(cleanFoo.path, exec.path)
+        2.times {
+            server.expectConcurrent(cleanFoo.path, exec.path)
+
+            args '--parallel', '--max-workers=2'
+            succeeds(cleanFoo.path, exec.path)
+        }
     }
 
     def "destroyers and producers in different projects can run concurrently when they have no dependencies"() {
@@ -302,17 +319,19 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         def generate = rootBuild.task('generate').dependsOn(generateBar).dependsOn(generateFoo)
 
         server.start()
-        server.expectConcurrent(cleanFoo.path, generateBar.path)
 
         writeAllFiles()
 
-        when:
-        args '--parallel', '--max-workers=2'
-        succeeds(clean.path, generate.path)
+        expect:
+        2.times {
+            server.expectConcurrent(cleanFoo.path, generateBar.path)
 
-        then:
-        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
-        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+            args '--parallel', '--max-workers=2', '--rerun-tasks' // --rerun-tasks so that tasks are not up-to-date on second invocation
+            succeeds(clean.path, generate.path)
+
+            result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+        }
     }
 
     def "destroyer task that mustRunAfter a task in another project will run before producer tasks when ordered first"() {
@@ -328,14 +347,15 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         writeAllFiles()
 
-        when:
-        args '--parallel', '--max-workers=2'
-        succeeds(clean.path, generate.path)
+        expect:
+        2.times {
+            args '--parallel', '--max-workers=2'
+            succeeds(clean.path, generate.path)
 
-        then:
-        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
-        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20195")
@@ -352,15 +372,16 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         writeAllFiles()
 
-        when:
-        args '--parallel', '--max-workers=2'
-        succeeds(clean.path, generate.path)
+        expect:
+        2.times {
+            args '--parallel', '--max-workers=2'
+            succeeds(clean.path, generate.path)
 
-        then:
-        result.assertTaskOrder(cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
-        result.assertTaskOrder(generateFoo.fullPath, generate.fullPath)
-        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanBar.fullPath, clean.fullPath)
+            result.assertTaskOrder(generateFoo.fullPath, cleanFoo.fullPath, clean.fullPath)
+            result.assertTaskOrder(generateFoo.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+        }
 
         where:
         type << ProductionType.values()
@@ -380,19 +401,20 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         writeAllFiles()
 
-        when:
-        args '--parallel', '--max-workers=2'
-        succeeds(clean.path, generate.path)
+        expect:
+        2.times {
+            args '--parallel', '--max-workers=2'
+            succeeds(clean.path, generate.path)
 
-        then:
-        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
 
-        // cleanFoo must run after generateFoo, as cleanFoo finalizes generateFoo
-        // cleanFoo must run after generate, as cleanFoo destroys an output produced by generateFoo and consumed by generate
-        result.assertTaskOrder(generateFoo.fullPath, generate.fullPath, cleanFoo.fullPath, clean.fullPath)
+            // cleanFoo must run after generateFoo, as cleanFoo finalizes generateFoo
+            // cleanFoo must run after generate, as cleanFoo destroys an output produced by generateFoo and consumed by generate
+            result.assertTaskOrder(generateFoo.fullPath, generate.fullPath, cleanFoo.fullPath, clean.fullPath)
 
-        // cleanBar depends on cleanFoo, but cleanFoo must run after generate (per above)
-        result.assertTaskOrder(generateBar.fullPath, generate.fullPath, cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+            // cleanBar depends on cleanFoo, but cleanFoo must run after generate (per above)
+            result.assertTaskOrder(generateBar.fullPath, generate.fullPath, cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+        }
 
         where:
         type << ProductionType.values()
@@ -413,14 +435,15 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
 
         writeAllFiles()
 
-        when:
-        args '--parallel', '--max-workers=2'
-        succeeds(clean.path, generate.path)
+        expect:
+        2.times {
+            args '--parallel', '--max-workers=2'
+            succeeds(clean.path, generate.path)
 
-        then:
-        result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
-        result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
-        result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, cleanBar.fullPath, clean.fullPath)
+            result.assertTaskOrder(cleanFoo.fullPath, generateFoo.fullPath, generate.fullPath)
+            result.assertTaskOrder(cleanBar.fullPath, generateBar.fullPath, generate.fullPath)
+        }
 
         where:
         type << ProductionType.values()

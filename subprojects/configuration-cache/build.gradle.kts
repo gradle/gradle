@@ -122,6 +122,6 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/configurationcache/**")
 }

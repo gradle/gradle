@@ -52,7 +52,7 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
         ExecutionTimeValue<? extends T> leftValue = left.calculateExecutionTimeValue();
-        if (leftValue.isFixedValue()) {
+        if (leftValue.hasFixedValue()) {
             return leftValue;
         }
         ExecutionTimeValue<? extends T> rightValue = right.calculateExecutionTimeValue();

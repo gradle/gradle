@@ -164,7 +164,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             // An action attached to built-in task
             task a { doLast { assert Thread.currentThread().contextClassLoader == getClass().classLoader } }
-        
+
             // An action defined by a custom task
             task b(type: CustomTask)
             class CustomTask extends DefaultTask {
@@ -172,7 +172,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                     assert Thread.currentThread().contextClassLoader == getClass().classLoader
                 }
             }
-        
+
             // An action implementation
             task c
             class DoLast implements Action<Task> {
@@ -181,7 +181,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             c.doLast new DoLast()
-        
+
             // The following is NOT compatible with the configuration cache because anonymous inner classes
             // in a groovy script always capture the script object reference:
             //   c.doLast new Action<Task>() {
@@ -197,7 +197,10 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def excludesTasksWhenExcludePatternSpecified() {
-        settingsFile << "include 'sub'"
+        settingsFile << """
+            include 'sub'
+            rootProject.name = 'root'
+        """
         buildFile << """
             task a
             task b(dependsOn: a)
@@ -224,7 +227,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             // Project defaults
             executer.withArguments("-x", "b").run().assertTasksExecuted(":a", ":c", ":d", ":sub:c", ":sub:d")
             // Unknown task
-            executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"))
+            executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project 'root' and its subprojects."))
         }
     }
 
@@ -332,7 +335,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             task c(dependsOn: ['a', 'b'])
             task d
             c.mustRunAfter d
-        
+
         """
         expect:
         2.times {
@@ -603,7 +606,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds ':build'
-            result.assertTasksExecutedInOrder ':b:jar', ':a:compileJava', any(':a:compileFinalizer', ':a:jar'), ':build'
+            result.assertTasksExecutedInOrder ':b:jar', ':a:compileJava', any(':a:compileFinalizer', ':a:jar', ':build')
         }
     }
 

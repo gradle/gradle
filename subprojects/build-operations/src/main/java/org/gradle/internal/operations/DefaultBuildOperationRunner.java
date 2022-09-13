@@ -99,7 +99,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                     }
 
                     @Override
-                    public void setResult(Object result) {
+                    public void setResult(@Nullable Object result) {
                         assertNotFinished();
                         context.setResult(result);
                         finish();

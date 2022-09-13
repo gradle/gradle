@@ -66,6 +66,94 @@ This can be achieved persistently in the `gradle.properties` file in your build 
 systemProp.org.gradle.kotlin.dsl.precompiled.accessors.strict=true
 ```
 
+[[invalid_toolchain_specification_deprecation]]
+=== Usage of invalid Java toolchain specifications is now deprecated
+
+Along with the Java language version, the <<toolchains#toolchains, Java toolchain>> DSL allows configuring other criteria such as specific vendors or VM implementations.
+Starting with Gradle 7.6, toolchain specifications that configure other properties without specifying the language version are considered _invalid_.
+Invalid specifications are deprecated and will become build errors in Gradle 8.0.
+
+See more details about toolchain configuration in the <<toolchains#sec:configuring_toolchain_specifications,user manual>>.
+
+[[org_gradle_util_reports_deprecations]]
+=== Deprecated members of the `org.gradle.util` package now report their deprecation
+
+These members will be removed in Gradle 9.0.
+
+* `ClosureBackedAction`
+* `CollectionUtils`
+* `ConfigureUtil`
+* `DistributionLocator`
+* `GFileUtils`
+* `GradleVersion.getBuildTime()`
+* `GradleVersion.getNextMajor()`
+* `GradleVersion.getRevision()`
+* `GradleVersion.isValid()`
+* `GUtil`
+* `NameMatcher`
+* `NameValidator`
+* `RelativePathUtil`
+* `TextUtil`
+* `SingleMessageLogger`
+* `VersionNumber`
+* `WrapUtil`
+
+=== Potential breaking changes
+
+[[kotlin_1_7_10]]
+==== Upgrade to Kotlin 1.7.10
+
+The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.7.10[Kotlin 1.7.10].
+
+Gradle doesn't ship with the `kotlin-gradle-plugin` but the upgrade to 1.7.10 can bring the new version.
+For example when you use the `kotlin-dsl` plugin.
+
+The `kotlin-gradle-plugin` version 1.7.10 changes the type hierarchy of the `KotlinCompile` task type.
+It doesn't extend from `AbstractCompile` anymore.
+If you used to select Kotlin compilation tasks by `AbstractCompile` you need to change that to `KotlinCompile`.
+
+For example, this
+```kotlin
+tasks.named<AbstractCompile>("compileKotlin")
+```
+
+needs to be changed to
+```kotlin
+tasks.named<KotlinCompile>("compileKotlin")
+```
+
+In the same vein, if you used to filter tasks by `AbstractCompile` you won't obtain the Kotlin compilation tasks anymore:
+
+```kotlin
+tasks.withType<AbstractCompile>().configureEach {
+    // ...
+}
+```
+
+needs to be changed to
+```kotlin
+tasks.withType<AbstractCompile>().configureEach {
+    // ...
+}
+tasks.withType<KotlinCompile>().configureEach {
+    // ...
+}
+```
+
+==== Upgrade to Groovy 3.0.12
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.12.html[Groovy 3.0.12].
+
+==== Upgrade to PMD 6.48.0
+
+PMD has been updated to https://pmd.github.io/pmd-6.48.0/pmd_release_notes.html[PMD 6.48.0].
+
+=== Deprecations
+
+[[dependency_factory_renamed]]
+==== Internal DependencyFactory was renamed
+The internal `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory` type was renamed to `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal`. As an internal type, it should not be used, but for compatibility reasons the inner `ClassPathNotation` type is still available. This name for the type is deprecated and will be removed in Gradle 8.0. The public API for this is on `DependencyHandler`, with methods such as `localGroovy()` providing the same functionality.
+
 [[changes_7.5]]
 == Upgrading from 7.4 and earlier
 
@@ -238,9 +326,21 @@ If you are using TestNG, versions prior to `5.14.6` perform illegal reflection. 
 [[checkstyle_worker_api]]
 ==== Checkstyle tasks use toolchains and execute in parallel by default
 
-The [Checkstyle plugin](userguide/checkstyle_plugin.html) now uses the Gradle worker API to run Checkstyle as an external worker process, so that multiple Checkstyle tasks may now run in parallel within a project.
+The <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle plugin>> now uses the Gradle worker API to run Checkstyle as an external worker process, so that multiple Checkstyle tasks may now run in parallel within a project.
 
 Since Checkstyle runs as an external process you can control the memory via the `minHeapSize` and `maxHeapSize` properties on the Checkstyle tasks. In case of out of memory errors, increasing the max memory via the `maxHeapSize` property should solve the issue. By default, the process will start with `maxHeapSize` of 512MB. We also recommend to update Checkstyle to version 9.3 or later.
+
+==== Missing files specified with relative paths when running Checkstyle
+
+Gradle 7.5 consistently sets the current working directory for the Checkstyle task to `GRADLE_USER_HOME/workers`.
+This may cause problems with custom Checkstyle tasks or Checkstyle configuration files that assume a different directory for relative paths.
+
+Previously, Gradle selected the current working directory based on the directory where you ran Gradle. If you ran Gradle in:
+
+- the root directory of a project: Gradle uses the root directory as the current working directory.
+- a nested directory of a project: Gradle uses the root directory of the subproject as the current working directory.
+
+In version 7.5 and above, Gradle consistently sets the current working directory for the Checkstyle task to `GRADLE_USER_HOME/workers`.
 
 === Deprecations
 

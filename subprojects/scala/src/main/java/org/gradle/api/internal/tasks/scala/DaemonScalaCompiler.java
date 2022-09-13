@@ -99,7 +99,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
             .javaForkOptions(javaForkOptions)
             .withClassLoaderStructure(classLoaderStructure)
-            .keepAliveMode(KeepAliveMode.valueOf(compileOptions.getKeepAliveMode()))
+            .keepAliveMode(KeepAliveMode.valueOf(compileOptions.getKeepAliveMode().name()))
             .build();
     }
 

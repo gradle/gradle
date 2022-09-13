@@ -78,7 +78,6 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
         noExceptionThrown()
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails verifying the file but not resolution itself if verification metadata fails for #kind"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", kind, "invalid")
@@ -259,10 +258,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
         }
         if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
-
-1 problem was found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+            failure.assertOutputContains("Configuration cache entry discarded.")
         }
 
         where:
@@ -312,12 +308,8 @@ This can indicate that a dependency has been compromised. Please carefully verif
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
         }
         if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
-
-1 problem was found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+            failure.assertOutputContains("Configuration cache entry discarded.")
         }
-
 
         where:
         terse << [true, false]
@@ -433,12 +425,8 @@ This can indicate that a dependency has been compromised. Please carefully verif
         failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a '$wrong' checksum of 'invalid' but was""")
         if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
-
-1 problem was found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+            failure.assertOutputContains("Configuration cache entry discarded.")
         }
-
 
         where:
         wrong  | md5                                | sha1
@@ -545,10 +533,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
         }
         if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
-
-1 problem was found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+            failure.assertOutputContains("Configuration cache entry discarded.")
         }
 
         where:
@@ -667,11 +652,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
   - On artifact bar-1.0.jar (org:bar:1.0) in repository 'maven': checksum is missing from verification metadata."""
 
         if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
-
-2 problems were found storing the configuration cache.
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':compileClasspath'' failed to visit file collection
-- Task `:compileJava` of type `org.gradle.api.tasks.compile.JavaCompile`: value 'configuration ':included:compileClasspath'' failed to visit file collection"""))
+            failure.assertOutputContains("Configuration cache entry discarded.")
         }
 
         where:
@@ -881,7 +862,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" | "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reasonable error message when the verification file can't be parsed"() {
         given:
         javaLibrary()
@@ -1000,10 +980,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""))
         if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
-
-1 problem was found storing the configuration cache.
-- Task `:printConfigurations` of type `org.gradle.api.DefaultTask`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+            failure.assertOutputContains("Configuration cache entry discarded.")
         }
     }
 
@@ -1233,7 +1210,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
                 }
             }
 
-
             dependencies {
                 implementation "org:foo:1.0"
             }
@@ -1244,7 +1220,9 @@ This can indicate that a dependency has been compromised. Please carefully verif
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Reason: An input file collection couldn't be resolved, making it impossible to determine task inputs. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Execution optimizations are disabled to ensure correctness. See https://docs.gradle.org/current/userguide/validation_problems.html#unresolvable_input for more details.")
+        if (!GradleContextualExecuter.isConfigCache()) {
+            executer.expectDocumentedDeprecationWarning("Reason: An input file collection couldn't be resolved, making it impossible to determine task inputs. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Execution optimizations are disabled to ensure correctness. See https://docs.gradle.org/current/userguide/validation_problems.html#unresolvable_input for more details.")
+        }
         fails ":printConfigurations"
 
         then:
@@ -1252,10 +1230,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""))
         if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertThatDescription(containsText("""Configuration cache problems found in this build.
-
-1 problem was found storing the configuration cache.
-- Task `:printConfigurations` of type `PrintConfigurations`: value 'configuration ':compileClasspath'' failed to visit file collection"""))
+            failure.assertOutputContains("Configuration cache entry discarded.")
         }
     }
 }

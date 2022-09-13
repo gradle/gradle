@@ -62,6 +62,7 @@ import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -149,8 +150,7 @@ public class JvmPluginsHelper {
         sourceDirectorySet.getDestinationDirectory().convention(target.getLayout().getBuildDirectory().dir(sourceSetChildPath));
 
         DefaultSourceSetOutput sourceSetOutput = Cast.cast(DefaultSourceSetOutput.class, sourceSet.getOutput());
-        sourceSetOutput.addClassesDir(sourceDirectorySet.getDestinationDirectory());
-        sourceSetOutput.registerClassesContributor(compileTask);
+        sourceSetOutput.addClassesDir(sourceDirectorySet.getDestinationDirectory(), compileTask);
         sourceSetOutput.getGeneratedSourcesDirs().from(options.flatMap(CompileOptions::getGeneratedSourceOutputDirectory));
         sourceDirectorySet.compiledBy(compileTask, classesDirectoryExtractor);
     }
@@ -332,6 +332,25 @@ public class JvmPluginsHelper {
         @Override
         public boolean shouldBePublished() {
             return false;
+        }
+    }
+
+    /**
+     * An {@link IntermediateJavaArtifact} which achieves lazy file access via a {@link Provider} instead
+     * of inheritance.
+     */
+    public static class ProviderBasedIntermediateJavaArtifact extends IntermediateJavaArtifact {
+
+        private final Provider<File> fileProvider;
+
+        public ProviderBasedIntermediateJavaArtifact(String type, Object task, Provider<File> fileProvider) {
+            super(type, task);
+            this.fileProvider = fileProvider;
+        }
+
+        @Override
+        public File getFile() {
+            return fileProvider.get();
         }
     }
 }

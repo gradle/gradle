@@ -39,6 +39,22 @@
             "changes": [
                 "Class is now abstract"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyAdderExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependencyAdderExtensionsKt.invoke(org.gradle.api.artifacts.dsl.DependencyAdder,org.gradle.api.artifacts.Dependency,org.gradle.api.Action)",
+            "acceptation": "@since was added, but the Kotlin ABI checker cannot match the method due to generics",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyAdderExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependencyAdderExtensionsKt.module(org.gradle.api.artifacts.dsl.Dependencies,java.lang.String,java.lang.String,java.lang.String)",
+            "acceptation": "This makes it possible to call module(group, name, version) with named parameters",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
         }
     ]
 }

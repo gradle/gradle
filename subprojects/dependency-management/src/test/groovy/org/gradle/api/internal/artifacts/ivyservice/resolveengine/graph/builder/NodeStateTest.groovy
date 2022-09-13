@@ -220,7 +220,7 @@ class NodeStateTest extends Specification {
     private NodeState nextNode(int outgoingEndorsing = 0) {
         def metadata = Stub(ConfigurationMetadata)
         def resolveState = Stub(ResolveState)
-        def newState = new NodeState(idIdx++, null, Mock(ComponentState), resolveState, metadata)
+        def newState = new NodeState(idIdx++, null, Mock(ComponentState), resolveState, metadata, true)
         // if there are outgoing endorsing edges, also include a normal edge to make sure that it is filtered out
         metadata.dependencies >> ((0..<outgoingEndorsing).collect { edge(newState).dependencyMetadata } + (outgoingEndorsing > 0 ? [edge(newState, false).dependencyMetadata] : []))
         resolveState.moduleExclusions >> Mock(ModuleExclusions)

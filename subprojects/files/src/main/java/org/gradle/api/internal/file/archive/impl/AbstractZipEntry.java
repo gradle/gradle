@@ -65,4 +65,16 @@ abstract class AbstractZipEntry implements ZipEntry {
             }
         });
     }
+
+    @Override
+    public ZipCompressionMethod getCompressionMethod() {
+        switch (entry.getMethod()) {
+            case java.util.zip.ZipEntry.STORED:
+                return ZipCompressionMethod.STORED;
+            case java.util.zip.ZipEntry.DEFLATED:
+                return ZipCompressionMethod.DEFLATED;
+            default:
+                return ZipCompressionMethod.OTHER;
+        }
+    }
 }

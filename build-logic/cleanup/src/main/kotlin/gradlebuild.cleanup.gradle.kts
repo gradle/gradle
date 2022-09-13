@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,16 @@
 
 import gradlebuild.basics.repoRoot
 import gradlebuild.cleanup.services.DaemonTracker
-import gradlebuild.cleanup.tasks.KillLeakingJavaProcesses
+import org.gradle.api.DefaultTask
 
 plugins {
     base
 }
 
-val trackerService = gradle.sharedServices.registerIfAbsent("daemonTracker", DaemonTracker::class) {
-    parameters.gradleHomeDir.fileValue(gradle.gradleHomeDir)
+gradle.sharedServices.registerIfAbsent("daemonTracker", DaemonTracker::class) {
     parameters.rootProjectDir.set(repoRoot())
 }
 
-tasks.register<KillLeakingJavaProcesses>("killExistingProcessesStartedByGradle") {
-    tracker.set(trackerService)
+tasks.register<DefaultTask>("killExistingProcessesStartedByGradle") {
+    // this is a dummy task to avoid failures in TeamCity Parallel Test
 }

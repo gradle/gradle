@@ -27,7 +27,6 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
-import org.gradle.internal.vfs.impl.VfsRootReference;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
@@ -82,13 +81,13 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
 
     public WatchingVirtualFileSystem(
         FileWatcherRegistryFactory watcherRegistryFactory,
-        VfsRootReference rootReference,
+        SnapshotHierarchy root,
         DaemonDocumentationIndex daemonDocumentationIndex,
         LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild,
         WatchableFileSystemDetector watchableFileSystemDetector,
         FileChangeListeners fileChangeListeners
     ) {
-        super(rootReference);
+        super(root);
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
         this.locationsWrittenByCurrentBuild = locationsWrittenByCurrentBuild;
@@ -119,7 +118,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         warningLogger = watchMode.loggerForWarnings(LOGGER);
         stateInvalidatedAtStartOfBuild = false;
         reasonForNotWatchingFiles = null;
-        rootReference.updateUnderLock(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+        updateRootUnderLock(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
                 if (watchMode.isEnabled()) {
@@ -205,7 +204,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
 
     @Override
     public void registerWatchableHierarchy(File watchableHierarchy) {
-        rootReference.updateUnderLock(currentRoot -> {
+        updateRootUnderLock(currentRoot -> {
             if (watchRegistry == null) {
                 watchableHierarchiesRegisteredEarly.add(watchableHierarchy);
                 return currentRoot;
@@ -225,7 +224,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         BuildOperationRunner buildOperationRunner,
         int maximumNumberOfWatchedHierarchies
     ) {
-        rootReference.updateUnderLock(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+        updateRootUnderLock(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
                 watchableHierarchiesRegisteredEarly.clear();
@@ -359,7 +358,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private class InvalidateVfsChangeHandler implements FileWatcherRegistry.ChangeHandler {
         @Override
         public void handleChange(FileWatcherRegistry.Type type, Path path) {
-            rootReference.updateUnderLock(root -> updateNotifyingListeners(
+            updateRootUnderLock(root -> updateNotifyingListeners(
                 diffListener -> root.invalidate(path.toString(), new VfsChangeLoggingNodeDiffListener(type, path, diffListener))
             ));
         }
@@ -470,7 +469,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
      * the parts that have been changed since calling {@link #startWatching(SnapshotHierarchy, WatchMode, List)}}.
      */
     private void stopWatchingAndInvalidateHierarchyAfterError() {
-        rootReference.updateUnderLock(this::stopWatchingAndInvalidateHierarchyAfterError);
+        updateRootUnderLock(this::stopWatchingAndInvalidateHierarchyAfterError);
     }
 
     private SnapshotHierarchy stopWatchingAndInvalidateHierarchyAfterError(SnapshotHierarchy currentRoot) {
@@ -506,7 +505,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     @Override
     public void close() {
         LOGGER.debug("Closing VFS, dropping state");
-        rootReference.updateUnderLock(currentRoot -> {
+        updateRootUnderLock(currentRoot -> {
             closeUnderLock();
             return currentRoot.empty();
         });

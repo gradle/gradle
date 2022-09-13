@@ -187,7 +187,6 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         "latest.milestone"   | "select 1.1"               | '["2.0"]'               | ['2.1', '2.0']        | false
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports all candidates rejected by rule"() {
         buildFile << """
 

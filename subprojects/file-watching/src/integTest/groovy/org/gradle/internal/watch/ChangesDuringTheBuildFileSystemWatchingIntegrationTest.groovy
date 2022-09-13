@@ -47,7 +47,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
                 def projectRoot = project.projectDir.absolutePath
                 def vfs = gradle.services.get(VirtualFileSystem)
                 int filesInVfs = 0
-                vfs.rootReference.getRoot().rootSnapshots().forEach { snapshot ->
+                vfs.root.rootSnapshots().forEach { snapshot ->
                     snapshot.accept(new FileSystemSnapshotHierarchyVisitor() {
                         @Override
                         SnapshotVisitResult visitEntry(FileSystemLocationSnapshot fileSnapshot) {
@@ -113,6 +113,9 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
                 inputs.file(inputFile)
                 outputs.file(outputFile)
                 doLast {
+                    // Make sure the creation event for the build directory arrived.
+                    // See https://github.com/gradle/gradle-private/issues/3537.
+                    Thread.sleep(40)
                     outputFile.text = inputFile.text
                 }
             }

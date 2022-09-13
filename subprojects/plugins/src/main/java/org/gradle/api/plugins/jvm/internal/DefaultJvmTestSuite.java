@@ -21,7 +21,9 @@ import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.dsl.DependencyAdder;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -52,7 +54,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         JUNIT4("junit:junit", "4.13.2"),
         JUNIT_JUPITER("org.junit.jupiter:junit-jupiter", "5.8.2"),
         SPOCK("org.spockframework:spock-core", "2.1-groovy-3.0"),
-        KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit5", "1.6.21"),
+        KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit5", "1.7.10"),
         TESTNG("org.testng:testng", "7.5"),
         NONE(null, null);
 
@@ -109,7 +111,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     protected abstract Property<VersionedTestingFramework> getVersionedTestingFramework();
 
     @Inject
-    public DefaultJvmTestSuite(String name, ConfigurationContainer configurations, DependencyHandler dependencies, SourceSetContainer sourceSets) {
+    public DefaultJvmTestSuite(String name, DependencyFactory dependencyFactory, ConfigurationContainer configurations, SourceSetContainer sourceSets) {
         this.name = name;
         this.sourceSet = sourceSets.create(getName());
 
@@ -118,12 +120,23 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
         Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
 
+        this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
+        this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
+
+        this.dependencies = getObjectFactory().newInstance(
+            DefaultJvmComponentDependencies.class,
+            getObjectFactory().newInstance(DefaultDependencyAdder.class, implementation),
+            getObjectFactory().newInstance(DefaultDependencyAdder.class, compileOnly),
+            getObjectFactory().newInstance(DefaultDependencyAdder.class, runtimeOnly),
+            getObjectFactory().newInstance(DefaultDependencyAdder.class, annotationProcessor)
+        );
+
         this.attachedDependencies = false;
         // This complexity is to keep the built-in test suite from automatically adding dependencies
         // unless a user explicitly calls one of the useXXX methods
         // Eventually, we should deprecate this behavior and provide a way for users to opt out
         // We could then always add these dependencies.
-        this.attachDependencyAction = x -> attachDependenciesForTestFramework(dependencies, implementation);
+        this.attachDependencyAction = x -> attachDependenciesForTestFramework(dependencyFactory, dependencies.getImplementation());
 
         if (!name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             useJUnitJupiter();
@@ -133,11 +146,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             // and add dependencies automatically.
             getVersionedTestingFramework().convention(NO_OPINION);
         }
-
-        this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
-        this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
-
-        this.dependencies = getObjectFactory().newInstance(DefaultJvmComponentDependencies.class, implementation, compileOnly, runtimeOnly, annotationProcessor);
 
         addDefaultTestTarget();
 
@@ -167,16 +175,16 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         });
     }
 
-    private void attachDependenciesForTestFramework(DependencyHandler dependencies, Configuration implementation) {
+    private void attachDependenciesForTestFramework(DependencyFactory dependencyFactory, DependencyAdder implementation) {
         if (!attachedDependencies) {
-            dependencies.addProvider(implementation.getName(), getVersionedTestingFramework().map(framework -> {
+            implementation.add(getVersionedTestingFramework().map(framework -> {
                 switch (framework.type) {
                     case JUNIT4: // fall-through
                     case JUNIT_JUPITER: // fall-through
                     case SPOCK: // fall-through
                     case TESTNG: // fall-through
                     case KOTLIN_TEST:
-                        return framework.type.getDependency(framework.version);
+                        return dependencyFactory.create(framework.type.getDependency(framework.version));
                     default:
                         throw new IllegalStateException("do not know how to handle " + framework);
                 }

@@ -21,22 +21,20 @@ import gradlebuild.basics.repoRoot
 import gradlebuild.identity.model.ReleasedVersions
 import gradlebuild.performance.generator.tasks.RemoteProject
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.caching.http.HttpBuildCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecOperations
 import org.gradle.util.GradleVersion
-import org.gradle.work.DisableCachingByDefault
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
@@ -59,7 +57,7 @@ private
 val oldWrapperMissingErrorRegex = """\Qjava.io.FileNotFoundException:\E.*/distributions-snapshots/gradle-([\d.]+)""".toRegex()
 
 
-@DisableCachingByDefault(because = "Child Gradle build will do its own caching")
+@CacheableTask
 abstract class BuildCommitDistribution @Inject internal constructor(
     private val fsOps: FileSystemOperations,
     private val execOps: ExecOperations,
@@ -71,16 +69,14 @@ abstract class BuildCommitDistribution @Inject internal constructor(
     @get:Optional
     abstract val commitBaseline: Property<String>
 
-    @get:OutputDirectory
-    abstract val commitDistributionHome: DirectoryProperty
+    @get:OutputFile
+    abstract val commitDistribution: RegularFileProperty
 
     @get:OutputFile
     abstract val commitDistributionToolingApiJar: RegularFileProperty
 
     init {
         onlyIf { commitBaseline.getOrElse("").matches(commitVersionRegex) }
-        commitDistributionHome.set(project.layout.buildDirectory.dir(commitBaseline.map { "distributions/gradle-$it" }))
-        commitDistributionToolingApiJar.set(project.layout.buildDirectory.file(commitBaseline.map { "distributions/gradle-tooling-api-$it.jar" }))
     }
 
     @TaskAction
@@ -89,9 +85,10 @@ abstract class BuildCommitDistribution @Inject internal constructor(
         val commit = commitBaseline.map { it.substring(it.lastIndexOf('-') + 1) }
         val checkoutDir = RemoteProject.checkout(fsOps, execOps, rootProjectDir, commit.get(), temporaryDir)
 
-        fsOps.delete { delete(commitDistributionHome.get().asFile) }
         tryBuildDistribution(checkoutDir)
-        println("Building the commit distribution succeeded, now the baseline is ${commitBaseline.get()}")
+        copyToFinalDestination(checkoutDir)
+
+        println("Building the commit distribution in $checkoutDir succeeded, now the baseline is ${commitBaseline.get()}")
     }
 
     /**
@@ -121,6 +118,12 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             standardOutput = os
             errorOutput = os
         }
+    }
+
+    private
+    fun copyToFinalDestination(checkoutDir: File) {
+        val baseVersion = commitBaseline.get().substringBefore("-")
+        checkoutDir.resolve("subprojects/distributions-full/build/distributions/gradle-$baseVersion-bin.zip").copyTo(commitDistribution.asFile.get(), true)
     }
 
     private
@@ -160,9 +163,8 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             "./gradlew" + (if (OperatingSystem.current().isWindows) ".bat" else ""),
             "--no-configuration-cache",
             "clean",
-            ":distributions-full:install",
             "-Dscan.tag.BuildCommitDistribution",
-            "-Pgradle_installPath=" + commitDistributionHome.get().asFile.absolutePath,
+            ":distributions-full:binDistributionZip",
             ":tooling-api:installToolingApiShadedJar",
             "-PtoolingApiShadedJarInstallPath=" + commitDistributionToolingApiJar.get().asFile.absolutePath,
             "-PbuildCommitDistribution=true"

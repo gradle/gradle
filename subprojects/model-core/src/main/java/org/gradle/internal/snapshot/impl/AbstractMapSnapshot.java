@@ -57,4 +57,9 @@ class AbstractMapSnapshot<T extends Hashable> implements Hashable {
     public int hashCode() {
         return entries.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return entries.toString();
+    }
 }

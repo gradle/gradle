@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblem;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.plugin.use.PluginDependency;
@@ -104,8 +105,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             writeSubAccessorFieldsOf(pluginsEntryPoint, AccessorKind.plugin);
             writeLn();
             writeLn("@Inject");
-            writeLn("public " + className + "(DefaultVersionCatalog config, ProviderFactory providers) {");
-            writeLn("    super(config, providers);");
+            writeLn("public " + className + "(DefaultVersionCatalog config, ProviderFactory providers, ObjectFactory objects) {");
+            writeLn("    super(config, providers, objects);");
             writeLn("}");
             writeLn();
             writeLibraryAccessors(librariesEntryPoint);
@@ -127,6 +128,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         addImport(ExternalModuleDependencyBundle.class);
         addImport(MutableVersionConstraint.class);
         addImport(Provider.class);
+        addImport(ObjectFactory.class);
         addImport(ProviderFactory.class);
         addImport(AbstractExternalDependencyFactory.class);
         addImport(DefaultVersionCatalog.class);
@@ -174,7 +176,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.bundle);
             writeLn();
-            writeLn("public " + bundleClassName + "(ProviderFactory providers, DefaultVersionCatalog config) { super(providers, config); }");
+            writeLn("public " + bundleClassName + "(ObjectFactory objects, ProviderFactory providers, DefaultVersionCatalog config) { super(objects, providers, config); }");
             writeLn();
             if (isProvider) {
                 String path = classNode.getFullAlias();
@@ -214,7 +216,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             .collect(Collectors.toList());
         writeLn("public static class " + pluginClassName + " extends PluginFactory " + interfaces + "{");
         indent(() -> {
-            writeSubAccessorFieldsOf(classNode, AccessorKind.bundle);
+            writeSubAccessorFieldsOf(classNode, AccessorKind.plugin);
             writeLn();
             writeLn("public " + pluginClassName + "(ProviderFactory providers, DefaultVersionCatalog config) { super(providers, config); }");
             writeLn();
@@ -231,7 +233,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
                 }
             }
             for (ClassNode child : classNode.getChildren()) {
-                writeSubAccessor(child, AccessorKind.bundle);
+                writeSubAccessor(child, AccessorKind.plugin);
             }
         });
         writeLn("}");
@@ -379,7 +381,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn(" * If the version is a rich version and that its not expressible as a");
         writeLn(" * single version string, then an empty string is returned.");
         if (context != null) {
-            writeLn(" * This version was declared in " + context);
+            writeLn(" * This version was declared in " + sanitizeUnicodeEscapes(context));
         }
         writeLn(" */");
         String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(versionAlias));
@@ -435,7 +437,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         writeLn("    /**");
         writeLn("     * Creates a dependency provider for " + name + " (" + coordinates + ")");
         if (context != null) {
-            writeLn("     * This dependency was declared in " + context);
+            writeLn("     * This dependency was declared in " + sanitizeUnicodeEscapes(context));
         }
         writeLn("     */");
         String methodName = asProvider ? "asProvider": "get" + toJavaName(name);
@@ -468,7 +470,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             }
             writeLn(" * </ul>");
             if (context != null) {
-                writeLn(" * This bundle was declared in " + context);
+                writeLn(" * This bundle was declared in " + sanitizeUnicodeEscapes(context));
             }
             writeLn(" */");
             String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(alias));
@@ -482,13 +484,23 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             writeLn("/**");
             writeLn(" * Creates a plugin provider for " + alias + " to the plugin id '" + id + "'");
             if (context != null) {
-                writeLn(" * This plugin was declared in " + context);
+                writeLn(" * This plugin was declared in " + sanitizeUnicodeEscapes(context));
             }
             writeLn(" */");
             String methodName = asProvider ? "asProvider" : "get" + toJavaName(leafNodeForAlias(alias));
             writeLn("public Provider<PluginDependency> " + methodName + "() { return createPlugin(\"" + alias + "\"); }");
         });
         writeLn();
+    }
+
+    /**
+     * Java compiler would fail to compile sources that have illegal unicode escape characters, including in the comments.
+     * Such characters could be accidentally introduced by a backslash followed by {@code 'u'},
+     * e.g. in Windows path {@code '..\\user\dir'}.
+     */
+    private static String sanitizeUnicodeEscapes(String s) {
+        // If a backslash precedes 'u', then we replace the backslash with its unicode notation '\\u005c'
+        return s.replace("\\u", "\\u005cu");
     }
 
     private static ClassNode rootNode(AccessorKind kind) {
@@ -598,7 +610,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     private enum AccessorKind {
         library("libraries", "owner"),
         version("versions", "providers, config"),
-        bundle("bundles", "providers, config"),
+        bundle("bundles", "objects, providers, config"),
         plugin("plugins", "providers, config");
 
         private final String description;

@@ -2,9 +2,11 @@ package configurations
 
 import common.buildToolGradleParameters
 import common.customGradle
+import common.dependsOn
 import common.gradleWrapper
 import common.requiresNoEc2Agent
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import model.CIBuildModel
@@ -32,6 +34,11 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
         javaCrash = false
     }
 
+    dependencies {
+        // If SanityCheck fails, Gradleception will definitely fail because the last build step is also sanityCheck
+        dependsOn(RelativeId(SanityCheck.buildTypeId(model)))
+    }
+
     /*
      To avoid unnecessary rerun, what we do here is a bit complicated:
 
@@ -55,7 +62,6 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
         model,
         this,
         ":distributions-full:install",
-        notQuick = true,
         extraParameters = "-Pgradle_installPath=dogfood-first-for-hash -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp1 $buildScanTagForType",
         extraSteps = {
             script {

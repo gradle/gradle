@@ -26,6 +26,13 @@ import org.gradle.tooling.events.PluginIdentifier;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.StartEvent;
+import org.gradle.tooling.events.lifecycle.BuildPhaseFinishEvent;
+import org.gradle.tooling.events.lifecycle.BuildPhaseOperationDescriptor;
+import org.gradle.tooling.events.lifecycle.BuildPhaseProgressEvent;
+import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent;
+import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseFinishEvent;
+import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseOperationDescriptor;
+import org.gradle.tooling.events.lifecycle.internal.DefaultBuildPhaseStartEvent;
 import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent;
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDescriptor;
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult;
@@ -117,6 +124,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalTestFrameworkFailure;
 import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
+import org.gradle.tooling.internal.protocol.events.InternalBuildPhaseDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadResult;
@@ -178,6 +186,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private final ListenerBroadcast<ProgressListener> transformProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> testOutputProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> fileDownloadListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> buildPhaseListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<Object, OperationDescriptor>();
 
     BuildProgressListenerAdapter(Map<OperationType, List<ProgressListener>> listeners) {
@@ -190,6 +199,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         transformProgressListeners.addAll(listeners.getOrDefault(OperationType.TRANSFORM, noListeners));
         testOutputProgressListeners.addAll(listeners.getOrDefault(OperationType.TEST_OUTPUT, noListeners));
         fileDownloadListeners.addAll(listeners.getOrDefault(OperationType.FILE_DOWNLOAD, noListeners));
+        buildPhaseListeners.addAll(listeners.getOrDefault(OperationType.BUILD_PHASE, noListeners));
     }
 
     @Override
@@ -218,6 +228,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
         if (!fileDownloadListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.FILE_DOWNLOAD);
+        }
+        if (!buildPhaseListeners.isEmpty()) {
+            operations.add(InternalBuildProgressListener.BUILD_PHASE);
         }
         return operations;
     }
@@ -249,6 +262,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             transformProgressListeners.getSource().statusChanged(event);
         } else if (event instanceof TestOutputEvent) {
             testOutputProgressListeners.getSource().statusChanged(event);
+        } else if (event instanceof BuildPhaseProgressEvent) {
+            buildPhaseListeners.getSource().statusChanged(event);
         } else {
             // Everything else treat as a generic operation
             buildOperationProgressListeners.getSource().statusChanged(event);
@@ -278,6 +293,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             broadcastStatusEvent((InternalStatusEvent) progressEvent);
         } else if (descriptor instanceof InternalFileDownloadDescriptor) {
             broadcastFileDownloadEvent(progressEvent, (InternalFileDownloadDescriptor) descriptor);
+        } else if (descriptor instanceof InternalBuildPhaseDescriptor) {
+            broadcastBuildPhaseEvent(progressEvent, (InternalBuildPhaseDescriptor) descriptor);
         } else {
             broadcastGenericProgressEvent(progressEvent);
         }
@@ -336,6 +353,44 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (progressEvent != null) {
             fileDownloadListeners.getSource().statusChanged(progressEvent);
         }
+    }
+
+    private void broadcastBuildPhaseEvent(InternalProgressEvent event, InternalBuildPhaseDescriptor descriptor) {
+        ProgressEvent progressEvent = toBuildPhaseEvent(event, descriptor);
+        if (progressEvent != null) {
+            buildPhaseListeners.getSource().statusChanged(progressEvent);
+        }
+    }
+
+    private BuildPhaseProgressEvent toBuildPhaseEvent(InternalProgressEvent event, InternalBuildPhaseDescriptor descriptor) {
+        if (event instanceof InternalOperationStartedProgressEvent) {
+            return buildPhaseStartEvent((InternalOperationStartedProgressEvent) event, descriptor);
+        } else if (event instanceof InternalOperationFinishedProgressEvent) {
+            return buildPhaseFinishEvent((InternalOperationFinishedProgressEvent) event);
+        } else {
+            return null;
+        }
+    }
+
+    private BuildPhaseStartEvent buildPhaseStartEvent(InternalOperationStartedProgressEvent event, InternalBuildPhaseDescriptor descriptor) {
+        OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
+        BuildPhaseOperationDescriptor newDescriptor = addDescriptor(
+            event.getDescriptor(),
+            new DefaultBuildPhaseOperationDescriptor(descriptor, parent)
+        );
+        return new DefaultBuildPhaseStartEvent(event.getEventTime(), event.getDisplayName(), newDescriptor);
+    }
+
+    private BuildPhaseFinishEvent buildPhaseFinishEvent(InternalOperationFinishedProgressEvent event) {
+        BuildPhaseOperationDescriptor descriptor = removeDescriptor(BuildPhaseOperationDescriptor.class, event.getDescriptor());
+        OperationResult result;
+        if (event.getResult() instanceof InternalFailureResult) {
+            InternalFailureResult internalResult = (InternalFailureResult) event.getResult();
+            result = new DefaultOperationFailureResult(internalResult.getStartTime(), internalResult.getEndTime(), toFailures(internalResult.getFailures()));
+        } else {
+            result = new DefaultOperationSuccessResult(event.getResult().getStartTime(), event.getResult().getEndTime());
+        }
+        return new DefaultBuildPhaseFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, result);
     }
 
     private void broadcastGenericProgressEvent(InternalProgressEvent event) {

@@ -19,6 +19,7 @@ package org.gradle.api.tasks.javadoc.internal;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.language.base.internal.compile.CompileSpec;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class JavadocSpec implements CompileSpec {
@@ -60,10 +61,11 @@ public class JavadocSpec implements CompileSpec {
         return optionsFile;
     }
 
-    public void setExecutable(String executable) {
+    public void setExecutable(@Nullable String executable) {
         this.executable = executable;
     }
 
+    @Nullable
     public String getExecutable() {
         return executable;
     }
