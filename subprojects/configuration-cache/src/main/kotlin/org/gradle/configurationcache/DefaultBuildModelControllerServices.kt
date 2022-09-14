@@ -30,6 +30,7 @@ import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.configuration.internal.DynamicCallContextTracker
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configuration.project.BuildScriptProcessor
 import org.gradle.configuration.project.ConfigureActionsProjectEvaluator
@@ -146,11 +147,20 @@ class DefaultBuildModelControllerServices(
             projectRegistry: ProjectRegistry<ProjectInternal>,
             problemsListener: ProblemsListener,
             userCodeApplicationContext: UserCodeApplicationContext,
-            listenerManager: ListenerManager
+            listenerManager: ListenerManager,
+            dynamicCallProblemReporting: DynamicCallProblemReporting
         ): CrossProjectModelAccess {
             val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry)
-            return ProblemReportingCrossProjectModelAccess(delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), userCodeApplicationContext)
+            return ProblemReportingCrossProjectModelAccess(
+                delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), userCodeApplicationContext, dynamicCallProblemReporting
+            )
         }
+
+        fun createDynamicCallProjectIsolationProblemReporting(dynamicCallContextTracker: DynamicCallContextTracker): DynamicCallProblemReporting =
+            DefaultDynamicCallProblemReporting().also { reporting ->
+                dynamicCallContextTracker.onEnter(reporting::enterDynamicCall)
+                dynamicCallContextTracker.onLeave(reporting::leaveDynamicCall)
+            }
     }
 
     private

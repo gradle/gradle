@@ -81,6 +81,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
+import org.gradle.configuration.internal.DynamicCallContextTracker;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
@@ -211,6 +212,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final ExtensibleDynamicObject extensibleDynamicObject;
 
+    private final DynamicCallContextTracker dynamicCallContextTracker;
+
     private String description;
 
     private boolean preparedForRuleBasedPlugins;
@@ -259,6 +262,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
         ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
+
+        dynamicCallContextTracker = services.get(DynamicCallContextTracker.class);
     }
 
     @SuppressWarnings("unused")
@@ -1097,35 +1102,61 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
-        return extensibleDynamicObject.getProperty(propertyName);
+        try {
+            dynamicCallContextTracker.enterDynamicCall(this);
+            return extensibleDynamicObject.getProperty(propertyName);
+        } finally {
+            dynamicCallContextTracker.leaveDynamicCall(this);
+        }
     }
 
     @Override
     public Object findProperty(String propertyName) {
-        // Do not reuse `hasProperty` + `getProperty` as those would count as separate attempts to dynamically
-        // access a property, which might trigger extra diagnostics as if there were two calls.
-        DynamicInvokeResult dynamicInvokeResult = extensibleDynamicObject.tryGetProperty(propertyName);
-        return dynamicInvokeResult.isFound() ? dynamicInvokeResult.getValue() : null;
+        DynamicCallContextTracker tracker = services.get(DynamicCallContextTracker.class);
+        try {
+            tracker.enterDynamicCall(this);
+            // Do not reuse `hasProperty` + `getProperty` as those would count as separate attempts to dynamically
+            // access a property, which might trigger extra diagnostics as if there were two calls.
+            DynamicInvokeResult dynamicInvokeResult = extensibleDynamicObject.tryGetProperty(propertyName);
+            return dynamicInvokeResult.isFound() ? dynamicInvokeResult.getValue() : null;
+        } finally {
+            tracker.leaveDynamicCall(this);
+        }
     }
 
     @Override
     public void setProperty(String name, Object value) {
-        extensibleDynamicObject.setProperty(name, value);
+        try {
+            dynamicCallContextTracker.enterDynamicCall(this);
+            extensibleDynamicObject.setProperty(name, value);
+        } finally {
+            dynamicCallContextTracker.leaveDynamicCall(this);
+        }
     }
 
     @Override
     public boolean hasProperty(String propertyName) {
-        return extensibleDynamicObject.hasProperty(propertyName);
+        try {
+            dynamicCallContextTracker.enterDynamicCall(this);
+            return extensibleDynamicObject.hasProperty(propertyName);
+        } finally {
+            dynamicCallContextTracker.leaveDynamicCall(this);
+        }
     }
 
     @Override
     public Map<String, ?> getProperties() {
-        return DeprecationLogger.whileDisabled(new Factory<Map<String, ?>>() {
-            @Override
-            public Map<String, ?> create() {
-                return extensibleDynamicObject.getProperties();
-            }
-        });
+        try {
+            dynamicCallContextTracker.enterDynamicCall(this);
+            return DeprecationLogger.whileDisabled(new Factory<Map<String, ?>>() {
+                @Override
+                public Map<String, ?> create() {
+                    return extensibleDynamicObject.getProperties();
+                }
+            });
+        } finally {
+            dynamicCallContextTracker.leaveDynamicCall(this);
+        }
     }
 
     @Override

@@ -103,7 +103,8 @@ class ProblemReportingCrossProjectModelAccess(
     private val delegate: CrossProjectModelAccess,
     private val problems: ProblemsListener,
     private val coupledProjectsListener: CoupledProjectsListener,
-    private val userCodeContext: UserCodeApplicationContext
+    private val userCodeContext: UserCodeApplicationContext,
+    private val dynamicCallProblemReporting: DynamicCallProblemReporting
 ) : CrossProjectModelAccess {
     override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
         return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer)
@@ -123,7 +124,9 @@ class ProblemReportingCrossProjectModelAccess(
 
     override fun parentProjectDynamicInheritedScope(referrerProject: ProjectInternal): DynamicObject? {
         val parent = referrerProject.parent ?: return null
-        return CrossProjectModelAccessTrackingParentDynamicObject(parent, parent.inheritedScope, referrerProject, problems, coupledProjectsListener, userCodeContext)
+        return CrossProjectModelAccessTrackingParentDynamicObject(
+            parent, parent.inheritedScope, referrerProject, problems, coupledProjectsListener, userCodeContext, dynamicCallProblemReporting
+        )
     }
 
     private

@@ -40,6 +40,7 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
     private val problems: ProblemsListener,
     private val coupledProjectsListener: CoupledProjectsListener,
     private val userCodeContext: UserCodeApplicationContext,
+    private val dynamicCallProblemReporting: DynamicCallProblemReporting
 ) : DynamicObject {
     override fun hasMethod(name: String?, vararg arguments: Any?): Boolean {
         onAccess(MemberKind.METHOD, name)
@@ -108,32 +109,42 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
 
     private
     fun onAccess(memberKind: MemberKind, memberName: String?) {
-        val trace = run {
-            val location = userCodeContext.location(null)
-            when (memberKind) {
-                MemberKind.PROPERTY -> {
-                    if (memberName != null)
-                        PropertyTrace.Property(PropertyKind.PropertyUsage, memberName, PropertyTrace.Project(referrerProject.path, location))
-                    else location
-                }
-
-                // method lookup is more clear from the stack trace, so keep the minimal trace pointing to the location:
-                MemberKind.METHOD -> location
-            }
-        }
-
-        val message = StructuredMessage.build {
-            text("Project ")
-            reference(referrerProject.identityPath.toString())
-            text(" cannot dynamically look up a ")
-            text(memberKind.name.lowercase(Locale.ENGLISH))
-            text(" in the parent project ")
-            reference(ownerProject.identityPath.toString())
-        }
-        val exception = InvalidUserCodeException(message.toString().capitalized())
-        problems.onProblem(
-            PropertyProblem(trace, message, exception, null)
-        )
         coupledProjectsListener.onProjectReference(referrerProject.owner, ownerProject.owner)
+        maybeReportProjectIsolationViolation(memberKind, memberName)
+    }
+
+    private
+    fun maybeReportProjectIsolationViolation(memberKind: MemberKind, memberName: String?) {
+        if (dynamicCallProblemReporting.unreportedProblemInCurrentCall(PROBLEM_KEY)) {
+            val trace = run {
+                val location = userCodeContext.location(null)
+                when (memberKind) {
+                    MemberKind.PROPERTY -> {
+                        if (memberName != null)
+                            PropertyTrace.Property(PropertyKind.PropertyUsage, memberName, PropertyTrace.Project(referrerProject.path, location))
+                        else location
+                    }
+
+                    // method lookup is more clear from the stack trace, so keep the minimal trace pointing to the location:
+                    MemberKind.METHOD -> location
+                }
+            }
+
+            val message = StructuredMessage.build {
+                text("Project ")
+                reference(referrerProject.identityPath.toString())
+                text(" cannot dynamically look up a ")
+                text(memberKind.name.lowercase(Locale.ENGLISH))
+                text(" in the parent project ")
+                reference(ownerProject.identityPath.toString())
+            }
+            val exception = InvalidUserCodeException(message.toString().capitalized())
+            problems.onProblem(PropertyProblem(trace, message, exception, null))
+        }
+    }
+
+    private
+    companion object {
+        val PROBLEM_KEY = Any()
     }
 }
