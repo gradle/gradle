@@ -61,9 +61,10 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.UnitOfWork.FileValueSupplier
+import org.gradle.internal.execution.UnitOfWork.InputPropertyType
+import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.WorkInputListener
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
@@ -331,7 +332,7 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    override fun onExecute(work: UnitOfWork, relevantTypes: EnumSet<InputFingerprinter.InputPropertyType>) {
+    override fun onExecute(work: UnitOfWork, relevantTypes: EnumSet<InputPropertyType>) {
         captureWorkInputs(work, relevantTypes)
     }
 
@@ -341,10 +342,10 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun captureWorkInputs(work: UnitOfWork, relevantTypes: EnumSet<InputFingerprinter.InputPropertyType>) {
+    fun captureWorkInputs(work: UnitOfWork, relevantTypes: EnumSet<InputPropertyType>) {
         captureWorkInputs(work.displayName) { visitStructure ->
             work.visitRegularInputs(object : InputVisitor {
-                override fun visitInputFileProperty(propertyName: String, type: InputFingerprinter.InputPropertyType, value: InputFingerprinter.FileValueSupplier) {
+                override fun visitInputFileProperty(propertyName: String, type: InputPropertyType, value: FileValueSupplier) {
                     if (relevantTypes.contains(type)) {
                         visitStructure(value.files as FileCollectionInternal)
                     }
