@@ -43,7 +43,7 @@ fun Task.customReports(): List<File> = when (this) {
 }
 
 fun Task.attachedReportLocations() = when (this) {
-    is JapicmpTask -> listOf(richReport.destinationDir.resolve(richReport.reportName))
+    is JapicmpTask -> listOf(richReport.get().destinationDir.get().asFile.resolve(richReport.get().reportName.get()))
     is PerformanceTest -> listOf(reportDir.parentFile)
     else -> emptyList()
 }
