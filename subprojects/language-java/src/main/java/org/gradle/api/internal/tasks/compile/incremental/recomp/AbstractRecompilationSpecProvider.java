@@ -76,7 +76,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
 
     protected abstract Set<String> getFileExtensions();
 
-    private void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
+    private static void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
         DependentsSet dependents = current.findDependentsOfClasspathChanges(previous);
         if (dependents.isDependencyToAll()) {
             spec.setFullRebuildCause(dependents.getDescription());
@@ -125,7 +125,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
      * <p>
      * Check also: <a href="https://github.com/gradle/gradle/issues/21644" />
      */
-    private void collectAllSourcePathsAndIndependentClasses(PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+    private static void collectAllSourcePathsAndIndependentClasses(PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
         Set<String> classesToCompile = new LinkedHashSet<>(spec.getClassesToCompile());
         while (!classesToCompile.isEmpty() && !spec.isFullRebuildNeeded()) {
@@ -138,7 +138,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         }
     }
 
-    private Set<String> collectSourcePathsAndIndependentClasses(Set<String> classesToCompile, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+    private static Set<String> collectSourcePathsAndIndependentClasses(Set<String> classesToCompile, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         Set<String> independentClasses = new LinkedHashSet<>();
         for (String classToCompile : classesToCompile) {
             for (String sourcePath : sourceFileClassNameConverter.getRelativeSourcePaths(classToCompile)) {
@@ -149,7 +149,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         return independentClasses;
     }
 
-    private Set<String> collectIndependentClassesForSourcePath(String sourcePath, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+    private static Set<String> collectIndependentClassesForSourcePath(String sourcePath, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         Set<String> classNames = sourceFileClassNameConverter.getClassNames(sourcePath);
         if (classNames.size() <= 1) {
             // If source has just 1 class, it doesn't have any independent class
@@ -164,7 +164,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         return newClasses;
     }
 
-    private void processTypesToReprocess(PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+    private static void processTypesToReprocess(PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         Set<String> typesToReprocess = previous.getTypesToReprocess(spec.getClassesToCompile());
         for (String typeToReprocess : typesToReprocess) {
             if (typeToReprocess.endsWith("package-info") || typeToReprocess.equals("module-info")) {
@@ -198,7 +198,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         return new CompileTransaction(spec, classesToDelete, resourcesToDelete, fileOperations, deleter);
     }
 
-    private Iterable<File> narrowDownSourcesToCompile(FileTree sourceTree, PatternSet sourceToCompile) {
+    private static Iterable<File> narrowDownSourcesToCompile(FileTree sourceTree, PatternSet sourceToCompile) {
         return sourceTree.matching(sourceToCompile);
     }
 
@@ -213,7 +213,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         return resourcesByLocation;
     }
 
-    private void prepareFilePatterns(Collection<String> staleClasses, Collection<String> sourcePaths, PatternSet filesToDelete, PatternSet sourceToCompile) {
+    private static void prepareFilePatterns(Collection<String> staleClasses, Collection<String> sourcePaths, PatternSet filesToDelete, PatternSet sourceToCompile) {
         for (String sourcePath : sourcePaths) {
             filesToDelete.include(sourcePath);
             sourceToCompile.include(sourcePath);
@@ -224,13 +224,13 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         }
     }
 
-    private void addClassesToProcess(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
+    private static void addClassesToProcess(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
         Set<String> classesToProcess = new HashSet<>(recompilationSpec.getClassesToProcess());
         classesToProcess.removeAll(recompilationSpec.getClassesToCompile());
         spec.setClasses(classesToProcess);
     }
 
-    private void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {
+    private static void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {
         List<File> classpath = new ArrayList<>(spec.getCompileClasspath());
         File destinationDir = spec.getDestinationDir();
         classpath.add(destinationDir);
