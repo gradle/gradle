@@ -13,6 +13,7 @@ We would like to thank the following community members for their contributions t
 
 [Björn Kautler](https://github.com/Vampire),
 [David Marin](https://github.com/dmarin),
+[Denis Buzmakov](https://github.com/bacecek),
 [Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy),
 [Eliezer Graber](https://github.com/eygraber),
 [Fedor Ihnatkevich](https://github.com/Jeffset),
