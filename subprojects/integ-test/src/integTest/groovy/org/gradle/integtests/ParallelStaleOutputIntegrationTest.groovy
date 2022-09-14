@@ -81,6 +81,6 @@ class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("a:foo", "b:foo", "--parallel")
-        result.assertHasErrorOutput("Resolution of the configuration :b:myconf was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
+        result.assertHasErrorOutput("Resolution of the configuration :a:myconf was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
     }
 }
