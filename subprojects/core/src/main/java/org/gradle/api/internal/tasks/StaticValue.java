@@ -66,7 +66,7 @@ public class StaticValue implements PropertyValue {
 
     @Nullable
     @Override
-    public Object call() {
+    public Object getValue() {
         return value;
     }
 }

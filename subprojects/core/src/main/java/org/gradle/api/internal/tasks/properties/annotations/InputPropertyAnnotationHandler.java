@@ -21,7 +21,9 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.tasks.ResolvingPropertyValue;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
+import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Input;
@@ -73,6 +75,11 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         validateNotDirectoryType(propertyMetadata, validationContext, valueType);
         validateNotFileType(propertyMetadata, validationContext, valueType);
         validateNotPrimitiveType(propertyMetadata, validationContext, valueType);
+    }
+
+    @Override
+    public PropertyValue applyResolver(Object bean, String propertyName, PropertyValue delegate) {
+        return new ResolvingPropertyValue(delegate, value -> InputParameterUtils.prepareInputParameterValue(bean, propertyName, value));
     }
 
     private void validateNotPrimitiveType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
