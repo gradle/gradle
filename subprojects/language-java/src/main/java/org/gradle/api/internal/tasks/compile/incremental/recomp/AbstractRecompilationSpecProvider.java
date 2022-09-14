@@ -65,7 +65,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     @Override
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
         RecompilationSpec spec = new RecompilationSpec();
-        SourceFileClassNameConverter sourceFileClassNameConverter = getSourceFileClassNameConverter(previous);
+        SourceFileClassNameConverter sourceFileClassNameConverter = new FileNameDerivingClassNameConverter(previous.getSourceToClassConverter(), getFileExtensions());
 
         processClasspathChanges(current, previous, spec);
         processSourceChanges(current, previous, spec, sourceFileClassNameConverter);
@@ -73,6 +73,47 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         processTypesToReprocess(previous, spec, sourceFileClassNameConverter);
         return spec;
     }
+
+    protected abstract Set<String> getFileExtensions();
+
+    private void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
+        DependentsSet dependents = current.findDependentsOfClasspathChanges(previous);
+        if (dependents.isDependencyToAll()) {
+            spec.setFullRebuildCause(dependents.getDescription());
+            return;
+        }
+        spec.addClassesToCompile(dependents.getPrivateDependentClasses());
+        spec.addClassesToCompile(dependents.getAccessibleDependentClasses());
+        spec.addResourcesToGenerate(dependents.getDependentResources());
+    }
+
+    private void processSourceChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+        if (spec.isFullRebuildNeeded()) {
+            return;
+        }
+        SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
+        for (FileChange fileChange : sourceChanges) {
+            if (spec.isFullRebuildNeeded()) {
+                return;
+            }
+            if (fileChange.getFileType() != FileType.FILE) {
+                continue;
+            }
+
+            String relativeFilePath = fileChange.getNormalizedPath();
+            Set<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFilePath);
+            if (changedClasses.isEmpty() && !isIncrementalOnResourceChanges(current)) {
+                spec.setFullRebuildCause(rebuildClauseForChangedNonSourceFile(fileChange));
+            }
+            sourceFileChangeProcessor.processChange(changedClasses, spec);
+        }
+    }
+
+    private String rebuildClauseForChangedNonSourceFile(FileChange fileChange) {
+        return String.format("%s '%s' has been %s", "resource", fileChange.getFile().getName(), fileChange.getChangeType().name().toLowerCase(Locale.US));
+    }
+
+    protected abstract boolean isIncrementalOnResourceChanges(CurrentCompilation currentCompilation);
 
     /**
      * This method collects all source paths that will be passed to a compiler. While collecting paths it additionally also
@@ -172,30 +213,6 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         return resourcesByLocation;
     }
 
-    private void processSourceChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
-        if (spec.isFullRebuildNeeded()) {
-            return;
-        }
-        SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
-        for (FileChange fileChange : sourceChanges) {
-            if (spec.isFullRebuildNeeded()) {
-                return;
-            }
-            if (fileChange.getFileType() != FileType.FILE) {
-                continue;
-            }
-
-            String relativeFilePath = fileChange.getNormalizedPath();
-            Set<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFilePath);
-            if (changedClasses.isEmpty() && !isIncrementalOnResourceChanges(current)) {
-                spec.setFullRebuildCause(rebuildClauseForChangedNonSourceFile(fileChange));
-            }
-            sourceFileChangeProcessor.processChange(changedClasses, spec);
-        }
-    }
-
-    protected abstract boolean isIncrementalOnResourceChanges(CurrentCompilation currentCompilation);
-
     private void prepareFilePatterns(Collection<String> staleClasses, Collection<String> sourcePaths, PatternSet filesToDelete, PatternSet sourceToCompile) {
         for (String sourcePath : sourcePaths) {
             filesToDelete.include(sourcePath);
@@ -205,17 +222,6 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
             filesToDelete.include(staleClass.replaceAll("\\.", "/").concat(".class"));
             filesToDelete.include(staleClass.replaceAll("[.$]", "_").concat(".h"));
         }
-    }
-
-    private void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
-        DependentsSet dependents = current.findDependentsOfClasspathChanges(previous);
-        if (dependents.isDependencyToAll()) {
-            spec.setFullRebuildCause(dependents.getDescription());
-            return;
-        }
-        spec.addClassesToCompile(dependents.getPrivateDependentClasses());
-        spec.addClassesToCompile(dependents.getAccessibleDependentClasses());
-        spec.addResourcesToGenerate(dependents.getDependentResources());
     }
 
     private void addClassesToProcess(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
@@ -230,16 +236,6 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         classpath.add(destinationDir);
         spec.setCompileClasspath(classpath);
     }
-
-    private String rebuildClauseForChangedNonSourceFile(FileChange fileChange) {
-        return String.format("%s '%s' has been %s", "resource", fileChange.getFile().getName(), fileChange.getChangeType().name().toLowerCase(Locale.US));
-    }
-
-    private SourceFileClassNameConverter getSourceFileClassNameConverter(PreviousCompilation previousCompilation) {
-        return new FileNameDerivingClassNameConverter(previousCompilation.getSourceToClassConverter(), getFileExtensions());
-    }
-
-    protected abstract Set<String> getFileExtensions();
 
     @Override
     public boolean isIncremental() {
