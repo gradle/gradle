@@ -4,9 +4,10 @@ repositories{
 }
 
 tasks.register("showRepositories") {
+    val repositoryData = repositories.withType<MavenArtifactRepository>().map { it.name to it.url }.toMap()
     doLast {
-        repositories.map { it as MavenArtifactRepository }.forEach {
-            println("repository: ${it.name} ('${it.url}')")
+        repositoryData.forEach {
+            println("repository: ${it.key} ('${it.value}')")
         }
     }
 }

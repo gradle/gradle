@@ -4,10 +4,11 @@ repositories{
 }
 
 tasks.register('showRepositories') {
-     doLast {
-         repositories.each {
-             println "repository: ${it.name} ('${it.url}')"
-         }
-     }
+    def repositoryData = repositories.collectEntries { [it.name, it.url] }
+    doLast {
+        repositoryData.each {
+            println "repository: ${it.key} ('${it.value}')"
+        }
+    }
 }
 // end::show-repos-task[]
