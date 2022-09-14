@@ -17,6 +17,7 @@ We would like to thank the following community members for their contributions t
 [aSemy](https://github.com/aSemy),
 [Ashwin Pankaj](https://github.com/ashwinpankaj),
 [BJ Hargrave](https://github.com/bjhargrave),
+[Bradley Turek](https://github.com/TurekBot)
 [Daniel Lin](https://github.com/ephemient),
 [David Morris](https://github.com/codefish1),
 [Edmund Mok](https://github.com/edmundmok),
