@@ -375,7 +375,10 @@ The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block 
 supports depending on the internal view of the current project during compile-time.
 Previously it was only possible to depend on the current project's API. This allows
 test suites to access project internals that are not declared on
-the `api` or `compileOnlyApi` configurations.
+the `api` or `compileOnlyApi` configurations. This functionality can be useful when
+testing internal classes that use dependencies which are not exposed as part of a 
+project's API, like those declared on the `implementation` and `compileOnly` configurations.
+This dependency would likely prove useful when defining a custom suite for unit testing. 
 
 For example, the following snippet uses the new `projectInternalView()` API to define a
 test suite with access to project internals:
