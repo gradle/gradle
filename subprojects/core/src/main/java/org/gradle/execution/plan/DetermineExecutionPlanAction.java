@@ -338,7 +338,7 @@ class DetermineExecutionPlanAction {
     /**
      * Walk the properties of the task to determine if it is a destroyer or a producer (or neither).
      */
-    private TaskClassifier classifyTask(TaskNode taskNode) {
+    private TaskClassifier classifyTask(LocalTaskNode taskNode) {
         TaskClassifier taskClassifier = new TaskClassifier();
         TaskInternal task = taskNode.getTask();
 
