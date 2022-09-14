@@ -290,9 +290,18 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         if (scheduledNodes == null) {
             throw new IllegalStateException("Nodes have node been scheduled yet.");
         }
+        for (Node node : scheduledNodes) {
+            if (node instanceof TaskNode) {
+                // The task for a node can be attached lazily
+                // Ensure the task is available if the caller happens to need it.
+                // It would be better for callers to not touch nodes directly, but instead take some immutable snapshot here
+                ((TaskNode) node).getTask();
+            }
+        }
         return new ScheduledNodes() {
-            // Hold a reference to the plan, as the field is discard when the plan completes
+            // Hold a reference to the plan, as the field is discarded when the plan completes
             final ImmutableList<Node> plan = scheduledNodes;
+
             @Override
             public void visitNodes(Consumer<List<Node>> visitor) {
                 visitor.accept(plan);
@@ -347,8 +356,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
             return true;
         }
 
-        public TaskNode get(Task task) {
-            TaskNode taskNode = taskMapping.get(task);
+        public LocalTaskNode get(Task task) {
+            LocalTaskNode taskNode = taskMapping.get(task);
             if (taskNode == null) {
                 throw new IllegalStateException("Task is not part of the execution plan, no dependency information is available.");
             }
