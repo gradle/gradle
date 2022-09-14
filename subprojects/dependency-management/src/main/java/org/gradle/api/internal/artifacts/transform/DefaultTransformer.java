@@ -48,7 +48,7 @@ import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.Describables;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.execution.UnitOfWork.FileValueSupplier;
+import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputPropertyType;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
@@ -333,7 +333,7 @@ public class DefaultTransformer implements Transformer {
                     visitor.visitInputFileProperty(
                         propertyName,
                         incremental ? InputPropertyType.INCREMENTAL : InputPropertyType.NON_INCREMENTAL,
-                        new FileValueSupplier(
+                        new InputFileValueSupplier(
                             value,
                             fileNormalizer == null ? AbsolutePathInputNormalizer.class : fileNormalizer,
                             directorySensitivity,

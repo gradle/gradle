@@ -61,7 +61,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UnitOfWork.FileValueSupplier
+import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputPropertyType
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.WorkInputListener
@@ -345,7 +345,7 @@ class ConfigurationCacheFingerprintWriter(
     fun captureWorkInputs(work: UnitOfWork, relevantTypes: EnumSet<InputPropertyType>) {
         captureWorkInputs(work.displayName) { visitStructure ->
             work.visitRegularInputs(object : InputVisitor {
-                override fun visitInputFileProperty(propertyName: String, type: InputPropertyType, value: FileValueSupplier) {
+                override fun visitInputFileProperty(propertyName: String, type: InputPropertyType, value: InputFileValueSupplier) {
                     if (relevantTypes.contains(type)) {
                         visitStructure(value.files as FileCollectionInternal)
                     }

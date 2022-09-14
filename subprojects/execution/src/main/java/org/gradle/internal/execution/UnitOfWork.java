@@ -146,7 +146,7 @@ public interface UnitOfWork extends Describable {
         default void visitInputFileProperty(
             String propertyName,
             InputPropertyType type,
-            FileValueSupplier value
+            InputFileValueSupplier value
         ) {}
 
     }
@@ -190,14 +190,18 @@ public interface UnitOfWork extends Describable {
         Object getValue();
     }
 
-    class FileValueSupplier implements ValueSupplier {
+    interface FileValueSupplier extends ValueSupplier {
+        FileCollection getFiles();
+    }
+
+    class InputFileValueSupplier implements FileValueSupplier {
         private final Object value;
         private final Class<? extends FileNormalizer> normalizer;
         private final DirectorySensitivity directorySensitivity;
         private final LineEndingSensitivity lineEndingSensitivity;
         private final Supplier<FileCollection> files;
 
-        public FileValueSupplier(
+        public InputFileValueSupplier(
             @Nullable Object value,
             Class<? extends FileNormalizer> normalizer,
             DirectorySensitivity directorySensitivity,
@@ -229,6 +233,7 @@ public interface UnitOfWork extends Describable {
             return lineEndingSensitivity;
         }
 
+        @Override
         public FileCollection getFiles() {
             return files.get();
         }
