@@ -389,11 +389,13 @@ public class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Used to enable or disable incremental compilation after a failure. By default incremental compilation after a failure is enabled for Java and Groovy.
+     * Used to enable or disable incremental compilation after a failure.
+     * <p>
+     * By default, incremental compilation after a failure is enabled for Java and Groovy.
      * It has no effect for Scala. It has no effect if incremental compilation is not enabled.
      * <p>
-     * When Java command line compiler is used, i.e. when custom java home is passed to forkOptions.javaHome or javac is passed to forkOptions.executable,
-     * this optimization is automatically disabled, since compiler is not invoked via the compiler API.
+     * When the Java command line compiler is used, i.e. when a custom java home is passed to forkOptions.javaHome or javac is passed to forkOptions.executable,
+     * this optimization is automatically disabled, since the compiler is not invoked via the compiler API.
      *
      * @since 7.6
      */
