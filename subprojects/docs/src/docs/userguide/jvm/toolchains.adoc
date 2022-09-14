@@ -286,7 +286,7 @@ include::sample[dir="snippets/java/toolchain-management/kotlin/",files="settings
 The `jdks` block in `toolchainManagement` is not a static component of the API.
 It only gets added when the plugins providing the toolchain download repository implementations are applied.
 
-Although the authentication & authorization  mechanisms are shared between the two, toolchain download repositories have nothing else in common with the <<declaring_repositories.adoc,artifact repositories used by Gradle in the context of dependency management>>.
+Although the authentication & authorization  mechanisms are shared between the two, toolchain download repositories have nothing else in common with the <<declaring_repositories.adoc#declaring-repositories,artifact repositories used by Gradle in the context of dependency management>>.
 They represent conceptually different things.
 ====
 
