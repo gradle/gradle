@@ -24,7 +24,7 @@ import java.util.List;
 
 /**
  * Dynamic extension added to <code>ToolchainManagementSpec</code> at runtime, by the
- * <code>jdk-toolchains</code> plugin. Provides a <code>jdks</code> block with methods
+ * <code>jvm-toolchains</code> plugin. Provides a <code>jdks</code> block with methods
  * to specify which <code>JavaToolchainRepository</code> implementations to use
  * and in what order for Java toolchain provisioning.
  *

@@ -23,8 +23,8 @@ import org.gradle.api.plugins.ExtensionAware;
  * Configures how toolchains are resolved. Is extended at runtime to support both
  * currently existing toolchains (Java) and future ones.
  * <p>
- * One option available at present is using the <code>jdk-toolchains</code> plugin, which
- * add a <code>jdks</code> block to it. This block allows for specifying which
+ * One option available at present is using the <code>jvm-toolchains</code> plugin, which
+ * adds a <code>jdks</code> block to it. This block allows for specifying which
  * <code>JavaToolchainRepository</code>s to use and in what order, if java toolchain
  * auto-provisioning is needed.
  *

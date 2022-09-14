@@ -16,11 +16,16 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.toolchain.management.ToolchainManagementSpec;
 import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JdksBlockForToolchainManagement;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
+import org.gradle.jvm.toolchain.internal.DefaultJdksBlockForToolchainManagement;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 
 import javax.inject.Inject;
@@ -32,17 +37,28 @@ import javax.inject.Inject;
  * @since 7.6
  */
 @Incubating
-public class JvmToolchainsPlugin implements Plugin<Project> {
-
-    @Override
-    public void apply(Project target) {
-        target.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, javaToolchainQueryService);
-    }
-
-    private final JavaToolchainQueryService javaToolchainQueryService;
+public abstract class JvmToolchainsPlugin implements Plugin<Object> {
 
     @Inject
-    public JvmToolchainsPlugin(JavaToolchainQueryService javaToolchainQueryService) {
-        this.javaToolchainQueryService = javaToolchainQueryService;
+    protected abstract JavaToolchainQueryService getJavaToolchainQueryService();
+
+    @Inject
+    protected abstract DefaultJdksBlockForToolchainManagement getDefaultJdksBlockForToolchainManagement();
+
+    //TODO (#21082): update design docs about piggy-backing the old plugin
+
+    @Override
+    public void apply(Object target) {
+        if (target instanceof Project) {
+            Project project = (Project) target;
+            project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, getJavaToolchainQueryService());
+        } else if (target instanceof Settings) {
+            Settings settings = (Settings) target;
+            ToolchainManagementSpec toolchainManagement = settings.getToolchainManagement();
+            toolchainManagement.getExtensions()
+                    .add(JdksBlockForToolchainManagement.class, "jdks", getDefaultJdksBlockForToolchainManagement());
+        } else {
+            throw new GradleException(JvmToolchainsPlugin.class.getSimpleName() + " can only be used as either a project- or settings-plugin");
+        }
     }
 }
