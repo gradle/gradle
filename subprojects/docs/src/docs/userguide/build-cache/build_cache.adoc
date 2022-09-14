@@ -282,6 +282,7 @@ By default, this directory resides in the Gradle user home directory, but its lo
 Gradle will periodically clean-up the local cache directory by removing entries that have not been used recently to conserve disk space.
 How often Gradle will perform this clean-up is configurable as shown in the example below.
 Note that cache entries are cleaned-up regardless of the project they were produced by.
+If different projects configure this clean-up to run at different periods, the shortest period will clean-up cache entries for all projects.
 Therefore it is recommended to configure this setting globally in the <<init_scripts.adoc#sec:using_an_init_script,init script>>.
 The <<sec:build_cache_configure_use_cases, Configuration use-cases>> section has an example of putting cache configuration in the init script.
 
