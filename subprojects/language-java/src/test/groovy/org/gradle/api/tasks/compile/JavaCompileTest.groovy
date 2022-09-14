@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
 import org.gradle.internal.jvm.Jvm
@@ -58,6 +59,20 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         then:
         def e = thrown(IllegalStateException)
         e.message == "Must not use `executable` property on `ForkOptions` together with `javaCompiler` property"
+    }
+
+    def "fails if custom executable does not exist"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        def invalidjavac = "invalidjavac"
+
+        when:
+        javaCompile.options.forkOptions.executable = invalidjavac
+        javaCompile.createSpec()
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("The configured executable does not exist")
+        e.message.contains(invalidjavac)
     }
 
     def 'uses release property combined with toolchain compiler'() {

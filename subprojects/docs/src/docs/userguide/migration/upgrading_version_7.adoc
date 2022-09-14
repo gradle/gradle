@@ -148,6 +148,11 @@ Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.12.h
 
 PMD has been updated to https://pmd.github.io/pmd-6.48.0/pmd_release_notes.html[PMD 6.48.0].
 
+==== Configuring a non-existing executable now fails
+
+When configuring an executable explicitly for link:{groovyDslPath}/org.gradle.api.tasks.compile.ForkOptions.html#org.gradle.api.tasks.compile.ForkOptions:executable[`JavaCompile`] or link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:executable[`Test`] tasks, Gradle will now emit an error if this executable does not exist.
+In the past, the task would be executed with the default toolchain or JVM running the build.
+
 === Deprecations
 
 [[dependency_factory_renamed]]
