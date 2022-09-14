@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.testing;
+package org.gradle.testing
 
+import org.gradle.api.tasks.testing.junit.JUnitOptions
+import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
@@ -354,5 +356,42 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
 
         then:
         result.assertHasErrorOutput("You cannot set the test framework on suite: integrationTest after accessing test options on an associated Test task: integrationTest.")
+    }
+
+    def "can NOT change test framework in test task after options have been set within test suites"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        useJUnit()
+                        targets.all {
+                            testTask.configure {
+                                options {
+                                    excludeCategories "com.example.Exclude"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            integrationTest {
+                useTestNG()
+            }
+
+            check.dependsOn testing.suites
+        """
+
+        when:
+        fails("check")
+
+        then:
+        failure.assertHasErrorOutput("You cannot change the test framework to: Test NG after accessing test options. The current framework is: JUnit 4.")
     }
 }
