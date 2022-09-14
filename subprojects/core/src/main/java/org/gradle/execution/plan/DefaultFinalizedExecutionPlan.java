@@ -227,6 +227,10 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             Node node = readyNodes.next();
             if (node.allDependenciesComplete()) {
                 if (!node.allDependenciesSuccessful()) {
+                    // Nodes whose dependencies have failed are added to the 'readyNodes' queue.
+                    // This is because of history, where all nodes were added to this queue regardless of their status.
+                    // Instead, the nodes should be cancelled when a dependent fails and never added to the queue.
+                    //
                     // Cannot execute this node due to failed dependencies - skip it
                     if (node.shouldCancelExecutionDueToDependencies()) {
                         node.cancelExecution(this::recordNodeCompleted);
@@ -264,21 +268,17 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
                 }
             }
             if (node.isComplete()) {
-                // Is already complete
-                // - is a pre-execution node that is also scheduled but not yet executed
+                // Is already complete, for example:
+                // - node was cancelled while in the queue
                 readyNodes.remove();
             }
-            // Else, node is not yet complete
-            // - its dependencies are not yet complete
-            // - it is waiting for some external event such as completion of a task in another build
-            // - it is a finalizer for nodes that are not yet complete
         }
 
         maybeNodesSelectable = false;
         if (waitingToStartNodes.isEmpty()) {
             return Selection.noMoreWorkToStart();
         }
-        // No nodes are able to start
+        // No nodes are able to start, for example
         // - they are ready to execute but cannot acquire the resources they need to start
         // - they are waiting for their dependencies to complete
         // - they are waiting for some external event
