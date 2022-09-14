@@ -27,5 +27,5 @@ public interface InternalOptions {
     /**
      * Lookup the value for an {@link InternalOption}.
      */
-    <T> BuildOption.Value<T> getOption(InternalOption<T> option);
+    <T> Option.Value<T> getOption(InternalOption<T> option);
 }

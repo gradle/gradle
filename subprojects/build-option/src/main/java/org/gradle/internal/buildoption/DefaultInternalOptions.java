@@ -26,15 +26,15 @@ public class DefaultInternalOptions implements InternalOptions {
     }
 
     @Override
-    public <T> BuildOption.Value<T> getOption(InternalOption<T> option) {
+    public <T> Option.Value<T> getOption(InternalOption<T> option) {
         String value = startParameterSystemProperties.get(option.getSystemPropertyName());
         if (value == null) {
             value = System.getProperty(option.getSystemPropertyName());
         }
         if (value == null) {
-            return BuildOption.Value.defaultValue(option.getDefaultValue());
+            return Option.Value.defaultValue(option.getDefaultValue());
         } else {
-            return BuildOption.Value.value(option.convert(value));
+            return Option.Value.value(option.convert(value));
         }
     }
 }
