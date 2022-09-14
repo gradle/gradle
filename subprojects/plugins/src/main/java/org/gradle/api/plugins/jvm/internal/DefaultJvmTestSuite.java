@@ -52,20 +52,23 @@ import java.util.Map;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     public enum Frameworks {
-        JUNIT4("junit:junit", "4.13.2"),
-        JUNIT_JUPITER("org.junit.jupiter:junit-jupiter", "5.8.2"),
-        SPOCK("org.spockframework:spock-core", "2.1-groovy-3.0"),
-        KOTLIN_TEST("org.jetbrains.kotlin:kotlin-test-junit5", "1.7.10"),
-        TESTNG("org.testng:testng", "7.5"),
-        NONE(null, null);
+        JUNIT4("JUnit 4", "junit:junit", "4.13.2"),
+        JUNIT_JUPITER("JUnit Jupiter", "org.junit.jupiter:junit-jupiter", "5.8.2"),
+        SPOCK("Spock", "org.spockframework:spock-core", "2.1-groovy-3.0"),
+        KOTLIN_TEST("Kotlin Test", "org.jetbrains.kotlin:kotlin-test-junit5", "1.7.10"),
+        TESTNG("Test NG", "org.testng:testng", "7.5"),
+        NONE(null, null, null);
 
+        @Nullable
+        private final String displayName;
         @Nullable
         private final String module;
         @Nullable
         private final String defaultVersion;
 
-        Frameworks(@Nullable String module, @Nullable String defaultVersion) {
+        Frameworks(@Nullable String displayName, @Nullable String module, @Nullable String defaultVersion) {
             Preconditions.checkArgument(module != null && defaultVersion != null || module == null && defaultVersion == null, "Either module and version must both be null, or neither be null.");
+            this.displayName = displayName;
             this.module = module;
             this.defaultVersion = defaultVersion;
         }
@@ -87,6 +90,13 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             } else {
                 return null;
             }
+        }
+
+        /**
+         * How we describe this test framework to the user (i.e., in error messages).
+         */
+        public String getDisplayName() {
+            return displayName;
         }
     }
 
@@ -309,8 +319,9 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         this.targets.withType(JvmTestSuiteTarget.class).configureEach(target -> {
             target.getTestTask().configure(task -> {
                 if (task.getOptionsAccessed()) {
-                    throw new GradleException(String.format("You cannot set the test framework on suite: %s after accessing test options on an associated Test task: %s.",
+                    throw new GradleException(String.format("You cannot set the test framework on suite: %s to: %s after accessing test options on an associated Test task: %s.",
                             getName(),
+                            framework.getDisplayName(),
                             task.getName()));
                 }
             });

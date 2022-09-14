@@ -16,8 +16,6 @@
 
 package org.gradle.testing
 
-import org.gradle.api.tasks.testing.junit.JUnitOptions
-import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
@@ -113,7 +111,7 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         fails ":$task"
 
         then:
-        result.assertHasErrorOutput("You cannot set the test framework on suite: $suiteName after accessing test options on an associated Test task: $task.")
+        result.assertHasErrorOutput("You cannot set the test framework on suite: $suiteName to: JUnit Jupiter after accessing test options on an associated Test task: $task.")
 
         where:
         suiteName   | suiteDeclaration              | task        | type
@@ -154,7 +152,7 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         fails ":$task"
 
         then:
-        result.assertHasErrorOutput("You cannot set the test framework on suite: $suiteName after accessing test options on an associated Test task: $task.")
+        result.assertHasErrorOutput("You cannot set the test framework on suite: $suiteName to: JUnit Jupiter after accessing test options on an associated Test task: $task.")
 
         where:
         suiteName   | suiteDeclaration              | task        | type
@@ -186,7 +184,7 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         fails ":test"
 
         then:
-        result.assertHasErrorOutput("You cannot set the test framework on suite: test after accessing test options on an associated Test task: test.")
+        result.assertHasErrorOutput("You cannot set the test framework on suite: test to: JUnit Jupiter after accessing test options on an associated Test task: test.")
     }
 
     def "can NOT set options on test task directly, outside of default test suite, then again inside suite"() {
@@ -212,7 +210,7 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         fails ":test"
 
         then:
-        result.assertHasErrorOutput("You cannot set the test framework on suite: test after accessing test options on an associated Test task: test.")
+        result.assertHasErrorOutput("You cannot set the test framework on suite: test to: JUnit 4 after accessing test options on an associated Test task: test.")
     }
 
     def "can set non-options test property for test task in #suiteName prior to setting framework within suite"() {
@@ -355,7 +353,7 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         fails("check")
 
         then:
-        result.assertHasErrorOutput("You cannot set the test framework on suite: integrationTest after accessing test options on an associated Test task: integrationTest.")
+        result.assertHasErrorOutput("You cannot set the test framework on suite: integrationTest to: Test NG after accessing test options on an associated Test task: integrationTest.")
     }
 
     def "can NOT change test framework in test task after options have been set within test suites"() {
