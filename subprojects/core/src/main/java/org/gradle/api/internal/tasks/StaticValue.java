@@ -64,6 +64,13 @@ public class StaticValue implements PropertyValue {
         }
     }
 
+    @Override
+    public void finalizeValue() {
+        if (value instanceof HasConfigurableValue) {
+            ((HasConfigurableValueInternal) value).finalizeValue();
+        }
+    }
+
     @Nullable
     @Override
     public Object getValue() {

@@ -43,6 +43,11 @@ public class ResolvingPropertyValue implements PropertyValue {
         delegate.maybeFinalizeValue();
     }
 
+    @Override
+    public void finalizeValue() {
+        delegate.finalizeValue();
+    }
+
     @Nullable
     @Override
     public Object getValue() {

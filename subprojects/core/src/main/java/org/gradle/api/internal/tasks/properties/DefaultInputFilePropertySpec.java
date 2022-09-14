@@ -64,6 +64,6 @@ public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec imple
     @Override
     @Nullable
     public Object getValue() {
-        return value.call();
+        return value.getValue();
     }
 }

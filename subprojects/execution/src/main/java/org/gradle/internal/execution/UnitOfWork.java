@@ -16,9 +16,12 @@
 
 package org.gradle.internal.execution;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.HasConfigurableValueInternal;
+import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
@@ -271,14 +274,37 @@ public interface UnitOfWork extends Describable {
     interface ValueSupplier {
         @Nullable
         Object getValue();
+
+        default void finalizeValue() {}
     }
 
     interface FileValueSupplier extends ValueSupplier {
         FileCollection getFiles();
     }
 
-    class InputFileValueSupplier implements FileValueSupplier {
-        private final Object value;
+    abstract class AbstractFileValueSupplier<T> implements FileValueSupplier {
+        private final T value;
+
+        protected AbstractFileValueSupplier(@Nullable T value) {
+            this.value = value;
+        }
+
+        @Nullable
+        @Override
+        public T getValue() {
+            return value;
+        }
+
+        @Override
+        public void finalizeValue() {
+            FileCollection filesToFinalize = getFiles();
+            if (filesToFinalize instanceof HasConfigurableValue) {
+                ((HasConfigurableValueInternal) filesToFinalize).finalizeValue();
+            }
+        }
+    }
+
+    class InputFileValueSupplier extends AbstractFileValueSupplier<Object> {
         private final Class<? extends FileNormalizer> normalizer;
         private final DirectorySensitivity directorySensitivity;
         private final LineEndingSensitivity lineEndingSensitivity;
@@ -291,17 +317,11 @@ public interface UnitOfWork extends Describable {
             LineEndingSensitivity lineEndingSensitivity,
             Supplier<FileCollection> files
         ) {
-            this.value = value;
+            super(value);
             this.normalizer = normalizer;
             this.directorySensitivity = directorySensitivity;
             this.lineEndingSensitivity = lineEndingSensitivity;
-            this.files = files;
-        }
-
-        @Nullable
-        @Override
-        public Object getValue() {
-            return value;
+            this.files = Suppliers.memoize(files::get);
         }
 
         public Class<? extends FileNormalizer> getNormalizer() {
@@ -322,19 +342,19 @@ public interface UnitOfWork extends Describable {
         }
     }
 
-    class OutputFileValueSupplier implements FileValueSupplier {
-        private final File root;
+    class OutputFileValueSupplier extends AbstractFileValueSupplier<File> {
         private final FileCollection files;
 
         public OutputFileValueSupplier(File root, FileCollection files) {
-            this.root = root;
+            super(root);
             this.files = files;
         }
 
         @Nonnull
+        @SuppressWarnings("ConstantConditions")
         @Override
         public File getValue() {
-            return root;
+            return super.getValue();
         }
 
         @Override
