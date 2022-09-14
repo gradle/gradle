@@ -234,38 +234,38 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
     @Issue("https://github.com/gradle/gradle/issues/21644")
     def "removes all classes for a recompiled source from output to stash dir for Spock tests when super class is changed"() {
         given:
-        buildScript"""
-    plugins {
-        id 'groovy'
-        id 'java-library'
-    }
-    ${mavenCentralRepository()}
-    dependencies {
-        testImplementation 'org.codehaus.groovy:groovy:3.0.10'
-        testImplementation 'org.spockframework:spock-core:2.1-groovy-3.0'
-    }
-    tasks.withType(GroovyCompile) {
-        options.incremental = true
-    }
-    tasks.named('test') {
-        useJUnitPlatform()
-    }
-"""
+        buildScript """
+            plugins {
+                id 'groovy'
+                id 'java-library'
+            }
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'org.codehaus.groovy:groovy:3.0.10'
+                testImplementation 'org.spockframework:spock-core:2.1-groovy-3.0'
+            }
+            tasks.withType(GroovyCompile) {
+                options.incremental = true
+            }
+            tasks.named('test') {
+                useJUnitPlatform()
+            }
+        """
         file("src/test/groovy/BaseTest.groovy").text = """
-import spock.lang.Specification
-class BaseTest extends Specification {}
-"""
+            import spock.lang.Specification
+            class BaseTest extends Specification {}
+        """
         file("src/test/groovy/UnrelatedClass.groovy").text = "class UnrelatedClass {}"
         file("src/test/groovy/AppTest.groovy").text = """
-        class AppTest extends BaseTest {
-            def "some test"() {
-                // These nested closures create nested \$closureXY.class
-                with("") {
+            class AppTest extends BaseTest {
+                def "some test"() {
+                    // These nested closures create nested \$closureXY.class
                     with("") {
+                        with("") {
+                        }
                     }
                 }
             }
-        }
         """
         def compileTransactionDir = file("build/tmp/compileTestGroovy/compileTransaction")
         def stashDirClasses = {
@@ -285,9 +285,9 @@ class BaseTest extends Specification {}
         when:
         outputs.snapshot {
             file("src/test/groovy/BaseTest.groovy").text = """
-import spock.lang.Specification
-class BaseTest extends Specification { void hello() {} }
-"""
+                import spock.lang.Specification
+                class BaseTest extends Specification { void hello() {} }
+            """
         }
         run "compileTestGroovy"
 
