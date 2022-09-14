@@ -52,14 +52,10 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
             ImmutableCapabilities shadowedPlatformCapability = buildShadowPlatformCapability(componentId, false);
             ImmutableCapabilities shadowedEnforcedPlatformCapability = buildShadowPlatformCapability(componentId, true);
             return ImmutableList.of(
-                    // When deriving variants for the Java ecosystem, we actually have 2 components "mixed together": the library and the platform
-                    // and there's no way to figure out what was the intent when it was published. So we derive variants, but we also need
-                    // to use generic JAVA_API and JAVA_RUNTIME attributes, instead of more precise JAVA_API_JARS and JAVA_RUNTIME_JARS
-                    // because of the platform aspect (which aren't jars but "something"). Using JAVA_API_JARS for the library part and
-                    // JAVA_API for the platform would lead to selection of the platform when we don't want them (in other words in a single
-                    // component we cannot mix precise usages with more generic ones)
-                libraryWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API),
-                libraryWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME),
+                // When deriving variants for the Java ecosystem, we actually have 2 components "mixed together": the library and the platform
+                // and there's no way to figure out what was the intent when it was published. So we derive variants for both.
+                libraryCompileScope(compileConfiguration, attributes, attributesFactory),
+                libraryRuntimeScope(runtimeConfiguration, attributes, attributesFactory),
                 libraryWithSourcesVariant(runtimeConfiguration, attributes, attributesFactory, metadata),
                 libraryWithJavadocVariant(runtimeConfiguration, attributes, attributesFactory, metadata),
                 platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, false, shadowedPlatformCapability),
@@ -109,12 +105,20 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
         );
     }
 
-    private static ConfigurationMetadata libraryWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, String usage) {
-        ImmutableAttributes attributes = attributesFactory.libraryWithUsage(originAttributes, usage);
+    private static ConfigurationMetadata libraryCompileScope(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory) {
+        ImmutableAttributes attributes = attributesFactory.compileScope(originAttributes);
         return conf.mutate()
-                .withAttributes(attributes)
-                .withoutConstraints()
-                .build();
+            .withAttributes(attributes)
+            .withoutConstraints()
+            .build();
+    }
+
+    private static ConfigurationMetadata libraryRuntimeScope(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory) {
+        ImmutableAttributes attributes = attributesFactory.runtimeScope(originAttributes);
+        return conf.mutate()
+            .withAttributes(attributes)
+            .withoutConstraints()
+            .build();
     }
 
     private static ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, String usage, boolean enforcedPlatform, ImmutableCapabilities shadowedPlatformCapability) {

@@ -308,8 +308,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), inputFingerprinter)
         then:
         transformerInvocations == 1
-        1 * artifactTransformListener.beforeTransformerInvocation(_, _)
-        1 * artifactTransformListener.afterTransformerInvocation(_, _)
+        0 * _
     }
 
     def "re-runs transform when previous execution failed"() {
@@ -519,6 +518,6 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         TransformationSubject subject,
         InputFingerprinter inputFingerprinter
     ) {
-        return invoker.createInvocation(transformer, inputArtifact, dependencies, subject, inputFingerprinter).invoke()
+        return invoker.createInvocation(transformer, inputArtifact, dependencies, subject, inputFingerprinter).completeAndGet()
     }
 }

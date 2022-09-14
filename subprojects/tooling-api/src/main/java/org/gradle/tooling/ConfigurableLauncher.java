@@ -117,6 +117,13 @@ public interface ConfigurableLauncher<T extends ConfigurableLauncher<T>> extends
 
     /**
      * {@inheritDoc}
+     * @since 7.6
+     */
+    @Override
+    T withSystemProperties(Map<String, String> systemProperties);
+
+    /**
+     * {@inheritDoc}
      * @since 5.0
      */
     @Override
