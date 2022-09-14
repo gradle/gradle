@@ -16,7 +16,6 @@
 package org.gradle.api.internal.tasks
 
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.TestFiles
@@ -175,23 +174,10 @@ class DefaultTaskInputsTest extends Specification {
         inputProperties() == [a: 'value']
     }
 
-    def canRegisterInputPropertyUsingAFileCollection() {
-        def files = [new File('file')] as Set
-
-        when:
-        inputs.property('a', [getFiles: { files }] as FileCollection)
-
-        then:
-        inputProperties() == [a: files]
-    }
-
     def inputPropertyCanBeNestedCallableAndClosure() {
         def files = [new File('file')] as Set
-        def fileCollection = [getFiles: { files }] as FileCollection
-        def callable = {fileCollection} as Callable
-
         when:
-        inputs.property('a', { callable })
+        inputs.property('a', { { { files } } as Callable })
 
         then:
         inputProperties() == [a: files]
