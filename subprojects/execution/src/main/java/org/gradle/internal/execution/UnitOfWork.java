@@ -36,6 +36,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
@@ -239,14 +240,34 @@ public interface UnitOfWork extends Describable {
         }
     }
 
+    class OutputFileValueSupplier implements FileValueSupplier {
+        private final File root;
+        private final FileCollection files;
+
+        public OutputFileValueSupplier(File root, FileCollection files) {
+            this.root = root;
+            this.files = files;
+        }
+
+        @Nonnull
+        @Override
+        public File getValue() {
+            return root;
+        }
+
+        @Override
+        public FileCollection getFiles() {
+            return files;
+        }
+    }
+
     void visitOutputs(File workspace, OutputVisitor visitor);
 
     interface OutputVisitor {
         default void visitOutputProperty(
             String propertyName,
             TreeType type,
-            File root,
-            FileCollection contents
+            OutputFileValueSupplier value
         ) {}
 
         default void visitLocalState(File localStateRoot) {}
