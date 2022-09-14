@@ -321,10 +321,9 @@ public class DefaultTransformer implements Transformer {
                 public void visitInputFileProperty(
                     String propertyName,
                     boolean optional,
-                    boolean skipWhenEmpty,
+                    InputPropertyType type,
                     DirectorySensitivity directorySensitivity,
                     LineEndingSensitivity lineEndingNormalization,
-                    boolean incremental,
                     @Nullable Class<? extends FileNormalizer> fileNormalizer,
                     PropertyValue value,
                     InputFilePropertyType filePropertyType
@@ -332,7 +331,7 @@ public class DefaultTransformer implements Transformer {
                     validateInputFileNormalizer(propertyName, fileNormalizer, cacheable, validationContext);
                     visitor.visitInputFileProperty(
                         propertyName,
-                        incremental ? InputPropertyType.INCREMENTAL : InputPropertyType.NON_INCREMENTAL,
+                        type,
                         new InputFileValueSupplier(
                             value,
                             fileNormalizer == null ? AbsolutePathInputNormalizer.class : fileNormalizer,
@@ -604,10 +603,9 @@ public class DefaultTransformer implements Transformer {
                     public void visitInputFileProperty(
                         String propertyName,
                         boolean optional,
-                        boolean skipWhenEmpty,
+                        InputPropertyType type,
                         DirectorySensitivity directorySensitivity,
                         LineEndingSensitivity lineEndingSensitivity,
-                        boolean incremental,
                         @Nullable Class<? extends FileNormalizer> fileNormalizer,
                         PropertyValue value,
                         InputFilePropertyType filePropertyType
