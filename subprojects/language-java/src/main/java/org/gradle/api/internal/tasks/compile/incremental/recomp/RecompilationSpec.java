@@ -79,8 +79,8 @@ public class RecompilationSpec {
         sourcePaths.addAll(sourcePath);
     }
 
-    public Set<String> getSourcePaths() {
-        return sourcePaths;
+    public Collection<String> getSourcePaths() {
+        return Collections.unmodifiableCollection(sourcePaths);
     }
 
     public boolean isBuildNeeded() {
