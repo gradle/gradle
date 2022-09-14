@@ -19,17 +19,19 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.OutputSnapshotter.OutputFileSnapshottingException;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputFileFingerprintingException;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -39,6 +41,7 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public interface UnitOfWork extends Describable {
     /**
@@ -133,6 +136,103 @@ public interface UnitOfWork extends Describable {
      * To visit all inputs one must call both {@link #visitIdentityInputs(InputVisitor)} and {@link #visitRegularInputs(InputVisitor)}.
      */
     default void visitRegularInputs(InputVisitor visitor) {}
+
+    interface InputVisitor {
+        default void visitInputProperty(
+            String propertyName,
+            ValueSupplier value
+        ) {}
+
+        default void visitInputFileProperty(
+            String propertyName,
+            InputPropertyType type,
+            FileValueSupplier value
+        ) {}
+
+    }
+
+    enum InputPropertyType {
+        /**
+         * Non-incremental inputs.
+         */
+        NON_INCREMENTAL(false, false),
+
+        /**
+         * Incremental inputs.
+         */
+        INCREMENTAL(true, false),
+
+        /**
+         * These are the primary inputs to the incremental work item;
+         * if they are empty the work item shouldn't be executed.
+         */
+        PRIMARY(true, true);
+
+        private final boolean incremental;
+        private final boolean skipWhenEmpty;
+
+        InputPropertyType(boolean incremental, boolean skipWhenEmpty) {
+            this.incremental = incremental;
+            this.skipWhenEmpty = skipWhenEmpty;
+        }
+
+        public boolean isIncremental() {
+            return incremental;
+        }
+
+        public boolean isSkipWhenEmpty() {
+            return skipWhenEmpty;
+        }
+    }
+
+    interface ValueSupplier {
+        @Nullable
+        Object getValue();
+    }
+
+    class FileValueSupplier implements ValueSupplier {
+        private final Object value;
+        private final Class<? extends FileNormalizer> normalizer;
+        private final DirectorySensitivity directorySensitivity;
+        private final LineEndingSensitivity lineEndingSensitivity;
+        private final Supplier<FileCollection> files;
+
+        public FileValueSupplier(
+            @Nullable Object value,
+            Class<? extends FileNormalizer> normalizer,
+            DirectorySensitivity directorySensitivity,
+            LineEndingSensitivity lineEndingSensitivity,
+            Supplier<FileCollection> files
+        ) {
+            this.value = value;
+            this.normalizer = normalizer;
+            this.directorySensitivity = directorySensitivity;
+            this.lineEndingSensitivity = lineEndingSensitivity;
+            this.files = files;
+        }
+
+        @Nullable
+        @Override
+        public Object getValue() {
+            return value;
+        }
+
+        public Class<? extends FileNormalizer> getNormalizer() {
+            return normalizer;
+        }
+
+        public DirectorySensitivity getDirectorySensitivity() {
+            return directorySensitivity;
+        }
+
+        public LineEndingSensitivity getLineEndingNormalization() {
+            return lineEndingSensitivity;
+        }
+
+        public FileCollection getFiles() {
+            return files.get();
+        }
+    }
 
     void visitOutputs(File workspace, OutputVisitor visitor);
 
