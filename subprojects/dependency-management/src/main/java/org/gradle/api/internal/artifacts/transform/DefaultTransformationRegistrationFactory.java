@@ -39,6 +39,7 @@ import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
@@ -216,15 +217,14 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
 
         @Override
         public void visitInputFileProperty(
-            String propertyName,
-            boolean optional,
-            boolean skipWhenEmpty,
-            DirectorySensitivity directorySensitivity,
-            LineEndingSensitivity lineEndingSensitivity,
-            boolean incremental,
-            @Nullable Class<? extends FileNormalizer> fileNormalizer,
-            PropertyValue value,
-            InputFilePropertyType filePropertyType
+                String propertyName,
+                boolean optional,
+                UnitOfWork.InputPropertyType type,
+                DirectorySensitivity directorySensitivity,
+                LineEndingSensitivity lineEndingSensitivity,
+                @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                PropertyValue value,
+                InputFilePropertyType filePropertyType
         ) {
             this.normalizer = fileNormalizer;
             this.directorySensitivity = directorySensitivity;
