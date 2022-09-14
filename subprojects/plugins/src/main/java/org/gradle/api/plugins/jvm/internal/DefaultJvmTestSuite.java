@@ -207,18 +207,18 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         getVersionedTestingFramework().set(version.map(v -> new VersionedTestingFramework(framework, v)));
 
         // This whole way of adding the dependencies here is messed up. Once a user calls the useXXX method, they can't
-        // go back. Maybe that's no so terrible, except that we call useJunitJupiter() FOR ALL USER DEFINED TEST SUITES.
-        // This is a real problem. Users who want to use anything but JUnit Jupiter will always have the JUnit Jupiter
-        // on their classpath and will have to manually declare the implementation dependencies for the test framework
+        // go back. This is fine except for that we call useJunitJupiter() FOR ALL USER DEFINED TEST SUITES.
+        // This is a real problem. Users who want to use anything but JUnit Jupiter will always have JUnit Jupiter on
+        // their classpath and will have to manually declare the implementation dependencies for the test framework
         // they want to use.
 
-        // There is a nice-seeming solution: We could move the lines below, `this.dependencies.getX().bundle(...)`,
-        // into the constructor. This could seemingly work, except for if the configuration's dependencies ever get
-        // realized early, before the user is able to call their useXXX method (Note: here we're talking about the
-        // configuration's dependencies, not the configuration itself). If that happens, the provider gets resolved
-        // early by the backing DomainObjectCollection and the result is cached
-        // (see `AbstractIterationOrderRetainingElementSource`). Then, after the user calls their useXXX method, the
-        // provider is updated but is never queried again.
+        // Consider this solution: We move the dependency provider declarations below, into the constructor. This works
+        // except for if the configurations' dependencies get realized early, before a useXXX method is called.
+        // Note, we're talking about the realizing a configuration's dependencies, not resolving its dependency graph.
+        // If a DependencySet is realized, its provider dependencies get resolved early by the backing
+        // DomainObjectCollection and the result is cached (see `AbstractIterationOrderRetainingElementSource`). Future
+        // calls to any useXXX would then be ignored since the collection would use the cached result instead of querying
+        // the provider.
 
         // There are two different solutions here: 1) Restrict users from realizing configuration dependencies early
         // OR 2) ensure that the DefaultDependencySet is aware of the changing nature of the dependency bundle
