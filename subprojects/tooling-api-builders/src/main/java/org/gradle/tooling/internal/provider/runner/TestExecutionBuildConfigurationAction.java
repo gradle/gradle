@@ -63,7 +63,9 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         allTasksToRun.addAll(configureBuildForInternalJvmTestRequest(context.getGradle(), testExecutionRequest));
         allTasksToRun.addAll(configureBuildForTestTasks(context, testExecutionRequest));
         configureTestTasks(allTasksToRun);
-        plan.addEntryTasks(allTasksToRun);
+        for (Task task : allTasksToRun) {
+            plan.addEntryTasks(Collections.singletonList(task));
+        }
     }
 
     private void configureTestTasks(Set<Task> tasks) {
