@@ -33,8 +33,6 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
@@ -58,8 +56,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.INCREMENTAL;
-import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL;
+import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.INCREMENTAL;
+import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL;
 import static org.gradle.internal.file.TreeType.DIRECTORY;
 import static org.gradle.internal.file.TreeType.FILE;
 

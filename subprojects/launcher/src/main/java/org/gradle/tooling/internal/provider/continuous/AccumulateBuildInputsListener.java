@@ -22,8 +22,10 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UnitOfWork.FileValueSupplier;
+import org.gradle.internal.execution.UnitOfWork.InputPropertyType;
+import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkInputListener;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 
 import java.io.File;
 import java.util.EnumSet;
@@ -40,12 +42,12 @@ public class AccumulateBuildInputsListener implements WorkInputListener {
     }
 
     @Override
-    public void onExecute(UnitOfWork work, EnumSet<InputFingerprinter.InputPropertyType> relevantTypes) {
+    public void onExecute(UnitOfWork work, EnumSet<InputPropertyType> relevantTypes) {
         Set<String> taskInputs = new LinkedHashSet<>();
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
-        work.visitRegularInputs(new InputFingerprinter.InputVisitor() {
+        work.visitRegularInputs(new InputVisitor() {
             @Override
-            public void visitInputFileProperty(String propertyName, InputFingerprinter.InputPropertyType type, InputFingerprinter.FileValueSupplier value) {
+            public void visitInputFileProperty(String propertyName, InputPropertyType type, FileValueSupplier value) {
                 if (relevantTypes.contains(type)) {
                     ((FileCollectionInternal) value.getFiles()).visitStructure(new FileCollectionStructureVisitor() {
                         @Override

@@ -19,13 +19,13 @@ package org.gradle.internal.execution.fingerprint.impl
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.FileNormalizer
+import org.gradle.internal.execution.UnitOfWork.FileValueSupplier
+import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter
 import org.gradle.internal.execution.fingerprint.FileNormalizationSpec
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.execution.fingerprint.InputFingerprinter.Result
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -38,7 +38,7 @@ import spock.lang.Specification
 
 import java.util.function.Consumer
 
-import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL
+import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
 
 class DefaultInputFingerprinterTest extends Specification {
     def fingerprinter = Mock(FileCollectionFingerprinter)

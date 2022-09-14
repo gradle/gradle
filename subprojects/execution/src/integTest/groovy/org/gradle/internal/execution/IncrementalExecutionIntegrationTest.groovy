@@ -26,10 +26,10 @@ import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
+import org.gradle.internal.execution.UnitOfWork.FileValueSupplier
+import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.fingerprint.impl.FingerprinterRegistration
@@ -89,7 +89,7 @@ import java.util.function.Supplier
 
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
-import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL
+import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 

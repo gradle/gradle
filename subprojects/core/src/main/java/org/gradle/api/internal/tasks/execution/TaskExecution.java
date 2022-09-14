@@ -299,7 +299,7 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public void visitRegularInputs(InputFingerprinter.InputVisitor visitor) {
+    public void visitRegularInputs(InputVisitor visitor) {
         TaskProperties taskProperties = context.getTaskProperties();
         ImmutableSortedSet<InputPropertySpec> inputProperties = taskProperties.getInputProperties();
         ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = taskProperties.getInputFileProperties();
@@ -311,14 +311,14 @@ public class TaskExecution implements UnitOfWork {
             // SkipWhenEmpty implies incremental.
             // If this file property is empty, then we clean up the previously generated outputs.
             // That means that there is a very close relation between the file property and the output.
-            InputFingerprinter.InputPropertyType type = inputFileProperty.isSkipWhenEmpty()
-                ? InputFingerprinter.InputPropertyType.PRIMARY
+            InputPropertyType type = inputFileProperty.isSkipWhenEmpty()
+                ? InputPropertyType.PRIMARY
                 : inputFileProperty.isIncremental()
-                ? InputFingerprinter.InputPropertyType.INCREMENTAL
-                : InputFingerprinter.InputPropertyType.NON_INCREMENTAL;
+                ? InputPropertyType.INCREMENTAL
+                : InputPropertyType.NON_INCREMENTAL;
             String propertyName = inputFileProperty.getPropertyName();
             visitor.visitInputFileProperty(propertyName, type,
-                new InputFingerprinter.FileValueSupplier(
+                new FileValueSupplier(
                     value,
                     inputFileProperty.getNormalizer(),
                     inputFileProperty.getDirectorySensitivity(),
