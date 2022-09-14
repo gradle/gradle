@@ -32,22 +32,22 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         given:
         resources.maybeCopy("TestOptionsIntegrationSpec")
         buildFile << """
-        |testing {
-        |   suites {
-        |       test {
-        |           targets {
-        |               all {
-        |                   testTask.configure {
-        |                       options {
-        |                           includeCategories 'org.gradle.CategoryA'
-        |                       }
-        |                       useJUnitPlatform()
-        |                   }
-        |               }
-        |           }
-        |       }
-        |   }
-        |}""".stripMargin()
+        testing {
+           suites {
+               test {
+                   targets {
+                       all {
+                           testTask.configure {
+                               options {
+                                   includeCategories 'org.gradle.CategoryA'
+                               }
+                               useJUnitPlatform()
+                           }
+                       }
+                   }
+               }
+           }
+        }""".stripMargin()
 
         when:
         fails ":test"
@@ -60,24 +60,24 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         given:
         resources.maybeCopy("TestOptionsIntegrationSpec")
         buildFile << """
-        |testing {
-        |   suites {
-        |       test {
-        |           targets {
-        |               all {
-        |                   testTask.configure {
-        |                       options {
-        |                           includeCategories 'org.gradle.CategoryA'
-        |                       }
-        |                   }
-        |                   testTask.configure {
-        |                       useJUnitPlatform()
-        |                   }
-        |               }
-        |           }
-        |       }
-        |   }
-        |}""".stripMargin()
+        testing {
+           suites {
+               test {
+                   targets {
+                       all {
+                           testTask.configure {
+                               options {
+                                   includeCategories 'org.gradle.CategoryA'
+                               }
+                           }
+                           testTask.configure {
+                               useJUnitPlatform()
+                           }
+                       }
+                   }
+               }
+           }
+        }""".stripMargin()
 
         when:
         fails ":test"
@@ -90,22 +90,22 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         given:
         resources.maybeCopy("TestOptionsIntegrationSpec")
         buildFile << """
-        |testing {
-        |   suites {
-        |       $suiteDeclaration {
-        |           targets {
-        |               all {
-        |                   testTask.configure {
-        |                       options {
-        |                           ${type} 'fast'
-        |                       }
-        |                   }
-        |               }
-        |           }
-        |           useJUnitJupiter()
-        |       }
-        |   }
-        |}""".stripMargin()
+        testing {
+           suites {
+               $suiteDeclaration {
+                   targets {
+                       all {
+                           testTask.configure {
+                               options {
+                                   ${type} 'fast'
+                               }
+                           }
+                       }
+                   }
+                   useJUnitJupiter()
+               }
+           }
+        }""".stripMargin()
 
         when:
         fails ":$task"
@@ -125,28 +125,28 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         given:
         resources.maybeCopy("TestOptionsIntegrationSpec")
         buildFile << """
-        |testing {
-        |   suites {
-        |       $suiteDeclaration {
-        |           targets {
-        |               all {
-        |                   testTask.configure {
-        |                       options {
-        |                           ${type} 'fast'
-        |                       }
-        |                   }
-        |               }
-        |           }
-        |       }
-        |   }
-        |}
-        |testing {
-        |   suites {
-        |       $suiteDeclaration {
-        |           useJUnitJupiter()
-        |       }
-        |   }
-        |}""".stripMargin()
+        testing {
+           suites {
+               $suiteDeclaration {
+                   targets {
+                       all {
+                           testTask.configure {
+                               options {
+                                   ${type} 'fast'
+                               }
+                           }
+                       }
+                   }
+               }
+           }
+        }
+        testing {
+           suites {
+               $suiteDeclaration {
+                   useJUnitJupiter()
+               }
+           }
+        }""".stripMargin()
 
         when:
         fails ":$task"
@@ -166,19 +166,19 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         given:
         resources.maybeCopy("TestOptionsIntegrationSpec")
         buildFile << """
-        |test {
-        |   options {
-        |       includeCategories 'org.gradle.CategoryA'
-        |   }
-        |}
-        |
-        |testing {
-        |   suites {
-        |       test {
-        |           useJUnitJupiter()
-        |       }
-        |   }
-        |}""".stripMargin()
+        test {
+           options {
+               includeCategories 'org.gradle.CategoryA'
+           }
+        }
+
+        testing {
+           suites {
+               test {
+                   useJUnitJupiter()
+               }
+           }
+        }""".stripMargin()
 
         when:
         fails ":test"
@@ -191,20 +191,20 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         given:
         resources.maybeCopy("TestOptionsIntegrationSpec")
         buildFile << """
-        |test {
-        |   useJUnitPlatform()
-        |   options {
-        |       includeTags 'fast'
-        |   }
-        |}
-        |
-        |testing {
-        |   suites {
-        |       test {
-        |           useJUnit() // NOT ALLOWED, task is already configured with a framework, should fail-fast here
-        |       }
-        |   }
-        |}""".stripMargin()
+        test {
+           useJUnitPlatform()
+           options {
+               includeTags 'fast'
+           }
+        }
+
+        testing {
+           suites {
+               test {
+                   useJUnit() // NOT ALLOWED, task is already configured with a framework, should fail-fast here
+               }
+           }
+        }""".stripMargin()
 
         when:
         fails ":test"
@@ -217,29 +217,29 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         given:
         resources.maybeCopy("TestOptionsIntegrationSpec")
         buildFile << """
-        |testing {
-        |   suites {
-        |       $suiteDeclaration {
-        |           targets {
-        |               all {
-        |                   testTask.configure {
-        |                       minHeapSize = "128m"
-        |                   }
-        |               }
-        |           }
-        |           useJUnitJupiter()
-        |           targets {
-        |               all {
-        |                   testTask.configure {
-        |                       options {
-        |                           ${type} 'fast'
-        |                       }
-        |                   }
-        |               }
-        |           }
-        |       }
-        |   }
-        |}""".stripMargin()
+        testing {
+           suites {
+               $suiteDeclaration {
+                   targets {
+                       all {
+                           testTask.configure {
+                               minHeapSize = "128m"
+                           }
+                       }
+                   }
+                   useJUnitJupiter()
+                   targets {
+                       all {
+                           testTask.configure {
+                               options {
+                                   ${type} 'fast'
+                               }
+                           }
+                       }
+                   }
+               }
+           }
+        }""".stripMargin()
 
         expect:
         succeeds ":$task"
@@ -257,22 +257,22 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         given:
         resources.maybeCopy("TestOptionsIntegrationSpec")
         buildFile << """
-        |testing {
-        |   suites {
-        |       $suiteDeclaration {
-        |           useJUnitJupiter()
-        |           targets {
-        |               all {
-        |                   testTask.configure {
-        |                       options {
-        |                           ${type} 'fast'
-        |                       }
-        |                   }
-        |               }
-        |           }
-        |       }
-        |   }
-        |}""".stripMargin()
+        testing {
+           suites {
+               $suiteDeclaration {
+                   useJUnitJupiter()
+                   targets {
+                       all {
+                           testTask.configure {
+                               options {
+                                   ${type} 'fast'
+                               }
+                           }
+                       }
+                   }
+               }
+           }
+        }""".stripMargin()
 
         when:
         succeeds ":$task"
@@ -283,22 +283,22 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         when:
         resources.maybeCopy("TestOptionsIntegrationSpec")
         buildFile << """
-        |testing {
-        |   suites {
-        |       $suiteDeclaration {
-        |           useJUnitJupiter()
-        |           targets {
-        |               all {
-        |                   testTask.configure {
-        |                       options {
-        |                           ${type} 'slow'
-        |                       }
-        |                   }
-        |               }
-        |           }
-        |       }
-        |   }
-        |}""".stripMargin()
+        testing {
+           suites {
+               $suiteDeclaration {
+                   useJUnitJupiter()
+                   targets {
+                       all {
+                           testTask.configure {
+                               options {
+                                   ${type} 'slow'
+                               }
+                           }
+                       }
+                   }
+               }
+           }
+        }""".stripMargin()
 
         and:
         succeeds ":$task"
@@ -314,8 +314,7 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         'integTest' | 'integTest(JvmTestSuite)'     | 'integTest' | 'excludeTags'
     }
 
-    // Migrated from TestSuitesIntegrationTest to consolidate options-related tests
-    def "build fails when test framework is changed to another kind when realizing task and configuring options"() {
+    def "can NOT set new framework for suite in different testing block after configuring options"() {
         buildFile << """
             plugins {
                 id 'java'
@@ -342,7 +341,6 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
             testing {
                 suites {
                     integrationTest {
-                        // This is ignored
                         useTestNG()
                     }
                 }
