@@ -210,6 +210,13 @@ public interface UnitOfWork extends Describable {
         return true;
     }
 
+    /**
+     * Whether stale outputs should be cleanup up before execution.
+     */
+    default boolean shouldCleanupStaleOutputs() {
+        return false;
+    }
+
     enum InputChangeTrackingStrategy {
         /**
          * No incremental parameters, nothing to track.

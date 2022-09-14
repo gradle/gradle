@@ -149,9 +149,16 @@ public class DaemonParameters {
 
     public Map<String, String> getEffectiveSystemProperties() {
         Map<String, String> systemProperties = new HashMap<String, String>();
+        GUtil.addToMap(systemProperties, System.getProperties());
         GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
         GUtil.addToMap(systemProperties, jvmOptions.getImmutableDaemonProperties());
-        GUtil.addToMap(systemProperties, System.getProperties());
+        return systemProperties;
+    }
+
+    public Map<String, String> getMutableAndImmutableSystemProperties() {
+        Map<String, String> systemProperties = new HashMap<String, String>();
+        GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
+        GUtil.addToMap(systemProperties, jvmOptions.getImmutableDaemonProperties());
         return systemProperties;
     }
 

@@ -385,6 +385,11 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
+    public boolean shouldCleanupStaleOutputs() {
+        return context.getTaskExecutionMode().isTaskHistoryMaintained();
+    }
+
+    @Override
     public boolean shouldCleanupOutputsOnNonIncrementalExecution() {
         return getInputChangeTrackingStrategy() == InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS;
     }

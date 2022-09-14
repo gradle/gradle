@@ -383,7 +383,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public GradleInternal getGradle() {
-        return gradle;
+        return getCrossProjectModelAccess().gradleInstanceForProject(this, gradle);
     }
 
     @Inject
