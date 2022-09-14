@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.OutputVisitor
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.OverlappingOutputs
@@ -183,8 +184,8 @@ class RemovePreviousOutputsStepTest extends StepSpec<ChangingOutputsContext> imp
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.of(new OverlappingOutputs("test", "/absolute/path"))
         _ * work.visitOutputs(_, _) >> { File workspace, OutputVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputs.dir, TestFiles.fixed(outputs.dir))
-            visitor.visitOutputProperty("file", TreeType.FILE, outputs.file, TestFiles.fixed(outputs.file))
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, new UnitOfWork.OutputFileValueSupplier(outputs.dir, TestFiles.fixed(outputs.dir)))
+            visitor.visitOutputProperty("file", TreeType.FILE, new UnitOfWork.OutputFileValueSupplier(outputs.file, TestFiles.fixed(outputs.file)))
         }
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         1 * previousExecutionState.outputFilesProducedByWork >> ImmutableSortedMap.of("dir", outputs.dirSnapshot, "file", outputs.fileSnapshot)
@@ -198,8 +199,8 @@ class RemovePreviousOutputsStepTest extends StepSpec<ChangingOutputsContext> imp
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.empty()
         _ * work.visitOutputs(_, _) >> { File workspace, OutputVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputs.dir, TestFiles.fixed(outputs.dir))
-            visitor.visitOutputProperty("file", TreeType.FILE, outputs.file, TestFiles.fixed(outputs.file))
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, new UnitOfWork.OutputFileValueSupplier(outputs.dir, TestFiles.fixed(outputs.dir)))
+            visitor.visitOutputProperty("file", TreeType.FILE, new UnitOfWork.OutputFileValueSupplier(outputs.file, TestFiles.fixed(outputs.file)))
         }
     }
 

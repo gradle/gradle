@@ -333,7 +333,11 @@ public class TaskExecution implements UnitOfWork {
         for (OutputFilePropertySpec property : taskProperties.getOutputFileProperties()) {
             File outputFile = property.getOutputFile();
             if (outputFile != null) {
-                visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), outputFile, property.getPropertyFiles());
+                visitor.visitOutputProperty(
+                    property.getPropertyName(),
+                    property.getOutputType(),
+                    new OutputFileValueSupplier(outputFile, property.getPropertyFiles())
+                );
             }
         }
         for (File localStateRoot : taskProperties.getLocalStateFiles()) {
