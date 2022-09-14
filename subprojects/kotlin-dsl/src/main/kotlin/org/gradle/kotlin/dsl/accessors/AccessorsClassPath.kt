@@ -25,7 +25,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UnitOfWork.FileValueSupplier
+import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
@@ -160,7 +160,7 @@ class GenerateProjectAccessors(
         visitor.visitInputFileProperty(
             CLASSPATH_INPUT_PROPERTY,
             NON_INCREMENTAL,
-            FileValueSupplier(
+            InputFileValueSupplier(
                 classPath,
                 ClasspathNormalizer::class.java,
                 DirectorySensitivity.IGNORE_DIRECTORIES,

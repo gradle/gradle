@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.FileValueSupplier;
+import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputPropertyType;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -110,7 +110,7 @@ public class ResolveChangesStep<C extends CachingContext, R extends Result> impl
                 ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
                 InputVisitor visitor = new InputVisitor() {
                     @Override
-                    public void visitInputFileProperty(String propertyName, InputPropertyType type, FileValueSupplier valueSupplier) {
+                    public void visitInputFileProperty(String propertyName, InputPropertyType type, InputFileValueSupplier valueSupplier) {
                         if (type.isIncremental()) {
                             Object value = valueSupplier.getValue();
                             if (value == null) {
