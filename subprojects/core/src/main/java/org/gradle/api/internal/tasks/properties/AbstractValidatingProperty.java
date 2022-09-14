@@ -59,13 +59,4 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
             validationAction.validate(propertyName, unpacked, context);
         }
     }
-
-    @Override
-    public void prepareValue() {
-        value.maybeFinalizeValue();
-    }
-
-    @Override
-    public void cleanupValue() {
-    }
 }

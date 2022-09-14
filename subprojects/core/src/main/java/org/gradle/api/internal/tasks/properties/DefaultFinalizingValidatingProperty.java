@@ -27,7 +27,6 @@ public class DefaultFinalizingValidatingProperty extends AbstractValidatingPrope
 
     @Override
     public void prepareValue() {
-        super.prepareValue();
         Object obj = value.call();
         // TODO - move this to PropertyValue instead
         if (obj instanceof LifecycleAwareValue) {
