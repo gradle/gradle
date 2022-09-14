@@ -128,11 +128,5 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         public Object call() {
             return cachedInvoker.get();
         }
-
-        @Nullable
-        @Override
-        public Object getUnprocessedValue() {
-            return cachedInvoker.get();
-        }
     }
 }
