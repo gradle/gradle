@@ -125,14 +125,14 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             if (propertyType.equals(InputArtifact.class)) {
                 // Should ask the annotation handler to figure this out instead
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
-                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
+                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor, (propertyName, bean) -> {});
                 inputArtifactNormalizer = visitor.normalizer;
                 artifactDirectorySensitivity = visitor.directorySensitivity;
                 artifactLineEndingSensitivity = visitor.lineEndingSensitivity;
                 DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), inputArtifactNormalizer, cacheable, validationContext);
             } else if (propertyType.equals(InputArtifactDependencies.class)) {
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
-                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
+                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor, (propertyName, bean) -> {});
                 dependenciesNormalizer = visitor.normalizer;
                 dependenciesDirectorySensitivity = visitor.directorySensitivity;
                 dependenciesLineEndingSensitivity = visitor.lineEndingSensitivity;
