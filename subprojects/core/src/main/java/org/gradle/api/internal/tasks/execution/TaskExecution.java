@@ -311,13 +311,8 @@ public class TaskExecution implements UnitOfWork {
             // SkipWhenEmpty implies incremental.
             // If this file property is empty, then we clean up the previously generated outputs.
             // That means that there is a very close relation between the file property and the output.
-            InputPropertyType type = inputFileProperty.isSkipWhenEmpty()
-                ? InputPropertyType.PRIMARY
-                : inputFileProperty.isIncremental()
-                ? InputPropertyType.INCREMENTAL
-                : InputPropertyType.NON_INCREMENTAL;
             String propertyName = inputFileProperty.getPropertyName();
-            visitor.visitInputFileProperty(propertyName, type,
+            visitor.visitInputFileProperty(propertyName, inputFileProperty.getType(),
                 new InputFileValueSupplier(
                     value,
                     inputFileProperty.getNormalizer(),
