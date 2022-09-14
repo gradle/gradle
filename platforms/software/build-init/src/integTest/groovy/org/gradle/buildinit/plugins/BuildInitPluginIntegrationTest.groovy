@@ -427,7 +427,7 @@ Description""") // include the next header to make sure all options are listed
         targetDir.list().size() == 0 // ensure nothing generated
     }
 
-    def "warns when initializing in a project directory that is not empty"() {
+    def "warns when initializing in a project directory that is not empty."() {
         when:
         targetDir.file("README.md") << """
             // empty
