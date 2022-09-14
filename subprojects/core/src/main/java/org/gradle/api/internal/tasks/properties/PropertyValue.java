@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.internal.execution.UnitOfWork.ValueSupplier;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
@@ -24,13 +25,23 @@ import java.util.concurrent.Callable;
 /**
  * A supplier of a property value.
  */
-public interface PropertyValue extends Callable<Object> {
+public interface PropertyValue extends ValueSupplier, Callable<Object> {
+
     /**
      * The value of the underlying property.
      */
     @Nullable
     @Override
-    Object call();
+    Object getValue();
+
+    /**
+     * Must implement {@link Callable} in order for standard value resolution to work.
+     */
+    @Nullable
+    @Override
+    default Object call() {
+        return getValue();
+    }
 
     /**
      * Returns the dependencies of the property value, if supported by the value implementation. Returns an empty collection if not supported or the value has no producer tasks.
@@ -45,7 +56,7 @@ public interface PropertyValue extends Callable<Object> {
     PropertyValue ABSENT = new PropertyValue() {
         @Nullable
         @Override
-        public Object call() {
+        public Object getValue() {
             return null;
         }
 

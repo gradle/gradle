@@ -62,4 +62,11 @@ public interface PropertyAnnotationHandler {
      * Visits problems associated with the given property, if any.
      */
     default void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {}
+
+    /**
+     * Resolves the property value.
+     */
+    default PropertyValue applyResolver(Object bean, String propertyName, PropertyValue value) {
+        return value;
+    }
 }

@@ -162,7 +162,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
         Map<String, Object> result = new HashMap<>();
         for (InputPropertySpec inputProperty : visitor.getProperties()) {
-            result.put(inputProperty.getPropertyName(), InputParameterUtils.prepareInputParameterValue(inputProperty, task));
+            result.put(inputProperty.getPropertyName(), inputProperty.getValue().getValue());
         }
         return Collections.unmodifiableMap(result);
     }
@@ -170,7 +170,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     @Override
     public TaskInputPropertyBuilder property(final String name, @Nullable final Object value) {
         return taskMutator.mutate("TaskInputs.property(String, Object)", (Callable<TaskInputPropertyBuilder>) () -> {
-            StaticValue staticValue = new StaticValue(value);
+            PropertyValue staticValue = new ResolvingPropertyValue(new StaticValue(value), valueToResolve -> InputParameterUtils.prepareInputParameterValue(task, name, valueToResolve));
             TaskInputPropertyRegistration registration = new DefaultTaskInputPropertyRegistration(name, staticValue);
             registeredProperties.add(registration);
             return registration;

@@ -33,7 +33,6 @@ import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputPropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
@@ -303,7 +302,7 @@ public class TaskExecution implements UnitOfWork {
         for (InputPropertySpec inputProperty : taskProperties.getInputProperties()) {
             visitor.visitInputProperty(
                 inputProperty.getPropertyName(),
-                () -> InputParameterUtils.prepareInputParameterValue(inputProperty, task));
+                inputProperty.getValue());
         }
         for (InputFilePropertySpec inputFileProperty : taskProperties.getInputFileProperties()) {
             // SkipWhenEmpty implies incremental.

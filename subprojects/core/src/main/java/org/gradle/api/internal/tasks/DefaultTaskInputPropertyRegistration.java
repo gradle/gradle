@@ -17,16 +17,17 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 
 @NonNullApi
 public class DefaultTaskInputPropertyRegistration implements TaskInputPropertyRegistration {
 
     private final String propertyName;
-    private final StaticValue value;
+    private final PropertyValue value;
     private boolean optional;
 
-    public DefaultTaskInputPropertyRegistration(String propertyName, StaticValue value) {
+    public DefaultTaskInputPropertyRegistration(String propertyName, PropertyValue value) {
         this.propertyName = propertyName;
         this.value = value;
     }
@@ -48,7 +49,7 @@ public class DefaultTaskInputPropertyRegistration implements TaskInputPropertyRe
     }
 
     @Override
-    public StaticValue getValue() {
+    public PropertyValue getValue() {
         return value;
     }
 

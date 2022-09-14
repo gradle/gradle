@@ -89,7 +89,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
 
         @Nullable
         @Override
-        public Object call() {
+        public Object getValue() {
             throw UncheckedException.throwAsUncheckedException(exception);
         }
 

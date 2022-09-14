@@ -17,19 +17,17 @@
 package org.gradle.api.internal.tasks.properties;
 
 import groovy.lang.GString;
-import org.gradle.api.Task;
 import org.gradle.util.internal.DeferredUtil;
 
 import javax.annotation.Nullable;
 
 public class InputParameterUtils {
     @Nullable
-    public static Object prepareInputParameterValue(InputPropertySpec inputProperty, Task task) {
-        String propertyName = inputProperty.getPropertyName();
+    public static Object prepareInputParameterValue(Object work, String propertyName, Object value) {
         try {
-            return prepareInputParameterValue(inputProperty.getValue());
+            return prepareInputParameterValue(value);
         } catch (Exception ex) {
-            throw new PropertyEvaluationException(task, propertyName, ex);
+            throw new PropertyEvaluationException(work, propertyName, ex);
         }
     }
 

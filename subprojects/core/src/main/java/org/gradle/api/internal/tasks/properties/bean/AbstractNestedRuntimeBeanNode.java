@@ -50,21 +50,25 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             PropertyAnnotationHandler annotationHandler = typeMetadata.getAnnotationHandlerFor(propertyMetadata);
             if (annotationHandler.shouldVisit(visitor)) {
                 String propertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
-                PropertyValue value = new BeanPropertyValue(getBean(), propertyMetadata.getGetterMethod());
+                Object bean = getBean();
+                PropertyValue value = annotationHandler.applyResolver(
+                    bean,
+                    propertyMetadata.getPropertyName(),
+                    new BeanPropertyValue(bean, propertyMetadata.getGetterMethod()));
                 annotationHandler.visitPropertyValue(
                     propertyName,
                     value,
                     propertyMetadata,
                     visitor,
-                    (childPropertyName, bean) -> queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, childPropertyName, bean))
+                    (childPropertyName, nested) -> queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, childPropertyName, nested))
                 );
             }
         }
     }
 
     private static class BeanPropertyValue implements PropertyValue {
-        private final Method method;
         private final Object bean;
+        private final Method method;
         private final Supplier<Object> cachedInvoker = Suppliers.memoize(new Supplier<Object>() {
             @Override
             @Nullable
@@ -125,7 +129,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
 
         @Nullable
         @Override
-        public Object call() {
+        public Object getValue() {
             return cachedInvoker.get();
         }
     }

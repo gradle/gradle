@@ -87,7 +87,7 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
         }
 
         @Override
-        public Object call() {
+        public Object getValue() {
             return implementationValue;
         }
 
