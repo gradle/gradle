@@ -7,20 +7,23 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 
  THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+ The list is rendered as is, so use commas after each contributor's name, and a period at the end. 
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
 
-[Björn Kautler](https://github.com/Vampire)
-[David Marin](https://github.com/dmarin)
-[Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy)
-[Eliezer Graber](https://github.com/eygraber)
-[Fedor Ihnatkevich](https://github.com/Jeffset)
-[Gabriel Rodriguez](https://github.com/gabrielrodriguez2746)
-[Herbert von Broeuschmeul](https://github.com/HvB)
-[Matthew Haughton](https://github.com/3flex)
-[Ricardo Jiang](https://github.com/RicardoJiang)
-[Siddardha Bezawada](https://github.com/SidB3)
-[Stephen Topley](https://github.com/stopley)
+[Björn Kautler](https://github.com/Vampire),
+[David Marin](https://github.com/dmarin),
+[Denis Buzmakov](https://github.com/bacecek),
+[Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy),
+[Eliezer Graber](https://github.com/eygraber),
+[Fedor Ihnatkevich](https://github.com/Jeffset),
+[Gabriel Rodriguez](https://github.com/gabrielrodriguez2746),
+[Herbert von Broeuschmeul](https://github.com/HvB),
+[Matthew Haughton](https://github.com/3flex),
+[Michael Torres](https://github.com/torresmi),
+[Ricardo Jiang](https://github.com/RicardoJiang),
+[Siddardha Bezawada](https://github.com/SidB3),
+[Stephen Topley](https://github.com/stopley).
 
 ## Upgrade instructions
 
@@ -82,6 +85,10 @@ The following are the features that have been promoted in this Gradle release.
 <!--
 ### Example promoted
 -->
+
+### Promoted features in the Eclipse plugin
+
+- The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
 
 ## Fixed issues
 

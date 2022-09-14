@@ -414,12 +414,10 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
             }
         """
 
-        when:
+        expect:
         executer.withStackTraceChecksDisabled()
+        executer.expectDeprecationWarning("Publication ignores 'transitive = false' at configuration level. This behavior is deprecated. Consider using 'transitive = false' at the dependency level if you need this to be published.")
         succeeds 'publish'
-
-        then: "build warned about transitive = true variant"
-        outputContains("Publication ignores 'transitive = false' at configuration level.")
     }
 
     @ToBeFixedForConfigurationCache(because = "configuration cache doesn't support task failures")

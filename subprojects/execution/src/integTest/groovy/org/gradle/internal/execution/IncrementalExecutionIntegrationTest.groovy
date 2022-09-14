@@ -705,20 +705,15 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
     String executeDeferred(UnitOfWork unitOfWork, Cache<UnitOfWork.Identity, Try<Object>> cache) {
         virtualFileSystem.invalidateAll()
-        executor.createRequest(unitOfWork)
-            .withIdentityCache(cache)
-            .getOrDeferExecution(new DeferredExecutionHandler<Object, String>() {
-                @Override
-                String processCachedOutput(Try<Object> cachedResult) {
-                    return "cached"
-                }
+        def result = executor.createRequest(unitOfWork)
+            .executeDeferred(cache)
 
-                @Override
-                String processDeferredOutput(Supplier<Try<Object>> deferredExecution) {
-                    deferredExecution.get()
-                    return "deferred"
-                }
-            })
+        if (result.getCompleted().isPresent()) {
+            return "cached"
+        } else {
+            result.completeAndGet()
+            return "deferred"
+        }
     }
 
     private TestFile file(Object... path) {

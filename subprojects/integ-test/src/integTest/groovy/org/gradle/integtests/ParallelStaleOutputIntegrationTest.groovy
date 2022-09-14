@@ -17,7 +17,6 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/17812")
@@ -77,9 +76,9 @@ class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
             include 'a', 'b'
         """
 
+        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :a:myconf was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. See https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.")
+        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :b:myconf was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. See https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.")
         expect:
-        executer.expectDeprecationWarning("Resolution of the configuration :a:myconf was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.")
-        executer.expectDeprecationWarning("Resolution of the configuration :b:myconf was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.")
         succeeds("a:foo", "b:foo", "--parallel")
     }
 }

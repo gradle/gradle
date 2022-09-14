@@ -19,6 +19,7 @@ package org.gradle.util.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 
 import java.io.InputStream;
@@ -186,6 +187,7 @@ public final class DefaultGradleVersion extends GradleVersion {
     @Override
     @Deprecated
     public String getBuildTime() {
+        logMethodDeprecation("getBuildTime()");
         return getBuildTimestamp();
     }
 
@@ -196,6 +198,7 @@ public final class DefaultGradleVersion extends GradleVersion {
     @Override
     @Deprecated
     public String getRevision() {
+        logMethodDeprecation("getRevision()");
         return getGitRevision();
     }
 
@@ -218,6 +221,8 @@ public final class DefaultGradleVersion extends GradleVersion {
     @Override
     @Deprecated
     public GradleVersion getNextMajor() {
+        // TODO add nagging once Spring dependency management plugin is fixed
+        // logDeprecation("getNextMajor()");
         return getNextMajorVersion();
     }
 
@@ -297,7 +302,15 @@ public final class DefaultGradleVersion extends GradleVersion {
     @Override
     @Deprecated
     public boolean isValid() {
+        logMethodDeprecation("isValid()");
         return versionPart != null;
+    }
+
+    private static void logMethodDeprecation(String method) {
+        DeprecationLogger.deprecateMethod(GradleVersion.class, method)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
     }
 
     static final class Stage implements Comparable<Stage> {
