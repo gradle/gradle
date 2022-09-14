@@ -19,10 +19,11 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.util.GradleVersion
 
 class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDependencyResolutionTest {
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
-    def "deprecation warning when configuration in another project is resolved unsafely"() {
+    def "configuration in another project can not be resolved"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
         settingsFile << """
@@ -51,14 +52,11 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
                 }
             }
         """
-
-        when:
-        executer.expectDeprecationWarning()
         executer.withArgument("--parallel")
-        succeeds(":resolve")
 
-        then:
-        outputContains("Resolution of the configuration :bar:bar was attempted from a context different than the project context.")
+        expect:
+        fails(":resolve")
+        result.assertHasErrorOutput("Resolution of the configuration :bar:bar was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
     }
 
     @UnsupportedWithConfigurationCache(because = "resolves configuration from background thread")
@@ -236,7 +234,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":resolve")
     }
 
-    def "deprecation warning when configuration is resolved while evaluating a different project"() {
+    def "fails when configuration is resolved while evaluating a different project"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
         settingsFile << """
@@ -263,14 +261,11 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
                 println project(':baz').configurations.baz.files
             }
         """
-
-        when:
-        executer.expectDeprecationWarning()
         executer.withArgument("--parallel")
-        succeeds(":bar:help")
 
-        then:
-        outputContains("Resolution of the configuration :baz:baz was attempted from a context different than the project context.")
+        expect:
+        fails(":bar:help")
+        result.assertHasErrorOutput("Resolution of the configuration :baz:baz was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
     }
 
     def "no deprecation warning when configuration is resolved while evaluating same project"() {
