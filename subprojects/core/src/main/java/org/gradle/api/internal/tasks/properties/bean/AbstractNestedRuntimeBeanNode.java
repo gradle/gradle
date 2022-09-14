@@ -111,6 +111,13 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             }
         }
 
+        public void finalizeValue() {
+            if (isConfigurable()) {
+                Object value = cachedInvoker.get();
+                ((HasConfigurableValueInternal) value).finalizeValue();
+            }
+        }
+
         private boolean isProvider() {
             return Provider.class.isAssignableFrom(method.getReturnType());
         }

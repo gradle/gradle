@@ -166,6 +166,7 @@ import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
+import org.gradle.internal.execution.steps.FinalizeInputPropertiesStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
@@ -718,6 +719,7 @@ class DependencyManagementBuildScopeServices {
         UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
         // @formatter:off
         return new DefaultExecutionEngine(documentationRegistry,
+            new FinalizeInputPropertiesStep<>(
             new IdentifyStep<>(
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
@@ -735,7 +737,7 @@ class DependencyManagementBuildScopeServices {
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        ))))))))))))))))));
+        )))))))))))))))))));
         // @formatter:on
     }
 

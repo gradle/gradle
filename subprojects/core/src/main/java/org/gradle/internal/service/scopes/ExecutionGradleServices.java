@@ -49,6 +49,7 @@ import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CleanupStaleOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
+import org.gradle.internal.execution.steps.FinalizeInputPropertiesStep;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
@@ -138,6 +139,7 @@ public class ExecutionGradleServices {
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
         // @formatter:off
         return new DefaultExecutionEngine(documentationRegistry,
+            new FinalizeInputPropertiesStep<>(
             new IdentifyStep<>(
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
@@ -162,7 +164,7 @@ public class ExecutionGradleServices {
             new CancelExecutionStep<>(cancellationToken,
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(buildOperationExecutor
-        )))))))))))))))))))))))));
+        ))))))))))))))))))))))))));
         // @formatter:on
     }
 
