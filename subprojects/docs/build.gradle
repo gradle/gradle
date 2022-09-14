@@ -812,19 +812,11 @@ tasks.named("docsTest") { task ->
                 "snippet-dependency-management-customizing-resolution-classifier-substitution-rule_groovy_resolve.sample",
                 "snippet-dependency-management-customizing-resolution-classifier-substitution-rule_kotlin_resolve.sample",
 
-                "snippet-dependency-management-customizing-resolution-conditional-substitution-rule_groovy_showJarFiles.sample",
-                "snippet-dependency-management-customizing-resolution-conditional-substitution-rule_groovy_showJarFilesLocal.sample",
-                "snippet-dependency-management-customizing-resolution-conditional-substitution-rule_kotlin_showJarFiles.sample",
-                "snippet-dependency-management-customizing-resolution-conditional-substitution-rule_kotlin_showJarFilesLocal.sample",
-
                 "snippet-dependency-management-customizing-resolution-ivy-metadata-rule_groovy_ivyComonentMetadataRule.sample",
                 "snippet-dependency-management-customizing-resolution-ivy-metadata-rule_kotlin_ivyComonentMetadataRule.sample",
 
                 "snippet-dependency-management-customizing-resolution-metadata-rule_groovy_comonentMetadataRules.sample",
                 "snippet-dependency-management-customizing-resolution-metadata-rule_kotlin_comonentMetadataRules.sample",
-
-                "snippet-dependency-management-defining-using-configurations-custom_groovy_custom-configuration.sample",
-                "snippet-dependency-management-defining-using-configurations-custom_kotlin_custom-configuration.sample",
 
                 "snippet-dependency-management-dependency-verification-disabling-verification_groovy_disabling_verification.sample",
                 "snippet-dependency-management-dependency-verification-disabling-verification_kotlin_disabling_verification.sample",
