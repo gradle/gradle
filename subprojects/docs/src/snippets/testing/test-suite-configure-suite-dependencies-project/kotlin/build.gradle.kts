@@ -15,26 +15,34 @@
  */
 
 plugins {
-    id 'java'
+    id("java-library")
 }
 
-version = '1.0.2'
-group = 'org.gradle.sample'
+version = "1.0.2"
+group = "org.gradle.sample"
 
 repositories {
     mavenCentral()
 }
 
-// tag::configure-suite-dependencies[]
+// tag::configure-suite-dependencies-project[]
+dependencies {
+    api("com.google.guava:guava:30.1.1-jre") // <1>
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.3") // <2>
+}
+
 testing {
     suites {
-        test { // <1>
+        val integrationTest by registering(JvmTestSuite::class) {
             dependencies {
-                // Note that this is equivalent to adding dependencies to testImplementation in the top-level dependencies block
-                implementation 'org.assertj:assertj-core:3.21.0' // <2>
-                annotationProcessor 'com.google.auto.value:auto-value:1.9' // <3>
+                implementation(project()) // <3>
+            }
+        }
+        val customUnitTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(projectInternalView()) // <4>
             }
         }
     }
 }
-// end::configure-suite-dependencies[]
+// tag::configure-suite-dependencies-project[]
