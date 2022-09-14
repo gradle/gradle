@@ -62,6 +62,7 @@ import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
+import org.gradle.internal.file.Stat
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
@@ -202,9 +203,10 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         result.failures.first().message == "Unable to make progress running work. There are items queued for execution but none of them can be started"
 
         stdout.stdOut.contains("Unable to make progress running work. The following items are queued for execution but none of them can be started:")
+        stdout.stdOut.contains("- Build ':':")
         stdout.stdOut.contains("- test node (state=SHOULD_RUN")
         stdout.stdOut.contains("- :task (state=SHOULD_RUN")
-        stdout.stdOut.contains("- Ordinal groups for build ':': group 0 entry nodes: [:task]")
+        stdout.stdOut.contains("- Ordinal groups: group 0 entry nodes: [:task]")
     }
 
     def "fails when no further nodes can be selected across multiple builds"() {
@@ -234,13 +236,14 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         result.failures.first().message == "Unable to make progress running work. There are items queued for execution but none of them can be started"
 
         stdout.stdOut.contains("Unable to make progress running work. The following items are queued for execution but none of them can be started:")
-        stdout.stdOut.contains("- Queued nodes for build ':':")
+        stdout.stdOut.contains("- Build ':':")
         stdout.stdOut.contains("- main build node (state=SHOULD_RUN")
         stdout.stdOut.contains("- :task (state=SHOULD_RUN")
-        stdout.stdOut.contains("- Ordinal groups for build ':': group 0 entry nodes: [:task]")
-        stdout.stdOut.contains("- Queued nodes for build 'child':")
+        stdout.stdOut.contains("- Ordinal groups: group 0 entry nodes: [:task]")
+        stdout.stdOut.contains("- Build 'child':")
         stdout.stdOut.contains("- child build node (state=SHOULD_RUN")
         stdout.stdOut.contains("- :child:task (state=SHOULD_RUN")
+        stdout.stdOut.contains("- Ordinal groups: group 0 entry nodes: [:child:task]")
     }
 
     ExecutionResult<Void> scheduleAndRun(TreeServices services, Action<BuildTreeWorkGraph.Builder> action) {
@@ -293,7 +296,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     private BuildWorkGraphController buildWorkGraphController(String displayName, BuildServices services) {
         def builder = Mock(BuildLifecycleController.WorkGraphBuilder)
-        def nodeFactory = new TaskNodeFactory(services.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationExecutor())
+        def nodeFactory = new TaskNodeFactory(services.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationExecutor(), new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_INSENSITIVE, Stub(Stat)))
         def hierarchies = new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_SENSITIVE, TestFiles.fileSystem())
         def dependencyResolver = Stub(TaskDependencyResolver)
         _ * dependencyResolver.resolveDependenciesFor(_, _) >> { TaskInternal task, Object dependencies ->
