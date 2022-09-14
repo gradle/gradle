@@ -27,7 +27,7 @@ class AbstractJavaToolchainDownloadSpiIntegrationTest extends AbstractIntegratio
                 protected abstract JavaToolchainRepositoryRegistry getToolchainRepositoryRegistry();
             
                 void apply(Settings settings) {
-                    settings.getPlugins().apply("jdk-toolchains");
+                    settings.getPlugins().apply("jvm-toolchains");
                 
                     JavaToolchainRepositoryRegistry registry = getToolchainRepositoryRegistry();
                     registry.register("${name}", ${className}.class);

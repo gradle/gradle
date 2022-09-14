@@ -24,7 +24,7 @@ import org.gradle.internal.HasInternalProtocol;
  * with the <code>JavaToolchainRepositoryRegistry</code> service.
  * <p>
  * Can also be used to interact with the <code>toolchainManagement.jdks</code> block provided by the
- * <code>jdk-toolchains</code> plugin. In fact the <code>jdks</code> block will have generated accessors
+ * <code>jvm-toolchains</code> plugin. In fact the <code>jdks</code> block will have generated accessors
  * for these registrations.
  *
  * @since 7.6

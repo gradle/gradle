@@ -53,7 +53,7 @@ abstract class DummyPlugin(val repoName: String): Plugin<Settings> {
     protected abstract val toolchainRepositoryRegistry: JavaToolchainRepositoryRegistry
 
     override fun apply(settings: Settings) {
-        settings.plugins.apply("jdk-toolchains")
+        settings.plugins.apply("jvm-toolchains")
 
         val registry: JavaToolchainRepositoryRegistry = toolchainRepositoryRegistry
         registry.register(repoName, DummyRepo::class.java)
