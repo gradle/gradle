@@ -201,8 +201,6 @@ In order to disable auto-detection, you can use the `org.gradle.java.installatio
 * Either start gradle using `-Porg.gradle.java.installations.auto-detect=false`
 * Or put `org.gradle.java.installations.auto-detect=false` into your `gradle.properties` file.
 
-//TODO (#21082): write the documentation for toolchain repository plugin authors
-
 [[sec:provisioning]]
 == Auto-Provisioning
 
