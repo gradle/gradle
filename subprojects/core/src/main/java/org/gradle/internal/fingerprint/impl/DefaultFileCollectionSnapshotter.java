@@ -68,7 +68,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         @Override
         public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
             for (File file : contents) {
-                fileSystemAccess.read(file.getAbsolutePath(), roots::add);
+                roots.add(fileSystemAccess.read(file.getAbsolutePath()));
             }
         }
 
@@ -76,18 +76,15 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
             fileSystemAccess.read(
                 root.getAbsolutePath(),
-                new PatternSetSnapshottingFilter(patterns, stat),
-                snapshot -> {
-                    if (snapshot.getType() != FileType.Missing) {
-                        roots.add(snapshot);
-                    }
-                }
-            );
+                new PatternSetSnapshottingFilter(patterns, stat)
+            )
+                .filter(snapshot -> snapshot.getType() != FileType.Missing)
+                .map(roots::add);
         }
 
         @Override
         public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-            fileSystemAccess.read(file.getAbsolutePath(), roots::add);
+            roots.add(fileSystemAccess.read(file.getAbsolutePath()));
             containsArchiveTrees = true;
         }
 

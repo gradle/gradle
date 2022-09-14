@@ -24,6 +24,8 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.TestLauncher
 
+import java.util.regex.Pattern
+
 @TargetGradleVersion(">=7.6")
 @ToolingApiVersion(">=7.6")
 class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification {
@@ -200,6 +202,35 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         taskExecuted(':included:foo')
     }
 
+    def "can control the order of tasks and tests"() {
+        setup:
+        buildFile << '''
+            tasks.register('setupTest')
+        '''
+
+        when:
+        withConnection { connection ->
+            TestLauncher testLauncher = connection.newTestLauncher()
+            collectOutputs(testLauncher)
+            testLauncher.forTasks("setupTest").withTestsFor(s -> s.forTaskPath(":test").includeMethod('MyTest', 'pass'))
+            testLauncher.run()
+        }
+
+        then:
+        tasksExecutedInOrder(':setupTest', ':test')
+
+        when:
+        withConnection { connection ->
+            TestLauncher testLauncher = connection.newTestLauncher()
+            collectOutputs(testLauncher)
+            testLauncher.withTestsFor(s -> s.forTaskPath(":test").includeMethod('MyTest', 'pass')).forTasks('setupTest')
+            testLauncher.run()
+        }
+
+        then:
+        tasksExecutedInOrder(':test', ':setupTest')
+    }
+
     private def launchTestWithTestFilter(GradleConnector connector, @DelegatesTo(TestLauncher) @ClosureParams(value = SimpleType, options = ['org.gradle.tooling.TestLauncher']) Closure testLauncherSpec) {
         withConnection(connector, connectionConfiguration(testLauncherSpec))
     }
@@ -209,7 +240,7 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
     }
 
     private def connectionConfiguration(Closure testLauncherSpec) {
-         { ProjectConnection connection ->
+        {   ProjectConnection connection ->
             TestLauncher testLauncher = connection.newTestLauncher()
             testLauncher.withTaskAndTestMethods(':test', 'MyTest', ['pass'])
             collectOutputs(testLauncher)
@@ -220,5 +251,9 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
 
     def taskExecuted(String path) {
         stdout.toString().contains("Task ${path}")
+    }
+
+    def tasksExecutedInOrder(String... tasks) {
+        stdout.toString().matches(Pattern.compile(".*Task ${tasks.join('.* Task ')}.*", Pattern.DOTALL | Pattern.MULTILINE))
     }
 }

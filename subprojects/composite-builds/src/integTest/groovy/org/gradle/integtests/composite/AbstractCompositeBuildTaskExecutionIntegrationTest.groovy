@@ -18,10 +18,14 @@ package org.gradle.integtests.composite
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractCompositeBuildTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
+    /**
+     * Adds an included build that produces a plugin with id 'test.plugin'
+     */
     def addPluginIncludedBuild(TestFile rootDir, String group = "lib", String name = "lib") {
         rootDir.file("settings.gradle") << """
             rootProject.name="$name"
@@ -50,6 +54,45 @@ abstract class AbstractCompositeBuildTaskExecutionIntegrationTest extends Abstra
                 public void apply(Project project) {
                     project.getTasks().register("greeting", task -> {
                         task.doLast(s -> System.out.println("Hello world"));
+                    });
+                }
+            }
+        """
+    }
+
+    /**
+     * Adds an included build that produces a settings plugin with id 'test.plugin'
+     */
+    def addSettingsPluginIncludedBuild(TestFile rootDir, String group = "lib", String name = "lib") {
+        rootDir.file("settings.gradle") << """
+            rootProject.name="$name"
+        """
+        rootDir.file("build.gradle") << """
+            plugins {
+                id("java-gradle-plugin")
+            }
+            group = "$group"
+            gradlePlugin {
+                plugins {
+                    p {
+                        id = "test.plugin"
+                        implementationClass = "test.PluginImpl"
+                    }
+                }
+            }
+        """
+        rootDir.file("src/main/java/test/PluginImpl.java") << """
+            package test;
+
+            import ${Settings.name};
+            import ${Plugin.name};
+
+            public class PluginImpl implements Plugin<Settings> {
+                public void apply(Settings settings) {
+                    settings.getGradle().rootProject(p -> {
+                        p.getTasks().register("greeting", task -> {
+                            task.doLast(s -> System.out.println("Hello world"));
+                        });
                     });
                 }
             }
