@@ -26,7 +26,7 @@ import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
-import org.gradle.internal.execution.UnitOfWork.FileValueSupplier
+import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.fingerprint.InputFingerprinter
@@ -896,7 +896,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                         visitor.visitInputFileProperty(
                             entry.key,
                             NON_INCREMENTAL,
-                            new FileValueSupplier(
+                            new InputFileValueSupplier(
                                 entry.value,
                                 AbsolutePathInputNormalizer,
                                 DirectorySensitivity.DEFAULT,

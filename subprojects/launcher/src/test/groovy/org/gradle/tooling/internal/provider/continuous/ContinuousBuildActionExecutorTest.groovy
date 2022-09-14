@@ -384,7 +384,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     }
 
     private void declareInput(File file) {
-        def valueSupplier = Stub(UnitOfWork.FileValueSupplier) {
+        def valueSupplier = Stub(UnitOfWork.InputFileValueSupplier) {
             getFiles() >> TestFiles.fixed(file)
         }
         inputListeners.broadcastFileSystemInputsOf(Stub(UnitOfWork) {

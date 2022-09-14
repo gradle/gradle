@@ -369,7 +369,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     ? inputArtifact.getAbsolutePath()
                     : inputArtifact.getName());
             visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL,
-                new FileValueSupplier(
+                new InputFileValueSupplier(
                     dependencies,
                     transformer.getInputArtifactDependenciesNormalizer(),
                     transformer.getInputArtifactDependenciesDirectorySensitivity(),
@@ -382,7 +382,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @OverridingMethodsMustInvokeSuper
         public void visitRegularInputs(InputVisitor visitor) {
             visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, INCREMENTAL,
-                new FileValueSupplier(
+                new InputFileValueSupplier(
                     inputArtifactProvider,
                     transformer.getInputArtifactNormalizer(),
                     transformer.getInputArtifactDirectorySensitivity(),

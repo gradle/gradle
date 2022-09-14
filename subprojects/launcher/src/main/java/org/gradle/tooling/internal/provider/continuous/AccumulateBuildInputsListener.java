@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.FileValueSupplier;
+import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputPropertyType;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkInputListener;
@@ -47,7 +47,7 @@ public class AccumulateBuildInputsListener implements WorkInputListener {
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
         work.visitRegularInputs(new InputVisitor() {
             @Override
-            public void visitInputFileProperty(String propertyName, InputPropertyType type, FileValueSupplier value) {
+            public void visitInputFileProperty(String propertyName, InputPropertyType type, InputFileValueSupplier value) {
                 if (relevantTypes.contains(type)) {
                     ((FileCollectionInternal) value.getFiles()).visitStructure(new FileCollectionStructureVisitor() {
                         @Override

@@ -318,7 +318,7 @@ public class TaskExecution implements UnitOfWork {
                 : InputPropertyType.NON_INCREMENTAL;
             String propertyName = inputFileProperty.getPropertyName();
             visitor.visitInputFileProperty(propertyName, type,
-                new FileValueSupplier(
+                new InputFileValueSupplier(
                     value,
                     inputFileProperty.getNormalizer(),
                     inputFileProperty.getDirectorySensitivity(),
