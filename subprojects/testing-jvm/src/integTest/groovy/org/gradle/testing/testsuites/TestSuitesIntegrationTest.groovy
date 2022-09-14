@@ -20,8 +20,6 @@ import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework
 import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite
-import org.gradle.api.tasks.testing.junit.JUnitOptions
-import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import spock.lang.Issue
