@@ -175,12 +175,12 @@ class DefaultTaskInputsTest extends Specification {
     }
 
     def inputPropertyCanBeNestedCallableAndClosure() {
-        def files = [new File('file')] as Set
+        def value = Mock(Object)
         when:
-        inputs.property('a', { { { files } } as Callable })
+        inputs.property('a', { { { value } } as Callable })
 
         then:
-        inputProperties() == [a: files]
+        inputProperties() == [a: value]
     }
 
     def "GString input property values are evaluated to avoid serialization issues"() {
