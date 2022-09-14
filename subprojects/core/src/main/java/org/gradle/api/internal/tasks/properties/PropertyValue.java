@@ -41,4 +41,23 @@ public interface PropertyValue extends Callable<Object> {
      * Finalizes the property value, if possible. This makes the value final, so that it no longer changes, but not necessarily immutable.
      */
     void maybeFinalizeValue();
+
+    PropertyValue ABSENT = new PropertyValue() {
+        @Nullable
+        @Override
+        public Object call() {
+            return null;
+        }
+
+        @Override
+        public TaskDependencyContainer getTaskDependencies() {
+            // Ignore
+            return TaskDependencyContainer.EMPTY;
+        }
+
+        @Override
+        public void maybeFinalizeValue() {
+            // Ignore
+        }
+    };
 }
