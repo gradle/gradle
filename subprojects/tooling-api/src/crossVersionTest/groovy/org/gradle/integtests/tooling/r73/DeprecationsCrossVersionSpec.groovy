@@ -112,7 +112,7 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         def e = thrown(org.gradle.tooling.BuildException)
-        e.message.contains("Could not fetch model of type 'List' using connection to Gradle")
+        e.message.contains("Could not fetch model of type 'List'")
         e.cause.message.contains("Resolution of the configuration :a:compileClasspath was attempted from a context different than the project context.")
     }
 }
