@@ -20,4 +20,12 @@ public class DefaultValidatingProperty extends AbstractValidatingProperty {
     public DefaultValidatingProperty(String propertyName, PropertyValue value, boolean optional, ValidationAction validationAction) {
         super(propertyName, value, optional, validationAction);
     }
+
+    @Override
+    public void prepareValue() {
+    }
+
+    @Override
+    public void cleanupValue() {
+    }
 }
