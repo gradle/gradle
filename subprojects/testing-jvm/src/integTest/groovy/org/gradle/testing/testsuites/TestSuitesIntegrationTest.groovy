@@ -305,18 +305,18 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("checkConfiguration")
 
         where: // When testing a custom version, this should be a different version that the default
-        testingFrameworkDeclaration     | testingFrameworkType       | testingFrameworkDep
-        'useJUnit()'                    | JUnitTestFramework         | "junit-${DefaultJvmTestSuite.TestingFramework.JUNIT4.getDefaultVersion()}.jar"
-        'useJUnit("4.12")'              | JUnitTestFramework         | "junit-4.12.jar"
-        'useJUnitJupiter()'             | JUnitPlatformTestFramework | "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar"
-        'useJUnitJupiter("5.7.1")'      | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
-        'useSpock()'                    | JUnitPlatformTestFramework | "spock-core-${DefaultJvmTestSuite.TestingFramework.SPOCK.getDefaultVersion()}.jar"
-        'useSpock("2.2-groovy-3.0")'    | JUnitPlatformTestFramework | "spock-core-2.2-groovy-3.0.jar"
-        'useSpock("2.2-groovy-4.0")'    | JUnitPlatformTestFramework | "spock-core-2.2-groovy-4.0.jar"
-        'useKotlinTest()'               | JUnitPlatformTestFramework | "kotlin-test-junit5-${DefaultJvmTestSuite.TestingFramework.KOTLIN_TEST.getDefaultVersion()}.jar"
-        'useKotlinTest("1.5.30")'       | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
-        'useTestNG()'                   | TestNGTestFramework        | "testng-${DefaultJvmTestSuite.TestingFramework.TESTNG.getDefaultVersion()}.jar"
-        'useTestNG("7.3.0")'            | TestNGTestFramework        | "testng-7.3.0.jar"
+        testingFrameworkDeclaration  | testingFrameworkType       | testingFrameworkDep
+        'useJUnit()'                 | JUnitTestFramework         | "junit-${DefaultJvmTestSuite.TestingFramework.JUNIT4.getDefaultVersion()}.jar"
+        'useJUnit("4.12")'           | JUnitTestFramework         | "junit-4.12.jar"
+        'useJUnitJupiter()'          | JUnitPlatformTestFramework | "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar"
+        'useJUnitJupiter("5.7.1")'   | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
+        'useSpock()'                 | JUnitPlatformTestFramework | "spock-core-${DefaultJvmTestSuite.TestingFramework.SPOCK.getDefaultVersion()}.jar"
+        'useSpock("2.2-groovy-3.0")' | JUnitPlatformTestFramework | "spock-core-2.2-groovy-3.0.jar"
+        'useSpock("2.2-groovy-4.0")' | JUnitPlatformTestFramework | "spock-core-2.2-groovy-4.0.jar"
+        'useKotlinTest()'            | JUnitPlatformTestFramework | "kotlin-test-junit5-${DefaultJvmTestSuite.TestingFramework.KOTLIN_TEST.getDefaultVersion()}.jar"
+        'useKotlinTest("1.5.30")'    | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
+        'useTestNG()'                | TestNGTestFramework        | "testng-${DefaultJvmTestSuite.TestingFramework.TESTNG.getDefaultVersion()}.jar"
+        'useTestNG("7.3.0")'         | TestNGTestFramework        | "testng-7.3.0.jar"
     }
 
     def "configuring test framework on custom test suite using a Provider is honored in task and dependencies with #testingFrameworkMethod version #testingFrameworkVersion"() {
@@ -349,13 +349,13 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("checkConfiguration")
 
         where: // When testing a custom version, this should be a different version that the default
-        testingFrameworkMethod       | testingFrameworkVersion         | testingFrameworkType       | testingFrameworkDep
-        'useJUnit'                   | '4.12'                          | JUnitTestFramework         | "junit-4.12.jar"
-        'useJUnitJupiter'            | '5.7.1'                         | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
-        'useSpock'                   | '2.2-groovy-3.0'                | JUnitPlatformTestFramework | "spock-core-2.2-groovy-3.0.jar"
-        'useSpock'                   | '2.2-groovy-4.0'                | JUnitPlatformTestFramework | "spock-core-2.2-groovy-4.0.jar"
-        'useKotlinTest'              | '1.5.30'                        | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
-        'useTestNG'                  | '7.3.0'                         | TestNGTestFramework        | "testng-7.3.0.jar"
+        testingFrameworkMethod       | testingFrameworkVersion      | testingFrameworkType       | testingFrameworkDep
+        'useJUnit'                   | '4.12'                       | JUnitTestFramework         | "junit-4.12.jar"
+        'useJUnitJupiter'            | '5.7.1'                      | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
+        'useSpock'                   | '2.2-groovy-3.0'             | JUnitPlatformTestFramework | "spock-core-2.2-groovy-3.0.jar"
+        'useSpock'                   | '2.2-groovy-4.0'             | JUnitPlatformTestFramework | "spock-core-2.2-groovy-4.0.jar"
+        'useKotlinTest'              | '1.5.30'                     | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
+        'useTestNG'                  | '7.3.0'                      | TestNGTestFramework        | "testng-7.3.0.jar"
     }
 
     def "can override previously configured test framework on a test suite"() {
