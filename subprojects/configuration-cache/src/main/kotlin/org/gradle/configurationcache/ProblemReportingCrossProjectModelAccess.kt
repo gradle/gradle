@@ -122,6 +122,10 @@ class ProblemReportingCrossProjectModelAccess(
         return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
     }
 
+    override fun gradleInstanceForProject(referrerProject: ProjectInternal, gradle: GradleInternal): GradleInternal {
+        return CrossProjectConfigurationReportingGradle.from(gradle, referrerProject)
+    }
+
     override fun parentProjectDynamicInheritedScope(referrerProject: ProjectInternal): DynamicObject? {
         val parent = referrerProject.parent ?: return null
         return CrossProjectModelAccessTrackingParentDynamicObject(

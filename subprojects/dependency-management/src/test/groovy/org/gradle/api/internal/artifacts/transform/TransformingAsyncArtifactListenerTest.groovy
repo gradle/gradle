@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.internal.Deferrable
 import org.gradle.internal.Try
 import org.gradle.internal.model.CalculatedValue
 import org.gradle.internal.operations.BuildOperation
@@ -31,8 +32,8 @@ import spock.lang.Specification
 class TransformingAsyncArtifactListenerTest extends Specification {
     def transformation = Mock(TransformationStep)
     def targetAttributes = Mock(ImmutableAttributes)
-    def result = ImmutableList.builder()
-    CacheableInvocation<TransformationSubject> invocation = Mock(CacheableInvocation)
+    def result = ImmutableList.<ResolvedArtifactSet.Artifacts>builder()
+    def invocation = Mock(Deferrable<TransformationSubject>)
     def operationQueue = Mock(BuildOperationQueue)
     def listener = new TransformingAsyncArtifactListener([new BoundTransformationStep(transformation, Stub(TransformUpstreamDependencies))], targetAttributes, [], result)
     def file = new File("foo")
@@ -64,7 +65,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         1 * transformation.createInvocation(_, _, _) >> invocation
-        1 * invocation.getCachedResult() >> Optional.empty()
+        1 * invocation.getCompleted() >> Optional.empty()
         1 * operationQueue.add(_ as BuildOperation)
     }
 
@@ -83,7 +84,7 @@ class TransformingAsyncArtifactListenerTest extends Specification {
 
         then:
         1 * transformation.createInvocation({ it.files == [this.artifactFile] }, _ as TransformUpstreamDependencies, _) >> invocation
-        2 * invocation.getCachedResult() >> Optional.of(Try.successful(TransformationSubject.initial(artifact)))
+        2 * invocation.getCompleted() >> Optional.of(Try.successful(TransformationSubject.initial(artifact)))
         0 * operationQueue._
     }
 }

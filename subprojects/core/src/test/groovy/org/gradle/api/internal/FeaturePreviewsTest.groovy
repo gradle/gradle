@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal
 
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -40,6 +41,7 @@ class FeaturePreviewsTest extends Specification {
         feature << FeaturePreviewsActivationFixture.activeFeatures()
     }
 
+    @IgnoreIf({ FeaturePreviewsActivationFixture.inactiveFeatures().isEmpty() })
     def "ignores activation of inactive #feature feature"() {
         when:
         previews.enableFeature(feature)

@@ -7,11 +7,11 @@ version = 1.0
 
 tasks.register('myZip', Zip) {
     from 'somedir'
-
+    File projectDir = layout.projectDirectory.asFile
     doLast {
         println archiveFileName.get()
-        println relativePath(destinationDirectory)
-        println relativePath(archiveFile)
+        println projectDir.relativePath(destinationDirectory.get().asFile)
+        println projectDir.relativePath(archiveFile.get().asFile)
     }
 }
 // end::zip-task[]

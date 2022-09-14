@@ -443,4 +443,39 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         keyringsAscii.size() == 1
         keyringsAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/18567")
+    def "--export-keys can export keys even with without --write-verification-metadata"() {
+        def keyring = newKeyRing()
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            addTrustedKey("org:foo:1.0.0", SigningFixtures.validPublicKeyHexString)
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0") {
+            withSignature {
+                keyring.sign(it, [(SigningFixtures.validSecretKey): SigningFixtures.validPassword])
+            }
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        serveValidKey()
+        keyServerFixture.registerPublicKey(keyring.publicKey)
+        succeeds "build", "--export-keys"
+
+        then:
+        outputContains("Exported 1 keys to")
+        def exportedKeyRingAscii = file("gradle/verification-keyring.keys")
+        exportedKeyRingAscii.exists()
+        def keyringsAscii = SecuritySupport.loadKeyRingFile(exportedKeyRingAscii)
+        keyringsAscii.size() == 1
+        keyringsAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
+    }
 }
