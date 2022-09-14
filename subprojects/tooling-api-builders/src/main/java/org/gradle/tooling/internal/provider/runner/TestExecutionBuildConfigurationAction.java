@@ -64,7 +64,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
         allTasksToRun.addAll(configureBuildForTestTasks(context, testExecutionRequest));
         configureTestTasks(allTasksToRun);
         for (Task task : allTasksToRun) {
-            plan.addEntryTasks(Collections.singletonList(task));
+            plan.addEntryTask(task);
         }
     }
 
