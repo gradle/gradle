@@ -57,14 +57,10 @@ public abstract class TaskNode extends Node {
         return shouldSuccessors;
     }
 
-    public void addMustSuccessor(TaskNode toNode) {
+    public void addMustSuccessor(Node toNode) {
         deprecateLifecycleHookReferencingNonLocalTask("mustRunAfter", toNode);
         updateDependencyNodes(getDependencyNodes().addMustSuccessor(toNode));
         toNode.addMustPredecessor(this);
-    }
-
-    void addMustPredecessor(TaskNode fromNode) {
-        updateDependentNodes(getDependentNodes().addMustPredecessor(fromNode));
     }
 
     public void addFinalizingSuccessor(Node finalized) {

@@ -18,7 +18,6 @@ package org.gradle.execution.plan.edges;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.execution.plan.Node;
-import org.gradle.execution.plan.TaskNode;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -64,7 +63,7 @@ public class DependencySuccessorsOnlyNodeSet implements DependencyNodesSet {
     }
 
     @Override
-    public DependencyNodesSet addMustSuccessor(TaskNode toNode) {
+    public DependencyNodesSet addMustSuccessor(Node toNode) {
         return new ComplexDependencyNodesSet(this).addMustSuccessor(toNode);
     }
 
