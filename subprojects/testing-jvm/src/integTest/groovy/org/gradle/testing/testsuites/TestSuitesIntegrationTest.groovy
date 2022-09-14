@@ -555,51 +555,6 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("You cannot change the test framework to: JUnit Platform after accessing test options. The current framework is: JUnit 4.")
     }
 
-    // This is not the behavior we want in the long term because this makes build configuration sensitive to the order
-    // that tasks are realized.
-    // useTestNG() is ignored here because we finalize the test framework on the task as soon as we configure options
-    // The test framework options should be pushed up into the test suite target/test suite and passed down into the
-    // Test task
-    def "build succeeds when test framework is changed to another kind when realizing task and configuring options"() {
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            ${mavenCentralRepository()}
-
-            testing {
-                suites {
-                    integrationTest(JvmTestSuite) {
-                        useJUnit()
-                        targets.all {
-                            // explicitly realize the task now to cause this configuration to run now
-                            testTask.get().configure {
-                                options {
-                                    excludeCategories "com.example.Exclude"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            testing {
-                suites {
-                    integrationTest {
-                        // This is ignored
-                        useTestNG()
-                    }
-                }
-            }
-
-            check.dependsOn testing.suites
-        """
-
-        expect:
-        succeeds("check")
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/18622")
     def "custom Test tasks eagerly realized prior to Java and Test Suite plugin application do not fail to be configured when combined with test suites"() {
         buildFile << """

@@ -313,4 +313,48 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         'integTest' | 'integTest(JvmTestSuite)'     | 'integTest' | 'includeTags'
         'integTest' | 'integTest(JvmTestSuite)'     | 'integTest' | 'excludeTags'
     }
+
+    // Migrated from TestSuitesIntegrationTest to consolidate options-related tests
+    def "build fails when test framework is changed to another kind when realizing task and configuring options"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        useJUnit()
+                        targets.all {
+                            // explicitly realize the task now to cause this configuration to run now
+                            testTask.get().configure {
+                                options {
+                                    excludeCategories "com.example.Exclude"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            testing {
+                suites {
+                    integrationTest {
+                        // This is ignored
+                        useTestNG()
+                    }
+                }
+            }
+
+            check.dependsOn testing.suites
+        """
+
+        when:
+        fails("check")
+
+        then:
+        result.assertHasErrorOutput("You cannot set the test framework on suite: integrationTest after accessing test options on an associated Test task: integrationTest.")
+    }
 }
