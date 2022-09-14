@@ -211,6 +211,6 @@ public class MyTest {
         skipped ':test'
 
         where:
-        type << ['includeCategories']
+        type << ['includeCategories', 'excludeCategories']
     }
 }
