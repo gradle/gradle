@@ -31,7 +31,7 @@ public class DefaultFeatureFlags implements FeatureFlags {
     public boolean isEnabled(FeatureFlag flag) {
         if (flag.getSystemPropertyName() != null) {
             // Can explicitly disable property using system property
-            BuildOption.Value<Boolean> option = options.getOption(new InternalFlag(flag.getSystemPropertyName()));
+            Option.Value<Boolean> option = options.getOption(new InternalFlag(flag.getSystemPropertyName()));
             if (option.isExplicit() || option.get()) {
                 return option.get();
             }
