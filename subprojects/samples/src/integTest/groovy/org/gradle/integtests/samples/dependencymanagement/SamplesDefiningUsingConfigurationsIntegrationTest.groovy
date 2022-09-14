@@ -18,7 +18,6 @@ package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.junit.Rule
@@ -34,7 +33,6 @@ class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrat
     }
 
     @UsesSample("dependencyManagement/definingUsingConfigurations-custom")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     @IgnoreIf({ GradleContextualExecuter.embedded }) // Sample only works with isolated distribution classpath, because otherwise multiple JARs contain conflicting versions of 'javax/servlet/descriptor/JspConfigDescriptor'
     def "can declare and resolve custom configuration with #dsl dsl"() {
         setup:
