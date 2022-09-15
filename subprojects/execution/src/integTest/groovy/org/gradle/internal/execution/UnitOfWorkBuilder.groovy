@@ -206,11 +206,6 @@ class UnitOfWorkBuilder {
             }
 
             @Override
-            UnitOfWork.InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
-                return UnitOfWork.InputChangeTrackingStrategy.NONE
-            }
-
-            @Override
             void visitImplementations(UnitOfWork.ImplementationVisitor visitor) {
                 visitor.visitImplementation(implementation)
                 visitor.visitImplementation(Object)
