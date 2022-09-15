@@ -18,10 +18,12 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/17812")
 class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
+    @Ignore("https://github.com/gradle/gradle-private/issues/3579")
     def "fails when configuring tasks which do dependency resolution from non-project context in constructor"() {
         buildFile << """
             abstract class BadTask extends DefaultTask {
@@ -81,6 +83,6 @@ class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("a:foo", "b:foo", "--parallel")
-        result.assertHasErrorOutput("Resolution of the configuration :b:myconf was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
+        result.assertHasErrorOutput("Resolution of the configuration :a:myconf was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
     }
 }
