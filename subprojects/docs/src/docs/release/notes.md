@@ -268,7 +268,9 @@ Related issues:
 
 The recently released [version 1.0.0 of the Plugin-Publish plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish/1.0.0) significantly improves the process by having stronger opinions and a more straightforward configuration. 
 
-We enhance the `java-gradle-plugin` documentation, describing the Maven publications it generates when used together with the `maven-publish plugin`.
+This release includes updates to the `java-gradle-plugin` documentation.
+The enhanced documentation describes the Maven publications generated when
+combined with the `maven-publish plugin`.
 
 For more information, see enhanced Gradle for [Plugin Publish Plugin v1.0.0 gradle#19982](https://github.com/gradle/gradle/pull/19982)
 
