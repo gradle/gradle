@@ -64,17 +64,47 @@ public interface UnitOfWork extends Describable {
      */
     WorkOutput execute(ExecutionRequest executionRequest);
 
+    /**
+     * Parameter object for {@link #execute(ExecutionRequest)}.
+     */
     interface ExecutionRequest {
+        /**
+         * The directory to produce outputs into.
+         * <p>
+         * Note: it's {@code null} for tasks as they don't currently have their own workspace.
+         */
         File getWorkspace();
 
+        /**
+         * For work capable of incremental execution this is the object to query per-property changes through;
+         * {@link Optional#empty()} for non-incremental-capable work.
+         * <p>
+         * Note that incremental-capable work can also be executed non-incrementally, but even then a
+         * {@link org.gradle.work.InputChanges} instance is avaialble, returning all inputs as changed.
+         */
         Optional<InputChangesInternal> getInputChanges();
 
+        /**
+         * Output snapshots indexed by property fron the previous execution;
+         * {@link Optional#empty()} is information about a previous execution is not available.
+         */
         Optional<ImmutableSortedMap<String, FileSystemSnapshot>> getPreviouslyProducedOutputs();
     }
 
+    /**
+     * The result of executing the user code.
+     */
     interface WorkOutput {
+        /**
+         * Whether any significant amount of work has happened while executing the user code.
+         * <p>
+         * What amounts to "significant work" is up to the type of work implementation.
+         */
         WorkResult getDidWork();
 
+        /**
+         * Implementation-specific output of executing the user code.
+         */
         Object getOutput();
     }
 
