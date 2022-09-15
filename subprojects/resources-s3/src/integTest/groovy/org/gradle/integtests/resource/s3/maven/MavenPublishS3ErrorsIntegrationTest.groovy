@@ -35,6 +35,7 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest 
     def setup() {
         executer.withArgument('-d')
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.uri}")
+        executer.withStackTraceChecksDisabled()
     }
 
     def "should fail with an authentication error"() {
