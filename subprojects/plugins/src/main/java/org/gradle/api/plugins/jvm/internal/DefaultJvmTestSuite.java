@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import groovy.lang.GroovySystem;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
@@ -321,24 +322,46 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public void useSpock() {
-        useSpockForDerivedGroovyVersion();
+        useSpock(getDerivedSpockVersion());
     }
 
-    private void useSpockForDerivedGroovyVersion() {
-        final Set<String> groovyGroups = new HashSet<>(Arrays.asList("org.codehaus.groovy", "org.apache.groovy"));
-        final Set<String> groovyNames = new HashSet<>(Arrays.asList("groovy", "groovy-all"));
-        Provider<VersionNumber> groovyVersionProvider = getProviderFactory().provider(() -> {
+    private static final Set<String> GROOVY_GROUPS = new HashSet<>(Arrays.asList("org.codehaus.groovy", "org.apache.groovy"));
+    private static final Set<String> GROOVY_NAMES = new HashSet<>(Arrays.asList("groovy", "groovy-all"));
+    private static final Map<VersionNumber, String> GROOVY_TO_SPOCK_VERSION_MAPPING = getSpockVersionMapping(ImmutableMap.of(
+        "4.0", "2.2-groovy-4.0",
+        "3.0", "2.2-groovy-3.0",
+        "2.5", "2.2-groovy-2.5",
+        "2.4", "1.3-groovy-2.4",
+        "2.3", "1.1-groovy-2.3",
+        "2.0", "1.1-groovy-2.0",
+        "1.8", "0.7-groovy-1.8",
+        "1.7", "0.6-groovy-1.7",
+        "1.6", "0.5-groovy-1.6"
+    ));
+
+    private Provider<String> getDerivedSpockVersion() {
+        return getProviderFactory().provider(() -> {
             Optional<VersionNumber> maybeGroovyJarVersionNumber = runtimeClasspath.getIncoming().getResolutionResult().getAllComponents().stream()
                 .map(ResolvedComponentResult::getModuleVersion)
-                .filter(mvi -> groovyGroups.contains(mvi.getGroup()))
-                .filter(mvi -> groovyNames.contains(mvi.getName()))
+                .filter(mvi -> GROOVY_GROUPS.contains(mvi.getGroup()))
+                .filter(mvi -> GROOVY_NAMES.contains(mvi.getName()))
                 .map(ModuleVersionIdentifier::getVersion)
                 .map(VersionNumber::parse)
                 .findFirst();
 
-            return maybeGroovyJarVersionNumber.orElse(VersionNumber.parse(GroovySystem.getVersion()));
+            // TODO: Should we warn if we can't find Groovy on their classpath?
+            VersionNumber groovyVersion = maybeGroovyJarVersionNumber.orElse(VersionNumber.parse(GroovySystem.getVersion()));
+
+            return GROOVY_TO_SPOCK_VERSION_MAPPING.entrySet().stream()
+                .filter(it -> groovyVersion.compareTo(it.getKey()) >= 0)
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(TestingFramework.SPOCK.getDefaultVersion());
         });
-        useSpock(groovyVersionProvider.map(groovyVersion -> String.format("%s-groovy-%s.%s", SPOCK_BASE_VERSION, groovyVersion.getMajor(), groovyVersion.getMinor())));
+    }
+
+    private static Map<VersionNumber, String> getSpockVersionMapping(Map<String, String> versions) {
+        return versions.entrySet().stream().collect(ImmutableMap.toImmutableMap(it -> VersionNumber.parse(it.getKey()), Map.Entry::getValue));
     }
 
     @Override
