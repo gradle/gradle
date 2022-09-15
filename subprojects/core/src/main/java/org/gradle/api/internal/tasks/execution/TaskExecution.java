@@ -394,7 +394,7 @@ public class TaskExecution implements UnitOfWork {
 
     @Override
     public boolean shouldCleanupOutputsOnNonIncrementalExecution() {
-        return getInputChangeTrackingStrategy() == InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS;
+        return getExecutionBehavior() == ExecutionBehavior.INCREMENTAL;
     }
 
     @Override
@@ -423,13 +423,13 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
+    public ExecutionBehavior getExecutionBehavior() {
         for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
             if (taskAction instanceof IncrementalTaskAction) {
-                return InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS;
+                return ExecutionBehavior.INCREMENTAL;
             }
         }
-        return InputChangeTrackingStrategy.NONE;
+        return ExecutionBehavior.NON_INCREMENTAL;
     }
 
     @Override
