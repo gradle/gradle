@@ -190,9 +190,14 @@ class UnitOfWorkBuilder {
 
                     @Override
                     Object getOutput() {
-                        return "output"
+                        return loadAlreadyProducedOutput(executionRequest.workspace)
                     }
                 }
+            }
+
+            @Override
+            Object loadAlreadyProducedOutput(File workspace) {
+                return "output"
             }
 
             @Override

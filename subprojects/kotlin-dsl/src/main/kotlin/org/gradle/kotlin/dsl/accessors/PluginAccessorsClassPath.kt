@@ -143,11 +143,11 @@ class GeneratePluginAccessors(
         return object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
 
-            override fun getOutput() = loadRestoredOutput(workspace)
+            override fun getOutput() = loadAlreadyProducedOutput(workspace)
         }
     }
 
-    override fun loadRestoredOutput(workspace: File) = AccessorsClassPath(
+    override fun loadAlreadyProducedOutput(workspace: File) = AccessorsClassPath(
         DefaultClassPath.of(getClassesOutputDir(workspace)),
         DefaultClassPath.of(getSourcesOutputDir(workspace))
     )

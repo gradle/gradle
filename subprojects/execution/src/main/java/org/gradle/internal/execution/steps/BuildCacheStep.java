@@ -101,7 +101,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
 
                                 @Override
                                 public Object getOutput() {
-                                    return work.loadRestoredOutput(context.getWorkspace());
+                                    return work.loadAlreadyProducedOutput(context.getWorkspace());
                                 }
                             });
                         }

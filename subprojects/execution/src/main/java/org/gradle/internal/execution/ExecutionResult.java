@@ -16,8 +16,11 @@
 
 package org.gradle.internal.execution;
 
+import javax.annotation.Nullable;
+
 public interface ExecutionResult {
     ExecutionOutcome getOutcome();
 
+    @Nullable
     Object getOutput();
 }

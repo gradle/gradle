@@ -167,12 +167,17 @@ public class TaskExecution implements UnitOfWork {
 
                 @Override
                 public Object getOutput() {
-                    throw new UnsupportedOperationException();
+                    return null;
                 }
             };
         } finally {
             outputs.setPreviousOutputFiles(null);
         }
+    }
+
+    @Override
+    public Object loadAlreadyProducedOutput(File workspace) {
+        return null;
     }
 
     private WorkResult executeWithPreviousOutputFiles(@Nullable InputChangesInternal inputChanges) {

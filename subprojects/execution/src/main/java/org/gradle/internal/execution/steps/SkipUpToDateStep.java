@@ -93,7 +93,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
 
                     @Override
                     public Object getOutput() {
-                        return work.loadRestoredOutput(context.getWorkspace());
+                        return work.loadAlreadyProducedOutput(context.getWorkspace());
                     }
                 });
             }
