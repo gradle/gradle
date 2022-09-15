@@ -317,7 +317,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public Object loadRestoredOutput(File workspace) {
+        public Object loadAlreadyProducedOutput(File workspace) {
             TransformationResultSerializer resultSerializer = new TransformationResultSerializer(getOutputDir(workspace));
             return resultSerializer.readResultsFile(getResultsFile(workspace));
         }

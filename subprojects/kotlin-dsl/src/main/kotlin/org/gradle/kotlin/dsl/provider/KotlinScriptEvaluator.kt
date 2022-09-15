@@ -382,13 +382,13 @@ class CompileKotlinScript(
     fun workOutputFor(workspace: File): UnitOfWork.WorkOutput =
         object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
-            override fun getOutput() = loadRestoredOutput(workspace)
+            override fun getOutput() = loadAlreadyProducedOutput(workspace)
         }
 
     override fun getDisplayName(): String =
         "Kotlin DSL script compilation ($templateId)"
 
-    override fun loadRestoredOutput(workspace: File): Any =
+    override fun loadAlreadyProducedOutput(workspace: File): Any =
         classesDir(workspace)
 
     override fun getWorkspaceProvider() = workspaceProvider.scripts

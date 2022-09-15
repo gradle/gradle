@@ -105,6 +105,7 @@ public interface UnitOfWork extends Describable {
         /**
          * Implementation-specific output of executing the user code.
          */
+        @Nullable
         Object getOutput();
     }
 
@@ -113,9 +114,13 @@ public interface UnitOfWork extends Describable {
         DID_NO_WORK
     }
 
-    default Object loadRestoredOutput(File workspace) {
-        throw new UnsupportedOperationException();
-    }
+    /**
+     * Loads output not produced during the current execution.
+     * This can be output produced during a previous execution when the work is up-to-date,
+     * or loaded from cache.
+     */
+    @Nullable
+    Object loadAlreadyProducedOutput(File workspace);
 
     /**
      * Returns the {@link WorkspaceProvider} to allocate a workspace to execution this work in.
@@ -164,7 +169,7 @@ public interface UnitOfWork extends Describable {
      * Visit regular inputs of the work.
      *
      * Regular inputs are inputs that are not used to calculate the identity of the work, but used to check up-to-dateness or to calculate the cache key.
-     * To visit all inputs one must call both {@link #visitIdentityInputs(InputVisitor)} and {@link #visitRegularInputs(InputVisitor)}.
+     * To visit all inputs one must call both {@link #visitIdentityInputs(InputVisitor)} as well as this method.
      */
     default void visitRegularInputs(InputVisitor visitor) {}
 
