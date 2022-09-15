@@ -25,7 +25,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
@@ -138,6 +137,7 @@ import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -687,10 +687,10 @@ class DependencyManagementBuildScopeServices {
                                                               DependenciesAccessorsWorkspaceProvider workspace,
                                                               DefaultProjectDependencyFactory factory,
                                                               ExecutionEngine executionEngine,
-                                                              FeaturePreviews featurePreviews,
+                                                              FeatureFlags featureFlags,
                                                               FileCollectionFactory fileCollectionFactory,
                                                               InputFingerprinter inputFingerprinter) {
-        return new DefaultDependenciesAccessors(registry, workspace, factory, featurePreviews, executionEngine, fileCollectionFactory, inputFingerprinter);
+        return new DefaultDependenciesAccessors(registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter);
     }
 
 

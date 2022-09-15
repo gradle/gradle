@@ -24,7 +24,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -58,6 +57,7 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
@@ -125,7 +125,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     }
 
     private boolean experimentalCompilationAvoidanceEnabled() {
-        return getFeaturePreviews().isFeatureEnabled(GROOVY_COMPILATION_AVOIDANCE);
+        return getFeatureFlags().isEnabled(GROOVY_COMPILATION_AVOIDANCE);
     }
 
     @TaskAction
@@ -411,7 +411,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     }
 
     @Inject
-    protected FeaturePreviews getFeaturePreviews() {
+    protected FeatureFlags getFeatureFlags() {
         throw new UnsupportedOperationException();
     }
 

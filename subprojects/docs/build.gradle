@@ -824,9 +824,6 @@ tasks.named("docsTest") { task ->
                 "snippet-dependency-management-managing-transitive-dependencies-exclude-for-dependency_groovy_exclude-transitive-for-dependency.sample",
                 "snippet-dependency-management-managing-transitive-dependencies-exclude-for-dependency_kotlin_exclude-transitive-for-dependency.sample",
 
-                "snippet-files-archives-changed-base-name_groovy_zipWithArchivesBaseName.sample",
-                "snippet-files-archives-changed-base-name_kotlin_zipWithArchivesBaseName.sample",
-
                 "snippet-java-cross-compilation_groovy_java7CrossCompilation.sample",
                 "snippet-java-cross-compilation_kotlin_java7CrossCompilation.sample",
 
