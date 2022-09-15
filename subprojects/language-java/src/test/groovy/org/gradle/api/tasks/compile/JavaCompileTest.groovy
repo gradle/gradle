@@ -180,4 +180,11 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         spec.release == null
     }
 
+    def "incremental compilation is enabled by default"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+
+        expect:
+        javaCompile.options.incremental
+        javaCompile.options.incrementalAfterFailure.get() == true
+    }
 }
