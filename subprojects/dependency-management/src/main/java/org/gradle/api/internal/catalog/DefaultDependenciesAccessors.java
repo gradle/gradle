@@ -316,13 +316,13 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
                 @Override
                 public Object getOutput() {
-                    return loadRestoredOutput(workspace);
+                    return loadAlreadyProducedOutput(workspace);
                 }
             };
         }
 
         @Override
-        public Object loadRestoredOutput(File workspace) {
+        public Object loadAlreadyProducedOutput(File workspace) {
             File srcDir = new File(workspace, OUT_SOURCES);
             File dstDir = new File(workspace, OUT_CLASSES);
             return new GeneratedAccessors(srcDir, dstDir);

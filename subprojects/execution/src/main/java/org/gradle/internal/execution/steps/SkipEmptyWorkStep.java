@@ -181,7 +181,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
 
                     @Override
                     public Object getOutput() {
-                        return work.loadRestoredOutput(context.getWorkspace());
+                        return work.loadAlreadyProducedOutput(context.getWorkspace());
                     }
                 });
             }
