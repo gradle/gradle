@@ -28,7 +28,6 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Cast;
@@ -1337,19 +1336,17 @@ public class BuildScriptBuilder {
         }
 
         public enum TestSuiteFramework {
-            JUNIT(new MethodInvocationExpression("useJUnit"), DefaultJvmTestSuite.Frameworks.JUNIT4, "JUnit4"),
-            JUNIT_PLATFORM(new MethodInvocationExpression("useJUnitJupiter"), DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER, "JUnit Jupiter"),
-            SPOCK(new MethodInvocationExpression("useSpock"), DefaultJvmTestSuite.Frameworks.SPOCK, "Spock"),
-            KOTLIN_TEST(new MethodInvocationExpression("useKotlinTest"), DefaultJvmTestSuite.Frameworks.KOTLIN_TEST, "Kotlin Test"),
-            TEST_NG(new MethodInvocationExpression("useTestNG"), DefaultJvmTestSuite.Frameworks.TESTNG, "TestNG");
+            JUNIT(new MethodInvocationExpression("useJUnit"), "JUnit4"),
+            JUNIT_PLATFORM(new MethodInvocationExpression("useJUnitJupiter"), "JUnit Jupiter"),
+            SPOCK(new MethodInvocationExpression("useSpock"), "Spock"),
+            KOTLIN_TEST(new MethodInvocationExpression("useKotlinTest"), "Kotlin Test"),
+            TEST_NG(new MethodInvocationExpression("useTestNG"), "TestNG");
 
             final String displayName;
             final MethodInvocationExpression method;
-            final DefaultJvmTestSuite.Frameworks framework;
 
-            TestSuiteFramework(MethodInvocationExpression method, DefaultJvmTestSuite.Frameworks framework, String displayName) {
+            TestSuiteFramework(MethodInvocationExpression method, String displayName) {
                 this.method = method;
-                this.framework = framework;
                 this.displayName = displayName;
             }
 
