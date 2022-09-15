@@ -19,8 +19,8 @@ package org.gradle.internal.execution.fingerprint.impl;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
-import org.gradle.internal.execution.UnitOfWork.InputPropertyType;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.UnitOfWork.ValueSupplier;
 import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
@@ -118,7 +118,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         }
 
         @Override
-        public void visitInputFileProperty(String propertyName, InputPropertyType type, InputFileValueSupplier value) {
+        public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
             if (knownCurrentFingerprints.containsKey(propertyName)) {
                 return;
             }

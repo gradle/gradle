@@ -22,8 +22,8 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
-import org.gradle.internal.execution.UnitOfWork.InputPropertyType;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkInputListener;
 
@@ -42,13 +42,13 @@ public class AccumulateBuildInputsListener implements WorkInputListener {
     }
 
     @Override
-    public void onExecute(UnitOfWork work, EnumSet<InputPropertyType> relevantTypes) {
+    public void onExecute(UnitOfWork work, EnumSet<InputBehavior> relevantBehaviors) {
         Set<String> taskInputs = new LinkedHashSet<>();
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
         work.visitRegularInputs(new InputVisitor() {
             @Override
-            public void visitInputFileProperty(String propertyName, InputPropertyType type, InputFileValueSupplier value) {
-                if (relevantTypes.contains(type)) {
+            public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
+                if (relevantBehaviors.contains(behavior)) {
                     ((FileCollectionInternal) value.getFiles()).visitStructure(new FileCollectionStructureVisitor() {
                         @Override
                         public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {

@@ -40,7 +40,7 @@ import org.gradle.internal.enterprise.test.TestTaskFilters;
 import org.gradle.internal.enterprise.test.TestTaskForkOptions;
 import org.gradle.internal.enterprise.test.TestTaskProperties;
 import org.gradle.internal.enterprise.test.TestTaskPropertiesService;
-import org.gradle.internal.execution.UnitOfWork.InputPropertyType;
+import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
@@ -87,7 +87,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
             public void visitInputFileProperty(
                 String propertyName,
                 boolean optional,
-                InputPropertyType type,
+                InputBehavior behavior,
                 DirectorySensitivity directorySensitivity,
                 LineEndingSensitivity lineEndingSensitivity,
                 @Nullable Class<? extends FileNormalizer> fileNormalizer,

@@ -146,42 +146,65 @@ public interface UnitOfWork extends Describable {
 
         default void visitInputFileProperty(
             String propertyName,
-            InputPropertyType type,
+            InputBehavior behavior,
             InputFileValueSupplier value
         ) {}
-
     }
 
-    enum InputPropertyType {
+    /**
+     * Describes the behavior of an input property.
+     */
+    enum InputBehavior {
         /**
          * Non-incremental inputs.
+         *
+         * <ul>
+         *     <li>Any change to the property value always triggers a full rebuild of the work</li>
+         *     <li>Changes for the property cannot be queried via {@link org.gradle.work.InputChanges}</li>
+         * </ul>
          */
         NON_INCREMENTAL(false, false),
 
         /**
          * Incremental inputs.
+         *
+         * <ul>
+         *     <li>Changes to the property value can cause an incremental execution of the work</li>
+         *     <li>Changes for the property can be queried via {@link org.gradle.work.InputChanges}</li>
+         * </ul>
          */
         INCREMENTAL(true, false),
 
         /**
-         * These are the primary inputs to the incremental work item;
-         * if they are empty the work item shouldn't be executed.
+         * Primary (incremental) inputs.
+         *
+         * <ul>
+         *     <li>Changes to the property value can cause an incremental execution</li>
+         *     <li>Changes for the property can be queried via {@link org.gradle.work.InputChanges}</li>
+         *     <li>When the property is empty, the work is skipped with any previous outputs removed</li>
+         * </ul>
          */
         PRIMARY(true, true);
 
-        private final boolean incremental;
+        private final boolean trackChanges;
         private final boolean skipWhenEmpty;
 
-        InputPropertyType(boolean incremental, boolean skipWhenEmpty) {
-            this.incremental = incremental;
+        InputBehavior(boolean trackChanges, boolean skipWhenEmpty) {
+            this.trackChanges = trackChanges;
             this.skipWhenEmpty = skipWhenEmpty;
         }
 
-        public boolean isIncremental() {
-            return incremental;
+        /**
+         * Whether incremental changes should be tracked via {@link org.gradle.work.InputChanges}.
+         */
+        public boolean shouldTrackChanges() {
+            return trackChanges;
         }
 
-        public boolean isSkipWhenEmpty() {
+        /**
+         * Whether the work should be skipped and outputs be removed if the property is empty.
+         */
+        public boolean shouldSkipWhenEmpty() {
             return skipWhenEmpty;
         }
     }

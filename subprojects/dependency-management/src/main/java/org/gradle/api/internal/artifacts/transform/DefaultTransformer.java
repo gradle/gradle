@@ -48,8 +48,8 @@ import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.Describables;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
-import org.gradle.internal.execution.UnitOfWork.InputPropertyType;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -321,7 +321,7 @@ public class DefaultTransformer implements Transformer {
                 public void visitInputFileProperty(
                     String propertyName,
                     boolean optional,
-                    InputPropertyType type,
+                    InputBehavior behavior,
                     DirectorySensitivity directorySensitivity,
                     LineEndingSensitivity lineEndingNormalization,
                     @Nullable Class<? extends FileNormalizer> fileNormalizer,
@@ -331,7 +331,7 @@ public class DefaultTransformer implements Transformer {
                     validateInputFileNormalizer(propertyName, fileNormalizer, cacheable, validationContext);
                     visitor.visitInputFileProperty(
                         propertyName,
-                        type,
+                        behavior,
                         new InputFileValueSupplier(
                             value,
                             fileNormalizer == null ? AbsolutePathInputNormalizer.class : fileNormalizer,
@@ -549,16 +549,18 @@ public class DefaultTransformer implements Transformer {
         private final boolean cacheable;
         private final Class<?> implementationClass;
 
-        public IsolateTransformerParameters(@Nullable TransformParameters parameterObject,
-                                            Class<?> implementationClass,
-                                            boolean cacheable,
-                                            DomainObjectContext owner,
-                                            PropertyWalker parameterPropertyWalker,
-                                            IsolatableFactory isolatableFactory,
-                                            BuildOperationExecutor buildOperationExecutor,
-                                            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                            FileCollectionFactory fileCollectionFactory,
-                                            DocumentationRegistry documentationRegistry) {
+        public IsolateTransformerParameters(
+            @Nullable TransformParameters parameterObject,
+            Class<?> implementationClass,
+            boolean cacheable,
+            DomainObjectContext owner,
+            PropertyWalker parameterPropertyWalker,
+            IsolatableFactory isolatableFactory,
+            BuildOperationExecutor buildOperationExecutor,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            FileCollectionFactory fileCollectionFactory,
+            DocumentationRegistry documentationRegistry
+        ) {
             this.parameterObject = parameterObject;
             this.implementationClass = implementationClass;
             this.cacheable = cacheable;
@@ -603,7 +605,7 @@ public class DefaultTransformer implements Transformer {
                     public void visitInputFileProperty(
                         String propertyName,
                         boolean optional,
-                        InputPropertyType type,
+                        InputBehavior behavior,
                         DirectorySensitivity directorySensitivity,
                         LineEndingSensitivity lineEndingSensitivity,
                         @Nullable Class<? extends FileNormalizer> fileNormalizer,
