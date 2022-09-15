@@ -131,8 +131,30 @@ public interface UnitOfWork extends Describable {
         return Optional.empty();
     }
 
-    default InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
-        return InputChangeTrackingStrategy.NONE;
+    /**
+     * Whether the work should be executed incrementally (if possible) or not.
+     */
+    default ExecutionBehavior getExecutionBehavior() {
+        return ExecutionBehavior.NON_INCREMENTAL;
+    }
+
+    /**
+     * The execution capability of the work: can be incremental, or non-incremental.
+     * <p>
+     * Note that incremental work can be executed non-incrementally if input changes
+     * require it.
+     */
+    enum ExecutionBehavior {
+        /**
+         * Work can be executed incrementally, input changes for {@link InputBehavior#PRIMARY} and
+         * {@link InputBehavior#INCREMENTAL} properties should be tracked.
+         */
+        INCREMENTAL,
+
+        /**
+         * Work is not capable of incremental execution, no need to track input changes.
+         */
+        NON_INCREMENTAL
     }
 
     /**
@@ -404,27 +426,6 @@ public interface UnitOfWork extends Describable {
      */
     default boolean shouldCleanupStaleOutputs() {
         return false;
-    }
-
-    enum InputChangeTrackingStrategy {
-        /**
-         * No incremental parameters, nothing to track.
-         */
-        NONE(false),
-        /**
-         * Only the incremental parameters should be tracked for input changes.
-         */
-        INCREMENTAL_PARAMETERS(true);
-
-        private final boolean requiresInputChanges;
-
-        InputChangeTrackingStrategy(boolean requiresInputChanges) {
-            this.requiresInputChanges = requiresInputChanges;
-        }
-
-        public boolean requiresInputChanges() {
-            return requiresInputChanges;
-        }
     }
 
     /**

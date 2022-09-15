@@ -346,8 +346,10 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
-            return transformer.requiresInputChanges() ? InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS : InputChangeTrackingStrategy.NONE;
+        public ExecutionBehavior getExecutionBehavior() {
+            return transformer.requiresInputChanges()
+                ? ExecutionBehavior.INCREMENTAL
+                : ExecutionBehavior.NON_INCREMENTAL;
         }
 
         @Override
