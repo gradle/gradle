@@ -111,7 +111,7 @@ The `init` task now adds compile-time Maven dependencies to Gradle's `api` confi
 when converting a Maven project. This sharply reduces the number of compilation errors.
 For more information about Maven conversions, see the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion).
 
-#### Introduced network timeout configuration for wrapper download 
+#### Introduced network timeout configuration for wrapper download
 
 It is now possible to configure the network timeout for downloading Gradle wrapper files.
 The default value is 10000ms and can be changed in several ways:
@@ -138,7 +138,7 @@ networkTimeout=30000
 
 For more information about the Gradle wrapper, see [Gradle Wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper).
 
-#### Introduced flag for individual task `rerun` 
+#### Introduced flag for individual task `rerun`
 
 All tasks can now use the `--rerun` option. This option works like `--rerun-tasks`,
 except `--rerun` only effects a single task. For example, you can force tests to
@@ -170,7 +170,7 @@ The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are no
 The [Maven Publish Plugin](userguide/publishing_maven.html) is now compatible with the configuration cache.
 Note that when using credentials, the configuration cache requires [safe (empty) credential containers](userguide/configuration_cache.html#config_cache:requirements:safe_credentials).
 
-#### Clarified the ordering of disambiguation rule checks in `resolvableConfigurations` reports  
+#### Clarified the ordering of disambiguation rule checks in `resolvableConfigurations` reports
 
 Attribute disambiguation rules control the variant of a dependency selected by
 Gradle when:
@@ -207,7 +207,7 @@ The following Attributes have disambiguation rules defined.
 
 For more information, see [Attribute Disambiguation Rules](userguide/variant_attributes.html#sec:abm_disambiguation_rules).
 
-#### TODO: Extended configuration cache support for external processes 
+#### TODO: Extended configuration cache support for external processes
 [Allow buildScan.background to launch external processes with configuration cache enabled gradle#20536](https://github.com/gradle/gradle/issues/20536)
 
 #### TODO: Extended configuration cache support for internal plugin
@@ -232,7 +232,7 @@ You can now provide a reason message when conditionally disabling a task using t
 ```groovy
 tasks.register("slowBenchmark") {
     def slowBenchmarksEnabled = providers.gradleProperty("my.build.benchmark.slow").map { it.toBoolean() }.orElse(false)
-    onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") { 
+    onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") {
         slowBenchmarksEnabled.get()
     }
 }
@@ -261,7 +261,7 @@ can be passed from the command line as follows:
 gradle myCustomTask --integer-option=123
 ```
 
-#### TODO: Expanded Java Toolchain support for Service Provider Interfaces 
+#### TODO: Expanded Java Toolchain support for Service Provider Interfaces
 
 Provides a way for plugins to register a provider of Java Toolchain that will allow auto provisioning for any toolchain specification. Service Provider Interface (SPI) TODO: link and definition.
 
@@ -293,8 +293,8 @@ testing {
         val test by getting(JvmTestSuite::class) {
             useJUnitJupiter()
             dependencies {
-                implementation(module(group = "com.google.guava", 
-                               name = "guava", 
+                implementation(module(group = "com.google.guava",
+                               name = "guava",
                                version = "31.1-jre"))
             }
         }
@@ -354,7 +354,7 @@ and improves IDE support for the Groovy DSL.
 For more information about the test suite `dependencies` block, see
 [Differences Between Test Suite and Top-Level Dependencies](userguide/jvm_test_suite_plugin.html#differences_between_the_test_suite_dependencies_and_the_top_level_dependencies_blocks).
 
-#### Introduced support for Java 9+ network debugging  
+#### Introduced support for Java 9+ network debugging
 
 You can run a Java test or application child process with
 [debugging options](userguide/java_testing.html#sec:debugging_java_tests)
@@ -375,6 +375,24 @@ accepting connections via network on Java 9 and above.
 On Java 9 and above, use the special host address value `*` to make the debugger server listen on all network interfaces.
 Otherwise, use the address of one of the machine's network interfaces.
 
+<a name="checkstyle"></a>
+### Checkstyle Plugin
+
+#### Added Support for `EnableExternalDTDLoad` property to Checkstyle Plugin
+
+Gradle 7.6 adds a new `enableExternalDTDLoad` property to the [`Checkstyle`](javadoc/org/gradle/api/plugins/quality/Checkstyle.html) task which enables the ability use custom DTD files inside of Checkstyle config XMLs.
+
+This property can be set on a particular Checkstyle task, or by using the [`CheckstyleExtension`](javadoc/org/gradle/api/plugins/quality/CheckstyleExtension.html) to apply to all Checkstyle tasks in the current project.
+
+```
+checkstyle {
+    enableExternalDTDLoad = true
+}
+```
+
+This flag is disabled by default, as there are potential security concerns with enabling it.
+For more information, and an example usage scenario, see [the Checkstyle documentation on this property](https://checkstyle.org/config_system_properties.html#Enable_External_DTD_load) and [the discussion on the Checkstyle issue where this property was disabled](https://github.com/checkstyle/checkstyle/issues/6474).
+
 <a name="ide"></a>
 ### IDE
 
@@ -385,7 +403,7 @@ Gradle 7.6 introduces new failure types for the `Failure` interface returned by
 IDEs can now distinguish between assertion and framework failures using progress event listeners.
 For test frameworks that expose expected and actual values, `TestAssertionFailure` contains those values.
 
-#### Introduced `TestLauncher` task execution 
+#### Introduced `TestLauncher` task execution
 
 The [`TestLauncher`](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients
 to execute any tasks along with the selected tests:
@@ -398,7 +416,7 @@ connection.newTestLauncher()
           .run()
 ```
 
-#### Introduced class, method, package, and pattern test selection via `TestLauncher`  
+#### Introduced class, method, package, and pattern test selection via `TestLauncher`
 
 The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients
 to select test classes, methods, packages and patterns with a new API.
