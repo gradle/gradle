@@ -27,14 +27,14 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 
 import java.util.AbstractCollection;
-import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -143,8 +143,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
 
     private void doAddEntryNodes(SortedSet<? extends Node> nodes, int ordinal) {
         scheduledNodes = null;
-        final Deque<Node> queue = new ArrayDeque<>();
-        final OrdinalGroup group = ordinalNodeAccess.group(ordinal);
+        LinkedList<Node> queue = new LinkedList<>();
+        OrdinalGroup group = ordinalNodeAccess.group(ordinal);
 
         for (Node node : nodes) {
             node.maybeInheritOrdinalAsDependency(group);
@@ -156,7 +156,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         discoverNodeRelationships(queue);
     }
 
-    private void discoverNodeRelationships(Deque<Node> queue) {
+    private void discoverNodeRelationships(LinkedList<Node> queue) {
         Set<Node> visiting = new HashSet<>();
         while (!queue.isEmpty()) {
             Node node = queue.getFirst();
@@ -185,9 +185,10 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
                 for (Node successor : node.getHardSuccessors()) {
                     successor.maybeInheritOrdinalAsDependency(node.getGroup());
                 }
-                for (Node successor : node.getDependencySuccessorsInReverseOrder()) {
+                ListIterator<Node> insertPoint = queue.listIterator();
+                for (Node successor : node.getDependencySuccessors()) {
                     if (!visiting.contains(successor)) {
-                        queue.addFirst(successor);
+                        insertPoint.add(successor);
                     }
                 }
             } else {
@@ -222,6 +223,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
                 entryNodes,
                 finalizers
             ).run();
+            finalizers.clear();
         }
     }
 
@@ -232,7 +234,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         }
         if (finalizedPlan == null) {
             dependencyResolver.clear();
-            // TODO - make an immutable copy of the contents to pass to the finalized plan, and to return from
+            // Should make an immutable copy of the contents to pass to the finalized plan and also to use in this instance
             finalizedPlan = new DefaultFinalizedExecutionPlan(displayName, ordinalNodeAccess, outputHierarchy, destroyableHierarchy, lockCoordinator, scheduledNodes, continueOnFailure, this, completionHandler);
         }
         return finalizedPlan;

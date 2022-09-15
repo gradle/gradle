@@ -471,23 +471,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         addToGraphAndPopulate([entryPoint])
 
         then:
-        // TODO(mlopatkin) A potential execution order that was working in 7.4:
-        //   executionPlan.tasks as List == [entryPoint, finalizerDepA, finalizerDepB, finalizerB, finalizerA]
-        // It somewhat violates a finalizer constraint: "only run dependencies of a finalizer after completing a finalized task"
-        // To satisfy that, finalizerDepA should run after finalizerDepB, and finalizerDepB should run after finalizerDepA.
-        // Obviously, both constraints cannot be satisfied at once.
-        // There is an alternative reading though. The entryPoint is finalized by finalizerA, and we started to execute
-        // finalizerA's dependencies; finalizerDepA happen to be finalized by finalizerB, so we schedule it and its dependency after
-        // finalizerDepA. Then we complete everything with finalizerA. This reading is somewhat similar to the case where finalizerDepA
-        // is reachable from the entry point.
-        def e = thrown CircularReferenceException
-        e.message == TextUtil.toPlatformLineSeparators("""Circular dependency between the following tasks:
-:finalizerDepA
-\\--- :finalizerDepB
-     \\--- :finalizerDepA (*)
-
-(*) - details omitted (listed previously)
-""")
+        executes(entryPoint, finalizerDepA, finalizerDepB, finalizerB, finalizerA)
     }
 
     def "cannot add task with circular reference"() {
