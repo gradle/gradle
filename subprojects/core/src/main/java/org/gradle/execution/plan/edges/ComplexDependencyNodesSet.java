@@ -17,7 +17,6 @@
 package org.gradle.execution.plan.edges;
 
 import org.gradle.execution.plan.Node;
-import org.gradle.execution.plan.TaskNode;
 
 import java.util.NavigableSet;
 
@@ -48,7 +47,7 @@ public class ComplexDependencyNodesSet implements DependencyNodesSet {
     }
 
     @Override
-    public DependencyNodesSet addMustSuccessor(TaskNode toNode) {
+    public DependencyNodesSet addMustSuccessor(Node toNode) {
         orderedMustSuccessors.add(toNode);
         return this;
     }

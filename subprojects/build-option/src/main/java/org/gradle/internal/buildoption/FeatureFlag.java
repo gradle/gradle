@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,12 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.cli.CommandLineParser;
-import org.gradle.cli.ParsedCommandLine;
-
 import javax.annotation.Nullable;
-import java.util.Map;
 
 /**
- * Represents an option for a build provided by the user via Gradle property and/or a command line option.
- *
- * @param <T> the type of object that ultimately expresses the option to consumers
- * @since 4.3
+ * A feature flag. Can be enabled via the Settings object or optionally via a system property.
  */
-public interface BuildOption<T> extends Option {
-
+public interface FeatureFlag extends Option {
     @Nullable
-    String getGradleProperty();
-
-    void applyFromProperty(Map<String, String> properties, T settings);
-
-    void configure(CommandLineParser parser);
-
-    void applyFromCommandLine(ParsedCommandLine options, T settings);
+    String getSystemPropertyName();
 }

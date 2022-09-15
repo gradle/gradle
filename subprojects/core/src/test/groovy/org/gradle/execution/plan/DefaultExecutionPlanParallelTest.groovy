@@ -650,6 +650,43 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         continueOnFailure << [false, true]
     }
 
+    def "finalizer and its dependencies do not run when finalized task fails and is a dependency of the finalizer"() {
+        given:
+        TaskInternal finalizerDepDep = task("finalizerDepDep", type: Async)
+        TaskInternal finalizerDep = task("finalizerDep", type: Async, dependsOn: [finalizerDepDep])
+        TaskInternal finalizer = createTask("finalizer")
+        TaskInternal entryPoint = task("entry", type: Async, finalizedBy: [finalizer], failure: new RuntimeException())
+        relationships(finalizer, dependsOn: [entryPoint, finalizerDep])
+
+        when:
+        addToGraphAndPopulate(entryPoint)
+
+        then:
+        executionPlan.tasks as List == [entryPoint, finalizerDepDep, finalizerDep, finalizer]
+        assertTaskReady(entryPoint)
+        assertAllWorkComplete()
+    }
+
+    def "finalizer does not run when finalized task fails and is a dependency of the finalizer and continue on failure"() {
+        given:
+        TaskInternal finalizerDepDep = task("finalizerDepDep", type: Async)
+        TaskInternal finalizerDep = task("finalizerDep", type: Async, dependsOn: [finalizerDepDep])
+        TaskInternal finalizer = createTask("finalizer")
+        TaskInternal entryPoint = task("entry", type: Async, finalizedBy: [finalizer], failure: new RuntimeException())
+        relationships(finalizer, dependsOn: [entryPoint, finalizerDep])
+
+        when:
+        executionPlan.continueOnFailure = true
+        addToGraphAndPopulate(entryPoint)
+
+        then:
+        executionPlan.tasks as List == [entryPoint, finalizerDepDep, finalizerDep, finalizer]
+        assertTaskReady(entryPoint)
+        assertTaskReady(finalizerDepDep, true)
+        assertTaskReadyAndNoMoreToStart(finalizerDep)
+        assertAllWorkComplete()
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/21000")
     def "finalizer dependency runs after finalized entry task when the latter is finalizer dependency too"() {
         given:
@@ -1662,7 +1699,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finishedExecuting(node)
 
         then:
-        assertAllWorkComplete(true)
+        assertAllWorkComplete()
 
         when:
         def failures = []
