@@ -36,7 +36,7 @@ class TaskOptionsSpec extends AbstractIntegrationSpec {
         succeeds "mytask", "--profile"
     }
 
-    def "can use a task option"() {
+    def "can use -- to specify a task option with same name as a built-in option"() {
         when:
         buildScript """
             abstract class MyTask extends DefaultTask {
