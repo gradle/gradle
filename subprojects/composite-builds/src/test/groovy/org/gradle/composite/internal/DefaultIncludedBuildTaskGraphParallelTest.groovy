@@ -320,7 +320,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         return new DefaultBuildWorkGraphController(
             nodeFactory,
             controller,
-            Stub(BuildState)
+            Stub(BuildState),
+            services.services.workerLeaseService
         )
     }
 
