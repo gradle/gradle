@@ -19,7 +19,7 @@ package org.gradle.cli
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TaskOptionsSpec extends AbstractIntegrationSpec {
-    def "can use a built-in option"() {
+    def "will prioritize built-in option over a task option with a conflicting name"() {
         when:
         buildScript """
             abstract class MyTask extends DefaultTask {
