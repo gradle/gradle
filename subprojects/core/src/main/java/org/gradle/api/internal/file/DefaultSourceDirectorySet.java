@@ -38,7 +38,6 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
@@ -190,42 +189,6 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     @Override
     public PatternFilterable getFilter() {
         return filter;
-    }
-
-    @Override
-    @Deprecated
-    public File getOutputDir() {
-        DeprecationLogger.deprecateProperty(SourceDirectorySet.class, "outputDir")
-            .replaceWith("classesDirectory")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        return destinationDirectory.getAsFile().get();
-    }
-
-    @Override
-    @Deprecated
-    public void setOutputDir(Provider<File> provider) {
-        DeprecationLogger.deprecateMethod(SourceDirectorySet.class, "setOutputDir(Provider<File>)")
-            .withAdvice("Please use the destinationDirectory property instead.")
-            .willBeRemovedInGradle8()
-            .withDslReference(SourceDirectorySet.class, "destinationDirectory")
-            .nagUser();
-
-        destinationDirectory.set(classesDirectory.fileProvider(provider));
-    }
-
-    @Override
-    @Deprecated
-    public void setOutputDir(File outputDir) {
-        DeprecationLogger.deprecateMethod(SourceDirectorySet.class, "setOutputDir(File)")
-            .withAdvice("Please use the destinationDirectory property instead.")
-            .willBeRemovedInGradle8()
-            .withDslReference(SourceDirectorySet.class, "destinationDirectory")
-            .nagUser();
-
-        destinationDirectory.set(outputDir);
     }
 
     @Override

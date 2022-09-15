@@ -525,7 +525,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
     @Requires({ GradleContextualExecuter.embedded })
     // this test only works in embedded mode because of the use of validation test fixtures
-    def "other tasks are not started when an invalid task task is running"() {
+    def "other tasks are not started when an invalid task is running"() {
         given:
         withParallelThreads(3)
         withInvalidPing()

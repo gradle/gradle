@@ -40,6 +40,7 @@ public interface ResolvedArtifact {
 
     String getType();
 
+    @Nullable
     String getExtension();
 
     @Nullable

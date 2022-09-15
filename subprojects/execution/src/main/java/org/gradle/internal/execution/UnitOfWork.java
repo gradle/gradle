@@ -150,17 +150,17 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
-     * Handles when an input cannot be read while fingerprinting.
+     * Decorate input file fingerprinting errors when appropriate.
      */
-    default void handleUnreadableInputs(InputFileFingerprintingException ex) {
-        throw ex;
+    default RuntimeException decorateInputFileFingerprintingException(InputFileFingerprintingException ex) {
+        return ex;
     }
 
     /**
-     * Handles when an output cannot be read while snapshotting.
+     * Decorate output file fingerprinting errors when appropriate.
      */
-    default void handleUnreadableOutputs(OutputFileSnapshottingException ex) {
-        throw ex;
+    default RuntimeException decorateOutputFileSnapshottingException(OutputFileSnapshottingException ex) {
+        return ex;
     }
 
     /**
@@ -210,6 +210,13 @@ public interface UnitOfWork extends Describable {
         return true;
     }
 
+    /**
+     * Whether stale outputs should be cleanup up before execution.
+     */
+    default boolean shouldCleanupStaleOutputs() {
+        return false;
+    }
+
     enum InputChangeTrackingStrategy {
         /**
          * No incremental parameters, nothing to track.
@@ -218,15 +225,7 @@ public interface UnitOfWork extends Describable {
         /**
          * Only the incremental parameters should be tracked for input changes.
          */
-        INCREMENTAL_PARAMETERS(true),
-        /**
-         * All parameters are considered incremental.
-         *
-         * @deprecated Only used for {@code IncrementalTaskInputs}. Should be removed once {@code IncrementalTaskInputs} is gone.
-         */
-        @SuppressWarnings("DeprecatedIsStillUsed")
-        @Deprecated
-        ALL_PARAMETERS(true);
+        INCREMENTAL_PARAMETERS(true);
 
         private final boolean requiresInputChanges;
 

@@ -29,6 +29,7 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.buildevents.BuildLoggerFactory;
 import org.gradle.internal.buildevents.BuildStartedTime;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeActionExecutor;
 import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
@@ -224,7 +225,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
             BuildLayout buildLayout,
             ExceptionAnalyser exceptionAnalyser,
             List<ProblemReporter> problemReporters,
-            BuildLoggerFactory buildLoggerFactory
+            BuildLoggerFactory buildLoggerFactory,
+            InternalOptions options
         ) {
             return new RootBuildLifecycleBuildActionExecutor(
                 buildStateRegistry,
@@ -248,7 +250,8 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                             ),
                             buildStartedTime,
                             buildRequestMetaData,
-                            buildLoggerFactory)),
+                            buildLoggerFactory),
+                        options),
                     gradleEnterprisePluginManager));
         }
 

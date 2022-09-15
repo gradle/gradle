@@ -33,7 +33,7 @@ import java.util.function.Supplier
 class DefaultVersionCatalogBuilderTest extends Specification implements VersionCatalogErrorMessages {
 
     @Subject
-    DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(Supplier))
+    DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("libs", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), Stub(Supplier))
 
     @VersionCatalogProblemTestFor(
         VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION

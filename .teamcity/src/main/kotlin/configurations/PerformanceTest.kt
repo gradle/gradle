@@ -70,6 +70,10 @@ class PerformanceTest(
                 else -> param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin:/opt/swift/4.2.4-RELEASE-ubuntu18.04/usr/bin")
             }
         }
+        failureConditions {
+            // We have test-retry to handle the crash in tests
+            javaCrash = false
+        }
         if (testProjects.isNotEmpty()) {
             steps {
                 preBuildSteps()

@@ -8,9 +8,6 @@
                 </tr>
             </thead>
             <tr>
-                <td>destination</td>
-            </tr>
-            <tr>
                 <td>outputLocation</td>
             </tr>
             <tr>
@@ -21,9 +18,6 @@
             </tr>
             <tr>
                 <td>outputType</td>
-            </tr>
-            <tr>
-                <td>enabled</td>
             </tr>
             <tr>
                 <td>required</td>

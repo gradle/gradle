@@ -491,12 +491,13 @@ Joe!""")
         """
         writeSourceFile()
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' has been deprecated." +
+        when:
+        runAndFail "javadoc"
+        then:
+        failure.assertHasDocumentedCause("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' is not supported." +
             " The path separator is not a valid element of a file path. Problematic paths in 'file collection' are: '${Paths.get(bootClasspath)}'." +
-            " This will fail with an error in Gradle 8.0. Add the individual files to the file collection instead." +
+            " Add the individual files to the file collection instead." +
             " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
-        succeeds "javadoc"
     }
 
     def "can use custom stylesheet file"() {
@@ -588,21 +589,21 @@ Joe!""")
         file("src/main/java/pkg/Foo.java").java """
             package pkg;
             import pkg.internal.*;
-            
+
             public class Foo implements IFoo {
                 /**
                  * {@inheritDoc}
                  */
-                public void run() { 
+                public void run() {
                 }
             }
         """
         file("src/main/java/pkg/internal/IFoo.java").java """
             package pkg.internal;
-            
+
             public interface IFoo {
                 /**
-                 * Runs internal foo 
+                 * Runs internal foo
                  */
                 void run();
             }

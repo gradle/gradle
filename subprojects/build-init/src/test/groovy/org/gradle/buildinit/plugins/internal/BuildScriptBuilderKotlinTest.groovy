@@ -515,7 +515,7 @@ Alternatively:
         )
     }
 
-    def "vertical whitespace is included around statements with comments and and around blocks"() {
+    def "vertical whitespace is included around statements with comments and around blocks"() {
         given:
         builder.propertyAssignment(null, "foo", "bar")
         builder.methodInvocation(null, "foo", "bar")

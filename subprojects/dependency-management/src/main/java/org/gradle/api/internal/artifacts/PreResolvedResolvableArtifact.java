@@ -130,6 +130,7 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact, Resolv
         return artifact.getType();
     }
 
+    @Nullable
     @Override
     public String getExtension() {
         return artifact.getExtension();

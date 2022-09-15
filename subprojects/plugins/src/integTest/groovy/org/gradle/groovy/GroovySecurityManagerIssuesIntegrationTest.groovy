@@ -68,7 +68,7 @@ class GroovySecurityManagerIssuesIntegrationTest extends AbstractIntegrationSpec
                 //Must hold a reference to reproduce the bug
                 private SecurityManager securityManager;
 
-                //This usually need to be called called more than once to reproduce the bug
+                //This usually need to be called more than once to reproduce the bug
                 protected void setUp() {
                     securityManager = System.getSecurityManager();
                     System.out.println("-----------Setting new security manager");
