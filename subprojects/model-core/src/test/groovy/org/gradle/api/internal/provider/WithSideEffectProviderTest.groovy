@@ -131,11 +131,11 @@ class WithSideEffectProviderTest extends ProviderSpec<Integer> {
         0 * _
 
         where:
-        description                 | wrap
-        "Provider.map"              | { p, m -> p.map(m) }
-        "Provider.flatMap"          | { p, m -> p.flatMap { Providers.of(m.call(it)) } }
-        "TransformerBackedProvider" | { p, m -> new TransformBackedProvider(m, p) }
-        "MappingProvider"           | { p, m -> new MappingProvider(Integer, p, m) }
+        description               | wrap
+        "Provider.map"            | { p, m -> p.map(m) }
+        "Provider.flatMap"        | { p, m -> p.flatMap { Providers.of(m.call(it)) } }
+        "TransformBackedProvider" | { p, m -> new TransformBackedProvider(null, p, m) }
+        "MappingProvider"         | { p, m -> new MappingProvider(Integer, p, m) }
     }
 
     def "runs the side effect when changing provider is flat-mapped to a provider with side effect"() {
