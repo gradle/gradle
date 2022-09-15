@@ -105,35 +105,6 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     void useJUnitJupiter(Provider<String> version);
 
     /**
-     * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Platform</a> testing framework.
-     *
-     * <p>
-     *     Gradle will provide the version of JUnit Platform to use. Defaults to version {@code 1.8.2}
-     * </p>
-     *
-     * @since 8.0
-     */
-    void useJUnitPlatform();
-
-    /**
-     * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Platform</a> testing framework with a specific version.
-     *
-     * @param version version of JUnit Platform to use
-     *
-     * @since 8.0
-     */
-    void useJUnitPlatform(String version);
-
-    /**
-     * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Platform</a> testing framework with a specific version.
-     *
-     * @param version provider supplying the version of JUnit Platform to use
-     *
-     * @since 8.0
-     */
-    void useJUnitPlatform(Provider<String> version);
-
-    /**
      * Use the <a href="https://junit.org/junit4/">JUnit4</a> testing framework.
      * <p>
      *     Gradle will provide the version of JUnit4 to use. Defaults to version {@code 4.13.2}

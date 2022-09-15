@@ -291,21 +291,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     @Override
-    public void useJUnitPlatform() {
-        useJUnitPlatform(TestingFramework.JUNIT_PLATFORM.getDefaultVersion());
-    }
-
-    @Override
-    public void useJUnitPlatform(String version) {
-        useJUnitPlatform(getProviderFactory().provider(() -> version));
-    }
-
-    @Override
-    public void useJUnitPlatform(Provider<String> version) {
-        setFrameworkTo(TestingFramework.JUNIT_PLATFORM, version);
-    }
-
-    @Override
     public void useJUnitJupiter() {
         useJUnitJupiter(TestingFramework.JUNIT_JUPITER.getDefaultVersion());
     }
