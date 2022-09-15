@@ -361,25 +361,6 @@ public interface UnitOfWork extends Describable {
     }
 
     /**
-     * Decorate input file fingerprinting errors when appropriate.
-     */
-    default RuntimeException decorateInputFileFingerprintingException(InputFileFingerprintingException ex) {
-        return ex;
-    }
-
-    /**
-     * Decorate output file fingerprinting errors when appropriate.
-     */
-    default RuntimeException decorateOutputFileSnapshottingException(OutputFileSnapshottingException ex) {
-        return ex;
-    }
-
-    /**
-     * Validate the work definition and configuration.
-     */
-    default void validate(WorkValidationContext validationContext) {}
-
-    /**
      * Return a reason to disable caching for this work.
      * When returning {@link Optional#empty()} if caching can still be disabled further down the pipeline.
      */
@@ -413,6 +394,25 @@ public interface UnitOfWork extends Describable {
          */
         IGNORE_OVERLAPS
     }
+
+    /**
+     * Decorate input file fingerprinting errors when appropriate.
+     */
+    default RuntimeException decorateInputFileFingerprintingException(InputFileFingerprintingException ex) {
+        return ex;
+    }
+
+    /**
+     * Decorate output file fingerprinting errors when appropriate.
+     */
+    default RuntimeException decorateOutputFileSnapshottingException(OutputFileSnapshottingException ex) {
+        return ex;
+    }
+
+    /**
+     * Validate the work definition and configuration.
+     */
+    default void validate(WorkValidationContext validationContext) {}
 
     /**
      * Whether the outputs should be cleanup up when the work is executed non-incrementally.
