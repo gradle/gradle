@@ -19,39 +19,42 @@ package org.gradle.cli
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TaskOptionsSpec extends AbstractIntegrationSpec {
+
+    def defineTaskWithProfileOption() {
+        return """
+                abstract class MyTask extends DefaultTask {
+                    @Option(option="profile", description="foobar")
+                    @Optional
+                    @Input
+                    abstract Property<String> getProfile()
+
+                    @TaskAction
+                    void run() {
+                        if (getProfile().isPresent()) {
+                            logger.lifecycle(getName() + "profile=" + getProfile().get())
+                        }
+                    }
+                }
+                """
+    }
+
     def "will prioritize built-in option over a task option with a conflicting name"() {
         when:
         buildScript """
-            abstract class MyTask extends DefaultTask {
-                @Option(option="profile", description="foobar")
-                void setProfile(String value) {
-                    System.out.println("profile=" + value)
-                }
-            }
+            ${defineTaskWithProfileOption()}
 
             tasks.register('mytask', MyTask.class)
         """
 
         then:
         succeeds "mytask", "--profile"
+        output.contains "See the profiling report at"
     }
 
     def "can use -- to specify a task option with same name as a built-in option"() {
         when:
         buildScript """
-            abstract class MyTask extends DefaultTask {
-                @Option(option="profile", description="foobar")
-                @Optional
-                @Input
-                abstract Property<String> getProfile()
-
-                @TaskAction
-                void run() {
-                    if (getProfile().isPresent()) {
-                        logger.lifecycle("profile=" + getProfile().get())
-                    }
-                }
-            }
+            ${defineTaskWithProfileOption()}
 
             tasks.register('mytask', MyTask.class)
         """
@@ -64,41 +67,58 @@ class TaskOptionsSpec extends AbstractIntegrationSpec {
     def "task options apply to most recent task"() {
         when:
         buildScript """
-            abstract class MyTaskA extends DefaultTask {
-                @Option(option="profile", description="foobar")
-                @Optional
-                @Input
-                abstract Property<String> getProfile()
+            ${defineTaskWithProfileOption()}
 
-                @TaskAction
-                void run() {
-                    if (getProfile().isPresent()) {
-                        logger.lifecycle("profile=" + getProfile().get())
-                    }
-                }
-            }
-
-            abstract class MyTaskB extends DefaultTask {
-                @Option(option="profile", description="foobar")
-                @Optional
-                @Input
-                abstract Property<String> getProfile()
-
-                @TaskAction
-                void run() {
-                    if (getProfile().isPresent()) {
-                        logger.lifecycle("profile=" + getProfile().get())
-                    }
-                }
-            }
-
-            tasks.register('mytaskA', MyTaskA.class)
-            tasks.register('mytaskB', MyTaskB.class)
+            tasks.register('mytaskA', MyTask.class)
+            tasks.register('mytaskB', MyTask.class)
         """
 
         then:
         succeeds "--", "mytaskA", "--profile", "myvalueA", "mytaskB", "--profile", "myvalueB"
-        output.contains "Aprofile=myvalueA"
-        output.contains "Bprofile=myvalueB"
+        output.contains "profile=myvalueA"
+        output.contains "profile=myvalueB"
     }
+
+    def "task options apply to most recent task -- first task only"() {
+        when:
+        buildScript """
+            ${defineTaskWithProfileOption()}
+
+            tasks.register('mytaskA', MyTask.class)
+            tasks.register('mytaskB', MyTask.class)
+        """
+
+        then:
+        succeeds "--", "mytaskA", "mytaskB", "--profile", "myvalueB"
+        output.contains "profile=myvalueB"
+    }
+
+    def "task options apply to most recent task -- second task only"() {
+        when:
+        buildScript """
+            ${defineTaskWithProfileOption()}
+
+            tasks.register('mytaskA', MyTask.class)
+            tasks.register('mytaskB', MyTask.class)
+        """
+
+        then:
+        succeeds "--", "mytaskA", "--profile", "myvalueA", "mytaskB"
+        output.contains "profile=myvalueA"
+    }
+
+    def "runs built-in and task options when both are supplied"() {
+        when:
+        buildScript """
+            ${defineTaskWithProfileOption()}
+
+            tasks.register('mytask', MyTask.class)
+        """
+
+        then:
+        succeeds "--profile", "--", "mytask", "--profile", "myvalue"
+        output.contains "profile=myvalue"
+        output.contains "See the profiling report at"
+    }
+
 }
