@@ -92,6 +92,8 @@
     <!-- Ignore constant name for architecture tests since we want to use snake case there -->
     <suppress checks="ConstantName"
               files=".*[/\\]architecture-test[/\\]src[/\\]test[/\\]java[/\\]org[/\\]gradle[/\\].+" />
+    <suppress checks="ConstantName"
+              files=".*[/\\]internal-architecture-testing[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\].+" />
 
     <!-- Ignore all checks for the generated sources of org.gradle.samples plugin -->
     <suppress checks=".*" files=".*[/\\]docs[/\\]build[/\\]generated-source-sets[/\\].+" />

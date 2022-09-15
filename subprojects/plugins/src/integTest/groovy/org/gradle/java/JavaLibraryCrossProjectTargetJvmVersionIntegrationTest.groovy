@@ -55,30 +55,37 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause('''No matching variant of project :producer was found. The consumer was configured to find an API of a library compatible with Java 6, preferably in the form of class files, preferably optimized for standard JVMs, and its dependencies declared externally but:
-  - Variant 'apiElements' capability test:producer:unspecified declares an API of a library, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
+        failure.assertHasCause('''No matching variant of project :producer was found. The consumer was configured to find the API view of a library for use during compile-time, compatible with Java 6, preferably in the form of class files, preferably optimized for standard JVMs, and its dependencies declared externally but:
+  - Variant 'apiElements' capability test:producer:unspecified declares the API view of a library for use during compile-time, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 6
+      - Other compatible attribute:
+          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
+  - Variant 'compileElements' capability test:producer:unspecified declares the complete view of a library for use during compile-time, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 6
       - Other compatible attribute:
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
   - Variant 'mainSourceElements' capability test:producer:unspecified declares a component, and its dependencies declared externally:
       - Incompatible because this component declares a component of category 'verification' and the consumer needed a library
       - Other compatible attributes:
+          - Doesn't say anything about its compile view (required the API view)
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
           - Doesn't say anything about its target Java version (required compatibility with Java 6)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-          - Doesn't say anything about its usage (required an API)
-  - Variant 'runtimeElements' capability test:producer:unspecified declares a runtime of a library, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
-      - Other compatible attribute:
+          - Doesn't say anything about its usage (required compile-time)
+  - Variant 'runtimeElements' capability test:producer:unspecified declares a library for use during runtime, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 6
+      - Other compatible attributes:
+          - Doesn't say anything about its compile view (required the API view)
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
   - Variant 'testResultsElementsForTest' capability test:producer:unspecified:
       - Incompatible because this component declares a component of category 'verification' and the consumer needed a library
       - Other compatible attributes:
+          - Doesn't say anything about its compile view (required the API view)
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
           - Doesn't say anything about its target Java version (required compatibility with Java 6)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-          - Doesn't say anything about its usage (required an API)''')
+          - Doesn't say anything about its usage (required compile-time)''')
     }
 
     def "can select the most appropriate producer variant (#expected) based on target compatibility (#requested)"() {
@@ -86,6 +93,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
             // avoid test noise so that typically version 8 is not selected when running on JDK 8
             configurations.apiElements.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 1000)
             configurations.runtimeElements.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 1000)
+            configurations.compileElements.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 1000)
 
             [6, 7, 9].each { v ->
                 configurations {
@@ -94,6 +102,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
                         canBeResolved = false
                         attributes {
                             attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-api'))
+                            attribute(CompileView.VIEW_ATTRIBUTE, objects.named(CompileView, 'java-api'))
                             attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, 'jar'))
                             attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, 'external'))
                             attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, v)
@@ -120,6 +129,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
                             'org.gradle.dependency.bundling': 'external',
                             'org.gradle.jvm.version': selected,
                             'org.gradle.usage':'java-api',
+                            'org.gradle.compile-view': 'java-api',
                             'org.gradle.libraryelements': 'jar'
                     ])
                     artifact(classifier: "jdk${selected}")
@@ -154,30 +164,37 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""No matching variant of project :producer was found. The consumer was configured to find an API of a library compatible with Java 6, preferably in the form of class files, preferably optimized for standard JVMs, and its dependencies declared externally but:
-  - Variant 'apiElements' capability test:producer:unspecified declares an API of a library, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
+        failure.assertHasCause("""No matching variant of project :producer was found. The consumer was configured to find the API view of a library for use during compile-time, compatible with Java 6, preferably in the form of class files, preferably optimized for standard JVMs, and its dependencies declared externally but:
+  - Variant 'apiElements' capability test:producer:unspecified declares the API view of a library for use during compile-time, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 6
+      - Other compatible attribute:
+          - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
+  - Variant 'compileElements' capability test:producer:unspecified declares the complete view of a library for use during compile-time, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 6
       - Other compatible attribute:
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
   - Variant 'mainSourceElements' capability test:producer:unspecified declares a component, and its dependencies declared externally:
       - Incompatible because this component declares a component of category 'verification' and the consumer needed a library
       - Other compatible attributes:
+          - Doesn't say anything about its compile view (required the API view)
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
           - Doesn't say anything about its target Java version (required compatibility with Java 6)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-          - Doesn't say anything about its usage (required an API)
-  - Variant 'runtimeElements' capability test:producer:unspecified declares a runtime of a library, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
-      - Other compatible attribute:
+          - Doesn't say anything about its usage (required compile-time)
+  - Variant 'runtimeElements' capability test:producer:unspecified declares a library for use during runtime, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 6
+      - Other compatible attributes:
+          - Doesn't say anything about its compile view (required the API view)
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
   - Variant 'testResultsElementsForTest' capability test:producer:unspecified:
       - Incompatible because this component declares a component of category 'verification' and the consumer needed a library
       - Other compatible attributes:
+          - Doesn't say anything about its compile view (required the API view)
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
           - Doesn't say anything about its target Java version (required compatibility with Java 6)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-          - Doesn't say anything about its usage (required an API)""")
+          - Doesn't say anything about its usage (required compile-time)""")
 
         when:
         buildFile << """
@@ -196,7 +213,8 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
                             'org.gradle.dependency.bundling': 'external',
                             'org.gradle.jvm.version': 7,
                             'org.gradle.usage':'java-api',
-                            'org.gradle.libraryelements': 'jar'
+                            'org.gradle.libraryelements': 'jar',
+                            'org.gradle.compile-view': 'java-api'
                     ])
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }

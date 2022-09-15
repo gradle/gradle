@@ -17,7 +17,13 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.api.internal.tasks.execution.ResolveTaskMutationsBuildOperationType;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
@@ -25,11 +31,15 @@ import javax.annotation.Nullable;
 public class ResolveMutationsNode extends Node implements SelfExecutingNode {
     private final LocalTaskNode node;
     private final NodeValidator nodeValidator;
+    private final BuildOperationRunner buildOperationRunner;
+    private final ExecutionNodeAccessHierarchies accessHierarchies;
     private Exception failure;
 
-    public ResolveMutationsNode(LocalTaskNode node, NodeValidator nodeValidator) {
+    public ResolveMutationsNode(LocalTaskNode node, NodeValidator nodeValidator, BuildOperationRunner buildOperationRunner, ExecutionNodeAccessHierarchies accessHierarchies) {
         this.node = node;
         this.nodeValidator = nodeValidator;
+        this.buildOperationRunner = buildOperationRunner;
+        this.accessHierarchies = accessHierarchies;
     }
 
     public Node getNode() {
@@ -45,6 +55,11 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
     @Override
     public Throwable getNodeFailure() {
         return failure;
+    }
+
+    @Override
+    public boolean isCanCancel() {
+        return node.isCanCancel();
     }
 
     @Override
@@ -65,12 +80,57 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
 
     @Override
     public void execute(NodeExecutionContext context) {
-        try {
-            MutationInfo mutations = node.getMutationInfo();
-            node.resolveMutations();
-            mutations.hasValidationProblem = nodeValidator.hasValidationProblems(node);
-        } catch (Exception e) {
-            failure = e;
+        buildOperationRunner.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                try {
+                    doResolveMutations();
+                    context.setResult(RESOLVE_TASK_MUTATIONS_RESULT);
+                } catch (Exception e) {
+                    failure = e;
+                    context.failed(failure);
+                }
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                TaskIdentity<?> taskIdentity = node.getTask().getTaskIdentity();
+                return BuildOperationDescriptor.displayName("Resolve mutations for task " + taskIdentity.getIdentityPath())
+                    .details(new ResolveTaskMutationsDetails(taskIdentity));
+            }
+        });
+    }
+
+    private void doResolveMutations() {
+        MutationInfo mutations = node.getMutationInfo();
+        node.resolveMutations();
+        mutations.hasValidationProblem = nodeValidator.hasValidationProblems(node);
+        accessHierarchies.getOutputHierarchy().recordNodeAccessingLocations(node, mutations.outputPaths);
+        accessHierarchies.getDestroyableHierarchy().recordNodeAccessingLocations(node, mutations.destroyablePaths);
+    }
+
+    private static final class ResolveTaskMutationsDetails implements ResolveTaskMutationsBuildOperationType.Details {
+        private final TaskIdentity<?> taskIdentity;
+
+        public ResolveTaskMutationsDetails(TaskIdentity<?> taskIdentity) {
+            this.taskIdentity = taskIdentity;
+        }
+
+        @Override
+        public String getBuildPath() {
+            return taskIdentity.getBuildPath();
+        }
+
+        @Override
+        public String getTaskPath() {
+            return taskIdentity.getTaskPath();
+        }
+
+        @Override
+        public long getTaskId() {
+            return taskIdentity.getId();
         }
     }
+
+    private static final ResolveTaskMutationsBuildOperationType.Result RESOLVE_TASK_MUTATIONS_RESULT = new ResolveTaskMutationsBuildOperationType.Result() {};
 }

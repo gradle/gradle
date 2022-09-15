@@ -21,7 +21,6 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
@@ -53,7 +52,6 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
-    @ToBeFixedForConfigurationCache(because = "Gradle.addBuildListener and TaskExecutionGraph.addTaskExecutionListener")
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
@@ -76,17 +74,17 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         then:
         runner('groovydoc')
             .expectDeprecationWarning(
-                "Internal API configureDocumentationVariantWithArtifact (no FileResolver) has been deprecated." +
-                    " This is scheduled to be removed in Gradle 8.0." +
-                    " Please use configureDocumentationVariantWithArtifact (with FileResolver) instead." +
-                    " Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#lazypublishartifact_fileresolver",
+                "The IdeaModule.testSourceDirs property has been deprecated." +
+                " This is scheduled to be removed in Gradle 8.0." +
+                " Please use the testSources property instead." +
+                " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.plugins.ide.idea.model.IdeaModule.html#org.gradle.plugins.ide.idea.model.IdeaModule:testSourceDirs for more details.",
                 ""
             )
             .build()
     }
 
-    @Ignore("Waiting for Groovy3 compatibility https://github.com/gradle/gradle/issues/16358")
     @Issue('https://plugins.gradle.org/plugin/nebula.lint')
+    @ToBeFixedForConfigurationCache(because = "Task.project at execution time")
     def 'nebula lint plugin'() {
         given:
         buildFile << """

@@ -49,7 +49,7 @@ public class WindowsInstallationSupplier extends AutoDetectingInstallationSuppli
     }
 
     private Set<InstallationLocation> findInstallationsInRegistry() {
-        final Stream<String> openJdkInstallations = findAdoptOpenJdk().stream();
+        final Stream<String> openJdkInstallations = findOpenJDKs();
         final Stream<String> jvms = Lists.newArrayList(
             "SOFTWARE\\JavaSoft\\JDK",
             "SOFTWARE\\JavaSoft\\Java Development Kit",
@@ -80,8 +80,12 @@ public class WindowsInstallationSupplier extends AutoDetectingInstallationSuppli
         return windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, sdkSubkey + '\\' + version + path, value);
     }
 
-    private List<String> findAdoptOpenJdk() {
-        return find("SOFTWARE\\AdoptOpenJDK\\JDK", "\\hotspot\\MSI", "Path");
+    private Stream<String> findOpenJDKs() {
+        return Stream.of(
+            "SOFTWARE\\AdoptOpenJDK\\JDK",
+            "SOFTWARE\\Eclipse Adoptium\\JDK",
+            "SOFTWARE\\Eclipse Foundation\\JDK"
+        ).flatMap(key -> find(key, "\\hotspot\\MSI", "Path").stream());
     }
 
     private List<String> findJvms(String sdkSubkey) {

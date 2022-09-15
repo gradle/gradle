@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint
 import org.gradle.security.internal.SecuritySupport
-import spock.lang.IgnoreRest
 import spock.lang.Issue
 
 import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
@@ -411,7 +410,6 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         outputContains("Exported 1 keys to")
     }
 
-    @IgnoreRest
     @Issue("https://github.com/gradle/gradle/issues/20140")
     def "export deduplicated PGP keys"() {
         given:
@@ -445,5 +443,4 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         keyringsAscii.size() == 1
         keyringsAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
     }
-
 }

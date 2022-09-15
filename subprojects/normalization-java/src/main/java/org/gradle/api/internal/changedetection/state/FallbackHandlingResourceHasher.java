@@ -159,5 +159,10 @@ abstract class FallbackHandlingResourceHasher implements ResourceHasher {
         public boolean canReopen() {
             return true;
         }
+
+        @Override
+        public ZipCompressionMethod getCompressionMethod() {
+            return delegate.getCompressionMethod();
+        }
     }
 }

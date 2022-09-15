@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.scala;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
+import org.gradle.language.scala.tasks.KeepAliveMode;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -38,7 +39,7 @@ public class MinimalScalaCompileOptions implements Serializable {
     private List<String> loggingPhases;
     private MinimalScalaCompilerDaemonForkOptions forkOptions;
     private transient IncrementalCompileOptions incrementalOptions;
-    private final String keepAliveMode;
+    private final KeepAliveMode keepAliveMode;
 
     public MinimalScalaCompileOptions(BaseScalaCompileOptions compileOptions) {
         this.failOnError = compileOptions.isFailOnError();
@@ -54,7 +55,7 @@ public class MinimalScalaCompileOptions implements Serializable {
         this.loggingPhases = compileOptions.getLoggingPhases() == null ? null : ImmutableList.copyOf(compileOptions.getLoggingPhases());
         this.forkOptions = new MinimalScalaCompilerDaemonForkOptions(compileOptions.getForkOptions());
         this.incrementalOptions = compileOptions.getIncrementalOptions();
-        this.keepAliveMode = compileOptions.getKeepAliveOption().get();
+        this.keepAliveMode = compileOptions.getKeepAliveMode().get();
     }
 
     public boolean isFailOnError() {
@@ -164,7 +165,7 @@ public class MinimalScalaCompileOptions implements Serializable {
         this.incrementalOptions = incrementalOptions;
     }
 
-    public String getKeepAliveMode() {
+    public KeepAliveMode getKeepAliveMode() {
         return keepAliveMode;
     }
 }

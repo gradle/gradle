@@ -38,7 +38,7 @@ publishing {
 
 // tag::task-config[]
 tasks.withType<PublishToMavenRepository>().configureEach {
-    onlyIf {
+    onlyIf("publishing binary to the external repository, or binary and sources to the internal one") {
         (repository == publishing.repositories["external"] &&
             publication == publishing.publications["binary"]) ||
         (repository == publishing.repositories["internal"] &&
@@ -46,7 +46,7 @@ tasks.withType<PublishToMavenRepository>().configureEach {
     }
 }
 tasks.withType<PublishToMavenLocal>().configureEach {
-    onlyIf {
+    onlyIf("publishing binary and sources") {
         publication == publishing.publications["binaryAndSources"]
     }
 }

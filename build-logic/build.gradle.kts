@@ -1,4 +1,5 @@
 plugins {
+    id("gradlebuild.collect-failed-tasks")
     id("gradlebuild.cache-miss-monitor")
 }
 
@@ -24,5 +25,5 @@ val clean by tasks.registering {
 }
 
 fun readProperties(propertiesFile: File) = java.util.Properties().apply {
-    propertiesFile.inputStream().use { fis ->  load(fis) }
+    propertiesFile.inputStream().use { fis -> load(fis) }
 }

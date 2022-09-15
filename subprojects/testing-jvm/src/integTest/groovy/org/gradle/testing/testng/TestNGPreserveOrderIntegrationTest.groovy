@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
 
-@TargetCoverage({TestNGCoverage.PRESERVE_ORDER})
+@TargetCoverage({ TestNGCoverage.SUPPORTS_PRESERVE_ORDER })
 public class TestNGPreserveOrderIntegrationTest extends MultiVersionIntegrationSpec {
 
     def "run tests using preserveOrder"() {

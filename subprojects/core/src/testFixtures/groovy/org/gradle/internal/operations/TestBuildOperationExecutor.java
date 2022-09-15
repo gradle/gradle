@@ -339,7 +339,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
                 }
 
                 @Override
-                public void setResult(Object result) {
+                public void setResult(@Nullable Object result) {
                     context.setResult(result);
                 }
 

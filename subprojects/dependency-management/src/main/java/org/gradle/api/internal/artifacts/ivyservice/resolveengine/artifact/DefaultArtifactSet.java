@@ -34,9 +34,7 @@ import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -52,7 +50,6 @@ import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
 import org.gradle.util.internal.CollectionUtils;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -267,21 +264,6 @@ public abstract class DefaultArtifactSet implements ArtifactSet, ResolvedVariant
             this.artifact = artifact;
             this.artifactResolver = artifactResolver;
             this.moduleSources = moduleSources;
-        }
-
-        @Override
-        public boolean usesMutableProjectState() {
-            return false;
-        }
-
-        @Override
-        @Nullable
-        public ProjectInternal getOwningProject() {
-            return null;
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
         }
 
         @Override

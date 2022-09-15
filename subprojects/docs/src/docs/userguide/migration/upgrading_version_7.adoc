@@ -66,6 +66,94 @@ This can be achieved persistently in the `gradle.properties` file in your build 
 systemProp.org.gradle.kotlin.dsl.precompiled.accessors.strict=true
 ```
 
+[[invalid_toolchain_specification_deprecation]]
+=== Usage of invalid Java toolchain specifications is now deprecated
+
+Along with the Java language version, the <<toolchains#toolchains, Java toolchain>> DSL allows configuring other criteria such as specific vendors or VM implementations.
+Starting with Gradle 7.6, toolchain specifications that configure other properties without specifying the language version are considered _invalid_.
+Invalid specifications are deprecated and will become build errors in Gradle 8.0.
+
+See more details about toolchain configuration in the <<toolchains#sec:configuring_toolchain_specifications,user manual>>.
+
+[[org_gradle_util_reports_deprecations]]
+=== Deprecated members of the `org.gradle.util` package now report their deprecation
+
+These members will be removed in Gradle 9.0.
+
+* `ClosureBackedAction`
+* `CollectionUtils`
+* `ConfigureUtil`
+* `DistributionLocator`
+* `GFileUtils`
+* `GradleVersion.getBuildTime()`
+* `GradleVersion.getNextMajor()`
+* `GradleVersion.getRevision()`
+* `GradleVersion.isValid()`
+* `GUtil`
+* `NameMatcher`
+* `NameValidator`
+* `RelativePathUtil`
+* `TextUtil`
+* `SingleMessageLogger`
+* `VersionNumber`
+* `WrapUtil`
+
+=== Potential breaking changes
+
+[[kotlin_1_7_10]]
+==== Upgrade to Kotlin 1.7.10
+
+The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.7.10[Kotlin 1.7.10].
+
+Gradle doesn't ship with the `kotlin-gradle-plugin` but the upgrade to 1.7.10 can bring the new version.
+For example when you use the `kotlin-dsl` plugin.
+
+The `kotlin-gradle-plugin` version 1.7.10 changes the type hierarchy of the `KotlinCompile` task type.
+It doesn't extend from `AbstractCompile` anymore.
+If you used to select Kotlin compilation tasks by `AbstractCompile` you need to change that to `KotlinCompile`.
+
+For example, this
+```kotlin
+tasks.named<AbstractCompile>("compileKotlin")
+```
+
+needs to be changed to
+```kotlin
+tasks.named<KotlinCompile>("compileKotlin")
+```
+
+In the same vein, if you used to filter tasks by `AbstractCompile` you won't obtain the Kotlin compilation tasks anymore:
+
+```kotlin
+tasks.withType<AbstractCompile>().configureEach {
+    // ...
+}
+```
+
+needs to be changed to
+```kotlin
+tasks.withType<AbstractCompile>().configureEach {
+    // ...
+}
+tasks.withType<KotlinCompile>().configureEach {
+    // ...
+}
+```
+
+==== Upgrade to Groovy 3.0.12
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.12.html[Groovy 3.0.12].
+
+==== Upgrade to PMD 6.48.0
+
+PMD has been updated to https://pmd.github.io/pmd-6.48.0/pmd_release_notes.html[PMD 6.48.0].
+
+=== Deprecations
+
+[[dependency_factory_renamed]]
+==== Internal DependencyFactory was renamed
+The internal `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory` type was renamed to `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal`. As an internal type, it should not be used, but for compatibility reasons the inner `ClassPathNotation` type is still available. This name for the type is deprecated and will be removed in Gradle 8.0. The public API for this is on `DependencyHandler`, with methods such as `localGroovy()` providing the same functionality.
+
 [[changes_7.5]]
 == Upgrading from 7.4 and earlier
 
@@ -186,6 +274,73 @@ It takes into account which methods are being used and which have changed, which
 
 Zinc version has been updated to the newest available one in order to benefit from all the recent bugfixes.
 Due to that, if you use `zincVersion` setting it's advised to remove it and only use the default version, because Gradle will only be able to compile Scala code with Zinc versions set to 1.6.x or higher.
+
+==== Removes implicit `--add-opens` for test workers
+
+Prior to Gradle 7.5, JDK modules `java.base/java.util` and `java.base/java.lang` were automatically opened in test workers on JDK9+ by passing `--add-opens` CLI arguments. This meant any tests were able to perform deep reflection on JDK internals without warning or failing. This caused tests to be unreliable by allowing code to pass when it would otherwise fail in a production environment.
+
+These implicit arguments have been removed and are no longer added by default. If your code or any of your dependencies are performing deep refection into JDK internals during test execution, you may see the following behavior changes:
+
+Before Java 16, new build warnings are shown. These new warnings are printed to stderr and will not fail the build:
+```
+WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by com.google.inject.internal.cglib.core.ReflectUtils$2 (file:/.../testng-5.12.1.jar) to <method>
+WARNING: Please consider reporting this to the maintainers of com.google.inject.internal.cglib.core.ReflectUtils$2
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
+```
+
+With Java 16 or higher, exceptions are thrown that fail the build:
+```
+// Thrown by TestNG
+java.lang.reflect.InaccessibleObjectException: Unable to make <method> accessible: module java.base does not "opens java.lang" to unnamed module @1e92bd61
+	at java.base/java.lang.reflect.AccessibleObject.checkCanSetAccessible(AccessibleObject.java:354)
+	at java.base/java.lang.reflect.AccessibleObject.checkCanSetAccessible(AccessibleObject.java:297)
+	at java.base/java.lang.reflect.Method.checkCanSetAccessible(Method.java:199)
+	at java.base/java.lang.reflect.Method.setAccessible(Method.java:193)
+    ...
+
+// Thrown by ProjectBuilder
+org.gradle.api.GradleException: Could not inject synthetic classes.
+	at org.gradle.initialization.DefaultLegacyTypesSupport.injectEmptyInterfacesIntoClassLoader(DefaultLegacyTypesSupport.java:91)
+	at org.gradle.testfixtures.internal.ProjectBuilderImpl.getGlobalServices(ProjectBuilderImpl.java:182)
+	at org.gradle.testfixtures.internal.ProjectBuilderImpl.createProject(ProjectBuilderImpl.java:111)
+	at org.gradle.testfixtures.ProjectBuilder.build(ProjectBuilder.java:120)
+	...
+Caused by: java.lang.RuntimeException: java.lang.IllegalAccessException: module java.base does not open java.lang to unnamed module @1e92bd61
+```
+
+In most cases, these errors can be resolved by updating the code or dependency performing the illegal access. If the code-under-test or the newest version of the dependency in question performs illegal access by design, the old behavior can be restored by opening the `java.base/java.lang` and `java.base/java.util` modules manually with `--add-opens`:
+
+```
+tasks.withType(Test).configureEach {
+    jvmArgs(["--add-opens=java.base/java.lang=ALL-UNNAMED",
+             "--add-opens=java.base/java.util=ALL-UNNAMED"]
+}
+```
+
+If you are developing Gradle plugins, `ProjectBuilder` relies on reflection in the `java.base/java.lang` module. Gradle will automatically add the appropriate `--add-opens` flag to tests when the `java-gradle-plugin` plugin is applied.
+
+If you are using TestNG, versions prior to `5.14.6` perform illegal reflection. Updating to at least `5.14.6` should fix the incompatibility.
+
+[[checkstyle_worker_api]]
+==== Checkstyle tasks use toolchains and execute in parallel by default
+
+The <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle plugin>> now uses the Gradle worker API to run Checkstyle as an external worker process, so that multiple Checkstyle tasks may now run in parallel within a project.
+
+Since Checkstyle runs as an external process you can control the memory via the `minHeapSize` and `maxHeapSize` properties on the Checkstyle tasks. In case of out of memory errors, increasing the max memory via the `maxHeapSize` property should solve the issue. By default, the process will start with `maxHeapSize` of 512MB. We also recommend to update Checkstyle to version 9.3 or later.
+
+==== Missing files specified with relative paths when running Checkstyle
+
+Gradle 7.5 consistently sets the current working directory for the Checkstyle task to `GRADLE_USER_HOME/workers`.
+This may cause problems with custom Checkstyle tasks or Checkstyle configuration files that assume a different directory for relative paths.
+
+Previously, Gradle selected the current working directory based on the directory where you ran Gradle. If you ran Gradle in:
+
+- the root directory of a project: Gradle uses the root directory as the current working directory.
+- a nested directory of a project: Gradle uses the root directory of the subproject as the current working directory.
+
+In version 7.5 and above, Gradle consistently sets the current working directory for the Checkstyle task to `GRADLE_USER_HOME/workers`.
 
 === Deprecations
 

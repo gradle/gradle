@@ -55,6 +55,7 @@ class ForkingTestClassProcessorTest extends Specification {
         workerProcessBuilder.build() >> workerProcess
         workerProcessFactory.create(_) >> workerProcessBuilder
         workerProcessBuilder.getJavaCommand() >> Stub(JavaExecHandleBuilder)
+        workerProcessBuilder.setUseLegacyAddOpens(_) >> workerProcessBuilder
     }
 
     def "acquires worker lease and starts worker process on first test"() {

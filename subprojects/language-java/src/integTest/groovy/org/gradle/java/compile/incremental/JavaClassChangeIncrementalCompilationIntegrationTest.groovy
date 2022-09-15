@@ -480,6 +480,40 @@ class JavaClassChangeIncrementalCompilationIntegrationTest extends BaseJavaClass
         recompiledWithFailure('class Deleted', 'A')
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/21203")
+    def "can detect deletion of class used as method return type parameter"() {
+        //executer.requireOwnGradleUserHomeDir()  //use when debugging to bypass cache
+
+        source """
+            import java.util.List;
+            interface A {
+                List<Deleted> doSomething();
+            }"""
+        def deleted = source "interface Deleted { }"
+        outputs.snapshot { run language.compileTaskName }
+
+        expect:
+        deleted.delete()
+        recompiledWithFailure('class Deleted', 'A')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21203")
+    def "can detect deletion of class used as method argument type parameter"() {
+        //executer.requireOwnGradleUserHomeDir()  //use when debugging to bypass cache
+
+        source """
+            import java.util.List;
+            interface A {
+                void doSomething(List<Deleted> arg0);
+            }"""
+        def deleted = source "interface Deleted { }"
+        outputs.snapshot { run language.compileTaskName }
+
+        expect:
+        deleted.delete()
+        recompiledWithFailure('class Deleted', 'A')
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/20478")
     def "can detect deletion of class used as field type parameter"() {
         //executer.requireOwnGradleUserHomeDir()  //use when debugging to bypass cache
@@ -487,7 +521,7 @@ class JavaClassChangeIncrementalCompilationIntegrationTest extends BaseJavaClass
         source """
             import java.util.List;
             class A {
-                private List<Deleted> list; 
+                private List<Deleted> list;
             }
             """
         def deleted = source "interface Deleted { }"
@@ -508,7 +542,6 @@ class JavaClassChangeIncrementalCompilationIntegrationTest extends BaseJavaClass
             class A {
                 public void method() {
                     List<Deleted> l = new ArrayList<Deleted>();
-                    System.out.println(l.hashCode()); 
                 }
             }
             """

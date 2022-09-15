@@ -82,7 +82,7 @@ tasks.javadoc {
 
 
 // tag::skip-tests-condition[]
-tasks.test { onlyIf { !project.hasProperty("mySkipTests") } }
+tasks.test { onlyIf("mySkipTests property is not set") { !project.hasProperty("mySkipTests") } }
 // end::skip-tests-condition[]
 
 // tag::java-compiler-options[]

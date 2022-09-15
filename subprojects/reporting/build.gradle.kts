@@ -45,7 +45,7 @@ strictCompile {
     ignoreParameterizedVarargType() // [unchecked] Possible heap pollution from parameterized vararg type: GenerateBuildDashboard.aggregate()
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/reporting/internal/**")
 }
 

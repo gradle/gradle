@@ -27,11 +27,24 @@ abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractI
     abstract CompiledLanguage getLanguage()
 
     File source(String... classBodies) {
-        File out
+        return sourceForProject("", classBodies)
+    }
+
+    File sourceForProject(String project, String... classBodies) {
+        File out = null
+        def basePath = project.isEmpty() ? "src/main/${language.name}" : "$project/src/main/${language.name}"
         for (String body : classBodies) {
+            def packageGroup = (body =~ "\\s*package ([\\w.]+).*")
+            String packageName = packageGroup.size() > 0 ? packageGroup[0][1] : ""
+            String packageFolder = packageName.replaceAll("[.]", "/")
             def className = (body =~ /(?s).*?(?:class|interface|enum) ([\w$]+) .*/)[0][1]
             assert className: "unable to find class name"
-            def f = file("src/main/${language.name}/${className}.${language.name}")
+            def f
+            if (packageFolder.isEmpty()) {
+                f = file("$basePath/${className}.${language.name}")
+            } else {
+                f = file("$basePath/${packageFolder}/${className}.${language.name}")
+            }
             f.createFile()
             f.text = body
             out = f

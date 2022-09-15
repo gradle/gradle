@@ -148,9 +148,14 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
     }
 
     private static getMaxFileChangesWithoutOverflow() {
-        OperatingSystem.current().windows
-            ? 200
-            : 1000
+        def os = OperatingSystem.current()
+        if (os.windows) {
+            return 200
+        } else if (os.macOsX) {
+            return 500
+        } else {
+            return 1000
+        }
     }
 
     private static boolean detectOverflow(DaemonFixture daemon, long fromLine) {

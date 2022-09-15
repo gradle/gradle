@@ -69,15 +69,12 @@ abstract class AbstractCrossTaskIncrementalCompilationSupport extends AbstractJa
     }
 
     File source(Map projectToClassBodies) {
-        File out
+        File out = null
         projectToClassBodies.each { project, bodies ->
-            bodies.each { body ->
-                def className = (body =~ /(?s).*?(?:class|interface) (\w+) .*/)[0][1]
-                assert className: "unable to find class name"
-                def f = file("$project/src/main/${language.name}/${className}.${language.name}")
-                f.createFile()
-                f.text = body
-                out = f
+            if (bodies instanceof String || bodies instanceof GString) {
+                out = sourceForProject(project as String, bodies as String)
+            } else {
+                out = sourceForProject(project as String, bodies as String[])
             }
         }
         out

@@ -62,6 +62,10 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
             listeners.add(new ClientForwardingTestOutputOperationListener(progressEventConsumer, idFactory));
         }
 
+        if (subscriptions.isRequested(OperationType.BUILD_PHASE)) {
+            listeners.add(new BuildPhaseOperationListener(progressEventConsumer, idFactory));
+        }
+
         BuildOperationListener buildListener = NO_OP;
         if (subscriptions.isRequested(OperationType.GENERIC)) {
             buildListener = new ClientForwardingBuildOperationListener(progressEventConsumer);

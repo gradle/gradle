@@ -36,6 +36,7 @@ import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.reflect.validation.ValidationProblemBuilder;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.problems.BaseProblem;
@@ -84,7 +85,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             .stream()
             .collect(
                 groupingBy(BaseProblem::getSeverity,
-                mapping(Function.identity(), toList())));
+                    mapping(Function.identity(), toList())));
         ImmutableCollection<TypeValidationProblem> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
         ImmutableCollection<TypeValidationProblem> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
 
@@ -182,8 +183,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         // It doesn't matter whether we use cacheable true or false, since none of the warnings depends on the cacheability of the task.
         Class<?> workType = workClass.get();
         TypeValidationContext workValidationContext = validationContext.forType(workType, true);
-        validateImplementation(workValidationContext, beforeExecutionState.getImplementation(), "Implementation of ", work
-        );
+        validateImplementation(workValidationContext, beforeExecutionState.getImplementation(), "Implementation of ", work);
         beforeExecutionState.getAdditionalImplementations()
             .forEach(additionalImplementation -> validateImplementation(workValidationContext, additionalImplementation, "Additional action of ", work));
         beforeExecutionState.getInputProperties().forEach((propertyName, valueSnapshot) -> {
@@ -194,28 +194,28 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         });
     }
 
-    private void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementationSnapshot) {
-        if (implementationSnapshot.isUnknown()) {
-            workValidationContext.visitPropertyProblem(problem -> {
-                ImplementationSnapshot.UnknownReason unknownReason = implementationSnapshot.getUnknownReason();
+    private void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementation) {
+        if (implementation instanceof UnknownImplementationSnapshot) {
+            UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
+            workValidationContext.visitPropertyProblem(problem ->
                 configureImplementationValidationProblem(problem)
                     .forProperty(propertyName)
-                    .withDescription(() -> unknownReason.descriptionFor(implementationSnapshot))
-                    .happensBecause(unknownReason.getReason())
-                    .addPossibleSolution(unknownReason.getSolution());
-            });
+                    .withDescription(unknownImplSnapshot.getProblemDescription())
+                    .happensBecause(unknownImplSnapshot.getReasonDescription())
+                    .addPossibleSolution(unknownImplSnapshot.getSolutionDescription())
+            );
         }
     }
 
     private void validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, String descriptionPrefix, UnitOfWork work) {
-        if (implementation.isUnknown()) {
-            workValidationContext.visitPropertyProblem(problem -> {
-                ImplementationSnapshot.UnknownReason unknownReason = implementation.getUnknownReason();
+        if (implementation instanceof UnknownImplementationSnapshot) {
+            UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
+            workValidationContext.visitPropertyProblem(problem ->
                 configureImplementationValidationProblem(problem)
-                    .withDescription(() -> descriptionPrefix + work + " " + unknownReason.descriptionFor(implementation))
-                    .happensBecause(unknownReason.getReason())
-                    .addPossibleSolution(unknownReason.getSolution());
-            });
+                    .withDescription(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
+                    .happensBecause(unknownImplSnapshot.getReasonDescription())
+                    .addPossibleSolution(unknownImplSnapshot.getSolutionDescription())
+            );
         }
     }
 

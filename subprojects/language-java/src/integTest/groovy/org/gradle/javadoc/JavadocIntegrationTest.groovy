@@ -576,6 +576,44 @@ Joe!""")
         skipped(":javadoc")
     }
 
+    def "can exclude a package by source path"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            javadoc {
+                exclude("pkg/internal/**")
+            }
+        """
+        file("src/main/java/pkg/Foo.java").java """
+            package pkg;
+            import pkg.internal.*;
+            
+            public class Foo implements IFoo {
+                /**
+                 * {@inheritDoc}
+                 */
+                public void run() { 
+                }
+            }
+        """
+        file("src/main/java/pkg/internal/IFoo.java").java """
+            package pkg.internal;
+            
+            public interface IFoo {
+                /**
+                 * Runs internal foo 
+                 */
+                void run();
+            }
+        """
+        when:
+        succeeds("javadoc")
+        then:
+        file("build/docs/javadoc/pkg/Foo.html").assertExists()
+        file("build/docs/javadoc/pkg/internal/IFoo.html").assertDoesNotExist()
+    }
+
     private TestFile writeSourceFile() {
         file("src/main/java/Foo.java") << "public class Foo {}"
     }

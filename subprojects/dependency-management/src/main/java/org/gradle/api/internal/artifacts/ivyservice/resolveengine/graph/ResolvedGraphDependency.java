@@ -50,5 +50,6 @@ public interface ResolvedGraphDependency {
 
     ResolvedVariantResult getFromVariant();
 
+    @Nullable
     ResolvedVariantResult getSelectedVariant();
 }
