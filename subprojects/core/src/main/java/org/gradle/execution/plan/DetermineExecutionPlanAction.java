@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -94,10 +95,14 @@ class DetermineExecutionPlanAction {
         return createOrdinalRelationshipsAndCollectNodes();
     }
 
+    /**
+     * Create the finalizer group for each finalizer and propagate these groups down to all dependencies.
+     */
     private void updateFinalizerGroups() {
         if (finalizers.isEmpty()) {
             return;
         }
+
         // Collect the finalizers and their dependencies so that each node is ordered before all of its dependencies
         LinkedList<Node> nodes = new LinkedList<>();
         Set<Node> visiting = new HashSet<>();
@@ -121,10 +126,10 @@ class DetermineExecutionPlanAction {
                 nodes.addFirst(node);
             }
         }
+
         for (Node node : nodes) {
-            node.updateGroupOfFinalizer();
+            node.maybeInheritFinalizerGroups();
         }
-        finalizers.clear();
     }
 
     private void processEntryNodes() {
@@ -165,7 +170,8 @@ class DetermineExecutionPlanAction {
                     addFinalizerToQueue(visitingSegmentCounter++, finalizer);
                 }
 
-                for (Node successor : node.getAllSuccessorsInReverseOrder()) {
+                ListIterator<NodeInVisitingSegment> insertPoint = nodeQueue.listIterator();
+                for (Node successor : node.getAllSuccessors()) {
                     if (visitingNodes.containsEntry(successor, currentSegment)) {
                         if (!walkedShouldRunAfterEdges.isEmpty()) {
                             //remove the last walked should run after edge and restore state from before walking it
@@ -182,7 +188,7 @@ class DetermineExecutionPlanAction {
                             onOrderingCycle(successor, node);
                         }
                     }
-                    nodeQueue.addFirst(new NodeInVisitingSegment(successor, currentSegment));
+                    insertPoint.add(new NodeInVisitingSegment(successor, currentSegment));
                 }
                 path.push(node);
             } else {
@@ -203,6 +209,7 @@ class DetermineExecutionPlanAction {
             createOrdinalRelationships(node, scheduledNodes);
             scheduledNodes.add(node);
         }
+
         nodeMapping.addAll(ordinalNodeAccess.getAllNodes());
         return scheduledNodes.build();
     }
