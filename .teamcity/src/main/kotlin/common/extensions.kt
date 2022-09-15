@@ -42,7 +42,10 @@ import java.util.Locale
 fun BuildSteps.customGradle(init: GradleBuildStep.() -> Unit, custom: GradleBuildStep.() -> Unit): GradleBuildStep =
     GradleBuildStep(init)
         .apply(custom)
-        .also { step(it) }
+        .also {
+            step(it)
+            it.skipConditionally()
+        }
 
 /**
  * Adds a [Gradle build step](https://confluence.jetbrains.com/display/TCDL/Gradle)
@@ -164,6 +167,13 @@ fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX) {
         } else {
             checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.android", false)
         }
+        skipConditionally()
+    }
+}
+
+fun BuildStep.skipConditionally() {
+    conditions {
+        doesNotEqual("skip.build", "true")
     }
 }
 
@@ -233,6 +243,7 @@ fun BuildType.killProcessStep(stepName: String, os: Os, arch: Arch = Arch.AMD64)
             name = stepName
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = "\"${javaHome(BuildToolBuildJvm, os, arch)}/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $stepName"
+            skipConditionally()
         }
     }
 }
