@@ -16,19 +16,18 @@
 
 package org.gradle.testing.spock
 
+import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.GroovyDependencyUtil
 
-import static org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite.SPOCK_BASE_VERSION
-
-@TargetCoverage({ GroovyCoverage.SINCE_2_5 })
+@TargetCoverage({ GroovyCoverage.SUPPORTED_BY_JDK })
 class SpockVersionDerivationSpec extends MultiVersionIntegrationSpec {
 
     def setup() {
         def groovyVersion = versionNumber
-        def expectedSpockCoreJar = "spock-core-${SPOCK_BASE_VERSION}-groovy-${groovyVersion.major}.${groovyVersion.minor}.jar"
+        def expectedSpockCoreJar = "spock-core-${DefaultJvmTestSuite.getSpockVersionForGroovy(groovyVersion)}.jar"
 
         buildScript("""
             plugins {
