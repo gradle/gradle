@@ -57,8 +57,9 @@ dependencies {
 }
 
 tasks.register("compileClasspathArtifacts") {
+    FileCollection compileClasspath = configurations["compileClasspath"]
     doLast {
-        configurations["compileClasspath"].forEach { println(it.name) }
+        compileClasspath.forEach { println(it.name) }
     }
 }
 tasks.register("runtimeClasspathArtifacts") {
