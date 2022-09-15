@@ -173,6 +173,13 @@ public interface UnitOfWork extends Describable {
      */
     default void visitRegularInputs(InputVisitor visitor) {}
 
+    /**
+     * Visit outputs of the work in the given workspace.
+     * <p>
+     * Note: For tasks {@code workspace} is {@code null} for now.
+     */
+    void visitOutputs(File workspace, OutputVisitor visitor);
+
     interface InputVisitor {
         default void visitInputProperty(
             String propertyName,
@@ -318,8 +325,6 @@ public interface UnitOfWork extends Describable {
             return files;
         }
     }
-
-    void visitOutputs(File workspace, OutputVisitor visitor);
 
     interface OutputVisitor {
         default void visitOutputProperty(
