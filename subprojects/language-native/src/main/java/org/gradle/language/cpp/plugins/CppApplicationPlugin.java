@@ -84,7 +84,7 @@ public class CppApplicationPlugin implements Plugin<Project> {
                     .map(CppExecutable.class::cast)
                     .filter(binary -> !binary.isOptimized() && Architectures.forInput(binary.getTargetMachine().getArchitecture().getName()).equals(DefaultNativePlatform.host().getArchitecture()))
                     .findFirst()
-                    .orElse(application.getBinaries().get().stream()
+                    .orElseGet(() -> application.getBinaries().get().stream()
                             .filter(CppExecutable.class::isInstance)
                             .map(CppExecutable.class::cast)
                             .filter(binary -> !binary.isOptimized())

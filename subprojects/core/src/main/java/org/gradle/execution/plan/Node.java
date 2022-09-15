@@ -394,20 +394,16 @@ public abstract class Node {
         mutationInfo.addConsumer(fromNode);
     }
 
+    void addMustPredecessor(TaskNode fromNode) {
+        dependentNodes = dependentNodes.addMustPredecessor(fromNode);
+    }
+
     protected DependencyNodesSet getDependencyNodes() {
         return dependencyNodes;
     }
 
     protected void updateDependencyNodes(DependencyNodesSet newDependencies) {
         dependencyNodes = newDependencies;
-    }
-
-    protected DependentNodesSet getDependentNodes() {
-        return dependentNodes;
-    }
-
-    protected void updateDependentNodes(DependentNodesSet newDependents) {
-        dependentNodes = newDependents;
     }
 
     /**
