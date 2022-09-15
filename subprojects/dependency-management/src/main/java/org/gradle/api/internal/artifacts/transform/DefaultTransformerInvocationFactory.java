@@ -56,8 +56,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.INCREMENTAL;
-import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL;
+import static org.gradle.internal.execution.UnitOfWork.InputBehavior.INCREMENTAL;
+import static org.gradle.internal.execution.UnitOfWork.InputBehavior.NON_INCREMENTAL;
 import static org.gradle.internal.file.TreeType.DIRECTORY;
 import static org.gradle.internal.file.TreeType.FILE;
 

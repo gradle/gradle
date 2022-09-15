@@ -302,7 +302,7 @@ class DefaultTaskInputsTest extends Specification {
         when:
         inputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
             @Override
-            void visitInputFileProperty(String propertyName, boolean optional, UnitOfWork.InputPropertyType type, DirectorySensitivity emptyDirectorySensitivity, LineEndingSensitivity lineEndingNormalization, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+            void visitInputFileProperty(String propertyName, boolean optional, UnitOfWork.InputBehavior behavior, DirectorySensitivity emptyDirectorySensitivity, LineEndingSensitivity lineEndingNormalization, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                 names += propertyName
             }
         })
@@ -332,14 +332,14 @@ class DefaultTaskInputsTest extends Specification {
         TaskPropertyUtils.visitProperties(walker, task, new PropertyVisitor.Adapter() {
             @Override
             void visitInputFileProperty(
-                    String propertyName,
-                    boolean optional,
-                    UnitOfWork.InputPropertyType type,
-                    DirectorySensitivity emptyDirectorySensitivity,
-                    LineEndingSensitivity lineEndingNormalization,
-                    @Nullable Class<? extends FileNormalizer> fileNormalizer,
-                    PropertyValue value,
-                    InputFilePropertyType filePropertyType
+                String propertyName,
+                boolean optional,
+                UnitOfWork.InputBehavior behavior,
+                DirectorySensitivity emptyDirectorySensitivity,
+                LineEndingSensitivity lineEndingNormalization,
+                @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                PropertyValue value,
+                InputFilePropertyType filePropertyType
             ) {
                 inputFiles[propertyName] = value.call()
             }

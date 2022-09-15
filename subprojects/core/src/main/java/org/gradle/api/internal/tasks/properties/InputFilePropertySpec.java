@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.internal.execution.UnitOfWork.InputPropertyType;
+import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
 import javax.annotation.Nullable;
 
 public interface InputFilePropertySpec extends FilePropertySpec {
-    InputPropertyType getType();
+    InputBehavior getBehavior();
 
     DirectorySensitivity getDirectorySensitivity();
 

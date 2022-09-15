@@ -19,7 +19,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.internal.event.AnonymousListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.InputPropertyType;
+import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.execution.WorkInputListener;
 import org.gradle.internal.execution.WorkInputListeners;
 
@@ -43,7 +43,7 @@ public class DefaultWorkInputListeners implements WorkInputListeners {
     }
 
     @Override
-    public void broadcastFileSystemInputsOf(UnitOfWork work, EnumSet<InputPropertyType> relevantTypes) {
-        broadcaster.getSource().onExecute(work, relevantTypes);
+    public void broadcastFileSystemInputsOf(UnitOfWork work, EnumSet<InputBehavior> relevantBehaviors) {
+        broadcaster.getSource().onExecute(work, relevantBehaviors);
     }
 }

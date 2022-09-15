@@ -53,7 +53,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
-import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.PRIMARY
+import static org.gradle.internal.execution.UnitOfWork.InputBehavior.PRIMARY
 
 @RedirectStdIn
 class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
@@ -391,7 +391,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
             visitRegularInputs(_ as InputVisitor) >> { InputVisitor visitor ->
                 visitor.visitInputFileProperty("test", PRIMARY, valueSupplier)
             }
-        }, EnumSet.allOf(UnitOfWork.InputPropertyType))
+        }, EnumSet.allOf(UnitOfWork.InputBehavior))
     }
 
     private ContinuousBuildActionExecutor executer() {

@@ -34,7 +34,7 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     public void visitInputFileProperty(
         String propertyName,
         boolean optional,
-        UnitOfWork.InputPropertyType type,
+        UnitOfWork.InputBehavior behavior,
         DirectorySensitivity directorySensitivity,
         LineEndingSensitivity lineEndingSensitivity,
         @Nullable Class<? extends FileNormalizer> fileNormalizer,
@@ -45,7 +45,7 @@ public class CompositePropertyVisitor implements PropertyVisitor {
             visitor.visitInputFileProperty(
                 propertyName,
                 optional,
-                type,
+                behavior,
                 directorySensitivity,
                 lineEndingSensitivity,
                 fileNormalizer,

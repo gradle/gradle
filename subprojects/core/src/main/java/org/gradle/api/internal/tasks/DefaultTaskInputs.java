@@ -37,7 +37,7 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.internal.execution.UnitOfWork.InputPropertyType;
+import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
@@ -86,8 +86,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 registration.getPropertyName(),
                 registration.isOptional(),
                 registration.isSkipWhenEmpty()
-                    ? InputPropertyType.PRIMARY
-                    : InputPropertyType.NON_INCREMENTAL,
+                    ? InputBehavior.PRIMARY
+                    : InputBehavior.NON_INCREMENTAL,
                 registration.getDirectorySensitivity(),
                 registration.getLineEndingNormalization(),
                 registration.getNormalizer(),
@@ -201,7 +201,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             public void visitInputFileProperty(
                 final String propertyName,
                 boolean optional,
-                InputPropertyType type,
+                InputBehavior behavior,
                 DirectorySensitivity directorySensitivity,
                 LineEndingSensitivity lineEndingSensitivity,
                 @Nullable Class<? extends FileNormalizer> fileNormalizer,
@@ -243,13 +243,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 public void visitInputFileProperty(
                     final String propertyName,
                     boolean optional,
-                    InputPropertyType type,
+                    InputBehavior behavior,
                     DirectorySensitivity directorySensitivity,
                     LineEndingSensitivity lineEndingSensitivity,
                     @Nullable Class<? extends FileNormalizer> fileNormalizer,
                     PropertyValue value, InputFilePropertyType filePropertyType
                 ) {
-                    if (!TaskInputUnionFileCollection.this.skipWhenEmptyOnly || type.isSkipWhenEmpty()) {
+                    if (!TaskInputUnionFileCollection.this.skipWhenEmptyOnly || behavior.shouldSkipWhenEmpty()) {
                         FileCollectionInternal actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
                         visitor.accept(new PropertyFileCollection(task.toString(), propertyName, "input", actualValue));
                     }
@@ -269,7 +269,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         public void visitInputFileProperty(
             String propertyName,
             boolean optional,
-            InputPropertyType type,
+            InputBehavior behavior,
             DirectorySensitivity directorySensitivity,
             LineEndingSensitivity lineEndingSensitivity,
             @Nullable Class<? extends FileNormalizer> fileNormalizer,
