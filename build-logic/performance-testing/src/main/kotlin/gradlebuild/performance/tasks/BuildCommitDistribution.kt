@@ -123,7 +123,11 @@ abstract class BuildCommitDistribution @Inject internal constructor(
     private
     fun copyToFinalDestination(checkoutDir: File) {
         val baseVersion = commitBaseline.get().substringBefore("-")
-        checkoutDir.resolve("subprojects/distributions-full/build/distributions/gradle-$baseVersion-bin.zip").copyTo(commitDistribution.asFile.get(), true)
+        val distribution = checkoutDir.resolve("subprojects/distributions-full/build/distributions/gradle-$baseVersion-bin.zip")
+        if (!distribution.isFile) {
+            throw IllegalStateException("${distribution.absolutePath} doesn't exist. Did you set the wrong base version?\n${distribution.parentFile.list()?.joinToString("\n")}")
+        }
+        distribution.copyTo(commitDistribution.asFile.get(), true)
     }
 
     private
