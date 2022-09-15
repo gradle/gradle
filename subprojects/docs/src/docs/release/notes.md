@@ -12,12 +12,12 @@ Include only their name, impactful features should be called out separately belo
 We would like to thank the following community members for their contributions to this release of Gradle:
 
 [altrisi](https://github.com/altrisi),
-[Aurimas](https://github.com/liutikas)
-[Rob Bavey](https://github.com/robbavey),
 [aSemy](https://github.com/aSemy),
 [Ashwin Pankaj](https://github.com/ashwinpankaj),
+[Aurimas](https://github.com/liutikas)
 [BJ Hargrave](https://github.com/bjhargrave),
 [Bradley Turek](https://github.com/TurekBot)
+[Craig Andrews](https://github.com/candrews)
 [Daniel Lin](https://github.com/ephemient),
 [David Morris](https://github.com/codefish1),
 [Edmund Mok](https://github.com/edmundmok),
@@ -32,13 +32,14 @@ We would like to thank the following community members for their contributions t
 [Leonardo Brondani Schenkel](https://github.com/lbschenkel),
 [Martin d'Anjou](https://github.com/martinda),
 [Pete Bentley](https://github.com/prbprbprb),
+[Rob Bavey](https://github.com/robbavey),
 [Sam Snyder](https://github.com/sambsnyd),
 [sll552](https://github.com/sll552),
 [teawithbrownsugar](https://github.com/teawithbrownsugar),
 [Thomas Broadley](https://github.com/tbroadley),
 [urdak](https://github.com/urdak),
 [Xin Wang](https://github.com/scaventz),
-[Craig Andrews](https://github.com/candrews)
+
 
 
 ## Upgrade instructions
@@ -207,12 +208,6 @@ The following Attributes have disambiguation rules defined.
 
 For more information, see [Attribute Disambiguation Rules](userguide/variant_attributes.html#sec:abm_disambiguation_rules).
 
-#### TODO: Extended configuration cache support for external processes 
-[Allow buildScan.background to launch external processes with configuration cache enabled gradle#20536](https://github.com/gradle/gradle/issues/20536)
-
-#### TODO: Extended configuration cache support for internal plugin
-
-[Allow buildScan.background to launch external processes with configuration cache enabled gradle#20536](https://github.com/gradle/gradle/issues/20536)
 
 #### Improved handling of `--offline` option
 
@@ -269,10 +264,13 @@ Related issues:
 
 [Support "Zulu OpenJDK Discovery API" for auto provisioning toolchains gradle#19140](https://github.com/gradle/gradle/issues/19140)
 
-#### TODO: Enhanced the plugin declaration DSL from java-gradle-plugin
+#### Enhanced the plugin declaration DSL for the java-gradle-plugin
 
-<!-- This is in the public roadmap but not sure it should be? -->
-[Modify bits and pieces of Gradle to accommodate Plugin Publish Plugin v1.0.0 gradle#19982](https://github.com/gradle/gradle/pull/19982)
+The recently released [version 1.0.0 of the Plugin-Publish plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish/1.0.0) significantly improves the process by having stronger opinions and a more straightforward configuration. 
+
+We enhance the `java-gradle-plugin` documentation, describing the Maven publications it generates when used together with the `maven-publish plugin`.
+
+For more information, see enhanced Gradle for [Plugin Publish Plugin v1.0.0 gradle#19982](https://github.com/gradle/gradle/pull/19982)
 
 <a name="jvm"></a>
 ### JVM
