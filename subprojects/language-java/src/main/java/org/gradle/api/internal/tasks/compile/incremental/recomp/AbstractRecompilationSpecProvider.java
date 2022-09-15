@@ -68,9 +68,14 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         SourceFileClassNameConverter sourceFileClassNameConverter = new FileNameDerivingClassNameConverter(previous.getSourceToClassConverter(), getFileExtensions());
 
         processClasspathChanges(current, previous, spec);
-        processSourceChanges(current, previous, spec, sourceFileClassNameConverter);
-        collectAllSourcePathsAndIndependentClasses(previous, spec, sourceFileClassNameConverter);
-        processTypesToReprocess(previous, spec, sourceFileClassNameConverter);
+
+        SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
+        processSourceChanges(current, sourceFileChangeProcessor, spec, sourceFileClassNameConverter);
+        collectAllSourcePathsAndIndependentClasses(sourceFileChangeProcessor, spec, sourceFileClassNameConverter);
+
+        Set<String> typesToReprocess = previous.getTypesToReprocess(spec.getClassesToCompile());
+        processTypesToReprocess(typesToReprocess, spec, sourceFileClassNameConverter);
+
         return spec;
     }
 
@@ -87,11 +92,10 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         spec.addResourcesToGenerate(dependents.getDependentResources());
     }
 
-    private void processSourceChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
+    private void processSourceChanges(CurrentCompilation current, SourceFileChangeProcessor sourceFileChangeProcessor, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         if (spec.isFullRebuildNeeded()) {
             return;
         }
-        SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
         for (FileChange fileChange : sourceChanges) {
             if (spec.isFullRebuildNeeded()) {
                 return;
@@ -125,8 +129,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
      * <p>
      * Check also: <a href="https://github.com/gradle/gradle/issues/21644" />
      */
-    private static void collectAllSourcePathsAndIndependentClasses(PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
-        SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
+    private static void collectAllSourcePathsAndIndependentClasses(SourceFileChangeProcessor sourceFileChangeProcessor, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         Set<String> classesToCompile = new LinkedHashSet<>(spec.getClassesToCompile());
         while (!classesToCompile.isEmpty() && !spec.isFullRebuildNeeded()) {
             Set<String> independentClasses = collectSourcePathsAndIndependentClasses(classesToCompile, spec, sourceFileClassNameConverter);
@@ -138,6 +141,14 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         }
     }
 
+    /**
+     * Collect source paths and independent classes.
+     * <p>
+     * The source paths corresponding to the {@param classesToCompile} are added to the {@param spec}.
+     * It will also add the independent classes to the {@param spec}'s {@code classesToCompile}.
+     *
+     * @return independent classes for the detected source paths.
+     */
     private static Set<String> collectSourcePathsAndIndependentClasses(Set<String> classesToCompile, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         Set<String> independentClasses = new LinkedHashSet<>();
         for (String classToCompile : classesToCompile) {
@@ -164,8 +175,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         return newClasses;
     }
 
-    private static void processTypesToReprocess(PreviousCompilation previous, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
-        Set<String> typesToReprocess = previous.getTypesToReprocess(spec.getClassesToCompile());
+    private static void processTypesToReprocess(Set<String> typesToReprocess, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         for (String typeToReprocess : typesToReprocess) {
             if (typeToReprocess.endsWith("package-info") || typeToReprocess.equals("module-info")) {
                 // Fixes: https://github.com/gradle/gradle/issues/17572
