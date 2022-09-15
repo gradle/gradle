@@ -32,7 +32,7 @@ import org.gradle.internal.snapshot.ValueSnapshot
 
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionOutcome.SHORT_CIRCUITED
-import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.PRIMARY
+import static org.gradle.internal.execution.UnitOfWork.InputBehavior.PRIMARY
 
 class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def outputChangeListener = Mock(OutputChangeListener)
@@ -41,7 +41,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def inputFingerprinter = Mock(InputFingerprinter)
     def fileCollectionSnapshotter = TestFiles.fileCollectionSnapshotter()
     def primaryFileInputs = EnumSet.of(PRIMARY)
-    def allFileInputs = EnumSet.allOf(UnitOfWork.InputPropertyType)
+    def allFileInputs = EnumSet.allOf(UnitOfWork.InputBehavior)
 
     def step = new SkipEmptyWorkStep(
         outputChangeListener,

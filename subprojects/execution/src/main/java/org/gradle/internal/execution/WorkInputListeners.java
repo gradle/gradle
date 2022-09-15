@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution;
 
+import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -33,5 +34,5 @@ public interface WorkInputListeners {
 
     void removeListener(WorkInputListener listener);
 
-    void broadcastFileSystemInputsOf(UnitOfWork work, EnumSet<UnitOfWork.InputPropertyType> relevantTypes);
+    void broadcastFileSystemInputsOf(UnitOfWork work, EnumSet<InputBehavior> relevantBehaviors);
 }

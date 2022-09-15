@@ -310,7 +310,7 @@ public class TaskExecution implements UnitOfWork {
             // That means that there is a very close relation between the file property and the output.
             visitor.visitInputFileProperty(
                 inputFileProperty.getPropertyName(),
-                inputFileProperty.getType(),
+                inputFileProperty.getBehavior(),
                 new InputFileValueSupplier(
                     inputFileProperty.getValue(),
                     inputFileProperty.getNormalizer(),

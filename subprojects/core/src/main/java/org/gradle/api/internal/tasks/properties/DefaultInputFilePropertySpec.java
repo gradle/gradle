@@ -18,14 +18,14 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.execution.UnitOfWork.InputPropertyType;
+import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
 import javax.annotation.Nullable;
 
 public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec implements InputFilePropertySpec {
-    private final InputPropertyType type;
+    private final InputBehavior behavior;
     private final DirectorySensitivity directorySensitivity;
     private final LineEndingSensitivity lineEndingSensitivity;
     private final PropertyValue value;
@@ -35,20 +35,20 @@ public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec imple
         Class<? extends FileNormalizer> normalizer,
         FileCollectionInternal files,
         PropertyValue value,
-        InputPropertyType type,
+        InputBehavior behavior,
         DirectorySensitivity directorySensitivity,
         LineEndingSensitivity lineEndingSensitivity
     ) {
         super(propertyName, normalizer, files);
-        this.type = type;
+        this.behavior = behavior;
         this.directorySensitivity = directorySensitivity;
         this.lineEndingSensitivity = lineEndingSensitivity;
         this.value = value;
     }
 
     @Override
-    public InputPropertyType getType() {
-        return type;
+    public InputBehavior getBehavior() {
+        return behavior;
     }
 
     @Override

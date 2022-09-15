@@ -219,7 +219,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         public void visitInputFileProperty(
                 String propertyName,
                 boolean optional,
-                UnitOfWork.InputPropertyType type,
+                UnitOfWork.InputBehavior behavior,
                 DirectorySensitivity directorySensitivity,
                 LineEndingSensitivity lineEndingSensitivity,
                 @Nullable Class<? extends FileNormalizer> fileNormalizer,

@@ -56,7 +56,7 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
     public void visitInputFileProperty(
         final String propertyName,
         boolean optional,
-        UnitOfWork.InputPropertyType type,
+        UnitOfWork.InputBehavior behavior,
         DirectorySensitivity directorySensitivity,
         LineEndingSensitivity lineEndingSensitivity,
         @Nullable Class<? extends FileNormalizer> fileNormalizer,
@@ -70,11 +70,11 @@ public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
             normalizer,
             new PropertyFileCollection(ownerDisplayName, propertyName, "input", actualValue),
             value,
-            type,
+            behavior,
             normalizeDirectorySensitivity(normalizer, directorySensitivity),
             lineEndingSensitivity
         ));
-        if (type.isSkipWhenEmpty()) {
+        if (behavior.shouldSkipWhenEmpty()) {
             hasSourceFiles = true;
         }
     }

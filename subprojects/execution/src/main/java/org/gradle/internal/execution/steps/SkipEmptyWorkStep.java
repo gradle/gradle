@@ -25,8 +25,8 @@ import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
-import org.gradle.internal.execution.UnitOfWork.InputPropertyType;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -133,9 +133,9 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
             knownFileFingerprints,
             visitor -> work.visitRegularInputs(new InputVisitor() {
                 @Override
-                public void visitInputFileProperty(String propertyName, InputPropertyType type, InputFileValueSupplier value) {
-                    if (type == InputPropertyType.PRIMARY) {
-                        visitor.visitInputFileProperty(propertyName, type, value);
+                public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
+                    if (behavior.shouldSkipWhenEmpty()) {
+                        visitor.visitInputFileProperty(propertyName, behavior, value);
                     }
                 }
             }));
@@ -259,8 +259,8 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
 
     private void broadcastWorkInputs(UnitOfWork work, boolean onlyPrimaryInputs) {
         workInputListeners.broadcastFileSystemInputsOf(work, onlyPrimaryInputs
-            ? EnumSet.of(InputPropertyType.PRIMARY)
-            : EnumSet.allOf(InputPropertyType.class));
+            ? EnumSet.of(InputBehavior.PRIMARY)
+            : EnumSet.allOf(InputBehavior.class));
     }
 
     private boolean cleanPreviousTaskOutputs(Map<String, FileSystemSnapshot> outputFileSnapshots) {
@@ -285,7 +285,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         }
 
         @Override
-        public void visitInputFileProperty(String propertyName, InputPropertyType type, InputFileValueSupplier value) {
+        public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
             if (propertyNameFilter.test(propertyName)) {
                 allEmpty = allEmpty && value.getFiles().isEmpty();
             }
