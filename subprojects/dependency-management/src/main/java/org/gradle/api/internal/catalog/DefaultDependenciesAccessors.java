@@ -42,6 +42,7 @@ import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.Cast;
+import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.execution.ExecutionEngine;
@@ -92,7 +93,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final ClassPath classPath;
     private final DependenciesAccessorsWorkspaceProvider workspace;
     private final DefaultProjectDependencyFactory projectDependencyFactory;
-    private final FeaturePreviews featurePreviews;
+    private final FeatureFlags featureFlags;
     private final ExecutionEngine engine;
     private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
@@ -107,14 +108,14 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     public DefaultDependenciesAccessors(ClassPathRegistry registry,
                                         DependenciesAccessorsWorkspaceProvider workspace,
                                         DefaultProjectDependencyFactory projectDependencyFactory,
-                                        FeaturePreviews featurePreview,
+                                        FeatureFlags featureFlags,
                                         ExecutionEngine engine,
                                         FileCollectionFactory fileCollectionFactory,
                                         InputFingerprinter inputFingerprinter) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
         this.projectDependencyFactory = projectDependencyFactory;
-        this.featurePreviews = featurePreview;
+        this.featureFlags = featureFlags;
         this.engine = engine;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
@@ -136,7 +137,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                     }
                 }
             }
-            if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
+            if (featureFlags.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
                 IncubationLogger.incubatingFeatureUsed("Type-safe project accessors");
                 writeProjectAccessors(((SettingsInternal) settings).getProjectRegistry());
             }
@@ -246,7 +247,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 container.create(VersionCatalogsExtension.class, "versionCatalogs", DefaultVersionCatalogsExtension.class, catalogs.build());
             }
         } finally {
-            if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
+            if (featureFlags.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
                 ServiceRegistry services = project.getServices();
                 DependencyResolutionManagementInternal drm = services.get(DependencyResolutionManagementInternal.class);
                 ProjectFinder projectFinder = services.get(ProjectFinder.class);

@@ -57,7 +57,19 @@ public interface TestFramework extends Closeable {
     Action<WorkerProcessBuilder> getWorkerConfigurationAction();
 
     /**
-     * Returns a list of modules the test worker requires on the --module-path if it runs as a module.
+     * Returns a list of jars the test worker requires on the classpath.
+     * These dependencies are loaded from the Gradle distribution.
+     *
+     * @see #getUseImplementationDependencies()
+     */
+    @Internal
+    List<String> getTestWorkerImplementationClasses();
+
+    /**
+     * Returns a list of modules the test worker requires on the modulepath if it runs as a module.
+     * These dependencies are loaded from the Gradle distribution.
+     *
+     * @see #getUseImplementationDependencies()
      */
     @Internal
     List<String> getTestWorkerImplementationModules();
@@ -67,4 +79,19 @@ public interface TestFramework extends Closeable {
      */
     @Internal
     String getDisplayName();
+
+    /**
+     * Whether the legacy behavior of loading test framework dependencies from the Gradle distribution
+     * is enabled. If true, jars and modules as specified by {@link #getTestWorkerImplementationClasses()}
+     * and {@link #getTestWorkerImplementationModules()} respectively are loaded from the Gradle distribution
+     * and placed on the test worker classpath and/or modulepath.
+     * <p>
+     * This functionality is legacy and will eventually be deprecated and removed. Test framework dependencies
+     * should be managed externally from the Gradle distribution, as is done by test suites.
+     *
+     * @return Whether test framework implementation dependencies should be loaded from the Gradle distribution.
+     */
+    @Internal
+    boolean getUseImplementationDependencies();
+
 }

@@ -41,9 +41,11 @@ public class JUnitTestFramework implements TestFramework {
     private JUnitOptions options;
     private JUnitDetector detector;
     private final DefaultTestFilter filter;
+    private final boolean useImplementationDependencies;
 
-    public JUnitTestFramework(Test testTask, DefaultTestFilter filter) {
+    public JUnitTestFramework(Test testTask, DefaultTestFilter filter, boolean useImplementationDependencies) {
         this.filter = filter;
+        this.useImplementationDependencies = useImplementationDependencies;
         options = new JUnitOptions();
         detector = new JUnitDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
     }
@@ -69,6 +71,11 @@ public class JUnitTestFramework implements TestFramework {
     }
 
     @Override
+    public List<String> getTestWorkerImplementationClasses() {
+        return Collections.singletonList("junit");
+    }
+
+    @Override
     public List<String> getTestWorkerImplementationModules() {
         return Collections.emptyList();
     }
@@ -76,6 +83,11 @@ public class JUnitTestFramework implements TestFramework {
     @Override
     public String getDisplayName() {
         return "JUnit 4";
+    }
+
+    @Override
+    public boolean getUseImplementationDependencies() {
+        return useImplementationDependencies;
     }
 
     @Override

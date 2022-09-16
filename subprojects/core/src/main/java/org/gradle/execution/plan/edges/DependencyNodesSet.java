@@ -18,7 +18,6 @@ package org.gradle.execution.plan.edges;
 
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.execution.plan.Node;
-import org.gradle.execution.plan.TaskNode;
 
 import java.util.NavigableSet;
 
@@ -40,7 +39,7 @@ public interface DependencyNodesSet {
         }
 
         @Override
-        public DependencyNodesSet addMustSuccessor(TaskNode toNode) {
+        public DependencyNodesSet addMustSuccessor(Node toNode) {
             return new DependencySuccessorsOnlyNodeSet().addMustSuccessor(toNode);
         }
 
@@ -60,7 +59,7 @@ public interface DependencyNodesSet {
 
     NavigableSet<Node> getMustSuccessors();
 
-    DependencyNodesSet addMustSuccessor(TaskNode toNode);
+    DependencyNodesSet addMustSuccessor(Node toNode);
 
     void onNodeComplete(Node node, Node dependency);
 

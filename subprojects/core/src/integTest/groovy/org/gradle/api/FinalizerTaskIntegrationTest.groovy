@@ -164,6 +164,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21000")
+    @Ignore("https://github.com/gradle/gradle-private/issues/3574")
     def "finalizer task can depend on finalized tasks where one is an entry point task and one is not"() {
         given:
         buildFile '''
@@ -190,6 +191,10 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         2.times {
             fails 'entryPoint', '-PentryPoint.broken'
             result.assertTasksExecuted ':entryPoint'
+        }
+        2.times {
+            fails 'entryPoint', '-PentryPoint.broken', '--continue'
+            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep'
         }
         2.times {
             fails 'entryPoint', '-PfinalizerDepDep.broken'
@@ -390,7 +395,8 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
         2.times {
             fails 'entry', '-PshadowJar.broken'
-            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar'
+            // jar may or may not run
+            result.assertTaskOrder ':jarOne', ':classes', ':shadowJar'
         }
         2.times {
             succeeds 'jarOne', 'lifecycleTwo'

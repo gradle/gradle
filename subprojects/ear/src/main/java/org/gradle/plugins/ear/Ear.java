@@ -18,7 +18,6 @@ package org.gradle.plugins.ear;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
@@ -288,7 +287,6 @@ public class Ear extends Jar {
      * @since 7.1
      */
     @Internal
-    @Incubating
     public DirectoryProperty getAppDirectory() {
         return appDir;
     }

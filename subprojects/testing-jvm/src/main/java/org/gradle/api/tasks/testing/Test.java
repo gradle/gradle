@@ -23,6 +23,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -197,7 +198,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         forkOptions.setExecutable(null);
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
         javaLauncher = getObjectFactory().property(JavaLauncher.class);
-        testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
+        testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
     }
 
     @Inject
@@ -1023,7 +1024,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 3.5
      */
     public void useJUnit(Action<? super JUnitOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()), testFrameworkConfigure);
+        useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true), testFrameworkConfigure);
     }
 
     /**
@@ -1055,7 +1056,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 4.6
      */
     public void useJUnitPlatform(Action<? super JUnitPlatformOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter()), testFrameworkConfigure);
+        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), true), testFrameworkConfigure);
     }
 
     /**
@@ -1263,6 +1264,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
                 // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
                 File parentJavaHome = executable.getParentFile().getParentFile();
                 return new SpecificInstallationToolchainSpec(getObjectFactory(), parentJavaHome);
+            } else {
+                throw new InvalidUserDataException("The configured executable does not exist (" + executable.getAbsolutePath() + ")");
             }
         }
 
