@@ -31,7 +31,7 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
             apply plugin: 'java-library'
-            
+
             repositories {
                 maven { url "${mavenHttpRepo.uri}" }
             }
@@ -85,7 +85,7 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:main:1.0') {
-                    variant('api', ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('api', ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.compile-view': 'java-complete', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     edge('org:foo:{prefer 1.9}', 'org:foo:1.9')
                 }
             }
@@ -122,9 +122,9 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
         setup:
         buildFile.text = """
             apply plugin: 'java-library'
-            
+
             repositories {
-                maven { 
+                maven {
                     url "${mavenHttpRepo.uri}"
                     metadataSources {
                         mavenPom()
@@ -133,7 +133,7 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
                     }
                 }
             }
-            
+
              dependencies {
                 api "org:main:1.0"
             }

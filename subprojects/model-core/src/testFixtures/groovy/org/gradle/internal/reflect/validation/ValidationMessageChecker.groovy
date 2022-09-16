@@ -383,7 +383,7 @@ trait ValidationMessageChecker {
     @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
-    String dummyValidationProblem(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
+    String dummyValidationProblem(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
         display(SimpleMessage, 'dummy') {
             type(onType).property(onProperty)
             description(desc)
@@ -394,7 +394,7 @@ trait ValidationMessageChecker {
     @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
-    String dummyValidationProblemWithLink(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
+    String dummyValidationProblemWithLink(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
         display(SimpleMessage, 'dummy') {
             type(onType).property(onProperty)
             description(desc)
@@ -434,7 +434,8 @@ trait ValidationMessageChecker {
                                                                    String section = 'sec:up_to_date_checks') {
         String asSingleLine = convertToSingleLine(message)
         String deprecationMessage = asSingleLine + (asSingleLine.endsWith(" ") ? '' : ' ') +
-            "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+            "This behavior has been deprecated. " +
+            "This behavior is scheduled to be removed in Gradle 9.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
             "See https://docs.gradle.org/current/userguide/${docId}.html#${section} for more details."
         executer.expectDocumentedDeprecationWarning(deprecationMessage)

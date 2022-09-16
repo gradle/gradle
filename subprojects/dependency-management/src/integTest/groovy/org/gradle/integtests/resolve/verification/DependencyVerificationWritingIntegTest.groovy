@@ -739,8 +739,8 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
             }
             artifact("foo-1.0.module") {
                 declaresChecksums(
-                    sha1: "5cb00c1d3c96a6f47cf3f4129a0db4fcd371b1ed",
-                    sha512: "fa852fb8aab53474f4e498026557806de823797398ac86402636801eebbb13bd2c53b64fbefe5c3c038a64fca3c7b70d76865c5d644e9e9c80a50b4076afe997"
+                    sha1: "75d309f268a756eeabae34454ea4b7cab44c8c80",
+                    sha512: "77b95818488368ddb841ba6572e9865aca62d16ddbf554428f3becdf73c90f5701b617930d353598f33f83dcc04018dc9a0a8dd47dd2068739418f8c7c7f9b43"
                 )
             }
         }

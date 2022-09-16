@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.quality.codenarc
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
@@ -59,12 +58,11 @@ class CodeNarcRelocationIntegrationTest extends AbstractProjectRelocationIntegra
                 reports.text.required = true
             }
 
-            ${JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14) ?
-            """
             configurations.codenarc {
-                resolutionStrategy.force 'org.codehaus.groovy:groovy:${GroovySystem.version}'
+                attributes {
+                    attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL)) // to avoid shadowRuntimeElements variant
+                }
             }
-            """ : ""}
         """
     }
 

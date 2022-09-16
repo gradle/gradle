@@ -37,6 +37,8 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+
+    integTestImplementation(testFixtures(project(":language-groovy")))
 }
 
 packageCycles {
