@@ -28,15 +28,15 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import java.io.File;
 import java.util.Optional;
 
-public class LoadPreviousExecutionStateStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
-    private final Step<? super PreviousExecutionContext, ? extends R> delegate;
+public class LoadPreviousExecutionStateStep<C extends WorkspaceContext> implements CachingResult.Step<C> {
+    private final CachingResult.Step<? super PreviousExecutionContext> delegate;
 
-    public LoadPreviousExecutionStateStep(Step<? super PreviousExecutionContext, ? extends R> delegate) {
+    public LoadPreviousExecutionStateStep(CachingResult.Step<? super PreviousExecutionContext> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public <T> CachingResult<T> execute(UnitOfWork<T> work, C context) {
         Identity identity = context.getIdentity();
         Optional<PreviousExecutionState> previousExecutionState = context.getHistory()
             .flatMap(history -> history.load(identity.getUniqueId()));

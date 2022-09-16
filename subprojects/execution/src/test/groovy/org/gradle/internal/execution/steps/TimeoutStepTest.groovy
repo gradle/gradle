@@ -26,12 +26,17 @@ import org.gradle.internal.operations.OperationIdentifier
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 
-class TimeoutStepTest extends ContextInsensitiveStepSpec {
+class TimeoutStepTest extends ContextInsensitiveStepSpec<Result.Step> {
     def timeoutHandler = Mock(TimeoutHandler)
     def buildOperationRef = new DefaultBuildOperationRef(new OperationIdentifier(1), new OperationIdentifier(2))
     def currentBuildOperationRef = new CurrentBuildOperationRef()
     def step = new TimeoutStep<>(timeoutHandler, currentBuildOperationRef, delegate)
     def delegateResult = Mock(Result)
+
+    @Override
+    protected Result.Step createDelegate() {
+        Mock(Result.Step)
+    }
 
     def "negative timeout is reported"() {
         when:

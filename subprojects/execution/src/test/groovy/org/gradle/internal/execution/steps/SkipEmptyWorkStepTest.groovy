@@ -34,7 +34,7 @@ import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXE
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.SHORT_CIRCUITED
 import static org.gradle.internal.execution.UnitOfWork.InputBehavior.PRIMARY
 
-class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
+class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext, CachingResult.Step> {
     def outputChangeListener = Mock(OutputChangeListener)
     def workInputListeners = Mock(WorkInputListeners)
     def outputsCleaner = Mock(OutputsCleaner)
@@ -61,6 +61,11 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
             getInputProperties() >> { knownInputProperties }
             getInputFileProperties() >> { knownInputFileProperties }
         }
+    }
+
+    @Override
+    protected CachingResult.Step createDelegate() {
+        Mock(CachingResult.Step)
     }
 
     def setup() {
@@ -126,7 +131,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         1 * sourceFileFingerprint.empty >> false
 
         then:
-        1 * delegate.execute(work, _ as PreviousExecutionContext) >> { UnitOfWork work, PreviousExecutionContext delegateContext ->
+        1 * delegate.execute(work, _ as PreviousExecutionContext) >> { UnitOfWork<?> work, PreviousExecutionContext delegateContext ->
             assert delegateContext.inputProperties as Map == ["known": knownSnapshot]
             assert delegateContext.inputFileProperties as Map == ["known-file": knownFileFingerprint, "source-file": sourceFileFingerprint]
             return delegateResult

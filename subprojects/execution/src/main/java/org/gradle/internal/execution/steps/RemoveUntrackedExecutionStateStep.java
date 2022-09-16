@@ -18,18 +18,18 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.UnitOfWork;
 
-public class RemoveUntrackedExecutionStateStep<C extends WorkspaceContext, R extends AfterExecutionResult> implements Step<C, R> {
-    private final Step<? super C, ? extends R> delegate;
+public class RemoveUntrackedExecutionStateStep<C extends WorkspaceContext> implements CachingResult.Step<C> {
+    private final CachingResult.Step<? super C> delegate;
 
     public RemoveUntrackedExecutionStateStep(
-        Step<? super C, ? extends R> delegate
+        CachingResult.Step<? super C> delegate
     ) {
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
-        R result = delegate.execute(work, context);
+    public <T> CachingResult<T> execute(UnitOfWork<T> work, C context) {
+        CachingResult<T> result = delegate.execute(work, context);
         context.getHistory()
             .ifPresent(history -> {
                 if (!result.getAfterExecutionState().isPresent()) {

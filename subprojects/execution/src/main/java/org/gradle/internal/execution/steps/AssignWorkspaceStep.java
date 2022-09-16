@@ -27,15 +27,15 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import java.io.File;
 import java.util.Optional;
 
-public class AssignWorkspaceStep<C extends IdentityContext, R extends Result> implements Step<C, R> {
-    private final Step<? super WorkspaceContext, ? extends R> delegate;
+public class AssignWorkspaceStep<C extends IdentityContext> implements CachingResult.Step<C> {
+    private final CachingResult.Step<? super WorkspaceContext> delegate;
 
-    public AssignWorkspaceStep(Step<? super WorkspaceContext, ? extends R> delegate) {
+    public AssignWorkspaceStep(CachingResult.Step<? super WorkspaceContext> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public <T> CachingResult<T> execute(UnitOfWork<T> work, C context) {
         WorkspaceProvider workspaceProvider = work.getWorkspaceProvider();
         return workspaceProvider.withWorkspace(context.getIdentity().getUniqueId(), (workspace, history) -> delegate.execute(work, new WorkspaceContext() {
             @Override

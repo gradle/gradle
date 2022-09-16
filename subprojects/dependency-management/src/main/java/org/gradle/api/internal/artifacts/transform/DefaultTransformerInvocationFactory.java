@@ -108,7 +108,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         ProjectInternal producerProject = determineProducerProject(subject);
         TransformationWorkspaceServices workspaceServices = determineWorkspaceServices(producerProject);
 
-        UnitOfWork execution;
+        UnitOfWork<TransformationResult> execution;
         if (producerProject == null) {
             execution = new ImmutableTransformerExecution(
                 transformer,
@@ -234,7 +234,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
     }
 
-    private abstract static class AbstractTransformerExecution implements UnitOfWork {
+    private abstract static class AbstractTransformerExecution implements UnitOfWork<TransformationResult> {
         protected final Transformer transformer;
         protected final File inputArtifact;
         private final ArtifactTransformDependencies dependencies;
@@ -274,7 +274,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public WorkOutput execute(ExecutionRequest executionRequest) {
+        public WorkOutput<TransformationResult> execute(ExecutionRequest executionRequest) {
             artifactTransformListener.beforeTransformerInvocation(transformer, subject);
             try {
                 return executeWithinTransformerListener(executionRequest);
@@ -283,7 +283,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             }
         }
 
-        private WorkOutput executeWithinTransformerListener(ExecutionRequest executionRequest) {
+        private WorkOutput<TransformationResult> executeWithinTransformerListener(ExecutionRequest executionRequest) {
             TransformationResult result = buildOperationExecutor.call(new CallableBuildOperation<TransformationResult>() {
                 @Override
                 public TransformationResult call(BuildOperationContext context) {
@@ -303,21 +303,21 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 }
             });
 
-            return new WorkOutput() {
+            return new WorkOutput<TransformationResult>() {
                 @Override
                 public WorkResult getDidWork() {
                     return WorkResult.DID_WORK;
                 }
 
                 @Override
-                public Object getOutput() {
+                public TransformationResult getOutput() {
                     return result;
                 }
             };
         }
 
         @Override
-        public Object loadAlreadyProducedOutput(File workspace) {
+        public TransformationResult loadAlreadyProducedOutput(File workspace) {
             TransformationResultSerializer resultSerializer = new TransformationResultSerializer(getOutputDir(workspace));
             return resultSerializer.readResultsFile(getResultsFile(workspace));
         }

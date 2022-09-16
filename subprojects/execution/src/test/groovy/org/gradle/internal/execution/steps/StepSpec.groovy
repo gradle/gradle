@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 import java.util.function.Consumer
 
-abstract class StepSpec<C extends Context> extends Specification {
+abstract class StepSpec<C extends Context, D extends Step<C, ? extends Result<?>>> extends Specification {
     @Shared @ClassRule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
     final buildOperationExecutor = new TestBuildOperationExecutor()
@@ -36,11 +36,12 @@ abstract class StepSpec<C extends Context> extends Specification {
     final identity = Stub(UnitOfWork.Identity) {
         getUniqueId() >> ":test"
     }
-    final delegate = Mock(DeferredExecutionAwareStep)
     final work = Stub(UnitOfWork)
-    final C context = createContext()
+    final context = createContext()
+    final delegate = createDelegate()
 
     abstract protected C createContext()
+    abstract protected D createDelegate()
 
     def setup() {
         _ * context.identity >> identity

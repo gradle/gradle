@@ -28,7 +28,7 @@ import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_
 import static org.gradle.internal.execution.UnitOfWork.WorkResult.DID_NO_WORK
 import static org.gradle.internal.execution.UnitOfWork.WorkResult.DID_WORK
 
-class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
+class ExecuteStepTest extends StepSpec<ChangingOutputsContext, Result.Step> {
     def workspace = Mock(File)
     def previousOutputs = ImmutableSortedMap.of()
     def previousExecutionState = Stub(PreviousExecutionState) {
@@ -41,6 +41,11 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
     @Override
     protected ChangingOutputsContext createContext() {
         Stub(ChangingOutputsContext)
+    }
+
+    @Override
+    protected Result.Step createDelegate() {
+        Mock(Result.Step)
     }
 
     def setup() {

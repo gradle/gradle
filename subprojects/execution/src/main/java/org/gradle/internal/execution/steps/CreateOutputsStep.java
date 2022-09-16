@@ -25,17 +25,17 @@ import java.io.File;
 
 import static org.gradle.util.internal.GFileUtils.mkdirs;
 
-public class CreateOutputsStep<C extends ChangingOutputsContext, R extends Result> implements Step<C, R> {
+public class CreateOutputsStep<C extends ChangingOutputsContext> implements Result.Step<C> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CreateOutputsStep.class);
 
-    private final Step<? super C, ? extends R> delegate;
+    private final Result.Step<? super C> delegate;
 
-    public CreateOutputsStep(Step<? super C, ? extends R> delegate) {
+    public CreateOutputsStep(Result.Step<? super C> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public <T> Result<T> execute(UnitOfWork<T> work, C context) {
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {

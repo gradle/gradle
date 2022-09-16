@@ -25,7 +25,7 @@ import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.TreeType
 import spock.lang.Shared
 
-class CleanupStaleOutputsStepTest extends StepSpec<WorkspaceContext> {
+class CleanupStaleOutputsStepTest extends StepSpec<WorkspaceContext, CachingResult.Step> {
     def cleanupRegistry = Mock(BuildOutputCleanupRegistry)
     def deleter = Mock(Deleter)
     def outputChangeListener = Mock(OutputChangeListener)
@@ -44,11 +44,16 @@ class CleanupStaleOutputsStepTest extends StepSpec<WorkspaceContext> {
         outputFilesRepository,
         delegate)
 
-    def delegateResult = Mock(Result)
+    def delegateResult = Mock(CachingResult)
 
     @Override
     protected WorkspaceContext createContext() {
         Stub(WorkspaceContext)
+    }
+
+    @Override
+    protected CachingResult.Step createDelegate() {
+        Mock(CachingResult.Step)
     }
 
     def "#description is cleaned up: #cleanedUp"() {

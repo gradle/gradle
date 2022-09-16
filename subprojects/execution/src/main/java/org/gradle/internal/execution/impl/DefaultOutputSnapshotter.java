@@ -33,7 +33,7 @@ public class DefaultOutputSnapshotter implements OutputSnapshotter {
     }
 
     @Override
-    public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork work, File workspace) {
+    public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork<?> work, File workspace) {
         ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
         work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
             @Override

@@ -174,7 +174,6 @@ import org.gradle.internal.execution.steps.RemoveUntrackedExecutionStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
-import org.gradle.internal.execution.steps.Step;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
 import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.UpToDateResult;
@@ -739,16 +738,16 @@ class DependencyManagementBuildScopeServices {
         // @formatter:on
     }
 
-    private static class NoOpCachingStateStep<C extends ValidationFinishedContext> implements Step<C, CachingResult> {
-        private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
+    private static class NoOpCachingStateStep<C extends ValidationFinishedContext> implements CachingResult.Step<C> {
+        private final UpToDateResult.Step<? super CachingContext> delegate;
 
-        public NoOpCachingStateStep(Step<? super CachingContext, ? extends UpToDateResult> delegate) {
+        public NoOpCachingStateStep(UpToDateResult.Step<? super CachingContext> delegate) {
             this.delegate = delegate;
         }
 
         @Override
-        public CachingResult execute(UnitOfWork work, ValidationFinishedContext context) {
-            UpToDateResult result = delegate.execute(work, new CachingContext() {
+        public <T> CachingResult<T> execute(UnitOfWork<T> work, C context) {
+            UpToDateResult<T> result = delegate.execute(work, new CachingContext() {
                 @Override
                 public CachingState getCachingState() {
                     return CachingState.NOT_DETERMINED;
@@ -804,7 +803,7 @@ class DependencyManagementBuildScopeServices {
                     return context.getBeforeExecutionState();
                 }
             });
-            return new CachingResult() {
+            return new CachingResult<T>() {
                 @Override
                 public CachingState getCachingState() {
                     return CachingState.NOT_DETERMINED;
@@ -826,7 +825,7 @@ class DependencyManagementBuildScopeServices {
                 }
 
                 @Override
-                public Try<Execution> getExecution() {
+                public Try<Execution<T>> getExecution() {
                     return result.getExecution();
                 }
 

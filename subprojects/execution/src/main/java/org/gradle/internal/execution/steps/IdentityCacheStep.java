@@ -24,21 +24,21 @@ import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 
-public class IdentityCacheStep<C extends IdentityContext, R extends Result> implements DeferredExecutionAwareStep<C, R> {
+public class IdentityCacheStep<C extends IdentityContext> implements CachingResult.DeferredExecutionAwareStep<C> {
 
-    private final Step<? super IdentityContext, ? extends R> delegate;
+    private final CachingResult.Step<? super IdentityContext> delegate;
 
-    public IdentityCacheStep(Step<? super IdentityContext, ? extends R> delegate) {
+    public IdentityCacheStep(CachingResult.Step<? super IdentityContext> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public <T> CachingResult<T> execute(UnitOfWork<T> work, C context) {
         return delegate.execute(work, context);
     }
 
     @Override
-    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<T>> cache) {
+    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork<T> work, C context, Cache<Identity, Try<T>> cache) {
         Identity identity = context.getIdentity();
         Try<T> cachedOutput = cache.getIfPresent(identity);
         if (cachedOutput != null) {

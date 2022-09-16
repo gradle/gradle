@@ -28,13 +28,18 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 import static org.gradle.internal.execution.ExecutionEngine.Execution
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
 
-class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
+class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext, AfterExecutionResult.Step> {
     def step = new SkipUpToDateStep<>(delegate)
     def changes = Mock(ExecutionStateChanges)
 
     @Override
     protected IncrementalChangesContext createContext() {
         Stub(IncrementalChangesContext)
+    }
+
+    @Override
+    protected AfterExecutionResult.Step createDelegate() {
+        Mock(AfterExecutionResult.Step)
     }
 
     def "skips when outputs are up to date"() {

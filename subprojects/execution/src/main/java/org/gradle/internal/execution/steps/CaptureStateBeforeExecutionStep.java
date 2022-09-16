@@ -48,20 +48,20 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
 
-public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext, R extends CachingResult> extends BuildOperationStep<C, R> {
+public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext> extends BuildOperationStep<C, CachingResult<?>> implements CachingResult.Step<C> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final OutputSnapshotter outputSnapshotter;
     private final OverlappingOutputDetector overlappingOutputDetector;
-    private final Step<? super BeforeExecutionContext, ? extends R> delegate;
+    private final CachingResult.Step<? super BeforeExecutionContext> delegate;
 
     public CaptureStateBeforeExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
-        Step<? super BeforeExecutionContext, ? extends R> delegate
+        CachingResult.Step<? super BeforeExecutionContext> delegate
     ) {
         super(buildOperationExecutor);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
@@ -71,7 +71,7 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public <T> CachingResult<T> execute(UnitOfWork<T> work, C context) {
         Optional<BeforeExecutionState> beforeExecutionState = context.getHistory()
             .map(history -> captureExecutionState(work, context));
         return delegate.execute(work, new BeforeExecutionContext() {
@@ -127,7 +127,7 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
     }
 
     @Nonnull
-    private BeforeExecutionState captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {
+    private BeforeExecutionState captureExecutionState(UnitOfWork<?> work, PreviousExecutionContext context) {
         return operation(operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots;
                 try {
@@ -155,7 +155,7 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
     }
 
     @Nullable
-    private OverlappingOutputs detectOverlappingOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots) {
+    private OverlappingOutputs detectOverlappingOutputs(UnitOfWork<?> work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots) {
         if (work.getOverlappingOutputHandling() == UnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS) {
             return null;
         }
@@ -165,7 +165,7 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
         return overlappingOutputDetector.detect(previousOutputSnapshots, unfilteredOutputSnapshots);
     }
 
-    private BeforeExecutionState captureExecutionStateWithOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots, @Nullable OverlappingOutputs overlappingOutputs) {
+    private BeforeExecutionState captureExecutionStateWithOutputs(UnitOfWork<?> work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots, @Nullable OverlappingOutputs overlappingOutputs) {
         Optional<PreviousExecutionState> previousExecutionState = context.getPreviousExecutionState();
 
         ImplementationsBuilder implementationsBuilder = new ImplementationsBuilder(classLoaderHierarchyHasher);

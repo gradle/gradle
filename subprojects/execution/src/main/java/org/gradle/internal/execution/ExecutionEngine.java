@@ -30,9 +30,9 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 public interface ExecutionEngine {
-    Request createRequest(UnitOfWork work);
+    <T> Request<T> createRequest(UnitOfWork<T> work);
 
-    interface Request {
+    interface Request<T> {
         /**
          * Force the re-execution of the unit of work, disabling optimizations
          * like up-to-date checks, build cache and incremental execution.
@@ -48,7 +48,7 @@ public interface ExecutionEngine {
          * Execute the unit of work using available optimizations like
          * up-to-date checks, build cache and incremental execution.
          */
-        Result execute();
+        Result<T> execute();
 
         /**
          * Load the unit of work from the given cache, or defer its execution.
@@ -57,11 +57,11 @@ public interface ExecutionEngine {
          * Otherwise, the execution is wrapped in a not-yet-complete {@link Deferrable} to be evaluated later.
          * The work is looked up by its {@link UnitOfWork.Identity identity} in the given cache.
          */
-        <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, Try<T>> cache);
+        Deferrable<Try<T>> executeDeferred(Cache<Identity, Try<T>> cache);
     }
 
-    interface Result {
-        Try<Execution> getExecution();
+    interface Result<T> {
+        Try<Execution<T>> getExecution();
 
         CachingState getCachingState();
 
@@ -83,7 +83,7 @@ public interface ExecutionEngine {
         Optional<AfterExecutionState> getAfterExecutionState();
     }
 
-    interface Execution {
+    interface Execution<T> {
         /**
          * Get how the outputs have been produced.
          */
@@ -93,9 +93,8 @@ public interface ExecutionEngine {
          * Get the object representing the produced output.
          * The type of value returned here depends on the {@link UnitOfWork} implmenetation.
          */
-        // TODO Parametrize UnitOfWork with this generated result
         @Nullable
-        Object getOutput();
+        T getOutput();
     }
 
     /**

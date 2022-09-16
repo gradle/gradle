@@ -54,18 +54,18 @@ import static org.gradle.internal.execution.history.impl.OutputSnapshotUtil.filt
  * All changes to the outputs must be done at this point, so this step needs to be around anything
  * which uses an {@link ChangingOutputsContext}.
  */
-public class CaptureStateAfterExecutionStep<C extends InputChangesContext> extends BuildOperationStep<C, AfterExecutionResult> {
+public class CaptureStateAfterExecutionStep<C extends InputChangesContext> extends BuildOperationStep<C, AfterExecutionResult<?>> implements AfterExecutionResult.Step<C> {
     private final UniqueId buildInvocationScopeId;
     private final OutputSnapshotter outputSnapshotter;
     private final OutputChangeListener outputChangeListener;
-    private final Step<? super ChangingOutputsContext, ? extends Result> delegate;
+    private final Result.Step<? super ChangingOutputsContext> delegate;
 
     public CaptureStateAfterExecutionStep(
         BuildOperationExecutor buildOperationExecutor,
         UniqueId buildInvocationScopeId,
         OutputSnapshotter outputSnapshotter,
         OutputChangeListener outputChangeListener,
-        Step<? super ChangingOutputsContext, ? extends Result> delegate
+        Result.Step<? super ChangingOutputsContext> delegate
     ) {
         super(buildOperationExecutor);
         this.buildInvocationScopeId = buildInvocationScopeId;
@@ -75,20 +75,20 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
     }
 
     @Override
-    public AfterExecutionResult execute(UnitOfWork work, C context) {
-        Result result = executeDelegateBroadcastingChanges(work, context);
+    public <T> AfterExecutionResult<T> execute(UnitOfWork<T> work, C context) {
+        Result<T> result = executeDelegateBroadcastingChanges(work, context);
         Duration duration = result.getDuration();
         Optional<AfterExecutionState> afterExecutionState = context.getBeforeExecutionState()
             .map(beforeExecutionState -> captureStateAfterExecution(work, context, beforeExecutionState, duration));
 
-        return new AfterExecutionResult() {
+        return new AfterExecutionResult<T>() {
             @Override
             public Optional<AfterExecutionState> getAfterExecutionState() {
                 return afterExecutionState;
             }
 
             @Override
-            public Try<Execution> getExecution() {
+            public Try<Execution<T>> getExecution() {
                 return result.getExecution();
             }
 
@@ -99,7 +99,7 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
         };
     }
 
-    private Result executeDelegateBroadcastingChanges(UnitOfWork work, C context) {
+    private <T> Result<T> executeDelegateBroadcastingChanges(UnitOfWork<T> work, C context) {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
@@ -126,7 +126,7 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
         }
     }
 
-    private AfterExecutionState captureStateAfterExecution(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState, Duration duration) {
+    private AfterExecutionState captureStateAfterExecution(UnitOfWork<?> work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState, Duration duration) {
         return operation(
             operationContext -> {
                 try {
@@ -152,7 +152,7 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
         );
     }
 
-    private ImmutableSortedMap<String, FileSystemSnapshot> captureOutputs(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState) {
+    private ImmutableSortedMap<String, FileSystemSnapshot> captureOutputs(UnitOfWork<?> work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState) {
         ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsAfterExecution = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
 
         if (beforeExecutionState.getDetectedOverlappingOutputs().isPresent()) {

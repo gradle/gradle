@@ -44,7 +44,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public interface UnitOfWork extends Describable {
+public interface UnitOfWork<T> extends Describable {
     /**
      * Determine the identity of the work unit that uniquely identifies it
      * among the other work units of the same type in the current build.
@@ -62,7 +62,7 @@ public interface UnitOfWork extends Describable {
     /**
      * Executes the work synchronously.
      */
-    WorkOutput execute(ExecutionRequest executionRequest);
+    WorkOutput<T> execute(ExecutionRequest executionRequest);
 
     /**
      * Parameter object for {@link #execute(ExecutionRequest)}.
@@ -91,7 +91,7 @@ public interface UnitOfWork extends Describable {
     /**
      * The result of executing the user code.
      */
-    interface WorkOutput {
+    interface WorkOutput<T> {
         /**
          * Whether any significant amount of work has happened while executing the user code.
          * <p>
@@ -103,7 +103,7 @@ public interface UnitOfWork extends Describable {
          * Implementation-specific output of executing the user code.
          */
         @Nullable
-        Object getOutput();
+        T getOutput();
     }
 
     enum WorkResult {
@@ -117,7 +117,7 @@ public interface UnitOfWork extends Describable {
      * or loaded from cache.
      */
     @Nullable
-    Object loadAlreadyProducedOutput(File workspace);
+    T loadAlreadyProducedOutput(File workspace);
 
     /**
      * Returns the {@link WorkspaceProvider} to allocate a workspace to execution this work in.

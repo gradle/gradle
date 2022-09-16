@@ -30,27 +30,27 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
-public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> implements DeferredExecutionAwareStep<C, R> {
-    private final DeferredExecutionAwareStep<? super IdentityContext, R> delegate;
+public class IdentifyStep<C extends ExecutionRequestContext> implements CachingResult.DeferredExecutionAwareStep<C> {
+    private final CachingResult.DeferredExecutionAwareStep<? super IdentityContext> delegate;
 
     public IdentifyStep(
-        DeferredExecutionAwareStep<? super IdentityContext, R> delegate
+        CachingResult.DeferredExecutionAwareStep<? super IdentityContext> delegate
     ) {
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public <T> CachingResult<T> execute(UnitOfWork<T> work, C context) {
         return delegate.execute(work, createIdentityContext(work, context));
     }
 
     @Override
-    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<T>> cache) {
+    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork<T> work, C context, Cache<Identity, Try<T>> cache) {
         return delegate.executeDeferred(work, createIdentityContext(work, context), cache);
     }
 
     @Nonnull
-    private IdentityContext createIdentityContext(UnitOfWork work, C context) {
+    private IdentityContext createIdentityContext(UnitOfWork<?> work, C context) {
         InputFingerprinter.Result inputs = work.getInputFingerprinter().fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),

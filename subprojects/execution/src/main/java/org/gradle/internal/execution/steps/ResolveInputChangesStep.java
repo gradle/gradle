@@ -35,17 +35,17 @@ import java.util.Optional;
 
 import static org.gradle.internal.execution.UnitOfWork.ExecutionBehavior.NON_INCREMENTAL;
 
-public class ResolveInputChangesStep<C extends IncrementalChangesContext, R extends Result> implements Step<C, R> {
+public class ResolveInputChangesStep<C extends IncrementalChangesContext> implements AfterExecutionResult.Step<C> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveInputChangesStep.class);
 
-    private final Step<? super InputChangesContext, ? extends R> delegate;
+    private final AfterExecutionResult.Step<? super InputChangesContext> delegate;
 
-    public ResolveInputChangesStep(Step<? super InputChangesContext, ? extends R> delegate) {
+    public ResolveInputChangesStep(AfterExecutionResult.Step<? super InputChangesContext> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public <T> AfterExecutionResult<T> execute(UnitOfWork<T> work, C context) {
         Optional<InputChangesInternal> inputChanges = determineInputChanges(work, context);
         return delegate.execute(work, new InputChangesContext() {
             @Override
@@ -110,7 +110,7 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext, R exte
         });
     }
 
-    private static Optional<InputChangesInternal> determineInputChanges(UnitOfWork work, IncrementalChangesContext context) {
+    private static Optional<InputChangesInternal> determineInputChanges(UnitOfWork<?> work, IncrementalChangesContext context) {
         if (work.getExecutionBehavior() == NON_INCREMENTAL) {
             return Optional.empty();
         }

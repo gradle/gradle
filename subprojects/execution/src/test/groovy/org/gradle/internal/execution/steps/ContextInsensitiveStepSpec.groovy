@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
-class ContextInsensitiveStepSpec extends StepSpec<Context> {
+abstract class ContextInsensitiveStepSpec<D extends Step<Context, ? extends Result<?>>> extends StepSpec<Context, D> {
     @Override
     protected Context createContext() {
         Stub(Context)

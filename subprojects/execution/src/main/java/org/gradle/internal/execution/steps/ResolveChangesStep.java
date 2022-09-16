@@ -41,25 +41,25 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
 
-public class ResolveChangesStep<C extends CachingContext, R extends Result> implements Step<C, R> {
+public class ResolveChangesStep<C extends CachingContext> implements UpToDateResult.Step<C> {
     private static final ImmutableList<String> NO_HISTORY = ImmutableList.of("No history is available.");
     private static final ImmutableList<String> UNTRACKED = ImmutableList.of("Change tracking is disabled.");
     private static final ImmutableList<String> VALIDATION_FAILED = ImmutableList.of("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.");
 
     private final ExecutionStateChangeDetector changeDetector;
 
-    private final Step<? super IncrementalChangesContext, R> delegate;
+    private final UpToDateResult.Step<? super IncrementalChangesContext> delegate;
 
     public ResolveChangesStep(
         ExecutionStateChangeDetector changeDetector,
-        Step<? super IncrementalChangesContext, R> delegate
+        UpToDateResult.Step<? super IncrementalChangesContext> delegate
     ) {
         this.changeDetector = changeDetector;
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public <T> UpToDateResult<T> execute(UnitOfWork<T> work, C context) {
         IncrementalChangesContext delegateContext = context.getBeforeExecutionState()
             .map(beforeExecution -> resolveExecutionStateChanges(work, context, beforeExecution))
             .map(changes -> createDelegateContext(context, changes.getChangeDescriptions(), changes))
@@ -74,7 +74,7 @@ public class ResolveChangesStep<C extends CachingContext, R extends Result> impl
     }
 
     @Nonnull
-    private ExecutionStateChanges resolveExecutionStateChanges(UnitOfWork work, CachingContext context, BeforeExecutionState beforeExecution) {
+    private ExecutionStateChanges resolveExecutionStateChanges(UnitOfWork<?> work, CachingContext context, BeforeExecutionState beforeExecution) {
         IncrementalInputProperties incrementalInputProperties = createIncrementalInputProperties(work);
         return context.getNonIncrementalReason()
             .map(ImmutableList::of)
@@ -101,7 +101,7 @@ public class ResolveChangesStep<C extends CachingContext, R extends Result> impl
                 )));
     }
 
-    private static IncrementalInputProperties createIncrementalInputProperties(UnitOfWork work) {
+    private static IncrementalInputProperties createIncrementalInputProperties(UnitOfWork<?> work) {
         switch (work.getExecutionBehavior()) {
             case NON_INCREMENTAL:
                 return IncrementalInputProperties.NONE;

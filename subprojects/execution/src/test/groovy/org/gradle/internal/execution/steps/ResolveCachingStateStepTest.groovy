@@ -21,7 +21,7 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 
-class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
+class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext, UpToDateResult.Step> {
 
     def buildCache = Mock(BuildCacheController)
     def step = new ResolveCachingStateStep(buildCache, true, delegate)
@@ -29,6 +29,11 @@ class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
     @Override
     protected ValidationFinishedContext createContext() {
         Stub(ValidationFinishedContext)
+    }
+
+    @Override
+    protected UpToDateResult.Step createDelegate() {
+        Mock(UpToDateResult.Step)
     }
 
     def "build cache disabled reason is reported when build cache is disabled"() {

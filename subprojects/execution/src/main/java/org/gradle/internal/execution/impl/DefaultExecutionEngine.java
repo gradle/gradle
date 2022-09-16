@@ -24,23 +24,26 @@ import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.execution.steps.DeferredExecutionAwareStep;
+import org.gradle.internal.execution.steps.CachingResult;
 import org.gradle.internal.execution.steps.ExecutionRequestContext;
 
 import java.util.Optional;
 
 public class DefaultExecutionEngine implements ExecutionEngine {
     private final DocumentationRegistry documentationRegistry;
-    private final DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep;
+    private final CachingResult.DeferredExecutionAwareStep<? super ExecutionRequestContext> executeStep;
 
-    public DefaultExecutionEngine(DocumentationRegistry documentationRegistry, DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends Result> executeStep) {
+    public DefaultExecutionEngine(
+        DocumentationRegistry documentationRegistry,
+        CachingResult.DeferredExecutionAwareStep<? super ExecutionRequestContext> executeStep
+    ) {
         this.documentationRegistry = documentationRegistry;
         this.executeStep = executeStep;
     }
 
     @Override
-    public Request createRequest(UnitOfWork work) {
-        return new Request() {
+    public <T> Request<T> createRequest(UnitOfWork<T> work) {
+        return new Request<T>() {
             private String nonIncrementalReason;
             private WorkValidationContext validationContext;
 
@@ -72,12 +75,12 @@ public class DefaultExecutionEngine implements ExecutionEngine {
             }
 
             @Override
-            public Result execute() {
+            public Result<T> execute() {
                 return executeStep.execute(work, createExecutionRequestContext());
             }
 
             @Override
-            public <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, Try<T>> cache) {
+            public Deferrable<Try<T>> executeDeferred(Cache<Identity, Try<T>> cache) {
                 return executeStep.executeDeferred(work, createExecutionRequestContext(), cache);
             }
         };

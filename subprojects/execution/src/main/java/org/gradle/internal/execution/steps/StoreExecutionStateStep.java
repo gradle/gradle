@@ -22,18 +22,18 @@ import org.gradle.internal.execution.history.changes.ChangeDetectorVisitor;
 import org.gradle.internal.execution.history.changes.OutputFileChanges;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-public class StoreExecutionStateStep<C extends PreviousExecutionContext, R extends AfterExecutionResult> implements Step<C, R> {
-    private final Step<? super C, ? extends R> delegate;
+public class StoreExecutionStateStep<C extends PreviousExecutionContext> implements AfterExecutionResult.Step<C> {
+    private final AfterExecutionResult.Step<? super C> delegate;
 
     public StoreExecutionStateStep(
-        Step<? super C, ? extends R> delegate
+        AfterExecutionResult.Step<? super C> delegate
     ) {
         this.delegate = delegate;
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
-        R result = delegate.execute(work, context);
+    public <T> AfterExecutionResult<T> execute(UnitOfWork<T> work, C context) {
+        AfterExecutionResult<T> result = delegate.execute(work, context);
         context.getHistory()
             .ifPresent(history -> result.getAfterExecutionState()
                 .ifPresent(

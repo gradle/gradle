@@ -43,7 +43,7 @@ public class DefaultWorkInputListeners implements WorkInputListeners {
     }
 
     @Override
-    public void broadcastFileSystemInputsOf(UnitOfWork work, EnumSet<InputBehavior> relevantBehaviors) {
+    public void broadcastFileSystemInputsOf(UnitOfWork<?> work, EnumSet<InputBehavior> relevantBehaviors) {
         broadcaster.getSource().onExecute(work, relevantBehaviors);
     }
 }

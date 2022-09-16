@@ -17,9 +17,18 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
 
-public interface CachingResult extends UpToDateResult, ExecutionEngine.Result {
+public interface CachingResult<T> extends UpToDateResult<T>, ExecutionEngine.Result<T> {
 
     CachingState getCachingState();
+
+    interface Step<C extends Context> extends org.gradle.internal.execution.steps.Step<C, CachingResult<?>> {
+        @Override
+        <T> CachingResult<T> execute(UnitOfWork<T> work, C context);
+    }
+
+    interface DeferredExecutionAwareStep<C extends Context> extends org.gradle.internal.execution.steps.DeferredExecutionAwareStep<C, CachingResult<?>>, Step<C> {
+    }
 }

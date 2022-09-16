@@ -16,13 +16,19 @@
 
 package org.gradle.internal.execution.steps;
 
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterExecutionState;
 
 import java.util.Optional;
 
-public interface AfterExecutionResult extends Result {
+public interface AfterExecutionResult<T> extends Result<T> {
     /**
      * State after execution, or {@link Optional#empty()} if work is untracked.
      */
     Optional<AfterExecutionState> getAfterExecutionState();
+
+    interface Step<C extends Context> extends org.gradle.internal.execution.steps.Step<C, AfterExecutionResult<?>> {
+        @Override
+        <T> AfterExecutionResult<T> execute(UnitOfWork<T> work, C context);
+    }
 }

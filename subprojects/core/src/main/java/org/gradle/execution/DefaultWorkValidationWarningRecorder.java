@@ -37,7 +37,7 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
     private final AtomicInteger workWithFailuresCount = new AtomicInteger();
 
     @Override
-    public void recordValidationWarnings(UnitOfWork work, Collection<TypeValidationProblem> warnings) {
+    public void recordValidationWarnings(UnitOfWork<?> work, Collection<TypeValidationProblem> warnings) {
         workWithFailuresCount.incrementAndGet();
 
         ImmutableSet<String> uniqueWarnings = warnings.stream().map(warning -> convertToSingleLine(renderMinimalInformationAbout(warning, true, false))).collect(ImmutableSet.toImmutableSet());

@@ -20,13 +20,18 @@ package org.gradle.internal.execution.steps
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 
-class AssignWorkspaceStepTest extends StepSpec<IdentityContext> {
-    def delegateResult = Mock(Result)
+class AssignWorkspaceStepTest extends StepSpec<IdentityContext, CachingResult.Step> {
+    def delegateResult = Mock(CachingResult)
     def step = new AssignWorkspaceStep<>(delegate)
 
     @Override
     protected IdentityContext createContext() {
         Stub(IdentityContext)
+    }
+
+    @Override
+    protected CachingResult.Step createDelegate() {
+        Mock(CachingResult.Step)
     }
 
     def "delegates with assigned workspace"() {
@@ -42,7 +47,7 @@ class AssignWorkspaceStepTest extends StepSpec<IdentityContext> {
             def actionResult = action.executeInWorkspace(workspace, null)
             return actionResult
         }
-        1 * delegate.execute(work, _ as WorkspaceContext) >> { UnitOfWork work, WorkspaceContext context ->
+        1 * delegate.execute(work, _ as WorkspaceContext) >> { UnitOfWork<?> work, WorkspaceContext context ->
             assert context.workspace == workspace
             return delegateResult
         }

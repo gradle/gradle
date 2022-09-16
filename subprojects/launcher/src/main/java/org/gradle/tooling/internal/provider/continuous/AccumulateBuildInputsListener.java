@@ -42,7 +42,7 @@ public class AccumulateBuildInputsListener implements WorkInputListener {
     }
 
     @Override
-    public void onExecute(UnitOfWork work, EnumSet<InputBehavior> relevantBehaviors) {
+    public void onExecute(UnitOfWork<?> work, EnumSet<InputBehavior> relevantBehaviors) {
         Set<String> taskInputs = new LinkedHashSet<>();
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
         work.visitRegularInputs(new InputVisitor() {

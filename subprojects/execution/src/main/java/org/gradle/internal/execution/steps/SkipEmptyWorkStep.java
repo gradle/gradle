@@ -56,19 +56,19 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, CachingResult> {
+public class SkipEmptyWorkStep implements CachingResult.Step<PreviousExecutionContext> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipEmptyWorkStep.class);
 
     private final OutputChangeListener outputChangeListener;
     private final WorkInputListeners workInputListeners;
     private final Supplier<OutputsCleaner> outputsCleanerSupplier;
-    private final Step<? super PreviousExecutionContext, ? extends CachingResult> delegate;
+    private final CachingResult.Step<? super PreviousExecutionContext> delegate;
 
     public SkipEmptyWorkStep(
         OutputChangeListener outputChangeListener,
         WorkInputListeners workInputListeners,
         Supplier<OutputsCleaner> outputsCleanerSupplier,
-        Step<? super PreviousExecutionContext, ? extends CachingResult> delegate
+        CachingResult.Step<? super PreviousExecutionContext> delegate
     ) {
         this.outputChangeListener = outputChangeListener;
         this.workInputListeners = workInputListeners;
@@ -77,14 +77,14 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
     }
 
     @Override
-    public CachingResult execute(UnitOfWork work, PreviousExecutionContext context) {
+    public <T> CachingResult<T> execute(UnitOfWork<T> work, PreviousExecutionContext context) {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints = context.getInputFileProperties();
         ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots = context.getInputProperties();
         InputFingerprinter.Result newInputs = fingerprintPrimaryInputs(work, context, knownFileFingerprints, knownValueSnapshots);
 
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties = newInputs.getFileFingerprints();
         if (!sourceFileProperties.isEmpty()) {
-            if (hasEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)
+            if (hasEmptySources(work, sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck())
             ) {
                 return skipExecutionWithEmptySources(work, context);
             } else {
@@ -95,7 +95,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         }
     }
 
-    private boolean hasEmptySources(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties, ImmutableSet<String> propertiesRequiringIsEmptyCheck, UnitOfWork work) {
+    private boolean hasEmptySources(UnitOfWork<?> work, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties, ImmutableSet<String> propertiesRequiringIsEmptyCheck) {
         if (propertiesRequiringIsEmptyCheck.isEmpty()) {
             return sourceFileProperties.values().stream()
                 .allMatch(CurrentFileCollectionFingerprint::isEmpty);
@@ -115,13 +115,13 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
             .allMatch(CurrentFileCollectionFingerprint::isEmpty);
     }
 
-    private boolean hasEmptyInputFileCollections(UnitOfWork work, Predicate<String> propertyNameFilter) {
+    private boolean hasEmptyInputFileCollections(UnitOfWork<?> work, Predicate<String> propertyNameFilter) {
         EmptyCheckingVisitor visitor = new EmptyCheckingVisitor(propertyNameFilter);
         work.visitRegularInputs(visitor);
         return visitor.isAllEmpty();
     }
 
-    private InputFingerprinter.Result fingerprintPrimaryInputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints, ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots) {
+    private InputFingerprinter.Result fingerprintPrimaryInputs(UnitOfWork<?> work, PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownFileFingerprints, ImmutableSortedMap<String, ValueSnapshot> knownValueSnapshots) {
         return work.getInputFingerprinter().fingerprintInputProperties(
             context.getPreviousExecutionState()
                 .map(PreviousExecutionState::getInputProperties)
@@ -142,7 +142,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
     }
 
     @Nonnull
-    private CachingResult skipExecutionWithEmptySources(UnitOfWork work, PreviousExecutionContext context) {
+    private <T> CachingResult<T> skipExecutionWithEmptySources(UnitOfWork<T> work, PreviousExecutionContext context) {
         ImmutableSortedMap<String, FileSystemSnapshot> outputFilesAfterPreviousExecution = context.getPreviousExecutionState()
             .map(PreviousExecutionState::getOutputFilesProducedByWork)
             .orElse(ImmutableSortedMap.of());
@@ -165,22 +165,22 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
 
         broadcastWorkInputs(work, true);
 
-        return new CachingResult() {
+        return new CachingResult<T>() {
             @Override
             public Duration getDuration() {
                 return duration;
             }
 
             @Override
-            public Try<Execution> getExecution() {
-                return Try.successful(new Execution() {
+            public Try<Execution<T>> getExecution() {
+                return Try.successful(new Execution<T>() {
                     @Override
                     public ExecutionOutcome getOutcome() {
                         return skipOutcome;
                     }
 
                     @Override
-                    public Object getOutput() {
+                    public T getOutput() {
                         return work.loadAlreadyProducedOutput(context.getWorkspace());
                     }
                 });
@@ -208,7 +208,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         };
     }
 
-    private CachingResult executeWithNoEmptySources(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newInputFileProperties) {
+    private <T> CachingResult<T> executeWithNoEmptySources(UnitOfWork<T> work, PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newInputFileProperties) {
         return executeWithNoEmptySources(work, new PreviousExecutionContext() {
             @Override
             public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
@@ -252,12 +252,12 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         });
     }
 
-    private CachingResult executeWithNoEmptySources(UnitOfWork work, PreviousExecutionContext context) {
+    private <T> CachingResult<T> executeWithNoEmptySources(UnitOfWork<T> work, PreviousExecutionContext context) {
         broadcastWorkInputs(work, false);
         return delegate.execute(work, context);
     }
 
-    private void broadcastWorkInputs(UnitOfWork work, boolean onlyPrimaryInputs) {
+    private void broadcastWorkInputs(UnitOfWork<?> work, boolean onlyPrimaryInputs) {
         workInputListeners.broadcastFileSystemInputsOf(work, onlyPrimaryInputs
             ? EnumSet.of(InputBehavior.PRIMARY)
             : EnumSet.allOf(InputBehavior.class));

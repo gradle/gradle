@@ -38,7 +38,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class CleanupStaleOutputsStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
+public class CleanupStaleOutputsStep<C extends WorkspaceContext> implements CachingResult.Step<C> {
     @VisibleForTesting
     public static final String CLEAN_STALE_OUTPUTS_DISPLAY_NAME = "Clean stale outputs";
 
@@ -49,7 +49,7 @@ public class CleanupStaleOutputsStep<C extends WorkspaceContext, R extends Resul
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
     private final OutputFilesRepository outputFilesRepository;
-    private final Step<? super C, ? extends R> delegate;
+    private final CachingResult.Step<? super C> delegate;
 
     public CleanupStaleOutputsStep(
         BuildOperationExecutor buildOperationExecutor,
@@ -57,7 +57,7 @@ public class CleanupStaleOutputsStep<C extends WorkspaceContext, R extends Resul
         Deleter deleter,
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
-        Step<? super C, ? extends R> delegate
+        CachingResult.Step<? super C> delegate
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.cleanupRegistry = cleanupRegistry;
@@ -68,14 +68,14 @@ public class CleanupStaleOutputsStep<C extends WorkspaceContext, R extends Resul
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public <T> CachingResult<T> execute(UnitOfWork<T> work, C context) {
         if (work.shouldCleanupStaleOutputs()) {
             cleanupStaleOutputs(work, context);
         }
         return delegate.execute(work, context);
     }
 
-    private void cleanupStaleOutputs(UnitOfWork work, C context) {
+    private void cleanupStaleOutputs(UnitOfWork<?> work, C context) {
         Set<File> filesToDelete = new HashSet<>();
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override

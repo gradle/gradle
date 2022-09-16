@@ -24,17 +24,22 @@ import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 
-class ResolveChangesStepTest extends StepSpec<CachingContext> {
+class ResolveChangesStepTest extends StepSpec<CachingContext, UpToDateResult.Step> {
     def changeDetector = Mock(ExecutionStateChangeDetector)
     def step = new ResolveChangesStep<>(changeDetector, delegate)
     def beforeExecutionState = Stub(BeforeExecutionState) {
         inputFileProperties >> ImmutableSortedMap.of()
     }
-    def delegateResult = Mock(Result)
+    def delegateResult = Mock(UpToDateResult)
 
     @Override
     protected CachingContext createContext() {
         Stub(CachingContext)
+    }
+
+    @Override
+    protected UpToDateResult.Step createDelegate() {
+        Mock(UpToDateResult.Step)
     }
 
     def "doesn't provide input file changes when rebuild is forced"() {
@@ -45,7 +50,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         result == delegateResult
 
         _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
-        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
+        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork<?> work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert delegateContext.rebuildReasons == ImmutableList.of("Forced rebuild.")
             assert !changes.createInputChanges().incremental
@@ -63,7 +68,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         then:
         result == delegateResult
 
-        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
+        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork<?> work, IncrementalChangesContext delegateContext ->
             return delegateResult
         }
         _ * context.nonIncrementalReason >> Optional.empty()
@@ -79,7 +84,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         result == delegateResult
 
         _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
-        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
+        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork<?> work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
             assert delegateContext.rebuildReasons == ImmutableList.of("No history is available.")
@@ -100,7 +105,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         result == delegateResult
 
         _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
-        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
+        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork<?> work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
             assert delegateContext.rebuildReasons == ImmutableList.of("Incremental execution has been disabled to ensure correctness. Please consult deprecation warnings for more details.")
@@ -124,7 +129,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         then:
         result == delegateResult
 
-        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
+        1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork<?> work, IncrementalChangesContext delegateContext ->
             assert delegateContext.changes.get() == changes
             return delegateResult
         }

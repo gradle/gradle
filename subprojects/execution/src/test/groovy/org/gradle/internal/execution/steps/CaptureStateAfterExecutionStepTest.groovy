@@ -39,7 +39,7 @@ import java.time.Duration
 
 import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS
 
-class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
+class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext, Result.Step> {
 
     def buildInvocationScopeId = UniqueId.generate()
     def outputSnapshotter = Mock(OutputSnapshotter)
@@ -54,6 +54,11 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
             getInputProperties() >> ImmutableSortedMap.of()
             getInputFileProperties() >> ImmutableSortedMap.of()
         }
+    }
+
+    @Override
+    protected Result.Step createDelegate() {
+        Mock(Result.Step)
     }
 
     def "no state is captured if before execution state is unavailable"() {

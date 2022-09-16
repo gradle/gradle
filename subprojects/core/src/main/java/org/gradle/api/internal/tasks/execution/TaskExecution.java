@@ -91,7 +91,7 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
 
 @SuppressWarnings("deprecation")
-public class TaskExecution implements UnitOfWork {
+public class TaskExecution implements UnitOfWork<Void> {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskExecution.class);
     private static final SnapshotTaskInputsBuildOperationType.Details SNAPSHOT_TASK_INPUTS_DETAILS = new SnapshotTaskInputsBuildOperationType.Details() {
     };
@@ -152,7 +152,7 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public WorkOutput execute(ExecutionRequest executionRequest) {
+    public WorkOutput<Void> execute(ExecutionRequest executionRequest) {
         FileCollection previousFiles = executionRequest.getPreviouslyProducedOutputs()
             .<FileCollection>map(previousOutputs -> new PreviousOutputFileCollection(task, fileCollectionFactory, previousOutputs))
             .orElseGet(fileCollectionFactory::empty);
@@ -160,14 +160,14 @@ public class TaskExecution implements UnitOfWork {
         outputs.setPreviousOutputFiles(previousFiles);
         try {
             WorkResult didWork = executeWithPreviousOutputFiles(executionRequest.getInputChanges().orElse(null));
-            return new WorkOutput() {
+            return new WorkOutput<Void>() {
                 @Override
                 public WorkResult getDidWork() {
                     return didWork;
                 }
 
                 @Override
-                public Object getOutput() {
+                public Void getOutput() {
                     return null;
                 }
             };
@@ -177,7 +177,7 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public Object loadAlreadyProducedOutput(File workspace) {
+    public Void loadAlreadyProducedOutput(File workspace) {
         return null;
     }
 

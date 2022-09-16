@@ -42,7 +42,7 @@ import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXE
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE;
 
-public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Result> {
+public class ExecuteStep<C extends ChangingOutputsContext> implements Result.Step<C> {
 
     private final BuildOperationExecutor buildOperationExecutor;
 
@@ -51,11 +51,11 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
     }
 
     @Override
-    public Result execute(UnitOfWork work, C context) {
-        return buildOperationExecutor.call(new CallableBuildOperation<Result>() {
+    public <T> Result<T> execute(UnitOfWork<T> work, C context) {
+        return buildOperationExecutor.call(new CallableBuildOperation<Result<T>>() {
             @Override
-            public Result call(BuildOperationContext operationContext) {
-                Result result = executeInternal(work, context);
+            public Result<T> call(BuildOperationContext operationContext) {
+                Result<T> result = executeInternal(work, context);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return result;
             }
@@ -69,7 +69,7 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         });
     }
 
-    private static Result executeInternal(UnitOfWork work, InputChangesContext context) {
+    private static <T> Result<T> executeInternal(UnitOfWork<T> work, InputChangesContext context) {
         UnitOfWork.ExecutionRequest executionRequest = new UnitOfWork.ExecutionRequest() {
             @Override
             public File getWorkspace() {
@@ -87,7 +87,7 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
                     .map(PreviousExecutionState::getOutputFilesProducedByWork);
             }
         };
-        UnitOfWork.WorkOutput workOutput;
+        UnitOfWork.WorkOutput<T> workOutput;
 
         Timer timer = Time.startTimer();
         try {
@@ -99,10 +99,10 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         Duration duration = Duration.ofMillis(timer.getElapsedMillis());
         ExecutionOutcome mode = determineOutcome(context, workOutput);
 
-        return ResultImpl.success(duration, new ExecutionResultImpl(mode, workOutput));
+        return ResultImpl.success(duration, new ExecutionResultImpl<>(mode, workOutput));
     }
 
-    private static ExecutionOutcome determineOutcome(InputChangesContext context, UnitOfWork.WorkOutput workOutput) {
+    private static ExecutionOutcome determineOutcome(InputChangesContext context, UnitOfWork.WorkOutput<?> workOutput) {
         switch (workOutput.getDidWork()) {
             case DID_NO_WORK:
                 return UP_TO_DATE;
@@ -131,22 +131,22 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         }
     }
 
-    private static final class ResultImpl implements Result {
+    private static final class ResultImpl<T> implements Result<T> {
 
         private final Duration duration;
-        private final Try<Execution> outcome;
+        private final Try<Execution<T>> outcome;
 
-        private ResultImpl(Duration duration, Try<Execution> outcome) {
+        private ResultImpl(Duration duration, Try<Execution<T>> outcome) {
             this.duration = duration;
             this.outcome = outcome;
         }
 
-        private static Result failed(Throwable t, Duration duration) {
-            return new ResultImpl(duration, Try.failure(t));
+        private static <T> Result<T> failed(Throwable t, Duration duration) {
+            return new ResultImpl<>(duration, Try.failure(t));
         }
 
-        private static Result success(Duration duration, Execution outcome) {
-            return new ResultImpl(duration, Try.successful(outcome));
+        private static <T> Result<T> success(Duration duration, Execution<T> outcome) {
+            return new ResultImpl<T>(duration, Try.successful(outcome));
         }
 
         @Override
@@ -155,16 +155,16 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         }
 
         @Override
-        public Try<Execution> getExecution() {
+        public Try<Execution<T>> getExecution() {
             return outcome;
         }
     }
 
-    private static final class ExecutionResultImpl implements Execution {
+    private static final class ExecutionResultImpl<T> implements Execution<T> {
         private final ExecutionOutcome mode;
-        private final UnitOfWork.WorkOutput workOutput;
+        private final UnitOfWork.WorkOutput<T> workOutput;
 
-        public ExecutionResultImpl(ExecutionOutcome mode, UnitOfWork.WorkOutput workOutput) {
+        public ExecutionResultImpl(ExecutionOutcome mode, UnitOfWork.WorkOutput<T> workOutput) {
             this.mode = mode;
             this.workOutput = workOutput;
         }
@@ -175,7 +175,7 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         }
 
         @Override
-        public Object getOutput() {
+        public T getOutput() {
             return workOutput.getOutput();
         }
     }

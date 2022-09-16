@@ -26,16 +26,16 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import java.time.Duration;
 import java.util.Optional;
 
-public class TimeoutStep<C extends Context, R extends Result> implements Step<C, R> {
+public class TimeoutStep<C extends Context> implements Result.Step<C> {
 
     private final TimeoutHandler timeoutHandler;
     private final CurrentBuildOperationRef currentBuildOperationRef;
-    private final Step<? super C, ? extends R> delegate;
+    private final Result.Step<? super C> delegate;
 
     public TimeoutStep(
         TimeoutHandler timeoutHandler,
         CurrentBuildOperationRef currentBuildOperationRef,
-        Step<? super C, ? extends R> delegate
+        Result.Step<? super C> delegate
     ) {
         this.timeoutHandler = timeoutHandler;
         this.currentBuildOperationRef = currentBuildOperationRef;
@@ -43,7 +43,7 @@ public class TimeoutStep<C extends Context, R extends Result> implements Step<C,
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public <T> Result<T> execute(UnitOfWork<T> work, C context) {
         Optional<Duration> timeoutProperty = work.getTimeout();
         if (timeoutProperty.isPresent()) {
             Duration timeout = timeoutProperty.get();
@@ -56,7 +56,7 @@ public class TimeoutStep<C extends Context, R extends Result> implements Step<C,
         }
     }
 
-    private R executeWithTimeout(UnitOfWork work, C context, Duration timeout) {
+    private <T> Result<T> executeWithTimeout(UnitOfWork<T> work, C context, Duration timeout) {
         Timeout taskTimeout = timeoutHandler.start(Thread.currentThread(), timeout, work, currentBuildOperationRef.get());
         try {
             return executeWithoutTimeout(work, context);
@@ -70,7 +70,7 @@ public class TimeoutStep<C extends Context, R extends Result> implements Step<C,
         }
     }
 
-    private R executeWithoutTimeout(UnitOfWork work, C context) {
+    private <T> Result<T> executeWithoutTimeout(UnitOfWork<T> work, C context) {
         return delegate.execute(work, context);
     }
 }

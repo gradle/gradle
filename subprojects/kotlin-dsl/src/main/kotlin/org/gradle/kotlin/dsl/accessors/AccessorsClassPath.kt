@@ -89,7 +89,7 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
                 workspaceProvider
             )
             val result = executionEngine.createRequest(work).execute()
-            result.execution.get().output as AccessorsClassPath
+            result.execution.get().output
         }
     }
 
@@ -111,7 +111,7 @@ class GenerateProjectAccessors(
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider
-) : UnitOfWork {
+) : UnitOfWork<AccessorsClassPath> {
 
     companion object {
         const val PROJECT_SCHEMA_INPUT_PROPERTY = "projectSchema"
@@ -120,7 +120,7 @@ class GenerateProjectAccessors(
         const val CLASSES_OUTPUT_PROPERTY = "classes"
     }
 
-    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
+    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput<AccessorsClassPath> {
         val workspace = executionRequest.workspace
         withAsynchronousIO(project) {
             buildAccessorsFor(
@@ -130,7 +130,7 @@ class GenerateProjectAccessors(
                 binDir = getClassesOutputDir(workspace)
             )
         }
-        return object : UnitOfWork.WorkOutput {
+        return object : UnitOfWork.WorkOutput<AccessorsClassPath> {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
 
             override fun getOutput() = loadAlreadyProducedOutput(workspace)

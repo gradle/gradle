@@ -20,12 +20,17 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
 
-class CreateOutputsStepTest extends StepSpec<ChangingOutputsContext> {
+class CreateOutputsStepTest extends StepSpec<ChangingOutputsContext, Result.Step> {
     def step = new CreateOutputsStep<>(delegate)
 
     @Override
     protected ChangingOutputsContext createContext() {
         Stub(ChangingOutputsContext)
+    }
+
+    @Override
+    protected Result.Step createDelegate() {
+        Mock(Result.Step)
     }
 
     def "outputs are created"() {

@@ -167,10 +167,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         }
     }
 
-    private void executeWork(UnitOfWork work) {
-        ExecutionEngine.Result result = engine.createRequest(work).execute();
-        Execution er = result.getExecution().get();
-        GeneratedAccessors accessors = (GeneratedAccessors) er.getOutput();
+    private void executeWork(UnitOfWork<GeneratedAccessors> work) {
+        ExecutionEngine.Result<GeneratedAccessors> result = engine.createRequest(work).execute();
+        Execution<GeneratedAccessors> er = result.getExecution().get();
+        GeneratedAccessors accessors = er.getOutput();
         ClassPath generatedClasses = DefaultClassPath.of(accessors.classesDir);
         sources = sources.plus(DefaultClassPath.of(accessors.sourcesDir));
         classes = classes.plus(generatedClasses);
@@ -277,7 +277,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         return classes;
     }
 
-    private abstract class AbstractAccessorUnitOfWork implements UnitOfWork {
+    private abstract class AbstractAccessorUnitOfWork implements UnitOfWork<GeneratedAccessors> {
         private static final String OUT_SOURCES = "sources";
         private static final String OUT_CLASSES = "classes";
 
@@ -303,27 +303,27 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         protected abstract List<ClassSource> getClassSources();
 
         @Override
-        public WorkOutput execute(ExecutionRequest executionRequest) {
+        public WorkOutput<GeneratedAccessors> execute(ExecutionRequest executionRequest) {
             File workspace = executionRequest.getWorkspace();
             File srcDir = new File(workspace, OUT_SOURCES);
             File dstDir = new File(workspace, OUT_CLASSES);
             List<ClassSource> sources = getClassSources();
             SimpleGeneratedJavaClassCompiler.compile(srcDir, dstDir, sources, classPath);
-            return new WorkOutput() {
+            return new WorkOutput<GeneratedAccessors>() {
                 @Override
                 public WorkResult getDidWork() {
                     return WorkResult.DID_WORK;
                 }
 
                 @Override
-                public Object getOutput() {
+                public GeneratedAccessors getOutput() {
                     return loadAlreadyProducedOutput(workspace);
                 }
             };
         }
 
         @Override
-        public Object loadAlreadyProducedOutput(File workspace) {
+        public GeneratedAccessors loadAlreadyProducedOutput(File workspace) {
             File srcDir = new File(workspace, OUT_SOURCES);
             File dstDir = new File(workspace, OUT_CLASSES);
             return new GeneratedAccessors(srcDir, dstDir);

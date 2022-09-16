@@ -30,7 +30,7 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
 import static org.gradle.internal.execution.ExecutionEngine.Execution
 
-class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> implements SnapshotterFixture {
+class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext, AfterExecutionResult.Step> implements SnapshotterFixture {
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def originMetadata = Mock(OriginMetadata)
@@ -44,12 +44,17 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     def outputFile = file("output.txt").text = "output"
     def outputFilesProducedByWork = snapshotsOf(output: outputFile)
 
-    def step = new StoreExecutionStateStep<PreviousExecutionContext, AfterExecutionResult>(delegate)
+    def step = new StoreExecutionStateStep<>(delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
     @Override
     protected BeforeExecutionContext createContext() {
         Stub(BeforeExecutionContext)
+    }
+
+    @Override
+    protected AfterExecutionResult.Step createDelegate() {
+        Mock(AfterExecutionResult.Step)
     }
 
     def setup() {

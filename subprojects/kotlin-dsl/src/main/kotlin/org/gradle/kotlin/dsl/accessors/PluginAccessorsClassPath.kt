@@ -121,7 +121,7 @@ class GeneratePluginAccessors(
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter,
     private val workspaceProvider: KotlinDslWorkspaceProvider
-) : UnitOfWork {
+) : UnitOfWork<AccessorsClassPath> {
 
     companion object {
         const val BUILD_SRC_CLASSLOADER_INPUT_PROPERTY = "buildSrcClassLoader"
@@ -129,7 +129,7 @@ class GeneratePluginAccessors(
         const val CLASSES_OUTPUT_PROPERTY = "classes"
     }
 
-    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
+    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput<AccessorsClassPath> {
         val workspace = executionRequest.workspace
         kotlinScriptClassPathProviderOf(rootProject).run {
             withAsynchronousIO(rootProject) {
@@ -140,7 +140,7 @@ class GeneratePluginAccessors(
                 )
             }
         }
-        return object : UnitOfWork.WorkOutput {
+        return object : UnitOfWork.WorkOutput<AccessorsClassPath> {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
 
             override fun getOutput() = loadAlreadyProducedOutput(workspace)

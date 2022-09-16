@@ -23,7 +23,7 @@ import org.gradle.internal.execution.UnitOfWork
 
 import static org.gradle.internal.execution.ExecutionEngine.Execution
 
-class IdentityCacheStepTest extends StepSpec<IdentityContext> {
+class IdentityCacheStepTest extends StepSpec<IdentityContext, CachingResult.Step> {
     Cache<UnitOfWork.Identity, Try<Object>> cache = new ManualEvictionInMemoryCache<>()
 
     def step = new IdentityCacheStep<>(delegate)
@@ -31,6 +31,11 @@ class IdentityCacheStepTest extends StepSpec<IdentityContext> {
     @Override
     protected IdentityContext createContext() {
         Stub(IdentityContext)
+    }
+
+    @Override
+    protected CachingResult.Step createDelegate() {
+        Mock(CachingResult.Step)
     }
 
     def "executes when no cached output exists"() {

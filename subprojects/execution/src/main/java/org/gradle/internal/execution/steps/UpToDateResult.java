@@ -18,10 +18,11 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.execution.UnitOfWork;
 
 import java.util.Optional;
 
-public interface UpToDateResult extends AfterExecutionResult {
+public interface UpToDateResult<T> extends AfterExecutionResult<T> {
     /**
      * A list of messages describing the first few reasons encountered that caused the work to be executed.
      * An empty list means the work was up-to-date and hasn't been executed.
@@ -32,4 +33,9 @@ public interface UpToDateResult extends AfterExecutionResult {
      * If a previously produced output was reused in some way, the reused output's origin metadata is returned.
      */
     Optional<OriginMetadata> getReusedOutputOriginMetadata();
+
+    interface Step<C extends Context> extends org.gradle.internal.execution.steps.Step<C, UpToDateResult<?>> {
+        @Override
+        <T> UpToDateResult<T> execute(UnitOfWork<T> work, C context);
+    }
 }

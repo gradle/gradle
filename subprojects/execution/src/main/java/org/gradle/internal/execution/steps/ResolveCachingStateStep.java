@@ -47,7 +47,7 @@ import java.util.Formatter;
 import java.util.List;
 import java.util.Optional;
 
-public class ResolveCachingStateStep<C extends ValidationFinishedContext> implements Step<C, CachingResult> {
+public class ResolveCachingStateStep<C extends ValidationFinishedContext> implements CachingResult.Step<C> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveCachingStateStep.class);
     private static final CachingDisabledReason BUILD_CACHE_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.BUILD_CACHE_DISABLED, "Build cache is disabled");
     private static final CachingState BUILD_CACHE_DISABLED_STATE = CachingState.disabledWithoutInputs(BUILD_CACHE_DISABLED_REASON);
@@ -56,12 +56,12 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
 
     private final BuildCacheController buildCache;
     private final boolean buildScansEnabled;
-    private final Step<? super CachingContext, ? extends UpToDateResult> delegate;
+    private final UpToDateResult.Step<? super CachingContext> delegate;
 
     public ResolveCachingStateStep(
         BuildCacheController buildCache,
         boolean buildScansEnabled,
-        Step<? super CachingContext, ? extends UpToDateResult> delegate
+        UpToDateResult.Step<? super CachingContext> delegate
     ) {
         this.buildCache = buildCache;
         this.buildScansEnabled = buildScansEnabled;
@@ -69,7 +69,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
     }
 
     @Override
-    public CachingResult execute(UnitOfWork work, C context) {
+    public <T> CachingResult<T> execute(UnitOfWork<T> work, C context) {
         CachingState cachingState;
         if (!buildCache.isEnabled() && !buildScansEnabled) {
             cachingState = BUILD_CACHE_DISABLED_STATE;
@@ -86,7 +86,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
             disabled -> logDisabledReasons(disabled.getDisabledReasons(), work)
         );
 
-        UpToDateResult result = delegate.execute(work, new CachingContext() {
+        UpToDateResult<T> result = delegate.execute(work, new CachingContext() {
             @Override
             public CachingState getCachingState() {
                 return cachingState;
@@ -142,7 +142,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
                 return context.getBeforeExecutionState();
             }
         });
-        return new CachingResult() {
+        return new CachingResult<T>() {
             @Override
             public CachingState getCachingState() {
                 return cachingState;
@@ -164,7 +164,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
             }
 
             @Override
-            public Try<Execution> getExecution() {
+            public Try<Execution<T>> getExecution() {
                 return result.getExecution();
             }
 
@@ -175,7 +175,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
         };
     }
 
-    private CachingState calculateCachingState(UnitOfWork work, BeforeExecutionState beforeExecutionState) {
+    private CachingState calculateCachingState(UnitOfWork<?> work, BeforeExecutionState beforeExecutionState) {
         Logger logger = buildCache.isEmitDebugLogging()
             ? LOGGER
             : NOPLogger.NOP_LOGGER;
@@ -193,7 +193,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
         return cachingStateFactory.createCachingState(beforeExecutionState, cachingDisabledReasonsBuilder.build());
     }
 
-    private CachingState calculateCachingStateWithNoCapturedInputs(UnitOfWork work) {
+    private CachingState calculateCachingStateWithNoCapturedInputs(UnitOfWork<?> work) {
         if (!buildCache.isEnabled()) {
             return BUILD_CACHE_DISABLED_STATE;
         }
@@ -202,7 +202,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
             .orElse(CachingState.NOT_DETERMINED);
     }
 
-    private void logCacheKey(BuildCacheKey cacheKey, UnitOfWork work) {
+    private void logCacheKey(BuildCacheKey cacheKey, UnitOfWork<?> work) {
         if (buildCache.isEmitDebugLogging()) {
             LOGGER.warn("Build cache key for {} is {}", work.getDisplayName(), cacheKey.getDisplayName());
         } else {
@@ -210,7 +210,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
         }
     }
 
-    private void logDisabledReasons(List<CachingDisabledReason> reasons, UnitOfWork work) {
+    private void logDisabledReasons(List<CachingDisabledReason> reasons, UnitOfWork<?> work) {
         if (LOGGER.isInfoEnabled()) {
             Formatter formatter = new Formatter();
             formatter.format("Caching disabled for %s because:", work.getDisplayName());

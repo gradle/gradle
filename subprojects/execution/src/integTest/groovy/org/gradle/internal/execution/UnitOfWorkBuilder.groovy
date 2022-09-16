@@ -146,12 +146,12 @@ class UnitOfWorkBuilder {
         final String uniqueId
     }
 
-    UnitOfWork build() {
+    UnitOfWork<String> build() {
         Map<String, OutputPropertySpec> outputFileSpecs = Maps.transformEntries(outputFiles, { key, value -> outputFileSpec(value) })
         Map<String, OutputPropertySpec> outputDirSpecs = Maps.transformEntries(outputDirs, { key, value -> outputDirectorySpec(value) })
         Map<String, OutputPropertySpec> outputs = outputFileSpecs + outputDirSpecs
 
-        return new UnitOfWork() {
+        return new UnitOfWork<String>() {
             boolean executed
 
             @Override
@@ -175,24 +175,24 @@ class UnitOfWorkBuilder {
             }
 
             @Override
-            UnitOfWork.WorkOutput execute(UnitOfWork.ExecutionRequest executionRequest) {
+            UnitOfWork.WorkOutput<String> execute(UnitOfWork.ExecutionRequest executionRequest) {
                 def didWork = work.get()
                 executed = true
-                return new UnitOfWork.WorkOutput() {
+                return new UnitOfWork.WorkOutput<String>() {
                     @Override
                     UnitOfWork.WorkResult getDidWork() {
                         return didWork
                     }
 
                     @Override
-                    Object getOutput() {
+                    String getOutput() {
                         return loadAlreadyProducedOutput(executionRequest.workspace)
                     }
                 }
             }
 
             @Override
-            Object loadAlreadyProducedOutput(File workspace) {
+            String loadAlreadyProducedOutput(File workspace) {
                 return "output"
             }
 

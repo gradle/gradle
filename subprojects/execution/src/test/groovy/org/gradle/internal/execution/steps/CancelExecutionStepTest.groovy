@@ -19,10 +19,15 @@ package org.gradle.internal.execution.steps
 import org.gradle.api.BuildCancelledException
 import org.gradle.initialization.DefaultBuildCancellationToken
 
-class CancelExecutionStepTest extends ContextInsensitiveStepSpec {
+class CancelExecutionStepTest extends ContextInsensitiveStepSpec<Result.Step> {
     def cancellationToken = new DefaultBuildCancellationToken()
-    def step = new CancelExecutionStep<Context, Result>(cancellationToken, delegate)
+    def step = new CancelExecutionStep<Context>(cancellationToken, delegate)
     def delegateResult = Mock(Result)
+
+    @Override
+    protected Result.Step createDelegate() {
+        Mock(Result.Step)
+    }
 
     def "executes normally when cancellation is not requested"() {
         when:

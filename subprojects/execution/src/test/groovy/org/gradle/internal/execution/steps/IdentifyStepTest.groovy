@@ -24,14 +24,19 @@ import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.snapshot.ValueSnapshot
 
-class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
-    def delegateResult = Mock(Result)
+class IdentifyStepTest extends StepSpec<ExecutionRequestContext, CachingResult.DeferredExecutionAwareStep> {
+    def delegateResult = Mock(CachingResult)
     def inputFingerprinter = Mock(InputFingerprinter)
     def step = new IdentifyStep<>(delegate)
 
     @Override
     protected ExecutionRequestContext createContext() {
         Stub(ExecutionRequestContext)
+    }
+
+    @Override
+    protected CachingResult.DeferredExecutionAwareStep createDelegate() {
+        Mock(CachingResult.DeferredExecutionAwareStep)
     }
 
     def "delegates with assigned workspace"() {
@@ -59,7 +64,7 @@ class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
             ImmutableSet.of()
         )
 
-        1 * delegate.execute(work, _ as IdentityContext) >> { UnitOfWork work, IdentityContext delegateContext ->
+        1 * delegate.execute(work, _ as IdentityContext) >> { UnitOfWork<?> work, IdentityContext delegateContext ->
             assert delegateContext.inputProperties as Map == ["input": inputSnapshot]
             assert delegateContext.inputFileProperties as Map == ["input-files": inputFilesFingerprint]
             delegateResult

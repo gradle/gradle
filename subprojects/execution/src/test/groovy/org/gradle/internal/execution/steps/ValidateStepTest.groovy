@@ -30,12 +30,12 @@ import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout
 
-class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements ValidationMessageChecker {
+class ValidateStepTest extends StepSpec<BeforeExecutionContext, CachingResult.Step> implements ValidationMessageChecker {
 
     def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
     def virtualFileSystem = Mock(VirtualFileSystem)
     def step = new ValidateStep<>(virtualFileSystem, warningReporter, delegate)
-    def delegateResult = Mock(Result)
+    def delegateResult = Mock(CachingResult)
 
     @Override
     protected BeforeExecutionContext createContext() {
@@ -43,6 +43,11 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         return Stub(BeforeExecutionContext) {
             getValidationContext() >> validationContext
         }
+    }
+
+    @Override
+    protected CachingResult.Step createDelegate() {
+        Mock(CachingResult.Step)
     }
 
     def "executes work when there are no violations"() {

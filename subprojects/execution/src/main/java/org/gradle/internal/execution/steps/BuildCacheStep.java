@@ -31,6 +31,7 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
+import org.gradle.internal.execution.steps.AfterExecutionResult.Step;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -43,19 +44,19 @@ import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Optional;
 
-public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExecutionResult> {
+public class BuildCacheStep implements Step<IncrementalChangesContext> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheStep.class);
 
     private final BuildCacheController buildCache;
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
-    private final Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate;
+    private final Step<? super IncrementalChangesContext> delegate;
 
     public BuildCacheStep(
         BuildCacheController buildCache,
         Deleter deleter,
         OutputChangeListener outputChangeListener,
-        Step<? super IncrementalChangesContext, ? extends AfterExecutionResult> delegate
+        Step<? super IncrementalChangesContext> delegate
     ) {
         this.buildCache = buildCache;
         this.deleter = deleter;
@@ -64,15 +65,15 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
     }
 
     @Override
-    public AfterExecutionResult execute(UnitOfWork work, IncrementalChangesContext context) {
+    public <T> AfterExecutionResult<T> execute(UnitOfWork<T> work, IncrementalChangesContext context) {
         return context.getCachingState().fold(
             cachingEnabled -> executeWithCache(work, context, cachingEnabled.getKey(), cachingEnabled.getBeforeExecutionState()),
             cachingDisabled -> executeWithoutCache(work, context)
         );
     }
 
-    private AfterExecutionResult executeWithCache(UnitOfWork work, IncrementalChangesContext context, BuildCacheKey cacheKey, BeforeExecutionState beforeExecutionState) {
-        CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
+    private <T> AfterExecutionResult<T> executeWithCache(UnitOfWork<T> work, IncrementalChangesContext context, BuildCacheKey cacheKey, BeforeExecutionState beforeExecutionState) {
+        CacheableWork<T> cacheableWork = new CacheableWork<>(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
                 ? buildCache.load(cacheKey, cacheableWork)
                 : Optional.<BuildCacheLoadResult>empty()
@@ -90,17 +91,17 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                         cacheHit.getResultingSnapshots(),
                         originMetadata,
                         true);
-                    return (AfterExecutionResult) new AfterExecutionResult() {
+                    return (AfterExecutionResult<T>) new AfterExecutionResult<T>() {
                         @Override
-                        public Try<Execution> getExecution() {
-                            return Try.successful(new Execution() {
+                        public Try<Execution<T>> getExecution() {
+                            return Try.successful(new Execution<T>() {
                                 @Override
                                 public ExecutionOutcome getOutcome() {
                                     return ExecutionOutcome.FROM_CACHE;
                                 }
 
                                 @Override
-                                public Object getOutput() {
+                                public T getOutput() {
                                     return work.loadAlreadyProducedOutput(context.getWorkspace());
                                 }
                             });
@@ -131,7 +132,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
             });
     }
 
-    private void cleanLocalState(File workspace, UnitOfWork work) {
+    private void cleanLocalState(File workspace, UnitOfWork<?> work) {
         work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
             @Override
             public void visitLocalState(File localStateRoot) {
@@ -145,12 +146,12 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
         });
     }
 
-    private AfterExecutionResult executeAndStoreInCache(CacheableWork cacheableWork, BuildCacheKey cacheKey, IncrementalChangesContext context) {
+    private <T> AfterExecutionResult<T> executeAndStoreInCache(CacheableWork<T> cacheableWork, BuildCacheKey cacheKey, IncrementalChangesContext context) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Did not find cache entry for {} with cache key {}, executing instead",
                 cacheableWork.getDisplayName(), cacheKey.getHashCode());
         }
-        AfterExecutionResult result = executeWithoutCache(cacheableWork.work, context);
+        AfterExecutionResult<T> result = executeWithoutCache(cacheableWork.work, context);
         result.getExecution().ifSuccessfulOrElse(
             executionResult -> result.getAfterExecutionState()
                 .ifPresent(afterExecutionState -> store(cacheableWork, cacheKey, afterExecutionState.getOutputFilesProducedByWork(), afterExecutionState.getOriginMetadata().getExecutionTime())),
@@ -159,7 +160,7 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
         return result;
     }
 
-    private void store(CacheableWork work, BuildCacheKey cacheKey, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, Duration executionTime) {
+    private <T> void store(CacheableWork<T> work, BuildCacheKey cacheKey, ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork, Duration executionTime) {
         try {
             buildCache.store(cacheKey, work, outputFilesProducedByWork, executionTime);
             if (LOGGER.isInfoEnabled()) {
@@ -176,16 +177,16 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
         }
     }
 
-    private AfterExecutionResult executeWithoutCache(UnitOfWork work, IncrementalChangesContext context) {
+    private <T> AfterExecutionResult<T> executeWithoutCache(UnitOfWork<T> work, IncrementalChangesContext context) {
         return delegate.execute(work, context);
     }
 
-    private static class CacheableWork implements CacheableEntity {
+    private static class CacheableWork<T> implements CacheableEntity {
         private final String identity;
         private final File workspace;
-        private final UnitOfWork work;
+        private final UnitOfWork<T> work;
 
-        public CacheableWork(String identity, File workspace, UnitOfWork work) {
+        public CacheableWork(String identity, File workspace, UnitOfWork<T> work) {
             this.identity = identity;
             this.workspace = workspace;
             this.work = work;

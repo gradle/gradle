@@ -18,15 +18,20 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 
-class RemoveUntrackedExecutionStateStepTest extends StepSpec<PreviousExecutionContext> {
+class RemoveUntrackedExecutionStateStepTest extends StepSpec<PreviousExecutionContext, CachingResult.Step> {
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def step = new RemoveUntrackedExecutionStateStep(delegate)
-    def delegateResult = Mock(AfterExecutionResult)
+    def delegateResult = Mock(CachingResult)
 
     @Override
     protected PreviousExecutionContext createContext() {
         Stub(PreviousExecutionContext)
+    }
+
+    @Override
+    protected CachingResult.Step createDelegate() {
+        Mock(CachingResult.Step)
     }
 
     def "removes untracked outputs"() {

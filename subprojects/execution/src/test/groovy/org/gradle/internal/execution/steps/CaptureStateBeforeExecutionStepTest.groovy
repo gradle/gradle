@@ -35,7 +35,7 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.DETECT_OVERLAPS
 import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS
 
-class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContext> {
+class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContext, CachingResult.Step> {
 
     def classloaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def outputSnapshotter = Mock(OutputSnapshotter)
@@ -45,6 +45,11 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def step = new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, delegate)
+
+    @Override
+    protected CachingResult.Step createDelegate() {
+        Mock(CachingResult.Step)
+    }
 
     @Override
     protected ValidationFinishedContext createContext() {
@@ -65,7 +70,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         then:
         assertNoOperation()
         _ * work.history >> Optional.empty()
-        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork<?> work, BeforeExecutionContext delegateContext ->
             assert !delegateContext.beforeExecutionState.present
         }
         0 * _
@@ -88,7 +93,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
             }
         }
         interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork<?> work, BeforeExecutionContext delegateContext ->
             def state = delegateContext.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
             assert state.implementation == implementationSnapshot
@@ -126,7 +131,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
             ImmutableSortedMap.of("input-file", inputFileFingerprint),
             ImmutableSet.of())
         interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork<?> work, BeforeExecutionContext delegateContext ->
             def state = delegateContext.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
             assert state.inputProperties as Map == ["known": knownSnapshot, "input": inputSnapshot]
@@ -146,7 +151,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         then:
         _ * outputSnapshotter.snapshotOutputs(work, _) >> outputSnapshots
         interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork<?> work, BeforeExecutionContext delegateContext ->
             def state = delegateContext.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
             assert state.outputFileLocationSnapshots == outputSnapshots
@@ -222,7 +227,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         1 * overlappingOutputDetector.detect(previousOutputSnapshots, beforeExecutionOutputSnapshots) >> null
 
         interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
+        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork<?> work, BeforeExecutionContext delegateContext ->
             def state = delegateContext.beforeExecutionState.get()
             assert !state.detectedOverlappingOutputs.present
             assert state.outputFileLocationSnapshots == beforeExecutionOutputSnapshots

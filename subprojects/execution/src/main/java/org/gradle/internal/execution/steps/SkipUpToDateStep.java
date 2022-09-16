@@ -37,17 +37,17 @@ import java.util.Optional;
 
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE;
 
-public class SkipUpToDateStep<C extends IncrementalChangesContext> implements Step<C, UpToDateResult> {
+public class SkipUpToDateStep<C extends IncrementalChangesContext> implements UpToDateResult.Step<C> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateStep.class);
 
-    private final Step<? super C, ? extends AfterExecutionResult> delegate;
+    private final AfterExecutionResult.Step<? super C> delegate;
 
-    public SkipUpToDateStep(Step<? super C, ? extends AfterExecutionResult> delegate) {
+    public SkipUpToDateStep(AfterExecutionResult.Step<? super C> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public UpToDateResult execute(UnitOfWork work, C context) {
+    public <T> UpToDateResult<T> execute(UnitOfWork<T> work, C context) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Determining if {} is up-to-date", work.getDisplayName());
         }
@@ -58,7 +58,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             .orElseGet(() -> executeBecause(work, reasons, context));
     }
 
-    private UpToDateResult skipExecution(UnitOfWork work, BeforeExecutionState beforeExecutionState, C context) {
+    private <T> UpToDateResult<T> skipExecution(UnitOfWork<T> work, BeforeExecutionState beforeExecutionState, C context) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Skipping {} as it is up-to-date.", work.getDisplayName());
         }
@@ -69,7 +69,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             previousExecutionState.getOutputFilesProducedByWork(),
             previousExecutionState.getOriginMetadata(),
             true);
-        return new UpToDateResult() {
+        return new UpToDateResult<T>() {
             @Override
             public ImmutableList<String> getExecutionReasons() {
                 return ImmutableList.of();
@@ -86,15 +86,15 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             }
 
             @Override
-            public Try<Execution> getExecution() {
-                return Try.successful(new Execution() {
+            public Try<Execution<T>> getExecution() {
+                return Try.successful(new Execution<T>() {
                     @Override
                     public ExecutionOutcome getOutcome() {
                         return UP_TO_DATE;
                     }
 
                     @Override
-                    public Object getOutput() {
+                    public T getOutput() {
                         return work.loadAlreadyProducedOutput(context.getWorkspace());
                     }
                 });
@@ -107,10 +107,10 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
         };
     }
 
-    private UpToDateResult executeBecause(UnitOfWork work, ImmutableList<String> reasons, C context) {
+    private <T> UpToDateResult<T> executeBecause(UnitOfWork<T> work, ImmutableList<String> reasons, C context) {
         logExecutionReasons(reasons, work);
-        AfterExecutionResult result = delegate.execute(work, context);
-        return new UpToDateResult() {
+        AfterExecutionResult<T> result = delegate.execute(work, context);
+        return new UpToDateResult<T>() {
             @Override
             public ImmutableList<String> getExecutionReasons() {
                 return reasons;
@@ -134,13 +134,13 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             }
 
             @Override
-            public Try<Execution> getExecution() {
+            public Try<Execution<T>> getExecution() {
                 return result.getExecution();
             }
         };
     }
 
-    private void logExecutionReasons(List<String> reasons, UnitOfWork work) {
+    private void logExecutionReasons(List<String> reasons, UnitOfWork<?> work) {
         if (LOGGER.isInfoEnabled()) {
             Formatter formatter = new Formatter();
             formatter.format("%s is not up-to-date because:", StringUtils.capitalize(work.getDisplayName()));

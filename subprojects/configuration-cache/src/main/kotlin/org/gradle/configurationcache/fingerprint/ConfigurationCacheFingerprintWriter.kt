@@ -332,7 +332,7 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    override fun onExecute(work: UnitOfWork, relevantBehaviors: EnumSet<InputBehavior>) {
+    override fun onExecute(work: UnitOfWork<*>, relevantBehaviors: EnumSet<InputBehavior>) {
         captureWorkInputs(work, relevantBehaviors)
     }
 
@@ -342,7 +342,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun captureWorkInputs(work: UnitOfWork, relevantInputBehaviors: EnumSet<InputBehavior>) {
+    fun captureWorkInputs(work: UnitOfWork<*>, relevantInputBehaviors: EnumSet<InputBehavior>) {
         captureWorkInputs(work.displayName) { visitStructure ->
             work.visitRegularInputs(object : InputVisitor {
                 override fun visitInputFileProperty(propertyName: String, behavior: InputBehavior, value: InputFileValueSupplier) {

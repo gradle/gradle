@@ -34,16 +34,16 @@ import java.util.Set;
 /**
  * When executed non-incrementally remove previous outputs owned by the work unit.
  */
-public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R extends Result> implements Step<C, R> {
+public class RemovePreviousOutputsStep<C extends ChangingOutputsContext> implements Result.Step<C> {
 
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
-    private final Step<? super C, ? extends R> delegate;
+    private final Result.Step<? super C> delegate;
 
     public RemovePreviousOutputsStep(
         Deleter deleter,
         OutputChangeListener outputChangeListener,
-        Step<? super C, ? extends R> delegate
+        Result.Step<? super C> delegate
     ) {
         this.deleter = deleter;
         this.outputChangeListener = outputChangeListener;
@@ -51,7 +51,7 @@ public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R exten
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public <T> Result<T> execute(UnitOfWork<T> work, C context) {
         if (!context.isIncrementalExecution()) {
             if (work.shouldCleanupOutputsOnNonIncrementalExecution()) {
                 boolean hasOverlappingOutputs = context.getBeforeExecutionState()
@@ -67,7 +67,7 @@ public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R exten
         return delegate.execute(work, context);
     }
 
-    private void cleanupOverlappingOutputs(BeforeExecutionContext context, UnitOfWork work) {
+    private void cleanupOverlappingOutputs(BeforeExecutionContext context, UnitOfWork<?> work) {
         context.getPreviousExecutionState().ifPresent(previousOutputs -> {
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
             work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
@@ -106,7 +106,7 @@ public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R exten
         });
     }
 
-    private void cleanupExclusivelyOwnedOutputs(BeforeExecutionContext context, UnitOfWork work) {
+    private void cleanupExclusivelyOwnedOutputs(BeforeExecutionContext context, UnitOfWork<?> work) {
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {

@@ -336,7 +336,7 @@ class CompileKotlinScript(
     private val workspaceProvider: KotlinDslWorkspaceProvider,
     private val fileCollectionFactory: FileCollectionFactory,
     private val inputFingerprinter: InputFingerprinter
-) : UnitOfWork {
+) : UnitOfWork<File> {
 
     override fun visitIdentityInputs(
         visitor: InputVisitor
@@ -372,15 +372,15 @@ class CompileKotlinScript(
         return UnitOfWork.Identity { identityHash }
     }
 
-    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
+    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput<File> {
         val workspace = executionRequest.workspace
         compileTo(classesDir(workspace))
         return workOutputFor(workspace)
     }
 
     private
-    fun workOutputFor(workspace: File): UnitOfWork.WorkOutput =
-        object : UnitOfWork.WorkOutput {
+    fun workOutputFor(workspace: File): UnitOfWork.WorkOutput<File> =
+        object : UnitOfWork.WorkOutput<File> {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
             override fun getOutput() = loadAlreadyProducedOutput(workspace)
         }
@@ -388,7 +388,7 @@ class CompileKotlinScript(
     override fun getDisplayName(): String =
         "Kotlin DSL script compilation ($templateId)"
 
-    override fun loadAlreadyProducedOutput(workspace: File): Any =
+    override fun loadAlreadyProducedOutput(workspace: File) =
         classesDir(workspace)
 
     override fun getWorkspaceProvider() = workspaceProvider.scripts

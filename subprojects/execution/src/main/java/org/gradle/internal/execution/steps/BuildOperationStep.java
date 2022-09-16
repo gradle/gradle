@@ -23,7 +23,7 @@ import org.gradle.internal.operations.CallableBuildOperation;
 
 import java.util.function.Function;
 
-public abstract class BuildOperationStep<C extends Context, R extends Result> implements Step<C, R> {
+public abstract class BuildOperationStep<C extends Context, R extends Result<?>> implements Step<C, R> {
     private final BuildOperationExecutor buildOperationExecutor;
 
     protected BuildOperationStep(BuildOperationExecutor buildOperationExecutor) {

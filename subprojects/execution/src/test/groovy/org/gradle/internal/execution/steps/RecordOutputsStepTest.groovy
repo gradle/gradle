@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps
 import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.OutputFilesRepository
 
-class RecordOutputsStepTest extends ContextInsensitiveStepSpec implements SnapshotterFixture {
+class RecordOutputsStepTest extends ContextInsensitiveStepSpec<AfterExecutionResult.Step> implements SnapshotterFixture {
     def outputFilesRepository = Mock(OutputFilesRepository)
     def step = new RecordOutputsStep<>(outputFilesRepository, delegate)
 
@@ -27,6 +27,11 @@ class RecordOutputsStepTest extends ContextInsensitiveStepSpec implements Snapsh
     def outputFilesProducedByWork = snapshotsOf(output: outputFile)
 
     def delegateResult = Mock(AfterExecutionResult)
+
+    @Override
+    protected AfterExecutionResult.Step createDelegate() {
+        Mock(AfterExecutionResult.Step)
+    }
 
     def "outputs are recorded after execution"() {
         when:

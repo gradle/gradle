@@ -25,7 +25,7 @@ public interface OutputSnapshotter {
     /**
      * Takes a snapshot of the outputs of a work.
      */
-    ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork work, File workspace)
+    ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork<?> work, File workspace)
         throws OutputFileSnapshottingException;
 
     class OutputFileSnapshottingException extends RuntimeException {

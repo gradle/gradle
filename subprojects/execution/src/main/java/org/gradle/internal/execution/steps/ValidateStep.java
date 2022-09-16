@@ -54,17 +54,17 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
-public class ValidateStep<C extends BeforeExecutionContext, R extends Result> implements Step<C, R> {
+public class ValidateStep<C extends BeforeExecutionContext> implements CachingResult.Step<C> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
 
     private final VirtualFileSystem virtualFileSystem;
     private final ValidationWarningRecorder warningReporter;
-    private final Step<? super ValidationFinishedContext, ? extends R> delegate;
+    private final CachingResult.Step<? super ValidationFinishedContext> delegate;
 
     public ValidateStep(
         VirtualFileSystem virtualFileSystem,
         ValidationWarningRecorder warningReporter,
-        Step<? super ValidationFinishedContext, ? extends R> delegate
+        CachingResult.Step<? super ValidationFinishedContext> delegate
     ) {
         this.virtualFileSystem = virtualFileSystem;
         this.warningReporter = warningReporter;
@@ -72,7 +72,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    public <T> CachingResult<T> execute(UnitOfWork<T> work, C context) {
         WorkValidationContext validationContext = context.getValidationContext();
         work.validate(validationContext);
         context.getBeforeExecutionState()
@@ -154,7 +154,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         });
     }
 
-    private void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
+    private void validateImplementations(UnitOfWork<?> work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
         MutableReference<Class<?>> workClass = MutableReference.empty();
         work.visitImplementations(new UnitOfWork.ImplementationVisitor() {
             @Override
@@ -193,7 +193,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         }
     }
 
-    private void validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, String descriptionPrefix, UnitOfWork work) {
+    private void validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, String descriptionPrefix, UnitOfWork<?> work) {
         if (implementation instanceof UnknownImplementationSnapshot) {
             UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
             workValidationContext.visitPropertyProblem(problem ->
@@ -213,7 +213,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             .documentedAt("validation_problems", "implementation_unknown");
     }
 
-    protected void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<TypeValidationProblem> validationErrors) {
+    protected void throwValidationException(UnitOfWork<?> work, WorkValidationContext validationContext, Collection<TypeValidationProblem> validationErrors) {
         ImmutableSet<String> uniqueErrors = validationErrors.stream()
                 .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
                 .collect(ImmutableSet.toImmutableSet());
@@ -223,6 +223,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     }
 
     public interface ValidationWarningRecorder {
-        void recordValidationWarnings(UnitOfWork work, Collection<TypeValidationProblem> warnings);
+        void recordValidationWarnings(UnitOfWork<?> work, Collection<TypeValidationProblem> warnings);
     }
 }

@@ -22,7 +22,7 @@ import org.gradle.internal.execution.UnitOfWork;
 
 import java.time.Duration;
 
-public interface Result {
+public interface Result<T> {
 
     /**
      * The elapsed wall clock time of executing the actual work, i.e. the time it took to execute the
@@ -43,5 +43,10 @@ public interface Result {
      */
     Duration getDuration();
 
-    Try<Execution> getExecution();
+    Try<Execution<T>> getExecution();
+
+    interface Step<C extends Context> extends org.gradle.internal.execution.steps.Step<C, Result<?>> {
+        @Override
+        <T> Result<T> execute(UnitOfWork<T> work, C context);
+    }
 }

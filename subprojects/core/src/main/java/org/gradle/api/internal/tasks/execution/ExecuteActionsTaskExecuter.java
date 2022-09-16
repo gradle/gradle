@@ -135,10 +135,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     private TaskExecuterResult executeIfValid(TaskInternal task, TaskStateInternal state, TaskExecutionContext context, TaskExecution work) {
-        ExecutionEngine.Request request = executionEngine.createRequest(work);
+        ExecutionEngine.Request<Void> request = executionEngine.createRequest(work);
         context.getTaskExecutionMode().getRebuildReason().ifPresent(request::forceNonIncremental);
         request.withValidationContext(context.getValidationContext());
-        Result result = request.execute();
+        Result<Void> result = request.execute();
         result.getExecution().ifSuccessfulOrElse(
             success -> state.setOutcome(convertOutcome(success.getOutcome())),
             failure -> state.setOutcome(new TaskExecutionException(task, failure))
