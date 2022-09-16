@@ -20,12 +20,13 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
-import org.gradle.internal.execution.ExecutionOutcome
-import org.gradle.internal.execution.ExecutionResult
 import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
+
+import static org.gradle.internal.execution.ExecutionEngine.Execution
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
 
 class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
     def step = new SkipUpToDateStep<>(delegate)
@@ -41,7 +42,7 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
         def result = step.execute(work, context)
 
         then:
-        result.executionResult.get().outcome == ExecutionOutcome.UP_TO_DATE
+        result.execution.get().outcome == UP_TO_DATE
         !result.executionReasons.present
 
         _ * context.changes >> Optional.of(changes)
@@ -56,7 +57,7 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
 
     def "executes when outputs are not up to date"() {
         def delegateResult = Mock(AfterExecutionResult)
-        def delegateOutcome = Try.successful(Mock(ExecutionResult))
+        def delegateOutcome = Try.successful(Mock(Execution))
         def delegateAfterExecutionState = Mock(AfterExecutionState)
 
         when:
@@ -71,12 +72,12 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
         0 * _
 
         when:
-        def outcome = result.executionResult
+        def outcome = result.execution
 
         then:
         outcome == delegateOutcome
 
-        1 * delegateResult.executionResult >> delegateOutcome
+        1 * delegateResult.execution >> delegateOutcome
         0 * _
 
         when:

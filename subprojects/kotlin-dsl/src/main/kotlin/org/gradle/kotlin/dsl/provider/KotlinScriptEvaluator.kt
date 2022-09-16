@@ -250,7 +250,7 @@ class StandardKotlinScriptEvaluator(
                     fileCollectionFactory,
                     inputFingerprinter
                 )
-            ).execute().executionResult.get().output as File
+            ).execute().execution.get().output as File
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }

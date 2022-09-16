@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
+import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -34,6 +34,8 @@ import java.time.Duration;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Optional;
+
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE;
 
 public class SkipUpToDateStep<C extends IncrementalChangesContext> implements Step<C, UpToDateResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateStep.class);
@@ -84,11 +86,11 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             }
 
             @Override
-            public Try<ExecutionResult> getExecutionResult() {
-                return Try.successful(new ExecutionResult() {
+            public Try<Execution> getExecution() {
+                return Try.successful(new Execution() {
                     @Override
                     public ExecutionOutcome getOutcome() {
-                        return ExecutionOutcome.UP_TO_DATE;
+                        return UP_TO_DATE;
                     }
 
                     @Override
@@ -132,8 +134,8 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             }
 
             @Override
-            public Try<ExecutionResult> getExecutionResult() {
-                return result.getExecutionResult();
+            public Try<Execution> getExecution() {
+                return result.getExecution();
             }
         };
     }

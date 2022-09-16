@@ -20,7 +20,7 @@ import org.gradle.cache.Cache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 
@@ -46,8 +46,8 @@ public class IdentityCacheStep<C extends IdentityContext, R extends Result> impl
         } else {
             return Deferrable.deferred(() -> cache.get(
                 identity,
-                () -> execute(work, context).getExecutionResult()
-                    .map(ExecutionResult::getOutput)
+                () -> execute(work, context).getExecution()
+                    .map(Execution::getOutput)
                     .map(Cast::<T>uncheckedNonnullCast)));
         }
     }
