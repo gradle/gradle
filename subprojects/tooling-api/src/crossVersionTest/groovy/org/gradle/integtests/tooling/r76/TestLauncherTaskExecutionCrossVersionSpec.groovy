@@ -206,18 +206,23 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         setup:
         buildFile << '''
             tasks.register('setupTest')
+            tasks.register('cleanupTest')
         '''
 
         when:
-        withConnection { connection ->
+        withConnection { ProjectConnection connection ->
             TestLauncher testLauncher = connection.newTestLauncher()
             collectOutputs(testLauncher)
-            testLauncher.forTasks("setupTest").withTestsFor(s -> s.forTaskPath(":test").includeMethod('MyTest', 'pass'))
-            testLauncher.run()
+
+            testLauncher.forTasks("setupTest")
+                        .withTestsFor(s -> s.forTaskPath(":test")
+                        .includeMethod('MyTest', 'pass'))
+                        .forTasks("cleanupTest")
+                        .run()
         }
 
         then:
-        tasksExecutedInOrder(':setupTest', ':test')
+        tasksExecutedInOrder(':setupTest', ':test', ':cleanupTest')
 
         when:
         withConnection { connection ->
