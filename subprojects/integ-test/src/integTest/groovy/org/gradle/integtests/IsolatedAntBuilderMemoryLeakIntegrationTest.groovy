@@ -16,10 +16,13 @@
 
 package org.gradle.integtests
 
+import groovy.transform.Immutable
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.VersionNumber
 
 class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
 
@@ -42,7 +45,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    private void withCodenarc(String groovyVersion, TestFile root = testDirectory) {
+    private void withCodenarc(VersionPair versions, TestFile root = testDirectory) {
         root.file("config/codenarc/rulesets.groovy") << """
             ruleset {
                 ruleset('rulesets/naming.xml')
@@ -53,10 +56,11 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
                 apply plugin: 'codenarc'
 
                 dependencies {
-                    codenarc('org.codenarc:CodeNarc-Groovy4:3.1.0') {
+                    codenarc("org.codenarc:CodeNarc:${versions.codenarcVersion}") {
                         exclude group: 'org.apache.groovy'
+                        exclude group: 'org.codehaus.groovy'
                     }
-                    codenarc $groovyVersion
+                    codenarc $versions.groovyVersion
                 }
 
                 codenarc {
@@ -83,20 +87,48 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
 
     void 'CodeNarc does not fail with PermGen space error'() {
         given:
-        withCodenarc(groovyVersion)
+        withCodenarc(versions)
         withCheckstyle()
-        goodCode(groovyVersion)
+        goodCode(versions.groovyVersion)
 
         expect:
         succeeds 'check'
 
         where:
-        groovyVersion << groovyVersions() * 3
+        versions << groovyAndCodenarcVersions() * 3
     }
 
-    private static List<String> groovyVersions() {
+    @Immutable
+    static class VersionPair {
+        String groovyVersion
+        String codenarcVersion
+    }
+
+    private static List<VersionPair> groovyAndCodenarcVersions() {
+        def isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
+
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
+            return [
+                new VersionPair("localGroovy()", isAtLeastGroovy4 ? '3.1.0-groovy-4.0' : '3.1.0'),
+                new VersionPair("'org.codehaus.groovy:groovy:3.0.5', 'org.codehaus.groovy:groovy-templates:3.0.5'", '3.1.0')
+            ]
+        }
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9)) {
+            return [
+                new VersionPair("localGroovy()", isAtLeastGroovy4 ? '3.1.0-groovy-4.0' : '3.1.0'),
+                // Leave this at 2.4.7 even if Groovy is upgraded
+                new VersionPair("'org.codehaus.groovy:groovy-all:2.4.7'", '3.1.0')
+            ]
+        }
         return [
-            'localGroovy()' // TODO as of July 2022, we can only test org.codenarc:CodeNarc-Groovy4:3.1.0 with Groovy 4
+            new VersionPair("localGroovy()", isAtLeastGroovy4 ? '3.1.0-groovy-4.0' : '3.1.0'),
+            //new VersionPair("'org.apache.groovy:groovy-all:4.0.5'", '3.1.0-groovy-4.0'), // FIXME cannot work due to leaking Groovy 3.0.12 jar
+            new VersionPair("'org.codehaus.groovy:groovy-all:3.0.12'", '3.1.0'),
+            new VersionPair("'org.codehaus.groovy:groovy-all:2.3.10'", '3.1.0'),
+            new VersionPair("'org.codehaus.groovy:groovy-all:2.2.1'", '3.1.0'),
+            new VersionPair("'org.codehaus.groovy:groovy-all:2.1.9'", '3.1.0'),
+            new VersionPair("'org.codehaus.groovy:groovy-all:2.0.4'", '3.1.0'),
+            new VersionPair("'org.codehaus.groovy:groovy-all:1.8.7'", '3.1.0')
         ]
     }
 
