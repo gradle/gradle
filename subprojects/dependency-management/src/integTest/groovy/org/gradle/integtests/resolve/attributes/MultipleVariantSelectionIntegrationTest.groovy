@@ -41,18 +41,22 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                 variant('api1') {
                     attribute('custom', 'c1')
                     capability('cap1')
+                    artifact("api1-c1-cap1")
                 }
                 variant('api2') {
                     attribute('custom', 'c2')
                     capability('cap1')
+                    artifact("api2-c2-cap1")
                 }
                 variant('runtime1') {
                     attribute('custom2', 'c1')
                     capability('cap2')
+                    artifact("runtime1-c1-cap2")
                 }
                 variant('runtime2') {
                     attribute('custom2', 'c2')
                     capability('cap2')
+                    artifact("runtime2-c2-cap2")
                 }
             }
         }
@@ -81,7 +85,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         when:
         repositoryInteractions {
             'org:test:1.0' {
-                expectResolve()
+                allowAll()
             }
         }
         succeeds 'checkDeps'
@@ -91,9 +95,11 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
             root(":", ":test:") {
                 module('org:test:1.0') {
                     variant('api1', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), custom: 'c1'])
+                    artifact([classifier: 'api1-c1-cap1'])
                 }
                 module('org:test:1.0') {
                     variant('runtime2', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), custom2: 'c2'])
+                    artifact([classifier: 'runtime2-c2-cap2'])
                 }
             }
         }

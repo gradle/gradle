@@ -209,9 +209,11 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
                 variant('runtimeAlt') {
                     capability('org', 'testB', '1.0')
                     capability('special')
+                    artifact('runtime-special')
                 }
                 variant('runtimeOptional') {
                     capability('optional')
+                    artifact('runtime-optional')
                 }
             }
         }
@@ -245,7 +247,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
         when:
         repositoryInteractions {
             'org:testB:1.0' {
-                expectResolve()
+                allowAll()
             }
         }
         run ":checkDeps"
@@ -254,9 +256,13 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
 
         resolve.expectGraph {
             root(":", ":test:") {
-                module('org:testB:1.0:runtimeAlt').byConflictResolution("On capability org:testB we want runtimeAlt with 'special'")
+                module('org:testB:1.0:runtimeAlt') {
+                    artifact([classifier: 'runtime-special'])
+                }.byConflictResolution("On capability org:testB we want runtimeAlt with 'special'")
                 module('org:testB:1.0:runtimeAlt')
-                module('org:testB:1.0:runtimeOptional')
+                module('org:testB:1.0:runtimeOptional') {
+                    artifact([classifier: 'runtime-optional'])
+                }
             }
         }
     }
