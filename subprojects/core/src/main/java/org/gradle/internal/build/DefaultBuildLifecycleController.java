@@ -36,7 +36,6 @@ import org.gradle.internal.model.StateTransitionControllerFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -259,7 +258,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         @Override
         public void addEntryTasks(List<? extends Task> tasks) {
             for (Task task : tasks) {
-                plan.addEntryTasks(Collections.singletonList(task));
+                plan.addEntryTask(task);
             }
         }
 
