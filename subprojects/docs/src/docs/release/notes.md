@@ -22,6 +22,7 @@ We would like to thank the following community members for their contributions t
 [Herbert von Broeuschmeul](https://github.com/HvB),
 [Matthew Haughton](https://github.com/3flex),
 [Michael Torres](https://github.com/torresmi),
+[Pankaj Kumar](https://github.com/p1729),
 [Ricardo Jiang](https://github.com/RicardoJiang),
 [Siddardha Bezawada](https://github.com/SidB3),
 [Stephen Topley](https://github.com/stopley).
