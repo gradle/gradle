@@ -29,6 +29,7 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import java.util.AbstractCollection;
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -110,6 +111,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         entryNodes.addAll(nodes);
         scheduledNodes = ImmutableList.copyOf(nodes);
         nodeMapping.addAll(nodes);
+    }
+
+    @Override
+    public void addEntryTask(Task task) {
+        addEntryTasks(Collections.singletonList(task));
     }
 
     @Override
