@@ -85,7 +85,7 @@ public interface UnitOfWork extends Describable {
         Optional<InputChangesInternal> getInputChanges();
 
         /**
-         * Output snapshots indexed by property fron the previous execution;
+         * Output snapshots indexed by property from the previous execution;
          * {@link Optional#empty()} is information about a previous execution is not available.
          */
         Optional<ImmutableSortedMap<String, FileSystemSnapshot>> getPreviouslyProducedOutputs();
