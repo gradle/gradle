@@ -86,6 +86,11 @@ The following are the features that have been promoted in this Gradle release.
 ### Promoted features in the groovy plugin
 
 - The `GroovyCompileOptions.getDisabledGlobalASTTransformations()` method is now considered stable.
+
+### Promoted features in the Tooling API
+
+- The `GradleConnector.disconnect()` method is now considered stable.
+
 <!--
 ### Example promoted
 -->
