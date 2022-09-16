@@ -156,4 +156,19 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     }
 
     // endregion
+
+    @Override
+    public Dependency gradleApi() {
+        return createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_API);
+    }
+
+    @Override
+    public Dependency gradleTestKit() {
+        return createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT);
+    }
+
+    @Override
+    public Dependency localGroovy() {
+        return createDependency(DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY);
+    }
 }
