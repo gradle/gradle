@@ -9,7 +9,6 @@ org.gradle.api.plugins.quality.Checkstyle
 org.gradle.api.plugins.quality.CheckstylePlugin
 org.gradle.api.plugins.quality.CheckstyleExtension
 org.gradle.api.plugins.quality.CodeNarc
-org.gradle.api.plugins.quality.CodeNarcPlugin
 org.gradle.api.plugins.quality.CodeQualityExtension
 org.gradle.api.plugins.quality.Pmd
 org.gradle.api.plugins.quality.PmdPlugin
