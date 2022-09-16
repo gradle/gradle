@@ -16,12 +16,8 @@
 
 package org.gradle.java.compile.incremental
 
-import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess
 import org.gradle.integtests.fixtures.CompiledLanguage
 import spock.lang.Issue
-
-import static org.junit.Assume.assumeFalse
 
 abstract class AbstractSourceIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
 
