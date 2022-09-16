@@ -89,7 +89,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     assert test.testFramework instanceof ${JUnitTestFramework.canonicalName}
                     assert configurations.testRuntimeClasspath.files.size() == 2
-                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-${DefaultJvmTestSuite.Frameworks.JUNIT4.getDefaultVersion()}.jar" }
+                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-${DefaultJvmTestSuite.TestingFramework.JUNIT4.getDefaultVersion()}.jar" }
                 }
             }
         """
@@ -177,8 +177,9 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn test
                 doLast {
                     assert test.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.testRuntimeClasspath.files.size() == 7
-                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
+                    assert configurations.testRuntimeClasspath.files.size() == 8
+                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-platform-launcher-${DefaultJvmTestSuite.TestingFramework.JUNIT_PLATFORM.getDefaultVersion()}.jar" }
+                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
         """
@@ -206,7 +207,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn test
                 doLast {
                     assert test.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.testRuntimeClasspath.files.size() == 8
+                    assert configurations.testRuntimeClasspath.files.size() == 9
+                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-platform-launcher-1.7.2.jar" }
                     assert configurations.testRuntimeClasspath.files.any { it.name == "junit-jupiter-5.7.2.jar" }
                 }
             }
@@ -237,7 +239,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn test
                 doLast {
                     assert test.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.testRuntimeClasspath.files.size() == 8
+                    assert configurations.testRuntimeClasspath.files.size() == 9
+                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-platform-launcher-1.7.2.jar" }
                     assert configurations.testRuntimeClasspath.files.any { it.name == "junit-jupiter-5.7.2.jar" }
                 }
             }
@@ -264,8 +267,9 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn integTest
                 doLast {
                     assert integTest.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.integTestRuntimeClasspath.files.size() == 7
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
+                    assert configurations.integTestRuntimeClasspath.files.size() == 8
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-platform-launcher-${DefaultJvmTestSuite.TestingFramework.JUNIT_PLATFORM.getDefaultVersion()}.jar" }
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
         """
@@ -301,18 +305,18 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("checkConfiguration")
 
         where: // When testing a custom version, this should be a different version that the default
-        testingFrameworkDeclaration     | testingFrameworkType       | testingFrameworkDep
-        'useJUnit()'                    | JUnitTestFramework         | "junit-${DefaultJvmTestSuite.Frameworks.JUNIT4.getDefaultVersion()}.jar"
-        'useJUnit("4.12")'              | JUnitTestFramework         | "junit-4.12.jar"
-        'useJUnitJupiter()'             | JUnitPlatformTestFramework | "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar"
-        'useJUnitJupiter("5.7.1")'      | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
-        'useSpock()'                    | JUnitPlatformTestFramework | "spock-core-${DefaultJvmTestSuite.Frameworks.SPOCK.getDefaultVersion()}.jar"
-        'useSpock("2.2-groovy-3.0")'    | JUnitPlatformTestFramework | "spock-core-2.2-groovy-3.0.jar"
-        'useSpock("2.2-groovy-4.0")'    | JUnitPlatformTestFramework | "spock-core-2.2-groovy-4.0.jar"
-        'useKotlinTest()'               | JUnitPlatformTestFramework | "kotlin-test-junit5-${DefaultJvmTestSuite.Frameworks.KOTLIN_TEST.getDefaultVersion()}.jar"
-        'useKotlinTest("1.5.30")'       | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
-        'useTestNG()'                   | TestNGTestFramework        | "testng-${DefaultJvmTestSuite.Frameworks.TESTNG.getDefaultVersion()}.jar"
-        'useTestNG("7.3.0")'            | TestNGTestFramework        | "testng-7.3.0.jar"
+        testingFrameworkDeclaration  | testingFrameworkType       | testingFrameworkDep
+        'useJUnit()'                 | JUnitTestFramework         | "junit-${DefaultJvmTestSuite.TestingFramework.JUNIT4.getDefaultVersion()}.jar"
+        'useJUnit("4.12")'           | JUnitTestFramework         | "junit-4.12.jar"
+        'useJUnitJupiter()'          | JUnitPlatformTestFramework | "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar"
+        'useJUnitJupiter("5.7.1")'   | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
+        'useSpock()'                 | JUnitPlatformTestFramework | "spock-core-${DefaultJvmTestSuite.TestingFramework.SPOCK.getDefaultVersion()}.jar"
+        'useSpock("2.2-groovy-3.0")' | JUnitPlatformTestFramework | "spock-core-2.2-groovy-3.0.jar"
+        'useSpock("2.2-groovy-4.0")' | JUnitPlatformTestFramework | "spock-core-2.2-groovy-4.0.jar"
+        'useKotlinTest()'            | JUnitPlatformTestFramework | "kotlin-test-junit5-${DefaultJvmTestSuite.TestingFramework.KOTLIN_TEST.getDefaultVersion()}.jar"
+        'useKotlinTest("1.5.30")'    | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
+        'useTestNG()'                | TestNGTestFramework        | "testng-${DefaultJvmTestSuite.TestingFramework.TESTNG.getDefaultVersion()}.jar"
+        'useTestNG("7.3.0")'         | TestNGTestFramework        | "testng-7.3.0.jar"
     }
 
     def "configuring test framework on custom test suite using a Provider is honored in task and dependencies with #testingFrameworkMethod version #testingFrameworkVersion"() {
@@ -345,13 +349,13 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("checkConfiguration")
 
         where: // When testing a custom version, this should be a different version that the default
-        testingFrameworkMethod       | testingFrameworkVersion         | testingFrameworkType       | testingFrameworkDep
-        'useJUnit'                   | '4.12'                          | JUnitTestFramework         | "junit-4.12.jar"
-        'useJUnitJupiter'            | '5.7.1'                         | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
-        'useSpock'                   | '2.2-groovy-3.0'                | JUnitPlatformTestFramework | "spock-core-2.2-groovy-3.0.jar"
-        'useSpock'                   | '2.2-groovy-4.0'                | JUnitPlatformTestFramework | "spock-core-2.2-groovy-4.0.jar"
-        'useKotlinTest'              | '1.5.30'                        | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
-        'useTestNG'                  | '7.3.0'                         | TestNGTestFramework        | "testng-7.3.0.jar"
+        testingFrameworkMethod       | testingFrameworkVersion      | testingFrameworkType       | testingFrameworkDep
+        'useJUnit'                   | '4.12'                       | JUnitTestFramework         | "junit-4.12.jar"
+        'useJUnitJupiter'            | '5.7.1'                      | JUnitPlatformTestFramework | "junit-jupiter-5.7.1.jar"
+        'useSpock'                   | '2.2-groovy-3.0'             | JUnitPlatformTestFramework | "spock-core-2.2-groovy-3.0.jar"
+        'useSpock'                   | '2.2-groovy-4.0'             | JUnitPlatformTestFramework | "spock-core-2.2-groovy-4.0.jar"
+        'useKotlinTest'              | '1.5.30'                     | JUnitPlatformTestFramework | "kotlin-test-junit5-1.5.30.jar"
+        'useTestNG'                  | '7.3.0'                      | TestNGTestFramework        | "testng-7.3.0.jar"
     }
 
     def "can override previously configured test framework on a test suite"() {
@@ -375,8 +379,9 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 dependsOn integTest
                 doLast {
                     assert integTest.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.integTestRuntimeClasspath.files.size() == 7
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
+                    assert configurations.integTestRuntimeClasspath.files.size() == 8
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-platform-launcher-${DefaultJvmTestSuite.TestingFramework.JUNIT_PLATFORM.getDefaultVersion()}.jar" }
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
             task checkConfigurationIsJUnit {
@@ -434,8 +439,9 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                     assert integTest.testFramework instanceof ${JUnitTestFramework.canonicalName}
 
                     // but test suite still adds JUnit Jupiter
-                    assert configurations.integTestRuntimeClasspath.files.size() == 7
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER.getDefaultVersion()}.jar" }
+                    assert configurations.integTestRuntimeClasspath.files.size() == 8
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-platform-launcher-${DefaultJvmTestSuite.TestingFramework.JUNIT_PLATFORM.getDefaultVersion()}.jar" }
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
         """

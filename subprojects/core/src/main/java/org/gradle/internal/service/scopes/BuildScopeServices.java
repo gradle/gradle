@@ -25,7 +25,6 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExternalProcessStartedListener;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
@@ -242,7 +241,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     ExecutionPlanFactory createExecutionPlanFactory(
-        GradleInternal gradleInternal,
+        BuildState build,
         TaskNodeFactory taskNodeFactory,
         OrdinalGroupFactory ordinalGroupFactory,
         TaskDependencyResolver dependencyResolver,
@@ -250,7 +249,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         ResourceLockCoordinationService lockCoordinationService
     ) {
         return new ExecutionPlanFactory(
-            gradleInternal.getIdentityPath().toString(),
+            build.getDisplayName().getDisplayName(),
             taskNodeFactory,
             ordinalGroupFactory,
             dependencyResolver,

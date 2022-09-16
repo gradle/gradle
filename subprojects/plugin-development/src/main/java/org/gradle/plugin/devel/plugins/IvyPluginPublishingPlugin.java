@@ -21,7 +21,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorDescription;
@@ -35,18 +34,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import javax.inject.Inject;
-
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
 class IvyPluginPublishingPlugin implements Plugin<Project> {
-    private final FeaturePreviews featurePreviews;
-
-    @Inject
-    IvyPluginPublishingPlugin(FeaturePreviews featurePreviews) {
-        this.featurePreviews = featurePreviews;
-    }
-
     @Override
     public void apply(Project project) {
         project.afterEvaluate(new Action<Project>() {

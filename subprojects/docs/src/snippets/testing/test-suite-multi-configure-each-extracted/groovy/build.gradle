@@ -64,13 +64,18 @@ tasks.register('checkDependencies') {
         configurations.functionalTestRuntimeClasspath,
         configurations.testRuntimeClasspath
     )
+
+    FileCollection testRuntimeClasspath = configurations.testRuntimeClasspath
+    FileCollection integrationTestRuntimeClasspath = configurations.integrationTestRuntimeClasspath
+    FileCollection functionalTestRuntimeClasspath = configurations.functionalTestRuntimeClasspath
+
     doLast {
-        assert configurations.testRuntimeClasspath.files.size() == 12
-        assert configurations.testRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
-        assert configurations.integrationTestRuntimeClasspath.files.size() == 12
-        assert configurations.integrationTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
-        assert configurations.functionalTestRuntimeClasspath.files.size() == 3
-        assert configurations.functionalTestRuntimeClasspath.files.any { it.name == "junit-4.13.2.jar" }
-        assert configurations.functionalTestRuntimeClasspath.files.any { it.name == "commons-lang3-3.11.jar" }
+        assert testRuntimeClasspath.size() == 13
+        assert testRuntimeClasspath.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
+        assert integrationTestRuntimeClasspath.size() == 13
+        assert integrationTestRuntimeClasspath.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
+        assert functionalTestRuntimeClasspath.size() == 3
+        assert functionalTestRuntimeClasspath.any { it.name == "junit-4.13.2.jar" }
+        assert functionalTestRuntimeClasspath.any { it.name == "commons-lang3-3.11.jar" }
     }
 }

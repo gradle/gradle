@@ -16,7 +16,7 @@
 
 package org.gradle.testing.testsuites.dependencies
 
-import groovy.test.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.dsl.GradleDsl
 
@@ -196,7 +196,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             suites {
                 val integTest by registering(JvmTestSuite::class) {
                     dependencies {
-                        implementation(project)
+                        implementation(project())
                     }
                 }
             }
@@ -427,7 +427,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                 val integTest by registering(JvmTestSuite::class) {
                     // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                     dependencies {
-                        implementation(project)
+                        implementation(project())
                         implementation("com.google.guava:guava:29.0-jre")
                         compileOnly("javax.servlet:servlet-api:2.5")
                         runtimeOnly("mysql:mysql-connector-java:6.0.6")
@@ -486,18 +486,18 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             suites {
                 val test by getting(JvmTestSuite::class) {
                     dependencies {
-                        implementation(group = "com.google.guava", name = "guava", version = "30.1.1-jre")
-                        compileOnly(group = "javax.servlet", name = "servlet-api", version = "3.0-alpha-1")
-                        runtimeOnly(group = "mysql", name = "mysql-connector-java", version = "8.0.26")
+                        implementation(module(group = "com.google.guava", name = "guava", version = "30.1.1-jre"))
+                        compileOnly(module(group = "javax.servlet", name = "servlet-api", version = "3.0-alpha-1"))
+                        runtimeOnly(module(group = "mysql", name = "mysql-connector-java", version = "8.0.26"))
                     }
                 }
                 val integTest by registering(JvmTestSuite::class) {
                     // intentionally setting lower versions of the same dependencies on the `test` suite to show that no conflict resolution should be taking place
                     dependencies {
-                        implementation(project)
-                        implementation(group = "com.google.guava", name = "guava", version = "29.0-jre")
-                        compileOnly(group = "javax.servlet", name = "servlet-api", version = "2.5")
-                        runtimeOnly(group = "mysql", name = "mysql-connector-java", version = "6.0.6")
+                        implementation(project())
+                        implementation(module(group = "com.google.guava", name = "guava", version = "29.0-jre"))
+                        compileOnly(module(group = "javax.servlet", name = "servlet-api", version = "2.5"))
+                        runtimeOnly(module(group = "mysql", name = "mysql-connector-java", version = "6.0.6"))
                     }
                 }
             }
@@ -764,7 +764,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         where:
         desc                  | dependencyNotation
         'GAV string'          | '"commons-beanutils:commons-beanutils:1.9.4"'
-        'GAV named arguments' | 'group = "commons-beanutils", name = "commons-beanutils", version = "1.9.4"'
+        'GAV named arguments' | 'module(group = "commons-beanutils", name = "commons-beanutils", version = "1.9.4")'
     }
 
     def "can add dependencies using a non-String CharSequence: #type"() {
@@ -848,7 +848,9 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                 // Due to the named-args method being invoked, we are actually requesting a single dependency
                 val ${suiteName}Implementation = configurations.getByName("${suiteName}Implementation")
                 // We might get junit included too, dependending on the test suite, so filter it
-                val deps = ${suiteName}Implementation.dependencies.filter { it.name != "junit-jupiter" }
+                val deps = ${suiteName}Implementation.dependencies
+                            .filter { it.name != "junit-jupiter" }
+                            .filter { it.name != "junit-platform-launcher" }
                             .map { listOf(it.group, it.name, it.version ?: "null") }
                 doLast {
                     assert(deps.size == 1) { "expected 1 dependency, found " + (deps.size) + " dependencies" }
@@ -1848,7 +1850,6 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
     // endregion dependencies - Version Catalog
 
     // region dependencies - platforms
-    @NotYetImplemented
     def "can add a platform dependency to #suiteDesc"() {
         given: "a suite that uses a platform dependency"
         settingsKotlinFile << """
@@ -1924,7 +1925,6 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
     }
 
-    @NotYetImplemented
     def "can add an enforced platform dependency to #suiteDesc"() {
         given: "a suite that uses an enforced platform dependency"
         settingsKotlinFile << """
@@ -2338,7 +2338,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                     $suiteDeclaration {
                         useJUnitJupiter()
                         dependencies {
-                            implementation(testFixtures(project))
+                            implementation(testFixtures(project()))
                         }
                     }
                 }

@@ -99,6 +99,11 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     }
 
     @Override
+    public boolean isProjectsLoaded() {
+        return getProjectStateRegistry().findProjectsFor(getBuildIdentifier()) != null;
+    }
+
+    @Override
     public void ensureProjectsConfigured() {
         getBuildController().configureProjects();
     }
