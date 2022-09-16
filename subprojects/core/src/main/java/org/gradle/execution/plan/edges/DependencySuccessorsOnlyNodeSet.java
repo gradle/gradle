@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.execution.plan;
+package org.gradle.execution.plan.edges;
 
 import com.google.common.collect.ImmutableSortedSet;
+import org.gradle.execution.plan.Node;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -30,29 +31,19 @@ import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
  *
  * <p>Attempts to efficiently determine whether a node can start or not based on the state of its dependencies, by tracking those dependencies that are still to complete.</p>
  */
-public class NodeDependencySet {
-    private final Node node;
-    private NavigableSet<Node> orderedDependencies;
+public class DependencySuccessorsOnlyNodeSet implements DependencyNodesSet {
+    private final NavigableSet<Node> orderedDependencies = newSortedNodeSet();
     private Set<Node> waitingFor;
     private boolean nodeCannotStart;
     private boolean pruned;
 
-    public NodeDependencySet(Node node) {
-        this.node = node;
+    @Override
+    public NavigableSet<Node> getDependencySuccessors() {
+        return orderedDependencies;
     }
 
-    public NavigableSet<Node> getOrderedNodes() {
-        if (orderedDependencies == null) {
-            return ImmutableSortedSet.of();
-        } else {
-            return orderedDependencies;
-        }
-    }
-
-    public void addDependency(Node node) {
-        if (orderedDependencies == null) {
-            orderedDependencies = newSortedNodeSet();
-        }
+    @Override
+    public DependencySuccessorsOnlyNodeSet addDependency(Node node) {
         orderedDependencies.add(node);
         if (waitingFor == null) {
             waitingFor = new HashSet<>();
@@ -63,15 +54,26 @@ public class NodeDependencySet {
         // This lifecycle could be simplified and allow the dependencies to be discarded at this point
         pruned = false;
         waitingFor.add(node);
+        return this;
+    }
+
+    @Override
+    public NavigableSet<Node> getMustSuccessors() {
+        return ImmutableSortedSet.of();
+    }
+
+    @Override
+    public DependencyNodesSet addMustSuccessor(Node toNode) {
+        return new ComplexDependencyNodesSet(this).addMustSuccessor(toNode);
     }
 
     /**
      * Notified when a node that is potentially a member of this set has completed.
      */
-    public void onNodeComplete(Node node) {
+    public void onNodeComplete(Node node, Node dependency) {
         if (waitingFor != null) {
-            if (waitingFor.remove(node)) {
-                if (preventsNodeFromStarting(node)) {
+            if (waitingFor.remove(dependency)) {
+                if (preventsNodeFromStarting(node, dependency)) {
                     nodeCannotStart = true;
                     waitingFor = null;
                 }
@@ -79,10 +81,10 @@ public class NodeDependencySet {
         }
     }
 
-    public Node.DependenciesState getState() {
+    public Node.DependenciesState getState(Node node) {
         if (!pruned) {
             // See the comment in addDependency() above
-            discardCompletedNodes();
+            discardCompletedNodes(node);
             pruned = true;
         }
         if (nodeCannotStart) {
@@ -96,14 +98,14 @@ public class NodeDependencySet {
         }
     }
 
-    private void discardCompletedNodes() {
+    private void discardCompletedNodes(Node node) {
         if (waitingFor != null) {
             Iterator<Node> iterator = waitingFor.iterator();
             while (iterator.hasNext()) {
-                Node node = iterator.next();
-                if (node.isComplete()) {
+                Node dependency = iterator.next();
+                if (dependency.isComplete()) {
                     iterator.remove();
-                    if (preventsNodeFromStarting(node)) {
+                    if (preventsNodeFromStarting(node, dependency)) {
                         nodeCannotStart = true;
                         waitingFor = null;
                         break;
@@ -113,7 +115,7 @@ public class NodeDependencySet {
         }
     }
 
-    private boolean preventsNodeFromStarting(Node dependency) {
+    private boolean preventsNodeFromStarting(Node node, Node dependency) {
         return !node.shouldContinueExecution(dependency);
     }
 }

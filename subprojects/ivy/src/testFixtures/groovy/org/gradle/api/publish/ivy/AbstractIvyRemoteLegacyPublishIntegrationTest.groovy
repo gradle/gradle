@@ -110,7 +110,7 @@ uploadArchives {
         then:
         module.assertIvyAndJarFilePublished()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
-        module.parsedIvy.expectArtifact("publish", "jar").hasAttributes("jar", "jar", ["apiElements", "archives", "runtimeElements"], null)
+        module.parsedIvy.expectArtifact("publish", "jar").hasAttributes("jar", "jar", ["apiElements", "archives", "compileElements", "runtimeElements"], null)
 
         with(module.parsedIvy) {
             dependencies.size() == 6

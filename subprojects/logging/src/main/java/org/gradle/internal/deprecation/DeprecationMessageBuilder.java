@@ -26,6 +26,7 @@ import java.util.List;
 public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
     private static final GradleVersion GRADLE8 = GradleVersion.version("8.0");
+    private static final GradleVersion GRADLE9 = GradleVersion.version("9.0");
 
     private String summary;
     private DeprecationTimeline deprecationTimeline;
@@ -72,6 +73,31 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         this.deprecationTimeline = DeprecationTimeline.willChangeInVersion(GRADLE8);
         return new WithDeprecationTimeline(this);
     }
+
+    /**
+     * Output: This is scheduled to be removed in Gradle 9.0.
+     */
+    public WithDeprecationTimeline willBeRemovedInGradle9() {
+        this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(GRADLE9);
+        return new WithDeprecationTimeline(this);
+    }
+
+    /**
+     * Output: This will fail with an error in Gradle 9.0.
+     */
+    public WithDeprecationTimeline willBecomeAnErrorInGradle9() {
+        this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(GRADLE9);
+        return new WithDeprecationTimeline(this);
+    }
+
+    /**
+     * Output: This will change in Gradle 9.0.
+     */
+    public WithDeprecationTimeline willChangeInGradle9() {
+        this.deprecationTimeline = DeprecationTimeline.willChangeInVersion(GRADLE9);
+        return new WithDeprecationTimeline(this);
+    }
+
 
     void setIndirectUsage() {
         this.usageType = DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT;
@@ -240,6 +266,12 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             return new WithDeprecationTimeline(this);
         }
 
+        @Override
+        public WithDeprecationTimeline willBeRemovedInGradle9() {
+            setDeprecationTimeline(DeprecationTimeline.willBeRemovedInVersion(GRADLE9));
+            return new WithDeprecationTimeline(this);
+        }
+
         public class WithDeprecationTimeline extends DeprecationMessageBuilder.WithDeprecationTimeline {
             private final DeprecateProperty builder;
 
@@ -390,6 +422,23 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         @Override
         String formatAdvice(String replacement) {
             return DeprecateMethod.pleaseUseThisMethodInstead(replacement);
+        }
+    }
+
+    public static class DeprecateType extends WithReplacement<String, DeprecateType> {
+
+        DeprecateType(String type) {
+            super(type);
+        }
+
+        @Override
+        String formatSummary(String type) {
+            return String.format("The %s type has been deprecated.", type);
+        }
+
+        @Override
+        String formatAdvice(String replacement) {
+            return String.format("Please use the %s type instead.", replacement);
         }
     }
 

@@ -27,6 +27,8 @@ import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.work.WorkerLeaseService;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -42,16 +44,18 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     private final TaskNodeFactory taskNodeFactory;
     private final BuildLifecycleController controller;
     private final BuildIdentifier buildIdentifier;
+    private final WorkerLeaseService workerLeaseService;
     private final Map<String, DefaultExportedTaskNode> nodesByPath = new ConcurrentHashMap<>();
     private final Object lock = new Object();
     private Thread currentOwner;
     private final Set<DefaultBuildWorkGraph> pendingGraphs = new HashSet<>();
     private DefaultBuildWorkGraph currentlyRunning;
 
-    public DefaultBuildWorkGraphController(TaskNodeFactory taskNodeFactory, BuildLifecycleController controller, BuildState buildState) {
+    public DefaultBuildWorkGraphController(TaskNodeFactory taskNodeFactory, BuildLifecycleController controller, BuildState buildState, WorkerLeaseService workerLeaseService) {
         this.taskNodeFactory = taskNodeFactory;
         this.controller = controller;
         this.buildIdentifier = buildState.getBuildIdentifier();
+        this.workerLeaseService = workerLeaseService;
     }
 
     @Override
@@ -66,8 +70,14 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     @Override
     public BuildWorkGraph newWorkGraph() {
         synchronized (lock) {
-            if (currentOwner != null && currentOwner != Thread.currentThread()) {
-                throw new IllegalStateException("This work graph of build '" + buildIdentifier.getName() + "' is currently in use by another thread.");
+            while (currentOwner != null && currentOwner != Thread.currentThread()) {
+                workerLeaseService.blocking(() -> {
+                    try {
+                        lock.wait();
+                    } catch (InterruptedException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
+                });
             }
             currentOwner = Thread.currentThread();
             DefaultBuildWorkGraph workGraph = new DefaultBuildWorkGraph();
@@ -187,6 +197,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                     pendingGraphs.remove(this);
                     if (pendingGraphs.isEmpty()) {
                         currentOwner = null;
+                        lock.notifyAll();
                     }
                 }
             }
@@ -248,19 +259,20 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                     TaskInternal task = findTaskNode(taskPath);
                     if (task == null) {
                         // Assume not scheduled yet
-                        return IncludedBuildTaskResource.State.Waiting;
+                        return IncludedBuildTaskResource.State.NotScheduled;
                     }
                     taskNode = taskNodeFactory.getOrCreateNode(task);
                 }
                 if (taskNode.isExecuted() && taskNode.isSuccessful()) {
                     return IncludedBuildTaskResource.State.Success;
-                } else if (taskNode.isComplete()) {
-                    // The task has failed or is not scheduled to run, so the consuming node can proceed
-                    // Here "failed" means "output is not available, so do not run dependents"
+                } else if (taskNode.isExecuted()) {
                     return IncludedBuildTaskResource.State.Failed;
+                } else if (taskNode.isComplete()) {
+                    // Not scheduled
+                    return IncludedBuildTaskResource.State.NotScheduled;
                 } else {
                     // Scheduled but not completed
-                    return IncludedBuildTaskResource.State.Waiting;
+                    return IncludedBuildTaskResource.State.Scheduled;
                 }
             }
         }
