@@ -21,14 +21,13 @@ import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.ClassRule
-import spock.lang.Shared
+import org.junit.Rule
 import spock.lang.Specification
 
 import java.util.function.Consumer
 
 abstract class StepSpec<C extends Context> extends Specification {
-    @Shared @ClassRule
+    @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
     final buildOperationExecutor = new TestBuildOperationExecutor()
 
@@ -46,7 +45,6 @@ abstract class StepSpec<C extends Context> extends Specification {
         _ * context.identity >> identity
         _ * work.displayName >> displayName
         _ * work.identify(_, _) >> identity
-        temporaryFolder.cleanup()
     }
 
     protected TestFile file(Object... path) {
