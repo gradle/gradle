@@ -49,6 +49,7 @@ class TaskOptionsSpec extends AbstractIntegrationSpec {
         then:
         succeeds "mytask", "--profile"
         output.contains "See the profiling report at"
+        !output.contains("profile=myvalue")
     }
 
     def "can use -- to specify a task option with same name as a built-in option"() {
