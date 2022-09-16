@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.UnitOfWork.ExecutionBehavior.INCREMENTAL;
+import static org.gradle.internal.execution.UnitOfWork.ExecutionBehavior.NON_INCREMENTAL;
 
 public class ResolveInputChangesStep<C extends IncrementalChangesContext, R extends Result> implements Step<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveInputChangesStep.class);
@@ -111,7 +111,7 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext, R exte
     }
 
     private static Optional<InputChangesInternal> determineInputChanges(UnitOfWork work, IncrementalChangesContext context) {
-        if (work.getExecutionBehavior() != INCREMENTAL) {
+        if (work.getExecutionBehavior() == NON_INCREMENTAL) {
             return Optional.empty();
         }
         ExecutionStateChanges changes = context.getChanges()
