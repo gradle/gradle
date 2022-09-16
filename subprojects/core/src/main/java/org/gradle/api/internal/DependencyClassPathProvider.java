@@ -17,7 +17,6 @@
 package org.gradle.api.internal;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.classpath.Module;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
@@ -26,6 +25,11 @@ import org.gradle.internal.classpath.ClassPath;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_API;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_KOTLIN_DSL;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
 
 public class DependencyClassPathProvider implements ClassPathProvider {
     private static final List<String> MODULES = Arrays.asList(
@@ -49,18 +53,17 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public ClassPath findClassPath(String name) {
-        if (name.equals(DependencyFactoryInternal.ClassPathNotation.GRADLE_API.name())) {
+        if (name.equals(GRADLE_API.name())) {
             return gradleApi();
         }
-        if (name.equals(DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT.name())) {
+        if (name.equals(GRADLE_TEST_KIT.name())) {
             return gradleTestKit();
         }
-        if (name.equals(DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY.name())) {
+        if (name.equals(LOCAL_GROOVY.name())) {
             return localGroovy();
         }
-        if (name.equals(DependencyFactoryInternal.ClassPathNotation.GRADLE_KOTLIN_DSL.name())) {
+        if (name.equals(GRADLE_KOTLIN_DSL.name())) {
             return gradleKotlinDsl();
         }
         return null;

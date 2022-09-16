@@ -42,6 +42,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_API;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
+
 public class DependencyClassPathNotationConverter implements NotationConverter<DependencyFactoryInternal.ClassPathNotation, SelfResolvingDependency> {
 
     private final ClassPathRegistry classPathRegistry;
@@ -81,14 +85,14 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private SelfResolvingDependency create(final DependencyFactoryInternal.ClassPathNotation notation) {
         boolean runningFromInstallation = currentGradleInstallation.getInstallation() != null;
         FileCollectionInternal fileCollectionInternal;
-        if (runningFromInstallation && notation.equals(DependencyFactoryInternal.ClassPathNotation.GRADLE_API)) {
+        if (runningFromInstallation && notation.equals(GRADLE_API)) {
             fileCollectionInternal = fileCollectionFactory.create(new GeneratedFileCollection(notation.displayName) {
                 @Override
                 Set<File> generateFileCollection() {
                     return gradleApiFileCollection(getClassPath(notation));
                 }
             });
-        } else if (runningFromInstallation && notation.equals(DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT)) {
+        } else if (runningFromInstallation && notation.equals(GRADLE_TEST_KIT)) {
             fileCollectionInternal = fileCollectionFactory.create(new GeneratedFileCollection(notation.displayName) {
                 @Override
                 Set<File> generateFileCollection() {
@@ -109,7 +113,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
 
     private Set<File> gradleApiFileCollection(Collection<File> apiClasspath) {
         // Don't inline the Groovy jar as the Groovy “tools locator” searches for it by name
-        List<File> groovyImpl = classPathRegistry.getClassPath(DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY.name()).getAsFiles();
+        List<File> groovyImpl = classPathRegistry.getClassPath(LOCAL_GROOVY.name()).getAsFiles();
         List<File> kotlinImpl = kotlinImplFrom(apiClasspath);
         List<File> installationBeacon = classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles();
         apiClasspath.removeAll(groovyImpl);
@@ -146,7 +150,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     }
 
     private Set<File> gradleTestKitFileCollection(Collection<File> testKitClasspath) {
-        List<File> gradleApi = getClassPath(DependencyFactoryInternal.ClassPathNotation.GRADLE_API);
+        List<File> gradleApi = getClassPath(GRADLE_API);
         testKitClasspath.removeAll(gradleApi);
 
         ImmutableSet.Builder<File> builder = ImmutableSet.builder();
