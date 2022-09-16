@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.util.internal.VersionNumber
 
 class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
 
@@ -52,7 +53,9 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(40)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
-        failure.assertHasCause("No signature of method: org.gradle.api.internal.artifacts.DefaultComponentSelection.foo() is applicable for argument types: () values: []")
+        def isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
+        def expectedRootCause = isAtLeastGroovy4 ? 'No signature of method: org.gradle.api.internal.artifacts.DefaultComponentSelection.foo() is applicable for argument types: () values: []' : 'Could not find method foo()'
+        failure.assertHasCause(expectedRootCause)
     }
 
     def "produces sensible error for invalid component selection rule"() {
