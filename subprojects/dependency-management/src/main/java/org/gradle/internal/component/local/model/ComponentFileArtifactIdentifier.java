@@ -26,13 +26,16 @@ public class ComponentFileArtifactIdentifier implements ComponentArtifactIdentif
     private final Object fileName;
 
     public ComponentFileArtifactIdentifier(ComponentIdentifier componentId, String fileName) {
-        this.componentId = componentId;
-        this.fileName = fileName;
+        this(componentId, (Object) fileName);
     }
 
-    public ComponentFileArtifactIdentifier(ComponentIdentifier componentIdentifier, IvyArtifactName artifactName) {
-        this.componentId = componentIdentifier;
-        this.fileName = artifactName;
+    public ComponentFileArtifactIdentifier(ComponentIdentifier componentId, IvyArtifactName artifactName) {
+        this(componentId, (Object) artifactName);
+    }
+
+    ComponentFileArtifactIdentifier(ComponentIdentifier componentId, Object fileName) {
+        this.componentId = componentId;
+        this.fileName = fileName;
     }
 
     @Override
@@ -42,6 +45,10 @@ public class ComponentFileArtifactIdentifier implements ComponentArtifactIdentif
 
     public String getFileName() {
         return fileName.toString();
+    }
+
+    public Object getRawFileName() {
+        return fileName;
     }
 
     @Override
