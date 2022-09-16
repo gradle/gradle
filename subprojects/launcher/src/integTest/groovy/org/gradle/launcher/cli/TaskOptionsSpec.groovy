@@ -62,6 +62,7 @@ class TaskOptionsSpec extends AbstractIntegrationSpec {
         then:
         succeeds "--", "mytask", "--profile", "myvalue"
         output.contains "profile=myvalue"
+        !output.contains("See the profiling report at")
     }
 
     def "task options apply to most recent task"() {
