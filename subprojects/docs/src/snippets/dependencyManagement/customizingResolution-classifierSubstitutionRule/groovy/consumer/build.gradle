@@ -20,7 +20,7 @@ configurations.all {
 
 tasks.register('resolve') {
     FileCollection classpath = configurations.runtimeClasspath
-    //inputs.files(classpath)
+    inputs.files(classpath)
     doLast {
         println classpath.files.name
     }

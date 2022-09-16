@@ -22,7 +22,7 @@ configurations.all {
 
 tasks.register("resolve") {
     val classpath: FileCollection = configurations.runtimeClasspath.get()
-    //inputs.files(classpath)
+    inputs.files(classpath)
     doLast {
         println(classpath.files.map { it.name })
     }
