@@ -30,19 +30,25 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         return "check"
     }
 
+    /**
+     * To ensure the plugins fails (as expected) with configuration cache, do NOT add a repository to the build here,
+     * the tests in the base class are relying on a failure during eager dependency resolution with CC.
+     */
     def setup() {
         buildFile << """
             apply plugin: 'groovy'
-
-            ${mavenCentralRepository()}
         """
     }
+
 
     @Issue("https://github.com/gradle/gradle/issues/21301")
     def "can pass a URL in configProperties"() {
         given:
         buildFile """
             apply plugin: 'checkstyle'
+
+            dependencies { implementation localGroovy() }
+            ${mavenCentralRepository()}
 
             dependencies { implementation localGroovy() }
 
@@ -68,6 +74,8 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         given:
         buildFile """
             apply plugin: 'checkstyle'
+
+            ${mavenCentralRepository()}
 
             checkstyle {
                 enableExternalDtdLoad = true
@@ -95,6 +103,8 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         buildFile """
             apply plugin: 'checkstyle'
 
+            ${mavenCentralRepository()}
+
             tasks.withType(Checkstyle).configureEach {
                 enableExternalDtdLoad = true
             }
@@ -120,6 +130,8 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         given:
         buildFile """
             apply plugin: 'checkstyle'
+
+            ${mavenCentralRepository()}
 
             checkstyle {
                 enableExternalDtdLoad = false
@@ -151,6 +163,8 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         buildFile """
             apply plugin: 'checkstyle'
 
+            ${mavenCentralRepository()}
+
             checkstyle {
                 enableExternalDtdLoad = false
             }
@@ -172,6 +186,8 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
     def "enable_external_dtd_load feature NOT enabled by default"() {
         given:buildFile """
             apply plugin: 'checkstyle'
+
+            ${mavenCentralRepository()}
         """
 
         file('src/main/java/org/sample/MyClass.java') << multilineJavaClass()
