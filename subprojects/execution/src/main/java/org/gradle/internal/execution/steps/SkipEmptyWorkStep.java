@@ -25,6 +25,9 @@ import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UnitOfWork.InputBehavior;
+import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
+import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingState;
@@ -128,11 +131,11 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
                 .orElse(ImmutableSortedMap.of()),
             knownValueSnapshots,
             knownFileFingerprints,
-            visitor -> work.visitRegularInputs(new InputFingerprinter.InputVisitor() {
+            visitor -> work.visitRegularInputs(new InputVisitor() {
                 @Override
-                public void visitInputFileProperty(String propertyName, InputFingerprinter.InputPropertyType type, InputFingerprinter.FileValueSupplier value) {
-                    if (type == InputFingerprinter.InputPropertyType.PRIMARY) {
-                        visitor.visitInputFileProperty(propertyName, type, value);
+                public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
+                    if (behavior.shouldSkipWhenEmpty()) {
+                        visitor.visitInputFileProperty(propertyName, behavior, value);
                     }
                 }
             }));
@@ -256,8 +259,8 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
 
     private void broadcastWorkInputs(UnitOfWork work, boolean onlyPrimaryInputs) {
         workInputListeners.broadcastFileSystemInputsOf(work, onlyPrimaryInputs
-            ? EnumSet.of(InputFingerprinter.InputPropertyType.PRIMARY)
-            : EnumSet.allOf(InputFingerprinter.InputPropertyType.class));
+            ? EnumSet.of(InputBehavior.PRIMARY)
+            : EnumSet.allOf(InputBehavior.class));
     }
 
     private boolean cleanPreviousTaskOutputs(Map<String, FileSystemSnapshot> outputFileSnapshots) {
@@ -273,7 +276,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         return outputsCleaner.getDidWork();
     }
 
-    private static class EmptyCheckingVisitor implements InputFingerprinter.InputVisitor {
+    private static class EmptyCheckingVisitor implements InputVisitor {
         private final Predicate<String> propertyNameFilter;
         private boolean allEmpty = true;
 
@@ -282,7 +285,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         }
 
         @Override
-        public void visitInputFileProperty(String propertyName, InputFingerprinter.InputPropertyType type, InputFingerprinter.FileValueSupplier value) {
+        public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
             if (propertyNameFilter.test(propertyName)) {
                 allEmpty = allEmpty && value.getFiles().isEmpty();
             }

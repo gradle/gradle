@@ -22,7 +22,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
-@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_MAC_OS_X])
 class LibraryBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"

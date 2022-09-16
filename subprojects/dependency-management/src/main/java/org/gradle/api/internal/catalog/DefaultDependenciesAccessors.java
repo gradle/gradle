@@ -49,9 +49,6 @@ import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -339,7 +336,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         private void visitOutputDir(OutputVisitor visitor, File workspace, String propertyName) {
             File dir = new File(workspace, propertyName);
-            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, dir, fileCollectionFactory.fixed(dir));
+            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, new OutputFileValueSupplier(dir, fileCollectionFactory.fixed(dir)));
         }
     }
 
@@ -369,8 +366,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
             visitor.visitInputProperty(IN_PLUGINS, model::getPluginAliases);
             visitor.visitInputProperty(IN_MODEL_NAME, model::getName);
-            visitor.visitInputFileProperty(IN_CLASSPATH, InputPropertyType.NON_INCREMENTAL,
-                new FileValueSupplier(
+            visitor.visitInputFileProperty(IN_CLASSPATH, InputBehavior.NON_INCREMENTAL,
+                new InputFileValueSupplier(
                     classPath,
                     ClasspathNormalizer.class,
                     DirectorySensitivity.IGNORE_DIRECTORIES,

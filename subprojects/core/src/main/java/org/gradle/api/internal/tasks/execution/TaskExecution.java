@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
@@ -299,27 +298,22 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public void visitRegularInputs(InputFingerprinter.InputVisitor visitor) {
+    public void visitRegularInputs(InputVisitor visitor) {
         TaskProperties taskProperties = context.getTaskProperties();
-        ImmutableSortedSet<InputPropertySpec> inputProperties = taskProperties.getInputProperties();
-        ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = taskProperties.getInputFileProperties();
-        for (InputPropertySpec inputProperty : inputProperties) {
-            visitor.visitInputProperty(inputProperty.getPropertyName(), () -> InputParameterUtils.prepareInputParameterValue(inputProperty, task));
+        for (InputPropertySpec inputProperty : taskProperties.getInputProperties()) {
+            visitor.visitInputProperty(
+                inputProperty.getPropertyName(),
+                () -> InputParameterUtils.prepareInputParameterValue(inputProperty, task));
         }
-        for (InputFilePropertySpec inputFileProperty : inputFileProperties) {
-            Object value = inputFileProperty.getValue();
+        for (InputFilePropertySpec inputFileProperty : taskProperties.getInputFileProperties()) {
             // SkipWhenEmpty implies incremental.
             // If this file property is empty, then we clean up the previously generated outputs.
             // That means that there is a very close relation between the file property and the output.
-            InputFingerprinter.InputPropertyType type = inputFileProperty.isSkipWhenEmpty()
-                ? InputFingerprinter.InputPropertyType.PRIMARY
-                : inputFileProperty.isIncremental()
-                ? InputFingerprinter.InputPropertyType.INCREMENTAL
-                : InputFingerprinter.InputPropertyType.NON_INCREMENTAL;
-            String propertyName = inputFileProperty.getPropertyName();
-            visitor.visitInputFileProperty(propertyName, type,
-                new InputFingerprinter.FileValueSupplier(
-                    value,
+            visitor.visitInputFileProperty(
+                inputFileProperty.getPropertyName(),
+                inputFileProperty.getBehavior(),
+                new InputFileValueSupplier(
+                    inputFileProperty.getValue(),
                     inputFileProperty.getNormalizer(),
                     inputFileProperty.getDirectorySensitivity(),
                     inputFileProperty.getLineEndingNormalization(),
@@ -333,7 +327,11 @@ public class TaskExecution implements UnitOfWork {
         for (OutputFilePropertySpec property : taskProperties.getOutputFileProperties()) {
             File outputFile = property.getOutputFile();
             if (outputFile != null) {
-                visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), outputFile, property.getPropertyFiles());
+                visitor.visitOutputProperty(
+                    property.getPropertyName(),
+                    property.getOutputType(),
+                    new OutputFileValueSupplier(outputFile, property.getPropertyFiles())
+                );
             }
         }
         for (File localStateRoot : taskProperties.getLocalStateFiles()) {
