@@ -5,13 +5,10 @@ This release includes [building and running code with Java 19](#java19),
 a flag to [rerun tasks individually](#individual-rerun),
 and a new [strongly-typed dependencies block](#strongly-typed-dependencies) for JVM test suites.
 
-There are also enhancements to the [configuration cache](#configuration),
-[incremental compilation](#incremental-compilation-after-failure), [`gradle init`](#init), and the [TestLauncher interface for IDEs](#testlauncher).
+There are also enhancements to the [configuration cache](#configuration) and
+[incremental compilation](#incremental-compilation-after-failure).
 
 The Kotlin DSL now supports [named dependency arguments](#named-kotlin-dsl-dependency-arguments) for external dependencies.
-The Tooling API now supports [passing system properties to builds](#pass-system-properties-to-build).
-
-Version 1.0.0 of the `plugin-publish` plugin [makes publishing easier](#plugin-publish).
 
 <!--
 Include only their name, impactful features should be called out separately below.
