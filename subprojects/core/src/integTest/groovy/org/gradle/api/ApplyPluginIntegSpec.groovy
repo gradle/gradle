@@ -195,9 +195,12 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
         """
             ${basicBuildScript()}
 
+            def spockVersion = System.getProperty('bundleGroovy4', 'false') == 'true' ? '2.2-groovy-4.0' : '2.2-groovy-3.0'
+
             dependencies {
-                testImplementation ('org.spockframework:spock-core:2.2-M1-groovy-4.0') {
+                testImplementation ("org.spockframework:spock-core:\$spockVersion") {
                     exclude group: 'org.apache.groovy'
+                    exclude group: 'org.codehaus.groovy'
                 }
             }
         """
