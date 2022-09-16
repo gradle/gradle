@@ -227,9 +227,6 @@ Gradle 7.6 changed the API of the test suite's `dependencies` block to be more s
 
 Each dependency bucket returns a link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyAdder.html[`DependencyAdder`] that provides strongly-typed methods to add and configure dependencies.
 
-There is also a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[`DependencyFactory`] with factory methods to create new dependencies from different notations.
-Dependencies can be created lazily using these factory methods, as shown below.
-
 This API differs from the top-level `dependencies` block in the following ways:
 
 * You must explicitly call a getter and `add` outside Gradle build scripts.
@@ -242,7 +239,7 @@ This API differs from the top-level `dependencies` block in the following ways:
   Instead, use the `bundle` method on each configuration.
     ** Kotlin and Groovy: `implementation(libs.bundles.testing)` becomes `implementation.bundle(libs.bundles.testing)`
 * You cannot use providers for non-`Dependency` types directly.
-  Instead, map them to a `Dependency` using the `DependencyFactory`.
+  Instead, map them to a `Dependency` using the `DependencyFactoryInternal`.
     ** Kotlin and Groovy: `implementation(myStringProvider)` becomes `implementation(myStringProvider.map { project.dependencyFactory.create(it) })`
     ** Java: `implementation(myStringProvider)` becomes `getImplementation().add(myStringProvider.map(project.getDependencyFactory()::create)`
 
