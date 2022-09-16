@@ -121,4 +121,59 @@ class TaskOptionsSpec extends AbstractIntegrationSpec {
         output.contains "See the profiling report at"
     }
 
+    def "passes task options associated with a task originating from buildSrc"() {
+        when:
+        file('buildSrc/src/main/java/MyTask.java') << """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.tasks.options.Option;
+            import org.gradle.api.tasks.Optional;
+            import org.gradle.api.tasks.Input;
+
+            public abstract class MyTask extends DefaultTask {
+                @Option(option="profile", description="foobar")
+                @Optional
+                @Input
+                abstract Property<String> getProfile();
+
+                @TaskAction
+                void run() {
+                    if (getProfile().isPresent()) {
+                        System.out.println(getName() + "profile=" + getProfile().get());
+                    }
+                }
+            }
+        """
+        buildScript """
+            import MyTask
+            tasks.register('mytask', MyTask.class)
+        """
+
+        then:
+        succeeds "--", "mytask", "--profile", "myvalue"
+        output.contains "profile=myvalue"
+    }
+
+    def "passes task options associated with a task originating from an included build"() {
+        when:
+        file('settings.gradle') << """
+            rootProject.name = 'root-project'
+
+            includeBuild 'included-build'
+        """
+        file('included-build/build.gradle') << """
+            ${defineTaskWithProfileOption()}
+
+            tasks.register('mytask', MyTask.class)
+        """
+        buildScript """
+            //gradle.includedBuild('included-build').task(':app:run')
+        """
+
+        then:
+        succeeds "--", ":included-build:mytask", "--profile", "myvalue"
+        output.contains "profile=myvalue"
+    }
+
 }
