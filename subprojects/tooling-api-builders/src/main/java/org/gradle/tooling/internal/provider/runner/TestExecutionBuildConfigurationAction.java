@@ -58,12 +58,14 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
 
     @Override
     public void applyTasksTo(Context context, ExecutionPlan plan) {
-        final Set<Task> allTestTasksToRun = new LinkedHashSet<>();
-        allTestTasksToRun.addAll(configureBuildForTestDescriptors(context, testExecutionRequest));
-        allTestTasksToRun.addAll(configureBuildForInternalJvmTestRequest(context.getGradle(), testExecutionRequest));
-        allTestTasksToRun.addAll(configureBuildForTestTasks(context, testExecutionRequest));
-        configureTestTasks(allTestTasksToRun);
-        plan.addEntryTasks(allTestTasksToRun);
+        final Set<Task> allTasksToRun = new LinkedHashSet<>();
+        allTasksToRun.addAll(configureBuildForTestDescriptors(context, testExecutionRequest));
+        allTasksToRun.addAll(configureBuildForInternalJvmTestRequest(context.getGradle(), testExecutionRequest));
+        allTasksToRun.addAll(configureBuildForTestTasks(context, testExecutionRequest));
+        configureTestTasks(allTasksToRun);
+        for (Task task : allTasksToRun) {
+            plan.addEntryTask(task);
+        }
     }
 
     private void configureTestTasks(Set<Task> tasks) {
@@ -92,7 +94,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
 
     private List<Task> configureBuildForTestDescriptors(Context context, TestExecutionRequestAction testExecutionRequest) {
         Map<String, List<InternalJvmTestRequest>> taskAndTests = testExecutionRequest.getTaskAndTests();
-        List<Task> testTasksToRun = new ArrayList<>();
+        List<Task> tasksToRun = new ArrayList<>();
         for (final Map.Entry<String, List<InternalJvmTestRequest>> entry : taskAndTests.entrySet()) {
             String testTaskPath = entry.getKey();
             for (Test testTask : queryTestTasks(context, testTaskPath)) {
@@ -100,7 +102,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                     final TestFilter filter = testTask.getFilter();
                     filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
                 }
-                testTasksToRun.add(testTask);
+                tasksToRun.add(testTask);
             }
         }
 
@@ -109,7 +111,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                 InternalTestSpec testSpec = (InternalTestSpec) taskSpec;
                 Set<Test> tasks = queryTestTasks(context, taskSpec.getTaskPath());
                 for (Test task : tasks) {
-                    testTasksToRun.add(task);
+                    tasksToRun.add(task);
                     DefaultTestFilter filter = (DefaultTestFilter) task.getFilter();
                     for (String cls : testSpec.getClasses()) {
                         filter.includeCommandLineTest(cls, null);
@@ -126,11 +128,11 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                     }
                 }
             } else {
-                testTasksToRun.addAll(queryTasks(context, taskSpec.getTaskPath()));
+                tasksToRun.addAll(queryTasks(context, taskSpec.getTaskPath()));
             }
         }
 
-        return testTasksToRun;
+        return tasksToRun;
     }
 
     private List<Test> configureBuildForTestTasks(Context context, TestExecutionRequestAction testExecutionRequest) {
