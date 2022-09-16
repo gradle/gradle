@@ -39,7 +39,6 @@ import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.component.Artifact;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -53,6 +52,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_API;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
 
 /**
  * Adapts Gradle's dependency resolution engine to the special needs of the IDE plugins.
@@ -255,9 +258,9 @@ public class IdeDependencySet {
         private boolean isLocalGroovyDependency(ResolvedArtifactResult artifact) {
             String artifactFileName = artifact.getFile().getName();
             String componentIdentifier = artifact.getId().getComponentIdentifier().getDisplayName();
-            return (componentIdentifier.equals(DependencyFactoryInternal.ClassPathNotation.GRADLE_API.displayName)
-                    || componentIdentifier.equals(DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT.displayName)
-                    || componentIdentifier.equals(DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY.displayName))
+            return (componentIdentifier.equals(GRADLE_API.displayName)
+                    || componentIdentifier.equals(GRADLE_TEST_KIT.displayName)
+                    || componentIdentifier.equals(LOCAL_GROOVY.displayName))
                 && artifactFileName.startsWith("groovy-");
         }
 
