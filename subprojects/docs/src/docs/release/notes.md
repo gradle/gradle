@@ -17,11 +17,13 @@ We would like to thank the following community members for their contributions t
 [aSemy](https://github.com/aSemy),
 [Ashwin Pankaj](https://github.com/ashwinpankaj),
 [BJ Hargrave](https://github.com/bjhargrave),
+[Bradley Turek](https://github.com/TurekBot)
 [Daniel Lin](https://github.com/ephemient),
 [David Morris](https://github.com/codefish1),
 [Edmund Mok](https://github.com/edmundmok),
 [Frosty-J](https://github.com/Frosty-J),
 [Gabriel Feo](https://github.com/gabrielfeo),
+[Ivan Gavrilovic](https://github.com/gavra0),
 [Jendrik Johannes](https://github.com/jjohannes),
 [John](https://github.com/goughy000),
 [Joseph Woolf](https://github.com/jsmwoolf),
@@ -29,6 +31,7 @@ We would like to thank the following community members for their contributions t
 [Konstantin Gribov](https://github.com/grossws),
 [Leonardo Brondani Schenkel](https://github.com/lbschenkel),
 [Martin d'Anjou](https://github.com/martinda),
+[Pete Bentley](https://github.com/prbprbprb),
 [Sam Snyder](https://github.com/sambsnyd),
 [sll552](https://github.com/sll552),
 [teawithbrownsugar](https://github.com/teawithbrownsugar),
@@ -88,7 +91,10 @@ by default and [Groovy incremental compilation](userguide/groovy_plugin.html#sec
 as an opt-in experimental feature.
 
 In previous versions, a compilation failure caused the next compilation to perform a full recompile.
-Starting in Gradle 7.6, Java and Groovy incremental compilation works even after a failure.
+Starting in Gradle 7.6, Java and Groovy incremental compilation can work even after a failure.
+
+This feature is enabled by default when incremental compilation is enabled.
+The feature can be disabled with the [`incrementalAfterFailure`](javadoc/org/gradle/api/tasks/compile/CompileOptions.html#getIncrementalAfterFailure--) compile option.
 
 #### Relocated convention plugins in projects generated with `init`
 
@@ -369,6 +375,32 @@ accepting connections via network on Java 9 and above.
 On Java 9 and above, use the special host address value `*` to make the debugger server listen on all network interfaces.
 Otherwise, use the address of one of the machine's network interfaces.
 
+#### Introduced `projectInternalView()` dependency for test suites with access to project internals
+The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now
+supports depending on the internal view of the current project during compile-time.
+Previously it was only possible to depend on the current project's API. This allows
+test suites to access project internals that are not declared on
+the `api` or `compileOnlyApi` configurations. This functionality can be useful when
+testing internal classes that use dependencies which are not exposed as part of a 
+project's API, like those declared on the `implementation` and `compileOnly` configurations.
+This dependency would likely prove useful when defining a custom suite for unit testing. 
+
+For example, the following snippet uses the new `projectInternalView()` API to define a
+test suite with access to project internals:
+
+```kotlin
+testing {
+    suites {
+        val unitLikeTestSuite by registering(JvmTestSuite::class) {
+            useJUnitJupiter()
+            dependencies {
+                implementation(projectInternalView())
+            }
+        }
+    }
+}
+```
+
 <a name="ide"></a>
 ### IDE
 
@@ -408,6 +440,11 @@ testLauncher.withTestsFor(spec -> {
 }).run();
 ```
 
+#### Added support for passing system properties to the build with the Tooling API
+
+Before 7.6, the Tooling API started builds with the system properties from the host JVM. This leaked configuration from the IDE to the build.
+Starting in Gradle 7.6, `LongRunningOperation.withSystemProperties(Map)` provides an isolated set of build system properties.
+For more information, see [`LongRunningOperation`](javadoc/org/gradle/tooling/LongRunningOperation.html#withSystemProperties-java.util.Map-).
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

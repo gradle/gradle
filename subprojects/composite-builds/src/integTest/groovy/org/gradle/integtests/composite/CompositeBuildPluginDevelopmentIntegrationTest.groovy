@@ -636,6 +636,61 @@ plugins {
         executed ":pluginBuild:jar", ":foo:classes", ":foo:bar:classes"
     }
 
+    def "can develop a plugin with multiple consumers when those consumers are accessed via undeclared dependency resolution and using configure-on-demand"() {
+        given:
+        buildA = multiProjectBuild("cod", ["a", "b", "c", "d"])
+        includePluginBuild pluginBuild
+
+        buildA.file("a/build.gradle") << """
+plugins {
+    id 'java-library'
+    id 'org.test.plugin.pluginBuild'
+}
+"""
+        buildA.file('b/build.gradle') << """
+plugins {
+    id 'java-library'
+    id 'org.test.plugin.pluginBuild'
+}
+"""
+        buildA.file("c/build.gradle") << """
+plugins {
+    id 'java-library'
+}
+dependencies {
+    implementation project(':a')
+}
+task resolve {
+    doLast {
+        configurations.compileClasspath.files
+    }
+}
+"""
+        buildA.file("d/build.gradle") << """
+plugins {
+    id 'java-library'
+}
+dependencies {
+    implementation project(':b')
+}
+task resolve {
+    doLast {
+        configurations.compileClasspath.files
+    }
+}
+"""
+
+        when:
+        args "--configure-on-demand", "--parallel"
+        execute(buildA, ":c:resolve", ":d:resolve")
+
+        then:
+        noExceptionThrown()
+
+        where:
+        iterations << (0..20).collect()
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/15068")
     def "can develop plugin whose build requires dependency resolution using configure-on-demand"() {
         given:
