@@ -19,12 +19,12 @@ Include only their name, impactful features should be called out separately belo
 We would like to thank the following community members for their contributions to this release of Gradle:
 
 [altrisi](https://github.com/altrisi),
-[Aurimas](https://github.com/liutikas)
-[Rob Bavey](https://github.com/robbavey),
 [aSemy](https://github.com/aSemy),
 [Ashwin Pankaj](https://github.com/ashwinpankaj),
+[Aurimas](https://github.com/liutikas)
 [BJ Hargrave](https://github.com/bjhargrave),
 [Bradley Turek](https://github.com/TurekBot)
+[Craig Andrews](https://github.com/candrews)
 [Daniel Lin](https://github.com/ephemient),
 [David Morris](https://github.com/codefish1),
 [Edmund Mok](https://github.com/edmundmok),
@@ -39,13 +39,14 @@ We would like to thank the following community members for their contributions t
 [Leonardo Brondani Schenkel](https://github.com/lbschenkel),
 [Martin d'Anjou](https://github.com/martinda),
 [Pete Bentley](https://github.com/prbprbprb),
+[Rob Bavey](https://github.com/robbavey),
 [Sam Snyder](https://github.com/sambsnyd),
 [sll552](https://github.com/sll552),
 [teawithbrownsugar](https://github.com/teawithbrownsugar),
 [Thomas Broadley](https://github.com/tbroadley),
 [urdak](https://github.com/urdak),
 [Xin Wang](https://github.com/scaventz),
-[Craig Andrews](https://github.com/candrews)
+
 
 
 ## Upgrade instructions
@@ -217,12 +218,6 @@ The following Attributes have disambiguation rules defined.
 
 For more information, see [Attribute Disambiguation Rules](userguide/variant_attributes.html#sec:abm_disambiguation_rules).
 
-#### TODO: Extended configuration cache support for external processes 
-[Allow buildScan.background to launch external processes with configuration cache enabled gradle#20536](https://github.com/gradle/gradle/issues/20536)
-
-#### TODO: Extended configuration cache support for internal plugin
-
-[Allow buildScan.background to launch external processes with configuration cache enabled gradle#20536](https://github.com/gradle/gradle/issues/20536)
 
 #### Improved handling of `--offline` option
 
@@ -280,10 +275,16 @@ Related issues:
 [Support "Zulu OpenJDK Discovery API" for auto provisioning toolchains gradle#19140](https://github.com/gradle/gradle/issues/19140)
 
 <a name="plugin-publish"></a>
-#### TODO: Enhanced the plugin declaration DSL from java-gradle-plugin
+#### Enhanced the plugin declaration DSL for the java-gradle-plugin
 
-<!-- This is in the public roadmap but not sure it should be? -->
-[Modify bits and pieces of Gradle to accommodate Plugin Publish Plugin v1.0.0 gradle#19982](https://github.com/gradle/gradle/pull/19982)
+The recently released [version 1.0.0 of the Plugin-Publish plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish/1.0.0)
+significantly improves the plugin publishing process through stronger opinions and more straightforward configuration.
+
+This release includes updates to the `java-gradle-plugin` documentation.
+The enhanced documentation describes the Maven publications generated when
+combined with the `maven-publish plugin`.
+
+For more information, see enhanced Gradle for [Plugin Publish Plugin v1.0.0 gradle#19982](https://github.com/gradle/gradle/pull/19982)
 
 <a name="jvm"></a>
 ### JVM
@@ -388,6 +389,32 @@ accepting connections via network on Java 9 and above.
 
 On Java 9 and above, use the special host address value `*` to make the debugger server listen on all network interfaces.
 Otherwise, use the address of one of the machine's network interfaces.
+
+#### Introduced `projectInternalView()` dependency for test suites with access to project internals
+The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now
+supports depending on the internal view of the current project during compile-time.
+Previously it was only possible to depend on the current project's API. This allows
+test suites to access project internals that are not declared on
+the `api` or `compileOnlyApi` configurations. This functionality can be useful when
+testing internal classes that use dependencies which are not exposed as part of a 
+project's API, like those declared on the `implementation` and `compileOnly` configurations.
+This dependency would likely prove useful when defining a custom suite for unit testing. 
+
+For example, the following snippet uses the new `projectInternalView()` API to define a
+test suite with access to project internals:
+
+```kotlin
+testing {
+    suites {
+        val unitLikeTestSuite by registering(JvmTestSuite::class) {
+            useJUnitJupiter()
+            dependencies {
+                implementation(projectInternalView())
+            }
+        }
+    }
+}
+```
 
 <a name="ide"></a>
 ### IDE
