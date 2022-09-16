@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
@@ -88,8 +88,8 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
             }
 
             @Override
-            public Try<ExecutionResult> getExecutionResult() {
-                return result.getExecutionResult();
+            public Try<Execution> getExecution() {
+                return result.getExecution();
             }
 
             @Override

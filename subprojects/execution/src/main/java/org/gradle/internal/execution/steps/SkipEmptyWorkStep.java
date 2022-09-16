@@ -21,8 +21,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
+import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.InputBehavior;
@@ -172,8 +172,8 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
             }
 
             @Override
-            public Try<ExecutionResult> getExecutionResult() {
-                return Try.successful(new ExecutionResult() {
+            public Try<Execution> getExecution() {
+                return Try.successful(new Execution() {
                     @Override
                     public ExecutionOutcome getOutcome() {
                         return skipOutcome;
