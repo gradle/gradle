@@ -18,23 +18,16 @@ package org.gradle.internal.execution
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
-import com.google.common.collect.Maps
-import groovy.transform.Immutable
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.Try
-import org.gradle.internal.execution.caching.CachingDisabledReason
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.fingerprint.impl.FingerprinterRegistration
 import org.gradle.internal.execution.history.OutputFilesRepository
-import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
@@ -56,10 +49,6 @@ import org.gradle.internal.execution.steps.ResolveInputChangesStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.StoreExecutionStateStep
 import org.gradle.internal.execution.steps.ValidateStep
-import org.gradle.internal.execution.workspace.WorkspaceProvider
-import org.gradle.internal.file.TreeType
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
@@ -74,7 +63,6 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
-import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.test.fixtures.file.TestFile
@@ -82,14 +70,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import javax.annotation.Nullable
-import java.time.Duration
-import java.util.function.Consumer
-import java.util.function.Supplier
-
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
-import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 
@@ -720,225 +702,14 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         return temporaryFolder.file(path)
     }
 
-    static class OutputPropertySpec {
-        File root
-        TreeType treeType
-
-        OutputPropertySpec(File root, TreeType treeType) {
-            this.treeType = treeType
-            this.root = root
-        }
-    }
-
-    static OutputPropertySpec outputDirectorySpec(File dir) {
-        return new OutputPropertySpec(dir, TreeType.DIRECTORY)
-    }
-
-    static OutputPropertySpec outputFileSpec(File file) {
-        return new OutputPropertySpec(file, TreeType.FILE)
-    }
-
     UnitOfWorkBuilder getBuilder() {
-        new UnitOfWorkBuilder()
-    }
-
-    class UnitOfWorkBuilder {
-        private Supplier<UnitOfWork.WorkResult> work = { ->
-            create.each { it ->
-                it.createFile()
-            }
-            return UnitOfWork.WorkResult.DID_WORK
-        }
-        private Map<String, Object> inputProperties = [prop: "value"]
-        private Map<String, ? extends Collection<? extends File>> inputs = inputFiles
-        private Map<String, ? extends File> outputFiles = IncrementalExecutionIntegrationTest.this.outputFiles
-        private Map<String, ? extends File> outputDirs = IncrementalExecutionIntegrationTest.this.outputDirs
-        private Collection<? extends TestFile> create = createFiles
-        private ImplementationSnapshot implementation = ImplementationSnapshot.of(UnitOfWork.name, TestHashCodes.hashCodeFrom(1234))
-        private Consumer<WorkValidationContext> validator
-
-        UnitOfWorkBuilder withWork(Supplier<UnitOfWork.WorkResult> closure) {
-            work = closure
-            return this
-        }
-
-        UnitOfWorkBuilder withInputFiles(Map<String, ? extends Collection<? extends File>> files) {
-            this.inputs = files
-            return this
-        }
-
-        UnitOfWorkBuilder withoutInputFiles() {
-            this.inputs = [:]
-            return this
-        }
-
-        UnitOfWorkBuilder withoutInputProperties() {
-            this.inputProperties = [:]
-            return this
-        }
-
-        UnitOfWorkBuilder withOutputFiles(File... outputFiles) {
-            return withOutputFiles((outputFiles as List)
-                .withIndex()
-                .collectEntries { outputFile, index -> [('defaultFiles' + index): outputFile] }
-            )
-        }
-
-        UnitOfWorkBuilder withOutputFiles(Map<String, ? extends File> files) {
-            this.outputFiles = files
-            return this
-        }
-
-        UnitOfWorkBuilder withOutputDirs(File... outputDirs) {
-            return withOutputDirs((outputDirs as List)
-                .withIndex()
-                .collectEntries { outputFile, index -> [('defaultDir' + index): outputFile] }
-            )
-        }
-
-        UnitOfWorkBuilder withOutputDirs(Map<String, ? extends File> dirs) {
-            this.outputDirs = dirs
-            return this
-        }
-
-        UnitOfWorkBuilder createsFiles(TestFile... outputFiles) {
-            create = Arrays.asList(outputFiles)
-            return this
-        }
-
-        UnitOfWorkBuilder withImplementation(ImplementationSnapshot implementation) {
-            this.implementation = implementation
-            return this
-        }
-
-        UnitOfWorkBuilder withProperty(String name, Object value) {
-            inputProperties.put(name, value)
-            return this
-        }
-
-        UnitOfWorkBuilder withValidator(Consumer<WorkValidationContext> validator) {
-            this.validator = validator
-            return this
-        }
-
-        @Immutable
-        private static class SimpleIdentity implements UnitOfWork.Identity {
-            final String uniqueId
-        }
-
-        UnitOfWork build() {
-            Map<String, OutputPropertySpec> outputFileSpecs = Maps.transformEntries(outputFiles, { key, value -> outputFileSpec(value) } )
-            Map<String, OutputPropertySpec> outputDirSpecs = Maps.transformEntries(outputDirs, { key, value -> outputDirectorySpec(value) } )
-            Map<String, OutputPropertySpec> outputs = outputFileSpecs + outputDirSpecs
-
-            return new UnitOfWork() {
-                boolean executed
-
-                @Override
-                UnitOfWork.Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-                    new SimpleIdentity("myId")
-                }
-
-                @Override
-                WorkspaceProvider getWorkspaceProvider() {
-                    new WorkspaceProvider() {
-                        @Override
-                        <T> T withWorkspace(String path, WorkspaceProvider.WorkspaceAction<T> action) {
-                            return action.executeInWorkspace(null, IncrementalExecutionIntegrationTest.this.executionHistoryStore)
-                        }
-                    }
-                }
-
-                @Override
-                InputFingerprinter getInputFingerprinter() {
-                    IncrementalExecutionIntegrationTest.this.inputFingerprinter
-                }
-
-                @Override
-                UnitOfWork.WorkOutput execute(UnitOfWork.ExecutionRequest executionRequest) {
-                    def didWork = work.get()
-                    executed = true
-                    return new UnitOfWork.WorkOutput() {
-                        @Override
-                        UnitOfWork.WorkResult getDidWork() {
-                            return didWork
-                        }
-
-                        @Override
-                        Object getOutput() {
-                            return "output"
-                        }
-                    }
-                }
-
-                @Override
-                Optional<Duration> getTimeout() {
-                    throw new UnsupportedOperationException()
-                }
-
-                @Override
-                UnitOfWork.InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
-                    return UnitOfWork.InputChangeTrackingStrategy.NONE
-                }
-
-                @Override
-                void visitImplementations(UnitOfWork.ImplementationVisitor visitor) {
-                    visitor.visitImplementation(implementation)
-                    visitor.visitImplementation(Object)
-                }
-
-                @Override
-                void visitRegularInputs(InputVisitor visitor) {
-                    inputProperties.each { propertyName, value ->
-                        visitor.visitInputProperty(propertyName) { -> value }
-                    }
-                    for (entry in inputs.entrySet()) {
-                        visitor.visitInputFileProperty(
-                            entry.key,
-                            NON_INCREMENTAL,
-                            new FileValueSupplier(
-                                entry.value,
-                                AbsolutePathInputNormalizer,
-                                DirectorySensitivity.DEFAULT,
-                                LineEndingSensitivity.DEFAULT,
-                                { -> TestFiles.fixed(entry.value) }
-                            )
-                        )
-                    }
-                }
-
-                @Override
-                void visitOutputs(File workspace, UnitOfWork.OutputVisitor visitor) {
-                    outputs.forEach { name, spec ->
-                        visitor.visitOutputProperty(name, spec.treeType, spec.root, TestFiles.fixed(spec.root))
-                    }
-                }
-
-                @Override
-                void validate(WorkValidationContext validationContext) {
-                    validator?.accept(validationContext)
-                }
-
-                @Override
-                boolean shouldCleanupOutputsOnNonIncrementalExecution() {
-                    return false
-                }
-
-                @Override
-                Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
-                    throw new UnsupportedOperationException()
-                }
-
-                @Override
-                boolean isAllowedToLoadFromCache() {
-                    throw new UnsupportedOperationException()
-                }
-
-                @Override
-                String getDisplayName() {
-                    "Test unit of work"
-                }
-            }
-        }
+        new UnitOfWorkBuilder(
+            [prop: "value"],
+            inputFiles,
+            outputFiles,
+            outputDirs,
+            createFiles,
+            inputFingerprinter,
+            executionHistoryStore)
     }
 }
