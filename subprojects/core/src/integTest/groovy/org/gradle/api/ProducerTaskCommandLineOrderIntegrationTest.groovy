@@ -17,11 +17,8 @@
 package org.gradle.api
 
 import org.gradle.api.internal.artifacts.transform.UnzipTransform
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.TaskOrderSpecs
-import org.gradle.util.internal.ToBeImplemented
-import spock.lang.IgnoreIf
+import org.gradle.test.fixtures.Flaky
 import spock.lang.Issue
 
 class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrderTaskIntegrationTest {
@@ -83,8 +80,6 @@ class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrd
     // expect.  The intermediate destroyer task will be delayed until the consumers have all run.  If we were looking at the specific
     // outputs that a consumer required, rather than just the dependency relationships, we could support this case.
     // Currently flaky with CC enabled
-    @IgnoreIf({ GradleContextualExecuter.isConfigCache() })
-    @ToBeImplemented
     def "producer task followed by a destroyer task followed by a producer with a dependency on the first producer are run in the correct order"() {
         def foo = subproject(':foo')
         def bar = subproject(':bar')
@@ -108,8 +103,6 @@ class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrd
         }
     }
 
-    // Currently flaky with CC enabled
-    @IgnoreIf({ GradleContextualExecuter.isConfigCache() })
     def "producer task with a dependency in another project followed by a destroyer task followed by a producer are run in the correct order"() {
         def foo = subproject(':foo')
         def bar = subproject(':bar')
@@ -130,7 +123,7 @@ class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrd
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "chain of producer destroyer producer is broken")
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3576")
     def "producer task with a dependency in another build followed by a destroyer task followed by a producer are run in the correct order"() {
         def foo = includedBuild('child').subproject(':foo')
         def bar = subproject(':bar')

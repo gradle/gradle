@@ -600,12 +600,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 // Error if we are executing in a user-managed thread.
                 throw new IllegalStateException("The configuration " + identityPath.toString() + " was resolved from a thread not managed by Gradle.");
             } else {
-                // We don't currently have mutable access to the project, so report a deprecation warning and then continue by attempting to acquire mutable access
-                DeprecationLogger.deprecateBehaviour("Resolution of the configuration " + identityPath.toString() + " was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved.")
-                    .willBeRemovedInGradle8()
-                    .withUserManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
-                    .nagUser();
-                return domainObjectContext.getModel().fromMutableState(p -> resolveExclusively(requestedState));
+                String docsLink = documentationRegistry.getDocumentationFor("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors");
+                throw new IllegalStateException(String.format("Resolution of the configuration " + identityPath.toString() + " was attempted from a context different than the project context. See: %s for more information.", docsLink));
             }
         }
         return resolveExclusively(requestedState);

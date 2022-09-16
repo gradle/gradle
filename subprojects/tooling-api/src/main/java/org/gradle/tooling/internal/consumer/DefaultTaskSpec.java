@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.tooling.internal.consumer;
 
-import org.gradle.internal.Try;
+import org.gradle.tooling.internal.protocol.test.InternalTaskSpec;
 
-import java.util.function.Supplier;
+public class DefaultTaskSpec implements InternalTaskSpec {
 
-public interface DeferredExecutionHandler<O, T> {
-    T processCachedOutput(Try<O> cachedResult);
+    private final String path;
 
-    T processDeferredOutput(Supplier<Try<O>> deferredExecution);
+    public DefaultTaskSpec(String path) {
+        this.path = path;
+    }
+
+    @Override
+    public String getTaskPath() {
+        return path;
+    }
 }
