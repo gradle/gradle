@@ -97,7 +97,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
     @Override
     public <T> void configureAsCompileClasspath(HasConfigurableAttributes<T> configuration) {
-        configureAttributes(configuration, details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM());
+        configureAttributes(configuration, details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM().apiCompileView());
     }
 
     @Override

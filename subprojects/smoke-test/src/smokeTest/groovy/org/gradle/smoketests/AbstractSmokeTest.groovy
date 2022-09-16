@@ -61,10 +61,10 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaDependencyRecommender = "11.0.0"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "16.0.1"
+        static nebulaPluginPlugin = "17.1.0"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "17.2.3"
+        static nebulaLint = "17.7.0"
 
         // https://plugins.gradle.org/plugin/org.jetbrains.gradle.plugin.idea-ext
         static ideaExt = "1.1"
@@ -72,7 +72,7 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
         // TODO: Re-add "8.8.x", "9.4.x" and "10.1.x" if fixed:
         //   https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/215
-        static nebulaDependencyLock = Versions.of("12.1.0")
+        static nebulaDependencyLock = Versions.of("12.6.1")
 
         // https://plugins.gradle.org/plugin/nebula.resolution-rules
         static nebulaResolutionRules = "9.0.0"
@@ -93,7 +93,7 @@ abstract class AbstractSmokeTest extends Specification {
         static tomcat = "2.7.0"
 
         // https://plugins.gradle.org/plugin/io.spring.dependency-management
-        static springDependencyManagement = "1.0.11.RELEASE"
+        static springDependencyManagement = "1.0.13.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
         static springBoot = "2.5.5"
@@ -128,8 +128,8 @@ abstract class AbstractSmokeTest extends Specification {
         static errorProne = "2.0.2"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
-        static protobufPlugin = "0.8.18"
-        static protobufTools = "3.17.1"
+        static protobufPlugin = "0.8.19"
+        static protobufTools = "3.21.5"
 
         // https://plugins.gradle.org/plugin/org.gradle.test-retry
         static testRetryPlugin = "1.3.1"
@@ -170,7 +170,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0", "1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.20-Beta")
+        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0", "1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.20-RC")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp

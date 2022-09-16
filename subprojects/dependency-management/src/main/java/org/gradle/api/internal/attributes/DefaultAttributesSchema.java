@@ -318,7 +318,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         }
 
         @Override
-        public PrecedenceResult orderByPrecedence(Set<Attribute<?>> requested) {
+        public PrecedenceResult orderByPrecedence(Collection<Attribute<?>> requested) {
             if (precedence.isEmpty() && producerSchema.getAttributeDisambiguationPrecedence().isEmpty()) {
                 // if no attribute precedence has been set anywhere, we can just iterate in order
                 return new PrecedenceResult(IntStream.range(0, requested.size()).boxed().collect(Collectors.toList()));

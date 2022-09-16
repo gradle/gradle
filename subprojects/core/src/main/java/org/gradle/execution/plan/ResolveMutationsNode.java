@@ -32,12 +32,14 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
     private final LocalTaskNode node;
     private final NodeValidator nodeValidator;
     private final BuildOperationRunner buildOperationRunner;
+    private final ExecutionNodeAccessHierarchies accessHierarchies;
     private Exception failure;
 
-    public ResolveMutationsNode(LocalTaskNode node, NodeValidator nodeValidator, BuildOperationRunner buildOperationRunner) {
+    public ResolveMutationsNode(LocalTaskNode node, NodeValidator nodeValidator, BuildOperationRunner buildOperationRunner, ExecutionNodeAccessHierarchies accessHierarchies) {
         this.node = node;
         this.nodeValidator = nodeValidator;
         this.buildOperationRunner = buildOperationRunner;
+        this.accessHierarchies = accessHierarchies;
     }
 
     public Node getNode() {
@@ -103,6 +105,8 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
         MutationInfo mutations = node.getMutationInfo();
         node.resolveMutations();
         mutations.hasValidationProblem = nodeValidator.hasValidationProblems(node);
+        accessHierarchies.getOutputHierarchy().recordNodeAccessingLocations(node, mutations.outputPaths);
+        accessHierarchies.getDestroyableHierarchy().recordNodeAccessingLocations(node, mutations.destroyablePaths);
     }
 
     private static final class ResolveTaskMutationsDetails implements ResolveTaskMutationsBuildOperationType.Details {
