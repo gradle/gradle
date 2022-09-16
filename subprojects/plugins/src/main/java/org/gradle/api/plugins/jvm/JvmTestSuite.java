@@ -83,7 +83,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework.
      *
      * <p>
-     *     Gradle will provide the version of JUnit Jupiter to use. Defaults to version {@code 5.7.2}
+     *     Gradle will provide the version of JUnit Jupiter to use. Defaults to version {@code 5.8.2}
      * </p>
      */
     void useJUnitJupiter();
@@ -107,7 +107,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     /**
      * Use the <a href="https://junit.org/junit4/">JUnit4</a> testing framework.
      * <p>
-     *     Gradle will provide the version of JUnit4 to use. Defaults to version {@code 4.13}
+     *     Gradle will provide the version of JUnit4 to use. Defaults to version {@code 4.13.2}
      * </p>
      */
     void useJUnit();

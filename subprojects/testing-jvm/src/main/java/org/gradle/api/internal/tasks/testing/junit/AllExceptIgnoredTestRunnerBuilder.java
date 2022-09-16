@@ -22,6 +22,7 @@ import org.junit.internal.builders.IgnoredBuilder;
 import org.junit.internal.builders.JUnit4Builder;
 import org.junit.runner.Runner;
 import org.junit.runners.BlockJUnit4ClassRunner;
+import org.junit.runners.model.RunnerBuilder;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
@@ -42,6 +43,13 @@ public class AllExceptIgnoredTestRunnerBuilder extends AllDefaultPossibilitiesBu
         return new FallbackJUnit4Builder();
     }
 
+    /**
+     * Handles a weird case when there are duplicate JUint 4 jars on the classpath with differing
+     * versions. Specifically, when one version is below 4.4 and one is above. This case can occur
+     * when a user declares a JUnit dependency on the test classpath while Gradle also loads
+     * JUnit as a test framework implementation dependency. Note that JUnit4Builder extends
+     * {@link RunnerBuilder}, a class which was introduced in 4.5.
+     */
     private static class FallbackJUnit4Builder extends JUnit4Builder {
         @Override
         public Runner runnerForClass(Class<?> testClass) throws Throwable {

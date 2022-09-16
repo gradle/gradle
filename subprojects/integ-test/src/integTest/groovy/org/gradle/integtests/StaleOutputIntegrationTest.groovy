@@ -16,9 +16,9 @@
 
 package org.gradle.integtests
 
-import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.execution.steps.CleanupStaleOutputsStep
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
@@ -289,7 +289,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fixture.staleFilesHaveBeenRemoved()
-        operations.hasOperation(CleanupStaleOutputsExecuter.CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
+        operations.hasOperation(CleanupStaleOutputsStep.CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
     }
 
     def "no build operations are created for stale outputs cleanup if no files are removed"() {
@@ -303,7 +303,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(fixture.taskPath)
-        !operations.first(CleanupStaleOutputsExecuter.CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
+        !operations.first(CleanupStaleOutputsStep.CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
     }
 
     def "overlapping outputs between 'build/outputs' and '#overlappingOutputDir' are not cleaned up"() {

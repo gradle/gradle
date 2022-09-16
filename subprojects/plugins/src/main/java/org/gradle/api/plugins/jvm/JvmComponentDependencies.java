@@ -17,11 +17,10 @@
 package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Project;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
+import org.gradle.api.artifacts.dsl.GradleDependencies;
+import org.gradle.api.artifacts.dsl.PlatformDependencyModifiers;
+import org.gradle.api.artifacts.dsl.TestFixturesDependencyModifiers;
 
 /**
  * This DSL element is used to add dependencies to a component, like {@link JvmTestSuite}.
@@ -37,7 +36,7 @@ import org.gradle.api.artifacts.dsl.DependencyAdder;
  * @since 7.3
  */
 @Incubating
-public interface JvmComponentDependencies {
+public interface JvmComponentDependencies extends PlatformDependencyModifiers, TestFixturesDependencyModifiers, GradleDependencies {
     /**
      * Returns a {@link DependencyAdder} to add to the set of implementation dependencies.
      * <p>
@@ -77,52 +76,4 @@ public interface JvmComponentDependencies {
      * @return a {@link DependencyAdder} to add to the set of annotation processor dependencies
      */
     DependencyAdder getAnnotationProcessor();
-
-    /**
-     * Creates a dependency on the API of the current version of Gradle.
-     *
-     * @return The dependency.
-     * @since 7.6
-     */
-    Dependency gradleApi();
-
-    /**
-     * Creates a dependency on the <a href="https://docs.gradle.org/current/userguide/test_kit.html" target="_top">Gradle test-kit</a> API.
-     *
-     * @return The dependency.
-     * @since 7.6
-     */
-    Dependency gradleTestKit();
-
-    /**
-     * Creates a dependency on the version of Groovy that is distributed with the current version of Gradle.
-     *
-     * @return The dependency.
-     * @since 7.6
-     */
-    Dependency localGroovy();
-
-    /**
-     * Declares a dependency on the test fixtures of a project.
-     * @param project the project upon which to add a test fixtures dependency
-     *
-     * @since 7.6
-     */
-    Dependency testFixtures(Project project);
-
-    /**
-     * Declares a dependency on the test fixtures of a project.
-     * @param projectDependency the project dependency for a project upon which to add a test fixtures dependency
-     *
-     * @since 7.6
-     */
-    Dependency testFixtures(ProjectDependency projectDependency);
-
-    /**
-     * Declares a dependency on the test fixtures of a component.
-     * @param moduleDependency the module upon which to add a test fixtures dependency
-     *
-     * @since 7.6
-     */
-    Dependency testFixtures(ModuleDependency moduleDependency);
 }
