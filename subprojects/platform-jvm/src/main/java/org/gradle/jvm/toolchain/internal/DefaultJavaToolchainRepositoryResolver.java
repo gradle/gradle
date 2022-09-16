@@ -21,50 +21,47 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.repositories.AuthenticationSupporter;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 import org.gradle.authentication.Authentication;
-import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryRequestConfiguration;
 
 import javax.inject.Inject;
-import java.net.URI;
 import java.util.Collection;
 
-public class JavaToolchainRepositoryRequest implements JavaToolchainRepositoryRequestConfiguration {
+public abstract class DefaultJavaToolchainRepositoryResolver implements JavaToolchainRepositoryResolverInternal {
 
-    private final JavaToolchainRepositoryRegistrationInternal registration;
+    private final String name;
+
+    private final AuthenticationContainer authenticationContainer;
 
     private final AuthenticationSupporter authenticationSupporter;
 
     private final ProviderFactory providerFactory;
 
     @Inject
-    public JavaToolchainRepositoryRequest(JavaToolchainRepositoryRegistrationInternal registration, AuthenticationSupporter authenticationSupporter, ProviderFactory providerFactory) {
-        this.registration = registration;
+    public DefaultJavaToolchainRepositoryResolver(
+            String name,
+            AuthenticationContainer authenticationContainer,
+            AuthenticationSupporter authenticationSupporter,
+            ProviderFactory providerFactory
+    ) {
+        this.name = name;
+        this.authenticationContainer = authenticationContainer;
         this.authenticationSupporter = authenticationSupporter;
         this.providerFactory = providerFactory;
     }
 
-    public JavaToolchainRepositoryRegistration getRegistration() {
-        return registration;
+    @Override
+    public String getName() {
+        return name;
     }
 
-    public JavaToolchainRepository getRepository() {
-        return registration.getProvider().get();
-    }
+    public abstract Property<Class<? extends JavaToolchainRepository>> getImplementationClass();
 
-    public Collection<Authentication> getAuthentications(URI uri) {
-        Collection<Authentication> configuredAuthentication = authenticationSupporter.getConfiguredAuthentication();
-
-        for (Authentication authentication : configuredAuthentication) {
-            AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;
-            if (uri.getScheme().startsWith("http")) {
-                authenticationInternal.addHost(uri.getHost(), uri.getPort());
-            }
-        }
-        return configuredAuthentication;
+    @Override
+    public Collection<Authentication> getConfiguredAuthentication() {
+        return authenticationSupporter.getConfiguredAuthentication();
     }
 
     @Override
@@ -89,11 +86,16 @@ public class JavaToolchainRepositoryRequest implements JavaToolchainRepositoryRe
 
     @Override
     public void credentials(Class<? extends Credentials> credentialsType) {
-        authenticationSupporter.credentials(credentialsType, providerFactory.provider(() -> getRegistration().getName()));
+        authenticationSupporter.credentials(credentialsType, providerFactory.provider(() -> name));
     }
 
     @Override
     public void authentication(Action<? super AuthenticationContainer> action) {
         authenticationSupporter.authentication(action);
+    }
+
+    @Override
+    public AuthenticationContainer getAuthentication() {
+        return authenticationContainer;
     }
 }

@@ -22,10 +22,8 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.FileLockManager;
-import org.gradle.platform.internal.DefaultBuildPlatform;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.inspection.ConditionalInvalidation;
 import org.gradle.internal.jvm.inspection.InvalidJvmInstallationCacheInvalidator;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
@@ -49,7 +47,6 @@ import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.JavaToolchainFactory;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
-import org.gradle.jvm.toolchain.internal.JavaToolchainRepositoryRegistrationListener;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
@@ -58,8 +55,9 @@ import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
-import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory;
+import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
+import org.gradle.platform.internal.DefaultBuildPlatform;
 
 import java.util.List;
 
@@ -73,17 +71,15 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
 
         protected DefaultJavaToolchainRepositoryRegistry createJavaToolchainRepositoryRegistry(
                 Gradle gradle,
-                ListenerManager listenerManager,
                 Instantiator instantiator,
                 ObjectFactory objectFactory,
                 ProviderFactory providerFactory,
                 AuthenticationSchemeRegistry authenticationSchemeRegistry) {
-            JavaToolchainRepositoryRegistrationListener registrationBroadcaster = listenerManager.getBroadcaster(JavaToolchainRepositoryRegistrationListener.class);
-            return objectFactory.newInstance(DefaultJavaToolchainRepositoryRegistry.class, gradle, registrationBroadcaster, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
+            return objectFactory.newInstance(DefaultJavaToolchainRepositoryRegistry.class, gradle, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
         }
 
-        protected DefaultJdksBlockForToolchainManagement createToolchainManagementSpec(ObjectFactory objectFactory, JavaToolchainRepositoryRegistry registry, ListenerManager listenerManager) {
-            return objectFactory.newInstance(DefaultJdksBlockForToolchainManagement.class, registry, listenerManager);
+        protected DefaultJdksBlockForToolchainManagement createToolchainManagementSpec(ObjectFactory objectFactory, JavaToolchainRepositoryRegistry registry) {
+            return objectFactory.newInstance(DefaultJdksBlockForToolchainManagement.class, registry);
         }
 
         protected JdkCacheDirectory createJdkCacheDirectory(ObjectFactory objectFactory, GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager, JvmMetadataDetector detector) {

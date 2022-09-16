@@ -17,64 +17,29 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
-import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.event.ListenerManager;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryRequestConfiguration;
+import org.gradle.jvm.toolchain.JavaToolchainRepositoryResolverHandler;
 import org.gradle.jvm.toolchain.JdksBlockForToolchainManagement;
 
 import javax.inject.Inject;
-import java.util.List;
 
-public abstract class DefaultJdksBlockForToolchainManagement implements JdksBlockForToolchainManagement, JavaToolchainRepositoryRegistrationListener, ExtensionAware, Stoppable {
+public abstract class DefaultJdksBlockForToolchainManagement implements JdksBlockForToolchainManagement, ExtensionAware {
 
     private final JavaToolchainRepositoryRegistryInternal registry;
 
-    private final ListenerManager listenerManager;
-
     @Inject
-    public DefaultJdksBlockForToolchainManagement(JavaToolchainRepositoryRegistry registry, ListenerManager listenerManager) {
-        this.registry = (JavaToolchainRepositoryRegistryInternal) registry;
-        this.listenerManager = listenerManager;
-        listenerManager.addListener(this);
+    public DefaultJdksBlockForToolchainManagement(JavaToolchainRepositoryRegistryInternal registry) {
+        this.registry = registry;
     }
 
     @Override
-    public void add(String registrationName) {
-        registry.request(registrationName);
+    public JavaToolchainRepositoryResolverHandler getResolvers() {
+        return registry.getResolvers();
     }
 
     @Override
-    public void add(String registrationName, Action<? super JavaToolchainRepositoryRequestConfiguration> authentication) {
-        registry.request(registrationName, authentication);
-    }
-
-    //@Override TODO: method intentionally not part of the public API, due to lacks in Kotlin accessor generation
-    public void add(JavaToolchainRepositoryRegistration registration) {
-        registry.request(registration);
-    }
-
-    //@Override TODO: method intentionally not part of the public API, due to lacks in Kotlin accessor generation
-    public void add(JavaToolchainRepositoryRegistration registration, Action<? super AuthenticationSupported> authentication) {
-        registry.request(registration, authentication);
-    }
-
-    @Override
-    public List<? extends JavaToolchainRepositoryRegistration> getAll() {
-        return registry.allRequestedRegistrations();
-    }
-
-    @Override
-    public void onRegister(JavaToolchainRepositoryRegistrationInternal registration) {
-        getExtensions().add(JavaToolchainRepositoryRegistration.class, registration.getName(), registration);
-    }
-
-    @Override
-    public void stop() {
-        listenerManager.removeListener(this);
+    public void resolvers(Action<? super JavaToolchainRepositoryResolverHandler> configureAction) {
+        configureAction.execute(getResolvers());
     }
 
 }

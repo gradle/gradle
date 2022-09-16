@@ -92,7 +92,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from: https://api.adoptium.net/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/hotspot/normal/eclipse")
+            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from 'https://api.adoptium.net/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/hotspot/normal/eclipse'.")
             .assertHasCause("Could not read 'https://api.adoptium.net/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/hotspot/normal/eclipse' as it does not exist.")
     }
 
@@ -160,7 +160,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from: http://example.com/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/hotspot/normal/eclipse")
+            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from 'http://example.com/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/hotspot/normal/eclipse'.")
             .assertHasCause("Attempting to download a file from an insecure URI http://example.com/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/hotspot/normal/eclipse. This is not supported, use a secure URI instead.")
     }
 
@@ -199,7 +199,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=ADOPTOPENJDK, implementation=vendor-specific}) from: https://api.adoptium.net/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/hotspot/normal/eclipse")
+            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=ADOPTOPENJDK, implementation=vendor-specific}) from 'https://api.adoptium.net/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/hotspot/normal/eclipse'.")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -236,7 +236,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=ADOPTIUM, implementation=vendor-specific}) from: https://api.adoptium.net/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/hotspot/normal/eclipse")
+            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=ADOPTIUM, implementation=vendor-specific}) from 'https://api.adoptium.net/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/hotspot/normal/eclipse'.")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -273,7 +273,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=IBM_SEMERU, implementation=vendor-specific}) from: https://example.com/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/openj9/normal/adoptopenjdk")
+            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=IBM_SEMERU, implementation=vendor-specific}) from 'https://example.com/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/openj9/normal/adoptopenjdk'.")
             .assertHasCause("Could not read 'https://example.com/v3/binary/latest/99/ga/${osInUri()}/x64/jdk/openj9/normal/adoptopenjdk' as it does not exist.")
     }
 

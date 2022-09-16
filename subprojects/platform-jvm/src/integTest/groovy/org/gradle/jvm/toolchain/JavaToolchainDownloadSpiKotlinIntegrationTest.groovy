@@ -18,18 +18,20 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.internal.os.OperatingSystem
-import spock.lang.Ignore
 
 class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can inject custom toolchain registry via settings plugin"() {
         settingsKotlinFile << """
-            ${applyToolchainRegistryPlugin("customRegistry", "CustomToolchainRegistry", customToolchainRegistryCode())}               
+            ${applyToolchainRegistryPlugin("CustomToolchainRegistry", customToolchainRegistryCode())}               
             toolchainManagement {
                 jdks {
-                    add("customRegistry")
+                    resolvers {
+                        resolver("custom") {
+                            implementationClass.set(CustomToolchainRegistry::class.java)
+                        }
+                    }
                 }
             }
         """
@@ -59,52 +61,11 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from: https://exoticJavaToolchain.com/java-99")
+                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from 'https://exoticJavaToolchain.com/java-99'.")
                 .assertHasCause("Could not HEAD 'https://exoticJavaToolchain.com/java-99'.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    @Ignore("Will work once settings level accessor generation is implemented")
-    def "registering a custom toolchain registry generates accessors"() {
-        settingsKotlinFile << """
-            ${applyToolchainRegistryPlugin("customRegistry", "CustomToolchainRegistry", customToolchainRegistryCode())}               
-            toolchainManagement {
-                jdks {
-                    add(customRegistry)
-                }
-            }
-        """
-
-        buildKotlinFile << """
-            plugins {
-                java
-            }
-
-            java {
-                toolchain {
-                    languageVersion.set(JavaLanguageVersion.of(99))
-                    vendor.set(JvmVendorSpec.matching("exotic"))
-                }
-            }
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        failure = executer
-                .withTasks("compileJava")
-                .requireOwnGradleUserHomeDir()
-                .withToolchainDownloadEnabled()
-                .runWithFailure()
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from: https://exoticJavaToolchain.com/java-99")
-                .assertHasCause("Could not HEAD 'https://exoticJavaToolchain.com/java-99'.")
-    }
-
-    private static String applyToolchainRegistryPlugin(String name, String className, String code) {
+    private static String applyToolchainRegistryPlugin(String className, String code) {
         """
             import java.net.URI
             import java.util.Optional
@@ -117,7 +78,7 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
                 override fun apply(settings: Settings) {
                     settings.plugins.apply("jvm-toolchains")
                     val registry: JavaToolchainRepositoryRegistry = toolchainRepositoryRegistry
-                    registry.register("${name}", ${className}::class.java)
+                    registry.register(${className}::class.java)
                 }
                 
             }
@@ -136,18 +97,6 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
                 }
             }
             """
-    }
-
-    private static String os() {
-        OperatingSystem os = OperatingSystem.current()
-        if (os.isWindows()) {
-            return "windows"
-        } else if (os.isMacOsX()) {
-            return "mac"
-        } else if (os.isLinux()) {
-            return "linux"
-        }
-        return os.getFamilyName()
     }
 
 }

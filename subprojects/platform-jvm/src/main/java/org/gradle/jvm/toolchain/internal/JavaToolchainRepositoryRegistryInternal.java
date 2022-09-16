@@ -16,24 +16,14 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryRequestConfiguration;
+import org.gradle.jvm.toolchain.JavaToolchainRepositoryResolverHandler;
 
 import java.util.List;
 
 public interface JavaToolchainRepositoryRegistryInternal extends JavaToolchainRepositoryRegistry {
 
-    void request(String registrationName);
+    JavaToolchainRepositoryResolverHandler getResolvers();
 
-    void request(String registrationName, Action<? super JavaToolchainRepositoryRequestConfiguration> authentication);
-
-    void request(JavaToolchainRepositoryRegistration registration);
-
-    void request(JavaToolchainRepositoryRegistration registration, Action<? super JavaToolchainRepositoryRequestConfiguration> authentication);
-
-    List<? extends JavaToolchainRepositoryRequest> requestedRepositories();
-
-    List<? extends JavaToolchainRepositoryRegistration> allRequestedRegistrations();
+    List<? extends ResolvedJavaToolchainRepository> requestedRepositories();
 }
