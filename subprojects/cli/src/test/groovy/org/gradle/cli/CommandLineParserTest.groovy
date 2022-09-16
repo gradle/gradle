@@ -398,7 +398,7 @@ class CommandLineParserTest extends Specification {
             '-b                 [deprecated]',
             '-c                 option c [incubating]',
             '-d                 [incubating]',
-            '--                                   Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.'
+            '--                 Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.'
         ]
     }
 
