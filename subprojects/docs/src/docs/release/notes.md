@@ -266,7 +266,7 @@ Related issues:
 
 #### Enhanced the plugin declaration DSL for the java-gradle-plugin
 
-The recently released [version 1.0.0 of the Plugin-Publish plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish/1.0.0) significantly improves the plugin publishing process by having stronger opinions and a more straightforward configuration. 
+The recently released [version 1.0.0 of the Plugin-Publish plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish/1.0.0) significantly improves the plugin publishing process through stronger opinions and a more straightforward configuration.
 
 This release includes updates to the `java-gradle-plugin` documentation.
 The enhanced documentation describes the Maven publications generated when
