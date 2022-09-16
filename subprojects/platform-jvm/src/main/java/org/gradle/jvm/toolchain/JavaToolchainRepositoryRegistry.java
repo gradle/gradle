@@ -30,20 +30,11 @@ import org.gradle.internal.HasInternalProtocol;
 public interface JavaToolchainRepositoryRegistry {
 
     /**
-     * Registers a <code>JavaToolchainRepository</code> implementation with a specific name. Fails if
-     * any other repository has been already registered with that name (throws a <code>GradleException</code>).
-     * <p>
-     * To avoid name collisions, we recommend repository names be namespaced, like plugin-ids. For example,
-     * if the plugin providing the repository has the plugin-id "com.domain.myrepo", then we recommend the
-     * repository to be named "com_domain_myrepo". This way we can ensure that any combination of
-     * Java Toolchain Provisioning SPI plugins will work in any build.
-     * <p>
-     * Dots and dashes need to be avoided in the repository names because at a later stage we will be generating
-     * accessors for the repositories and that mechanism will not be able to handle them. In general, names
-     * must start with a lowercase letter and contain only letters, numbers, and underscore characters.
+     * Registers a <code>JavaToolchainRepository</code> implementation. The class name should be properly
+     * name-spaced, to avoid collisions (if another repository class with the same fully qualified name
+     * is registered, a <code>GradleException</code> will be thrown).
      */
-    <T extends JavaToolchainRepository> void register(String name, Class<T> implementationType);
+    <T extends JavaToolchainRepository> void register(Class<T> implementationType);
 
-    //TODO (#21082): switch to NamedDomainObjectContainer based API proposal
-    //TODO (#21082): update design docs
+    //TODO (#21082): update design docs about the registration API change
 }

@@ -14,22 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain;
+package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.repositories.AuthenticationContainer;
-import org.gradle.api.artifacts.repositories.AuthenticationSupported;
+import org.gradle.authentication.Authentication;
+import org.gradle.jvm.toolchain.JavaToolchainRepositoryResolver;
 
-/**
- * Configuration options of <code>JavaToolchainRepository</code> instances.
- *
- * @since 7.6
- */
-@Incubating
-public interface JavaToolchainRepositoryRequestConfiguration extends AuthenticationSupported {
+import java.util.Collection;
 
-    @Override
-    default AuthenticationContainer getAuthentication() {
-        throw new UnsupportedOperationException();
-    }
+public interface JavaToolchainRepositoryResolverInternal extends JavaToolchainRepositoryResolver {
+
+    Collection<Authentication> getConfiguredAuthentication();
+
 }

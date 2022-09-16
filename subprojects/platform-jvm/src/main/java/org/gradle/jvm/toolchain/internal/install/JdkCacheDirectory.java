@@ -128,7 +128,7 @@ public class JdkCacheDirectory {
             throw new GradleException("Provisioned toolchain '" + javaHome + "' could not be probed.");
         }
         if (!new JavaToolchainMatcher(spec).test(metadata)) {
-            throw new GradleException("Toolchain provisioned from '" + uri + "' doesn't satisfy the specification: " + spec.getDisplayName());
+            throw new GradleException("Toolchain provisioned from '" + uri + "' doesn't satisfy the specification: " + spec.getDisplayName() + ".");
         }
 
         File installFolder = new File(jdkDirectory, toDirectoryName(metadata));

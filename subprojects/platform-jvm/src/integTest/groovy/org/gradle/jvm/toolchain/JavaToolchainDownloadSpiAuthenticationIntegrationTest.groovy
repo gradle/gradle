@@ -42,10 +42,14 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can download without authentication"() {
         settingsFile << """
-            ${applyToolchainRegistryPlugin("customRegistry", "CustomToolchainRegistry", customToolchainRegistryCode(archiveUri))}               
+            ${applyToolchainRegistryPlugin("CustomToolchainRegistry", customToolchainRegistryCode(archiveUri))}               
             toolchainManagement {
                 jdks {
-                    add("customRegistry")
+                    resolvers {
+                        resolver('custom') {
+                            implementationClass = CustomToolchainRegistry
+                        }
+                    }
                 }
             }
         """
@@ -75,29 +79,32 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
-                .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'")
+                .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from: " + archiveUri)
+                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '" + archiveUri + "'.")
                 .assertHasCause("Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed.")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can download with basic authentication"() {
         settingsFile << """
-            ${applyToolchainRegistryPlugin("customRegistry", "CustomToolchainRegistry", customToolchainRegistryCode(archiveUri))}               
+            ${applyToolchainRegistryPlugin("CustomToolchainRegistry", customToolchainRegistryCode(archiveUri))}
             toolchainManagement {
                 jdks {
-                    add("customRegistry") {
-                        credentials {
-                            username "user"
-                            password "password"
-                        }
-                        authentication {
-                            digest(BasicAuthentication)
+                    resolvers {
+                        resolver('custom') {
+                            implementationClass = CustomToolchainRegistry
+                            credentials {
+                                username "user"
+                                password "password"
+                            }
+                            authentication {
+                                digest(BasicAuthentication)
+                            }
                         }
                     }
                 }
-            }
+            } 
         """
 
         buildFile << """
@@ -127,7 +134,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
                 .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from: " + archiveUri)
+                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '" + archiveUri + "'.")
                 .assertHasCause("Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed.")
     }
 

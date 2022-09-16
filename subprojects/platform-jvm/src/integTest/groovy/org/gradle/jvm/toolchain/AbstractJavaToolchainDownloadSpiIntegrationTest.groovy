@@ -20,9 +20,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class AbstractJavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
-    protected static String applyToolchainRegistryPlugin(String name, String className, String code) {
+    protected static String applyToolchainRegistryPlugin(String pluginName = null, String repositoryClass, String code) {
+        if (pluginName == null) {
+            pluginName = repositoryClass + "Plugin"
+        }
         """
-            public abstract class ${className}Plugin implements Plugin<Settings> {
+            public abstract class ${pluginName} implements Plugin<Settings> {
                 @Inject
                 protected abstract JavaToolchainRepositoryRegistry getToolchainRepositoryRegistry();
             
@@ -30,13 +33,13 @@ class AbstractJavaToolchainDownloadSpiIntegrationTest extends AbstractIntegratio
                     settings.getPlugins().apply("jvm-toolchains");
                 
                     JavaToolchainRepositoryRegistry registry = getToolchainRepositoryRegistry();
-                    registry.register("${name}", ${className}.class);
+                    registry.register(${repositoryClass}.class);
                 }
             }
             
             ${code}
 
-            apply plugin: ${className}Plugin
+            apply plugin: ${pluginName}
         """
     }
 

@@ -14,27 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.toolchain.management;
+package org.gradle.jvm.toolchain;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.NamedDomainObjectList;
 
 /**
- * Object created when a Java Toolchain Provisioning SPI plugin registers a <code>JavaToolchainRepository</code>
- * with the <code>JavaToolchainRepositoryRegistry</code> service.
- * <p>
- * Can also be used to interact with the <code>toolchainManagement.jdks</code> block provided by the
- * <code>jvm-toolchains</code> plugin. In fact the <code>jdks</code> block will have generated accessors
- * for these registrations.
+ * {@link org.gradle.api.NamedDomainObjectList} based handler for configuring an
+ * ordered collection of <code>JavaToolchainRepository</code> implementations.
  *
  * @since 7.6
  */
 @Incubating
-@HasInternalProtocol
-public interface JavaToolchainRepositoryRegistration {
+public interface JavaToolchainRepositoryResolverHandler extends NamedDomainObjectList<JavaToolchainRepositoryResolver> {
 
-    String getName();
-
-    String getType();
+    /**
+     * Utility method for creating a named {@link JavaToolchainRepositoryResolver} based on
+     * a configuration block.
+     */
+    void resolver(String name, Action<? super JavaToolchainRepositoryResolver> configureAction);
 
 }

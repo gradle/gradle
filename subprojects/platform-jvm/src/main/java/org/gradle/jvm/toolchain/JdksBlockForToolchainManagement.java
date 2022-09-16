@@ -18,53 +18,50 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.toolchain.management.JavaToolchainRepositoryRegistration;
-
-import java.util.List;
 
 /**
  * Dynamic extension added to <code>ToolchainManagementSpec</code> at runtime, by the
- * <code>jvm-toolchains</code> plugin. Provides a <code>jdks</code> block with methods
- * to specify which <code>JavaToolchainRepository</code> implementations to use
- * and in what order for Java toolchain provisioning.
+ * <code>jvm-toolchains</code> plugin. Provides a <code>jdks</code> block to configure
+ * the ordered list of <code>JavaToolchainRepository</code> implementations to use
+ * for Java toolchain provisioning.
  *
  * @since 7.6
  */
 @Incubating
 public interface JdksBlockForToolchainManagement {
 
-    /**
-     * Look up a registration by name and, if found, add it to the ordered list of explicitly requested registrations.
-     * If not found, throw a <code>GradleException</code>.
-     */
-    void add(String registrationName);
+    // TODO (#21082): update user manual
 
     /**
-     * Look up a registration by name and, if found, add it to the ordered list of explicitly requested registrations.
-     * If not found, throw a <code>GradleException</code>.
-     * <p>
-     * Configures the authentication to be used when the requested registration ends up being used for Java
-     * toolchain provisioning. The authentication mechanism employed are the same as the ones for artifact
-     * repositories, and they need to be configured in exactly the same way:
+     * Returns the handler for the ordered list of configured <code>JavaToolchainRepository</code> implementations.
+     */
+    JavaToolchainRepositoryResolverHandler getResolvers();
+
+    /**
+     * {@link org.gradle.api.NamedDomainObjectList} based handler for configuring an
+     * ordered collection of <code>JavaToolchainRepository</code> implementations:
      *
      * <pre class='autoTested'>
      * toolchainManagement {
-     *   jdks {
-     *     add("customRegistry") {
-     *       credentials {
-     *         username "user"
-     *         password "password"
-     *       }
-     *       authentication {
-     *         digest(DigestAuthentication)
-     *       }
+     *     jdks {
+     *         resolvers {
+     *             resolver('registry1') {
+     *                 implementationClass = CustomToolchainRegistry1    // TODO (#21082): in a groovy script does a fully qualified class name go here?
+     *                 credentials {
+     *                     username "user"
+     *                     password "password"
+     *                 }
+     *                 authentication {
+     *                     digest(BasicAuthentication)
+     *                 }
+     *             }
+     *             resolver('registry2') {
+     *                 implementationClass = CustomToolchainRegistry2
+     *             }
+     *         }
      *     }
-     *   }
-     * }
      * </pre>
      */
-    void add(String registrationName, Action<? super JavaToolchainRepositoryRequestConfiguration> authenticationSupported);
-
-    List<? extends JavaToolchainRepositoryRegistration> getAll();
+    void resolvers(Action<? super JavaToolchainRepositoryResolverHandler> configureAction);
 
 }
