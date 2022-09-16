@@ -50,7 +50,7 @@ dependencies {
         javaClassFile('Test.class').exists()
     }
 
-    def "production compile only dependencies not visible to tests"() {
+    def "production compile only dependencies are visible to tests"() {
         given:
         file('src/test/java/Test.java') << """
 import org.apache.commons.logging.Log;
@@ -71,12 +71,8 @@ dependencies {
 }
 """
 
-        when:
-        def failure = fails('compileTestJava')
-
-        then:
-        failure.assertHasCause("Compilation failed; see the compiler error output for details.")
-        failure.assertHasErrorOutput("package org.apache.commons.logging does not exist")
+        expect:
+        succeeds('compileTestJava')
     }
 
     def "compile only dependencies not included in runtime classpath"() {

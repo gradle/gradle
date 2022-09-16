@@ -70,16 +70,18 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
 
         def testTask = project.tasks['compileTestScala']
         def testSourceSet = project.sourceSets.test
+        def jarTask = project.tasks[JavaPlugin.JAR_TASK_NAME]
         testTask instanceof ScalaCompile
         testTask.description == 'Compiles the test Scala source.'
         testTask.classpath.files as List == [
-            mainSourceSet.java.destinationDirectory.get().asFile,
-            mainSourceSet.scala.destinationDirectory.get().asFile,
-            mainSourceSet.output.resourcesDir,
+            jarTask.outputs.files.singleFile,
             testSourceSet.java.destinationDirectory.get().asFile,
         ]
         testTask.source as List == testSourceSet.scala as List
-        testTask dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME, 'compileScala')
+        testTask dependsOn(
+            JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.JAR_TASK_NAME,
+            'compileScala' // See: https://github.com/gradle/gradle/pull/14435
+        )
     }
 
     def "compile dependency to java compilation can be turned off by changing the compile task classpath"() {
@@ -100,14 +102,14 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         testTask.setClasspath(project.sourceSets.test.compileClasspath)
 
         def testSourceSet = project.sourceSets.test
+        def jarTask = project.tasks[JavaPlugin.JAR_TASK_NAME]
         testTask  instanceof ScalaCompile
-        testTask.classpath.files as List == [
-            mainSourceSet.java.destinationDirectory.get().asFile,
-            mainSourceSet.scala.destinationDirectory.get().asFile,
-            mainSourceSet.output.resourcesDir
-        ]
+        testTask.classpath.files as List == jarTask.outputs.files.files as List
         testTask.source as List == testSourceSet.scala as List
-        testTask dependsOn(JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME, 'compileScala')
+        testTask dependsOn(
+            JavaPlugin.JAR_TASK_NAME,
+            'compileScala' // See: https://github.com/gradle/gradle/pull/14435
+        )
         testTask not(dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME))
     }
 

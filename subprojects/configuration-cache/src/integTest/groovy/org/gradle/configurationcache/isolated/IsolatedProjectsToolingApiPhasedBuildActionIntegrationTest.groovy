@@ -103,7 +103,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            modelsReused(":a", ":b")
+            modelsReused(":a", ":b", ":buildSrc")
         }
         outputContains("creating model for root project 'root'")
     }

@@ -59,8 +59,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                 val integTestRuntimeClasspathFiles = configurations.getByName("integTestRuntimeClasspath").files
 
                 doLast {
-                    assert(testCompileClasspathFiles.map { it.name }.equals(listOf("commons-lang3-3.11.jar"))) { "commons-lang3 is an implementation dependency for the default test suite" }
-                    assert(testRuntimeClasspathFiles.map { it.name }.equals(listOf("commons-lang3-3.11.jar"))) { "commons-lang3 is an implementation dependency for the default test suite" }
+                    assert(testCompileClasspathFiles.map { it.name }.contains("commons-lang3-3.11.jar")) { "commons-lang3 is an implementation dependency for the default test suite" }
+                    assert(testRuntimeClasspathFiles.map { it.name }.contains("commons-lang3-3.11.jar")) { "commons-lang3 is an implementation dependency for the default test suite" }
                     assert(!integTestCompileClasspathFiles.map { it.name }.contains("commons-lang3-3.11.jar")) { "default test suite dependencies should not leak to integTest" }
                     assert(!integTestRuntimeClasspathFiles.map { it.name }.contains("commons-lang3-3.11.jar")) { "default test suite dependencies should not leak to integTest" }
                 }
@@ -168,7 +168,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
 
             doLast {
-                assert(testRuntimeClasspathFileNames.equals(listOf("commons-lang3-3.11.jar"))) { "commons-lang3 leaks from the production project dependencies" }
+                assert(testRuntimeClasspathFileNames.contains("commons-lang3-3.11.jar")) { "commons-lang3 leaks from the production project dependencies" }
                 assert(!integTestRuntimeClasspathFileNames.contains("commons-lang3-3.11.jar")) { "integTest does not implicitly depend on the production project" }
             }
         }
@@ -214,8 +214,8 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             val integTestRuntimeClasspathFileNames = configurations.getByName("integTestRuntimeClasspath").files.map { it.name }
 
             doLast {
-                assert(testCompileClasspathFileNames.equals(listOf("commons-lang3-3.11.jar"))) { "commons-lang3 leaks from the production project dependencies" }
-                assert(testRuntimeClasspathFileNames.equals(listOf("commons-lang3-3.11.jar"))) { "commons-lang3 leaks from the production project dependencies" }
+                assert(testCompileClasspathFileNames.contains("commons-lang3-3.11.jar")) { "commons-lang3 leaks from the production project dependencies" }
+                assert(testRuntimeClasspathFileNames.contains("commons-lang3-3.11.jar")) { "commons-lang3 leaks from the production project dependencies" }
                 assert(integTestRuntimeClasspathFileNames.contains("commons-lang3-3.11.jar")) { "integTest explicitly depends on the production project" }
             }
         }
@@ -381,10 +381,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
             tasks.register("checkConfiguration") {
                 val reasons = configurations.getByName("${suiteName}CompileClasspath").getAllDependencies().withType(ProjectDependency::class).map { it.getReason() }
                 doLast {
-                    assert(reasons.size == 1)
-                    reasons.forEach {
-                        assert(it == "for testing purposes")
-                    }
+                    assert(reasons.equals(${reasons})
                 }
             }
         """
@@ -393,9 +390,9 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds ':consumer:checkConfiguration'
 
         where:
-        suiteDesc           | suiteName   | suiteDeclaration
-        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
-        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+        suiteDesc           | suiteName   | suiteDeclaration                                    | reasons
+        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'          | 'listOf("For depending upon production classes", "for testing purposes"))'
+        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)' | 'listOf("for testing purposes"))'
     }
 
     // endregion dependencies - projects
@@ -853,10 +850,10 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                             .filter { it.name != "junit-platform-launcher" }
                             .map { listOf(it.group, it.name, it.version ?: "null") }
                 doLast {
-                    assert(deps.size == 1) { "expected 1 dependency, found " + (deps.size) + " dependencies" }
+                    assert(deps.size == ${numDependencies}) { "expected ${numDependencies} dependencies, found " + (deps.size) + " dependencies" }
 
                     // The dependency uses the 2 args we supplied incorrectly
-                    val requested = deps.get(0)
+                    val requested = deps.last()
                     assert(requested[0] == "org.apache.commons:commons-lang3:3.11") { "expected commons-lang3 group" }
                     assert(requested[1] == "com.google.guava:guava:30.1.1-jre") { "expected guava name" }
                     assert(requested[2] == "null") { "expected null version" }
@@ -888,9 +885,9 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
         result.assertHasErrorOutput("Could not find org.apache.commons:commons-lang3:3.11:com.google.guava:guava:30.1.1-jre:.")
 
         where:
-        suiteDesc           | suiteName   | suiteDeclaration
-        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'
-        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)'
+        suiteDesc           | suiteName   | suiteDeclaration                                    | numDependencies
+        'the default suite' | 'test'      | 'val test by getting(JvmTestSuite::class)'          | 2
+        'a custom suite'    | 'integTest' | 'val integTest by registering(JvmTestSuite::class)' | 1
     }
 
     def "can NOT add multiple GAV dependencies to #suiteDesc - at the top level (list)"() {

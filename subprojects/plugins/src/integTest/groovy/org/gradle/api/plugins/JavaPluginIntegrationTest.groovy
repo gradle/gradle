@@ -246,6 +246,10 @@ Artifacts
                 testImplementation 'junit:junit:4.13'
             }
 
+            testing.suites {
+                integTest(JvmTestSuite)
+            }
+
             tasks.withType(Test).configureEach {
                 throw new RuntimeException("Test task should not have been realized")
             }""".stripIndent()
@@ -279,7 +283,7 @@ Artifacts
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19914")
-    def "calling test task doesn't force execution of jar task"() {
+    def "calling non-default task doesn't force execution of jar task"() {
         given:
         buildFile << """
             plugins {
@@ -292,10 +296,8 @@ Artifacts
                 testImplementation 'junit:junit:4.13'
             }
 
-            tasks.withType(Jar).configureEach {
-                doLast {
-                    throw new RuntimeException("Jar task should not have been executed")
-                }
+            testing.suites {
+                integTest(JvmTestSuite)
             }""".stripIndent()
 
         file("src/main/java/com/example/SampleClass.java") << """
@@ -322,8 +324,21 @@ Artifacts
                 }
             }""".stripIndent()
 
-        expect:
+        when:
         succeeds "test"
+
+        then:
+        // The default test suite consumes the production jar.
+        result.assertTaskExecuted(":jar")
+        result.assertTaskExecuted(":test")
+
+        when:
+        succeeds "integTest"
+
+        then:
+        // User-defined test suites do not.
+        result.assertTaskNotExecuted(":jar")
+        result.assertTaskExecuted(":integTest")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19914")
@@ -381,6 +396,10 @@ Artifacts
         subADir.file("build.gradle") << """
             plugins {
                 id 'java'
+            }
+
+            testing.suites {
+                integTest(JvmTestSuite)
             }
 
             ${mavenCentralRepository()}
@@ -456,8 +475,8 @@ Artifacts
             }""".stripIndent()
 
         expect:
-        succeeds ":subB:test"
-        result.assertTaskOrder(":subA:jar", ":subB:test")
+        succeeds(":subA:integTest", ":subB:test")
+        result.assertTaskOrder(":subA:jar", ":subA:integTest", ":subB:test")
         result.assertTaskNotExecuted(":subA:test")
     }
 

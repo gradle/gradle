@@ -460,23 +460,28 @@ baz:1.0 requested
         then:
         outputContains """
 testCompileClasspath
-   project :lib (apiElements)
-      org:dep:1.0 (compile)
+   project : (compileElements)
+      project :lib (apiElements)
+         org:dep:1.0 (compile)
    project :tool (testFixturesApiElements)
       project :tool (apiElements)
          com:baz:1.0 (compile)
       com:foo:1.0 (compile)
+   project :lib (apiElements)
 """
 
         and:
-        outputContains """testRuntimeClasspath
-   project :lib (runtimeElements)
-      org:dep:1.0 (runtime)
+        outputContains """
+testRuntimeClasspath
+   project : (runtimeElements)
+      project :lib (runtimeElements)
+         org:dep:1.0 (runtime)
    project :tool (testFixturesRuntimeElements)
       project :tool (runtimeElements)
          com:baz:1.0 (runtime)
       com:foo:1.0 (runtime)
       com:bar:1.0 (runtime)
+   project :lib (runtimeElements)
 """
     }
 
@@ -556,24 +561,28 @@ testCompileClasspath
         then:
         outputContains("""
 testCompileClasspath
-   project :producer (apiElements)
-      org:baz:1.0 (compile)
+   project : (compileElements)
+      project :producer (apiElements)
+         org:baz:1.0 (compile)
    project :producer (testFixturesApiElements)
       project :producer (apiElements)
       org:foo:1.0 (compile)
+   project :producer (apiElements)
 """)
 
         and:
         outputContains("""
 testRuntimeClasspath
-   project :producer (runtimeElements)
-      org:baz:1.0 (runtime)
-      org:gaz:1.0 (runtime)
+   project : (runtimeElements)
+      project :producer (runtimeElements)
+         org:baz:1.0 (runtime)
+         org:gaz:1.0 (runtime)
    project :producer (testFixturesRuntimeElements)
       project :producer (runtimeElements)
       org:foo:1.0 (runtime)
       org:bar:1.0 (runtime)
       org:baz:1.0 (runtime)
+   project :producer (runtimeElements)
 """)
     }
 
@@ -610,7 +619,7 @@ testRuntimeClasspath
                     def result = configurations.testCompileClasspath.incoming.resolutionResult
                     def rootComponent = result.root
                     def childComponent = result.allComponents.find { it.toString() == 'project :producer' }
-                    def childVariant = childComponent.variants[0]
+                    def childVariant = childComponent.variants.find { it.displayName == 'apiElements' }
                     // try to get dependencies for child variant on the wrong component
                     println(rootComponent.getDependenciesForVariant(childVariant))
                 }

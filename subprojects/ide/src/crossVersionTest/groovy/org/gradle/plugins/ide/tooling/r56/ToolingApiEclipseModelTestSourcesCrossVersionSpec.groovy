@@ -211,15 +211,20 @@ class ToolingApiEclipseModelTestSourcesCrossVersionSpec extends ToolingApiSpecif
 
             ${mavenCentralRepository()}
 
+            configurations {
+                otherTestImplementation
+            }
+
             dependencies {
-                compileOnly 'com.google.guava:guava:21.0'
+                otherTestImplementation 'com.google.guava:guava:21.0'
                 testImplementation 'junit:junit:4.13'
             }
 
             eclipse {
                 classpath {
                     testSourceSets = [sourceSets.main]
-                    testConfigurations = [configurations.compileClasspath, configurations.runtimeClasspath]
+                    testConfigurations = [configurations.otherTestImplementation]
+                    plusConfigurations += [configurations.otherTestImplementation]
                 }
             }
         """

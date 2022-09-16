@@ -120,10 +120,19 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         !apiElements.canBeResolved
 
         when:
+        def compileElements = project.configurations.getByName(JavaPlugin.COMPILE_ELEMENTS_CONFIGURATION_NAME)
+
+        then:
+        !compileElements.visible
+        compileElements.extendsFrom == [implementation, compileOnly] as Set
+        compileElements.canBeConsumed
+        !compileElements.canBeResolved
+
+        when:
         def testImplementation = project.configurations.getByName(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME)
 
         then:
-        testImplementation.extendsFrom == toSet(implementation)
+        testImplementation.extendsFrom == [] as Set
         !testImplementation.visible
         !testImplementation.canBeConsumed
         !testImplementation.canBeResolved
@@ -136,7 +145,7 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         !testRuntimeOnly.visible
         !testRuntimeOnly.canBeConsumed
         !testRuntimeOnly.canBeResolved
-        testRuntimeOnly.extendsFrom == [runtimeOnly] as Set
+        testRuntimeOnly.extendsFrom == [] as Set
 
         when:
         def testCompileOnly = project.configurations.getByName(JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_NAME)

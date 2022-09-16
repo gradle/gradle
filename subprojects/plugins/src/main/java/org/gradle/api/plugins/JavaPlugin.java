@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -25,6 +26,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Bundling;
@@ -254,7 +256,8 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
     private static final String SOURCE_ELEMENTS_VARIANT_NAME = "mainSourceElements";
 
-    private static final String COMPILE_ELEMENTS_CONFIGURATION_NAME = "compileElements";
+    @VisibleForTesting
+    static final String COMPILE_ELEMENTS_CONFIGURATION_NAME = "compileElements";
 
     private final ObjectFactory objectFactory;
     private final SoftwareComponentFactory softwareComponentFactory;
@@ -287,7 +290,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
         PublishArtifact jarArtifact = configureArchives(project, mainSourceSet);
 
-        configureBuiltInTest(project, mainSourceSet);
+        configureBuiltInTest(project);
         configureSourceSets(javaExtension, buildOutputCleanupRegistry);
         createConsumableConfigurations(project, mainSourceSet, jarArtifact);
         configureJavaDocTask(null, mainSourceSet, project.getTasks(), javaExtension);
@@ -300,28 +303,27 @@ public abstract class JavaPlugin implements Plugin<Project> {
         pluginExtension.getSourceSets().all(sourceSet -> buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput()));
     }
 
-    private static void configureBuiltInTest(Project project, SourceSet mainSourceSet) {
+    /**
+     * The IntelliJ model builder relies on the main source set being created before the tests.
+     * This code here cannot live in the JvmTestSuitePlugin and must live here, so that we
+     * can ensure we register this test suite after we've created the main source set.
+     */
+    private static void configureBuiltInTest(Project project) {
         TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
             final SourceSet testSourceSet = suite.getSources();
-            ConfigurationContainer configurations = project.getConfigurations();
 
-            Configuration testImplementationConfiguration = configurations.getByName(testSourceSet.getImplementationConfigurationName());
-            Configuration testRuntimeOnlyConfiguration = configurations.getByName(testSourceSet.getRuntimeOnlyConfigurationName());
+            // The default test suite compiles and runs against the internal production classpath.
+            ProjectDependency projectInternalDependency = suite.getDependencies().projectInternalView();
+            projectInternalDependency.because("For depending upon production classes");
+            suite.getDependencies().getImplementation().add(projectInternalDependency);
+
+            ConfigurationContainer configurations = project.getConfigurations();
             Configuration testCompileClasspathConfiguration = configurations.getByName(testSourceSet.getCompileClasspathConfigurationName());
             Configuration testRuntimeClasspathConfiguration = configurations.getByName(testSourceSet.getRuntimeClasspathConfigurationName());
 
-            // We cannot reference the main source set lazily (via a callable) since the IntelliJ model builder
-            // relies on the main source set being created before the tests. So, this code here cannot live in the
-            // JvmTestSuitePlugin and must live here, so that we can ensure we register this test suite after we've
-            // created the main source set.
-            final FileCollection mainSourceSetOutput = mainSourceSet.getOutput();
-            final FileCollection testSourceSetOutput = testSourceSet.getOutput();
-            testSourceSet.setCompileClasspath(project.getObjects().fileCollection().from(mainSourceSetOutput, testCompileClasspathConfiguration));
-            testSourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSetOutput, mainSourceSetOutput, testRuntimeClasspathConfiguration));
-
-            testImplementationConfiguration.extendsFrom(configurations.getByName(mainSourceSet.getImplementationConfigurationName()));
-            testRuntimeOnlyConfiguration.extendsFrom(configurations.getByName(mainSourceSet.getRuntimeOnlyConfigurationName()));
+            testSourceSet.setCompileClasspath(testCompileClasspathConfiguration);
+            testSourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSet.getOutput(), testRuntimeClasspathConfiguration));
         });
 
         // Force the realization of this test suite, targets and task
@@ -468,6 +470,11 @@ public abstract class JavaPlugin implements Plugin<Project> {
     private static void configureBuild(Project project) {
         project.getTasks().named(JavaBasePlugin.BUILD_NEEDED_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, true,
             JavaBasePlugin.BUILD_NEEDED_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        project.getTasks().named(JavaBasePlugin.BUILD_NEEDED_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, true,
+            JavaBasePlugin.BUILD_NEEDED_TASK_NAME, RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+
+        project.getTasks().named(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, false,
+            JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, RUNTIME_CLASSPATH_CONFIGURATION_NAME));
         project.getTasks().named(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, false,
             JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
     }

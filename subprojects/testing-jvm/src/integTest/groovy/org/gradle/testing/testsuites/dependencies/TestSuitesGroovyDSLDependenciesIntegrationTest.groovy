@@ -55,8 +55,8 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             def integTestCompile = configurations.integTestCompileClasspath
             def integTestRuntime = configurations.integTestRuntimeClasspath
             doLast {
-                assert testCompile*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 is an implementation dependency for the default test suite'
-                assert testRuntime*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 is an implementation dependency for the default test suite'
+                assert testCompile*.name.contains('commons-lang3-3.11.jar') : 'commons-lang3 is an implementation dependency for the default test suite'
+                assert testRuntime*.name.contains('commons-lang3-3.11.jar') : 'commons-lang3 is an implementation dependency for the default test suite'
                 assert !integTestCompile*.name.contains('commons-lang3-3.11.jar') : 'default test suite dependencies should not leak to integTest'
                 assert !integTestRuntime*.name.contains('commons-lang3-3.11.jar') : 'default test suite dependencies should not leak to integTest'
             }
@@ -158,7 +158,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             def testRuntime = configurations.testRuntimeClasspath
             def integTestRuntime = configurations.integTestRuntimeClasspath
             doLast {
-                assert testRuntime*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 leaks from the production project dependencies'
+                assert testRuntime*.name.contains('commons-lang3-3.11.jar') : 'commons-lang3 leaks from the production project dependencies'
                 assert !integTestRuntime*.name.contains('commons-lang3-3.11.jar') : 'integTest does not implicitly depend on the production project'
             }
         }
@@ -202,8 +202,8 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             def testRuntime = configurations.testRuntimeClasspath
             def integTestRuntime = configurations.integTestRuntimeClasspath
             doLast {
-                assert testCompile*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 leaks from the production project dependencies'
-                assert testRuntime*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 leaks from the production project dependencies'
+                assert testCompile*.name.contains('commons-lang3-3.11.jar') : 'commons-lang3 leaks from the production project dependencies'
+                assert testRuntime*.name.contains('commons-lang3-3.11.jar') : 'commons-lang3 leaks from the production project dependencies'
                 assert integTestRuntime*.name.contains('commons-lang3-3.11.jar') : 'integTest explicitly depends on the production project'
             }
         }
@@ -317,7 +317,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
                     $suiteDeclaration {
                         dependencies {
                             implementation(project(':util')) {
-                                because 'for testing purposes'
+                                because 'For testing purposes'
                             }
                         }
                     }
@@ -327,8 +327,8 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             tasks.register('checkConfiguration') {
                 doLast {
                     def deps = configurations.${suiteName}CompileClasspath.allDependencies.withType(ProjectDependency)
-                    assert deps.size() == 1
-                    assert deps*.reason == ['for testing purposes']
+                    assert deps.size() == ${reasons}.size()
+                    assert deps*.reason == $reasons
                 }
             }
         """
@@ -337,9 +337,9 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds ':consumer:checkConfiguration'
 
         where:
-        suiteDesc           | suiteName   | suiteDeclaration
-        'the default suite' | 'test'      | 'test'
-        'a custom suite'    | 'integTest' | 'integTest(JvmTestSuite)'
+        suiteDesc           | suiteName   | suiteDeclaration          | reasons
+        'the default suite' | 'test'      | 'test'                    | "['For depending upon production classes', 'For testing purposes']"
+        'a custom suite'    | 'integTest' | 'integTest(JvmTestSuite)' | "['For testing purposes']"
     }
 
     // endregion dependencies - projects

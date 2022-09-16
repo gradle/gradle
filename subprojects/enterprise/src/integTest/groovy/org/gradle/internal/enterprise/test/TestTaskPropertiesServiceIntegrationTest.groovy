@@ -70,6 +70,7 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
         """)
         pluginBuilder.generateForBuildSrc()
 
+        settingsFile << "rootProject.name = 'production'"
         buildFile << """
             plugins {
                 id 'java'
@@ -104,8 +105,7 @@ class TestTaskPropertiesServiceIntegrationTest extends AbstractIntegrationSpec {
         def expectedClasspath = [
             file('build/classes/java/test'),
             file('build/resources/test'),
-            file('build/classes/java/main'),
-            file('build/resources/main'),
+            file('build/libs/production.jar'),
         ]
         def expectedExecutable = Jvm.current().javaExecutable.absolutePath
         def expectedJavaVersion = JavaVersion.current().majorVersion.toInteger()

@@ -35,7 +35,7 @@ tasks.all {} // force realize all tasks
 
 version.set('5.6')
 
-assert configurations.testRuntimeClasspath.allDependencies.size() == 1 
+assert configurations.testRuntimeClasspath.allDependencies.size() == 2
         """
         expect:
         succeeds("help")
@@ -51,11 +51,11 @@ def version = objects.property(String)
 
 configurations.testImplementation.dependencies.addLater(provider { project.dependencies.create("com.example:artifact:\${version.get()}") })
 
-tasks.all {} // force realize all tasks 
+tasks.all {} // force realize all tasks
 
 version.set('5.6') // later set the provider value
 
-assert configurations.testRuntimeClasspath.allDependencies.size() == 1
+assert configurations.testRuntimeClasspath.allDependencies.size() == 2
         """
         expect:
         succeeds("help")

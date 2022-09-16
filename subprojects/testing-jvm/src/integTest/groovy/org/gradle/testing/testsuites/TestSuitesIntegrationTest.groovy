@@ -56,7 +56,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             tasks.test {
                 doLast {
                     assert testFramework instanceof ${JUnitTestFramework.canonicalName}
-                    assert classpath.empty
+                    assert classpath.size() == 1
                 }
             }
         """
@@ -83,7 +83,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             tasks.test {
                 doLast {
                     assert testFramework instanceof ${JUnitTestFramework.canonicalName}
-                    assert classpath.size() == 2
+                    assert classpath.size() == 3
                     assert classpath.any { it.name == "junit-${DefaultJvmTestSuite.TestingFramework.JUNIT4.getDefaultVersion()}.jar" }
                 }
             }
@@ -111,7 +111,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             tasks.test {
                 doLast {
                     assert testFramework instanceof ${JUnitTestFramework.canonicalName}
-                    assert classpath.size() == 2
+                    assert classpath.size() == 3
                     assert classpath.any { it.name == "junit-4.12.jar" }
                 }
             }
@@ -141,7 +141,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             tasks.test {
                 doLast {
                     assert testFramework instanceof ${JUnitTestFramework.canonicalName}
-                    assert classpath.size() == 2
+                    assert classpath.size() == 3
                     assert classpath.any { it.name == "junit-4.12.jar" }
                 }
             }
@@ -169,7 +169,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             tasks.test {
                 doLast {
                     assert test.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert classpath.size() == 8
+                    assert classpath.size() == 9
                     assert classpath.any { it.name =~ /junit-platform-launcher-.*.jar/ }
                     assert classpath.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
@@ -198,7 +198,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             tasks.test {
                 doLast {
                     assert testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert classpath.size() == 9
+                    assert classpath.size() == 10
                     assert classpath.any { it.name == "junit-jupiter-5.7.2.jar" }
                 }
             }
@@ -228,7 +228,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             tasks.test {
                 doLast {
                     assert testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert classpath.size() == 9
+                    assert classpath.size() == 10
                     assert classpath.any { it.name == "junit-jupiter-5.7.2.jar" }
                 }
             }

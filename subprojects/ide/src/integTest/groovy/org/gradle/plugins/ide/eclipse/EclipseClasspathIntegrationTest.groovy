@@ -154,8 +154,8 @@ dependencies {
         assert libraries.size() == 4
         libraries[0].assertHasJar(baseJar)
         libraries[1].assertHasJar(extraJar)
-        libraries[2].assertHasJar(testsJar)
-        libraries[3].assertHasJar(anotherJar)
+        libraries[2].assertHasJar(anotherJar)
+        libraries[3].assertHasJar(testsJar)
     }
 
     @Test

@@ -234,6 +234,5 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         "compileOnly"          | _
         "testCompileOnly"      | _
         "compileClasspath"     | _
-        "testCompileClasspath" | _
     }
 }

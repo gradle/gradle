@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.util.GradleVersion
 
 @ToolingApiVersion('>=4.4')
 @TargetGradleVersion(">=4.4")
@@ -38,7 +39,7 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
 
         then:
         mainDirAttributes.find { it.name == 'gradle_scope' && it.value == 'main' }
-        mainDirAttributes.find { it.name == 'gradle_used_by_scope' && it.value == 'main,test' }
+        mainDirAttributes.find { it.name == 'gradle_used_by_scope' && it.value == (targetVersion >= GradleVersion.version("8.0") ? 'main' : "main,test") }
         testDirAttributes.find { it.name == 'gradle_scope' && it.value == 'test' }
         testDirAttributes.find { it.name == 'gradle_used_by_scope' && it.value == 'test' }
     }
@@ -67,7 +68,7 @@ class ToolingApiEclipseModelSourceFolderClasspathAttributesCrossVersionSpec exte
         project.sourceDirectories.size() == 1
         project.sourceDirectories[0].classpathAttributes.size() == 4
         project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_scope' && it.value == 'main'}
-        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_used_by_scope' && it.value == 'main,test'}
+        project.sourceDirectories[0].classpathAttributes.find { it.name == 'gradle_used_by_scope' && it.value == (targetVersion >= GradleVersion.version("8.0") ? 'main' : "main,test")}
         project.sourceDirectories[0].classpathAttributes.find { it.name == 'key1' && it.value == 'value1'}
         project.sourceDirectories[0].classpathAttributes.find { it.name == 'key2' && it.value == 'value2'}
     }
