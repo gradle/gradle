@@ -80,7 +80,7 @@ public interface UnitOfWork extends Describable {
          * {@link Optional#empty()} for non-incremental-capable work.
          * <p>
          * Note that incremental-capable work can also be executed non-incrementally, but even then a
-         * {@link org.gradle.work.InputChanges} instance is avaialble, returning all inputs as changed.
+         * {@link org.gradle.work.InputChanges} instance is available, returning all inputs as changed.
          */
         Optional<InputChangesInternal> getInputChanges();
 
