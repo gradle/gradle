@@ -46,6 +46,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final JavaForkOptions options;
     private final Iterable<File> classPath;
     private final Iterable<File> modulePath;
+    private final List<String> testWorkerImplementationClasses;
     private final List<String> testWorkerImplementationModules;
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final ModuleRegistry moduleRegistry;
@@ -60,7 +61,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
     public ForkingTestClassProcessor(
         WorkerThreadRegistry workerThreadRegistry, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options,
-        Iterable<File> classPath, Iterable<File> modulePath, List<String> testWorkerImplementationModules,
+        Iterable<File> classPath, Iterable<File> modulePath, List<String> testWorkerImplementationClasses, List<String> testWorkerImplementationModules,
         Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, DocumentationRegistry documentationRegistry
     ) {
         this.workerThreadRegistry = workerThreadRegistry;
@@ -69,6 +70,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         this.options = options;
         this.classPath = classPath;
         this.modulePath = modulePath;
+        this.testWorkerImplementationClasses = testWorkerImplementationClasses;
         this.testWorkerImplementationModules = testWorkerImplementationModules;
         this.buildConfigAction = buildConfigAction;
         this.moduleRegistry = moduleRegistry;
@@ -129,6 +131,11 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     }
 
     List<URL> getTestWorkerImplementationClasspath() {
+        List<URL> workerImplementationClasses = new ArrayList<URL>();
+        for (String moduleName : testWorkerImplementationClasses) {
+            workerImplementationClasses.addAll(moduleRegistry.getExternalModule(moduleName).getImplementationClasspath().getAsURLs());
+        }
+
         return CollectionUtils.flattenCollections(URL.class,
             moduleRegistry.getModule("gradle-core-api").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-worker-processes").getImplementationClasspath().getAsURLs(),
@@ -154,8 +161,8 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             moduleRegistry.getExternalModule("native-platform").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("kryo").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("commons-lang").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("junit").getImplementationClasspath().getAsURLs(),
-            moduleRegistry.getExternalModule("javax.inject").getImplementationClasspath().getAsURLs()
+            moduleRegistry.getExternalModule("javax.inject").getImplementationClasspath().getAsURLs(),
+            workerImplementationClasses
         );
     }
 

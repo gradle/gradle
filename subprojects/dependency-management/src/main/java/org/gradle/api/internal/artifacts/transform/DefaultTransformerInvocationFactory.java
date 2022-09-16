@@ -33,8 +33,6 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
@@ -58,8 +56,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.INCREMENTAL;
-import static org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL;
+import static org.gradle.internal.execution.UnitOfWork.InputBehavior.INCREMENTAL;
+import static org.gradle.internal.execution.UnitOfWork.InputBehavior.NON_INCREMENTAL;
 import static org.gradle.internal.file.TreeType.DIRECTORY;
 import static org.gradle.internal.file.TreeType.FILE;
 
@@ -371,7 +369,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     ? inputArtifact.getAbsolutePath()
                     : inputArtifact.getName());
             visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL,
-                new FileValueSupplier(
+                new InputFileValueSupplier(
                     dependencies,
                     transformer.getInputArtifactDependenciesNormalizer(),
                     transformer.getInputArtifactDependenciesDirectorySensitivity(),
@@ -384,7 +382,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @OverridingMethodsMustInvokeSuper
         public void visitRegularInputs(InputVisitor visitor) {
             visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, INCREMENTAL,
-                new FileValueSupplier(
+                new InputFileValueSupplier(
                     inputArtifactProvider,
                     transformer.getInputArtifactNormalizer(),
                     transformer.getInputArtifactDirectorySensitivity(),
@@ -397,11 +395,9 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             File outputDir = getOutputDir(workspace);
             File resultsFile = getResultsFile(workspace);
             visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, DIRECTORY,
-                outputDir,
-                fileCollectionFactory.fixed(outputDir));
+                new OutputFileValueSupplier(outputDir, fileCollectionFactory.fixed(outputDir)));
             visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, FILE,
-                resultsFile,
-                fileCollectionFactory.fixed(resultsFile));
+                new OutputFileValueSupplier(resultsFile, fileCollectionFactory.fixed(resultsFile)));
         }
 
         @Override

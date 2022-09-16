@@ -24,6 +24,8 @@ import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.testing.fixture.GroovyCoverage
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
@@ -358,6 +360,7 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache
+    @Requires(TestPrecondition.STABLE_GROOVY) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
@@ -393,6 +396,7 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache
+    @Requires(TestPrecondition.STABLE_GROOVY) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached when using gradleApi()"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
@@ -417,6 +421,7 @@ dependencies {
 
     @ToBeFixedForConfigurationCache
     @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Requires(TestPrecondition.STABLE_GROOVY) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "sources for localGroovy() are downloaded and attached when using gradleTestKit()"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()
@@ -488,6 +493,7 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache
+    @Requires(TestPrecondition.STABLE_GROOVY) // localGroovy() version cannot be swapped-out when a snapshot Groovy build is used
     def "does not add project repository to download localGroovy() sources"() {
         given:
         def repo = givenGroovyExistsInGradleRepo()

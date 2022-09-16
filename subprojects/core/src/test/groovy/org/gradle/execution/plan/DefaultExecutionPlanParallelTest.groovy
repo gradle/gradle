@@ -2049,7 +2049,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     private void addToGraph(Task... tasks) {
         for (final def task in tasks) {
-            executionPlan.addEntryTasks([task])
+            executionPlan.addEntryTask(task)
         }
     }
 
