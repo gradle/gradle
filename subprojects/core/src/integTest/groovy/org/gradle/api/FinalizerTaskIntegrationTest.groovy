@@ -330,6 +330,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21325")
+    @Ignore("https://github.com/gradle/gradle-private/issues/3574")
     def "finalizer can have dependencies that are not reachable from first discovered finalized task and reachable from second discovered finalized task"() {
         buildFile '''
             task classes(type: BreakingTask) {
