@@ -22,6 +22,8 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nullable;
+
 @ServiceScope(Scopes.BuildSession.class)
 public interface ResourceLockCoordinationService {
     /**
@@ -30,6 +32,7 @@ public interface ResourceLockCoordinationService {
      *
      * @return the current {@link ResourceLockState} or null if not in a transform.
      */
+    @Nullable
     ResourceLockState getCurrent();
 
     /**

@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.test;
+package org.gradle.internal.buildoption;
 
-import java.util.List;
-import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
- * Specifies a test pattern
- *
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- *
- * @since 7.6
+ * A feature flag. Can be enabled via the Settings object or optionally via a system property.
  */
-public interface InternalTestPatternSpec {
-    String getTaskPath();
-    List<String> getPackages();
-    List<String> getClasses();
-    Map<String, List<String>> getMethods();
-    List<String> getPatterns();
+public interface FeatureFlag extends Option {
+    @Nullable
+    String getSystemPropertyName();
 }

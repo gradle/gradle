@@ -5,7 +5,7 @@
             "member": "Class org.gradle.api.AntBuilder",
             "acceptation": "org.gradle.api.AntBuilder now extends groovy.ant.AntBuilder",
             "changes": [
-                "Abstract method has been added in implemented interface"
+                "Default method has been added in implemented interface"
             ]
         },
         {
@@ -54,6 +54,14 @@
             "acceptation": "Method always could return null",
             "changes": [
                 "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.DependencySubstitutions$Substitution",
+            "member": "Method org.gradle.api.artifacts.DependencySubstitutions$Substitution.with(org.gradle.api.artifacts.component.ComponentSelector)",
+            "acceptation": "Deprecated method has been removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {
@@ -401,6 +409,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getFeaturePreviews()",
+            "acceptation": "Changed type of injected property",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.setLegacyShowSinglePathToDependency(boolean)",
             "acceptation": "Deprecated method removed in Gradle 8.0",
@@ -557,7 +573,7 @@
             "member": "Method org.gradle.process.JavaExecSpec.setMain(java.lang.String)",
             "acceptation": "Default implementation added to spec for Gradle 8.0",
             "changes": [
-                "METHOD_ABSTRACT_NOW_DEFAULT"
+                "Abstract method is now default method"
             ]
         },
         {

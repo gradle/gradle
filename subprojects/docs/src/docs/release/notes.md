@@ -13,7 +13,9 @@ We would like to thank the following community members for their contributions t
 
 [Björn Kautler](https://github.com/Vampire),
 [David Marin](https://github.com/dmarin),
+[Denis Buzmakov](https://github.com/bacecek),
 [Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy),
+[Dzmitry Neviadomski](https://github.com/nevack),
 [Eliezer Graber](https://github.com/eygraber),
 [Fedor Ihnatkevich](https://github.com/Jeffset),
 [Gabriel Rodriguez](https://github.com/gabrielrodriguez2746),
@@ -81,9 +83,16 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
+### Promoted features in the groovy plugin
+
+- The `GroovyCompileOptions.getDisabledGlobalASTTransformations()` method is now considered stable.
 <!--
 ### Example promoted
 -->
+
+### Promoted features in the Eclipse plugin
+
+- The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
 
 ## Fixed issues
 
