@@ -58,7 +58,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
             import org.gradle.api.internal.tasks.*
             import org.gradle.api.internal.tasks.properties.*
-            import org.gradle.internal.execution.UnitOfWork.InputPropertyType
+            import org.gradle.internal.execution.UnitOfWork.InputBehavior
             import org.gradle.internal.fingerprint.DirectorySensitivity
             import org.gradle.internal.fingerprint.LineEndingSensitivity
 
@@ -88,7 +88,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                     def layout = services.get(ProjectLayout)
                     TaskPropertyUtils.visitProperties(services.get(PropertyWalker), it, new PropertyVisitor.Adapter() {
                         @Override
-                        void visitInputFileProperty(String propertyName, boolean optional, InputPropertyType type, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                        void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                             inputFiles[propertyName] = layout.files(value)
                         }
 
@@ -400,7 +400,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         """
             import org.gradle.api.internal.tasks.*
             import org.gradle.api.internal.tasks.properties.*
-            import org.gradle.internal.execution.UnitOfWork.InputPropertyType
+            import org.gradle.internal.execution.UnitOfWork.InputBehavior
             import org.gradle.internal.fingerprint.DirectorySensitivity
             import org.gradle.internal.fingerprint.LineEndingSensitivity
 
@@ -418,7 +418,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                         }
 
                         @Override
-                        void visitInputFileProperty(String propertyName, boolean optional, InputPropertyType type, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                        void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                             println "Input file property '\${propertyName}'"
                         }
 
