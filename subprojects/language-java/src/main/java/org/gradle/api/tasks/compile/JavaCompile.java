@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -108,6 +109,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         javaCompiler = objectFactory.property(JavaCompiler.class);
         javaCompiler.finalizeValueOnRead();
+        compileOptions.getIncrementalAfterFailure().convention(true);
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
@@ -156,6 +158,9 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
     private void performIncrementalCompilation(InputChanges inputs, DefaultJavaCompileSpec spec) {
         boolean isUsingCliCompiler = isUsingCliCompiler(spec);
+        if (isUsingCliCompiler) {
+            spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(false);
+        }
         spec.getCompileOptions().setSupportsCompilerApi(!isUsingCliCompiler);
         spec.getCompileOptions().setSupportsConstantAnalysis(!isUsingCliCompiler);
         spec.getCompileOptions().setPreviousCompilationDataFile(getPreviousCompilationData());
@@ -258,6 +263,8 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
                     // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
                     File parentJavaHome = executable.getParentFile().getParentFile();
                     return new SpecificInstallationToolchainSpec(objectFactory, parentJavaHome);
+                } else {
+                    throw new InvalidUserDataException("The configured executable does not exist (" + executable.getAbsolutePath() + ")");
                 }
             }
         }
