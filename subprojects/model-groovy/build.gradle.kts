@@ -1,3 +1,5 @@
+import gradlebuild.basics.isBundleGroovy4
+
 plugins {
     id("gradlebuild.distribution.api-java")
 }
@@ -20,4 +22,12 @@ dependencies {
         because("NonTransformedModelDslBackingTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(project(":distributions-core"))
+}
+
+tasks {
+    withType<Test>().configureEach {
+        if (isBundleGroovy4) {
+            systemProperty(gradlebuild.basics.BuildParams.BUNDLE_GROOVY_4, "true")
+        }
+    }
 }

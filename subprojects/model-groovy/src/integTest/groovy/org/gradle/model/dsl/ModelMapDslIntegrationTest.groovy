@@ -256,7 +256,9 @@ model {
         fails "model"
         failure.assertHasLineNumber(18)
         failure.assertHasCause('Exception thrown while executing model rule: create(main) { ... } @ build.gradle line 17, column 9')
-        failure.assertHasCause('No signature of method: Thing.create() is applicable for argument types')
+        def isAtLeastGroovy4 = System.getProperty('bundleGroovy4', 'false') == 'true'
+        def expectedRootCause = isAtLeastGroovy4 ? 'No signature of method: Thing.create() is applicable for argument types' : 'No signature of method: org.gradle.api.Project.create() is applicable for argument types:'
+        failure.assertHasCause(expectedRootCause)
     }
 
     def "nested rule can reference vars defined in outer closure"() {
