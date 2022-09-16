@@ -34,10 +34,13 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
         buildFile << """
             apply plugin: 'groovy'
 
+            def isAtLeastGroovy4 = org.gradle.util.internal.VersionNumber.parse(GroovySystem.version).major >= 4
+            def spockVersion = isAtLeastGroovy4 ? '2.2-groovy-4.0' : '2.2-groovy-3.0'
+
             dependencies {
                 testImplementation localGroovy()
                 testImplementation gradleTestKit()
-                testImplementation(platform("org.spockframework:spock-bom:2.2-M1-groovy-4.0"))
+                testImplementation(platform("org.spockframework:spock-bom:\$spockVersion"))
                 testImplementation("org.spockframework:spock-core")
             }
 
