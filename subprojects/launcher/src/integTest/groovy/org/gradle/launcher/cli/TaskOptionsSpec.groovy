@@ -168,7 +168,7 @@ class TaskOptionsSpec extends AbstractIntegrationSpec {
             tasks.register('mytask', MyTask.class)
         """
         buildScript """
-            //gradle.includedBuild('included-build').task(':app:run')
+            // no content needed
         """
 
         then:
