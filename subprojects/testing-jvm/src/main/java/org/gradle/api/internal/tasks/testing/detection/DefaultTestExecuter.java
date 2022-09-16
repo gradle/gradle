@@ -42,6 +42,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -83,12 +84,28 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
         final Set<File> classpath = ImmutableSet.copyOf(testExecutionSpec.getClasspath());
         final Set<File> modulePath = ImmutableSet.copyOf(testExecutionSpec.getModulePath());
-        final List<String> testWorkerImplementationModules = testFramework.getTestWorkerImplementationModules();
+
+        final List<String> testWorkerImplementationClasses;
+        final List<String> testWorkerImplementationModules;
+        if (testFramework.getUseImplementationDependencies()) {
+            testWorkerImplementationClasses = testFramework.getTestWorkerImplementationClasses();
+            testWorkerImplementationModules = testFramework.getTestWorkerImplementationModules();
+
+            // TODO: Once test suites are de-incubated, we should deprecate the behavior of creating
+            // Test tasks without an associated test suite. This way, we always know that test framework
+            // dependencies are properly managed via dependency-management and that we no longer need
+            // to load these dependencies from the Gradle distribution. When this is complete,
+            // we can start nagging the user here or somewhere else more relevant.
+        } else {
+            testWorkerImplementationClasses = Collections.emptyList();
+            testWorkerImplementationModules = Collections.emptyList();
+        }
+
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             @Override
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(),
-                    classpath, modulePath, testWorkerImplementationModules, testFramework.getWorkerConfigurationAction(), moduleRegistry, documentationRegistry);
+                    classpath, modulePath, testWorkerImplementationClasses, testWorkerImplementationModules, testFramework.getWorkerConfigurationAction(), moduleRegistry, documentationRegistry);
             }
         };
         final Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {

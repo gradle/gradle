@@ -41,17 +41,18 @@ public final class DefaultTaskOperationDescriptor extends DefaultOperationDescri
     private final Supplier<PluginIdentifier> originPlugin;
 
     public DefaultTaskOperationDescriptor(InternalTaskDescriptor descriptor, OperationDescriptor parent, String taskPath) {
-        super(descriptor, parent);
-        this.taskPath = taskPath;
-        this.dependencies = unsupportedMethodExceptionThrowingSupplier(DEPENDENCIES_METHOD);
-        this.originPlugin = unsupportedMethodExceptionThrowingSupplier(ORIGIN_PLUGIN_METHOD);
+        this(descriptor, parent, taskPath, unsupportedDependencies(), unsupportedOriginPlugin());
     }
 
     public DefaultTaskOperationDescriptor(InternalTaskDescriptor descriptor, OperationDescriptor parent, String taskPath, Set<OperationDescriptor> dependencies, @Nullable PluginIdentifier originPlugin) {
+        this(descriptor, parent, taskPath, Suppliers.ofInstance(dependencies), Suppliers.ofInstance(originPlugin));
+    }
+
+    private DefaultTaskOperationDescriptor(InternalTaskDescriptor descriptor, OperationDescriptor parent, String taskPath, Supplier<Set<OperationDescriptor>> dependencies, Supplier<PluginIdentifier> originPlugin) {
         super(descriptor, parent);
         this.taskPath = taskPath;
-        this.dependencies = Suppliers.ofInstance(dependencies);
-        this.originPlugin = Suppliers.ofInstance(originPlugin);
+        this.dependencies = dependencies;
+        this.originPlugin = originPlugin;
     }
 
     @Override
@@ -68,6 +69,14 @@ public final class DefaultTaskOperationDescriptor extends DefaultOperationDescri
     @Nullable
     public PluginIdentifier getOriginPlugin() {
         return originPlugin.get();
+    }
+
+    private static Supplier<PluginIdentifier> unsupportedOriginPlugin() {
+        return unsupportedMethodExceptionThrowingSupplier(ORIGIN_PLUGIN_METHOD);
+    }
+
+    private static Supplier<Set<OperationDescriptor>> unsupportedDependencies() {
+        return unsupportedMethodExceptionThrowingSupplier(DEPENDENCIES_METHOD);
     }
 
     private static <T> Supplier<T> unsupportedMethodExceptionThrowingSupplier(final String method) {

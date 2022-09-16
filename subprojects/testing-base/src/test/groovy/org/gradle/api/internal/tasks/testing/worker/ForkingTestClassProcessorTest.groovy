@@ -46,10 +46,11 @@ class ForkingTestClassProcessorTest extends Specification {
     WorkerProcessFactory workerProcessFactory = Stub(WorkerProcessFactory)
     JavaForkOptions options = Stub(JavaForkOptions)
 
+    List<String> testWorkerImplementationClasses = []
     List<String> testWorkerImplementationModules = []
 
     @Subject
-        processor = Spy(ForkingTestClassProcessor, constructorArgs: [workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestClassProcessorFactory), options, [new File("classpath.jar")], [], testWorkerImplementationModules, Mock(Action), moduleRegistry, documentationRegistry])
+        processor = Spy(ForkingTestClassProcessor, constructorArgs: [workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestClassProcessorFactory), options, [new File("classpath.jar")], [], testWorkerImplementationClasses, testWorkerImplementationModules, Mock(Action), moduleRegistry, documentationRegistry])
 
     def setup() {
         workerProcessBuilder.build() >> workerProcess
@@ -84,6 +85,21 @@ class ForkingTestClassProcessorTest extends Specification {
 
         then:
         19 * moduleRegistry.getModule(_) >> { module(it[0]) }
+        6 * moduleRegistry.getExternalModule(_) >> { module(it[0]) }
+        1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0].size() == 25 }
+        1 * workerProcessBuilder.setImplementationModulePath(_) >> { assert it[0].size() == 0 }
+    }
+
+    def "can provide jars for implementation classpath"() {
+        setup:
+        testWorkerImplementationClasses.addAll("junit")
+        1 * workerProcess.getConnection() >> Stub(ObjectConnection) { addOutgoing(_) >> Stub(RemoteTestClassProcessor) }
+
+        when:
+        processor.forkProcess()
+
+        then:
+        19 * moduleRegistry.getModule(_) >> { module(it[0]) }
         7 * moduleRegistry.getExternalModule(_) >> { module(it[0]) }
         1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0].size() == 26 }
         1 * workerProcessBuilder.setImplementationModulePath(_) >> { assert it[0].size() == 0 }
@@ -99,8 +115,8 @@ class ForkingTestClassProcessorTest extends Specification {
 
         then:
         19 * moduleRegistry.getModule(_) >> { module(it[0]) }
-        10 * moduleRegistry.getExternalModule(_) >> { module(it[0]) }
-        1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0].size() == 26 }
+        9 * moduleRegistry.getExternalModule(_) >> { module(it[0]) }
+        1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0].size() == 25 }
         1 * workerProcessBuilder.setImplementationModulePath(_) >> { assert it[0].size() == 3 }
     }
 
@@ -114,7 +130,7 @@ class ForkingTestClassProcessorTest extends Specification {
     }
 
     def "stopNow propagates to worker process"() {
-        ForkingTestClassProcessor processor = new ForkingTestClassProcessor(workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestClassProcessorFactory), options, [new File("classpath.jar")], [], [], Mock(Action), Stub(ModuleRegistry), documentationRegistry)
+        ForkingTestClassProcessor processor = new ForkingTestClassProcessor(workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestClassProcessorFactory), options, [new File("classpath.jar")], [], [], [], Mock(Action), Stub(ModuleRegistry), documentationRegistry)
 
         setup:
         1 * workerProcess.getConnection() >> Stub(ObjectConnection) { addOutgoing(_) >> Stub(RemoteTestClassProcessor) }
@@ -128,7 +144,7 @@ class ForkingTestClassProcessorTest extends Specification {
     }
 
     def "no exception when stop after stopNow"() {
-        ForkingTestClassProcessor processor = new ForkingTestClassProcessor(workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestClassProcessorFactory), options, [new File("classpath.jar")], [], [], Mock(Action), Stub(ModuleRegistry), documentationRegistry)
+        ForkingTestClassProcessor processor = new ForkingTestClassProcessor(workerLeaseRegistry, workerProcessFactory, Mock(WorkerTestClassProcessorFactory), options, [new File("classpath.jar")], [], [], [], Mock(Action), Stub(ModuleRegistry), documentationRegistry)
 
         setup:
         1 * workerProcess.getConnection() >> Stub(ObjectConnection) { addOutgoing(_) >> Stub(RemoteTestClassProcessor) }

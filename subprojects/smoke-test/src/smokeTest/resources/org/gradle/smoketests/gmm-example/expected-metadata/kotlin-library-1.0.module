@@ -18,6 +18,7 @@
       "name": "apiElements",
       "attributes": {
         "org.gradle.category": "library",
+        "org.gradle.compile-view": "java-api",
         "org.gradle.dependency.bundling": "external",
         "org.gradle.jvm.environment": "standard-jvm",
         "org.gradle.jvm.version": 8,

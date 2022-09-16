@@ -21,9 +21,11 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier
+import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.util.Path
 
@@ -132,6 +134,20 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
         result.displayName == file.name
         result.file == file
         result.componentIdentifier == identifier
+        result == identifier
+    }
+
+    def "serialize OpaqueComponentIdentifier"() {
+        given:
+        def notation = DependencyFactoryInternal.ClassPathNotation.GRADLE_API
+        def identifier = new OpaqueComponentIdentifier(notation)
+
+        when:
+        def result = serialize(identifier, serializer)
+
+        then:
+        result.displayName == notation.displayName
+        result.classPathNotation == notation
         result == identifier
     }
 }

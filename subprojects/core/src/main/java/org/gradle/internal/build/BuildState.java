@@ -70,6 +70,11 @@ public interface BuildState {
     void ensureProjectsLoaded();
 
     /**
+     * Have the projects been loaded, ie has {@link #ensureProjectsLoaded()} already completed for this build?
+     */
+    boolean isProjectsLoaded();
+
+    /**
      * Ensures all projects in this build are configured, if not already done.
      */
     void ensureProjectsConfigured();

@@ -135,9 +135,8 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     private void processIgnoredClass(Description description) throws Exception {
-        IgnoredTestDescriptorProvider provider = new IgnoredTestDescriptorProvider();
         String className = className(description);
-        for (Description childDescription : provider.getAllDescriptions(description, className)) {
+        for (Description childDescription : IgnoredTestDescriptorProvider.getAllDescriptions(description, className)) {
             testIgnored(childDescription);
         }
     }

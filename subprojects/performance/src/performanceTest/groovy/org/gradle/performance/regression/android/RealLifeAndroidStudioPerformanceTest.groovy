@@ -41,8 +41,8 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
         testProject.configure(runner)
         AndroidTestProject.useStableAgpVersion(runner)
         AndroidTestProject.useStableKotlinVersion(runner)
-        runner.warmUpRuns = 40
-        runner.runs = 40
+        runner.warmUpRuns = 20
+        runner.runs = 20
         // AGP 7.3 requires Gradle 7.4
         runner.minimumBaseVersion = "7.4"
         runner.setupAndroidStudioSync()

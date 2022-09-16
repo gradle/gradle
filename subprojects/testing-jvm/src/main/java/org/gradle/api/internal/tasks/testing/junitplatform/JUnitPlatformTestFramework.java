@@ -38,15 +38,27 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
+import java.util.Collections;
 import java.util.List;
 
 @UsedByScanPlugin("test-retry")
 public class JUnitPlatformTestFramework implements TestFramework {
     private final JUnitPlatformOptions options;
     private final DefaultTestFilter filter;
+    private final boolean useImplementationDependencies;
 
+    // Used by org.gradle.test-retry plugin.
+    // TODO: Update plugin to pass in correct value for useImplementationDependencies when copying the framework
+    // Or better yet, make it so the plugin doesn't need to access internal APIs.
+    @Deprecated
+    @SuppressWarnings("unused")
     public JUnitPlatformTestFramework(DefaultTestFilter filter) {
+        this(filter, true);
+    }
+
+    public JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies) {
         this.filter = filter;
+        this.useImplementationDependencies = useImplementationDependencies;
         this.options = new JUnitPlatformOptions();
     }
 
@@ -71,8 +83,18 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     @Override
+    public List<String> getTestWorkerImplementationClasses() {
+        return Collections.emptyList();
+    }
+
+    @Override
     public List<String> getTestWorkerImplementationModules() {
         return ImmutableList.of("junit-platform-engine", "junit-platform-launcher", "junit-platform-commons");
+    }
+
+    @Override
+    public boolean getUseImplementationDependencies() {
+        return useImplementationDependencies;
     }
 
     @Override
