@@ -78,9 +78,6 @@ public interface UnitOfWork extends Describable {
         /**
          * For work capable of incremental execution this is the object to query per-property changes through;
          * {@link Optional#empty()} for non-incremental-capable work.
-         * <p>
-         * Note that incremental-capable work can also be executed non-incrementally, but even then a
-         * {@link org.gradle.work.InputChanges} instance is available, returning all inputs as changed.
          */
         Optional<InputChangesInternal> getInputChanges();
 
