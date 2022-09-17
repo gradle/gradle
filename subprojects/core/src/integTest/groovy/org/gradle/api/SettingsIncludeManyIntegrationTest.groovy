@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/13018")
@@ -40,8 +41,13 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         expect:
         def result = fails("projects")
         result.assertHasDescription("A problem occurred evaluating settings 'root'.")
-        // In Java 8 "call site" is used, in Java 11 "bootstrap method"
-        failureHasCause(~/(call site|bootstrap method) initialization exception/)
+        def isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
+        if (isAtLeastGroovy4) {
+            // In Java 8 "call site" is used, in Java 11 "bootstrap method"
+            failureHasCause(~/(call site|bootstrap method) initialization exception/)
+        } else {
+            failureCauseContains("org.codehaus.groovy.runtime.ArrayUtil.createArray")
+        }
 
         where:
         includeFunction << ["include", "includeFlat"]
@@ -58,9 +64,15 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         def result = fails("projects")
-        result.assertHasDescription("A problem occurred evaluating settings 'root'.")
-        // Java 8 does not print the exception name
-        failureHasCause(~/(java.lang.IllegalArgumentException: )?bad parameter count 302/)
+        def isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
+        if (isAtLeastGroovy4) {
+            result.assertHasDescription("A problem occurred evaluating settings 'root'.")
+            // Java 8 does not print the exception name
+            failureHasCause(~/(java.lang.IllegalArgumentException: )?bad parameter count 302/)
+        } else {
+            result.assertThatDescription(containsNormalizedString("Could not compile settings file"))
+            failureCauseContains("The max number of supported arguments is 255, but found 301")
+        }
 
         where:
         includeFunction << ["include", "includeFlat"]
