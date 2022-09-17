@@ -33,12 +33,16 @@ class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
             ${mavenCentralRepository()}
 
+            def isAtLeastGroovy4 = org.gradle.util.internal.VersionNumber.parse(GroovySystem.version).major >= 4
+            def spockVersion = isAtLeastGroovy4 ? '2.2-groovy-4.0' : '2.2-groovy-3.0'
+
             dependencies {
                 implementation gradleApi()
                 implementation localGroovy()
 
                 testImplementation '$dependencyNotation',
-                    'org.spockframework:spock-core:2.2-M1-groovy-4.0'
+                    "org.spockframework:spock-core:\$spockVersion",
+                    'cglib:cglib:3.2.7' // Required by spock 2.2
             }
         """
         file("src/main/groovy/MockIt.groovy") << """
@@ -86,9 +90,12 @@ class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
             ${mavenCentralRepository()}
 
+            def isAtLeastGroovy4 = org.gradle.util.internal.VersionNumber.parse(GroovySystem.version).major >= 4
+            def spockVersion = isAtLeastGroovy4 ? '2.2-groovy-4.0' : '2.2-groovy-3.0'
+
             dependencies {
                 testImplementation localGroovy()
-                testImplementation '$dependencyNotation', 'org.spockframework:spock-core:2.2-M1-groovy-4.0@jar'
+                testImplementation '$dependencyNotation', "org.spockframework:spock-core:\${spockVersion}@jar"
             }
         """
     }
