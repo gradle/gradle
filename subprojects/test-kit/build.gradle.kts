@@ -1,3 +1,4 @@
+import gradlebuild.basics.isBundleGroovy4
 import org.gradle.api.internal.runtimeshaded.PackageListGenerator
 
 plugins {
@@ -58,4 +59,12 @@ packageCycles {
 
 tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
+}
+
+tasks {
+    withType<Test>().configureEach {
+        if (project.isBundleGroovy4) {
+            exclude("org/gradle/testkit/runner/enduser/GradleRunnerSamplesEndUserIntegrationTest*") // cannot be parameterized for both Groovy 3 and 4
+        }
+    }
 }
