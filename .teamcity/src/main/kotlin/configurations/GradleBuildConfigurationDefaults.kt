@@ -13,7 +13,6 @@ import common.dependsOn
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
-import common.skipConditionally
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildFeatures
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
@@ -97,11 +96,10 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
         ).joinToString(separator = " ")
 
     steps {
-        gradleWrapper {
+        gradleWrapper(this@gradleRunnerStep) {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
             gradleParams = parameters
-            skipConditionally()
         }
     }
 }
@@ -124,7 +122,7 @@ fun applyDefaults(
 
     buildType.steps {
         extraSteps()
-        checkCleanM2AndAndroidUserHome(os)
+        checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
     applyDefaultDependencies(model, buildType, dependsOnQuickFeedbackLinux)
@@ -158,7 +156,7 @@ fun applyTestDefaults(
 
     buildType.steps {
         extraSteps()
-        checkCleanM2AndAndroidUserHome(os)
+        checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
     applyDefaultDependencies(model, buildType, dependsOnQuickFeedbackLinux)
@@ -173,9 +171,9 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, dependsO
             dependsOn(RelativeId(stageTriggerId(model, StageName.QUICK_FEEDBACK_LINUX_ONLY)))
         }
     }
-    if (buildType !is CompileAllProduction) {
+    if (buildType !is CompileAll) {
         buildType.dependencies {
-            compileAllDependency(CompileAllProduction.buildTypeId(model))
+            compileAllDependency(CompileAll.buildTypeId(model))
         }
     }
 }
