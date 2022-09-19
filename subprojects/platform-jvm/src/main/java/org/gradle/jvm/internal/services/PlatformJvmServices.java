@@ -78,7 +78,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
             return objectFactory.newInstance(DefaultJavaToolchainRepositoryRegistry.class, gradle, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
         }
 
-        protected DefaultJdksBlockForToolchainManagement createToolchainManagementSpec(ObjectFactory objectFactory, JavaToolchainRepositoryRegistry registry) {
+        protected DefaultJdksBlockForToolchainManagement createToolchainManagement(ObjectFactory objectFactory, JavaToolchainRepositoryRegistry registry) {
             return objectFactory.newInstance(DefaultJdksBlockForToolchainManagement.class, registry);
         }
 

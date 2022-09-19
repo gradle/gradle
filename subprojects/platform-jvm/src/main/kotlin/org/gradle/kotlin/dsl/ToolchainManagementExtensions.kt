@@ -17,32 +17,32 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Incubating
-import org.gradle.api.toolchain.management.ToolchainManagementSpec
+import org.gradle.api.toolchain.management.ToolchainManagement
 import org.gradle.jvm.toolchain.JdksBlockForToolchainManagement
 
 
 /**
  * Provides statically defined accessors for configuring the "jdks" block in "toolchainManagement".
- * This block is added to ToolchainManagementSpec dynamically, by the "jvm-toolchains" plugin
+ * This block is added to <code>ToolchainManagement</code> dynamically, by the "jvm-toolchains" plugin
  * and normally the dynamic extension should generate accessors, but this doesn't work
  * at the level of Settings, hence the need for the static accessors.
  *
  * @since 7.6
  */
 @Incubating
-fun ToolchainManagementSpec.jdks(block: JdksBlockForToolchainManagement.() -> Unit) {
+fun ToolchainManagement.jdks(block: JdksBlockForToolchainManagement.() -> Unit) {
     extensions.configure(JdksBlockForToolchainManagement::class.java, block)
 }
 
 
 /**
  * Provides statically defined accessors for getting the "jdks" block of "toolchainManagement".
- * This block is added to ToolchainManagementSpec dynamically, by the "jvm-toolchains" plugin
+ * This block is added to <code>ToolchainManagement</code> dynamically, by the "jvm-toolchains" plugin
  * and normally the dynamic extension should generate accessors, but this doesn't work
  * at the level of Settings, hence the need for the static accessors.
  *
  * @since 7.6
  */
 @get:Incubating
-val ToolchainManagementSpec.jdks: JdksBlockForToolchainManagement
+val ToolchainManagement.jdks: JdksBlockForToolchainManagement
     get() = extensions.getByType(JdksBlockForToolchainManagement::class.java)

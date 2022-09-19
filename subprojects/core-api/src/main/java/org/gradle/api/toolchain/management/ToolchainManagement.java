@@ -31,5 +31,5 @@ import org.gradle.api.plugins.ExtensionAware;
  * @since 7.6
  */
 @Incubating
-public interface ToolchainManagementSpec extends ExtensionAware {
+public interface ToolchainManagement extends ExtensionAware {
 }

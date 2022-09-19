@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.toolchain.management.ToolchainManagementSpec;
+import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JdksBlockForToolchainManagement;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
@@ -54,7 +54,7 @@ public abstract class JvmToolchainsPlugin implements Plugin<Object> {
             project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, getJavaToolchainQueryService());
         } else if (target instanceof Settings) {
             Settings settings = (Settings) target;
-            ToolchainManagementSpec toolchainManagement = settings.getToolchainManagement();
+            ToolchainManagement toolchainManagement = settings.getToolchainManagement();
             toolchainManagement.getExtensions()
                     .add(JdksBlockForToolchainManagement.class, "jdks", getDefaultJdksBlockForToolchainManagement());
         } else {
