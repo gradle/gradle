@@ -61,7 +61,8 @@ tasks.register("compileClasspathArtifacts") {
     }
 }
 tasks.register("runtimeClasspathArtifacts") {
+    val runtimeClasspath: FileCollection = configurations["runtimeClasspath"]
     doLast {
-        configurations["runtimeClasspath"].forEach { println(it.name) }
+        runtimeClasspath.forEach { println(it.name) }
     }
 }
