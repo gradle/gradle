@@ -317,7 +317,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     }
 
     private void disambiguateExtraAttribute(Attribute<?> attribute) {
-        Set<Object> candidateValues = getCandidateValues(compatible, c -> getCandidateValue(c, attribute));
+        Set<Object> candidateValues = getCandidateValues(remaining, c -> getCandidateValue(c, attribute));
         if (candidateValues.size() <= 1) {
             return;
         }
