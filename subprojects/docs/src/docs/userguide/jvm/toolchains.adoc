@@ -274,14 +274,14 @@ To actually make use of these two repositories in your build, you would use the 
 include::sample[dir="snippets/java/toolchain-management/groovy/",files="settings.gradle[tags=toolchain-management]"]
 include::sample[dir="snippets/java/toolchain-management/kotlin/",files="settings.gradle.kts[tags=toolchain-management]"]
 ====
-<1> `toolchainManagement` is intended to cover more than Java toolchains, so the `jdks` sub-block provides the container for Java Toolchain Management related configuration
+<1> `toolchainManagement` is intended to cover more than Java toolchains, so the `jvm` sub-block provides the container for Java Toolchain Management related configuration
 <2> the `add` method explicitly names a Java toolchain download repository to be used for Java toolchain auto-provisioning
 <3> toolchain download repositories primarily provide URIs to download toolchains from, but they can also be configured with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options that are available for artifact repositories used in dependency management>>
 <4> multiple calls of `add` methods form an ordered list of repositories; when a specific toolchain needs to be downloaded, the list of repositories is examined in order and the first repository, that can provide the target toolchain, will be used; this mechanism is the reason why explicit `add` methods are used instead just relying on the registration done by the plugin application
 
 [WARNING]
 ====
-The `jdks` block in `toolchainManagement` is not a static component of the API.
+The `jvm` block in `toolchainManagement` is not a static component of the API.
 It only gets added when the plugins providing the toolchain download repository implementations are applied.
 
 Although the authentication & authorization  mechanisms are shared between the two, toolchain download repositories have nothing else in common with the <<declaring_repositories.adoc#declaring-repositories,artifact repositories used by Gradle in the context of dependency management>>.

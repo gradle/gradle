@@ -39,7 +39,7 @@ import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRepositoryRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
-import org.gradle.jvm.toolchain.internal.DefaultJdksBlockForToolchainManagement;
+import org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
@@ -78,8 +78,8 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
             return objectFactory.newInstance(DefaultJavaToolchainRepositoryRegistry.class, gradle, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
         }
 
-        protected DefaultJdksBlockForToolchainManagement createToolchainManagement(ObjectFactory objectFactory, JavaToolchainRepositoryRegistry registry) {
-            return objectFactory.newInstance(DefaultJdksBlockForToolchainManagement.class, registry);
+        protected DefaultJvmToolchainManagement createToolchainManagement(ObjectFactory objectFactory, JavaToolchainRepositoryRegistry registry) {
+            return objectFactory.newInstance(DefaultJvmToolchainManagement.class, registry);
         }
 
         protected JdkCacheDirectory createJdkCacheDirectory(ObjectFactory objectFactory, GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager, JvmMetadataDetector detector) {

@@ -27,7 +27,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
         settingsFile << """
             ${applyToolchainRegistryPlugin("CustomToolchainRegistry", customToolchainRegistryCode())}               
             toolchainManagement {
-                jdks {
+                jvm {
                     resolvers {
                         resolver('custom') {
                             implementationClass = CustomToolchainRegistry
@@ -69,7 +69,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
         settingsFile << """
             ${applyToolchainRegistryPlugin("BrokenToolchainRegistry", brokenToolchainRegistryCode())}               
             toolchainManagement {
-                jdks {
+                jvm {
                     resolvers {
                         resolver('broken') {
                             implementationClass = BrokenToolchainRegistry
@@ -112,7 +112,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             ${applyToolchainRegistryPlugin("CustomToolchainRegistry", customToolchainRegistryCode())}
             ${applyToolchainRegistryPlugin("UselessToolchainRegistry", uselessToolchainRegistryCode("UselessToolchainRegistry"))}            
             toolchainManagement {
-                jdks {
+                jvm {
                     resolvers {
                         resolver('useless') {
                             implementationClass = UselessToolchainRegistry
@@ -190,7 +190,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
         settingsFile << """
             ${applyToolchainRegistryPlugin("UselessToolchainRegistry", uselessToolchainRegistryCode("UselessToolchainRegistry"))}            
             toolchainManagement {
-                jdks {
+                jvm {
                     resolvers {
                         resolver('useless') {
                             implementationClass = UselessToolchainRegistry
@@ -230,7 +230,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             ${applyToolchainRegistryPlugin("UselessPlugin1", "UselessToolchainRegistry", uselessToolchainRegistryCode("UselessToolchainRegistry"))}
             ${applyToolchainRegistryPlugin("UselessPlugin2", "UselessToolchainRegistry", "")}
             toolchainManagement {
-                jdks {
+                jvm {
                     resolvers {
                         resolver('useless') {
                             implementationClass = UselessToolchainRegistry1
@@ -272,7 +272,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             ${applyToolchainRegistryPlugin("UselessToolchainRegistry1", uselessToolchainRegistryCode("UselessToolchainRegistry1"))}            
             ${applyToolchainRegistryPlugin("UselessToolchainRegistry2", uselessToolchainRegistryCode("UselessToolchainRegistry2"))}            
             toolchainManagement {
-                jdks {
+                jvm {
                     resolvers {
                         resolver('useless') {
                             implementationClass = UselessToolchainRegistry1
@@ -315,7 +315,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             ${applyToolchainRegistryPlugin("UselessToolchainRegistry2", uselessToolchainRegistryCode("UselessToolchainRegistry2"))}            
             ${applyToolchainRegistryPlugin("UselessToolchainRegistry3", uselessToolchainRegistryCode("UselessToolchainRegistry3"))}            
             toolchainManagement {
-                jdks {
+                jvm {
                     resolvers {
                         resolver('useless3') {
                             implementationClass = UselessToolchainRegistry3
@@ -327,7 +327,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 }
             }
             
-            println(\"\"\"Explicitly requested toolchains: \${toolchainManagement.jdks.getResolvers().collect { it.getName() }}.\"\"\")
+            println(\"\"\"Explicitly requested toolchains: \${toolchainManagement.jvm.getResolvers().collect { it.getName() }}.\"\"\")
         """
 
         buildFile << """

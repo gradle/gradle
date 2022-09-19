@@ -24,7 +24,7 @@ import org.gradle.api.plugins.ExtensionAware;
  * currently existing toolchains (Java) and future ones.
  * <p>
  * One option available at present is using the <code>jvm-toolchains</code> plugin, which
- * adds a <code>jdks</code> block to it. This block allows for specifying which
+ * adds a <code>jvm</code> block to it. This block allows for specifying which
  * <code>JavaToolchainRepository</code>s to use and in what order, if java toolchain
  * auto-provisioning is needed.
  *

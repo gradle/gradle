@@ -23,9 +23,9 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.JdksBlockForToolchainManagement;
+import org.gradle.jvm.toolchain.JvmToolchainManagement;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
-import org.gradle.jvm.toolchain.internal.DefaultJdksBlockForToolchainManagement;
+import org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 
 import javax.inject.Inject;
@@ -43,7 +43,7 @@ public abstract class JvmToolchainsPlugin implements Plugin<Object> {
     protected abstract JavaToolchainQueryService getJavaToolchainQueryService();
 
     @Inject
-    protected abstract DefaultJdksBlockForToolchainManagement getDefaultJdksBlockForToolchainManagement();
+    protected abstract DefaultJvmToolchainManagement getDefaultJvmToolchainManagement();
 
     //TODO (#21082): update design docs about piggy-backing the old plugin
 
@@ -56,7 +56,7 @@ public abstract class JvmToolchainsPlugin implements Plugin<Object> {
             Settings settings = (Settings) target;
             ToolchainManagement toolchainManagement = settings.getToolchainManagement();
             toolchainManagement.getExtensions()
-                    .add(JdksBlockForToolchainManagement.class, "jdks", getDefaultJdksBlockForToolchainManagement());
+                    .add(JvmToolchainManagement.class, "jvm", getDefaultJvmToolchainManagement());
         } else {
             throw new GradleException(JvmToolchainsPlugin.class.getSimpleName() + " can only be used as either a project- or settings-plugin");
         }
