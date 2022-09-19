@@ -17,9 +17,6 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import groovy.lang.GroovySystem;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
@@ -27,7 +24,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
 import org.gradle.api.internal.provider.DefaultProvider;
@@ -47,18 +43,16 @@ import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
@@ -145,7 +139,14 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     protected abstract Property<VersionedTestingFramework> getVersionedTestingFramework();
 
-    private final Configuration runtimeClasspath;
+    @Inject
+    protected abstract BuildServiceRegistry getSharedServices();
+
+    @Inject
+    protected abstract ConfigurationContainer getConfigurations();
+
+    @Inject
+    protected abstract SourceSetContainer getSourceSets();
 
     @Inject
     public DefaultJvmTestSuite(String name, DependencyFactory dependencyFactory, ConfigurationContainer configurations, SourceSetContainer sourceSets) {
@@ -157,8 +158,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
         Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
-
-        runtimeClasspath = configurations.getByName(sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspathConfigurationName());
 
         this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
         this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
@@ -324,43 +323,31 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         useSpock(getDerivedSpockVersion());
     }
 
-    private static final Set<String> GROOVY_GROUPS = ImmutableSet.of("org.codehaus.groovy", "org.apache.groovy");
-    private static final Set<String> GROOVY_NAMES = ImmutableSet.of("groovy", "groovy-all");
-    private static final Map<VersionNumber, String> GROOVY_TO_SPOCK_VERSION_MAPPING = ImmutableMap.of(
-        VersionNumber.parse("4.0"), "2.2-groovy-4.0",
-        VersionNumber.parse("3.0"), "2.2-groovy-3.0",
-        VersionNumber.parse("2.5"), "2.2-groovy-2.5",
-        VersionNumber.parse("2.4"), "1.3-groovy-2.4",
-        VersionNumber.parse("2.3"), "1.1-groovy-2.3",
-        VersionNumber.parse("2.0"), "1.1-groovy-2.0",
-        VersionNumber.parse("1.8"), "0.7-groovy-1.8",
-        VersionNumber.parse("1.7"), "0.6-groovy-1.7",
-        VersionNumber.parse("1.6"), "0.5-groovy-1.6"
-    );
-
-    private Provider<String> getDerivedSpockVersion() {
-        return getProviderFactory().provider(() -> {
-            Optional<VersionNumber> maybeGroovyJarVersionNumber = runtimeClasspath.getIncoming().getResolutionResult().getAllComponents().stream()
-                .map(ResolvedComponentResult::getModuleVersion)
-                .filter(mvi -> GROOVY_GROUPS.contains(mvi.getGroup()))
-                .filter(mvi -> GROOVY_NAMES.contains(mvi.getName()))
-                .map(ModuleVersionIdentifier::getVersion)
-                .map(VersionNumber::parse)
-                .findFirst();
-
-            // TODO: Should we warn if we can't find Groovy on their classpath?
-            VersionNumber groovyVersion = maybeGroovyJarVersionNumber.orElse(VersionNumber.parse(GroovySystem.getVersion()));
-
-            return getSpockVersionForGroovy(groovyVersion);
-        });
+    @VisibleForTesting
+    public Provider<String> getDerivedSpockVersion() {
+        return getSharedServices()
+                .registerIfAbsent(SpockVersionBuildService.NAME, SpockVersionBuildService.class, s -> {})
+                .flatMap(svbs -> svbs.getDerivedSpockVersion(getClasspathToSearchForGroovyRuntime()));
     }
 
-    private static String getSpockVersionForGroovy(VersionNumber groovyVersion) {
-        return GROOVY_TO_SPOCK_VERSION_MAPPING.entrySet().stream()
-            .filter(it -> groovyVersion.compareTo(it.getKey()) >= 0)
-            .map(Map.Entry::getValue)
-            .findFirst()
-            .orElse(TestingFramework.SPOCK.getDefaultVersion());
+    /**
+     * Find a classpath to scan for the Groovy runtime jar.
+     *
+     * Because we want to support suites which do <strong>not</strong> require the project
+     * on the test runtime classpath, we can't assume there is a main sourceset present, or
+     * even that the `java` plugin is applied.  If it isn't, we'll use the runtime classpath
+     * for this suite as the search classpath.
+     *
+     * @return the classpath to search, as a {@link Configuration}
+     */
+    private Configuration getClasspathToSearchForGroovyRuntime() {
+        SourceSet main = getSourceSets().findByName(SourceSet.MAIN_SOURCE_SET_NAME);
+
+        if (main != null) {
+            return getConfigurations().getByName(main.getRuntimeClasspathConfigurationName());
+        } else {
+            return getConfigurations().getByName(getSources().getRuntimeClasspathConfigurationName());
+        }
     }
 
     @Override

@@ -16,19 +16,16 @@
 
 package org.gradle.testing.spock
 
-import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.GroovyDependencyUtil
+import spock.lang.Ignore
 
 @TargetCoverage({ GroovyCoverage.SUPPORTED_BY_JDK })
 class SpockVersionDerivationSpec extends MultiVersionIntegrationSpec {
-
-    def setup() {
-        def groovyVersion = versionNumber
-        def expectedSpockCoreJar = "spock-core-${DefaultJvmTestSuite.getSpockVersionForGroovy(groovyVersion)}.jar"
-
+    def 'spock version adapts to Groovy version if main sourceset present'() {
+        given:
         buildScript("""
             plugins {
                 id 'groovy'
@@ -37,7 +34,7 @@ class SpockVersionDerivationSpec extends MultiVersionIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation '${GroovyDependencyUtil.groovyModuleDependency('groovy', groovyVersion)}'
+                implementation '${GroovyDependencyUtil.groovyModuleDependency('groovy', versionNumber)}'
             }
 
             testing {
@@ -51,13 +48,51 @@ class SpockVersionDerivationSpec extends MultiVersionIntegrationSpec {
             task checkConfiguration {
                 dependsOn integTest
                 doLast {
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "${expectedSpockCoreJar}" }
+                    def expectedSpockVersion = testing.suites.integTest.getDerivedSpockVersion().get()
+                    def expectedSpockCoreJar = "spock-core-\${expectedSpockVersion}.jar"
+
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "\$expectedSpockCoreJar" }
                 }
             }
         """)
+
+        expect:
+        succeeds("checkConfiguration")
     }
 
-    def 'spock version adapts to Groovy version'() {
+    @Ignore("StackOverflow")
+    def 'spock version adapts to Groovy version if main sourceset absent'() {
+        given:
+        buildScript("""
+            plugins {
+                id 'jvm-test-suite'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    integTest(JvmTestSuite) {
+                        useSpock()
+
+                        dependencies {
+                            implementation '${GroovyDependencyUtil.groovyModuleDependency('groovy', versionNumber)}'
+                        }
+                    }
+                }
+            }
+
+            task checkConfiguration {
+                dependsOn integTest
+                doLast {
+                    def expectedSpockVersion = testing.suites.integTest.getDerivedSpockVersion().get()
+                    def expectedSpockCoreJar = "spock-core-\${expectedSpockVersion}.jar"
+
+                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "\$expectedSpockCoreJar" }
+                }
+            }
+        """)
+
         expect:
         succeeds("checkConfiguration")
     }
