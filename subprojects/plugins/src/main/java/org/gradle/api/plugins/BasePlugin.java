@@ -25,6 +25,7 @@ import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginConvention;
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
+import org.gradle.api.plugins.internal.NaggingBasePluginConvention;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.jvm.tasks.Jar;
@@ -47,7 +48,7 @@ public class BasePlugin implements Plugin<Project> {
         BasePluginExtension baseExtension = project.getExtensions().create(BasePluginExtension.class, "base", DefaultBasePluginExtension.class, project);
         BasePluginConvention convention = new DefaultBasePluginConvention(baseExtension);
 
-        project.getConvention().getPlugins().put("base", convention);
+        project.getConvention().getPlugins().put("base", new NaggingBasePluginConvention(convention));
 
         configureExtension(project, baseExtension);
         configureBuildConfigurationRule(project);
