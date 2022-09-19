@@ -334,23 +334,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     /**
-     * Find a classpath to scan for the Groovy runtime jar.
-     *
-     * Because we want to support suites which do <strong>not</strong> require the project
-     * on the test runtime classpath, we can't assume there is a main sourceset present, or
-     * even that the `java` plugin is applied.  If it isn't, we'll use the runtime classpath
-     * for this suite as the search classpath.
+     * Build a detached configuration containing only the project to use as a classpath to scan for the Groovy runtime jar.
      *
      * @return the classpath to search, as a {@link Configuration}
      */
     private Configuration getClasspathToSearchForGroovyRuntime() {
-        SourceSet main = getSourceSets().findByName(SourceSet.MAIN_SOURCE_SET_NAME);
-
-        if (main != null) {
-            return getConfigurations().getByName(main.getRuntimeClasspathConfigurationName());
-        } else {
-            return getConfigurations().getByName(getSources().getRuntimeClasspathConfigurationName());
-        }
+        return getConfigurations().detachedConfiguration(dependencies.project());
     }
 
     @Override

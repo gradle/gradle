@@ -19,8 +19,8 @@ package org.gradle.testing.spock
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovyCoverage
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.GroovyDependencyUtil
-import spock.lang.Ignore
 
 @TargetCoverage({ GroovyCoverage.SUPPORTED_BY_JDK })
 class SpockVersionDerivationSpec extends MultiVersionIntegrationSpec {
@@ -57,10 +57,10 @@ class SpockVersionDerivationSpec extends MultiVersionIntegrationSpec {
         """)
 
         expect:
+        executer.expectDeprecationWarning("Resolution of the configuration :detachedConfiguration42 was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.")
         succeeds("checkConfiguration")
     }
 
-    @Ignore("StackOverflow")
     def 'spock version adapts to Groovy version if main sourceset absent'() {
         given:
         buildScript("""
@@ -94,6 +94,7 @@ class SpockVersionDerivationSpec extends MultiVersionIntegrationSpec {
         """)
 
         expect:
+        executer.expectDeprecationWarning("Resolution of the configuration :detachedConfiguration42 was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.")
         succeeds("checkConfiguration")
     }
 }

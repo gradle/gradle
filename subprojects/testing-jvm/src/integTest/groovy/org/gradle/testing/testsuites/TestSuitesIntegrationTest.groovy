@@ -25,6 +25,7 @@ import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
@@ -302,6 +303,9 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         expect:
+        if (testingFrameworkDeclaration == 'useSpock()') {
+            executer.expectDeprecationWarning("Resolution of the configuration :detachedConfiguration42 was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details.")
+        }
         succeeds("checkConfiguration")
 
         where: // When testing a custom version, this should be a different version that the default
