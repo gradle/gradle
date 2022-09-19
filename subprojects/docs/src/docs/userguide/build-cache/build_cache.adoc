@@ -433,4 +433,4 @@ Using a different build cache backend to store build outputs (which is not cover
 your own logic for connecting to your custom build cache backend.
 To this end, custom build cache types can be registered via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#registerBuildCacheService-java.lang.Class-java.lang.Class-[BuildCacheConfiguration.registerBuildCacheService(java.lang.Class, java.lang.Class)].
 
-link:https://gradle.com/build-cache[Gradle Enterprise] includes a high-performance, easy to install and operate, shared build cache backend.
+link:https://gradle.com/gradle-enterprise-solutions/build-cache/[Gradle Enterprise] includes a high-performance, easy to install and operate, shared build cache backend.
