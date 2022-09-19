@@ -62,6 +62,6 @@ public interface JvmToolchainManagement {
      *     }
      * </pre>
      */
-    void resolvers(Action<? super JavaToolchainRepositoryResolverHandler> configureAction);
+    void resolvers(Action<? super JavaToolchainRepositoryResolverHandler> configureAction); //TODO (#21082): rename "resolvers" to "repositories"
 
 }
