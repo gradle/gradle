@@ -427,6 +427,11 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             Map<String, Object> properties = new HashMap<String, Object>();
             List<MetaProperty> classProperties = getMetaClass().getProperties();
             for (MetaProperty metaProperty : classProperties) {
+                int modifiers = metaProperty.getModifiers();
+                if (Modifier.isStatic(modifiers) || !Modifier.isPublic(modifiers)) {
+                    // Work around https://issues.apache.org/jira/browse/GROOVY-10555
+                    continue;
+                }
                 if (metaProperty.getName().equals("properties")) {
                     properties.put("properties", properties);
                     continue;

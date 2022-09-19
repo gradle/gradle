@@ -13,6 +13,7 @@ import common.dependsOn
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
+import common.skipConditionally
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildFeatures
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
@@ -100,6 +101,7 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
             gradleParams = parameters
+            skipConditionally()
         }
     }
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.internal.consumer.ConnectorServices;
 
 import java.io.File;
@@ -180,6 +179,5 @@ public abstract class GradleConnector {
      *
      * @since 6.5
      */
-    @Incubating
     public abstract void disconnect();
 }

@@ -12,6 +12,7 @@ Include only their name, impactful features should be called out separately belo
 We would like to thank the following community members for their contributions to this release of Gradle:
 
 [Björn Kautler](https://github.com/Vampire),
+[Clara Guerrero](https://github.com/cguerreros),
 [David Marin](https://github.com/dmarin),
 [Denis Buzmakov](https://github.com/bacecek),
 [Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy),
@@ -22,9 +23,11 @@ We would like to thank the following community members for their contributions t
 [Herbert von Broeuschmeul](https://github.com/HvB),
 [Matthew Haughton](https://github.com/3flex),
 [Michael Torres](https://github.com/torresmi),
+[Pankaj Kumar](https://github.com/p1729),
 [Ricardo Jiang](https://github.com/RicardoJiang),
 [Siddardha Bezawada](https://github.com/SidB3),
-[Stephen Topley](https://github.com/stopley).
+[Stephen Topley](https://github.com/stopley),
+[Vinay Potluri](https://github.com/vinaypotluri).
 
 ## Upgrade instructions
 
@@ -83,16 +86,35 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-### Promoted features in the groovy plugin
+### Promoted features in the Tooling API
 
-- The `GroovyCompileOptions.getDisabledGlobalASTTransformations()` method is now considered stable.
-<!--
-### Example promoted
--->
+- The `GradleConnector.disconnect()` method is now considered stable.
 
-### Promoted features in the Eclipse plugin
+### Promoted features in the antlr plugin
+
+- The `AntlrSourceDirectorySet` interface is now considered stable.
+
+### Promoted features in the ear plugin
+
+- The `Ear.getAppDirectory()` method is now considered stable.
+
+### Promoted features in the eclipse plugin
 
 - The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
+
+### Promoted features in the groovy plugin
+
+The following type and method are now considered stable:
+- `GroovySourceDirectorySet`
+- `GroovyCompileOptions.getDisabledGlobalASTTransformations()`
+
+### Promoted features in the scala plugin
+
+- The `ScalaSourceDirectorySet` interface is now considered stable.
+
+### Promoted features in the war plugin
+
+- The `War.getWebAppDirectory()` method is now considered stable.
 
 ## Fixed issues
 
