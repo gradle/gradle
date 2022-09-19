@@ -29,7 +29,7 @@ import spock.lang.Issue
 
 import static org.gradle.util.internal.TextUtil.escapeString
 import static org.gradle.work.ChangeType.ADDED
-import static org.gradle.work.ChangeType.MODIFIED
+import static org.gradle.work.ChangeType.REMOVED
 
 @Requires(TestPrecondition.SYMLINKS)
 class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
@@ -335,7 +335,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
         run 'inputBrokenLinkNameCollector'
         then:
         executedAndNotSkipped ':inputBrokenLinkNameCollector'
-        output.text == "${[ADDED]}"
+        output.text == "[]"
 
         when:
         run 'inputBrokenLinkNameCollector'
@@ -347,7 +347,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
         run 'inputBrokenLinkNameCollector'
         then:
         executedAndNotSkipped ':inputBrokenLinkNameCollector'
-        output.text == "${[MODIFIED]}"
+        output.text == "${[ADDED]}"
 
         when:
         run 'inputBrokenLinkNameCollector'
@@ -359,7 +359,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
         run 'inputBrokenLinkNameCollector'
         then:
         executedAndNotSkipped ':inputBrokenLinkNameCollector'
-        output.text == "${[MODIFIED]}"
+        output.text == "${[REMOVED]}"
     }
 
     @ValidationTestFor(
