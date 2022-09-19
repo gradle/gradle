@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.VersionNumber
+import spock.lang.IgnoreIf
 
 class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
 
@@ -85,6 +86,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
+    @IgnoreIf({ VersionNumber.parse(GroovySystem.version).major >= 4}) // FIXME cannot succeed with Worker API due to leaking Groovy 4 jar from parent classloder
     void 'CodeNarc does not fail with PermGen space error'() {
         given:
         withCodenarc(versions)
