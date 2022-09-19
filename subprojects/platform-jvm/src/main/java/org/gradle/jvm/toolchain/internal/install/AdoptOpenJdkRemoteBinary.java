@@ -111,7 +111,7 @@ public class AdoptOpenJdkRemoteBinary {
             case AARCH64:
                 return "aarch64";
             default:
-                return platform.getArchitectureName();
+                return "unknown";
         }
     }
 
@@ -123,8 +123,10 @@ public class AdoptOpenJdkRemoteBinary {
                 return "windows";
             case MAC_OS:
                 return "mac";
+            case SOLARIS:
+                return "solaris";
             default:
-                return platform.getOperatingSystemName();
+                return "unknown";
         }
     }
 
