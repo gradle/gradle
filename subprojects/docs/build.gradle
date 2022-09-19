@@ -926,10 +926,3 @@ tasks.withType(CheckLinks).configureEach {
 tasks.register("checkLinks") {
     dependsOn(tasks.withType(CheckLinks))
 }
-
-tasks.named('javadocAll') {
-    onlyIf {
-        logger.lifecycle 'Temporarily disabling {} while testing Groovy 4 upgrade', path
-        false
-    }
-}
