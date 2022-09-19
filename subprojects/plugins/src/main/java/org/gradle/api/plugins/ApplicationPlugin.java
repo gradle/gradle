@@ -38,6 +38,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
@@ -89,8 +90,8 @@ public class ApplicationPlugin implements Plugin<Project> {
         installTask.configure(task -> task.doFirst(
             "don't overwrite existing directories",
             new PreventDestinationOverwrite(
-                providers.provider(pluginConvention::getApplicationName),
-                providers.provider(pluginConvention::getExecutableDir)
+                providers.provider(() -> DeprecationLogger.whileDisabled(pluginConvention::getApplicationName)),
+                providers.provider(() -> DeprecationLogger.whileDisabled(pluginConvention::getExecutableDir))
             )
         ));
     }
@@ -131,7 +132,7 @@ public class ApplicationPlugin implements Plugin<Project> {
 
     private ApplicationPluginConvention addConvention(Project project) {
         ApplicationPluginConvention pluginConvention = new DefaultApplicationPluginConvention(project);
-        pluginConvention.setApplicationName(project.getName());
+        DeprecationLogger.whileDisabled(() -> pluginConvention.setApplicationName(project.getName()));
         project.getConvention().getPlugins().put("application", pluginConvention);
         return pluginConvention;
     }
@@ -155,7 +156,7 @@ public class ApplicationPlugin implements Plugin<Project> {
             run.setClasspath(runtimeClasspath);
             run.getMainModule().set(pluginExtension.getMainModule());
             run.getMainClass().set(pluginExtension.getMainClass());
-            run.getConventionMapping().map("jvmArgs", pluginConvention::getApplicationDefaultJvmArgs);
+            run.getConventionMapping().map("jvmArgs", () -> DeprecationLogger.whileDisabled(pluginConvention::getApplicationDefaultJvmArgs));
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             run.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
@@ -178,13 +179,13 @@ public class ApplicationPlugin implements Plugin<Project> {
             startScripts.getMainModule().set(pluginExtension.getMainModule());
             startScripts.getMainClass().set(pluginExtension.getMainClass());
 
-            startScripts.getConventionMapping().map("applicationName", pluginConvention::getApplicationName);
+            startScripts.getConventionMapping().map("applicationName", () -> DeprecationLogger.whileDisabled(pluginConvention::getApplicationName));
 
             startScripts.getConventionMapping().map("outputDir", () -> new File(project.getBuildDir(), "scripts"));
 
-            startScripts.getConventionMapping().map("executableDir", pluginConvention::getExecutableDir);
+            startScripts.getConventionMapping().map("executableDir", () -> DeprecationLogger.whileDisabled(pluginConvention::getExecutableDir));
 
-            startScripts.getConventionMapping().map("defaultJvmOpts", pluginConvention::getApplicationDefaultJvmArgs);
+            startScripts.getConventionMapping().map("defaultJvmOpts", () -> DeprecationLogger.whileDisabled(pluginConvention::getApplicationDefaultJvmArgs));
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             startScripts.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
@@ -201,7 +202,7 @@ public class ApplicationPlugin implements Plugin<Project> {
     }
 
     private CopySpec configureDistribution(Project project, Distribution mainDistribution, ApplicationPluginConvention pluginConvention) {
-        mainDistribution.getDistributionBaseName().convention(project.provider(pluginConvention::getApplicationName));
+        mainDistribution.getDistributionBaseName().convention(project.provider(() -> DeprecationLogger.whileDisabled(pluginConvention::getApplicationName)));
         CopySpec distSpec = mainDistribution.getContents();
 
         TaskProvider<Task> jar = project.getTasks().named(JavaPlugin.JAR_TASK_NAME);
@@ -214,7 +215,7 @@ public class ApplicationPlugin implements Plugin<Project> {
 
         CopySpec binChildSpec = project.copySpec();
 
-        binChildSpec.into((Callable<Object>) pluginConvention::getExecutableDir);
+        binChildSpec.into((Callable<Object>) () -> DeprecationLogger.whileDisabled(pluginConvention::getExecutableDir));
         binChildSpec.from(startScripts);
         binChildSpec.setFileMode(0755);
 
@@ -225,7 +226,7 @@ public class ApplicationPlugin implements Plugin<Project> {
 
         distSpec.with(childSpec);
 
-        distSpec.with(pluginConvention.getApplicationDistribution());
+        distSpec.with(DeprecationLogger.whileDisabled(() -> pluginConvention.getApplicationDistribution()));
         return distSpec;
     }
 }

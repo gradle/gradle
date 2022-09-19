@@ -66,9 +66,11 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
     def "can generate starts script generation with custom user configuration"() {
         given:
         buildFile << """
-applicationName = 'myApp'
-applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name - ':'}"]
-"""
+            application {
+                applicationName = 'myApp'
+                applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name - ':'}"]
+            }
+        """
 
         when:
         succeeds('startScripts')
@@ -82,14 +84,14 @@ applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name 
         given:
         file('customUnixStartScript.txt') << '${applicationName} start up script for UN*X'
         file('customWindowsStartScript.txt') << '${applicationName} start up script for Windows'
-
         buildFile << """
-startScripts {
-    applicationName = 'myApp'
-    unixStartScriptGenerator.template = resources.text.fromFile(file('customUnixStartScript.txt'))
-    windowsStartScriptGenerator.template = resources.text.fromFile(file('customWindowsStartScript.txt'))
-}
-"""
+            startScripts {
+                applicationName = 'myApp'
+                unixStartScriptGenerator.template = resources.text.fromFile(file('customUnixStartScript.txt'))
+                windowsStartScriptGenerator.template = resources.text.fromFile(file('customWindowsStartScript.txt'))
+            }
+        """
+
         when:
         succeeds('startScripts')
 
@@ -103,24 +105,25 @@ startScripts {
     def "can use custom start script generators"() {
         given:
         buildFile << '''
-startScripts {
-    applicationName = 'myApp'
-    unixStartScriptGenerator = new CustomUnixStartScriptGenerator()
-    windowsStartScriptGenerator = new CustomWindowsStartScriptGenerator()
-}
+            startScripts {
+                applicationName = 'myApp'
+                unixStartScriptGenerator = new CustomUnixStartScriptGenerator()
+                windowsStartScriptGenerator = new CustomWindowsStartScriptGenerator()
+            }
 
-class CustomUnixStartScriptGenerator implements ScriptGenerator {
-    void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
-        destination << "\${details.applicationName} start up script for UN*X"
-    }
-}
+            class CustomUnixStartScriptGenerator implements ScriptGenerator {
+                void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
+                    destination << "\${details.applicationName} start up script for UN*X"
+                }
+            }
 
-class CustomWindowsStartScriptGenerator implements ScriptGenerator {
-    void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
-        destination << "\${details.applicationName} start up script for Windows"
-    }
-}
-'''
+            class CustomWindowsStartScriptGenerator implements ScriptGenerator {
+                void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination) {
+                    destination << "\${details.applicationName} start up script for Windows"
+                }
+            }
+        '''
+
         when:
         succeeds('startScripts')
 
@@ -205,12 +208,12 @@ $binFile.text
 
     ExecutionResult runViaUnixStartScript(TestFile startScriptDir) {
         buildFile << """
-task execStartScript(type: Exec) {
-    workingDir '$startScriptDir.canonicalPath'
-    commandLine './sample'
-    environment JAVA_OPTS: ''
-}
-"""
+            task execStartScript(type: Exec) {
+                workingDir '$startScriptDir.canonicalPath'
+                commandLine './sample'
+                environment JAVA_OPTS: ''
+            }
+        """
         return succeeds('execStartScript')
     }
 
@@ -218,25 +221,25 @@ task execStartScript(type: Exec) {
         TestFile startScriptDir = file('build/install/sample/bin')
 
         buildFile << """
-task execStartScript(type: Exec) {
-    workingDir '$startScriptDir.canonicalPath'
-    commandLine './sample'
-    environment JAVA_HOME: "$javaHome"
-    environment JAVA_OPTS: ''
-}
-"""
+            task execStartScript(type: Exec) {
+                workingDir '$startScriptDir.canonicalPath'
+                commandLine './sample'
+                environment JAVA_HOME: "$javaHome"
+                environment JAVA_OPTS: ''
+            }
+        """
         return succeeds('execStartScript')
     }
 
     ExecutionResult runViaWindowsStartScript(TestFile startScriptDir) {
         String escapedStartScriptDir = startScriptDir.canonicalPath.replaceAll('\\\\', '\\\\\\\\')
         buildFile << """
-task execStartScript(type: Exec) {
-    workingDir '$escapedStartScriptDir'
-    commandLine 'cmd', '/c', 'sample.bat'
-    environment JAVA_OPTS: ''
-}
-"""
+            task execStartScript(type: Exec) {
+                workingDir '$escapedStartScriptDir'
+                commandLine 'cmd', '/c', 'sample.bat'
+                environment JAVA_OPTS: ''
+            }
+        """
         return succeeds('execStartScript')
     }
 
@@ -247,15 +250,16 @@ task execStartScript(type: Exec) {
 
         and:
         buildFile << """
-repositories {
-    maven { url '$mavenRepo.uri' }
-}
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
 
-dependencies {
-    implementation 'org.gradle.test:compile:1.0'
-    compileOnly 'org.gradle.test:compileOnly:1.0'
-}
-"""
+            dependencies {
+                implementation 'org.gradle.test:compile:1.0'
+                compileOnly 'org.gradle.test:compileOnly:1.0'
+            }
+        """
+
         when:
         run "installDist"
 
@@ -266,8 +270,10 @@ dependencies {
     def "executables can be placed at the root of the distribution"() {
         given:
         buildFile << """
-executableDir = ''
-"""
+            application {
+                executableDir = ''
+            }
+        """
         when:
         run "installDist"
 
@@ -277,6 +283,7 @@ executableDir = ''
 
         when:
         runViaStartScript(file('build/install/sample'))
+
         then:
         outputContains("Hello World")
     }
@@ -284,8 +291,10 @@ executableDir = ''
     def "executables can be placed in a custom directory"() {
         given:
         buildFile << """
-executableDir = 'foo/bar'
-"""
+            application {
+                executableDir = 'foo/bar'
+            }
+        """
         when:
         run "installDist"
 
@@ -295,14 +304,14 @@ executableDir = 'foo/bar'
 
         when:
         runViaStartScript(file('build/install/sample/foo/bar'))
+
         then:
         outputContains("Hello World")
     }
 
     def "includes transitive implementation dependencies in distribution"() {
-        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
-
         given:
+        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
         buildFile << """
             allprojects {
                 repositories {
@@ -310,7 +319,6 @@ executableDir = 'foo/bar'
                 }
             }
         """
-
         file('settings.gradle') << "include 'utils', 'core'"
         buildFile << '''
             apply plugin: 'java'
@@ -347,9 +355,8 @@ executableDir = 'foo/bar'
     }
 
     def "includes transitive runtime dependencies in runtime classpath"() {
-        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
-
         given:
+        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
         buildFile << """
         allprojects {
             repositories {
@@ -384,12 +391,12 @@ executableDir = 'foo/bar'
             }
         '''
         file('core/build.gradle') << '''
-apply plugin: 'java-library'
+            apply plugin: 'java-library'
 
-dependencies {
-    implementation 'org.gradle.test:implementation:1.0'
-    runtimeOnly project(':bar')
-}
+            dependencies {
+                implementation 'org.gradle.test:implementation:1.0'
+                runtimeOnly project(':bar')
+            }
         '''
 
         when:
@@ -400,9 +407,8 @@ dependencies {
     }
 
     def "includes transitive implementation dependencies in test runtime classpath"() {
-        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
-
         given:
+        mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
         buildFile << """
         allprojects {
             repositories {
@@ -411,7 +417,6 @@ dependencies {
             apply plugin: 'java'
         }
         """
-
         file('settings.gradle') << "include 'utils', 'core', 'foo', 'bar'"
         buildFile << '''
             apply plugin: 'java'
@@ -437,12 +442,12 @@ dependencies {
             }
         '''
         file('core/build.gradle') << '''
-apply plugin: 'java-library'
+            apply plugin: 'java-library'
 
-dependencies {
-    implementation 'org.gradle.test:implementation:1.0'
-    runtimeOnly project(':bar')
-}
+            dependencies {
+                implementation 'org.gradle.test:implementation:1.0'
+                runtimeOnly project(':bar')
+            }
         '''
 
         when:
@@ -465,17 +470,21 @@ dependencies {
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script"() {
         given:
         buildFile << """
-applicationDefaultJvmArgs = ["-DappHomeSystemProp=REPLACE_THIS_WITH_APP_HOME"]
+            application {
+                applicationDefaultJvmArgs = ["-DappHomeSystemProp=REPLACE_THIS_WITH_APP_HOME"]
+            }
 
-startScripts {
-    doLast {
-        unixScript.text = unixScript.text.replace("REPLACE_THIS_WITH_APP_HOME", "'\\\$APP_HOME'")
-        windowsScript.text = windowsScript.text.replace("REPLACE_THIS_WITH_APP_HOME", '%APP_HOME%')
-    }
-}
-"""
+            startScripts {
+                doLast {
+                    unixScript.text = unixScript.text.replace("REPLACE_THIS_WITH_APP_HOME", "'\\\$APP_HOME'")
+                    windowsScript.text = windowsScript.text.replace("REPLACE_THIS_WITH_APP_HOME", '%APP_HOME%')
+                }
+            }
+        """
+
         when:
         succeeds('installDist')
+
         and:
         runViaStartScript()
 
@@ -490,11 +499,11 @@ startScripts {
     @IgnoreIf({ TestPrecondition.WINDOWS.fulfilled }) // This test already fails silently on Windows, but adding an explicit check for the existence of xargs made it fail explicitly.
     def "can run under posix sh environment"() {
         buildFile << """
-task execStartScript(type: Exec) {
-    workingDir 'build/install/sample/bin'
-    commandLine 'sh', 'sample'
-}
-"""
+            task execStartScript(type: Exec) {
+                workingDir 'build/install/sample/bin'
+                commandLine 'sh', 'sample'
+            }
+        """
         when:
         succeeds('installDist')
         then:
@@ -519,8 +528,10 @@ task execStartScript(type: Exec) {
 """
         when:
         succeeds('installDist')
+
         then:
         succeeds("execStartScript")
+
         and:
         // confirm that the arguments were converted back to Windows-like paths (using forward slashes instead of backslashes)
         outputContains("Args: [${buildFile.absolutePath.replace('\\', '/')}, ${file("src").absolutePath.replace('\\', '/')}]")
@@ -544,39 +555,39 @@ task execStartScript(type: Exec) {
 
     private void generateMainClass(String mainMethodBody) {
         file('src/main/java/org/gradle/test/Main.java').text = """
-package org.gradle.test;
+            package org.gradle.test;
 
-public class Main {
-    public static void main(String[] args) {
-        $mainMethodBody
-    }
-}
-"""
+            public class Main {
+                public static void main(String[] args) {
+                    $mainMethodBody
+                }
+            }
+        """
     }
 
     private void populateBuildFile() {
         buildFile << """
-apply plugin: 'application'
+            apply plugin: 'application'
 
-application {
-    mainClass = 'org.gradle.test.Main'
-}
-"""
+            application {
+                mainClass = 'org.gradle.test.Main'
+            }
+        """
     }
 
     private void configureMainModule() {
         file("src/main/java/module-info.java") << "module org.gradle.test.main { requires java.management; }"
         buildFile << """
-application {
-    mainModule.set('org.gradle.test.main')
-}
-"""
+            application {
+                mainModule.set('org.gradle.test.main')
+            }
+        """
     }
 
     private void populateSettingsFile() {
         settingsFile << """
-rootProject.name = 'sample'
-"""
+            rootProject.name = 'sample'
+        """
     }
 
     private File assertGeneratedUnixStartScript(String filename = 'sample') {
@@ -609,6 +620,7 @@ rootProject.name = 'sample'
             // This should cause us to regenerated the script
             version = "3.0"
         """
+
         and:
         succeeds("startScripts")
 
