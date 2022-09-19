@@ -58,6 +58,9 @@ public class NameOnlyFingerprintingStrategy extends AbstractDirectorySensitiveFi
         roots.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
             @Override
             public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
+                if (isRoot && snapshot.getType() == FileType.Missing) {
+                    return SnapshotVisitResult.CONTINUE;
+                }
                 String absolutePath = snapshot.getAbsolutePath();
                 if (processedEntries.add(absolutePath) && getDirectorySensitivity().shouldFingerprint(snapshot)) {
                     if (isRoot && snapshot.getType() == FileType.Directory) {
