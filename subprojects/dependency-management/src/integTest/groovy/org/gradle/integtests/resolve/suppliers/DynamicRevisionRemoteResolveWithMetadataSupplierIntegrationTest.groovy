@@ -797,7 +797,7 @@ group:projectB:2.2;release
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
 
         when:
-        executer.withArgument('--refresh-dependencies')
+        executer.withArgument(refreshDependenciesArg)
 
         then:
         resetExpectations()
@@ -819,6 +819,9 @@ group:projectB:2.2;release
         }
         supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
+
+        where:
+        refreshDependenciesArg << ['-U','--refresh-dependencies']
     }
 
     def "component metadata rules are executed after metadata supplier is called"() {
