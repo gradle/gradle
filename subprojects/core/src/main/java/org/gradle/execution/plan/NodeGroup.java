@@ -79,20 +79,6 @@ public abstract class NodeGroup {
         return Collections.emptyList();
     }
 
-    /**
-     * Returns the sequence of nodes which must complete before the given node can start. The given node must belong to this group.
-     * The returned sequence is not exhaustive, i.e. it doesn't mean that the given node can start even if all nodes in it are
-     * completed.
-     *
-     * The returned sequence is a reverse of the result of {@link #getSuccessorsFor(Node)}.
-     *
-     * @param node the node to check successors for
-     * @see #getSuccessorsFor(Node)
-     */
-    public Iterable<? extends Node> getSuccessorsInReverseOrderFor(Node node) {
-        return Collections.emptyList();
-    }
-
     public Node.DependenciesState checkSuccessorsCompleteFor(Node node) {
         return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
     }
@@ -108,4 +94,7 @@ public abstract class NodeGroup {
     }
 
     public abstract NodeGroup withOrdinalGroup(OrdinalGroup newOrdinal);
+
+    public void onNodeStart(Node finalizer, Node node) {
+    }
 }

@@ -650,6 +650,43 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         continueOnFailure << [false, true]
     }
 
+    def "finalizer and its dependencies do not run when finalized task fails and is a dependency of the finalizer"() {
+        given:
+        TaskInternal finalizerDepDep = task("finalizerDepDep", type: Async)
+        TaskInternal finalizerDep = task("finalizerDep", type: Async, dependsOn: [finalizerDepDep])
+        TaskInternal finalizer = createTask("finalizer")
+        TaskInternal entryPoint = task("entry", type: Async, finalizedBy: [finalizer], failure: new RuntimeException())
+        relationships(finalizer, dependsOn: [entryPoint, finalizerDep])
+
+        when:
+        addToGraphAndPopulate(entryPoint)
+
+        then:
+        executionPlan.tasks as List == [entryPoint, finalizerDepDep, finalizerDep, finalizer]
+        assertTaskReady(entryPoint)
+        assertAllWorkComplete()
+    }
+
+    def "finalizer does not run when finalized task fails and is a dependency of the finalizer and continue on failure"() {
+        given:
+        TaskInternal finalizerDepDep = task("finalizerDepDep", type: Async)
+        TaskInternal finalizerDep = task("finalizerDep", type: Async, dependsOn: [finalizerDepDep])
+        TaskInternal finalizer = createTask("finalizer")
+        TaskInternal entryPoint = task("entry", type: Async, finalizedBy: [finalizer], failure: new RuntimeException())
+        relationships(finalizer, dependsOn: [entryPoint, finalizerDep])
+
+        when:
+        executionPlan.continueOnFailure = true
+        addToGraphAndPopulate(entryPoint)
+
+        then:
+        executionPlan.tasks as List == [entryPoint, finalizerDepDep, finalizerDep, finalizer]
+        assertTaskReady(entryPoint)
+        assertTaskReady(finalizerDepDep, true)
+        assertTaskReadyAndNoMoreToStart(finalizerDep)
+        assertAllWorkComplete()
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/21000")
     def "finalizer dependency runs after finalized entry task when the latter is finalizer dependency too"() {
         given:
@@ -846,6 +883,24 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assertTasksReady(dep, c, finalizerDep)
         assertTaskReady(finalizer)
         assertTaskReadyAndNoMoreToStart(a)
+        assertAllWorkComplete()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21975")
+    def "handles task failure when a finalizer is a dependency of and finalized by another node"() {
+        Task finalizer1 = createTask("finalizer1")
+        Task finalizer2 = task("finalizer2", finalizedBy: [finalizer1])
+        Task dep = task("dep", failure: new RuntimeException("broken"))
+        Task entry = task("entry", finalizedBy: [finalizer2], dependsOn: [dep])
+        relationships(finalizer1, dependsOn: [finalizer2])
+
+        when:
+        addToGraphAndPopulate(entry)
+
+        then:
+        executionPlan.tasks as List == [dep, entry, finalizer2, finalizer1]
+        reachableFromEntryPoint == [true, true, false, false]
+        assertTaskReady(dep)
         assertAllWorkComplete()
     }
 
@@ -1662,7 +1717,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finishedExecuting(node)
 
         then:
-        assertAllWorkComplete(true)
+        assertAllWorkComplete()
 
         when:
         def failures = []
@@ -2012,7 +2067,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     private void addToGraph(Task... tasks) {
         for (final def task in tasks) {
-            executionPlan.addEntryTasks([task])
+            executionPlan.addEntryTask(task)
         }
     }
 

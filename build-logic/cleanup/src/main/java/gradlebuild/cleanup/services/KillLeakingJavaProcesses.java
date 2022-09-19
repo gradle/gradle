@@ -85,7 +85,7 @@ public class KillLeakingJavaProcesses {
     }
 
     private static void cleanPsOutputFilesFromPreviousRun(File rootProjectDir, String[] args) {
-        if (args.length > 1 && "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS".equals(args[0])) {
+        if (args.length > 0 && "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS".equals(args[0])) {
             File[] psOutputs = rootProjectDir.listFiles((__, name) -> name.endsWith(".psoutput"));
             if (psOutputs != null) {
                 Stream.of(psOutputs).forEach(File::delete);
