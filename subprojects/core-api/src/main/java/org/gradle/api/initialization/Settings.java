@@ -27,7 +27,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.toolchain.management.ToolchainManagementSpec;
+import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -376,7 +376,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @since 7.6
      */
     @Incubating
-    void toolchainManagement(Action<? super ToolchainManagementSpec> toolchainManagementSpecConfiguration);
+    void toolchainManagement(Action<? super ToolchainManagement> toolchainManagementConfiguration);
 
     /**
      * Returns the toolchain management configuration.
@@ -384,5 +384,5 @@ public interface Settings extends PluginAware, ExtensionAware {
      * @since 7.6
      */
     @Incubating
-    ToolchainManagementSpec getToolchainManagement();
+    ToolchainManagement getToolchainManagement();
 }

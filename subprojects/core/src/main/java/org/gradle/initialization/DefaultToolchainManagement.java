@@ -16,7 +16,7 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.toolchain.management.ToolchainManagementSpec;
+import org.gradle.api.toolchain.management.ToolchainManagement;
 
-public abstract class DefaultToolchainManagementSpec implements ToolchainManagementSpec {
+public abstract class DefaultToolchainManagement implements ToolchainManagement {
 }
