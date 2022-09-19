@@ -212,6 +212,78 @@ Some of them still registers conventions for backwards compatibility.
 Registering conventions does not emit a deprecation warning yet to provide a migration window.
 Future Gradle versions will do.
 
+[[project_report_convention_deprecation]]
+==== Deprecated `project-report` plugin conventions
+
+The convention properties contributed by the `project-reports` plugin have been deprecated and scheduled for removal in Gradle 9.0.
+For the wider context see the <<deprecated_access_to_conventions, section about plugin convention deprecation>>.
+
+The following code will now emit deprecation warnings:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `project-report`
+}
+
+configure<ProjectReportsPluginConvention> {
+    projectReportDirName = "custom" // Accessing a convention
+}
+----
+=====
+
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'project-report'
+}
+
+projectReportDirName = "custom" // Accessing a convention
+----
+=====
+====
+
+Configure your report task instead:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `project-report`
+}
+
+tasks.withType<HtmlDependencyReportTask>() {
+    projectReportDirectory.set(project.layout.buildDirectory.dir("reports/custom"))
+}
+----
+=====
+
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'project-report'
+}
+
+tasks.withType(HtmlDependencyReportTask) {
+    projectReportDirectory = project.layout.buildDirectory.dir("reports/custom")
+}
+----
+=====
+====
+
 [[redundant_configuration_usage_activation]]
 ==== Redundant configuration usage activation
 
