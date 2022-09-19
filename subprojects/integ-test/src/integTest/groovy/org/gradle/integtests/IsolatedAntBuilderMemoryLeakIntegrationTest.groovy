@@ -122,8 +122,8 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         }
         return [
             new VersionPair("localGroovy()", isAtLeastGroovy4 ? '3.1.0-groovy-4.0' : '3.1.0'),
-            //new VersionPair("'org.apache.groovy:groovy-all:4.0.5'", '3.1.0-groovy-4.0'), // FIXME cannot work due to leaking Groovy 3.0.12 jar
-            new VersionPair("'org.codehaus.groovy:groovy-all:3.0.12'", '3.1.0'),
+            //new VersionPair("'org.apache.groovy:groovy-all:4.0.5'", '3.1.0-groovy-4.0'), // FIXME cannot work due to leaking Groovy 3 jar
+            new VersionPair("'org.codehaus.groovy:groovy-all:3.0.13'", '3.1.0'),
             new VersionPair("'org.codehaus.groovy:groovy-all:2.3.10'", '3.1.0'),
             new VersionPair("'org.codehaus.groovy:groovy-all:2.2.1'", '3.1.0'),
             new VersionPair("'org.codehaus.groovy:groovy-all:2.1.9'", '3.1.0'),

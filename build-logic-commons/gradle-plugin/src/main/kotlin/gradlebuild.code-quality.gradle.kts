@@ -46,7 +46,7 @@ val rules by configurations.creating {
 }
 
 // FIXME the below changes are ineffective - the Worker API will classload the lib directory of the current Gradle distribution
-//  which includes Groovy 3.0.12.  All the version wrangling below makes no difference, as the bundled Groovy version from the current
+//  which includes Groovy 3.0.13.  All the version wrangling below makes no difference, as the bundled Groovy version from the current
 //  distribution will always "win".  Detecting the `isBundleGroovy4` sysprop won't matter.
 //val isBundleGroovy4 = System.getProperty("bundleGroovy4", "false") == "true"
 val groovyVersion = GroovySystem.getVersion()
