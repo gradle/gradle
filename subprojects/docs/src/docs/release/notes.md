@@ -26,7 +26,8 @@ We would like to thank the following community members for their contributions t
 [Pankaj Kumar](https://github.com/p1729),
 [Ricardo Jiang](https://github.com/RicardoJiang),
 [Siddardha Bezawada](https://github.com/SidB3),
-[Stephen Topley](https://github.com/stopley).
+[Stephen Topley](https://github.com/stopley),
+[Vinay Potluri](https://github.com/vinaypotluri).
 
 ## Upgrade instructions
 
