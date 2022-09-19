@@ -23,8 +23,8 @@ import org.gradle.jvm.toolchain.JvmToolchainManagement
 
 /**
  * Provides statically defined accessors for configuring the "jvm" block in "toolchainManagement".
- * This block is added to <code>ToolchainManagement</code> dynamically, by the "jvm-toolchains" plugin
- * and normally the dynamic extension should generate accessors, but this doesn't work
+ * This block is added to <code>ToolchainManagement</code> dynamically, by the "jvm-toolchain-management"
+ * plugin and normally the dynamic extension should generate accessors, but this doesn't work
  * at the level of Settings, hence the need for the static accessors.
  *
  * @since 7.6
@@ -37,7 +37,7 @@ fun ToolchainManagement.jvm(block: JvmToolchainManagement.() -> Unit) {
 
 /**
  * Provides statically defined accessors for getting the "jvm" block of "toolchainManagement".
- * This block is added to <code>ToolchainManagement</code> dynamically, by the "jvm-toolchains" plugin
+ * This block is added to <code>ToolchainManagement</code> dynamically, by the "jvm-toolchain-management" plugin
  * and normally the dynamic extension should generate accessors, but this doesn't work
  * at the level of Settings, hence the need for the static accessors.
  *

@@ -57,7 +57,7 @@ abstract class DummyPlugin(val repoClass: kotlin.reflect.KClass<out JavaToolchai
     protected abstract val toolchainRepositoryRegistry: JavaToolchainRepositoryRegistry
 
     override fun apply(settings: Settings) {
-        settings.plugins.apply("jvm-toolchains")
+        settings.plugins.apply("jvm-toolchain-management")
 
         val registry: JavaToolchainRepositoryRegistry = toolchainRepositoryRegistry
         registry.register(repoClass.java)

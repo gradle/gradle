@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 
 /**
  * Dynamic extension added to <code>ToolchainManagement</code> at runtime, by the
- * <code>jvm-toolchains</code> plugin. Provides a <code>jvm</code> block to configure
+ * <code>jvm-toolchain-management</code> plugin. Provides a <code>jvm</code> block to configure
  * the ordered list of <code>JavaToolchainRepository</code> implementations to use
  * for Java toolchain provisioning.
  *

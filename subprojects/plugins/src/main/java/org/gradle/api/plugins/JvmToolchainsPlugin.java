@@ -16,16 +16,11 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.JvmToolchainManagement;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
-import org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 
 import javax.inject.Inject;
@@ -37,28 +32,17 @@ import javax.inject.Inject;
  * @since 7.6
  */
 @Incubating
-public abstract class JvmToolchainsPlugin implements Plugin<Object> {
-
-    @Inject
-    protected abstract JavaToolchainQueryService getJavaToolchainQueryService();
-
-    @Inject
-    protected abstract DefaultJvmToolchainManagement getDefaultJvmToolchainManagement();
-
-    //TODO (#21082): update design docs about piggy-backing the old plugin
+public class JvmToolchainsPlugin implements Plugin<Project> {
 
     @Override
-    public void apply(Object target) {
-        if (target instanceof Project) {
-            Project project = (Project) target;
-            project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, getJavaToolchainQueryService());
-        } else if (target instanceof Settings) {
-            Settings settings = (Settings) target;
-            ToolchainManagement toolchainManagement = settings.getToolchainManagement();
-            toolchainManagement.getExtensions()
-                    .add(JvmToolchainManagement.class, "jvm", getDefaultJvmToolchainManagement());
-        } else {
-            throw new GradleException(JvmToolchainsPlugin.class.getSimpleName() + " can only be used as either a project- or settings-plugin");
-        }
+    public void apply(Project target) {
+        target.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, javaToolchainQueryService);
+    }
+
+    private final JavaToolchainQueryService javaToolchainQueryService;
+
+    @Inject
+    public JvmToolchainsPlugin(JavaToolchainQueryService javaToolchainQueryService) {
+        this.javaToolchainQueryService = javaToolchainQueryService;
     }
 }

@@ -76,7 +76,7 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
                 protected abstract val toolchainRepositoryRegistry: JavaToolchainRepositoryRegistry
             
                 override fun apply(settings: Settings) {
-                    settings.plugins.apply("jvm-toolchains")
+                    settings.plugins.apply("jvm-toolchain-management")
                     val registry: JavaToolchainRepositoryRegistry = toolchainRepositoryRegistry
                     registry.register(${className}::class.java)
                 }
