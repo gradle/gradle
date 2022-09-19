@@ -17,6 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
@@ -65,7 +66,9 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
 
                 @Override
                 public void visitMissing(MissingFileSnapshot missingSnapshot) {
-                    visitNonDirectoryEntry(snapshot);
+                    if (missingSnapshot.getAccessType() != FileMetadata.AccessType.DIRECT) {
+                        visitNonDirectoryEntry(snapshot);
+                    }
                 }
 
                 private void visitNonDirectoryEntry(FileSystemLocationSnapshot snapshot) {
