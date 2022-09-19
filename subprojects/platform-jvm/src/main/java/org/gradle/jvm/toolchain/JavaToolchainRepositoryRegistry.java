@@ -27,7 +27,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface JavaToolchainRepositoryRegistry {
+public interface JavaToolchainRepositoryRegistry { //TODO (#21082): rename to JavaToolchainResolverRegistry
 
     /**
      * Registers a <code>JavaToolchainRepository</code> implementation. The class name should be properly

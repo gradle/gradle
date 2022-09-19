@@ -30,7 +30,7 @@ import java.util.Optional;
  * @since 7.6
  */
 @Incubating
-public interface JavaToolchainRepository extends BuildService<BuildServiceParameters.None> {
+public interface JavaToolchainRepository extends BuildService<BuildServiceParameters.None> { //TODO (#21082): rename to JavaToolchainResolver
 
     /**
      * Returns the URI from which a Java Toolchain matching the provided specification
