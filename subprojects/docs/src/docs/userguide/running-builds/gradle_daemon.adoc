@@ -27,7 +27,7 @@ The Daemon reduces build times by:
 * caching project information across builds
 * running in the background so every Gradle build doesn't have to wait for JVM startup
 * benefiting from continuous runtime optimization in the JVM
-* watching the file system to calculate exactly what needs to be rebuilt before you run a build
+* <<file_system_watching.adoc#sec:daemon_watch_fs,watching the file system>> to calculate exactly what needs to be rebuilt before you run a build
 
 [[sec:status]]
 == Check Status
