@@ -21,14 +21,14 @@ import org.gradle.api.Incubating;
 
 /**
  * Dynamic extension added to <code>ToolchainManagement</code> at runtime, by the
- * <code>jvm-toolchains</code> plugin. Provides a <code>jdks</code> block to configure
+ * <code>jvm-toolchains</code> plugin. Provides a <code>jvm</code> block to configure
  * the ordered list of <code>JavaToolchainRepository</code> implementations to use
  * for Java toolchain provisioning.
  *
  * @since 7.6
  */
 @Incubating
-public interface JdksBlockForToolchainManagement {
+public interface JvmToolchainManagement {
 
     // TODO (#21082): update user manual
 
@@ -43,7 +43,7 @@ public interface JdksBlockForToolchainManagement {
      *
      * <pre class='autoTested'>
      * toolchainManagement {
-     *     jdks {
+     *     jvm {
      *         resolvers {
      *             resolver('registry1') {
      *                 implementationClass = CustomToolchainRegistry1    // TODO (#21082): in a groovy script does a fully qualified class name go here?

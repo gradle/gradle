@@ -19,16 +19,16 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.api.Action;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryResolverHandler;
-import org.gradle.jvm.toolchain.JdksBlockForToolchainManagement;
+import org.gradle.jvm.toolchain.JvmToolchainManagement;
 
 import javax.inject.Inject;
 
-public abstract class DefaultJdksBlockForToolchainManagement implements JdksBlockForToolchainManagement, ExtensionAware {
+public abstract class DefaultJvmToolchainManagement implements JvmToolchainManagement, ExtensionAware {
 
     private final JavaToolchainRepositoryRegistryInternal registry;
 
     @Inject
-    public DefaultJdksBlockForToolchainManagement(JavaToolchainRepositoryRegistryInternal registry) {
+    public DefaultJvmToolchainManagement(JavaToolchainRepositoryRegistryInternal registry) {
         this.registry = registry;
     }
 

@@ -44,7 +44,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
         settingsFile << """
             ${applyToolchainRegistryPlugin("CustomToolchainRegistry", customToolchainRegistryCode(archiveUri))}               
             toolchainManagement {
-                jdks {
+                jvm {
                     resolvers {
                         resolver('custom') {
                             implementationClass = CustomToolchainRegistry
@@ -90,7 +90,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
         settingsFile << """
             ${applyToolchainRegistryPlugin("CustomToolchainRegistry", customToolchainRegistryCode(archiveUri))}
             toolchainManagement {
-                jdks {
+                jvm {
                     resolvers {
                         resolver('custom') {
                             implementationClass = CustomToolchainRegistry
