@@ -21,11 +21,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UnitOfWork.InputBehavior;
+import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
+import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
@@ -110,8 +110,8 @@ public class ResolveChangesStep<C extends CachingContext, R extends Result> impl
                 ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
                 InputVisitor visitor = new InputVisitor() {
                     @Override
-                    public void visitInputFileProperty(String propertyName, InputPropertyType type, FileValueSupplier valueSupplier) {
-                        if (type.isIncremental()) {
+                    public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier valueSupplier) {
+                        if (behavior.shouldTrackChanges()) {
                             Object value = valueSupplier.getValue();
                             if (value == null) {
                                 throw new InvalidUserDataException("Must specify a value for incremental input property '" + propertyName + "'.");
