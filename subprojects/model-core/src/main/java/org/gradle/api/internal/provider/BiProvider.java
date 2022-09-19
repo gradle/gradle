@@ -16,6 +16,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.Provider;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.function.BiFunction;
@@ -41,7 +42,11 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
-        return left.calculatePresence(consumer) && right.calculatePresence(consumer);
+        if (!left.calculatePresence(consumer) || !right.calculatePresence(consumer)) {
+            return false;
+        }
+        // Purposefully only calculate full value if left & right are both present, to save time
+        return !calculateValue(consumer, false).isMissing();
     }
 
     @Override
@@ -57,6 +62,11 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     @Override
     protected Value<? extends R> calculateOwnValue(ValueConsumer consumer) {
+        return calculateValue(consumer, true);
+    }
+
+    @NotNull
+    private Value<R> calculateValue(ValueConsumer consumer, boolean keepSideEffects) {
         Value<? extends A> leftValue = left.calculateValue(consumer);
         if (leftValue.isMissing()) {
             return leftValue.asType();
@@ -68,9 +78,13 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
         R combinedUnpackedValue = combiner.apply(leftValue.getWithoutSideEffect(), rightValue.getWithoutSideEffect());
 
-        return Value.of(combinedUnpackedValue)
-            .withSideEffect(SideEffect.fixedFrom(leftValue))
-            .withSideEffect(SideEffect.fixedFrom(rightValue));
+        Value<R> value = Value.ofNullable(combinedUnpackedValue);
+        if (keepSideEffects && !value.isMissing()) {
+            value = value
+                .withSideEffect(SideEffect.fixedFrom(leftValue))
+                .withSideEffect(SideEffect.fixedFrom(rightValue));
+        }
+        return value;
     }
 
     @Nullable

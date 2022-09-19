@@ -295,17 +295,19 @@ public interface ProviderFactory {
      * Returns a provider which value will be computed by combining a provider value with another
      * provider value using the supplied combiner function.
      *
+     * <p>
      * If the supplied providers represents a task or the output of a task, the resulting provider
      * will carry the dependency information.
+     * </p>
      *
      * @param first the first provider to combine with
      * @param second the second provider to combine with
-     * @param combiner the combiner of values
+     * @param combiner the combiner of values. May return {@code null}, in which case the provider
+     * will have no value.
      * @param <A> the type of the first provider
      * @param <B> the type of the second provider
      * @param <R> the type of the result of the combiner
      * @return a combined provider
-     *
      * @since 6.6
      */
     <A, B, R> Provider<R> zip(Provider<A> first, Provider<B> second, BiFunction<? super A, ? super B, ? extends R> combiner);
