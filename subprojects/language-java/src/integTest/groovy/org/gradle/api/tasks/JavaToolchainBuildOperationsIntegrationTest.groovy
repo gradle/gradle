@@ -409,9 +409,13 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
 
         when:
+        if (kotlinPlugin == '1.6') {
+            executer.expectDocumentedDeprecationWarning('The org.gradle.api.plugins.WarPluginConvention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#base_convention_deprecation')
+        }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         def eventsOnCompile = toolchainEvents(":compileKotlin")
         def eventsOnTest = toolchainEvents(":test")
+
         then:
         executedAndNotSkipped(":compileKotlin", ":test")
         // The tool is a launcher, because kotlin runs own compilation in a Java VM
