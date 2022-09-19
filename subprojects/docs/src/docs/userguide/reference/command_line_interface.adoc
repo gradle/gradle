@@ -533,7 +533,7 @@ Run the build as a composite, including the specified build. See <<composite_bui
 `--offline`::
 Specifies that the build should operate without accessing network resources. Learn more about <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,options to override dependency caching>>.
 
-`--refresh-dependencies`::
+`-U`, `--refresh-dependencies`::
 Refresh the state of dependencies. Learn more about how to use this in the <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,dependency management docs>>.
 
 `-m`, `--dry-run`::
