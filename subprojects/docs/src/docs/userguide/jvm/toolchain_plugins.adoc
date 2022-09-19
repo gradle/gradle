@@ -37,14 +37,14 @@ public abstract class JavaToolchainRepositoryPlugin implements Plugin<Settings> 
     protected abstract JavaToolchainRepositoryRegistry getToolchainRepositoryRegistry(); // <2>
 
     void apply(Settings settings) {
-        settings.getPlugins().apply("jvm-toolchains"); // <3>
+        settings.getPlugins().apply("jvm-toolchain-management"); // <3>
 
         JavaToolchainRepositoryRegistry registry = getToolchainRepositoryRegistry();
-        registry.register("com_example_myrepo", JavaToolchainRepositoryImplementation.class); // <4>
+        registry.register(JavaToolchainRepositoryImplementation.class); // <4>
     }
 }
 ----
 <1> The plugin needs to be a settings plugin and is abstract because it uses <<custom_gradle_types.adoc#property_injection,property injection>>.
 <2> Access is needed to the link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainRepositoryRegistry.html[JavaToolchainRepositoryRegistry] Gradle service to register the repository implementation.
-<3> These plugins are required to auto apply the `jvm-toolchains` base plugin, which dynamically adds the `jvm` block to `toolchainManagement`, thus making the registered toolchain repositories usable from the build.
+<3> These plugins are required to auto apply the `jvm-toolchain-management` base plugin, which dynamically adds the `jvm` block to `toolchainManagement`, thus making the registered toolchain repositories usable from the build.
 <4> The last step is to register the toolchain repository with the registry service injected by Gradle.
