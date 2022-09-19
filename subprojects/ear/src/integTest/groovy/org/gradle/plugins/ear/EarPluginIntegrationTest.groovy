@@ -191,9 +191,9 @@ ear {
         ear.assertFileContent("META-INF/application.xml", applicationXml)
 
         where:
-        location    | descriptorConfig   | appDirectory
-        "specified" | "appDirName 'app'" | "app"
-        "default"   | ""                 | "src/main/application"
+        location    | descriptorConfig                                                                   | appDirectory
+        "specified" | "tasks.named('ear') { appDirectory = project.layout.projectDirectory.dir('app') }" | "app"
+        "default"   | ""                                                                                 | "src/main/application"
     }
 
     void "works with existing descriptor containing a doctype declaration"() {
