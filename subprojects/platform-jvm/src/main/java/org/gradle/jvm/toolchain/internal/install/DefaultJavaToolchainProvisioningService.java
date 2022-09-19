@@ -31,11 +31,11 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
+import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest;
-import org.gradle.jvm.toolchain.internal.JavaToolchainRepositoryRegistryInternal;
-import org.gradle.jvm.toolchain.internal.ResolvedJavaToolchainRepository;
+import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal;
+import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -62,7 +62,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
     private static final Object PROVISIONING_PROCESS_LOCK = new Object();
 
-    private final JavaToolchainRepositoryRegistryInternal toolchainRepositoryRegistry;
+    private final JavaToolchainResolverRegistryInternal toolchainResolverRegistry;
     private final AdoptOpenJdkRemoteBinary openJdkBinary;
     private final SecureFileDownloader downloader;
     private final JdkCacheDirectory cacheDirProvider;
@@ -72,7 +72,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
     @Inject
     public DefaultJavaToolchainProvisioningService(
-            JavaToolchainRepositoryRegistry toolchainRepositoryRegistry,
+            JavaToolchainResolverRegistry toolchainResolverRegistry,
             AdoptOpenJdkRemoteBinary openJdkBinary,
             SecureFileDownloader downloader,
             JdkCacheDirectory cacheDirProvider,
@@ -80,7 +80,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             BuildOperationExecutor executor,
             BuildPlatform buildPlatform
     ) {
-        this.toolchainRepositoryRegistry = (JavaToolchainRepositoryRegistryInternal) toolchainRepositoryRegistry;
+        this.toolchainResolverRegistry = (JavaToolchainResolverRegistryInternal) toolchainResolverRegistry;
         this.openJdkBinary = openJdkBinary;
         this.downloader = downloader;
         this.cacheDirProvider = cacheDirProvider;
@@ -94,7 +94,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             return Optional.empty();
         }
 
-        List<? extends ResolvedJavaToolchainRepository> repositories = toolchainRepositoryRegistry.requestedRepositories();
+        List<? extends RealizedJavaToolchainRepository> repositories = toolchainResolverRegistry.requestedRepositories();
 
         DefaultJavaToolchainRequest toolchainRequest = new DefaultJavaToolchainRequest(spec, buildPlatform);
         if (repositories.isEmpty()) {
@@ -109,7 +109,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                 return Optional.of(provisionInstallation(spec, uri.get(), Collections.emptyList()));
             }
         } else {
-            for (ResolvedJavaToolchainRepository request : repositories) {
+            for (RealizedJavaToolchainRepository request : repositories) {
                 Optional<URI> uri = request.getRepository().toUri(toolchainRequest);
                 if (uri.isPresent()) {
                     Collection<Authentication> authentications = request.getAuthentications(uri.get());

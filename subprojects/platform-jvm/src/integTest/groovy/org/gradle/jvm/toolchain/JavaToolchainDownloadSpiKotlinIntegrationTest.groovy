@@ -24,12 +24,12 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can inject custom toolchain registry via settings plugin"() {
         settingsKotlinFile << """
-            ${applyToolchainRegistryPlugin("CustomToolchainRegistry", customToolchainRegistryCode())}               
+            ${applyToolchainRegistryPlugin("CustomToolchainResolver", customToolchainRegistryCode())}               
             toolchainManagement {
                 jvm {
-                    resolvers {
-                        resolver("custom") {
-                            implementationClass.set(CustomToolchainRegistry::class.java)
+                    repositories {
+                        repository("custom") {
+                            implementationClass.set(CustomToolchainResolver::class.java)
                         }
                     }
                 }
@@ -73,11 +73,11 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
             abstract class ${className}Plugin: Plugin<Settings> {
    
                 @get:Inject
-                protected abstract val toolchainRepositoryRegistry: JavaToolchainRepositoryRegistry
+                protected abstract val toolchainResolverRegistry: JavaToolchainResolverRegistry
             
                 override fun apply(settings: Settings) {
                     settings.plugins.apply("jvm-toolchain-management")
-                    val registry: JavaToolchainRepositoryRegistry = toolchainRepositoryRegistry
+                    val registry: JavaToolchainResolverRegistry = toolchainResolverRegistry
                     registry.register(${className}::class.java)
                 }
                 
@@ -91,7 +91,7 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
 
     private static String customToolchainRegistryCode() {
         """
-            abstract class CustomToolchainRegistry: JavaToolchainRepository {
+            abstract class CustomToolchainResolver: JavaToolchainResolver {
                 override fun toUri(request: JavaToolchainRequest): Optional<URI> {
                     return Optional.of(URI.create("https://exoticJavaToolchain.com/java-" + request.getJavaToolchainSpec().getLanguageVersion().get()))
                 }

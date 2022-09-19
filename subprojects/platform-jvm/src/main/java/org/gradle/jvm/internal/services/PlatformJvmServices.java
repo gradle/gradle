@@ -33,11 +33,11 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry;
+import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRepositoryRegistry;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultJvmToolchainManagement;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
@@ -69,16 +69,16 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
             return objectFactory.newInstance(DefaultBuildPlatform.class, systemInfo, operatingSystem);
         }
 
-        protected DefaultJavaToolchainRepositoryRegistry createJavaToolchainRepositoryRegistry(
+        protected DefaultJavaToolchainResolverRegistry createJavaToolchainResolverRegistry(
                 Gradle gradle,
                 Instantiator instantiator,
                 ObjectFactory objectFactory,
                 ProviderFactory providerFactory,
                 AuthenticationSchemeRegistry authenticationSchemeRegistry) {
-            return objectFactory.newInstance(DefaultJavaToolchainRepositoryRegistry.class, gradle, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
+            return objectFactory.newInstance(DefaultJavaToolchainResolverRegistry.class, gradle, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
         }
 
-        protected DefaultJvmToolchainManagement createToolchainManagement(ObjectFactory objectFactory, JavaToolchainRepositoryRegistry registry) {
+        protected DefaultJvmToolchainManagement createToolchainManagement(ObjectFactory objectFactory, JavaToolchainResolverRegistry registry) {
             return objectFactory.newInstance(DefaultJvmToolchainManagement.class, registry);
         }
 

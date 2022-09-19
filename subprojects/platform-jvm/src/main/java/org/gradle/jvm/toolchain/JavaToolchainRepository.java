@@ -17,31 +17,34 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.services.BuildService;
-import org.gradle.api.services.BuildServiceParameters;
-
-import java.net.URI;
-import java.util.Optional;
+import org.gradle.api.artifacts.repositories.AuthenticationSupported;
+import org.gradle.api.provider.Property;
 
 /**
- * Interface that needs to be implemented by Toolchain SPI plugins, in order to
- * extend Gradle with the spec-to-URI logic required by Java toolchain auto-provisioning.
+ * Named configuration of {@link JavaToolchainResolver} implementations,
+ * identified by their implementation class.
+ * <p>
+ * The implementation class is the only mandatory property (it identifies
+ * the {@link JavaToolchainResolver} being configured; the name is arbitrary,
+ * chosen by the build author).
+ * <p>
+ * Authentication related configuration is optional.
  *
  * @since 7.6
  */
 @Incubating
-public interface JavaToolchainRepository extends BuildService<BuildServiceParameters.None> { //TODO (#21082): rename to JavaToolchainResolver
+public interface JavaToolchainRepository extends AuthenticationSupported {
 
     /**
-     * Returns the URI from which a Java Toolchain matching the provided specification
-     * can be downloaded. The URI must point to either a ZIP or a TAR archive file and
-     * has to be secure (so simple HTTP is not allowed, only HTTPS).
-     *
-     * @param request   information about the toolchain needed and the environment it's
-     *                  needed in
-     * @return          empty Optional if and only if the provided specification can't be
-     *                  matched
+     * Name of the configuration, set by the build author, can be anything, as long
+     * as it doesn't conflict with other repository names.
      */
-    Optional<URI> toUri(JavaToolchainRequest request);
+    String getName();
+
+    /**
+     * Class implementing the {@link JavaToolchainResolver} being configured.
+     * Mandatory property.
+     */
+    Property<Class<? extends JavaToolchainResolver>> getImplementationClass();
 
 }

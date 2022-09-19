@@ -17,11 +17,11 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.authentication.Authentication;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryResolver;
+import org.gradle.jvm.toolchain.JavaToolchainRepository;
 
 import java.util.Collection;
 
-public interface JavaToolchainRepositoryResolverInternal extends JavaToolchainRepositoryResolver {
+public interface JavaToolchainRepositoryInternal extends JavaToolchainRepository {
 
     Collection<Authentication> getConfiguredAuthentication();
 

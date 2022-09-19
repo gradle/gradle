@@ -1,9 +1,8 @@
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
-import org.gradle.jvm.toolchain.JavaToolchainRepository
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryRegistry
-import org.gradle.jvm.toolchain.JavaToolchainSpec
+import org.gradle.jvm.toolchain.JavaToolchainResolver
+import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry
 import java.net.URI
 import java.util.Optional
 import javax.inject.Inject
@@ -14,8 +13,8 @@ apply<AdoptiumPlugin>()
 // tag::toolchain-management[]
 toolchainManagement {
     jvm { // <1>
-        resolvers {
-            resolver("azul") { // <2>
+        repositories {
+            repository("azul") { // <2>
                 implementationClass.set(AzulRepo::class.java)
                 credentials {
                     username = "user"
@@ -25,7 +24,7 @@ toolchainManagement {
                     create<DigestAuthentication>("digest")
                 } // <3>
             }
-            resolver("adoptium") { // <4>
+            repository("adoptium") { // <4>
                 implementationClass.set(AdoptiumRepo::class.java)
             }
         }
@@ -51,27 +50,27 @@ abstract class AzulPlugin: DummyPlugin(AzulRepo::class)
 @Incubating
 abstract class AdoptiumPlugin: DummyPlugin(AdoptiumRepo::class)
 
-abstract class DummyPlugin(val repoClass: kotlin.reflect.KClass<out JavaToolchainRepository>): Plugin<Settings> {
+abstract class DummyPlugin(val resolverClass: kotlin.reflect.KClass<out JavaToolchainResolver>): Plugin<Settings> {
 
     @get:Inject
-    protected abstract val toolchainRepositoryRegistry: JavaToolchainRepositoryRegistry
+    protected abstract val toolchainResolverRegistry: JavaToolchainResolverRegistry
 
     override fun apply(settings: Settings) {
         settings.plugins.apply("jvm-toolchain-management")
 
-        val registry: JavaToolchainRepositoryRegistry = toolchainRepositoryRegistry
-        registry.register(repoClass.java)
+        val registry: JavaToolchainResolverRegistry = toolchainResolverRegistry
+        registry.register(resolverClass.java)
     }
 
 }
 
-abstract class AdoptiumRepo: JavaToolchainRepository {
+abstract class AdoptiumRepo: JavaToolchainResolver {
     override fun toUri(request: JavaToolchainRequest): Optional<URI> {
         return Optional.empty()
     }
 }
 
-abstract class AzulRepo: JavaToolchainRepository {
+abstract class AzulRepo: JavaToolchainResolver {
     override fun toUri(request: JavaToolchainRequest): Optional<URI> {
         return Optional.empty()
     }

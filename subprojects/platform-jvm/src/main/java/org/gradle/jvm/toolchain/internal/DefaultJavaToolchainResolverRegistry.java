@@ -28,9 +28,9 @@ import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.services.BuildServiceSpec;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.jvm.toolchain.JavaToolchainResolver;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryResolver;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryResolverHandler;
+import org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler;
 
 import javax.inject.Inject;
 import java.util.HashMap;
@@ -38,19 +38,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaToolchainRepositoryRegistryInternal {
+public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolchainResolverRegistryInternal {
 
     private static final Action<BuildServiceSpec<BuildServiceParameters.None>> EMPTY_CONFIGURE_ACTION = buildServiceSpec -> {
     };
 
     private final BuildServiceRegistry sharedServices;
 
-    private final DefaultJavaToolchainRepositoryResolverHandler resolvers;
+    private final DefaultJavaToolchainRepositoryHandler repositories;
 
-    private final Map<Class<? extends JavaToolchainRepository>, Provider<? extends JavaToolchainRepository>> registrations = new HashMap<>();
+    private final Map<Class<? extends JavaToolchainResolver>, Provider<? extends JavaToolchainResolver>> registrations = new HashMap<>();
 
     @Inject
-    public DefaultJavaToolchainRepositoryRegistry(
+    public DefaultJavaToolchainResolverRegistry(
             Gradle gradle,
             Instantiator instantiator,
             ObjectFactory objectFactory,
@@ -58,16 +58,16 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
             AuthenticationSchemeRegistry authenticationSchemeRegistry
     ) {
         this.sharedServices = gradle.getSharedServices();
-        this.resolvers = objectFactory.newInstance(DefaultJavaToolchainRepositoryResolverHandler.class, this, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
+        this.repositories = objectFactory.newInstance(DefaultJavaToolchainRepositoryHandler.class, this, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
     }
 
     @Override
-    public JavaToolchainRepositoryResolverHandler getResolvers() {
-        return resolvers;
+    public JavaToolchainRepositoryHandler getRepositories() {
+        return repositories;
     }
 
     @Override
-    public <T extends JavaToolchainRepository> void register(Class<T> implementationType) {
+    public <T extends JavaToolchainResolver> void register(Class<T> implementationType) {
         if (registrations.containsKey(implementationType)) {
             throw new GradleException("Duplicate registration for '" + implementationType.getName() + "'.");
         }
@@ -77,31 +77,31 @@ public abstract class DefaultJavaToolchainRepositoryRegistry implements JavaTool
     }
 
     @Override
-    public List<ResolvedJavaToolchainRepository> requestedRepositories() {
-        return resolvers.stream()
+    public List<RealizedJavaToolchainRepository> requestedRepositories() {
+        return repositories.stream()
                 .map(this::resolve)
                 .collect(Collectors.toList());
     }
 
-    private ResolvedJavaToolchainRepository resolve(JavaToolchainRepositoryResolver resolver) {
-        Class<? extends JavaToolchainRepository> repositoryClass = getRepositoryClass(resolver);
-        Provider<? extends JavaToolchainRepository> provider = findProvider(repositoryClass);
-        return new ResolvedJavaToolchainRepository(provider, (JavaToolchainRepositoryResolverInternal) resolver);
+    private RealizedJavaToolchainRepository resolve(JavaToolchainRepository repository) {
+        Class<? extends JavaToolchainResolver> repositoryClass = getResolverClass(repository);
+        Provider<? extends JavaToolchainResolver> provider = findProvider(repositoryClass);
+        return new RealizedJavaToolchainRepository(provider, (JavaToolchainRepositoryInternal) repository);
     }
 
-    private Provider<? extends JavaToolchainRepository> findProvider(Class<? extends JavaToolchainRepository> repositoryClass) {
-        Provider<? extends JavaToolchainRepository> provider = registrations.get(repositoryClass);
+    private Provider<? extends JavaToolchainResolver> findProvider(Class<? extends JavaToolchainResolver> repositoryClass) {
+        Provider<? extends JavaToolchainResolver> provider = registrations.get(repositoryClass);
         if (provider == null) {
             throw new GradleException("Class " + repositoryClass.getName() + " hasn't been registered as a Java toolchain repository");
         }
         return provider;
     }
 
-    private static Class<? extends JavaToolchainRepository> getRepositoryClass(JavaToolchainRepositoryResolver resolver) {
-        Property<Class<? extends JavaToolchainRepository>> implementationClassProperty = resolver.getImplementationClass();
+    private static Class<? extends JavaToolchainResolver> getResolverClass(JavaToolchainRepository repository) {
+        Property<Class<? extends JavaToolchainResolver>> implementationClassProperty = repository.getImplementationClass();
         implementationClassProperty.finalizeValueOnRead();
         if (!implementationClassProperty.isPresent()) {
-            throw new GradleException("Java toolchain repository `" + resolver.getName() + "` must have the `implementationClass` property set");
+            throw new GradleException("Java toolchain repository `" + repository.getName() + "` must have the `implementationClass` property set");
         }
         return implementationClassProperty.get();
     }

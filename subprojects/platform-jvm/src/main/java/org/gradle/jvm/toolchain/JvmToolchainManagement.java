@@ -22,8 +22,7 @@ import org.gradle.api.Incubating;
 /**
  * Dynamic extension added to <code>ToolchainManagement</code> at runtime, by the
  * <code>jvm-toolchain-management</code> plugin. Provides a <code>jvm</code> block to configure
- * the ordered list of <code>JavaToolchainRepository</code> implementations to use
- * for Java toolchain provisioning.
+ * the ordered list of Java toolchain repositories to use for auto-provisioning.
  *
  * @since 7.6
  */
@@ -35,17 +34,17 @@ public interface JvmToolchainManagement {
     /**
      * Returns the handler for the ordered list of configured <code>JavaToolchainRepository</code> implementations.
      */
-    JavaToolchainRepositoryResolverHandler getResolvers();
+    JavaToolchainRepositoryHandler getRepositories();
 
     /**
      * {@link org.gradle.api.NamedDomainObjectList} based handler for configuring an
-     * ordered collection of <code>JavaToolchainRepository</code> implementations:
+     * ordered collection of Java toolchain repositories:
      *
      * <pre class='autoTested'>
      * toolchainManagement {
      *     jvm {
-     *         resolvers {
-     *             resolver('registry1') {
+     *         repositories {
+     *             repository('registry1') {
      *                 implementationClass = CustomToolchainRegistry1    // TODO (#21082): in a groovy script does a fully qualified class name go here?
      *                 credentials {
      *                     username "user"
@@ -55,13 +54,13 @@ public interface JvmToolchainManagement {
      *                     digest(BasicAuthentication)
      *                 }
      *             }
-     *             resolver('registry2') {
+     *             repository('registry2') {
      *                 implementationClass = CustomToolchainRegistry2
      *             }
      *         }
      *     }
      * </pre>
      */
-    void resolvers(Action<? super JavaToolchainRepositoryResolverHandler> configureAction); //TODO (#21082): rename "resolvers" to "repositories"
+    void repositories(Action<? super JavaToolchainRepositoryHandler> configureAction);
 
 }
