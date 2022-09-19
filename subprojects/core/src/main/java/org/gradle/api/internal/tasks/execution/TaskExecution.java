@@ -354,25 +354,24 @@ public class TaskExecution implements UnitOfWork {
         if (!(cause instanceof UncheckedIOException || cause instanceof org.gradle.api.UncheckedIOException)) {
             return UncheckedException.throwAsUncheckedException(cause);
         }
-        LOGGER.info("Cannot access {} property '{}' of {}", propertyType, propertyName, getDisplayName(), cause);
         boolean isDestinationDir = propertyName.equals("destinationDir");
         DocumentedFailure.Builder builder = DocumentedFailure.builder();
         if (isDestinationDir && task instanceof Copy) {
-            builder.withSummary("Cannot access a file in the destination directory (see --info log for details).")
+            builder.withSummary("Cannot access a file in the destination directory.")
                 .withContext("Copying to a directory which contains unreadable content is not supported.")
                 .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
         } else if (isDestinationDir && task instanceof Sync) {
-            builder.withSummary("Cannot access a file in the destination directory (see --info log for details).")
+            builder.withSummary("Cannot access a file in the destination directory.")
                 .withContext("Syncing to a directory which contains unreadable content is not supported.")
                 .withAdvice("Use a Copy task with Task.doNotTrackState() instead.");
         } else {
-            builder.withSummary(String.format("Cannot access %s property '%s' of %s (see --info log for details).",
+            builder.withSummary(String.format("Cannot access %s property '%s' of %s.",
                     propertyType, propertyName, getDisplayName()))
                 .withContext("Accessing unreadable inputs or outputs is not supported.")
                 .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
         }
         return builder.withUserManual("more_about_tasks", "disable-state-tracking")
-            .build();
+            .build(cause);
     }
 
     @Override
