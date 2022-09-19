@@ -1,7 +1,14 @@
 
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release includes [building and running code with Java 19](#java19),
+a flag to [rerun tasks individually](#individual-rerun),
+and a new [strongly-typed dependencies block](#strongly-typed-dependencies) for JVM test suites.
+
+There are also enhancements to the [configuration cache](#configuration) and
+[incremental compilation](#incremental-compilation-after-failure).
+
+The Kotlin DSL now supports [named dependency arguments](#named-kotlin-dsl-dependency-arguments) for external dependencies.
 
 <!--
 Include only their name, impactful features should be called out separately below.
@@ -85,6 +92,7 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 <a name="developer-productivity"></a>
 ### Developer Productivity
 
+<a name="incremental-compilation-after-failure"></a>
 #### Added support for incremental compilation following a compilation failure
 
 Gradle supports [Java incremental compilation](userguide/java_plugin.html#sec:incremental_compile)
@@ -97,6 +105,7 @@ Starting in Gradle 7.6, Java and Groovy incremental compilation can work even af
 This feature is enabled by default when incremental compilation is enabled.
 The feature can be disabled with the [`incrementalAfterFailure`](javadoc/org/gradle/api/tasks/compile/CompileOptions.html#getIncrementalAfterFailure--) compile option.
 
+<a name="init"></a>
 #### Relocated convention plugins in projects generated with `init`
 
 > 🐣 *This feature is incubating*.
@@ -139,6 +148,7 @@ networkTimeout=30000
 
 For more information about the Gradle wrapper, see [Gradle Wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper).
 
+<a name="individual-rerun"></a>
 #### Introduced flag for individual task `rerun` 
 
 All tasks can now use the `--rerun` option. This option works like `--rerun-tasks`,
@@ -264,9 +274,11 @@ Related issues:
 
 [Support "Zulu OpenJDK Discovery API" for auto provisioning toolchains gradle#19140](https://github.com/gradle/gradle/issues/19140)
 
+<a name="plugin-publish"></a>
 #### Enhanced the plugin declaration DSL for the java-gradle-plugin
 
-The recently released [version 1.0.0 of the Plugin-Publish plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish/1.0.0) significantly improves the plugin publishing process through stronger opinions and a more straightforward configuration.
+The recently released [version 1.0.0 of the Plugin-Publish plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish/1.0.0)
+significantly improves the plugin publishing process through stronger opinions and more straightforward configuration.
 
 This release includes updates to the `java-gradle-plugin` documentation.
 The enhanced documentation describes the Maven publications generated when
@@ -277,10 +289,12 @@ For more information, see enhanced Gradle for [Plugin Publish Plugin v1.0.0 grad
 <a name="jvm"></a>
 ### JVM
 
+<a name="java19"></a>
 #### Added Support for Java 19
 
 Gradle 7.6 supports compiling, testing and running on Java 19.
 
+<a name="named-kotlin-dsl-dependency-arguments"></a>
 #### Introduced named dependency arguments in the Kotlin DSL for external dependencies
 
 
@@ -302,6 +316,7 @@ testing {
 }
 ```
 
+<a name="strongly-typed-dependencies"></a>
 #### Introduced strongly-typed `dependencies` block for JVM test suites
 
 The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block
@@ -411,6 +426,7 @@ Gradle 7.6 introduces new failure types for the `Failure` interface returned by
 IDEs can now distinguish between assertion and framework failures using progress event listeners.
 For test frameworks that expose expected and actual values, `TestAssertionFailure` contains those values.
 
+<a name="testlauncher"></a>
 #### Introduced `TestLauncher` task execution 
 
 The [`TestLauncher`](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients
@@ -440,6 +456,7 @@ testLauncher.withTestsFor(spec -> {
 }).run();
 ```
 
+<a name="pass-system-properties-to-build"></a>
 #### Added support for passing system properties to the build with the Tooling API
 
 Before 7.6, the Tooling API started builds with the system properties from the host JVM. This leaked configuration from the IDE to the build.
