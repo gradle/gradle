@@ -309,15 +309,19 @@ public class TaskExecution implements UnitOfWork {
             // SkipWhenEmpty implies incremental.
             // If this file property is empty, then we clean up the previously generated outputs.
             // That means that there is a very close relation between the file property and the output.
-            visitor.visitInputFileProperty(
-                inputFileProperty.getPropertyName(),
-                inputFileProperty.getBehavior(),
-                new InputFileValueSupplier(
-                    inputFileProperty.getValue(),
-                    inputFileProperty.getNormalizer(),
-                    inputFileProperty.getDirectorySensitivity(),
-                    inputFileProperty.getLineEndingNormalization(),
-                    inputFileProperty::getPropertyFiles));
+            try {
+                visitor.visitInputFileProperty(
+                    inputFileProperty.getPropertyName(),
+                    inputFileProperty.getBehavior(),
+                    new InputFileValueSupplier(
+                        inputFileProperty.getValue(),
+                        inputFileProperty.getNormalizer(),
+                        inputFileProperty.getDirectorySensitivity(),
+                        inputFileProperty.getLineEndingNormalization(),
+                        inputFileProperty::getPropertyFiles));
+            } catch (InputFingerprinter.InputFileFingerprintingException e) {
+                throw decorateSnapshottingException("input", e.getPropertyName(), e.getCause());
+            }
         }
     }
 
@@ -327,11 +331,15 @@ public class TaskExecution implements UnitOfWork {
         for (OutputFilePropertySpec property : taskProperties.getOutputFileProperties()) {
             File outputFile = property.getOutputFile();
             if (outputFile != null) {
-                visitor.visitOutputProperty(
-                    property.getPropertyName(),
-                    property.getOutputType(),
-                    new OutputFileValueSupplier(outputFile, property.getPropertyFiles())
-                );
+                try {
+                    visitor.visitOutputProperty(
+                        property.getPropertyName(),
+                        property.getOutputType(),
+                        new OutputFileValueSupplier(outputFile, property.getPropertyFiles())
+                    );
+                } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
+                    throw decorateSnapshottingException("output", e.getPropertyName(), e.getCause());
+                }
             }
         }
         for (File localStateRoot : taskProperties.getLocalStateFiles()) {
@@ -340,16 +348,6 @@ public class TaskExecution implements UnitOfWork {
         for (File destroyableRoot : taskProperties.getDestroyableFiles()) {
             visitor.visitDestroyable(destroyableRoot);
         }
-    }
-
-    @Override
-    public RuntimeException decorateInputFileFingerprintingException(InputFingerprinter.InputFileFingerprintingException ex) {
-        return decorateSnapshottingException("input", ex.getPropertyName(), ex.getCause());
-    }
-
-    @Override
-    public RuntimeException decorateOutputFileSnapshottingException(OutputSnapshotter.OutputFileSnapshottingException ex) {
-        return decorateSnapshottingException("output", ex.getPropertyName(), ex.getCause());
     }
 
     private RuntimeException decorateSnapshottingException(String propertyType, String propertyName, Throwable cause) {
