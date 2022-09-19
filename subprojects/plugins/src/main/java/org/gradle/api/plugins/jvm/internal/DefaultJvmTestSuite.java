@@ -339,7 +339,9 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
      * @return the classpath to search, as a {@link Configuration}
      */
     private Configuration getClasspathToSearchForGroovyRuntime() {
-        return getConfigurations().detachedConfiguration(dependencies.project());
+        Configuration projectOnly = getConfigurations().detachedConfiguration(dependencies.project());
+        projectOnly.setDescription("For resolving the Groovy runtime jar for Spock");
+        return projectOnly;
     }
 
     @Override
