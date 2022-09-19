@@ -16,6 +16,8 @@
 
 package org.gradle.execution.plan;
 
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.SetMultimap;
 import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.NonNullApi;
@@ -107,6 +109,13 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         this.continueOnFailure = continueOnFailure;
         this.contents = contents;
         this.completionHandler = completionHandler;
+
+        SetMultimap<FinalizerGroup, FinalizerGroup> reachableGroups = LinkedHashMultimap.create();
+        for (Node node : scheduledNodes) {
+            if (node.getFinalizerGroup() != null) {
+                node.getFinalizerGroup().scheduleMembers(reachableGroups);
+            }
+        }
 
         for (int i = 0; i < scheduledNodes.size(); i++) {
             Node node = scheduledNodes.get(i);
