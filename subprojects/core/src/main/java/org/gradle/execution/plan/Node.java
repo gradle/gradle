@@ -155,11 +155,11 @@ public abstract class Node {
     }
 
     /**
-     * Maybe update the group for this node when it is a finalizer for the given node.
+     * Maybe update the group for this node when it is a dependency of one or more finalizers.
      *
      * <p>When this method is called, the group of each node that depends on this node has been updated.</p>
      */
-    public void updateGroupOfFinalizer() {
+    public void maybeInheritFinalizerGroups() {
         NodeGroup newGroup = group;
         for (Node predecessor : getDependencyPredecessors()) {
             if (predecessor.getGroup() instanceof HasFinalizers) {
@@ -291,6 +291,12 @@ public abstract class Node {
     public void startExecution(Consumer<Node> nodeStartAction) {
         assert state == ExecutionState.SHOULD_RUN && allDependenciesComplete() && allDependenciesSuccessful();
         state = ExecutionState.EXECUTING;
+        Set<Node> finalizers = getFinalizers();
+        if (!finalizers.isEmpty()) {
+            for (Node finalizer : finalizers) {
+                finalizer.getGroup().onNodeStart(finalizer, this);
+            }
+        }
         nodeStartAction.accept(this);
     }
 
@@ -378,10 +384,6 @@ public abstract class Node {
 
     public Set<Node> getDependencySuccessors() {
         return dependencyNodes.getDependencySuccessors();
-    }
-
-    public Iterable<Node> getDependencySuccessorsInReverseOrder() {
-        return dependencyNodes.getDependencySuccessors().descendingSet();
     }
 
     public void addDependencySuccessor(Node toNode) {
@@ -539,11 +541,6 @@ public abstract class Node {
     @OverridingMethodsMustInvokeSuper
     public Iterable<Node> getHardSuccessors() {
         return dependencyNodes.getDependencySuccessors();
-    }
-
-    @OverridingMethodsMustInvokeSuper
-    public Iterable<Node> getAllSuccessorsInReverseOrder() {
-        return dependencyNodes.getDependencySuccessors().descendingSet();
     }
 
     public SortedSet<Node> getFinalizers() {
