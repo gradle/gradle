@@ -28,10 +28,6 @@ public interface BuildPlatform {
 
     OperatingSystem getOperatingSystem();
 
-    String getOperatingSystemName();
-
     Architecture getArchitecture();
-
-    String getArchitectureName();
 
 }

@@ -17,6 +17,7 @@
 package org.gradle.platform.internal;
 
 import net.rubygrapefruit.platform.SystemInfo;
+import org.gradle.api.GradleException;
 import org.gradle.platform.Architecture;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.platform.OperatingSystem;
@@ -37,29 +38,27 @@ public class DefaultBuildPlatform implements BuildPlatform {
 
     @Override
     public OperatingSystem getOperatingSystem() {
-        if (operatingSystem.isWindows()) {
-            return OperatingSystem.WINDOWS;
-        } else if (operatingSystem.isMacOsX()) {
-            return OperatingSystem.MAC_OS;
-        } else if (operatingSystem.isLinux()) {
+        if (org.gradle.internal.os.OperatingSystem.LINUX == operatingSystem) {
             return OperatingSystem.LINUX;
-        } else if (operatingSystem.isUnix()) {
-            if (operatingSystem.getFamilyName().toLowerCase().contains("solaris")) {
-                return OperatingSystem.SOLARIS;
-            }
+        } else if (org.gradle.internal.os.OperatingSystem.UNIX == operatingSystem) {
             return OperatingSystem.UNIX;
+        } else if (org.gradle.internal.os.OperatingSystem.WINDOWS == operatingSystem) {
+            return OperatingSystem.WINDOWS;
+        } else if (org.gradle.internal.os.OperatingSystem.MAC_OS == operatingSystem) {
+            return OperatingSystem.MAC_OS;
+        } else  if (org.gradle.internal.os.OperatingSystem.SOLARIS == operatingSystem) {
+            return OperatingSystem.SOLARIS;
+        } else if (org.gradle.internal.os.OperatingSystem.FREE_BSD == operatingSystem) {
+            return OperatingSystem.FREE_BSD;
+        } else {
+            throw new GradleException("Unhandled operating system: " + operatingSystem.getName());
         }
-        return OperatingSystem.OTHER;
-    }
-
-    @Override
-    public String getOperatingSystemName() {
-        return operatingSystem.getFamilyName();
     }
 
     @Override
     public Architecture getArchitecture() {
-        switch (systemInfo.getArchitecture()) {
+        SystemInfo.Architecture architecture = systemInfo.getArchitecture();
+        switch (architecture) {
             case i386:
                 return Architecture.I386;
             case amd64:
@@ -67,11 +66,6 @@ public class DefaultBuildPlatform implements BuildPlatform {
             case aarch64:
                 return Architecture.AARCH64;
         }
-        return Architecture.OTHER;
-    }
-
-    @Override
-    public String getArchitectureName() {
-        return systemInfo.getArchitectureName();
+        throw new GradleException("Unhandled system architecture: " + architecture);
     }
 }
