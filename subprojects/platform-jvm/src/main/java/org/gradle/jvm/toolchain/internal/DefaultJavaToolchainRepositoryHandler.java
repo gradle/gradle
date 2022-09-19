@@ -28,16 +28,16 @@ import org.gradle.authentication.Authentication;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationContainer;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryResolver;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryResolverHandler;
+import org.gradle.jvm.toolchain.JavaToolchainRepository;
+import org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler;
 
 import javax.inject.Inject;
 import java.util.Map;
 
-public class DefaultJavaToolchainRepositoryResolverHandler extends DefaultNamedDomainObjectList<JavaToolchainRepositoryResolver>
-        implements JavaToolchainRepositoryResolverHandler {
+public class DefaultJavaToolchainRepositoryHandler extends DefaultNamedDomainObjectList<JavaToolchainRepository>
+        implements JavaToolchainRepositoryHandler {
 
-    private final JavaToolchainRepositoryRegistryInternal registry;
+    private final JavaToolchainResolverRegistryInternal registry;
 
     private final Instantiator instantiator;
 
@@ -48,14 +48,14 @@ public class DefaultJavaToolchainRepositoryResolverHandler extends DefaultNamedD
     private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
 
     @Inject
-    public DefaultJavaToolchainRepositoryResolverHandler(
-            JavaToolchainRepositoryRegistryInternal registry,
+    public DefaultJavaToolchainRepositoryHandler(
+            JavaToolchainResolverRegistryInternal registry,
             Instantiator instantiator,
             ObjectFactory objectFactory,
             ProviderFactory providerFactory,
             AuthenticationSchemeRegistry authenticationSchemeRegistry
     ) {
-        super(JavaToolchainRepositoryResolver.class, instantiator, new ResolverNamer(), CollectionCallbackActionDecorator.NOOP);
+        super(JavaToolchainRepository.class, instantiator, new RepositoryNamer(), CollectionCallbackActionDecorator.NOOP);
         this.registry = registry;
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
@@ -63,32 +63,32 @@ public class DefaultJavaToolchainRepositoryResolverHandler extends DefaultNamedD
         this.authenticationSchemeRegistry = authenticationSchemeRegistry;
     }
 
-    private static class ResolverNamer implements Namer<JavaToolchainRepositoryResolver> {
+    private static class RepositoryNamer implements Namer<JavaToolchainRepository> {
         @Override
-        public String determineName(JavaToolchainRepositoryResolver resolver) {
-            return resolver.getName();
+        public String determineName(JavaToolchainRepository repository) {
+            return repository.getName();
         }
     }
 
     @Override
-    public void resolver(String name, Action<? super JavaToolchainRepositoryResolver> configureAction) {
+    public void repository(String name, Action<? super JavaToolchainRepository> configureAction) {
         DefaultAuthenticationContainer authenticationContainer = new DefaultAuthenticationContainer(instantiator, CollectionCallbackActionDecorator.NOOP);
         for (Map.Entry<Class<Authentication>, Class<? extends Authentication>> e : authenticationSchemeRegistry.getRegisteredSchemes().entrySet()) {
             authenticationContainer.registerBinding(e.getKey(), e.getValue());
         }
         AuthenticationSupporter authenticationSupporter = new AuthenticationSupporter(instantiator, objectFactory, authenticationContainer, providerFactory);
 
-        DefaultJavaToolchainRepositoryResolver resolver = objectFactory.newInstance(DefaultJavaToolchainRepositoryResolver.class, name, authenticationContainer, authenticationSupporter, providerFactory);
-        configureAction.execute(resolver);
+        DefaultJavaToolchainRepository repository = objectFactory.newInstance(DefaultJavaToolchainRepository.class, name, authenticationContainer, authenticationSupporter, providerFactory);
+        configureAction.execute(repository);
 
-        boolean isNew = registry.getResolvers().add(resolver);
+        boolean isNew = registry.getRepositories().add(repository);
         if (!isNew) {
-            throw new GradleException("Duplicate configuration for resolver '" + name + "'.");
+            throw new GradleException("Duplicate configuration for repository '" + name + "'.");
         }
     }
 
     @Override
     public String getTypeDisplayName() {
-        return "resolver";
+        return "repository";
     }
 }

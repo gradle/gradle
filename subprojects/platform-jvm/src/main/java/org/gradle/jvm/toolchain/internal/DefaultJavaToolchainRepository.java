@@ -24,12 +24,12 @@ import org.gradle.api.internal.artifacts.repositories.AuthenticationSupporter;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
-import org.gradle.jvm.toolchain.JavaToolchainRepository;
+import org.gradle.jvm.toolchain.JavaToolchainResolver;
 
 import javax.inject.Inject;
 import java.util.Collection;
 
-public abstract class DefaultJavaToolchainRepositoryResolver implements JavaToolchainRepositoryResolverInternal {
+public abstract class DefaultJavaToolchainRepository implements JavaToolchainRepositoryInternal {
 
     private final String name;
 
@@ -40,7 +40,7 @@ public abstract class DefaultJavaToolchainRepositoryResolver implements JavaTool
     private final ProviderFactory providerFactory;
 
     @Inject
-    public DefaultJavaToolchainRepositoryResolver(
+    public DefaultJavaToolchainRepository(
             String name,
             AuthenticationContainer authenticationContainer,
             AuthenticationSupporter authenticationSupporter,
@@ -57,7 +57,7 @@ public abstract class DefaultJavaToolchainRepositoryResolver implements JavaTool
         return name;
     }
 
-    public abstract Property<Class<? extends JavaToolchainRepository>> getImplementationClass();
+    public abstract Property<Class<? extends JavaToolchainResolver>> getImplementationClass();
 
     @Override
     public Collection<Authentication> getConfiguredAuthentication() {

@@ -27,12 +27,12 @@ import org.gradle.api.NamedDomainObjectList;
  * @since 7.6
  */
 @Incubating
-public interface JavaToolchainRepositoryResolverHandler extends NamedDomainObjectList<JavaToolchainRepositoryResolver> {
+public interface JavaToolchainRepositoryHandler extends NamedDomainObjectList<JavaToolchainRepository> {
 
     /**
-     * Utility method for creating a named {@link JavaToolchainRepositoryResolver} based on
+     * Utility method for creating a named {@link JavaToolchainRepository} based on
      * a configuration block.
      */
-    void resolver(String name, Action<? super JavaToolchainRepositoryResolver> configureAction);
+    void repository(String name, Action<? super JavaToolchainRepository> configureAction);
 
 }

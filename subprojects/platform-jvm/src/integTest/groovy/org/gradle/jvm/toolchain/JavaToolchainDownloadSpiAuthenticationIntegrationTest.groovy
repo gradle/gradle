@@ -42,12 +42,12 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can download without authentication"() {
         settingsFile << """
-            ${applyToolchainRegistryPlugin("CustomToolchainRegistry", customToolchainRegistryCode(archiveUri))}               
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode(archiveUri))}               
             toolchainManagement {
                 jvm {
-                    resolvers {
-                        resolver('custom') {
-                            implementationClass = CustomToolchainRegistry
+                    repositories {
+                        repository('custom') {
+                            implementationClass = CustomToolchainResolver
                         }
                     }
                 }
@@ -88,12 +88,12 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can download with basic authentication"() {
         settingsFile << """
-            ${applyToolchainRegistryPlugin("CustomToolchainRegistry", customToolchainRegistryCode(archiveUri))}
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode(archiveUri))}
             toolchainManagement {
                 jvm {
-                    resolvers {
-                        resolver('custom') {
-                            implementationClass = CustomToolchainRegistry
+                    repositories {
+                        repository('custom') {
+                            implementationClass = CustomToolchainResolver
                             credentials {
                                 username "user"
                                 password "password"
@@ -138,12 +138,12 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
                 .assertHasCause("Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed.")
     }
 
-    private static String customToolchainRegistryCode(String uri) {
+    private static String customToolchainResolverCode(String uri) {
         """
             import java.util.Optional;
             import org.gradle.platform.BuildPlatform;
 
-            public abstract class CustomToolchainRegistry implements JavaToolchainRepository {
+            public abstract class CustomToolchainResolver implements JavaToolchainResolver {
                 @Override
                 public Optional<URI> toUri(JavaToolchainRequest request) {
                     return Optional.of(URI.create("$uri"));

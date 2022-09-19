@@ -7,8 +7,8 @@ apply plugin: AdoptiumPlugin
 // tag::toolchain-management[]
 toolchainManagement {
     jvm { // <1>
-        resolvers {
-            resolver('azul') { // <2>
+        repositories {
+            repository('azul') { // <2>
                 implementationClass = AzulRepo
                 credentials {
                     username "user"
@@ -18,7 +18,7 @@ toolchainManagement {
                     digest(BasicAuthentication)
                 } // <3>
             }
-            resolver('adoptium') { // <4>
+            repository('adoptium') { // <4>
                 implementationClass = AdoptiumRepo
             }
         }
@@ -44,31 +44,31 @@ abstract class AdoptiumPlugin extends DummyPlugin {
 
 abstract class DummyPlugin implements Plugin<Settings> {
 
-    private final Class<JavaToolchainRepository> repositoryClass;
+    private final Class<JavaToolchainResolver> resolverClass;
 
     @Inject
-    protected abstract JavaToolchainRepositoryRegistry getToolchainRepositoryRegistry();
+    protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
 
-    DummyPlugin(Class<JavaToolchainRepository> repositoryClass) {
-        this.repositoryClass = repositoryClass
+    DummyPlugin(Class<JavaToolchainResolver> resolverClass) {
+        this.resolverClass = resolverClass
     }
 
     void apply(Settings settings) {
         settings.getPlugins().apply("jvm-toolchain-management");
 
-        JavaToolchainRepositoryRegistry registry = getToolchainRepositoryRegistry();
-        registry.register(repositoryClass)
+        JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
+        registry.register(resolverClass)
     }
 }
 
-abstract class AzulRepo implements JavaToolchainRepository {
+abstract class AzulRepo implements JavaToolchainResolver {
     @Override
     Optional<URI> toUri(JavaToolchainRequest request) {
         return Optional.empty();
     }
 }
 
-abstract class AdoptiumRepo implements JavaToolchainRepository {
+abstract class AdoptiumRepo implements JavaToolchainResolver {
     @Override
     Optional<URI> toUri(JavaToolchainRequest request) {
         return Optional.empty();

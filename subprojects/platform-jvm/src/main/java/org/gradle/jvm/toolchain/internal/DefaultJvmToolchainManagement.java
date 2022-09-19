@@ -18,28 +18,28 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.plugins.ExtensionAware;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryResolverHandler;
+import org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler;
 import org.gradle.jvm.toolchain.JvmToolchainManagement;
 
 import javax.inject.Inject;
 
 public abstract class DefaultJvmToolchainManagement implements JvmToolchainManagement, ExtensionAware {
 
-    private final JavaToolchainRepositoryRegistryInternal registry;
+    private final JavaToolchainResolverRegistryInternal registry;
 
     @Inject
-    public DefaultJvmToolchainManagement(JavaToolchainRepositoryRegistryInternal registry) {
+    public DefaultJvmToolchainManagement(JavaToolchainResolverRegistryInternal registry) {
         this.registry = registry;
     }
 
     @Override
-    public JavaToolchainRepositoryResolverHandler getResolvers() {
-        return registry.getResolvers();
+    public JavaToolchainRepositoryHandler getRepositories() {
+        return registry.getRepositories();
     }
 
     @Override
-    public void resolvers(Action<? super JavaToolchainRepositoryResolverHandler> configureAction) {
-        configureAction.execute(getResolvers());
+    public void repositories(Action<? super JavaToolchainRepositoryHandler> configureAction) {
+        configureAction.execute(getRepositories());
     }
 
 }

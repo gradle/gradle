@@ -12,23 +12,23 @@ Code examples will be provided in Java, but plugin authors should feel free to u
 
 == Core logic
 The main thing toolchain repository plugins need to provide is the logic of mapping a toolchain request to a download URI.
-They do this by implementing link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainRepository.html[JavaToolchainRepository]:
+They do this by implementing link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainResolver.html[JavaToolchainResolver]:
 
 [source, java]
 ----
-public abstract class JavaToolchainRepositoryImplementation implements JavaToolchainRepository { // <1>
+public abstract class JavaToolchainResolverImplementation implements JavaToolchainResolver { // <1>
 
     public Optional<URI> toUri(JavaToolchainRequest request) { // <2>
         // custom mapping logic goes here
     }
 }
 ----
-<1> The implementation needs to be `abstract` because `JavaToolchainRepository` is a <<build_services.adoc#build_services,build service>> and those do have abstract methods with dynamic implementations provided by Gradle at runtime.
+<1> The implementation needs to be `abstract` because `JavaToolchainResolver` is a <<build_services.adoc#build_services,build service>> and those do have abstract methods with dynamic implementations provided by Gradle at runtime.
 <2> The mapping method returns a `URI` wrapped in an `Optional`, which is empty if, and only if, this repository implementation can't provide a download link for the requested toolchain.
 
 == Plugin application
 
-To wire the `JavaToolchainRepository` implementation into Gradle a settings plugin is needed (`Plugin<Settings>`):
+To wire the `JavaToolchainResolver` implementation into Gradle a settings plugin is needed (`Plugin<Settings>`):
 
 [source, java]
 ----

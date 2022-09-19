@@ -21,20 +21,20 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * The build level object/service provided by Gradle which Java Toolchain Provisioning SPI plugins can access
- * and register their <code>JavaToolchainRepository</code> implementations/build services into.
+ * and register their <code>JavaToolchainResolver</code> implementations/build services into.
  *
  * @since 7.6
  */
 @Incubating
 @HasInternalProtocol
-public interface JavaToolchainRepositoryRegistry { //TODO (#21082): rename to JavaToolchainResolverRegistry
+public interface JavaToolchainResolverRegistry {
 
     /**
-     * Registers a <code>JavaToolchainRepository</code> implementation. The class name should be properly
-     * name-spaced, to avoid collisions (if another repository class with the same fully qualified name
+     * Registers a <code>JavaToolchainResolver</code> implementation. The class name should be properly
+     * name-spaced, to avoid collisions (if another resolver class with the same fully qualified name
      * is registered, a <code>GradleException</code> will be thrown).
      */
-    <T extends JavaToolchainRepository> void register(Class<T> implementationType);
+    <T extends JavaToolchainResolver> void register(Class<T> implementationType);
 
     //TODO (#21082): update design docs about the registration API change
 }

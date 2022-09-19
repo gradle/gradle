@@ -27,7 +27,7 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.gradle.jvm.toolchain.internal.JavaToolchainRepositoryRegistryInternal
+import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal
 import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
@@ -45,7 +45,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
     public File temporaryFolder
 
     def binary = Mock(AdoptOpenJdkRemoteBinary)
-    def registry = Mock(JavaToolchainRepositoryRegistryInternal)
+    def registry = Mock(JavaToolchainResolverRegistryInternal)
     def downloader = Mock(SecureFileDownloader)
     def cache = Mock(JdkCacheDirectory)
     def archiveFileLock = Mock(FileLock)

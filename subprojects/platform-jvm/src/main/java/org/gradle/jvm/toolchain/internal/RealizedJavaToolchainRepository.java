@@ -19,30 +19,30 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.api.provider.Provider;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
-import org.gradle.jvm.toolchain.JavaToolchainRepository;
+import org.gradle.jvm.toolchain.JavaToolchainResolver;
 
 import javax.inject.Inject;
 import java.net.URI;
 import java.util.Collection;
 
-public class ResolvedJavaToolchainRepository {
+public class RealizedJavaToolchainRepository {
 
-    private final Provider<? extends JavaToolchainRepository> repositoryProvider;
+    private final Provider<? extends JavaToolchainResolver> resolverProvider;
 
-    private final JavaToolchainRepositoryResolverInternal resolver;
+    private final JavaToolchainRepositoryInternal repository;
 
     @Inject
-    public ResolvedJavaToolchainRepository(Provider<? extends JavaToolchainRepository> repositoryProvider, JavaToolchainRepositoryResolverInternal resolver) {
-        this.repositoryProvider = repositoryProvider;
-        this.resolver = resolver;
+    public RealizedJavaToolchainRepository(Provider<? extends JavaToolchainResolver> resolverProvider, JavaToolchainRepositoryInternal repository) {
+        this.resolverProvider = resolverProvider;
+        this.repository = repository;
     }
 
-    public JavaToolchainRepository getRepository() {
-        return repositoryProvider.get();
+    public JavaToolchainResolver getRepository() {
+        return resolverProvider.get();
     }
 
     public Collection<Authentication> getAuthentications(URI uri) {
-        Collection<Authentication> configuredAuthentication = resolver.getConfiguredAuthentication();
+        Collection<Authentication> configuredAuthentication = repository.getConfiguredAuthentication();
 
         for (Authentication authentication : configuredAuthentication) {
             AuthenticationInternal authenticationInternal = (AuthenticationInternal) authentication;
