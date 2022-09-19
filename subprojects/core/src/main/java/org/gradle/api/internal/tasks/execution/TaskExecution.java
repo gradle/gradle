@@ -320,7 +320,7 @@ public class TaskExecution implements UnitOfWork {
                         inputFileProperty.getLineEndingNormalization(),
                         inputFileProperty::getPropertyFiles));
             } catch (InputFingerprinter.InputFileFingerprintingException e) {
-                throw decorateSnapshottingException("input", e.getPropertyName(), e.getCause());
+                throw decorateSnapshottingException("input", inputFileProperty.getPropertyName(), e.getCause());
             }
         }
     }
@@ -338,7 +338,7 @@ public class TaskExecution implements UnitOfWork {
                         new OutputFileValueSupplier(outputFile, property.getPropertyFiles())
                     );
                 } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
-                    throw decorateSnapshottingException("output", e.getPropertyName(), e.getCause());
+                    throw decorateSnapshottingException("output", property.getPropertyName(), e.getCause());
                 }
             }
         }
