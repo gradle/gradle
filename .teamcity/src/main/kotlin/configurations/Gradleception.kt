@@ -5,6 +5,7 @@ import common.customGradle
 import common.dependsOn
 import common.gradleWrapper
 import common.requiresNoEc2Agent
+import common.skipConditionally
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
@@ -100,4 +101,5 @@ fun BuildSteps.localGradle(init: GradleBuildStep.() -> Unit): GradleBuildStep =
     customGradle(init) {
         param("ui.gradleRunner.gradle.wrapper.useWrapper", "false")
         buildFile = ""
+        skipConditionally()
     }
