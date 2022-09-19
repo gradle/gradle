@@ -14,17 +14,21 @@ apply<AdoptiumPlugin>()
 // tag::toolchain-management[]
 toolchainManagement {
     jdks { // <1>
-        add("com_azul_zulu") // <2>
-            {
+        resolvers {
+            resolver("azul") { // <2>
+                implementationClass.set(AzulRepo::class.java)
                 credentials {
                     username = "user"
                     password = "password"
                 }
                 authentication {
                     create<DigestAuthentication>("digest")
-                }
-            } // <3>
-        add("org_gradle_adopt_open_jdk") // <4>
+                } // <3>
+            }
+            resolver("adoptium") { // <4>
+                implementationClass.set(AdoptiumRepo::class.java)
+            }
+        }
     }
 }
 // end::toolchain-management[]
@@ -37,7 +41,7 @@ rootProject.name = "toolchain-management"
  * @since 7.6
  */
 @Incubating
-abstract class AzulPlugin: DummyPlugin("com_azul_zulu")
+abstract class AzulPlugin: DummyPlugin(AzulRepo::class)
 
 /**
  * Mock Adoptium repository plugin.
@@ -45,9 +49,9 @@ abstract class AzulPlugin: DummyPlugin("com_azul_zulu")
  * @since 7.6
  */
 @Incubating
-abstract class AdoptiumPlugin: DummyPlugin("org_gradle_adopt_open_jdk")
+abstract class AdoptiumPlugin: DummyPlugin(AdoptiumRepo::class)
 
-abstract class DummyPlugin(val repoName: String): Plugin<Settings> {
+abstract class DummyPlugin(val repoClass: kotlin.reflect.KClass<out JavaToolchainRepository>): Plugin<Settings> {
 
     @get:Inject
     protected abstract val toolchainRepositoryRegistry: JavaToolchainRepositoryRegistry
@@ -56,12 +60,18 @@ abstract class DummyPlugin(val repoName: String): Plugin<Settings> {
         settings.plugins.apply("jvm-toolchains")
 
         val registry: JavaToolchainRepositoryRegistry = toolchainRepositoryRegistry
-        registry.register(repoName, DummyRepo::class.java)
+        registry.register(repoClass.java)
     }
 
 }
 
-abstract class DummyRepo: JavaToolchainRepository {
+abstract class AdoptiumRepo: JavaToolchainRepository {
+    override fun toUri(request: JavaToolchainRequest): Optional<URI> {
+        return Optional.empty()
+    }
+}
+
+abstract class AzulRepo: JavaToolchainRepository {
     override fun toUri(request: JavaToolchainRequest): Optional<URI> {
         return Optional.empty()
     }

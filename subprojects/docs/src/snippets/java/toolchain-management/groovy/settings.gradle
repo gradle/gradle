@@ -7,17 +7,21 @@ apply plugin: AdoptiumPlugin
 // tag::toolchain-management[]
 toolchainManagement {
     jdks { // <1>
-        add("com_azul_zulu") // <2>
-            {
+        resolvers {
+            resolver('azul') { // <2>
+                implementationClass = AzulRepo
                 credentials {
                     username "user"
                     password "password"
                 }
                 authentication {
                     digest(BasicAuthentication)
-                }
-            } // <3>
-        add("org_gradle_adopt_open_jdk") // <4>
+                } // <3>
+            }
+            resolver('adoptium') { // <4>
+                implementationClass = AdoptiumRepo
+            }
+        }
     }
 }
 // end::toolchain-management[]
@@ -27,37 +31,44 @@ rootProject.name = 'toolchain-management'
 abstract class AzulPlugin extends DummyPlugin {
 
     AzulPlugin() {
-        super("com_azul_zulu")
+        super(AzulRepo.class)
     }
 }
 
 abstract class AdoptiumPlugin extends DummyPlugin {
 
     AdoptiumPlugin() {
-        super("org_gradle_adopt_open_jdk")
+        super(AdoptiumRepo.class)
     }
 }
 
 abstract class DummyPlugin implements Plugin<Settings> {
 
-    private final String name;
+    private final Class<JavaToolchainRepository> repositoryClass;
 
     @Inject
     protected abstract JavaToolchainRepositoryRegistry getToolchainRepositoryRegistry();
 
-    DummyPlugin(String name) {
-        this.name = name
+    DummyPlugin(Class<JavaToolchainRepository> repositoryClass) {
+        this.repositoryClass = repositoryClass
     }
 
     void apply(Settings settings) {
         settings.getPlugins().apply("jvm-toolchains");
 
         JavaToolchainRepositoryRegistry registry = getToolchainRepositoryRegistry();
-        registry.register(name, DummyRepo.class)
+        registry.register(repositoryClass)
     }
 }
 
-abstract class DummyRepo implements JavaToolchainRepository {
+abstract class AzulRepo implements JavaToolchainRepository {
+    @Override
+    Optional<URI> toUri(JavaToolchainRequest request) {
+        return Optional.empty();
+    }
+}
+
+abstract class AdoptiumRepo implements JavaToolchainRepository {
     @Override
     Optional<URI> toUri(JavaToolchainRequest request) {
         return Optional.empty();
