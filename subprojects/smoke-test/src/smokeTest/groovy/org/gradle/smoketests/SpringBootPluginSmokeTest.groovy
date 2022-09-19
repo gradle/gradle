@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.internal.reflect.validation.Severity
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
@@ -48,7 +49,11 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         """.stripIndent()
 
         when:
+
         def buildResult = runner('assembleBootDist', 'check')
+            .expectDeprecationWarning(
+                "The org.gradle.api.plugins.ApplicationPluginConvention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#application_convention_deprecation",
+                "No need to follow up as the 2.7.x branch already removed the convention usage")
             .build()
 
         then:
@@ -57,6 +62,9 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         when:
         def runResult = runner('bootRun')
+            .expectDeprecationWarning(
+                "The org.gradle.api.plugins.ApplicationPluginConvention type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#application_convention_deprecation",
+                "No need to follow up as the 2.7.x branch already removed the convention usage")
             .build()
 
         then:

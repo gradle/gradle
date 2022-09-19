@@ -78,7 +78,9 @@ class Main {
 
     def canUseDefaultJvmArgsToPassMultipleOptionsToJvmWhenRunningScript() {
         file("build.gradle") << '''
-applicationDefaultJvmArgs = ['-DtestValue=value', '-DtestValue2=some value', '-DtestValue3=some value']
+application {
+    applicationDefaultJvmArgs = ['-DtestValue=value', '-DtestValue2=some value', '-DtestValue3=some value']
+}
 '''
         file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
@@ -113,7 +115,9 @@ class Main {
 
     def canUseBothDefaultJvmArgsAndEnvironmentVariableToPassOptionsToJvmWhenRunningScript() {
         file("build.gradle") << '''
-applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=some value2']
+application {
+    applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=some value2']
+}
 '''
         file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
@@ -153,11 +157,13 @@ class Main {
         def testValue2 = OperatingSystem.current().windows ? 'some value$PATH' : 'some value\\\\$PATH'
         def testValue3 = 'some value%PATH%'
         file("build.gradle") << '''
-            applicationDefaultJvmArgs = [
-                '-DtestValue=value',
-                '-DtestValue2=some value$PATH',
-                '-DtestValue3=some value%PATH%',
-            ]
+            application {
+                applicationDefaultJvmArgs = [
+                    '-DtestValue=value',
+                    '-DtestValue2=some value$PATH',
+                    '-DtestValue3=some value%PATH%',
+                ]
+            }
         '''
         file('src/main/java/org/gradle/test/Main.java') << """
 package org.gradle.test;
@@ -191,7 +197,9 @@ class Main {
 
     def canUseDefaultJvmArgsInRunTask() {
         file("build.gradle") << '''
-        applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=value2']
+        application {
+            applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=value2']
+        }
         '''
         file('src/main/java/org/gradle/test/Main.java') << '''
         package org.gradle.test;
@@ -215,7 +223,9 @@ class Main {
 
     def "can customize application name"() {
         file('build.gradle') << '''
-applicationName = 'mega-app'
+application {
+    applicationName = 'mega-app'
+}
 '''
         file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
@@ -369,8 +379,10 @@ class Main {
 
         and:
         buildFile << """
-            applicationDistribution.from("src/somewhere-else") {
-                include "**/r2.*"
+            application {
+                applicationDistribution.from("src/somewhere-else") {
+                    include "**/r2.*"
+                }
             }
         """
 
@@ -399,9 +411,11 @@ class Main {
                 }
             }
 
-            applicationDistribution.from(createDocs) {
-                into "docs"
-                rename 'readme(.*)', 'READ-ME\$1'
+            application {
+                applicationDistribution.from(createDocs) {
+                    into "docs"
+                    rename 'readme(.*)', 'READ-ME\$1'
+                }
             }
         """
 
