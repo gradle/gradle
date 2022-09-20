@@ -26,13 +26,13 @@ import java.util.HashSet;
 /**
  * A {@link RootTrackingFileSystemSnapshotHierarchyVisitor} that ignores missing roots and multiple entries for the same path.
  */
-public abstract class MissingRootIgnoringFileSystemSnapshotVisitor extends RootTrackingFileSystemSnapshotHierarchyVisitor {
+public abstract class MissingRootAndDuplicateIgnoringFileSystemSnapshotVisitor extends RootTrackingFileSystemSnapshotHierarchyVisitor {
     private final HashSet<String> processedEntries = new HashSet<>();
 
     @Override
     public final SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
         if (!(snapshot.getType() == FileType.Missing && isRoot) && processedEntries.add(snapshot.getAbsolutePath())) {
-            visitUnprocessed(snapshot, isRoot);
+            visitAcceptedEntry(snapshot, isRoot);
         }
         return SnapshotVisitResult.CONTINUE;
     }
@@ -40,5 +40,5 @@ public abstract class MissingRootIgnoringFileSystemSnapshotVisitor extends RootT
     /**
      * Called for all entries that are not missing roots and have not been visited before.
      */
-    public abstract void visitUnprocessed(FileSystemLocationSnapshot snapshot, boolean isRoot);
+    public abstract void visitAcceptedEntry(FileSystemLocationSnapshot snapshot, boolean isRoot);
 }
