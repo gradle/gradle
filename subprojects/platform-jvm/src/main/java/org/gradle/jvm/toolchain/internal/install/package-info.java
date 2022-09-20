@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.install.internal;
+@NonNullApi
+package org.gradle.jvm.toolchain.internal.install;
 
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
-
-import java.io.File;
-import java.util.Optional;
-
-public interface JavaToolchainProvisioningService {
-
-    Optional<File> tryInstall(JavaToolchainSpec spec);
-
-}
+import org.gradle.api.NonNullApi;
