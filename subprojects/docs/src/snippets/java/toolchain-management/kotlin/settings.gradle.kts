@@ -15,7 +15,7 @@ toolchainManagement {
     jvm { // <1>
         javaRepositories {
             repository("azul") { // <2>
-                implementationClass.set(AzulResolver::class.java)
+                resolverClass.set(AzulResolver::class.java)
                 credentials {
                     username = "user"
                     password = "password"
@@ -25,7 +25,7 @@ toolchainManagement {
                 } // <3>
             }
             repository("adoptium") { // <4>
-                implementationClass.set(AdoptiumResolver::class.java)
+                resolverClass.set(AdoptiumResolver::class.java)
             }
         }
     }

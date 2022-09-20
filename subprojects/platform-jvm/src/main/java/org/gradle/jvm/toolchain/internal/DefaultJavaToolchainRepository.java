@@ -57,7 +57,7 @@ public abstract class DefaultJavaToolchainRepository implements JavaToolchainRep
         return name;
     }
 
-    public abstract Property<Class<? extends JavaToolchainResolver>> getImplementationClass();
+    public abstract Property<Class<? extends JavaToolchainResolver>> getResolverClass();
 
     @Override
     public Collection<Authentication> getConfiguredAuthentication() {

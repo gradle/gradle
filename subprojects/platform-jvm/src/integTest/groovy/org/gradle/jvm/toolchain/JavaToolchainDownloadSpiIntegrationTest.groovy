@@ -30,7 +30,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 jvm {
                     javaRepositories {
                         repository('custom') {
-                            implementationClass = CustomToolchainResolver
+                            resolverClass = CustomToolchainResolver
                         }
                     }
                 }
@@ -72,7 +72,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 jvm {
                     javaRepositories {
                         repository('broken') {
-                            implementationClass = BrokenToolchainResolver
+                            resolverClass = BrokenToolchainResolver
                         }
                     }
                 }
@@ -115,10 +115,10 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 jvm {
                     javaRepositories {
                         repository('useless') {
-                            implementationClass = UselessToolchainResolver
+                            resolverClass = UselessToolchainResolver
                         }
                         repository('custom') {
-                            implementationClass = CustomToolchainResolver
+                            resolverClass = CustomToolchainResolver
                         }
                     }
                 }
@@ -193,7 +193,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 jvm {
                     javaRepositories {
                         repository('useless') {
-                            implementationClass = UselessToolchainResolver
+                            resolverClass = UselessToolchainResolver
                         }
                     }
                 }
@@ -233,10 +233,10 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 jvm {
                     javaRepositories {
                         repository('useless') {
-                            implementationClass = UselessToolchainResolver1
+                            resolverClass = UselessToolchainResolver1
                         }
                         repository('useless') {
-                            implementationClass = UselessToolchainResolver2
+                            resolverClass = UselessToolchainResolver2
                         }
                     }
                 }
@@ -274,10 +274,10 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 jvm {
                     javaRepositories {
                         repository('useless1') {
-                            implementationClass = UselessToolchainResolver
+                            resolverClass = UselessToolchainResolver
                         }
                         repository('useless2') {
-                            implementationClass = UselessToolchainResolver
+                            resolverClass = UselessToolchainResolver
                         }
                     }
                 }
@@ -315,10 +315,10 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 jvm {
                     javaRepositories {
                         repository('useless') {
-                            implementationClass = UselessToolchainResolver1
+                            resolverClass = UselessToolchainResolver1
                         }
                         repository('useless') {
-                            implementationClass = UselessToolchainResolver2
+                            resolverClass = UselessToolchainResolver2
                         }
                     }
                 }
@@ -358,10 +358,10 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 jvm {
                     javaRepositories {
                         repository('useless3') {
-                            implementationClass = UselessToolchainResolver3
+                            resolverClass = UselessToolchainResolver3
                         }
                         repository('useless1') {
-                            implementationClass = UselessToolchainResolver1
+                            resolverClass = UselessToolchainResolver1
                         }
                     }
                 }
