@@ -451,11 +451,11 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     }
 
     /**
-     * Enable the ability to use custom DTD files in config and load them from some location.
-     * <strong>Disabled by default due to security concerns.</strong>
+     * Enable the use of external DTD files in configuration files.
+     * <strong>Disabled by default because this may be unsafe.</strong>
      * See <a href="https://checkstyle.org/config_system_properties.html#Enable_External_DTD_load">Checkstyle documentation</a> for more details.
      *
-     * @return The property controlling whether to enable the ability to use custom DTD files
+     * @return property to enable the use of external DTD files
      *
      * @since 7.6
      */
