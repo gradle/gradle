@@ -26,18 +26,40 @@ import javax.inject.Inject;
 
 public class DefaultBuildPlatform implements BuildPlatform {
 
-    private final SystemInfo systemInfo;
+    private final Architecture architecture;
 
-    private final org.gradle.internal.os.OperatingSystem operatingSystem;
+    private final OperatingSystem operatingSystem;
 
     @Inject
     public DefaultBuildPlatform(SystemInfo systemInfo, org.gradle.internal.os.OperatingSystem operatingSystem) {
-        this.systemInfo = systemInfo;
-        this.operatingSystem = operatingSystem;
+        this.architecture = getArchitecture(systemInfo);
+        this.operatingSystem = getOperatingSystem(operatingSystem);
+    }
+
+    @Override
+    public Architecture getArchitecture() {
+        return architecture;
     }
 
     @Override
     public OperatingSystem getOperatingSystem() {
+        return operatingSystem;
+    }
+
+    private static Architecture getArchitecture(SystemInfo systemInfo) {
+        SystemInfo.Architecture architecture = systemInfo.getArchitecture();
+        switch (architecture) {
+            case i386:
+                return Architecture.I386;
+            case amd64:
+                return Architecture.AMD64;
+            case aarch64:
+                return Architecture.AARCH64;
+        }
+        throw new GradleException("Unhandled system architecture: " + architecture);
+    }
+
+    private static OperatingSystem getOperatingSystem(org.gradle.internal.os.OperatingSystem operatingSystem) {
         if (org.gradle.internal.os.OperatingSystem.LINUX == operatingSystem) {
             return OperatingSystem.LINUX;
         } else if (org.gradle.internal.os.OperatingSystem.UNIX == operatingSystem) {
@@ -53,19 +75,5 @@ public class DefaultBuildPlatform implements BuildPlatform {
         } else {
             throw new GradleException("Unhandled operating system: " + operatingSystem.getName());
         }
-    }
-
-    @Override
-    public Architecture getArchitecture() {
-        SystemInfo.Architecture architecture = systemInfo.getArchitecture();
-        switch (architecture) {
-            case i386:
-                return Architecture.I386;
-            case amd64:
-                return Architecture.AMD64;
-            case aarch64:
-                return Architecture.AARCH64;
-        }
-        throw new GradleException("Unhandled system architecture: " + architecture);
     }
 }
