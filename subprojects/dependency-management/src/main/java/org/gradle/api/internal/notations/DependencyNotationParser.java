@@ -30,13 +30,11 @@ import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableMinimalDependency;
 import org.gradle.api.internal.artifacts.dependencies.DependencyVariant;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.reflect.Instantiator;
@@ -79,24 +77,6 @@ public class DependencyNotationParser {
             .converter(mapNotationConverter)
             .fromType(FileCollection.class, filesNotationConverter)
             .fromType(Project.class, projectNotationConverter)
-            .fromType(DependencyFactory.ClassPathNotation.class, new NotationConverter<DependencyFactory.ClassPathNotation, Dependency>() {
-                @Override
-                public void convert(DependencyFactory.ClassPathNotation notation, NotationConvertResult<? super Dependency> result) throws TypeConversionException {
-                    DeprecationLogger.deprecateInternalApi("DependencyFactory.ClassPathNotation")
-                        .replaceWith("an appropriate call to DependencyHandler")
-                        .willBeRemovedInGradle8()
-                        .withUpgradeGuideSection(7, "dependency_factory_renamed")
-                        .nagUser();
-                    dependencyClassPathNotationConverter.convert(DependencyFactoryInternal.ClassPathNotation.valueOf(
-                        notation.name()
-                    ), result);
-                }
-
-                @Override
-                public void describe(DiagnosticsVisitor visitor) {
-                    dependencyClassPathNotationConverter.describe(visitor);
-                }
-            })
             .fromType(DependencyFactoryInternal.ClassPathNotation.class, dependencyClassPathNotationConverter)
             .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
             .toComposite();
