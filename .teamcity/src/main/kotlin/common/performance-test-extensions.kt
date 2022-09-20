@@ -123,6 +123,5 @@ private fun BuildSteps.cleanBuildLogicBuild(buildDir: String) {
             buildToolGradleParameters() +
                 buildScanTag("PerformanceTest")
             ).joinToString(separator = " ")
-        skipConditionally()
     }
 }
