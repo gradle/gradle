@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.fixture.GroovyCoverage
 
 class Spock2IntegrationSpec extends AbstractIntegrationSpec {
-    private static final String SPOCK_VERSION = "2.2-M1-groovy-4.0"
+    private static final String SPOCK_VERSION = "2.2-groovy-4.0"
 
     def setup() {
         buildScript("""
