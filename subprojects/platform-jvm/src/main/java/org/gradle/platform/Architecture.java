@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,16 @@
  * limitations under the License.
  */
 
-@NonNullApi
-package org.gradle.jvm.toolchain.install.internal;
+package org.gradle.platform;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.api.Incubating;
+
+/**
+ * Constants for various processor architectures Gradle runs on.
+ *
+ * @since 7.6
+ */
+@Incubating
+public enum Architecture {
+    I386, AMD64, AARCH64
+}
