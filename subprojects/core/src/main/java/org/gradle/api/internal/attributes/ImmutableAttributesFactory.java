@@ -30,6 +30,15 @@ public interface ImmutableAttributesFactory {
     AttributeContainerInternal mutable(AttributeContainerInternal parent);
 
     /**
+     * Returns a new attribute container which attaches a parent container to a child container. Changes
+     * in either container are reflected in the returned container. All mutable operations are forwarded
+     * to the child.
+     * @param parent Provides base attributes.
+     * @param child Overrides any attributes in the base container.
+     */
+    AttributeContainerInternal join(AttributeContainerInternal parent, AttributeContainerInternal child);
+
+    /**
      * Returns an attribute container that contains the given value.
      */
     <T> ImmutableAttributes of(Attribute<T> key, T value);

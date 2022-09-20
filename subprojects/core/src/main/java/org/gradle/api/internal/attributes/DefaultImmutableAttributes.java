@@ -111,6 +111,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         return hashCode;
     }
 
+    @Deprecated
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, T value) {
         throw new UnsupportedOperationException("Mutation of attributes is not allowed");
@@ -121,6 +122,7 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
         return hierarchy.keySet();
     }
 
+    @Deprecated
     @Override
     public <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider) {
         throw new UnsupportedOperationException("Mutation of attributes is not allowed");

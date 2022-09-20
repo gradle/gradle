@@ -18,6 +18,8 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.provider.Provider;
 
 public interface ImmutableAttributes extends AttributeContainerInternal {
     ImmutableAttributes EMPTY = new DefaultImmutableAttributes();
@@ -34,4 +36,18 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
 
     @Override
     ImmutableSet<Attribute<?>> keySet();
+
+    /**
+     * @deprecated Immutable attributes cannot be mutated.
+     */
+    @Deprecated
+    @Override
+    <T> AttributeContainer attribute(Attribute<T> key, T value);
+
+    /**
+     * @deprecated Immutable attributes cannot be mutated.
+     */
+    @Deprecated
+    @Override
+    <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider);
 }
