@@ -16,10 +16,10 @@ import model.Stage
  * Build a Gradle distribution (dogfood-first) and use this distribution to build a distribution again (dogfood-second).
  * Use `dogfood-second` to run `test sanityCheck`.
  */
-class Gradleception(model: CIBuildModel, stage: Stage, bundleGroovy4: Boolean = false) : BaseGradleBuildType(stage = stage, init = {
-    if (bundleGroovy4) id("${model.projectId}_GradleceptionWithGroovy4") else id("${model.projectId}_Gradleception")
-    name = if (bundleGroovy4) "Gradleception - Groovy 4.x Java8 Linux" else "Gradleception - Java8 Linux"
-    description = "Builds Gradle with the version of Gradle which is currently under development (twice)" + if (bundleGroovy4) " - bundling Groovy 4" else ""
+class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(stage = stage, init = {
+    id("${model.projectId}_Gradleception")
+    name = "Gradleception - Java8 Linux"
+    description = "Builds Gradle with the version of Gradle which is currently under development (twice)"
 
     requirements {
         // Gradleception is a heavy build which runs ~40m on EC2 agents but only ~20m on Hetzner agents
@@ -47,11 +47,7 @@ class Gradleception(model: CIBuildModel, stage: Stage, bundleGroovy4: Boolean = 
     val dogfoodTimestamp1 = "19800101010101+0000"
     val dogfoodTimestamp2 = "19800202020202+0000"
     val buildScanTagForType = buildScanTag("Gradleception")
-    val buildScanTagForGroovy4 = buildScanTag("Groovy 4.x")
-    val buildScanTags = if (bundleGroovy4) listOf(buildScanTagForType, buildScanTagForGroovy4) else listOf(buildScanTagForType)
-    val bundleGroovy4SysProp =  "-DbundleGroovy4=true"
-    val maybeBundleGroovy4SysProp = if (bundleGroovy4) bundleGroovy4SysProp else ""
-    val defaultParameters = (buildToolGradleParameters() + buildScanTags + maybeBundleGroovy4SysProp + "-Porg.gradle.java.installations.auto-download=false").joinToString(separator = " ")
+    val defaultParameters = (buildToolGradleParameters() + listOf(buildScanTagForType) + "-Porg.gradle.java.installations.auto-download=false").joinToString(separator = " ")
 
     params {
         // Override the default commit id so the build steps produce reproducible distribution
@@ -62,7 +58,7 @@ class Gradleception(model: CIBuildModel, stage: Stage, bundleGroovy4: Boolean = 
         model,
         this,
         ":distributions-full:install",
-        extraParameters = "-Pgradle_installPath=dogfood-first-for-hash -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp1 $buildScanTagForType $maybeBundleGroovy4SysProp",
+        extraParameters = "-Pgradle_installPath=dogfood-first-for-hash -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp1 $buildScanTagForType",
         extraSteps = {
             script {
                 name = "CALCULATE_MD5_VERSION_FOR_DOGFOODING_DISTRIBUTION"
