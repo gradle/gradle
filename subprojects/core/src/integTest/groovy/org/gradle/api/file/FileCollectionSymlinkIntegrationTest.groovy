@@ -312,7 +312,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
     @Issue('https://github.com/gradle/gradle/issues/9904')
     def "unbreaking a symlink in InputFiles is detected incrementally"() {
         def inputFileTarget = file("brokenInputFileTarget")
-        def brokenInputFile = file('brokenInputFile').createLink(inputFileTarget)
+        def brokenInputFile = file('brokenInputFile')
         def output = file("output.txt")
 
         buildFile << """
@@ -338,6 +338,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
         output.text == "[]"
 
         when:
+        brokenInputFile.createLink(inputFileTarget)
         run 'inputBrokenLinkNameCollector'
         then:
         skipped ':inputBrokenLinkNameCollector'
