@@ -29,7 +29,7 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
                 jvm {
                     javaRepositories {
                         repository("custom") {
-                            implementationClass.set(CustomToolchainResolver::class.java)
+                            resolverClass.set(CustomToolchainResolver::class.java)
                         }
                     }
                 }

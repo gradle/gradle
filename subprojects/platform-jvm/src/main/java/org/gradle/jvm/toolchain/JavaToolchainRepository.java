@@ -45,6 +45,6 @@ public interface JavaToolchainRepository extends AuthenticationSupported {
      * Class implementing the {@link JavaToolchainResolver} being configured.
      * Mandatory property.
      */
-    Property<Class<? extends JavaToolchainResolver>> getImplementationClass();
+    Property<Class<? extends JavaToolchainResolver>> getResolverClass();
 
 }

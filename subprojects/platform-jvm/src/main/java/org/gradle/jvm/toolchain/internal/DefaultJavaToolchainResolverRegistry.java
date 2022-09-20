@@ -93,8 +93,8 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
 
         Set<Class<?>> resolvers = new HashSet<>();
         for (JavaToolchainRepository repository : repositories) {
-            if (!resolvers.add(repository.getImplementationClass().get())) {
-                throw new GradleException("Duplicate configuration for repository implementation '" + repository.getImplementationClass().get().getName() + "'.");
+            if (!resolvers.add(repository.getResolverClass().get())) {
+                throw new GradleException("Duplicate configuration for repository implementation '" + repository.getResolverClass().get().getName() + "'.");
             }
             realizedRepositories.add(realize(repository));
         }
@@ -115,12 +115,12 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
     }
 
     private static Class<? extends JavaToolchainResolver> getResolverClass(JavaToolchainRepository repository) {
-        Property<Class<? extends JavaToolchainResolver>> implementationClassProperty = repository.getImplementationClass();
-        implementationClassProperty.finalizeValueOnRead();
-        if (!implementationClassProperty.isPresent()) {
-            throw new GradleException("Java toolchain repository `" + repository.getName() + "` must have the `implementationClass` property set");
+        Property<Class<? extends JavaToolchainResolver>> resolverClassProperty = repository.getResolverClass();
+        resolverClassProperty.finalizeValueOnRead();
+        if (!resolverClassProperty.isPresent()) {
+            throw new GradleException("Java toolchain repository `" + repository.getName() + "` must have the `resolverClass` property set");
         }
-        return implementationClassProperty.get();
+        return resolverClassProperty.get();
     }
 
 }

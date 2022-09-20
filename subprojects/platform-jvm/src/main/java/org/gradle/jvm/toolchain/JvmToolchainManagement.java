@@ -43,7 +43,7 @@ public interface JvmToolchainManagement {
      *     jvm {
      *         javaRepositories {
      *             repository('registry1') {
-     *                 implementationClass = com.example.CustomToolchainRegistry1
+     *                 resolverClass = com.example.CustomToolchainRegistry1
      *                 credentials {
      *                     username "user"
      *                     password "password"
@@ -53,7 +53,7 @@ public interface JvmToolchainManagement {
      *                 }
      *             }
      *             repository('registry2') {
-     *                 implementationClass = com.example.CustomToolchainRegistry2
+     *                 resolverClass = com.example.CustomToolchainRegistry2
      *             }
      *         }
      *     }

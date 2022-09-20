@@ -9,7 +9,7 @@ toolchainManagement {
     jvm { // <1>
         javaRepositories {
             repository('azul') { // <2>
-                implementationClass = AzulResolver
+                resolverClass = AzulResolver
                 credentials {
                     username "user"
                     password "password"
@@ -19,7 +19,7 @@ toolchainManagement {
                 } // <3>
             }
             repository('adoptium') { // <4>
-                implementationClass = AdoptiumResolver
+                resolverClass = AdoptiumResolver
             }
         }
     }
