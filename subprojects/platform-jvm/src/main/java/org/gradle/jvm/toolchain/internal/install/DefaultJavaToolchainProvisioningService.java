@@ -103,13 +103,13 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                     .willBeRemovedInGradle8()
                     .withUserManual("toolchains", "sec:provisioning")
                     .nagUser();
-            Optional<URI> uri = openJdkBinary.toUri(toolchainRequest);
+            Optional<URI> uri = openJdkBinary.resolve(toolchainRequest);
             if (uri.isPresent()) {
                 return Optional.of(provisionInstallation(spec, uri.get(), Collections.emptyList()));
             }
         } else {
             for (RealizedJavaToolchainRepository request : repositories) {
-                  Optional<URI> uri = request.getResolver().toUri(toolchainRequest);
+                  Optional<URI> uri = request.getResolver().resolve(toolchainRequest);
                 if (uri.isPresent()) {
                     Collection<Authentication> authentications = request.getAuthentications(uri.get());
                     return Optional.of(provisionInstallation(spec, uri.get(), authentications));

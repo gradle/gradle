@@ -45,7 +45,7 @@ public class AdoptOpenJdkRemoteBinary {
         this.adoptiumRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptium.baseUri");
     }
 
-    public Optional<URI> toUri(JavaToolchainRequest request) {
+    public Optional<URI> resolve(JavaToolchainRequest request) {
         JavaToolchainSpec spec = request.getJavaToolchainSpec();
         if (canProvide(spec)) {
             return Optional.of(constructUri(spec, request.getBuildPlatform()));

@@ -65,13 +65,13 @@ abstract class DummyPlugin(val resolverClass: kotlin.reflect.KClass<out JavaTool
 }
 
 abstract class AdoptiumResolver: JavaToolchainResolver {
-    override fun toUri(request: JavaToolchainRequest): Optional<URI> {
+    override fun resolve(request: JavaToolchainRequest): Optional<URI> {
         return Optional.empty()
     }
 }
 
 abstract class AzulResolver: JavaToolchainResolver {
-    override fun toUri(request: JavaToolchainRequest): Optional<URI> {
+    override fun resolve(request: JavaToolchainRequest): Optional<URI> {
         return Optional.empty()
     }
 }
