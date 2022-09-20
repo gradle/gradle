@@ -183,7 +183,8 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
     @Issue("https://github.com/gradle/gradle/issues/21624")
     @See("https://checkstyle.sourceforge.io/config_system_properties.html#Enable_External_DTD_load")
     def "enable_external_dtd_load feature NOT enabled by default"() {
-        given:buildFile """
+        given:
+        buildFile """
             apply plugin: 'checkstyle'
 
             ${mavenCentralRepository()}
