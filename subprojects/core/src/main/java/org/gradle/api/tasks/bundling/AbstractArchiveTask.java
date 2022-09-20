@@ -277,40 +277,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * Returns the appendix part of the archive name, if any.
      *
      * @return the appendix. May be null
-     * @deprecated Use {@link #getArchiveAppendix()}
-     */
-    @Nullable
-    @Deprecated
-    @ReplacedBy("archiveAppendix")
-    public String getAppendix() {
-        DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "appendix").replaceWith("archiveAppendix")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        return archiveAppendix.getOrNull();
-    }
-
-    /**
-     * Sets the appendix.
-     *
-     * @deprecated Use {@link #getArchiveAppendix()}
-     */
-    @Deprecated
-    public void setAppendix(@Nullable String appendix) {
-        DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "appendix").replaceWith("archiveAppendix")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        archiveAppendix.convention(appendix);
-        archiveAppendix.set(appendix);
-    }
-
-    /**
-     * Returns the appendix part of the archive name, if any.
-     *
-     * @return the appendix. May be null
      * @since 5.1
      */
     @Internal("Represented as part of archiveFile")
