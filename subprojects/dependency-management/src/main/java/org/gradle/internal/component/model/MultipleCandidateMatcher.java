@@ -316,8 +316,12 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         }
     }
 
-    private void disambiguateExtraAttribute(Attribute<?> attribute) {
-        Set<Object> candidateValues = getCandidateValues(compatible, c -> getCandidateValue(c, attribute));
+    /**
+     * @param attribute The attribute to disambiguate.
+     * @param candidates The set of candidate attribute sets to extract vales from during disambiguation.
+     */
+    private void disambiguateExtraAttribute(Attribute<?> attribute, BitSet candidates) {
+        Set<Object> candidateValues = getCandidateValues(candidates, c -> getCandidateValue(c, attribute));
         if (candidateValues.size() <= 1) {
             return;
         }
@@ -380,7 +384,12 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
         final AttributeSelectionSchema.PrecedenceResult precedenceResult = schema.orderByPrecedence(Arrays.asList(extraAttributes));
 
         for (int a : precedenceResult.getSortedOrder()) {
-            disambiguateExtraAttribute(extraAttributes[a]);
+            // When disambiguating attributes in precedence order, we use the remaining candidates
+            // so that disambiguation only results in matches which are still valid. This is in
+            // contrast to using the compatible candidates which can result in a case where disambiguation
+            // returns a matched value that is contained in `compatible` but not `remaining`, and thus
+            // this attribute disambiguation step would wipe all remaining candidates.
+            disambiguateExtraAttribute(extraAttributes[a], remaining);
             if (remaining.cardinality() == 0) {
                 return;
             } else if (remaining.cardinality() == 1) {
@@ -390,10 +399,15 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             }
         }
 
+        // When disambiguating in unknown precedence order, we always use the same set of candidates
+        // so that this step is not affected by the order in which we iterate.
+        BitSet candidates = new BitSet();
+        candidates.or(remaining);
+
         // If the attribute does not have a known precedence, then we cannot stop
         // until we've disambiguated all of the attributes.
         for (int a : precedenceResult.getUnsortedOrder()) {
-            disambiguateExtraAttribute(extraAttributes[a]);
+            disambiguateExtraAttribute(extraAttributes[a], candidates);
             if (remaining.cardinality() == 0) {
                 return;
             }
