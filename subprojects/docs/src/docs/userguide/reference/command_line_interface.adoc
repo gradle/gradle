@@ -451,7 +451,7 @@ Generate a build scan with detailed performance diagnostics.
 image::gradle-core-test-build-scan-performance.png[Build Scan performance report]
 
 `--watch-fs`, `--no-watch-fs`::
-Toggles <<gradle_daemon.adoc#sec:daemon_watch_fs,watching the file system>>.
+Toggles <<file_system_watching.adoc#sec:daemon_watch_fs,watching the file system>>.
 When enabled Gradle re-uses information it collects about the file system between builds.
 _Enabled by default on operating systems where Gradle supports this feature._
 
@@ -697,7 +697,7 @@ In order to incorporate build logic changes, the continuous build must be restar
 Continuous build uses file system watching to detect changes to the inputs.
 If file system watching does not work on your system, then continuous build won't work either.
 In particular, continuous build does not work when using `--no-daemon`.
-See <<gradle_daemon.adoc#sec:daemon_watch_fs,Watching the file system>> for more information.
+See <<file_system_watching.adoc#sec:daemon_watch_fs,Watching the file system>> for more information.
 
 When Gradle detects a change to the inputs, it will not trigger the build immediately.
 Instead, it will wait until no additional changes are detected for a certain period of time - the quiet period.

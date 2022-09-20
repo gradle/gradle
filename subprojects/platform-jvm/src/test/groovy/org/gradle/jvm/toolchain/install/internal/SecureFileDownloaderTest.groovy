@@ -25,32 +25,51 @@ import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.verifier.HttpRedirectVerifier
+import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
 import spock.lang.Specification
 import spock.lang.TempDir
 
 import java.nio.file.Files
 
-class AdoptOpenJdkDownloaderTest extends Specification {
+class SecureFileDownloaderTest extends Specification {
 
     @TempDir
     public File temporaryFolder
 
-    def "cancelled download does not leave destination file behind"() {
-        RepositoryTransportFactory transportFactory = newFailingTransportFactory()
+    def "successful download creates destination file with the right content"() {
+        RepositoryTransportFactory transportFactory = newTransportFactory()
 
         given:
-        def downloader = new AdoptOpenJdkDownloader(transportFactory)
+        def downloader = new SecureFileDownloader(transportFactory)
         def destinationFile = new File(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "target")
 
         when:
-        downloader.download(URI.create("https://foo"), destinationFile)
+        URI uri = URI.create("https://foo")
+        downloader.download(uri, destinationFile, downloader.getResourceFor(uri, Collections.emptyList()))
+
+        then:
+        noExceptionThrown()
+        destinationFile.exists()
+        destinationFile.text == "foo"
+    }
+
+    def "cancelled download does not leave destination file behind"() {
+        RepositoryTransportFactory transportFactory = newTransportFactory({ throw new BuildCancelledException() })
+
+        given:
+        def downloader = new SecureFileDownloader(transportFactory)
+        def destinationFile = new File(Files.createTempDirectory(temporaryFolder.toPath(), null).toFile(), "target")
+
+        when:
+        URI uri = URI.create("https://foo")
+        downloader.download(uri, destinationFile, downloader.getResourceFor(uri, Collections.emptyList()))
 
         then:
         thrown(BuildCancelledException)
         !destinationFile.exists()
     }
 
-    private RepositoryTransportFactory newFailingTransportFactory() {
+    private RepositoryTransportFactory newTransportFactory(Closure doAfterRead = {}) {
         Mock(RepositoryTransportFactory) {
             createTransport(_ as String, _ as String, _ as Collection<Authentication>, _ as HttpRedirectVerifier) >> Mock(RepositoryTransport) {
                 getRepository() >> Mock(ExternalResourceRepository) {
@@ -58,7 +77,7 @@ class AdoptOpenJdkDownloaderTest extends Specification {
                         resource(_ as ExternalResourceName) >> Mock(ExternalResource) {
                             withContent(_ as Action<? super InputStream>) >> { Action<? super InputStream> readAction ->
                                 readAction.execute(new ByteArrayInputStream("foo".bytes))
-                                throw new BuildCancelledException()
+                                doAfterRead()
                             }
                         }
                     }

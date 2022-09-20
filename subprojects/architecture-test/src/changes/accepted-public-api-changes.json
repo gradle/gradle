@@ -55,6 +55,12 @@
             "changes": [
                 "METHOD_ADDED_TO_PUBLIC_CLASS"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ToolchainManagementExtensionsKt",
+            "member": "Class org.gradle.kotlin.dsl.ToolchainManagementExtensionsKt",
+            "acceptation": "dynamically generated accessors don't work for settings, so need to add static ones, until that problem is fixed",
+            "changes": []
         }
     ]
 }
