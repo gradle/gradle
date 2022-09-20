@@ -18,7 +18,7 @@ They do this by implementing link:{javadocPath}/org/gradle/jvm/toolchain/JavaToo
 ----
 public abstract class JavaToolchainResolverImplementation implements JavaToolchainResolver { // <1>
 
-    public Optional<URI> toUri(JavaToolchainRequest request) { // <2>
+    public Optional<URI> resolve(JavaToolchainRequest request) { // <2>
         // custom mapping logic goes here
     }
 }

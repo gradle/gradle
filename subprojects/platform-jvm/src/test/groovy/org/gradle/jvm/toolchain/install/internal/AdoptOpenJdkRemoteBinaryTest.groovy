@@ -42,7 +42,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory())
 
         when:
-        def uri = binary.toUri(newToolchainRequest(spec, systemInfo, operatingSystem)).get()
+        def uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem)).get()
 
         then:
         uri.toString() == expectedPath
@@ -71,7 +71,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory)
 
         when:
-        def uri = binary.toUri(newToolchainRequest(spec, systemInfo, operatingSystem)).get()
+        def uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem)).get()
 
         then:
         uri.toString() == "http://foobar/v3/binary/latest/11/ga/mac/x64/jdk/hotspot/normal/eclipse"
@@ -90,7 +90,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
 
         when:
-        Optional<URI> uri = binary.toUri(newToolchainRequest(spec, systemInfo, operatingSystem))
+        Optional<URI> uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem))
 
         then:
         !uri.isPresent()
@@ -109,7 +109,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory())
 
         when:
-        Optional<URI> uri = binary.toUri(newToolchainRequest(spec, systemInfo, operatingSystem))
+        Optional<URI> uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem))
 
         then:
         !uri.isPresent()
@@ -128,7 +128,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory())
 
         when:
-        Optional<URI> uri = binary.toUri(newToolchainRequest(spec, systemInfo, operatingSystem))
+        Optional<URI> uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem))
 
         then:
         uri.isPresent()
@@ -148,7 +148,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory())
 
         when:
-        Optional<URI> uri = binary.toUri(newToolchainRequest(spec, systemInfo, operatingSystem))
+        Optional<URI> uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem))
 
         then:
         uri.isPresent()

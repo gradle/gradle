@@ -72,7 +72,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.toUri(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD_URI)
+        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD_URI)
 
         def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, operationExecutor, buildPlatform)
 
@@ -101,7 +101,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.toUri(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD_URI)
+        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD_URI)
         new File(temporaryFolder, ARCHIVE_NAME).createNewFile()
         def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
 
@@ -117,7 +117,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.toUri(_ as JavaToolchainRequest) >> Optional.empty()
+        binary.resolve(_ as JavaToolchainRequest) >> Optional.empty()
         def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
 
         when:
@@ -133,7 +133,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("false")
 
         given:
-        binary.toUri(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD_URI)
+        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD_URI)
         def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
 
         when:
@@ -149,7 +149,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.toUri(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD_URI)
+        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD_URI)
 
         def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, operationExecutor, buildPlatform)
 

@@ -92,7 +92,7 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
     private static String customToolchainRegistryCode() {
         """
             abstract class CustomToolchainResolver: JavaToolchainResolver {
-                override fun toUri(request: JavaToolchainRequest): Optional<URI> {
+                override fun resolve(request: JavaToolchainRequest): Optional<URI> {
                     return Optional.of(URI.create("https://exoticJavaToolchain.com/java-" + request.getJavaToolchainSpec().getLanguageVersion().get()))
                 }
             }

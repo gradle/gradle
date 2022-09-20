@@ -145,7 +145,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
 
             public abstract class CustomToolchainResolver implements JavaToolchainResolver {
                 @Override
-                public Optional<URI> toUri(JavaToolchainRequest request) {
+                public Optional<URI> resolve(JavaToolchainRequest request) {
                     return Optional.of(URI.create("$uri"));
                 }
             }

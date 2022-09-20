@@ -42,6 +42,6 @@ public interface JavaToolchainResolver extends BuildService<BuildServiceParamete
      * @return          empty Optional if and only if the provided specification can't be
      *                  matched
      */
-    Optional<URI> toUri(JavaToolchainRequest request); // TODO (#21082): name "resolve"?
+    Optional<URI> resolve(JavaToolchainRequest request);
 
 }
