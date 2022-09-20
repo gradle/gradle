@@ -74,7 +74,7 @@ class DeferrableTest extends Specification {
 
     def "mapping already completed to null fails early"() {
         when:
-        def deferrable = Deferrable.completed("value").map(_ -> null)
+        def deferrable = Deferrable.completed("value").map(result -> null)
         then:
         noExceptionThrown()
 
@@ -91,7 +91,7 @@ class DeferrableTest extends Specification {
 
     def "mapping deferred to null fails late"() {
         when:
-        def deferrable = Deferrable.deferred(() -> "value").map(_ -> null)
+        def deferrable = Deferrable.deferred(() -> "value").map(result -> null)
         then:
         noExceptionThrown()
 
