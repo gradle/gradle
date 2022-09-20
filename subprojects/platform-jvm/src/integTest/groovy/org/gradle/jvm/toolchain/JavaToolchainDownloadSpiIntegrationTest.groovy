@@ -233,10 +233,10 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 jvm {
                     repositories {
                         repository('useless') {
-                            implementationClass = UselessToolchainRegistry1
+                            implementationClass = UselessToolchainResolver1
                         }
                         repository('useless') {
-                            implementationClass = UselessToolchainRegistry2
+                            implementationClass = UselessToolchainResolver2
                         }
                     }
                 }
@@ -267,18 +267,58 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 .assertHasCause("Duplicate registration for 'UselessToolchainResolver'.")
     }
 
+    def "fails on implementation class collision"() {
+        settingsFile << """
+            ${applyToolchainResolverPlugin("UselessToolchainResolver", uselessToolchainResolverCode("UselessToolchainResolver"))}            
+            toolchainManagement {
+                jvm {
+                    repositories {
+                        repository('useless1') {
+                            implementationClass = UselessToolchainResolver
+                        }
+                        repository('useless2') {
+                            implementationClass = UselessToolchainResolver
+                        }
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(99)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+                .withTasks("compileJava")
+                .requireOwnGradleUserHomeDir()
+                .withToolchainDownloadEnabled()
+                .runWithFailure()
+
+        then:
+        failure.assertHasCause("Duplicate configuration for repository implementation 'UselessToolchainResolver'.")
+    }
+
     def "fails on repository name collision"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("UselessToolchainRegistry1", uselessToolchainResolverCode("UselessToolchainRegistry1"))}            
-            ${applyToolchainResolverPlugin("UselessToolchainRegistry2", uselessToolchainResolverCode("UselessToolchainRegistry2"))}            
+            ${applyToolchainResolverPlugin("UselessToolchainResolver1", uselessToolchainResolverCode("UselessToolchainResolver1"))}            
+            ${applyToolchainResolverPlugin("UselessToolchainResolver2", uselessToolchainResolverCode("UselessToolchainResolver2"))}            
             toolchainManagement {
                 jvm {
                     repositories {
                         repository('useless') {
-                            implementationClass = UselessToolchainRegistry1
+                            implementationClass = UselessToolchainResolver1
                         }
                         repository('useless') {
-                            implementationClass = UselessToolchainRegistry2
+                            implementationClass = UselessToolchainResolver2
                         }
                     }
                 }
@@ -311,17 +351,17 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "list of requested repositories can be queried"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("UselessToolchainRegistry1", uselessToolchainResolverCode("UselessToolchainRegistry1"))}            
-            ${applyToolchainResolverPlugin("UselessToolchainRegistry2", uselessToolchainResolverCode("UselessToolchainRegistry2"))}            
-            ${applyToolchainResolverPlugin("UselessToolchainRegistry3", uselessToolchainResolverCode("UselessToolchainRegistry3"))}            
+            ${applyToolchainResolverPlugin("UselessToolchainResolver1", uselessToolchainResolverCode("UselessToolchainResolver1"))}            
+            ${applyToolchainResolverPlugin("UselessToolchainResolver2", uselessToolchainResolverCode("UselessToolchainResolver2"))}            
+            ${applyToolchainResolverPlugin("UselessToolchainResolver3", uselessToolchainResolverCode("UselessToolchainResolver3"))}            
             toolchainManagement {
                 jvm {
                     repositories {
                         repository('useless3') {
-                            implementationClass = UselessToolchainRegistry3
+                            implementationClass = UselessToolchainResolver3
                         }
                         repository('useless1') {
-                            implementationClass = UselessToolchainRegistry1
+                            implementationClass = UselessToolchainResolver1
                         }
                     }
                 }

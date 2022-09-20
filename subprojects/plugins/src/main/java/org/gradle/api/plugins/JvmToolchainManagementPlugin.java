@@ -36,8 +36,6 @@ public abstract class JvmToolchainManagementPlugin implements Plugin<Settings> {
     @Inject
     protected abstract DefaultJvmToolchainManagement getDefaultJvmToolchainManagement();
 
-    //TODO (#21082): update design docs about plugin name change
-
     @Override
     public void apply(Settings settings) {
         ToolchainManagement toolchainManagement = settings.getToolchainManagement();

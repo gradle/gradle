@@ -29,8 +29,6 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface JvmToolchainManagement {
 
-    // TODO (#21082): update user manual
-
     /**
      * Returns the handler for the ordered list of configured <code>JavaToolchainRepository</code> implementations.
      */
@@ -45,7 +43,7 @@ public interface JvmToolchainManagement {
      *     jvm {
      *         repositories {
      *             repository('registry1') {
-     *                 implementationClass = CustomToolchainRegistry1    // TODO (#21082): in a groovy script does a fully qualified class name go here?
+     *                 implementationClass = com.example.CustomToolchainRegistry1
      *                 credentials {
      *                     username "user"
      *                     password "password"
@@ -55,7 +53,7 @@ public interface JvmToolchainManagement {
      *                 }
      *             }
      *             repository('registry2') {
-     *                 implementationClass = CustomToolchainRegistry2
+     *                 implementationClass = com.example.CustomToolchainRegistry2
      *             }
      *         }
      *     }

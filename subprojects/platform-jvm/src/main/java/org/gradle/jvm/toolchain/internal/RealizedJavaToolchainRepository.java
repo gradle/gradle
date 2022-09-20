@@ -37,7 +37,7 @@ public class RealizedJavaToolchainRepository {
         this.repository = repository;
     }
 
-    public JavaToolchainResolver getRepository() {
+    public JavaToolchainResolver getResolver() {
         return resolverProvider.get();
     }
 
