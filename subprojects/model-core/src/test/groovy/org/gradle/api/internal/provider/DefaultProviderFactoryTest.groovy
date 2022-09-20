@@ -112,6 +112,7 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
 
         then:
         !zipped.isPresent()
+        zipped.getOrNull() == null
     }
 
     def "can zip two providers of arbitrary types"() {
