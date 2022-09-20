@@ -21,9 +21,12 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Issue
 
 class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
+
+    @Issue('https://plugins.gradle.org/plugin/nebula.dependency-recommender')
     @ToBeFixedForConfigurationCache
     def 'nebula recommender plugin'() {
         when:
@@ -49,6 +52,8 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         runner('build').build()
     }
 
+    @Ignore("Plugin incompatible with plugin-publish 1.0.0 and Gradle 8 - enable static check for this when removing ignore, see below - https://github.com/nebula-plugins/nebula-plugin-plugin/issues/71")
+    @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
@@ -77,10 +82,18 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
                 " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.plugins.ide.idea.model.IdeaModule.html#org.gradle.plugins.ide.idea.model.IdeaModule:testSourceDirs for more details.",
                 ""
             )
+            .expectDeprecationWarning(
+                "The Report.destination property has been deprecated." +
+                " This is scheduled to be removed in Gradle 9.0." +
+                " Please use the outputLocation property instead." +
+                " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:destination for more details.",
+                ""
+            )
             .build()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.project at execution time in task :autoLintGradle")
+    @Issue('https://plugins.gradle.org/plugin/nebula.lint')
+    @ToBeFixedForConfigurationCache(because = "Invocation of 'Task.project' by task ':autoLintGradle' at execution time")
     def 'nebula lint plugin'() {
         given:
         buildFile << """
@@ -244,7 +257,8 @@ testImplementation('junit:junit:4.7')""")
     Map<String, Versions> getPluginsToValidate() {
         [
             'nebula.dependency-recommender': Versions.of(TestedVersions.nebulaDependencyRecommender),
-            'nebula.plugin-plugin': Versions.of(TestedVersions.nebulaPluginPlugin),
+            // Enable back once compatible, see @Ignore above
+//            'nebula.plugin-plugin': Versions.of(TestedVersions.nebulaPluginPlugin),
             'nebula.lint': Versions.of(TestedVersions.nebulaLint),
             'nebula.dependency-lock': TestedVersions.nebulaDependencyLock,
             'nebula.resolution-rules': Versions.of(TestedVersions.nebulaResolutionRules)

@@ -17,7 +17,6 @@
 package org.gradle.internal.session;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.cache.StringInterner;
@@ -191,10 +190,6 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
     BuildStartedTime createBuildStartedTime(Clock clock, BuildRequestMetaData buildRequestMetaData) {
         long currentTime = clock.getCurrentTime();
         return BuildStartedTime.startingAt(Math.min(currentTime, buildRequestMetaData.getStartTime()));
-    }
-
-    FeaturePreviews createExperimentalFeatures() {
-        return new FeaturePreviews();
     }
 
     CleanupActionFactory createCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {

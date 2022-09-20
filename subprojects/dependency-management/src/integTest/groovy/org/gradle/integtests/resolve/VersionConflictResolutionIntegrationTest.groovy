@@ -1107,7 +1107,7 @@ task checkDeps(dependsOn: configurations.compile) {
         noExceptionThrown()
     }
 
-    def "fail when when ranges are disjoint and no top range artifact is present"() {
+    def "fail when ranges are disjoint and no top range artifact is present"() {
         given:
         (1..10).each {
             mavenRepo.module("org", "leaf", "$it").publish()

@@ -8,8 +8,6 @@ pluginManagement {
             content {
                 val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
-                includeVersionByRegex("com.gradle.enterprise", "test-distribution-gradle-plugin", rcAndMilestonesPattern)
-                includeVersionByRegex("com.gradle.enterprise.test-distribution", "com.gradle.enterprise.test-distribution.gradle.plugin", rcAndMilestonesPattern)
             }
         }
         gradlePluginPortal()
@@ -17,10 +15,9 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.10.3")
+    id("com.gradle.enterprise").version("3.11.1") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("gradlebuild.base.allprojects")
-    id("com.gradle.enterprise.test-distribution").version("2.3.5") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("gradlebuild.internal.cc-experiment")
 }
 

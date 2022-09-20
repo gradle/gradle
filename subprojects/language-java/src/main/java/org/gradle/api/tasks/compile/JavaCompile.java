@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -87,7 +88,7 @@ import static com.google.common.base.Preconditions.checkState;
  *         id 'java'
  *     }
  *
- *     tasks.withType(JavaCompile) {
+ *     tasks.withType(JavaCompile).configureEach {
  *         //enable compilation in a separate daemon process
  *         options.fork = true
  *     }
@@ -108,6 +109,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         javaCompiler = objectFactory.property(JavaCompiler.class);
         javaCompiler.finalizeValueOnRead();
+        compileOptions.getIncrementalAfterFailure().convention(true);
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
@@ -156,6 +158,9 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
     private void performIncrementalCompilation(InputChanges inputs, DefaultJavaCompileSpec spec) {
         boolean isUsingCliCompiler = isUsingCliCompiler(spec);
+        if (isUsingCliCompiler) {
+            spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(false);
+        }
         spec.getCompileOptions().setSupportsCompilerApi(!isUsingCliCompiler);
         spec.getCompileOptions().setSupportsConstantAnalysis(!isUsingCliCompiler);
         spec.getCompileOptions().setPreviousCompilationDataFile(getPreviousCompilationData());
@@ -235,8 +240,8 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
     private Provider<JavaCompiler> getCompilerTool() {
         JavaToolchainSpec explicitToolchain = determineExplicitToolchain();
-        if(explicitToolchain == null) {
-            if(javaCompiler.isPresent()) {
+        if (explicitToolchain == null) {
+            if (javaCompiler.isPresent()) {
                 return this.javaCompiler;
             } else {
                 explicitToolchain = new CurrentJvmToolchainSpec(objectFactory);
@@ -254,8 +259,12 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
             final String customExecutable = getOptions().getForkOptions().getExecutable();
             if (customExecutable != null) {
                 final File executable = new File(customExecutable);
-                if(executable.exists()) {
-                    return new SpecificInstallationToolchainSpec(objectFactory, executable.getParentFile().getParentFile());
+                if (executable.exists()) {
+                    // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
+                    File parentJavaHome = executable.getParentFile().getParentFile();
+                    return new SpecificInstallationToolchainSpec(objectFactory, parentJavaHome);
+                } else {
+                    throw new InvalidUserDataException("The configured executable does not exist (" + executable.getAbsolutePath() + ")");
                 }
             }
         }

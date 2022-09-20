@@ -95,7 +95,7 @@ class ConfigurationCacheExternalProcessInstrumentationInJavaIntegrationTest exte
         title = processCreator.replace("command", varInitializer.description)
     }
 
-    def "calling an unrelated method is allowed in in java build code"() {
+    def "calling an unrelated method is allowed in java build code"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
 

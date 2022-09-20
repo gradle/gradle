@@ -30,26 +30,21 @@ class ConfigurationCacheConventionMappingIntegrationTest extends AbstractConfigu
         given:
         buildFile << """
             abstract class MyTask extends org.gradle.api.internal.ConventionTask {
-                public final Property<String> archiveName
-                MyTask() {
-                    archiveName = project.objects.property(String)
-                    archiveName.convention("something")
-                }
+                private final Property<String> archiveName = project.objects.property(String)
+                @Input Property<String> getArchiveFileName() { return this.archiveName }
 
-                @Internal String getArchiveName() { return archiveName.getOrNull() }
-                void setArchiveName(String value) { this.archiveName.set(value) }
-
-                @Internal Property<String> getAlternate() { return archiveName }
+                @Internal String getArchiveName() { return archiveFileName.getOrNull() }
+                void setArchiveName(String value) { archiveFileName.set(value) }
 
                 @TaskAction
                 void doIt() {
-                    assert archiveName.get() == "something"
+                    assert archiveFileName.get() == 'something'
                 }
             }
 
             task myTask(type: MyTask) {
-                archiveName.convention("something")
                 conventionMapping('archiveName') { 'not something' }
+                archiveFileName.convention('something')
             }
         """
 
@@ -58,6 +53,35 @@ class ConfigurationCacheConventionMappingIntegrationTest extends AbstractConfigu
 
         and: 'convention mapping is ignored just the same'
         configurationCacheRun 'myTask'
+    }
+
+    def "doesn't restore Jar archiveName convention value to incompatible field type"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+            tasks.withType(Jar.class).named('jar') { javaJar ->
+                // The Jar.archiveName field is of type Property<String>
+                javaJar.conventionMapping('archiveName') { 'some_name' }
+            }
+        """
+
+        when:
+        configurationCacheRun 'jar'
+
+        then: 'convention mapping is ignored'
+        new JarTestFixture(file('build/libs/test.jar'))
+
+        when:
+        configurationCacheRun 'jar'
+
+        then: 'convention mapping is ignored just the same'
+        new JarTestFixture(file('build/libs/test.jar'))
     }
 
     def "restores convention mapped task input property explicitly set to null"() {

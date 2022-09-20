@@ -53,4 +53,9 @@ public class ManagedValueSnapshot extends AbstractManagedValueSnapshot<ValueSnap
         }
         return snapshot;
     }
+
+    @Override
+    public String toString() {
+        return "(" + className + ") " + state;
+    }
 }

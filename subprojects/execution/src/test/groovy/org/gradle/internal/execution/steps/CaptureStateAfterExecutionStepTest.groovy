@@ -77,16 +77,16 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         0 * _
     }
 
-    def "no state is captured if snapshotting outputs fail"() {
+    def "fails if snapshotting outputs fail"() {
         def delegateDuration = Duration.ofMillis(123)
         def failure = new OutputSnapshotter.OutputFileSnapshottingException("output", new IOException("Error")) {}
 
         when:
-        def result = step.execute(work, context)
+        step.execute(work, context)
         then:
-        !result.afterExecutionState.present
-        result.duration == delegateDuration
-        assertOperation()
+        def ex = thrown RuntimeException
+        ex == failure
+        assertOperation(ex)
 
         1 * outputChangeListener.invalidateCachesFor([])
         then:
@@ -198,7 +198,7 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
 
         then:
         _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
-            visitor.visitOutputProperty("output", TreeType.DIRECTORY, outputDir, Mock(FileCollection))
+            visitor.visitOutputProperty("output", TreeType.DIRECTORY, new UnitOfWork.OutputFileValueSupplier(outputDir, Mock(FileCollection)))
             visitor.visitDestroyable(destroyableDir)
             visitor.visitLocalState(localStateDir)
         }

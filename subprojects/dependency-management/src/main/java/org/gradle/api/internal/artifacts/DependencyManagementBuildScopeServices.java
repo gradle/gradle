@@ -25,13 +25,12 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
@@ -138,6 +137,7 @@ import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -145,7 +145,7 @@ import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
@@ -285,7 +285,7 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
     }
 
-    DependencyFactory createDependencyFactory(
+    DependencyFactoryInternal createDependencyFactory(
         Instantiator instantiator,
         DefaultProjectDependencyFactory factory,
         ClassPathRegistry classPathRegistry,
@@ -298,7 +298,8 @@ class DependencyManagementBuildScopeServices {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         return new DefaultDependencyFactory(
-            DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner, attributesFactory, capabilityNotationParser),
+            instantiator,
+            DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner, attributesFactory, capabilityNotationParser),
             DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
             new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
             capabilityNotationParser, projectDependencyFactory,
@@ -686,10 +687,10 @@ class DependencyManagementBuildScopeServices {
                                                               DependenciesAccessorsWorkspaceProvider workspace,
                                                               DefaultProjectDependencyFactory factory,
                                                               ExecutionEngine executionEngine,
-                                                              FeaturePreviews featurePreviews,
+                                                              FeatureFlags featureFlags,
                                                               FileCollectionFactory fileCollectionFactory,
                                                               InputFingerprinter inputFingerprinter) {
-        return new DefaultDependenciesAccessors(registry, workspace, factory, featurePreviews, executionEngine, fileCollectionFactory, inputFingerprinter);
+        return new DefaultDependenciesAccessors(registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter);
     }
 
 
@@ -704,7 +705,6 @@ class DependencyManagementBuildScopeServices {
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Deleter deleter,
         ExecutionStateChangeDetector changeDetector,
-        InputFingerprinter inputFingerprinter,
         ListenerManager listenerManager,
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
@@ -826,8 +826,8 @@ class DependencyManagementBuildScopeServices {
                 }
 
                 @Override
-                public Try<ExecutionResult> getExecutionResult() {
-                    return result.getExecutionResult();
+                public Try<Execution> getExecution() {
+                    return result.getExecution();
                 }
 
                 @Override

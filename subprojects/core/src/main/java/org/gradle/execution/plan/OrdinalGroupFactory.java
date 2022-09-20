@@ -19,6 +19,7 @@ package org.gradle.execution.plan;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +47,16 @@ public class OrdinalGroupFactory {
 
     private void growTo(int ordinal) {
         for (int i = groups.size(); i <= ordinal; ++i) {
-            groups.add(new OrdinalGroup(i));
+            groups.add(new OrdinalGroup(i, previous(i)));
+        }
+    }
+
+    @Nullable
+    private OrdinalGroup previous(int i) {
+        if (i == 0) {
+            return null;
+        } else {
+            return groups.get(i - 1);
         }
     }
 }

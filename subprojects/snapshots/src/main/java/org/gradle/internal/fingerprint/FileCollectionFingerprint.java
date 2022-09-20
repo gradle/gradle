@@ -28,7 +28,7 @@ import java.util.Map;
 public interface FileCollectionFingerprint {
 
     /**
-     * The underlying fingerprints.
+     * The underlying fingerprints indexed by absolute path.
      */
     Map<String, FileSystemLocationFingerprint> getFingerprints();
 

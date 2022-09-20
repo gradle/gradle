@@ -8,7 +8,7 @@ The following is some help for working with the docs, all file paths are relativ
 
 The release notes are generated from `src/docs/release/notes.md`.
 
-### Schema 
+### Schema
 
 Every `h2` tag and `h3` will be listed in the generated TOC.
 
@@ -129,7 +129,7 @@ include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
 
 Let's break down this example to explain:
 
-* Enclosing `====` around the sample includes groups these samples and collapses them 
+* Enclosing `====` around the sample includes groups these samples and collapses them
 * `include::sample`: invokes the `SampleIncludeProcessor` asciidoctor extension, with a `dir` relative to `src/snippets/`, and a list of `files` separated by `;` (only 1 in this example), each with optional `tags=...` (like Asciidoctor's tags mechanism). We write this once for each DSL dialect. This notes to our front-end code to group these 2 samples and show them with selector tabs.
 * `[.multi-language-text.lang-groovy]`: Most times the gradle command is identical between Groovy and Kotlin samples, but in this case we need to use `[.multi-language-text.lang-*]` that our CSS will collapse and switch for the DSL of choice. This is case-sensitive. You can use this construct for any 2 sibling blocks!
 
@@ -166,7 +166,7 @@ To do that set the Gradle property `enableConfigurationCacheForDocsTests=true` i
 
 ## Groovy DSL Reference
 
-The DSL reference is authored in Docbook syntax, with sources under `src/docs/dsl`. 
+The DSL reference is authored in Docbook syntax, with sources under `src/docs/dsl`.
 Much of the content is extracted from code doc comments.
 
 To build it, run:

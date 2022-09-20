@@ -68,6 +68,8 @@ subprojects/$performanceProjectName/build/performance-test-results.zip
                 .filter { it.testProjects.isNotEmpty() }
                 .joinToString(",") { "%dep.${it.id}.env.BUILD_ID%" }
 
+            val dependencyBaselines = performanceTestProject.performanceTests.first { it.testProjects.isNotEmpty() }.let { "%dep.${it.id}.performance.baselines%" }
+
             gradleRunnerStep(
                 model,
                 ":$performanceProjectName:$taskName --channel %performance.channel%",
@@ -75,7 +77,8 @@ subprojects/$performanceProjectName/build/performance-test-results.zip
                     "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
                     "-Porg.gradle.performance.db.url" to "%performance.db.url%",
                     "-Porg.gradle.performance.db.username" to "%performance.db.username%",
-                    "-Porg.gradle.performance.dependencyBuildIds" to dependencyBuildIds
+                    "-Porg.gradle.performance.dependencyBuildIds" to dependencyBuildIds,
+                    "-PperformanceBaselines" to dependencyBaselines
                 ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) }
             )
         }

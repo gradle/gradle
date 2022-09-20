@@ -22,14 +22,12 @@ import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
-import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.PropertyMetadata;
@@ -53,12 +51,13 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             if (annotationHandler.shouldVisit(visitor)) {
                 String propertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
                 PropertyValue value = new BeanPropertyValue(getBean(), propertyMetadata.getGetterMethod());
-                annotationHandler.visitPropertyValue(propertyName, value, propertyMetadata, visitor, new BeanPropertyContext() {
-                    @Override
-                    public void addNested(String propertyName, Object bean) {
-                        queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, propertyName, bean));
-                    }
-                });
+                annotationHandler.visitPropertyValue(
+                    propertyName,
+                    value,
+                    propertyMetadata,
+                    visitor,
+                    (childPropertyName, bean) -> queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, childPropertyName, bean))
+                );
             }
         }
     }
@@ -66,20 +65,17 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
     private static class BeanPropertyValue implements PropertyValue {
         private final Method method;
         private final Object bean;
-        private final Supplier<Object> valueSupplier = Suppliers.memoize(new Supplier<Object>() {
+        private final Supplier<Object> cachedInvoker = Suppliers.memoize(new Supplier<Object>() {
             @Override
             @Nullable
             public Object get() {
-                return DeprecationLogger.whileDisabled(new Factory<Object>() {
-                    @Override
-                    public Object create() {
-                        try {
-                            return method.invoke(bean);
-                        } catch (InvocationTargetException e) {
-                            throw UncheckedException.throwAsUncheckedException(e.getCause());
-                        } catch (Exception e) {
-                            throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), bean), e);
-                        }
+                return DeprecationLogger.whileDisabled(() -> {
+                    try {
+                        return method.invoke(bean);
+                    } catch (InvocationTargetException e) {
+                        throw UncheckedException.throwAsUncheckedException(e.getCause());
+                    } catch (Exception e) {
+                        throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), bean), e);
                     }
                 });
             }
@@ -94,11 +90,11 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         @Override
         public TaskDependencyContainer getTaskDependencies() {
             if (isProvider()) {
-                return (TaskDependencyContainer) valueSupplier.get();
+                return (TaskDependencyContainer) cachedInvoker.get();
             }
             if (isBuildable()) {
                 return context -> {
-                    Object dependency = valueSupplier.get();
+                    Object dependency = cachedInvoker.get();
                     if (dependency != null) {
                         context.add(dependency);
                     }
@@ -110,7 +106,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         @Override
         public void maybeFinalizeValue() {
             if (isConfigurable()) {
-                Object value = valueSupplier.get();
+                Object value = cachedInvoker.get();
                 ((HasConfigurableValueInternal) value).implicitFinalizeValue();
             }
         }
@@ -130,13 +126,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         @Nullable
         @Override
         public Object call() {
-            return valueSupplier.get();
-        }
-
-        @Nullable
-        @Override
-        public Object getUnprocessedValue() {
-            return valueSupplier.get();
+            return cachedInvoker.get();
         }
     }
 }

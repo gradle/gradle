@@ -117,16 +117,6 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         startScripts.executableDir == "custom_bin"
     }
 
-    void "mainClassName in project delegates to main in run task"() {
-        when:
-        plugin.apply(project)
-        project.mainClassName = "Acme";
-
-        then:
-        def run = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
-        run.main == "Acme"
-    }
-
     void "mainClassName in project delegates to mainClassName in startScripts task"() {
         when:
         plugin.apply(project);
