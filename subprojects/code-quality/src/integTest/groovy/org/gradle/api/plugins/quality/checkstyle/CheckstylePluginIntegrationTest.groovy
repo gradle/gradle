@@ -47,7 +47,6 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         buildFile """
             apply plugin: 'checkstyle'
 
-            dependencies { implementation localGroovy() }
             ${mavenCentralRepository()}
 
             dependencies { implementation localGroovy() }
