@@ -51,9 +51,9 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
     @Override
     public Map<String, FileSystemLocationFingerprint> collectFingerprints(FileSystemSnapshot roots) {
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
-        roots.accept(new MissingRootIgnoringFileSystemSnapshotVisitor() {
+        roots.accept(new MissingRootAndDuplicateIgnoringFileSystemSnapshotVisitor() {
             @Override
-            public void visitUnprocessed(FileSystemLocationSnapshot snapshot, boolean isRoot) {
+            public void visitAcceptedEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
                 if (snapshot.getType() != FileType.Directory) {
                     HashCode normalizedContentHash = getNormalizedContentHash(snapshot, normalizedContentHasher);
                     if (normalizedContentHash != null) {
