@@ -95,7 +95,7 @@ public interface Deferrable<T> {
      */
     static <T> Deferrable<T> deferred(Supplier<T> result) {
         return new Deferrable<T>() {
-            private transient volatile T value;
+            private volatile T value;
 
             @Override
             public Optional<T> getCompleted() {
