@@ -32,7 +32,7 @@ public interface JvmToolchainManagement {
     /**
      * Returns the handler for the ordered list of configured <code>JavaToolchainRepository</code> implementations.
      */
-    JavaToolchainRepositoryHandler getRepositories();
+    JavaToolchainRepositoryHandler getJavaRepositories();
 
     /**
      * {@link org.gradle.api.NamedDomainObjectList} based handler for configuring an
@@ -41,7 +41,7 @@ public interface JvmToolchainManagement {
      * <pre class='autoTested'>
      * toolchainManagement {
      *     jvm {
-     *         repositories {
+     *         javaRepositories {
      *             repository('registry1') {
      *                 implementationClass = com.example.CustomToolchainRegistry1
      *                 credentials {
@@ -59,6 +59,6 @@ public interface JvmToolchainManagement {
      *     }
      * </pre>
      */
-    void repositories(Action<? super JavaToolchainRepositoryHandler> configureAction);
+    void javaRepositories(Action<? super JavaToolchainRepositoryHandler> configureAction);
 
 }

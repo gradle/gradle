@@ -33,13 +33,13 @@ public abstract class DefaultJvmToolchainManagement implements JvmToolchainManag
     }
 
     @Override
-    public JavaToolchainRepositoryHandler getRepositories() {
+    public JavaToolchainRepositoryHandler getJavaRepositories() {
         return registry.getRepositories();
     }
 
     @Override
-    public void repositories(Action<? super JavaToolchainRepositoryHandler> configureAction) {
-        configureAction.execute(getRepositories());
+    public void javaRepositories(Action<? super JavaToolchainRepositoryHandler> configureAction) {
+        configureAction.execute(getJavaRepositories());
     }
 
 }

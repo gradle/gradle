@@ -13,7 +13,7 @@ apply<AdoptiumPlugin>()
 // tag::toolchain-management[]
 toolchainManagement {
     jvm { // <1>
-        repositories {
+        javaRepositories {
             repository("azul") { // <2>
                 implementationClass.set(AzulResolver::class.java)
                 credentials {

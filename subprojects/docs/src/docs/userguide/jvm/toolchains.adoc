@@ -272,7 +272,7 @@ include::sample[dir="snippets/java/toolchain-management/groovy/",files="settings
 include::sample[dir="snippets/java/toolchain-management/kotlin/",files="settings.gradle.kts[tags=toolchain-management]"]
 ====
 <1> `toolchainManagement` is intended to cover more than Java toolchains, so the `jvm` sub-block provides the container for Java toolchain management related configuration
-<2> the `repositories` container can be used to define named Java toolchain repository configurations; the configurations are linked to the actual repository implementations via the `implementationClass` property
+<2> the `javaRepositories` container can be used to define named Java toolchain repository configurations; the configurations are linked to the actual repository implementations via the `implementationClass` property
 <3> toolchain download repositories primarily provide URIs to download toolchains from, but they can also be configured with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options that are available for artifact repositories used in dependency management>>
 <4> the repositories form an ordered list; when a specific toolchain needs to be downloaded, the list of repositories is examined in order and the first repository, that can provide the target toolchain, will be used
 

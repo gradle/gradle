@@ -28,7 +28,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode())}               
             toolchainManagement {
                 jvm {
-                    repositories {
+                    javaRepositories {
                         repository('custom') {
                             implementationClass = CustomToolchainResolver
                         }
@@ -70,7 +70,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             ${applyToolchainResolverPlugin("BrokenToolchainResolver", brokenToolchainResolverCode())}               
             toolchainManagement {
                 jvm {
-                    repositories {
+                    javaRepositories {
                         repository('broken') {
                             implementationClass = BrokenToolchainResolver
                         }
@@ -113,7 +113,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             ${applyToolchainResolverPlugin("UselessToolchainResolver", uselessToolchainResolverCode("UselessToolchainResolver"))}            
             toolchainManagement {
                 jvm {
-                    repositories {
+                    javaRepositories {
                         repository('useless') {
                             implementationClass = UselessToolchainResolver
                         }
@@ -191,7 +191,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             ${applyToolchainResolverPlugin("UselessToolchainResolver", uselessToolchainResolverCode("UselessToolchainResolver"))}            
             toolchainManagement {
                 jvm {
-                    repositories {
+                    javaRepositories {
                         repository('useless') {
                             implementationClass = UselessToolchainResolver
                         }
@@ -231,7 +231,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             ${applyToolchainResolverPlugin("UselessPlugin2", "UselessToolchainResolver", "")}
             toolchainManagement {
                 jvm {
-                    repositories {
+                    javaRepositories {
                         repository('useless') {
                             implementationClass = UselessToolchainResolver1
                         }
@@ -272,7 +272,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             ${applyToolchainResolverPlugin("UselessToolchainResolver", uselessToolchainResolverCode("UselessToolchainResolver"))}            
             toolchainManagement {
                 jvm {
-                    repositories {
+                    javaRepositories {
                         repository('useless1') {
                             implementationClass = UselessToolchainResolver
                         }
@@ -313,7 +313,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             ${applyToolchainResolverPlugin("UselessToolchainResolver2", uselessToolchainResolverCode("UselessToolchainResolver2"))}            
             toolchainManagement {
                 jvm {
-                    repositories {
+                    javaRepositories {
                         repository('useless') {
                             implementationClass = UselessToolchainResolver1
                         }
@@ -356,7 +356,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             ${applyToolchainResolverPlugin("UselessToolchainResolver3", uselessToolchainResolverCode("UselessToolchainResolver3"))}            
             toolchainManagement {
                 jvm {
-                    repositories {
+                    javaRepositories {
                         repository('useless3') {
                             implementationClass = UselessToolchainResolver3
                         }
@@ -367,7 +367,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 }
             }
             
-            println(\"\"\"Explicitly requested toolchains: \${toolchainManagement.jvm.getRepositories().collect { it.getName() }}.\"\"\")
+            println(\"\"\"Explicitly requested toolchains: \${toolchainManagement.jvm.getJavaRepositories().collect { it.getName() }}.\"\"\")
         """
 
         buildFile << """

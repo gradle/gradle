@@ -45,7 +45,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
             ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode(archiveUri))}               
             toolchainManagement {
                 jvm {
-                    repositories {
+                    javaRepositories {
                         repository('custom') {
                             implementationClass = CustomToolchainResolver
                         }
@@ -91,7 +91,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
             ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode(archiveUri))}
             toolchainManagement {
                 jvm {
-                    repositories {
+                    javaRepositories {
                         repository('custom') {
                             implementationClass = CustomToolchainResolver
                             credentials {

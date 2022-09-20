@@ -27,7 +27,7 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
             ${applyToolchainRegistryPlugin("CustomToolchainResolver", customToolchainRegistryCode())}               
             toolchainManagement {
                 jvm {
-                    repositories {
+                    javaRepositories {
                         repository("custom") {
                             implementationClass.set(CustomToolchainResolver::class.java)
                         }
