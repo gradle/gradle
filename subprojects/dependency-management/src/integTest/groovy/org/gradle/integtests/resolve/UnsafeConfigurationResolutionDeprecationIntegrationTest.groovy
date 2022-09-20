@@ -20,8 +20,10 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 
 class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDependencyResolutionTest {
+    @Ignore("https://github.com/gradle/gradle/issues/22088")
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "configuration in another project can not be resolved"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
@@ -234,6 +236,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":resolve")
     }
 
+    @Ignore("https://github.com/gradle/gradle/issues/22088")
     def "fails when configuration is resolved while evaluating a different project"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
