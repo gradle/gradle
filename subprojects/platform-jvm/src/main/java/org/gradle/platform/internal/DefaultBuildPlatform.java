@@ -16,6 +16,8 @@
 
 package org.gradle.platform.internal;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.GradleException;
 import org.gradle.platform.Architecture;
@@ -26,24 +28,24 @@ import javax.inject.Inject;
 
 public class DefaultBuildPlatform implements BuildPlatform {
 
-    private final Architecture architecture;
+    private Supplier<Architecture> architecture;
 
-    private final OperatingSystem operatingSystem;
+    private Supplier<OperatingSystem> operatingSystem;
 
     @Inject
     public DefaultBuildPlatform(SystemInfo systemInfo, org.gradle.internal.os.OperatingSystem operatingSystem) {
-        this.architecture = getArchitecture(systemInfo);
-        this.operatingSystem = getOperatingSystem(operatingSystem);
+        this.architecture = Suppliers.memoize(() -> getArchitecture(systemInfo));
+        this.operatingSystem = Suppliers.memoize(() -> getOperatingSystem(operatingSystem));
     }
 
     @Override
     public Architecture getArchitecture() {
-        return architecture;
+        return architecture.get();
     }
 
     @Override
     public OperatingSystem getOperatingSystem() {
-        return operatingSystem;
+        return operatingSystem.get();
     }
 
     private static Architecture getArchitecture(SystemInfo systemInfo) {
