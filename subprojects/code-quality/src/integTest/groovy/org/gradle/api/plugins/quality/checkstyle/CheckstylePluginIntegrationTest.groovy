@@ -40,7 +40,6 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         """
     }
 
-
     @Issue("https://github.com/gradle/gradle/issues/21301")
     def "can pass a URL in configProperties"() {
         given:
@@ -201,9 +200,8 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         failedDueToXmlDTDProcessingError()
     }
 
-    private failedDueToXmlDTDProcessingError() {
-        result.assertHasErrorOutput("A failure occurred while executing org.gradle.api.plugins.quality.internal.CheckstyleAction")
-        result.assertHasErrorOutput("java.lang.NullPointerException")
+    private failedDueToXmlDTDProcessingError(String taskName = 'checkstyleMain') {
+        failure.assertHasCause("An error occurred configuring or running the Checkstyle task: $taskName.")
     }
 
     private String checkStyleCommonXml() {

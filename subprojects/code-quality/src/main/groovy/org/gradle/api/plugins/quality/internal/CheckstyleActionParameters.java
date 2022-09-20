@@ -51,4 +51,6 @@ public interface CheckstyleActionParameters extends WorkParameters {
     MapProperty<String, Object> getConfigProperties();
 
     Property<String> getStylesheetString();
+
+    Property<String> getTaskName();
 }
