@@ -15,7 +15,7 @@ toolchainManagement {
     jvm { // <1>
         repositories {
             repository("azul") { // <2>
-                implementationClass.set(AzulRepo::class.java)
+                implementationClass.set(AzulResolver::class.java)
                 credentials {
                     username = "user"
                     password = "password"
@@ -25,7 +25,7 @@ toolchainManagement {
                 } // <3>
             }
             repository("adoptium") { // <4>
-                implementationClass.set(AdoptiumRepo::class.java)
+                implementationClass.set(AdoptiumResolver::class.java)
             }
         }
     }
@@ -40,7 +40,7 @@ rootProject.name = "toolchain-management"
  * @since 7.6
  */
 @Incubating
-abstract class AzulPlugin: DummyPlugin(AzulRepo::class)
+abstract class AzulPlugin: DummyPlugin(AzulResolver::class)
 
 /**
  * Mock Adoptium repository plugin.
@@ -48,7 +48,7 @@ abstract class AzulPlugin: DummyPlugin(AzulRepo::class)
  * @since 7.6
  */
 @Incubating
-abstract class AdoptiumPlugin: DummyPlugin(AdoptiumRepo::class)
+abstract class AdoptiumPlugin: DummyPlugin(AdoptiumResolver::class)
 
 abstract class DummyPlugin(val resolverClass: kotlin.reflect.KClass<out JavaToolchainResolver>): Plugin<Settings> {
 
@@ -64,13 +64,13 @@ abstract class DummyPlugin(val resolverClass: kotlin.reflect.KClass<out JavaTool
 
 }
 
-abstract class AdoptiumRepo: JavaToolchainResolver {
+abstract class AdoptiumResolver: JavaToolchainResolver {
     override fun toUri(request: JavaToolchainRequest): Optional<URI> {
         return Optional.empty()
     }
 }
 
-abstract class AzulRepo: JavaToolchainResolver {
+abstract class AzulResolver: JavaToolchainResolver {
     override fun toUri(request: JavaToolchainRequest): Optional<URI> {
         return Optional.empty()
     }

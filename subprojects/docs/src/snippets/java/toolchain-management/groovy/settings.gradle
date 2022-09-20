@@ -9,7 +9,7 @@ toolchainManagement {
     jvm { // <1>
         repositories {
             repository('azul') { // <2>
-                implementationClass = AzulRepo
+                implementationClass = AzulResolver
                 credentials {
                     username "user"
                     password "password"
@@ -19,7 +19,7 @@ toolchainManagement {
                 } // <3>
             }
             repository('adoptium') { // <4>
-                implementationClass = AdoptiumRepo
+                implementationClass = AdoptiumResolver
             }
         }
     }
@@ -31,14 +31,14 @@ rootProject.name = 'toolchain-management'
 abstract class AzulPlugin extends DummyPlugin {
 
     AzulPlugin() {
-        super(AzulRepo.class)
+        super(AzulResolver.class)
     }
 }
 
 abstract class AdoptiumPlugin extends DummyPlugin {
 
     AdoptiumPlugin() {
-        super(AdoptiumRepo.class)
+        super(AdoptiumResolver.class)
     }
 }
 
@@ -61,14 +61,14 @@ abstract class DummyPlugin implements Plugin<Settings> {
     }
 }
 
-abstract class AzulRepo implements JavaToolchainResolver {
+abstract class AzulResolver implements JavaToolchainResolver {
     @Override
     Optional<URI> toUri(JavaToolchainRequest request) {
         return Optional.empty();
     }
 }
 
-abstract class AdoptiumRepo implements JavaToolchainResolver {
+abstract class AdoptiumResolver implements JavaToolchainResolver {
     @Override
     Optional<URI> toUri(JavaToolchainRequest request) {
         return Optional.empty();
