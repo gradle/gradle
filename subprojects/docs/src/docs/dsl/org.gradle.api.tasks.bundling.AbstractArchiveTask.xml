@@ -29,10 +29,6 @@
                 <td><literal>""</literal></td>
             </tr>
             <tr>
-                <td>appendix</td>
-                <td><literal>""</literal></td>
-            </tr>
-            <tr>
                 <td>baseName</td>
                 <td><literal>project.archivesBaseName</literal></td>
             </tr>
@@ -58,10 +54,6 @@
             </tr>
             <tr>
                 <td>archiveClassifier</td>
-                <td><literal>""</literal></td>
-            </tr>
-            <tr>
-                <td>classifier</td>
                 <td><literal>""</literal></td>
             </tr>
             <tr>

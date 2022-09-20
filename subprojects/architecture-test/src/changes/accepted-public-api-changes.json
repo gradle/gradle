@@ -418,7 +418,23 @@
         },
         {
             "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getClassifier()",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
             "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.setAppendix(java.lang.String)",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
+            "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.setClassifier(java.lang.String)",
             "acceptation": "Deprecated method removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"

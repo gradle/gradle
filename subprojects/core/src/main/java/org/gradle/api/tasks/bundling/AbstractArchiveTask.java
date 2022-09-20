@@ -375,41 +375,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     /**
      * Returns the classifier part of the archive name, if any.
      *
-     * @return The classifier. May be null.
-     * @deprecated Use {@link #getArchiveClassifier()}
-     */
-    @Nullable
-    @Deprecated
-    @ReplacedBy("archiveClassifier")
-    public String getClassifier() {
-        DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "classifier").replaceWith("archiveClassifier")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        return archiveClassifier.getOrNull();
-    }
-
-    /**
-     * Sets the classifier.
-     *
-     * @deprecated Use {@link #getArchiveClassifier()}
-     */
-    @Deprecated
-    public void setClassifier(@Nullable String classifier) {
-        // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first. https://github.com/gradle/gradle/issues/16783
-        /*DeprecationLogger.deprecateProperty(AbstractArchiveTask.class, "classifier").replaceWith("archiveClassifier")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();*/
-
-        archiveClassifier.convention(classifier);
-        archiveClassifier.set(classifier);
-    }
-
-    /**
-     * Returns the classifier part of the archive name, if any.
-     *
      * @return The classifier. Internal property may be null.
      * @since 5.1
      */
