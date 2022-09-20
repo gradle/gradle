@@ -81,7 +81,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
                 }
             }
 
-            ${ JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14) ?
+            ${JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14) ?
             """
             configurations.codenarc {
                 resolutionStrategy.force '${groovyModuleDependency("groovy", GroovySystem.version)}'
