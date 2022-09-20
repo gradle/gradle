@@ -50,7 +50,7 @@ public interface ExecutionPlan extends Describable, Closeable {
     void addEntryTasks(Collection<? extends Task> tasks);
 
     /**
-     * Returns the current contents of this plan. Note that this may change.
+     * Returns a snapshot of the current contents of this plan. Note that this plan is mutable, so the contents may later change.
      */
     QueryableExecutionPlan getContents();
 
