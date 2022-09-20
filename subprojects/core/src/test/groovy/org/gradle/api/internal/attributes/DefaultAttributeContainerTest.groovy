@@ -99,7 +99,7 @@ class DefaultAttributeContainerTest extends Specification {
 
         expect:
         def parent = newContainer()
-        def child = new DefaultMutableAttributeContainer(cache, parent)
+        def child = new JoinedAttributeContainer(cache, parent, newContainer())
 
         child.empty
         child.keySet().empty
@@ -128,7 +128,7 @@ class DefaultAttributeContainerTest extends Specification {
         child.getAttribute(other) == "other"
         child.asImmutable().keySet() == [thing, other] as Set
 
-        def child2 = new DefaultMutableAttributeContainer(cache, newContainer())
+        def child2 = new JoinedAttributeContainer(cache, newContainer(), newContainer())
         child2.attribute(thing, "child")
 
         !child2.empty

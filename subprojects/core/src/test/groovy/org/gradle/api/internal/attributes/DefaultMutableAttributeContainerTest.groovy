@@ -28,39 +28,6 @@ import spock.lang.Specification
 class DefaultMutableAttributeContainerTest extends Specification {
     def attributesFactory = AttributeTestUtil.attributesFactory()
 
-    def "can override attributes from parent"() {
-        def attr1 = Attribute.of("one", String)
-        def attr2 = Attribute.of("two", String)
-
-        given:
-        def parent = new DefaultMutableAttributeContainer(attributesFactory)
-        parent.attribute(attr1, "parent")
-        parent.attribute(attr2, "parent")
-
-        def child = new DefaultMutableAttributeContainer(attributesFactory, parent)
-        child.attribute(attr1, "child")
-
-        expect:
-        child.getAttribute(attr1) == "child"
-        child.getAttribute(attr2) == "parent"
-
-        def immutable1 = child.asImmutable()
-        immutable1.getAttribute(attr1) == "child"
-        immutable1.getAttribute(attr2) == "parent"
-
-        parent.attribute(attr2, "new parent")
-
-        child.getAttribute(attr1) == "child"
-        child.getAttribute(attr2) == "new parent"
-
-        immutable1.getAttribute(attr1) == "child"
-        immutable1.getAttribute(attr2) == "parent"
-
-        def immutable2 = child.asImmutable()
-        immutable2.getAttribute(attr1) == "child"
-        immutable2.getAttribute(attr2) == "new parent"
-    }
-
     def "adding mismatched attribute types fails fast"() {
         Property<Integer> testProperty = new DefaultProperty<>(Mock(PropertyHost), Integer).convention(1)
         def testAttribute = Attribute.of("test", String)
@@ -86,22 +53,6 @@ class DefaultMutableAttributeContainerTest extends Specification {
         then:
         def e = thrown(IllegalArgumentException)
         e.message.contains("Unexpected type for attribute 'test' provided. Expected a value of type java.lang.String but found a value of type java.lang.Integer.")
-    }
-
-    def "adding and retrieving lazy attribute works if attribute key already present in parent"() {
-        given:
-        def parent = new DefaultMutableAttributeContainer(attributesFactory)
-        def testAttr = Attribute.of("test", String)
-        parent.attribute(testAttr, "parent")
-
-        Property<String> testProperty = new DefaultProperty<>(Mock(PropertyHost), String).convention("child")
-        def child = new DefaultMutableAttributeContainer(attributesFactory, parent)
-
-        when:
-        child.attributeProvider(testAttr, testProperty)
-
-        then:
-        "child" == child.getAttribute(testAttr)
     }
 
     def "equals should return true for 2 containers with different provider instances that return the same value"() {
@@ -169,7 +120,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
     def "adding attribute should override replace existing lazy attribute"() {
         given: "a container with testAttr set to a provider"
         def testAttr = Attribute.of("test", String)
-        def container = new DefaultMutableAttributeContainer(attributesFactory, null)
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
         Property<String> testProvider = new DefaultProperty<>(Mock(PropertyHost), String).convention("lazy value")
         container.attributeProvider(testAttr, testProvider)
 
@@ -183,7 +134,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
     def "adding lazy attribute should override replace existing attribute"() {
         given: "a container with testAttr set to a fixed value"
         def testAttr = Attribute.of("test", String)
-        def container = new DefaultMutableAttributeContainer(attributesFactory, null)
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
         container.attribute(testAttr, "set value")
 
         when: "adding a lazy testAttr"
@@ -196,7 +147,7 @@ class DefaultMutableAttributeContainerTest extends Specification {
 
     def "toString should not change the internal state of the class"() {
         given: "a container and a lazy and non-lazy attribute"
-        def container = new DefaultMutableAttributeContainer(attributesFactory, null)
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
         def testEager = Attribute.of("eager", String)
         def testLazy = Attribute.of("lazy", String)
         Property<String> testProvider = new DefaultProperty<>(Mock(PropertyHost), String).convention("lazy value")

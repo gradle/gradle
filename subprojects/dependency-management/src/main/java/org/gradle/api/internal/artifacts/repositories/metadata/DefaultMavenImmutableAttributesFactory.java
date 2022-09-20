@@ -55,6 +55,11 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
     }
 
     @Override
+    public AttributeContainerInternal join(AttributeContainerInternal parent, AttributeContainerInternal child) {
+        return delegate.join(parent, child);
+    }
+
+    @Override
     public <T> ImmutableAttributes of(Attribute<T> key, T value) {
         return delegate.of(key, value);
     }

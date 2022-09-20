@@ -60,7 +60,12 @@ public class DefaultImmutableAttributesFactory implements ImmutableAttributesFac
 
     @Override
     public AttributeContainerInternal mutable(AttributeContainerInternal parent) {
-        return new DefaultMutableAttributeContainer(this, parent);
+        return join(parent, new DefaultMutableAttributeContainer(this));
+    }
+
+    @Override
+    public AttributeContainerInternal join(AttributeContainerInternal parent, AttributeContainerInternal child) {
+        return new JoinedAttributeContainer(this, parent, child);
     }
 
     @Override
