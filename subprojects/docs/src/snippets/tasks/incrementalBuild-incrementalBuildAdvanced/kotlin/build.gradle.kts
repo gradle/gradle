@@ -71,8 +71,8 @@ tasks.register<Instrument>("instrumentClasses2") {
 
 // tag::inferred-task-dep-with-builtby[]
 tasks.register<Instrument>("instrumentClassesBuiltBy") {
-    classFiles.from(fileTree(tasks.compileJava.map { it.destinationDirectory.get().getAsFile() }) {
-        builtBy(tasks.compileJava)
+    classFiles.from(fileTree(tasks.compileJava.flatMap { it.destinationDirectory }) {
+        builtBy(tasks.named("compileJava"))
     })
     destinationDir.set(file(layout.buildDirectory.dir("instrumented")))
 }
