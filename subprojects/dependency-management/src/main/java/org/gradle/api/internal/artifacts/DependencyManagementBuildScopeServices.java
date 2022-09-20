@@ -145,7 +145,7 @@ import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
@@ -826,8 +826,8 @@ class DependencyManagementBuildScopeServices {
                 }
 
                 @Override
-                public Try<ExecutionResult> getExecutionResult() {
-                    return result.getExecutionResult();
+                public Try<Execution> getExecution() {
+                    return result.getExecution();
                 }
 
                 @Override

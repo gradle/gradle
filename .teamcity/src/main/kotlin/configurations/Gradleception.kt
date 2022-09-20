@@ -50,7 +50,7 @@ class Gradleception(model: CIBuildModel, stage: Stage, bundleGroovy4: Boolean = 
     val buildScanTagForType = buildScanTag("Gradleception")
     val buildScanTagForGroovy4 = buildScanTag("Groovy4")
     val buildScanTags = if (bundleGroovy4) listOf(buildScanTagForType, buildScanTagForGroovy4) else listOf(buildScanTagForType)
-    val bundleGroovy4SysProp =  "-DbundleGroovy4=true"
+    val bundleGroovy4SysProp = "-DbundleGroovy4=true"
     val maybeBundleGroovy4SysProp = if (bundleGroovy4) bundleGroovy4SysProp else ""
     val defaultParameters = (buildToolGradleParameters() + buildScanTags + maybeBundleGroovy4SysProp + "-Porg.gradle.java.installations.auto-download=false").joinToString(separator = " ")
 

@@ -102,11 +102,10 @@ public class ResolveChangesStep<C extends CachingContext, R extends Result> impl
     }
 
     private static IncrementalInputProperties createIncrementalInputProperties(UnitOfWork work) {
-        UnitOfWork.InputChangeTrackingStrategy inputChangeTrackingStrategy = work.getInputChangeTrackingStrategy();
-        switch (inputChangeTrackingStrategy) {
-            case NONE:
+        switch (work.getExecutionBehavior()) {
+            case NON_INCREMENTAL:
                 return IncrementalInputProperties.NONE;
-            case INCREMENTAL_PARAMETERS:
+            case INCREMENTAL:
                 ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
                 InputVisitor visitor = new InputVisitor() {
                     @Override
@@ -124,7 +123,7 @@ public class ResolveChangesStep<C extends CachingContext, R extends Result> impl
                 work.visitRegularInputs(visitor);
                 return new DefaultIncrementalInputProperties(builder.build());
             default:
-                throw new AssertionError("Unknown InputChangeTrackingStrategy: " + inputChangeTrackingStrategy);
+                throw new AssertionError();
         }
     }
 
