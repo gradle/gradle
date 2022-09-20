@@ -23,9 +23,7 @@ class JavaCompileTaskIntegrationTest extends AbstractIntegrationSpec {
     def "task does nothing when only minimal configuration applied"() {
         buildFile << """
             // No plugins applied
-            task compile(type: JavaCompile) {
-                destinationDirectory = file("build/classes")
-            }
+            task compile(type: JavaCompile)
         """
 
         when:
