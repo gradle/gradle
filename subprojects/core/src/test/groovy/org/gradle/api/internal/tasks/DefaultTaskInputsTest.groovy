@@ -32,6 +32,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.api.tasks.Internal
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
@@ -301,7 +302,7 @@ class DefaultTaskInputsTest extends Specification {
         when:
         inputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
             @Override
-            void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity emptyDirectorySensitivity, LineEndingSensitivity lineEndingNormalization, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+            void visitInputFileProperty(String propertyName, boolean optional, UnitOfWork.InputBehavior behavior, DirectorySensitivity emptyDirectorySensitivity, LineEndingSensitivity lineEndingNormalization, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                 names += propertyName
             }
         })
@@ -333,10 +334,9 @@ class DefaultTaskInputsTest extends Specification {
             void visitInputFileProperty(
                 String propertyName,
                 boolean optional,
-                boolean skipWhenEmpty,
+                UnitOfWork.InputBehavior behavior,
                 DirectorySensitivity emptyDirectorySensitivity,
                 LineEndingSensitivity lineEndingNormalization,
-                boolean incremental,
                 @Nullable Class<? extends FileNormalizer> fileNormalizer,
                 PropertyValue value,
                 InputFilePropertyType filePropertyType

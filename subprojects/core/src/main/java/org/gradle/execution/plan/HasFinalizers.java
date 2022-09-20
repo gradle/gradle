@@ -35,7 +35,7 @@ abstract class HasFinalizers extends NodeGroup {
         List<FinalizerGroup> queue = new ArrayList<>(groups);
         while (!queue.isEmpty()) {
             FinalizerGroup group = queue.remove(0);
-            if (isTriggered(group)) {
+            if (!group.isCanCancelSelf()) {
                 // Has started running at least one finalized node, so cannot cancel
                 return false;
             }
@@ -49,19 +49,5 @@ abstract class HasFinalizers extends NodeGroup {
             // Else, have already traversed this group
         }
         return true;
-    }
-
-    private boolean isTriggered(FinalizerGroup group) {
-        Node finalizer = group.getNode();
-        if (finalizer.allDependenciesComplete() && !finalizer.allDependenciesSuccessful()) {
-            // Finalizer won't run, so there's no point running its dependencies
-            return false;
-        }
-        for (Node node : group.getFinalizedNodes()) {
-            if (node.isExecuting() || node.isExecuted()) {
-                return true;
-            }
-        }
-        return false;
     }
 }

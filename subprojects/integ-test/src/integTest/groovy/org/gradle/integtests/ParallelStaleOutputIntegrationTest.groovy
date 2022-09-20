@@ -23,7 +23,7 @@ import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/17812")
 class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
-    @Ignore("https://github.com/gradle/gradle-private/issues/3579")
+    @Ignore("https://github.com/gradle/gradle/issues/22088")
     def "fails when configuring tasks which do dependency resolution from non-project context in constructor"() {
         buildFile << """
             abstract class BadTask extends DefaultTask {
@@ -83,6 +83,15 @@ class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("a:foo", "b:foo", "--parallel")
-        result.assertHasErrorOutput("Resolution of the configuration :a:myconf was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
+
+        // We just need to assert that the build fails with the right error message here, it doesn't matter which task is the first to fail,
+        // allowing either failure to pass the test should reduce flakiness on CI.
+        if (result.error.contains("Could not create task ':a:bar'.")) {
+            result.assertHasErrorOutput("Resolution of the configuration :a:myconf was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
+        } else if (result.error.contains("Could not create task ':b:bar'.")) {
+            result.assertHasErrorOutput("Resolution of the configuration :b:myconf was attempted from a context different than the project context. See: https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more information.")
+        } else {
+            throw new AssertionError("Unexpected task failure in test, see error output.")
+        }
     }
 }

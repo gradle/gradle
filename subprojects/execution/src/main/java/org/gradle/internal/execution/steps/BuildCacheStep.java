@@ -18,7 +18,6 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.file.FileCollection;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.BuildCacheController;
@@ -211,8 +210,8 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
         public void visitOutputTrees(CacheableTreeVisitor visitor) {
             work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
                 @Override
-                public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
-                    visitor.visitOutputTree(propertyName, type, root);
+                public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+                    visitor.visitOutputTree(propertyName, type, value.getValue());
                 }
             });
         }

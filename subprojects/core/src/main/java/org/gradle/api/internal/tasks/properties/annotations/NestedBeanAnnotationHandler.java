@@ -67,7 +67,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         if (nested != null) {
             context.addNested(propertyName, nested);
         } else if (!propertyMetadata.isAnnotationPresent(Optional.class)) {
-            visitor.visitInputProperty(propertyName, new AbsentValue(), false);
+            visitor.visitInputProperty(propertyName, PropertyValue.ABSENT, false);
         }
     }
 
@@ -91,37 +91,6 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         @Override
         public Object call() {
             throw UncheckedException.throwAsUncheckedException(exception);
-        }
-
-        @Nullable
-        @Override
-        public Object getUnprocessedValue() {
-            return call();
-        }
-
-        @Override
-        public TaskDependencyContainer getTaskDependencies() {
-            // Ignore
-            return TaskDependencyContainer.EMPTY;
-        }
-
-        @Override
-        public void maybeFinalizeValue() {
-            // Ignore
-        }
-    }
-
-    private static class AbsentValue implements PropertyValue {
-        @Nullable
-        @Override
-        public Object call() {
-            return null;
-        }
-
-        @Nullable
-        @Override
-        public Object getUnprocessedValue() {
-            return null;
         }
 
         @Override

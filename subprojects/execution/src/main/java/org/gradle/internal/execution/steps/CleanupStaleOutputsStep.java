@@ -18,7 +18,6 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Streams;
-import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
@@ -80,8 +79,8 @@ public class CleanupStaleOutputsStep<C extends WorkspaceContext, R extends Resul
         Set<File> filesToDelete = new HashSet<>();
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
-                Streams.stream(contents)
+            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+                Streams.stream(value.getFiles())
                     .filter(cleanupRegistry::isOutputOwnedByBuild)
                     .filter(file -> !outputFilesRepository.isGeneratedByGradle(file))
                     .filter(file -> file.exists() || Files.isSymbolicLink(file.toPath()))

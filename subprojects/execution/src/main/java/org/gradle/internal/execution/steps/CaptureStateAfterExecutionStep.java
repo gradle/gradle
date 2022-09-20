@@ -18,7 +18,6 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionResult;
@@ -104,8 +103,8 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
-                builder.add(root.getAbsolutePath());
+            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+                builder.add(value.getValue().getAbsolutePath());
             }
 
             @Override
