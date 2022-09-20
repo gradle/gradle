@@ -261,12 +261,9 @@ In future versions, the built-in default will be completely removed.
 ====
 
 Configuration toolchain download repositories starts by applying one or more settings plugins, which provide implementations for them.
-These plugins register named instances of their repositories.
-For details on writing plugins for toolchain provisioning, consult the <<toolchain_plugins.adoc#toolchain_plugins,Toolchain Repository Plugins>> page.
+For details on writing plugins for toolchain provisioning, consult the <<toolchain_plugins.adoc#toolchain_plugins,Toolchain Resolver Plugins>> page.
 
-Let's say there is a plugin replicating the deprecated AdoptOpenJDK download behavior and when applied, would register a repository with the name of `org_gradle_adopt_open_jdk` (`.` and `-` isn't allowed in the names and they are namespaced to avoid collisions).
-
-Let's say there is also a second plugin for downloading Azul JDKs, which, when applied registers its repository with the name of `com_azul_zulu`.
+Let's say there is a plugin replicating the deprecated AdoptiumJDK download behavior and when applied, would register a repository implementation class named `AdoptResolver`. Let's say there is also a second plugin for downloading Azul JDKs, which, when applied registers the `AzulResolver` implementation.
 
 To actually make use of these two repositories in your build, you would use the new `toolchainManagement` block available in your settings file, like this:
 
@@ -274,10 +271,10 @@ To actually make use of these two repositories in your build, you would use the 
 include::sample[dir="snippets/java/toolchain-management/groovy/",files="settings.gradle[tags=toolchain-management]"]
 include::sample[dir="snippets/java/toolchain-management/kotlin/",files="settings.gradle.kts[tags=toolchain-management]"]
 ====
-<1> `toolchainManagement` is intended to cover more than Java toolchains, so the `jvm` sub-block provides the container for Java Toolchain Management related configuration
-<2> the `add` method explicitly names a Java toolchain download repository to be used for Java toolchain auto-provisioning
+<1> `toolchainManagement` is intended to cover more than Java toolchains, so the `jvm` sub-block provides the container for Java toolchain management related configuration
+<2> the `repositories` container can be used to define named Java toolchain repository configurations; the configurations are linked to the actual repository implementations via the `implementationClass` property
 <3> toolchain download repositories primarily provide URIs to download toolchains from, but they can also be configured with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options that are available for artifact repositories used in dependency management>>
-<4> multiple calls of `add` methods form an ordered list of repositories; when a specific toolchain needs to be downloaded, the list of repositories is examined in order and the first repository, that can provide the target toolchain, will be used; this mechanism is the reason why explicit `add` methods are used instead just relying on the registration done by the plugin application
+<4> the repositories form an ordered list; when a specific toolchain needs to be downloaded, the list of repositories is examined in order and the first repository, that can provide the target toolchain, will be used
 
 [WARNING]
 ====
