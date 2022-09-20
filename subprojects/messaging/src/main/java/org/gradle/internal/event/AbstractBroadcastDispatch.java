@@ -52,7 +52,19 @@ public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInv
         }
     }
 
-    protected void dispatch(MethodInvocation invocation, Iterator<? extends Dispatch<MethodInvocation>> handlers) {
+    protected void dispatch(MethodInvocation invocation, List<? extends Dispatch<MethodInvocation>> dispatchers) {
+        switch (dispatchers.size()) {
+            case 0:
+                break;
+            case 1:
+                dispatchOne(invocation, dispatchers.get(0));
+                break;
+            default:
+                dispatch(invocation, dispatchers.iterator());
+                break;
+        }
+    }
+    private void dispatch(MethodInvocation invocation, Iterator<? extends Dispatch<MethodInvocation>> handlers) {
         // Defer creation of failures list, assume dispatch will succeed
         List<Throwable> failures = null;
         while (handlers.hasNext()) {
@@ -87,5 +99,23 @@ public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInv
             throw (RuntimeException) failures.get(0);
         }
         throw new ListenerNotificationException(invocation, getErrorMessage(), failures);
+    }
+
+    private void dispatchOne(MethodInvocation invocation, Dispatch<MethodInvocation> handler) {
+        // Defer creation of failures list, assume dispatch will succeed
+        try {
+            handler.dispatch(invocation);
+        } catch (ListenerNotificationException e) {
+            if (e.getEvent() == invocation) {
+                throw new ListenerNotificationException(invocation, getErrorMessage(), e.getCauses());
+            }
+            throw e;
+        } catch (UncheckedException e) {
+            throw new ListenerNotificationException(invocation, getErrorMessage(), Collections.singleton(e.getCause()));
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Throwable t) {
+            throw new ListenerNotificationException(invocation, getErrorMessage(), Collections.singleton(t));
+        }
     }
 }
