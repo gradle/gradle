@@ -19,11 +19,9 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.OutputSnapshotter;
-import org.gradle.internal.execution.OutputSnapshotter.OutputFileSnapshottingException;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputFileFingerprintingException;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.InputExecutionState;
@@ -130,23 +128,13 @@ public class CaptureStateBeforeExecutionStep<C extends PreviousExecutionContext,
     private BeforeExecutionState captureExecutionState(UnitOfWork work, PreviousExecutionContext context) {
         return operation(operationContext -> {
                 ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots;
-                try {
-                    unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
-                } catch (OutputFileSnapshottingException e) {
-                    throw work.decorateOutputFileSnapshottingException(e);
-                }
+                unfilteredOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
 
                 OverlappingOutputs overlappingOutputs = detectOverlappingOutputs(work, context, unfilteredOutputSnapshots);
 
-                try {
-                    BeforeExecutionState executionState = captureExecutionStateWithOutputs(work, context, unfilteredOutputSnapshots, overlappingOutputs);
-                    operationContext.setResult(Operation.Result.INSTANCE);
-                    return executionState;
-                } catch (InputFileFingerprintingException e) {
-                    // Note that we let InputFingerprintException fall through as we've already
-                    // been failing for non-file value fingerprinting problems even for tasks
-                    throw work.decorateInputFileFingerprintingException(e);
-                }
+                BeforeExecutionState executionState = captureExecutionStateWithOutputs(work, context, unfilteredOutputSnapshots, overlappingOutputs);
+                operationContext.setResult(Operation.Result.INSTANCE);
+                return executionState;
             },
             BuildOperationDescriptor
                 .displayName("Snapshot inputs and outputs before executing " + work.getDisplayName())
