@@ -103,14 +103,13 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                     .willBeRemovedInGradle8()
                     .withUserManual("toolchains", "sec:provisioning")
                     .nagUser();
-            // TODO (#21082): write the removal PR asap, once all the other changes are in the master branch
             Optional<URI> uri = openJdkBinary.toUri(toolchainRequest);
             if (uri.isPresent()) {
                 return Optional.of(provisionInstallation(spec, uri.get(), Collections.emptyList()));
             }
         } else {
             for (RealizedJavaToolchainRepository request : repositories) {
-                Optional<URI> uri = request.getRepository().toUri(toolchainRequest);
+                  Optional<URI> uri = request.getResolver().toUri(toolchainRequest);
                 if (uri.isPresent()) {
                     Collection<Authentication> authentications = request.getAuthentications(uri.get());
                     return Optional.of(provisionInstallation(spec, uri.get(), authentications));

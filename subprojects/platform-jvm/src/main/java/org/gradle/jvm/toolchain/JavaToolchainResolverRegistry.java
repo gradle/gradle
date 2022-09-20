@@ -36,5 +36,4 @@ public interface JavaToolchainResolverRegistry {
      */
     <T extends JavaToolchainResolver> void register(Class<T> implementationType);
 
-    //TODO (#21082): update design docs about the registration API change
 }

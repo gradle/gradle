@@ -33,10 +33,12 @@ import org.gradle.jvm.toolchain.JavaToolchainRepository;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolchainResolverRegistryInternal {
 
@@ -46,6 +48,8 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
     private final BuildServiceRegistry sharedServices;
 
     private final DefaultJavaToolchainRepositoryHandler repositories;
+
+    private final List<RealizedJavaToolchainRepository> realizedRepositories = new ArrayList<>();
 
     private final Map<Class<? extends JavaToolchainResolver>, Provider<? extends JavaToolchainResolver>> registrations = new HashMap<>();
 
@@ -78,12 +82,25 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
 
     @Override
     public List<RealizedJavaToolchainRepository> requestedRepositories() {
-        return repositories.stream()
-                .map(this::resolve)
-                .collect(Collectors.toList());
+        if (realizedRepositories.size() != repositories.size()) {
+            realizeRepositories();
+        }
+        return realizedRepositories;
     }
 
-    private RealizedJavaToolchainRepository resolve(JavaToolchainRepository repository) {
+    private void realizeRepositories() {
+        realizedRepositories.clear();
+
+        Set<Class<?>> resolvers = new HashSet<>();
+        for (JavaToolchainRepository repository : repositories) {
+            if (!resolvers.add(repository.getImplementationClass().get())) {
+                throw new GradleException("Duplicate configuration for repository implementation '" + repository.getImplementationClass().get().getName() + "'.");
+            }
+            realizedRepositories.add(realize(repository));
+        }
+    }
+
+    private RealizedJavaToolchainRepository realize(JavaToolchainRepository repository) {
         Class<? extends JavaToolchainResolver> repositoryClass = getResolverClass(repository);
         Provider<? extends JavaToolchainResolver> provider = findProvider(repositoryClass);
         return new RealizedJavaToolchainRepository(provider, (JavaToolchainRepositoryInternal) repository);
