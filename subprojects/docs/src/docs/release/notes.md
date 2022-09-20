@@ -1,13 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release includes [building and running code with Java 19](#java19),
-a flag to [rerun tasks individually](#individual-rerun),
-and a new [strongly-typed dependencies block](#strongly-typed-dependencies) for JVM test suites.
-
-There are also enhancements to the [configuration cache](#configuration) and
-[incremental compilation](#incremental-compilation-after-failure).
-
-The Kotlin DSL now supports [named dependency arguments](#named-kotlin-dsl-dependency-arguments) for external dependencies.
+This release features [1](), [2](), ... [n](), and more.
 
 <!--
 Include only their name, impactful features should be called out separately below.
