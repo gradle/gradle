@@ -83,7 +83,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
         this.minHeapSize = getObjectFactory().property(String.class);
         this.maxHeapSize = getObjectFactory().property(String.class);
-        this.enableExternalDtdLoad = getObjectFactory().property(Boolean.class);
+        this.enableExternalDtdLoad = getObjectFactory().property(Boolean.class).convention(false);
         // Set default JavaLauncher to current JVM in case
         // CheckstylePlugin that sets Java launcher convention is not applied
         this.javaLauncher = getCurrentJvmLauncher();
@@ -200,9 +200,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
             spec.getForkOptions().setMinHeapSize(minHeapSize.getOrNull());
             spec.getForkOptions().setMaxHeapSize(maxHeapSize.getOrNull());
             spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-            if (getEnableExternalDtdLoad().isPresent()) {
-                spec.getForkOptions().getSystemProperties().put("checkstyle.enableExternalDtdLoad", getEnableExternalDtdLoad().get());
-            }
+            spec.getForkOptions().getSystemProperties().put("checkstyle.enableExternalDtdLoad", getEnableExternalDtdLoad().get());
             spec.getClasspath().from(getCheckstyleClasspath());
         });
         workQueue.submit(CheckstyleAction.class, this::setupParameters);
@@ -462,7 +460,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * @since 7.6
      */
     @Incubating
-    @Optional
     @Input
     public Property<Boolean> getEnableExternalDtdLoad() {
         return enableExternalDtdLoad;
