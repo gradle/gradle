@@ -96,16 +96,6 @@ public abstract class TaskNode extends Node {
         );
     }
 
-    @Override
-    public Iterable<Node> getAllSuccessorsInReverseOrder() {
-        return Iterables.concat(
-            super.getAllSuccessorsInReverseOrder(),
-            getDependencyNodes().getMustSuccessors().descendingSet(),
-            getGroup().getSuccessorsInReverseOrderFor(this),
-            shouldSuccessors.descendingSet()
-        );
-    }
-
     public abstract TaskInternal getTask();
 
     protected void deprecateLifecycleHookReferencingNonLocalTask(String hookName, Node taskNode) {
@@ -115,8 +105,8 @@ public abstract class TaskNode extends Node {
     }
 
     @Override
-    public void updateGroupOfFinalizer() {
-        super.updateGroupOfFinalizer();
+    public void maybeInheritFinalizerGroups() {
+        super.maybeInheritFinalizerGroups();
         if (!getFinalizingSuccessors().isEmpty()) {
             // This node is a finalizer, decorate the current group to add finalizer behaviour
             NodeGroup oldGroup = getGroup();

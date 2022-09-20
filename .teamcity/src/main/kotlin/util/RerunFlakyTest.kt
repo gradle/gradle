@@ -29,7 +29,7 @@ import common.functionalTestExtraParameters
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
-import configurations.CompileAllProduction
+import configurations.CompileAll
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
@@ -65,6 +65,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
         }
         killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", os, arch)
     }
+
     steps {
         checkCleanM2AndAndroidUserHome(os)
     }
@@ -108,6 +109,6 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
     }
 
     dependencies {
-        compileAllDependency(CompileAllProduction.buildTypeId("Check"))
+        compileAllDependency(CompileAll.buildTypeId("Check"))
     }
 })

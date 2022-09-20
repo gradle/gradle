@@ -238,6 +238,7 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec implements Unreada
         runAndFail "copy"
         then:
         expectUnreadableCopyDestinationFailure()
+        failureHasCause("java.io.IOException: Cannot snapshot ${pipe}: not a regular file")
 
         cleanup:
         pipe.delete()

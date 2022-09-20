@@ -116,11 +116,11 @@ Specifies the scheduling priority for the Gradle daemon and all processes launch
 _Default is `normal`._
 
 `org.gradle.vfs.verbose=(true,false)`::
-Configures verbose logging when <<gradle_daemon.adoc#sec:daemon_watch_fs,watching the file system>>.
+Configures verbose logging when <<file_system_watching.adoc#sec:daemon_watch_fs,watching the file system>>.
 _Default is `false`._
 
 `org.gradle.vfs.watch=(true,false)`::
-Toggles <<gradle_daemon.adoc#sec:daemon_watch_fs,watching the file system>>.
+Toggles <<file_system_watching.adoc#sec:daemon_watch_fs,watching the file system>>.
 When enabled Gradle re-uses information it collects about the file system between builds.
 _Enabled by default on operating systems where Gradle supports this feature._
 

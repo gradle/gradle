@@ -309,15 +309,19 @@ public class TaskExecution implements UnitOfWork {
             // SkipWhenEmpty implies incremental.
             // If this file property is empty, then we clean up the previously generated outputs.
             // That means that there is a very close relation between the file property and the output.
-            visitor.visitInputFileProperty(
-                inputFileProperty.getPropertyName(),
-                inputFileProperty.getBehavior(),
-                new InputFileValueSupplier(
-                    inputFileProperty.getValue(),
-                    inputFileProperty.getNormalizer(),
-                    inputFileProperty.getDirectorySensitivity(),
-                    inputFileProperty.getLineEndingNormalization(),
-                    inputFileProperty::getPropertyFiles));
+            try {
+                visitor.visitInputFileProperty(
+                    inputFileProperty.getPropertyName(),
+                    inputFileProperty.getBehavior(),
+                    new InputFileValueSupplier(
+                        inputFileProperty.getValue(),
+                        inputFileProperty.getNormalizer(),
+                        inputFileProperty.getDirectorySensitivity(),
+                        inputFileProperty.getLineEndingNormalization(),
+                        inputFileProperty::getPropertyFiles));
+            } catch (InputFingerprinter.InputFileFingerprintingException e) {
+                throw decorateSnapshottingException("input", inputFileProperty.getPropertyName(), e.getCause());
+            }
         }
     }
 
@@ -327,11 +331,15 @@ public class TaskExecution implements UnitOfWork {
         for (OutputFilePropertySpec property : taskProperties.getOutputFileProperties()) {
             File outputFile = property.getOutputFile();
             if (outputFile != null) {
-                visitor.visitOutputProperty(
-                    property.getPropertyName(),
-                    property.getOutputType(),
-                    new OutputFileValueSupplier(outputFile, property.getPropertyFiles())
-                );
+                try {
+                    visitor.visitOutputProperty(
+                        property.getPropertyName(),
+                        property.getOutputType(),
+                        new OutputFileValueSupplier(outputFile, property.getPropertyFiles())
+                    );
+                } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
+                    throw decorateSnapshottingException("output", property.getPropertyName(), e.getCause());
+                }
             }
         }
         for (File localStateRoot : taskProperties.getLocalStateFiles()) {
@@ -342,39 +350,28 @@ public class TaskExecution implements UnitOfWork {
         }
     }
 
-    @Override
-    public RuntimeException decorateInputFileFingerprintingException(InputFingerprinter.InputFileFingerprintingException ex) {
-        return decorateSnapshottingException("input", ex.getPropertyName(), ex.getCause());
-    }
-
-    @Override
-    public RuntimeException decorateOutputFileSnapshottingException(OutputSnapshotter.OutputFileSnapshottingException ex) {
-        return decorateSnapshottingException("output", ex.getPropertyName(), ex.getCause());
-    }
-
     private RuntimeException decorateSnapshottingException(String propertyType, String propertyName, Throwable cause) {
         if (!(cause instanceof UncheckedIOException || cause instanceof org.gradle.api.UncheckedIOException)) {
             return UncheckedException.throwAsUncheckedException(cause);
         }
-        LOGGER.info("Cannot access {} property '{}' of {}", propertyType, propertyName, getDisplayName(), cause);
         boolean isDestinationDir = propertyName.equals("destinationDir");
         DocumentedFailure.Builder builder = DocumentedFailure.builder();
         if (isDestinationDir && task instanceof Copy) {
-            builder.withSummary("Cannot access a file in the destination directory (see --info log for details).")
+            builder.withSummary("Cannot access a file in the destination directory.")
                 .withContext("Copying to a directory which contains unreadable content is not supported.")
                 .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
         } else if (isDestinationDir && task instanceof Sync) {
-            builder.withSummary("Cannot access a file in the destination directory (see --info log for details).")
+            builder.withSummary("Cannot access a file in the destination directory.")
                 .withContext("Syncing to a directory which contains unreadable content is not supported.")
                 .withAdvice("Use a Copy task with Task.doNotTrackState() instead.");
         } else {
-            builder.withSummary(String.format("Cannot access %s property '%s' of %s (see --info log for details).",
+            builder.withSummary(String.format("Cannot access %s property '%s' of %s.",
                     propertyType, propertyName, getDisplayName()))
                 .withContext("Accessing unreadable inputs or outputs is not supported.")
                 .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
         }
         return builder.withUserManual("more_about_tasks", "disable-state-tracking")
-            .build();
+            .build(cause);
     }
 
     @Override
