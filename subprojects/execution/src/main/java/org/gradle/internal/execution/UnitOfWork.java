@@ -20,11 +20,9 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.execution.OutputSnapshotter.OutputFileSnapshottingException;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputFileFingerprintingException;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
@@ -296,20 +294,6 @@ public interface UnitOfWork extends Describable {
         default void visitLocalState(File localStateRoot) {}
 
         default void visitDestroyable(File destroyableRoot) {}
-    }
-
-    /**
-     * Decorate input file fingerprinting errors when appropriate.
-     */
-    default RuntimeException decorateInputFileFingerprintingException(InputFileFingerprintingException ex) {
-        return ex;
-    }
-
-    /**
-     * Decorate output file fingerprinting errors when appropriate.
-     */
-    default RuntimeException decorateOutputFileSnapshottingException(OutputFileSnapshottingException ex) {
-        return ex;
     }
 
     /**
