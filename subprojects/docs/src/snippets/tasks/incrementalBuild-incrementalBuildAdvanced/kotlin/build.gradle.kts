@@ -50,7 +50,7 @@ tasks.register<ProcessTemplates>("processTemplates2") {
 // tag::failed-inferred-task-dep[]
 
 tasks.register<Instrument>("badInstrumentClasses") {
-    classFiles.from(fileTree(tasks.compileJava.map { it.destinationDirectory.get().getAsFile() }))
+    classFiles.from(fileTree(tasks.compileJava.flatMap { it.destinationDirectory }))
     destinationDir.set(file(layout.buildDirectory.dir("instrumented")))
 }
 // end::failed-inferred-task-dep[]
