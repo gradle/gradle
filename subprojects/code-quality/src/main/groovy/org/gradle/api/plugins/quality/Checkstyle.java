@@ -224,6 +224,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         if (stylesheetString != null) {
             parameters.getStylesheetString().set(stylesheetString.asString());
         }
+        parameters.getTaskName().set(getName());
     }
 
     /**
