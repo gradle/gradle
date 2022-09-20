@@ -132,7 +132,7 @@ public class TestNGTestFramework implements TestFramework {
     }
 
     /**
-     * Use reflection to load {@link org.testng.xml.XmlSuite.FailurePolicy}, added in TestNG 6.9.12
+     * Use reflection to load {@code org.testng.xml.XmlSuite.FailurePolicy}, added in TestNG 6.9.12
      * @return reference to class, if exists.
      * @throws ClassNotFoundException if using older TestNG version.
      */
@@ -167,8 +167,21 @@ public class TestNGTestFramework implements TestFramework {
     }
 
     @Override
+    public List<String> getTestWorkerImplementationClasses() {
+        return Collections.emptyList();
+    }
+
+    @Override
     public List<String> getTestWorkerImplementationModules() {
         return Collections.emptyList();
+    }
+
+    @Override
+    public boolean getUseImplementationDependencies() {
+        // We have no (default) implementation dependencies (see above).
+        // The user must add their TestNG dependency to the test's runtimeClasspath themselves
+        // or preferably use test suites where the dependencies are automatically managed.
+        return false;
     }
 
     @Override

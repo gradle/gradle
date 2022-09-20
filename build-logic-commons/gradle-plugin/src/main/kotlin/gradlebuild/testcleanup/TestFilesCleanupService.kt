@@ -23,7 +23,6 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
 import org.gradle.api.provider.MapProperty
-import org.gradle.api.provider.Property
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.exceptions.DefaultMultiCauseException
@@ -34,6 +33,7 @@ import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSuccessResult
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.LinkOption
@@ -57,7 +57,6 @@ abstract class TestFilesCleanupService @Inject constructor(
     interface Params : BuildServiceParameters {
         val projectStates: MapProperty<String, TestFilesCleanupProjectState>
         val rootBuildDir: DirectoryProperty
-        val cleanupRunnerStep: Property<Boolean>
 
         /**
          * Key is the path of a task, value is the possible report dirs it generates.
@@ -83,10 +82,6 @@ abstract class TestFilesCleanupService @Inject constructor(
     private
     val rootBuildDir: File
         get() = parameters.rootBuildDir.get().asFile
-
-    private
-    val cleanupRunnerStep: Boolean
-        get() = parameters.cleanupRunnerStep.getOrElse(false)
 
     private
     val testPathToBinaryResultsDirs: Map<String, File>
@@ -148,22 +143,20 @@ abstract class TestFilesCleanupService @Inject constructor(
         }
 
         // Second run: verify and throw exceptions
-        if (!cleanupRunnerStep) {
-            val exceptions = mutableListOf<Exception>()
-            parameters.projectStates.get()
-                .filter { projectPathToLeftoverFiles.containsKey(it.key) }
-                .forEach { (projectPath: String, projectExtension: TestFileCleanUpExtension) ->
-                    try {
-                        projectExtension.verifyTestFilesCleanup(projectPath, projectPathToLeftoverFiles.getValue(projectPath))
-                    } catch (e: Exception) {
-                        exceptions.add(e)
-                    }
+        val exceptions = mutableListOf<Exception>()
+        parameters.projectStates.get()
+            .filter { projectPathToLeftoverFiles.containsKey(it.key) }
+            .forEach { (projectPath: String, projectExtension: TestFileCleanUpExtension) ->
+                try {
+                    projectExtension.verifyTestFilesCleanup(projectPath, projectPathToLeftoverFiles.getValue(projectPath))
+                } catch (e: Exception) {
+                    exceptions.add(e)
                 }
-            when {
-                exceptions.size == 1 -> throw exceptions.first()
-                exceptions.isNotEmpty() -> throw DefaultMultiCauseException("Test files cleanup verification failed", exceptions)
-                else -> {
-                }
+            }
+        when {
+            exceptions.size == 1 -> throw exceptions.first()
+            exceptions.isNotEmpty() -> throw DefaultMultiCauseException("Test files cleanup verification failed", exceptions)
+            else -> {
             }
         }
     }
@@ -294,9 +287,13 @@ abstract class TestFilesCleanupService @Inject constructor(
         ZipOutputStream(FileOutputStream(destZip), StandardCharsets.UTF_8).use { zipOutput ->
             srcFiles.forEach { (relativePath: String, file: File) ->
                 val zipEntry = ZipEntry(relativePath)
-                zipOutput.putNextEntry(zipEntry)
-                Files.copy(file.toPath(), zipOutput)
-                zipOutput.closeEntry()
+                try {
+                    zipOutput.putNextEntry(zipEntry)
+                    Files.copy(file.toPath(), zipOutput)
+                    zipOutput.closeEntry()
+                } catch (e: IOException) {
+                    throw GradleException("Error copying file contents to zip. File: " + file.toPath(), e)
+                }
             }
         }
     }

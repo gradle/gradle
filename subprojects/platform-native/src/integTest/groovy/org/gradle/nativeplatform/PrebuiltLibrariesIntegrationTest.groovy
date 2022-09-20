@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_MAC_OS_X])
 class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     final app = new CppHelloWorldApp()
 

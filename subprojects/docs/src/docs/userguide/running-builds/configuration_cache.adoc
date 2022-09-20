@@ -28,7 +28,7 @@ In other words, the configuration cache saves the output of the configuration ph
 ====
 This feature is currently *_incubating_* and not enabled by default. This feature has the following limitations:
 
-- The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress.
+- The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress.
 - Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>.
 - IDE imports and syncs do not use the configuration cache.
 ====

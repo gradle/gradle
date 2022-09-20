@@ -56,10 +56,21 @@ public class JavaProcessStackTracesMonitor {
     private static final Pattern WINDOWS_PID_PATTERN = Pattern.compile("([0-9]+)\\s*$");
     private static final Pattern UNIX_PID_PATTERN = Pattern.compile("([0-9]+)");
 
-    private static PrintStream output;
+    private final File outputFile;
+    private final PrintStream output;
+
+    public JavaProcessStackTracesMonitor(File dumpDir) {
+        try {
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"));
+            this.outputFile = new File(dumpDir, timestamp + ".threaddump");
+            this.output = new PrintStream(outputFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static void main(String[] args) {
-        printAllStackTracesByJstack(args.length == 0 ? new File("") : new File(args[0]));
+        new JavaProcessStackTracesMonitor(new File(args.length == 0 ? "." : args[0])).printAllStackTracesByJstack();
     }
 
     private static void assertTrue(boolean condition, String message) {
@@ -121,7 +132,7 @@ public class JavaProcessStackTracesMonitor {
         String jstack() {
             ExecResult result = run(getJstackCommand(), pid);
 
-            StringBuilder sb = new StringBuilder(String.format("Run %s %s return %s", getJstackCommand(), pid, result.toString()));
+            StringBuilder sb = new StringBuilder(String.format("Run %s %s return %s", getJstackCommand(), pid, result));
             if (result.code != 0) {
                 result = run(getJstackCommand(), "-F", pid);
                 sb.append(String.format("Run %s -F %s return %s", getJstackCommand(), pid, result.toString()));
@@ -171,7 +182,7 @@ public class JavaProcessStackTracesMonitor {
         }
     }
 
-    private static StdoutAndPatterns ps() {
+    private StdoutAndPatterns ps() {
         String[] command = isWindows() ? new String[]{"wmic", "process", "get", "processid,commandline"} : new String[]{"ps", "x"};
         ExecResult result = run(command);
         output.printf("Run: " + Arrays.toString(command));
@@ -245,15 +256,8 @@ public class JavaProcessStackTracesMonitor {
     }
 
 
-    public static File printAllStackTracesByJstack(File outputDir) {
-        try {
-            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"));
-            File outputFile = new File(outputDir, timestamp + ".threaddump");
-            output = new PrintStream(outputFile);
-            output.println(ps().getSuspiciousDaemons().stream().map(JavaProcessInfo::jstack).collect(Collectors.joining("\n")));
-            return outputFile;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public File printAllStackTracesByJstack() {
+        output.println(ps().getSuspiciousDaemons().stream().map(JavaProcessInfo::jstack).collect(Collectors.joining("\n")));
+        return outputFile;
     }
 }

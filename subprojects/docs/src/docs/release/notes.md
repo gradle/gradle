@@ -2,13 +2,32 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
- THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+ THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+ The list is rendered as is, so use commas after each contributor's name, and a period at the end. 
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
+
+[Björn Kautler](https://github.com/Vampire),
+[Clara Guerrero](https://github.com/cguerreros),
+[David Marin](https://github.com/dmarin),
+[Denis Buzmakov](https://github.com/bacecek),
+[Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy),
+[Dzmitry Neviadomski](https://github.com/nevack),
+[Eliezer Graber](https://github.com/eygraber),
+[Fedor Ihnatkevich](https://github.com/Jeffset),
+[Gabriel Rodriguez](https://github.com/gabrielrodriguez2746),
+[Herbert von Broeuschmeul](https://github.com/HvB),
+[Matthew Haughton](https://github.com/3flex),
+[Michael Torres](https://github.com/torresmi),
+[Pankaj Kumar](https://github.com/p1729),
+[Ricardo Jiang](https://github.com/RicardoJiang),
+[Siddardha Bezawada](https://github.com/SidB3),
+[Stephen Topley](https://github.com/stopley),
+[Vinay Potluri](https://github.com/vinaypotluri).
 
 ## Upgrade instructions
 
@@ -18,7 +37,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
@@ -51,7 +70,6 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 #### PMD and CodeNarc tasks execute in parallel by default
-
 The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/pmd_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process and therefore their tasks may now run in parallel within one project.
 
 In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
@@ -68,9 +86,35 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### Promoted features in the Tooling API
+
+- The `GradleConnector.disconnect()` method is now considered stable.
+
+### Promoted features in the antlr plugin
+
+- The `AntlrSourceDirectorySet` interface is now considered stable.
+
+### Promoted features in the ear plugin
+
+- The `Ear.getAppDirectory()` method is now considered stable.
+
+### Promoted features in the eclipse plugin
+
+- The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
+
+### Promoted features in the groovy plugin
+
+The following type and method are now considered stable:
+- `GroovySourceDirectorySet`
+- `GroovyCompileOptions.getDisabledGlobalASTTransformations()`
+
+### Promoted features in the scala plugin
+
+- The `ScalaSourceDirectorySet` interface is now considered stable.
+
+### Promoted features in the war plugin
+
+- The `War.getWebAppDirectory()` method is now considered stable.
 
 ## Fixed issues
 

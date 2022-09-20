@@ -33,7 +33,10 @@ dependencies {
 }
 
 tasks.register("showJarFiles") {
+    val rootDir = project.rootDir
+    val compileClasspath: FileCollection = configurations.compileClasspath.get()
+
     doLast {
-        configurations["compileClasspath"].forEach { println(it.path.removePrefix(rootDir.path)) }
+        compileClasspath.forEach { println(it.path.removePrefix(rootDir.path)) }
     }
 }

@@ -96,7 +96,7 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
         ).joinToString(separator = " ")
 
     steps {
-        gradleWrapper {
+        gradleWrapper(this@gradleRunnerStep) {
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
             gradleParams = parameters
@@ -117,12 +117,12 @@ fun applyDefaults(
 ) {
     buildType.applyDefaultSettings(os, timeout = timeout)
 
-    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon)
+    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", os)
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
     buildType.steps {
         extraSteps()
-        checkCleanM2AndAndroidUserHome(os)
+        checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
     applyDefaultDependencies(model, buildType, dependsOnQuickFeedbackLinux)
@@ -148,15 +148,15 @@ fun applyTestDefaults(
         preSteps()
     }
 
-    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", daemon)
+    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS", os, arch)
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
-    buildType.killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", daemon)
+    buildType.killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", os, arch)
 
     buildType.steps {
         extraSteps()
-        checkCleanM2AndAndroidUserHome(os)
+        checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
     applyDefaultDependencies(model, buildType, dependsOnQuickFeedbackLinux)
@@ -171,9 +171,9 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, dependsO
             dependsOn(RelativeId(stageTriggerId(model, StageName.QUICK_FEEDBACK_LINUX_ONLY)))
         }
     }
-    if (buildType !is CompileAllProduction) {
+    if (buildType !is CompileAll) {
         buildType.dependencies {
-            compileAllDependency(CompileAllProduction.buildTypeId(model))
+            compileAllDependency(CompileAll.buildTypeId(model))
         }
     }
 }

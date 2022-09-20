@@ -40,20 +40,6 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
         return getDelegate().getMainClass();
     }
 
-    @SuppressWarnings("deprecation")
-    @Nullable
-    @Override
-    default String getMain() {
-        return getDelegate().getMain();
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    default JavaExecSpec setMain(@Nullable String main) {
-        getDelegate().setMain(main);
-        return this;
-    }
-
     @Nullable
     @Override
     default List<String> getArgs() {

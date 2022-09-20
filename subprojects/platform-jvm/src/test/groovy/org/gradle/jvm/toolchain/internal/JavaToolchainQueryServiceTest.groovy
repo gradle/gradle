@@ -59,9 +59,9 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath(expectedPath)
 
         where:
-        versionToFind               | expectedPath
-        JavaLanguageVersion.of(9)   | "/path/9"
-        JavaLanguageVersion.of(12)  | "/path/12"
+        versionToFind              | expectedPath
+        JavaLanguageVersion.of(9)  | "/path/9"
+        JavaLanguageVersion.of(12) | "/path/12"
     }
 
     def "uses most recent version of multiple matches for version #versionToFind"() {
@@ -80,10 +80,10 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath(expectedPath)
 
         where:
-        versionToFind               | expectedPath
-        JavaLanguageVersion.of(7)   | "/path/7.9"
-        JavaLanguageVersion.of(8)   | "/path/8.0.zzz.foo" // zzz resolves to a real toolversion 999
-        JavaLanguageVersion.of(14)  | "/path/14.0.2+12"
+        versionToFind              | expectedPath
+        JavaLanguageVersion.of(7)  | "/path/7.9"
+        JavaLanguageVersion.of(8)  | "/path/8.0.zzz.foo" // zzz resolves to a real toolversion 999
+        JavaLanguageVersion.of(14) | "/path/14.0.2+12"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17195")
@@ -316,7 +316,7 @@ class JavaToolchainQueryServiceTest extends Specification {
             @Override
             Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input) {
                 def metadata = newMetadata(javaHome)
-                if(metadata.isValidInstallation()) {
+                if (metadata.isValidInstallation()) {
                     def toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input, eventEmitter) {
                         @Override
                         boolean isCurrentJvm() {
@@ -332,7 +332,7 @@ class JavaToolchainQueryServiceTest extends Specification {
     }
 
     def newMetadata(InstallationLocation javaHome, String vendor = "") {
-        if(javaHome.location.name.contains("broken")) {
+        if (javaHome.location.name.contains("broken")) {
             return JvmInstallationMetadata.failure(javaHome.location, "errorMessage")
         }
         Mock(JvmInstallationMetadata) {
@@ -342,7 +342,7 @@ class JavaToolchainQueryServiceTest extends Specification {
             isValidInstallation() >> true
             getVendor() >> JvmVendor.fromString(vendor)
             hasCapability(_ as JvmInstallationMetadata.JavaInstallationCapability) >> { capability ->
-                if(capability[0] == J9_VIRTUAL_MACHINE) {
+                if (capability[0] == J9_VIRTUAL_MACHINE) {
                     return javaHome.location.name.contains("j9")
                 }
                 return false

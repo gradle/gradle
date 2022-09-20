@@ -32,8 +32,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * A configuration-cache friendly view of @{link Task} that only projects information
- * that is relevant for the @{link Help#} task.
+ * A configuration-cache friendly view of a {@link Task} that only projects information
+ * that is relevant for the {@link Help} task.
  */
 @NonNullApi
 class TaskDetails {

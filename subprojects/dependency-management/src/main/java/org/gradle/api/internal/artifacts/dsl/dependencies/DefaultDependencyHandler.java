@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
@@ -69,7 +70,7 @@ import static org.gradle.internal.component.external.model.TestFixturesSupport.T
 
 public abstract class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
-    private final DependencyFactory dependencyFactory;
+    private final DependencyFactoryInternal dependencyFactory;
     private final ProjectFinder projectFinder;
     private final DependencyConstraintHandler dependencyConstraintHandler;
     private final ComponentMetadataHandler componentMetadataHandler;
@@ -83,7 +84,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     private final DynamicAddDependencyMethods dynamicMethods;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
-                                    DependencyFactory dependencyFactory,
+                                    DependencyFactoryInternal dependencyFactory,
                                     ProjectFinder projectFinder,
                                     DependencyConstraintHandler dependencyConstraintHandler,
                                     ComponentMetadataHandler componentMetadataHandler,
@@ -174,14 +175,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Nullable
     private Dependency doAdd(Configuration configuration, Object dependencyNotation, @Nullable Closure configureClosure) {
         if (dependencyNotation instanceof Configuration) {
-            DeprecationLogger.deprecateBehaviour("Adding a Configuration as a dependency is a confusing behavior which isn't recommended.")
-                .withAdvice("If you're interested in inheriting the dependencies from the Configuration you are adding, you should use Configuration#extendsFrom instead.")
-                .willBeRemovedInGradle8()
-                .withDslReference(Configuration.class, "extendsFrom(org.gradle.api.artifacts.Configuration[])")
-                .nagUser();
-            return doAddConfiguration(configuration, (Configuration) dependencyNotation);
-        }
-        if (dependencyNotation instanceof ProviderConvertible<?>) {
+            throw new GradleException("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.");
+        } else if (dependencyNotation instanceof ProviderConvertible<?>) {
             return doAdd(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
         } else if (dependencyNotation instanceof ProviderInternal<?>) {
             ProviderInternal<?> provider = (ProviderInternal<?>) dependencyNotation;
@@ -223,16 +218,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         };
     }
 
-    @Nullable
-    private Dependency doAddConfiguration(Configuration configuration, Configuration dependencyNotation) {
-        Configuration other = dependencyNotation;
-        if (!configurationContainer.contains(other)) {
-            throw new UnsupportedOperationException("Currently you can only declare dependencies on configurations from the same project.");
-        }
-        configuration.extendsFrom(other);
-        return null;
-    }
-
     @Override
     public Dependency module(Object notation) {
         return module(notation, null);
@@ -251,17 +236,17 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
     @Override
     public Dependency gradleApi() {
-        return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_API);
+        return dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_API);
     }
 
     @Override
     public Dependency gradleTestKit() {
-        return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT);
+        return dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT);
     }
 
     @Override
     public Dependency localGroovy() {
-        return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.LOCAL_GROOVY);
+        return dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY);
     }
 
     @Override
@@ -327,17 +312,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Override
     public void artifactTypes(Action<? super ArtifactTypeContainer> configureAction) {
         configureAction.execute(getArtifactTypes());
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void registerTransform(Action<? super org.gradle.api.artifacts.transform.VariantTransform> registrationAction) {
-        DeprecationLogger.deprecate("Registering artifact transforms extending ArtifactTransform")
-            .withAdvice("Implement TransformAction instead.")
-            .willBeRemovedInGradle8()
-            .withUserManual("artifact_transforms")
-            .nagUser();
-        transforms.registerTransform(registrationAction);
     }
 
     @Override
