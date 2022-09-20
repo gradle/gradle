@@ -886,6 +886,24 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assertAllWorkComplete()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/21975")
+    def "handles task failure when a finalizer is a dependency of and finalized by another node"() {
+        Task finalizer1 = createTask("finalizer1")
+        Task finalizer2 = task("finalizer2", finalizedBy: [finalizer1])
+        Task dep = task("dep", failure: new RuntimeException("broken"))
+        Task entry = task("entry", finalizedBy: [finalizer2], dependsOn: [dep])
+        relationships(finalizer1, dependsOn: [finalizer2])
+
+        when:
+        addToGraphAndPopulate(entry)
+
+        then:
+        executionPlan.tasks as List == [dep, entry, finalizer2, finalizer1]
+        reachableFromEntryPoint == [true, true, false, false]
+        assertTaskReady(dep)
+        assertAllWorkComplete()
+    }
+
     def "assigns task to first ordinal group it is reachable from when task is entry task multiple times"() {
         given:
         Task finalizer1 = task("finalizer1", type: Async)
@@ -2049,7 +2067,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     private void addToGraph(Task... tasks) {
         for (final def task in tasks) {
-            executionPlan.addEntryTasks([task])
+            executionPlan.addEntryTask(task)
         }
     }
 
