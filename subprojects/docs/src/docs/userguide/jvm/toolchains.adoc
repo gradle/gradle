@@ -62,7 +62,8 @@ include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradl
 
 If the vendor you want to target is not a known vendor, you can still restrict the toolchain to those matching the `java.vendor` system property of the available toolchains.
 
-Given the snippet below, only toolchain are taken into accounts whose `java.vendor` property contains the given match string. The matching is done in a case-insensitive manner.
+Given the snippet below, only toolchain are taken into accounts whose `java.vendor` property contains the given match string.
+The matching is done in a case-insensitive manner.
 
 ====
 include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-vendor]"]
@@ -201,10 +202,13 @@ In order to disable auto-detection, you can use the `org.gradle.java.installatio
 * Or put `org.gradle.java.installations.auto-detect=false` into your `gradle.properties` file.
 
 [[sec:provisioning]]
-== Auto Provisioning
+== Auto-Provisioning
 
-If Gradle can't find a locally available toolchain which matches the requirements of the build, it will automatically try to download it from Adoptium or AdoptOpenJDK.
-By default, it will request a HotSpot JDK matching the current operating system and architecture.
+If Gradle can't find a locally available toolchain, which matches the requirements of the build, it can automatically download one.
+By default, downloading happens from Adoptium or AdoptOpenJDK, but this behaviour will be removed in future versions and a generic mechanism for using plugin-provided toolchain repositories will take over.
+For further details see the <<#sub:download_repositories,Toolchain Download Repositories>> section below.
+
+By default, downloading will request a HotSpot JDK matching the current operating system and architecture.
 Provisioned JDKs are installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>.
 
 [NOTE]
@@ -213,17 +217,21 @@ Gradle will only download JDK versions for GA releases.
 There is no support for downloading early access versions.
 ====
 
-Once a provisioned JDK has been installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>> it becomes one of the JDKs visible to <<#sec:auto_detection,auto detection>>
+Once a provisioned JDK has been installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>> it becomes one of the JDKs visible to <<#sec:auto_detection,auto-detection>>
 and can be used by any subsequent builds, just like any other JDK installed on the system.
 Since auto-provisioning only kicks in when auto-detection fails to find a matching JDK, auto-provisioning can only download new JDKs and is in no way involved in updating any of the already installed ones.
 None of the auto-provisioned JDKs will ever be revisited and automatically updated by auto-provisioning, even if there is a newer minor version available for them.
 
-By default, the public https://api.adoptium.net/[Adoptium] and https://api.adoptopenjdk.net/[AdoptOpenJDK APIs] are used to determine and download a matching JDK. Gradle will try Adoptium first, and if it fails to find a matching JDK, it will try AdoptOpenJDK.
+[[sub:adoptium_and_adopt_open_jdk]]
+=== Adoptium and AdoptOpenJDK
+
+Up until Gradle 8 (not included), the public https://api.adoptium.net/[Adoptium] and https://api.adoptopenjdk.net/[AdoptOpenJDK APIs] are used by default to determine and download a matching JDK.
+Gradle will try Adoptium first, and if it fails to find a matching JDK, it will try AdoptOpenJDK.
 
 [WARNING]
 ====
 Due to changes in AdoptOpenJDK and the migration to https://adoptium.net/[Eclipse Adoptium], the endpoint now serves JDKs from https://adoptium.net/[Eclipse Adoptium] or https://developer.ibm.com/languages/java/semeru-runtimes/[IBM Semeru] and no longer builds from AdoptOpenJDK.
-Using `JvmVendorSpec.ADOPTOPENJDK` and having it resolved through auto provisioning will result in a deprecation warning.
+Using `JvmVendorSpec.ADOPTOPENJDK` and having it resolved through auto-provisioning will result in a deprecation warning.
 ====
 
 In case you want to use another server that is compatible with v3 of the AdoptOpenJDK API, you can point Gradle to use a different host.
@@ -239,6 +247,42 @@ You can also override the Adoptium API host with `org.gradle.jvm.toolchain.insta
 ====
 Only secure protocols like `https` are accepted.
 This is required to make sure no one can tamper with the download in flight.
+====
+
+[[sub:download_repositories]]
+=== Toolchain Download Repositories
+
+Starting with Gradle 7.6, there is a generic way to configure arbitrary repositories to download toolchains from.
+
+[NOTE]
+====
+This new mechanism has priority over the Adoptium/AdoptOpenJDK built-in default, if configured the default will no longer be used for downloading.
+In future versions, the built-in default will be completely removed.
+====
+
+Configuration toolchain download repositories starts by applying one or more settings plugins, which provide implementations for them.
+For details on writing plugins for toolchain provisioning, consult the <<toolchain_plugins.adoc#toolchain_plugins,Toolchain Resolver Plugins>> page.
+
+Let's say there is a plugin replicating the deprecated AdoptiumJDK download behavior and when applied, would register a repository implementation class named `AdoptResolver`. Let's say there is also a second plugin for downloading Azul JDKs, which, when applied registers the `AzulResolver` implementation.
+
+To actually make use of these two repositories in your build, you would use the new `toolchainManagement` block available in your settings file, like this:
+
+====
+include::sample[dir="snippets/java/toolchain-management/groovy/",files="settings.gradle[tags=toolchain-management]"]
+include::sample[dir="snippets/java/toolchain-management/kotlin/",files="settings.gradle.kts[tags=toolchain-management]"]
+====
+<1> `toolchainManagement` is intended to cover more than Java toolchains, so the `jvm` sub-block provides the container for Java toolchain management related configuration
+<2> the `javaRepositories` container can be used to define named Java toolchain repository configurations; the configurations are linked to the actual repository implementations via the `resolverClass` property
+<3> toolchain download repositories primarily provide URIs to download toolchains from, but they can also be configured with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options that are available for artifact repositories used in dependency management>>
+<4> the repositories form an ordered list; when a specific toolchain needs to be downloaded, the list of repositories is examined in order and the first repository, that can provide the target toolchain, will be used
+
+[WARNING]
+====
+The `jvm` block in `toolchainManagement` is not a static component of the API.
+It only gets added when the plugins providing the toolchain download repository implementations are applied.
+
+Although the authentication & authorization  mechanisms are shared between the two, toolchain download repositories have nothing else in common with the <<declaring_repositories.adoc#declaring-repositories,artifact repositories used by Gradle in the context of dependency management>>.
+They represent conceptually different things.
 ====
 
 [[sub:viewing_toolchains]]
@@ -325,16 +369,18 @@ org.gradle.java.installations.paths=/custom/path/jdk1.8,/shared/jre11
 
 [NOTE]
 ====
-Custom toolchains are not prioritized over <<sec:auto_detection,auto-detected>> ones. If auto-detection is turned on, custom toolchains
-can still be specified but all they will do is to extend the set of detected JRE/JDK locations. Among these locations, one will be picked
+Custom toolchains are not prioritized over <<sec:auto_detection,auto-detected>> ones.
+If auto-detection is turned on, custom toolchains
+can still be specified but all they will do is to extend the set of detected JRE/JDK locations.
+Among these locations, one will be picked
 according to the <<sec:precedence,Toolchain Precedence Rules>>.
 ====
 
 [[sec:precedence]]
 == Precedence
 
-Gradle will sort all the JDK/JRE installations matching the toolchain specification of the build and will pick the first one. Sorting
-is done based on the following rules:
+Gradle will sort all the JDK/JRE installations matching the toolchain specification of the build and will pick the first one.
+Sorting is done based on the following rules:
 
 . the installation currently running Gradle is preferred over any other
 . JDK installations are preferred over JRE ones
@@ -358,10 +404,12 @@ is done based on the following rules:
 . installation paths take precedence according to their lexicographic ordering (last resort criteria for deterministically deciding
 between installations of the same type, from the same vendor and with the same version)
 
-All these rules are applied as multilevel sorting criteria, *in the order they are shown*. Let's illustrate with an example. Let's
-say that the only criteria we have added to our toolchain specification is that we want Java version 17 and that on our local machine
+All these rules are applied as multilevel sorting criteria, *in the order they are shown*.
+Let's illustrate with an example.
+Let's say that the only criteria we have added to our toolchain specification is that we want Java version 17 and that on our local machine
 following matching installations have been detected: Oracle JRE v17.0.0, Oracle JDK v17.0.1, Microsoft JDK 17.0.0, Microsoft JRE 17.0.1,
-Microsoft JDK 17.0.1. Let's also assume that Gradle is being run by an installation with a different major version, so it's not a match
+Microsoft JDK 17.0.1.
+Let's also assume that Gradle is being run by an installation with a different major version, so it's not a match
 of the toolchain specification (the point being that otherwise that installation would have priority over every other one and our example
 would be less informative).
 
@@ -373,9 +421,12 @@ When we apply the above rules to sort this set we will end up with following ord
 . Microsoft JRE v17.0.1
 . Oracle JRE v17.0.1
 
-The JREs end up last after applying the rule of preferring JDKs over JREs. Then in both categories the Microsoft installations
-end up first after applying the rule of preferring that vendor over Oracle. Then the two Microsoft JDKs get ordered further
-by the rule saying that we prefer higher version numbers over lower ones. Applying any more rules won't change the final order.
+The JREs end up last after applying the rule of preferring JDKs over JREs.
+Then in both categories the Microsoft installations
+end up first after applying the rule of preferring that vendor over Oracle.
+Then the two Microsoft JDKs get ordered further
+by the rule saying that we prefer higher version numbers over lower ones.
+Applying any more rules won't change the final order.
 
 The installation that will be picked is the first one, the Microsoft JDK 17.0.1.
 

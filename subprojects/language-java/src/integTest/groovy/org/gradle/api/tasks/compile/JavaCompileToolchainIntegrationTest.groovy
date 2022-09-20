@@ -104,7 +104,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
             .runWithFailure()
 
         then:
-        failureHasCause('No compatible toolchains found for request filter: {languageVersion=99, vendor=any, implementation=vendor-specific} (auto-detect true, auto-download false)')
+        failureHasCause('No compatible toolchains found for request specification: {languageVersion=99, vendor=any, implementation=vendor-specific} (auto-detect true, auto-download false)')
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7) != null })
@@ -201,7 +201,7 @@ public class Foo {
         fails("compileJava")
 
         then:
-        failureHasCause("No compatible toolchains found for request filter: {languageVersion=${Jvm.current().javaVersion.majorVersion}, vendor=AMAZON, implementation=vendor-specific} (auto-detect false, auto-download false)")
+        failureHasCause("No compatible toolchains found for request specification: {languageVersion=${Jvm.current().javaVersion.majorVersion}, vendor=AMAZON, implementation=vendor-specific} (auto-detect false, auto-download false)")
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8) != null })
