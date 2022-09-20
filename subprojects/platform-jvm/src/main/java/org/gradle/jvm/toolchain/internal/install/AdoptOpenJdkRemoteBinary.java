@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.install.internal;
+package org.gradle.jvm.toolchain.internal.install;
 
-import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.inspection.JvmVendor;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.JavaToolchainRequest;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
+import org.gradle.platform.BuildPlatform;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.net.URI;
 import java.util.Optional;
 
@@ -37,31 +36,25 @@ public class AdoptOpenJdkRemoteBinary {
     private static final String DEFAULT_ADOPTOPENJDK_ROOT_URL = "https://api.adoptopenjdk.net/";
     private static final String DEFAULT_ADOPTIUM_ROOT_URL = "https://api.adoptium.net/";
 
-    private final SystemInfo systemInfo;
-    private final OperatingSystem operatingSystem;
-    private final AdoptOpenJdkDownloader downloader;
     private final Provider<String> adoptOpenJdkRootUrl;
     private final Provider<String> adoptiumRootUrl;
 
     @Inject
-    public AdoptOpenJdkRemoteBinary(SystemInfo systemInfo, OperatingSystem operatingSystem, AdoptOpenJdkDownloader downloader, ProviderFactory providerFactory) {
-        this.systemInfo = systemInfo;
-        this.operatingSystem = operatingSystem;
-        this.downloader = downloader;
+    public AdoptOpenJdkRemoteBinary(ProviderFactory providerFactory) {
         this.adoptOpenJdkRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri");
         this.adoptiumRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptium.baseUri");
     }
 
-    public Optional<File> download(JavaToolchainSpec spec, File destinationFile) {
-        if (!canProvideMatchingJdk(spec)) {
+    public Optional<URI> resolve(JavaToolchainRequest request) {
+        JavaToolchainSpec spec = request.getJavaToolchainSpec();
+        if (canProvide(spec)) {
+            return Optional.of(constructUri(spec, request.getBuildPlatform()));
+        } else {
             return Optional.empty();
         }
-        URI source = toDownloadUri(spec);
-        downloader.download(source, destinationFile);
-        return Optional.of(destinationFile);
     }
 
-    public boolean canProvideMatchingJdk(JavaToolchainSpec spec) {
+    private boolean canProvide(JavaToolchainSpec spec) {
         final boolean matchesLanguageVersion = determineLanguageVersion(spec).canCompileOrRun(8);
         boolean matchesVendor = matchesVendor(spec);
         return matchesLanguageVersion && matchesVendor;
@@ -86,19 +79,15 @@ public class AdoptOpenJdkRemoteBinary {
         return vendorSpec.test(JvmVendor.KnownJvmVendor.IBM_SEMERU.asJvmVendor());
     }
 
-    URI toDownloadUri(JavaToolchainSpec spec) {
-        return constructUri(spec);
-    }
-
-    private URI constructUri(JavaToolchainSpec spec) {
+    private URI constructUri(JavaToolchainSpec spec, BuildPlatform platform) {
         return URI.create(determineServerBaseUri(spec) +
                 "v3/binary/latest/" + determineLanguageVersion(spec) +
                 "/" +
                 determineReleaseState() +
                 "/" +
-                determineOs() +
+                determineOs(platform) +
                 "/" +
-                determineArch() +
+                determineArch(platform) +
                 "/jdk/" +
                 determineImplementation(spec) +
                 "/normal/" +
@@ -109,51 +98,36 @@ public class AdoptOpenJdkRemoteBinary {
         return isJ9Requested(spec) ? "openj9" : "hotspot";
     }
 
-    private String determineVendor(JavaToolchainSpec spec) {
-        DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
-        if (vendorSpec == DefaultJvmVendorSpec.any()) {
-            return "adoptium";
-        } else {
-            return vendorSpec.toString().toLowerCase();
-        }
-    }
-
-    public String toFilename(JavaToolchainSpec spec) {
-        return String.format("%s-%s-%s-%s-%s.%s", determineVendor(spec), determineLanguageVersion(spec), determineArch(), determineImplementation(spec), determineOs(), determineFileExtension());
-    }
-
-    private String determineFileExtension() {
-        if (operatingSystem.isWindows()) {
-            return "zip";
-        }
-        return "tar.gz";
-    }
-
     private static JavaLanguageVersion determineLanguageVersion(JavaToolchainSpec spec) {
         return spec.getLanguageVersion().get();
     }
 
-    private String determineArch() {
-        switch (systemInfo.getArchitecture()) {
-            case i386:
+    private String determineArch(BuildPlatform platform) {
+        switch (platform.getArchitecture()) {
+            case I386:
                 return "x32";
-            case amd64:
+            case AMD64:
                 return "x64";
-            case aarch64:
+            case AARCH64:
                 return "aarch64";
+            default:
+                return "unknown";
         }
-        return systemInfo.getArchitectureName();
     }
 
-    private String determineOs() {
-        if (operatingSystem.isWindows()) {
-            return "windows";
-        } else if (operatingSystem.isMacOsX()) {
-            return "mac";
-        } else if (operatingSystem.isLinux()) {
-            return "linux";
+    private String determineOs(BuildPlatform platform) {
+        switch (platform.getOperatingSystem()) {
+            case LINUX:
+                return "linux";
+            case WINDOWS:
+                return "windows";
+            case MAC_OS:
+                return "mac";
+            case SOLARIS:
+                return "solaris";
+            default:
+                return "unknown";
         }
-        return operatingSystem.getFamilyName();
     }
 
     private static String determineReleaseState() {
