@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.install.internal;
+package org.gradle.jvm.toolchain.internal.install;
 
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.resources.MissingResourceException;
+import org.gradle.authentication.Authentication;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
@@ -39,38 +40,38 @@ import java.net.URISyntaxException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.Collections;
+import java.util.Collection;
 
-public class AdoptOpenJdkDownloader {
+public class SecureFileDownloader {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AdoptOpenJdkDownloader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SecureFileDownloader.class);
 
     private final RepositoryTransportFactory repositoryTransportFactory;
 
-    public AdoptOpenJdkDownloader(RepositoryTransportFactory repositoryTransportFactory) {
+    public SecureFileDownloader(RepositoryTransportFactory repositoryTransportFactory) {
         this.repositoryTransportFactory = repositoryTransportFactory;
     }
 
-    public void download(URI source, File tmpFile) {
-        final ExternalResource resource = createExternalResource(source, tmpFile.getName());
+    public ExternalResource getResourceFor(URI source, Collection<Authentication> authentications) {
+        return createExternalResource(source, authentications);
+    }
+
+    public void download(URI source, File destination, ExternalResource resource) {
         try {
-            downloadResource(source, tmpFile, resource);
+            downloadResource(source, destination, resource);
         } catch (MissingResourceException e) {
-            throw new MissingResourceException(source, "Unable to download toolchain. " +
-                "This might indicate that the combination " +
-                "(version, architecture, release/early access, ...) for the " +
-                "requested JDK is not available.", e);
+            throw new MissingResourceException(source, String.format("Unable to download '%s' into file '%s'", source, destination), e);
         }
     }
 
-    private ExternalResource createExternalResource(URI source, String name) {
+    private ExternalResource createExternalResource(URI source, Collection<Authentication> authentications) {
         final ExternalResourceName resourceName = new ExternalResourceName(source) {
             @Override
             public String getShortDisplayName() {
-                return name;
+                return source.toString();
             }
         };
-        return getTransport(source).getRepository().withProgressLogging().resource(resourceName);
+        return getTransport(source, authentications).getRepository().withProgressLogging().resource(resourceName);
     }
 
     private void downloadResource(URI source, File targetFile, ExternalResource resource) {
@@ -83,7 +84,7 @@ public class AdoptOpenJdkDownloader {
             try {
                 moveFile(targetFile, downloadFile);
             } catch (IOException e) {
-                throw new GradleException("Unable to move downloaded toolchain to target destination", e);
+                throw new GradleException("Unable to move downloaded file to target destination", e);
             }
         } finally {
             downloadFile.delete();
@@ -106,18 +107,22 @@ public class AdoptOpenJdkDownloader {
         }
     }
 
-    private RepositoryTransport getTransport(URI source) {
+    private RepositoryTransport getTransport(URI source, Collection<Authentication> authentications) {
         final HttpRedirectVerifier redirectVerifier;
         try {
-            redirectVerifier = HttpRedirectVerifierFactory.create(new URI(source.getScheme(), source.getAuthority(), null, null, null), false, () -> {
-                throw new InvalidUserCodeException("Attempting to download a JDK from an insecure URI " + source + ". This is not supported, use a secure URI instead.");
-            }, uri -> {
-                throw new InvalidUserCodeException("Attempting to download a JDK from an insecure URI " + uri + ". This URI was reached as a redirect from " + source + ". This is not supported, make sure no insecure URIs appear in the redirect");
-            });
+            redirectVerifier = HttpRedirectVerifierFactory.create(new URI(source.getScheme(), source.getAuthority(), null, null, null), false,
+                    () -> {
+                        throw new InvalidUserCodeException("Attempting to download a file from an insecure URI " + source +
+                                ". This is not supported, use a secure URI instead.");
+                    },
+                    uri -> {
+                        throw new InvalidUserCodeException("Attempting to download a file from an insecure URI " + uri +
+                                ". This URI was reached as a redirect from " + source + ". This is not supported, make sure no insecure URIs appear in the redirect");
+                    });
         } catch (URISyntaxException e) {
             throw new InvalidUserCodeException("Cannot extract host information from specified URI " + source);
         }
-        return repositoryTransportFactory.createTransport("https", "adoptopenjdk toolchains", Collections.emptyList(), redirectVerifier);
+        return repositoryTransportFactory.createTransport("https", "jdk toolchains", authentications, redirectVerifier);
     }
 
 
