@@ -274,9 +274,13 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 ```
 
-==== Upgrade to Groovy 3.0.12
+==== Upgrade to Groovy 3.0.13
 
-Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.12.html[Groovy 3.0.12].
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.13.html[Groovy 3.0.13].
+
+==== Upgrade to CodeNarc 3.1.0
+
+The default version of CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-310----jun-2022[3.1.0].
 
 ==== Upgrade to PMD 6.48.0
 
