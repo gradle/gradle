@@ -8,6 +8,8 @@ and a new [strongly-typed dependencies block](#strongly-typed-dependencies) for 
 There are also enhancements to the [configuration cache](#configuration) and
 [incremental compilation](#incremental-compilation-after-failure).
 
+This release introduces a [Service Provider Interface (SPI) for Java Toolchains](#toolchain-spi).
+
 The Kotlin DSL now supports [named dependency arguments](#named-kotlin-dsl-dependency-arguments) for external dependencies.
 
 <!--
@@ -121,7 +123,7 @@ The `init` task now adds compile-time Maven dependencies to Gradle's `api` confi
 when converting a Maven project. This sharply reduces the number of compilation errors.
 For more information about Maven conversions, see the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion).
 
-#### Introduced network timeout configuration for wrapper download 
+#### Introduced network timeout configuration for wrapper download
 
 It is now possible to configure the network timeout for downloading Gradle wrapper files.
 The default value is 10000ms and can be changed in several ways:
@@ -149,7 +151,7 @@ networkTimeout=30000
 For more information about the Gradle wrapper, see [Gradle Wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper).
 
 <a name="individual-rerun"></a>
-#### Introduced flag for individual task `rerun` 
+#### Introduced flag for individual task `rerun`
 
 All tasks can now use the `--rerun` option. This option works like `--rerun-tasks`,
 except `--rerun` only effects a single task. For example, you can force tests to
@@ -160,6 +162,23 @@ gradle test --rerun
 ```
 
 For more information about the rerun option, see [Built-in Task Options](userguide/command_line_interface.html#sec:builtin_task_options).
+
+#### Introduced ability to explain why a task was skipped with a message
+
+You can now provide a reason message when conditionally disabling a task using the
+[`Task.onlyIf` predicate](userguide/more_about_tasks.html#sec:using_a_predicate):
+
+```groovy
+tasks.register("slowBenchmark") {
+    def slowBenchmarksEnabled = providers.gradleProperty("my.build.benchmark.slow").map { it.toBoolean() }.orElse(false)
+    onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") {
+        slowBenchmarksEnabled.get()
+    }
+}
+```
+
+Gradle outputs reason messages at log level `INFO`.
+To output reason messages to the console, use the `--info` or `--debug` [log levels](userguide/logging.html).
 
 <a name="configuration"></a>
 ### Configuration
@@ -181,7 +200,7 @@ The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are no
 The [Maven Publish Plugin](userguide/publishing_maven.html) is now compatible with the configuration cache.
 Note that when using credentials, the configuration cache requires [safe (empty) credential containers](userguide/configuration_cache.html#config_cache:requirements:safe_credentials).
 
-#### Clarified the ordering of disambiguation rule checks in `resolvableConfigurations` reports  
+#### Clarified the ordering of disambiguation rule checks in `resolvableConfigurations` reports
 
 Attribute disambiguation rules control the variant of a dependency selected by
 Gradle when:
@@ -226,26 +245,6 @@ This change supports builds and plugins that need to behave differently during c
 
 For more information, see [the `--offline` CLI option](userguide/command_line_interface.html#sec:command_line_execution_options).
 
-<a name="execution"></a>
-### Execution
-
-#### Introduced ability to explain why a task was skipped with a message
-
-You can now provide a reason message when conditionally disabling a task using the
-[`Task.onlyIf` predicate](userguide/more_about_tasks.html#sec:using_a_predicate):
-
-```groovy
-tasks.register("slowBenchmark") {
-    def slowBenchmarksEnabled = providers.gradleProperty("my.build.benchmark.slow").map { it.toBoolean() }.orElse(false)
-    onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") { 
-        slowBenchmarksEnabled.get()
-    }
-}
-```
-
-Gradle outputs reason messages at log level `INFO`.
-To output reason messages to the console, use the `--info` or `--debug` [log levels](userguide/logging.html).
-
 <a name="plugin"></a>
 ### Plugin
 
@@ -266,25 +265,38 @@ can be passed from the command line as follows:
 gradle myCustomTask --integer-option=123
 ```
 
-#### TODO: Expanded Java Toolchain support for Service Provider Interfaces 
+<a name="toolchain-spi"></a>
+#### Added support for Java Toolchain downloads from arbitrary repositories
 
-Provides a way for plugins to register a provider of Java Toolchain that will allow auto provisioning for any toolchain specification. Service Provider Interface (SPI) TODO: link and definition.
+Starting in Gradle 7.6, Gradle can download toolchains from arbitrary repositories.
+By default, Gradle downloads toolchains from Adoptium/AdoptOpenJDK. You can now override the default providers with repositories
+of your choice using a toolchain resolver plugin.
+The following example uses custom plugins that provide `AzulResolver` and `AdoptiumResolver` to add custom toolchains for Adoptium and Azul:
 
-Related issues:
+```kotlin
+toolchainManagement {
+    jvm {
+        javaRepositories {
+            repository("azul") {
+                resolverClass.set(AzulResolver::class.java)
+                credentials {
+                    username = "user"
+                    password = "password"
+                }
+                authentication {
+                    create<DigestAuthentication>("digest")
+                }
+            }
+            repository("adoptium") {
+                resolverClass.set(AdoptiumResolver::class.java)
+            }
+        }
+    }
+}
+```
 
-[Support "Zulu OpenJDK Discovery API" for auto provisioning toolchains gradle#19140](https://github.com/gradle/gradle/issues/19140)
-
-<a name="plugin-publish"></a>
-#### Enhanced the plugin declaration DSL for the java-gradle-plugin
-
-The recently released [version 1.0.0 of the Plugin-Publish plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish/1.0.0)
-significantly improves the plugin publishing process through stronger opinions and more straightforward configuration.
-
-This release includes updates to the `java-gradle-plugin` documentation.
-The enhanced documentation describes the Maven publications generated when
-combined with the `maven-publish plugin`.
-
-For more information, see enhanced Gradle for [Plugin Publish Plugin v1.0.0 gradle#19982](https://github.com/gradle/gradle/pull/19982)
+For more information about using custom toolchain resolvers, see the [Toolchain Download Repositories documentation](userguide/toolchains.html#sub:download_repositories).
+For more information about writing custom toolchain resolvers, see the [Toolchain Resolver Plugins documentation](userguide/toolchain_plugins.html).
 
 <a name="jvm"></a>
 ### JVM
@@ -307,8 +319,8 @@ testing {
         val test by getting(JvmTestSuite::class) {
             useJUnitJupiter()
             dependencies {
-                implementation(module(group = "com.google.guava", 
-                               name = "guava", 
+                implementation(module(group = "com.google.guava",
+                               name = "guava",
                                version = "31.1-jre"))
             }
         }
@@ -369,7 +381,7 @@ and improves IDE support for the Groovy DSL.
 For more information about the test suite `dependencies` block, see
 [Differences Between Test Suite and Top-Level Dependencies](userguide/jvm_test_suite_plugin.html#differences_between_the_test_suite_dependencies_and_the_top_level_dependencies_blocks).
 
-#### Introduced support for Java 9+ network debugging  
+#### Introduced support for Java 9+ network debugging
 
 You can run a Java test or application child process with
 [debugging options](userguide/java_testing.html#sec:debugging_java_tests)
@@ -390,32 +402,6 @@ accepting connections via network on Java 9 and above.
 On Java 9 and above, use the special host address value `*` to make the debugger server listen on all network interfaces.
 Otherwise, use the address of one of the machine's network interfaces.
 
-#### Introduced `projectInternalView()` dependency for test suites with access to project internals
-The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now
-supports depending on the internal view of the current project during compile-time.
-Previously it was only possible to depend on the current project's API. This allows
-test suites to access project internals that are not declared on
-the `api` or `compileOnlyApi` configurations. This functionality can be useful when
-testing internal classes that use dependencies which are not exposed as part of a 
-project's API, like those declared on the `implementation` and `compileOnly` configurations.
-This dependency would likely prove useful when defining a custom suite for unit testing. 
-
-For example, the following snippet uses the new `projectInternalView()` API to define a
-test suite with access to project internals:
-
-```kotlin
-testing {
-    suites {
-        val unitLikeTestSuite by registering(JvmTestSuite::class) {
-            useJUnitJupiter()
-            dependencies {
-                implementation(projectInternalView())
-            }
-        }
-    }
-}
-```
-
 <a name="ide"></a>
 ### IDE
 
@@ -427,7 +413,7 @@ IDEs can now distinguish between assertion and framework failures using progress
 For test frameworks that expose expected and actual values, `TestAssertionFailure` contains those values.
 
 <a name="testlauncher"></a>
-#### Introduced `TestLauncher` task execution 
+#### Introduced `TestLauncher` task execution
 
 The [`TestLauncher`](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients
 to execute any tasks along with the selected tests:
@@ -440,7 +426,7 @@ connection.newTestLauncher()
           .run()
 ```
 
-#### Introduced class, method, package, and pattern test selection via `TestLauncher`  
+#### Introduced class, method, package, and pattern test selection via `TestLauncher`
 
 The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients
 to select test classes, methods, packages and patterns with a new API.
