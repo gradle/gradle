@@ -1,6 +1,3 @@
-import groovy.lang.GroovySystem
-import org.gradle.util.internal.VersionNumber
-
 /*
  * Copyright 2020 the original author or authors.
  *
@@ -26,15 +23,11 @@ plugins {
 
 java.configureJavaToolChain()
 
-//val groovyVersion = GroovySystem.getVersion()
-//val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
-//val isBundleGroovy4 = System.getProperty("bundleGroovy4", "false") == "true"
-
 dependencies {
     api(platform(project(":build-platform")))
     implementation("gradlebuild:gradle-plugin")
 
-    implementation(localGroovy()) // TODO why not be explicit here?  Why not read from dependency-modules ?
+    implementation(localGroovy())
     testImplementation("org.spockframework:spock-core")
     testImplementation("net.bytebuddy:byte-buddy")
     testImplementation("org.objenesis:objenesis")
