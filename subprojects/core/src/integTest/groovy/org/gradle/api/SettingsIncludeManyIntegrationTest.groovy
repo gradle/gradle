@@ -17,9 +17,9 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
+import static org.junit.Assume.assumeFalse
 import static org.junit.Assume.assumeTrue
 
 @Issue("https://github.com/gradle/gradle/issues/13018")
@@ -33,7 +33,7 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
     }.join(", ")
 
     def "including over 250 projects is not possible via varargs in Groovy 3"() {
-        assumeTrue('Requires Groovy 3', VersionNumber.parse(GroovySystem.version).major == 3)
+        assumeFalse('Requires Groovy 3', isAtLeastGroovy4)
         // Groovy doesn't even support >=255 args at compilation, so to trigger the right error
         // 254 projects must be used instead.
         settingsFile << """
@@ -51,7 +51,7 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "including over 250 projects is not possible via varargs in Groovy 4"() {
-        assumeTrue('Requires Groovy 4', VersionNumber.parse(GroovySystem.version).major >= 4)
+        assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
         // Groovy doesn't even support >=255 args at compilation, so to trigger the right error
         // 254 projects must be used instead.
         settingsFile << """
@@ -62,7 +62,6 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         expect:
         def result = fails("projects")
         result.assertHasDescription("A problem occurred evaluating settings 'root'.")
-        def isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
         // In Java 8 "call site" is used, in Java 11 "bootstrap method"
         failureHasCause(~/(call site|bootstrap method) initialization exception/)
 
@@ -71,7 +70,7 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "including large amounts of projects is not possible via varargs in Groovy 3"() {
-        assumeTrue('Requires Groovy 3', VersionNumber.parse(GroovySystem.version).major == 3)
+        assumeFalse('Requires Groovy 3', isAtLeastGroovy4)
         settingsFile << """
             rootProject.name = 'root'
             $includeFunction $projectNamesCommaSeparated
@@ -90,7 +89,7 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "including large amounts of projects is not possible via varargs in Groovy 4"() {
-        assumeTrue('Requires Groovy 4', VersionNumber.parse(GroovySystem.version).major >= 4)
+        assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
         settingsFile << """
             rootProject.name = 'root'
             $includeFunction $projectNamesCommaSeparated
@@ -101,7 +100,6 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         def result = fails("projects")
-        def isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
         result.assertHasDescription("A problem occurred evaluating settings 'root'.")
         // Java 8 does not print the exception name
         failureHasCause(~/(java.lang.IllegalArgumentException: )?bad parameter count 302/)

@@ -19,11 +19,14 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
-import org.gradle.util.internal.VersionNumber
+
+import static org.junit.Assume.assumeFalse
+import static org.junit.Assume.assumeTrue
 
 class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
 
-    def "produces sensible error when bad code is supplied in component selection rule"() {
+    def "produces sensible error when bad code is supplied in component selection rule with Groovy 3"() {
+        assumeFalse('Requires Groovy 3', isAtLeastGroovy4)
         buildFile << """
             dependencies {
                 conf "org.utils:api:1.2"
@@ -53,9 +56,41 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(40)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
-        def isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
-        def expectedRootCause = isAtLeastGroovy4 ? 'No signature of method: org.gradle.api.internal.artifacts.DefaultComponentSelection.foo() is applicable for argument types: () values: []' : 'Could not find method foo()'
-        failure.assertHasCause(expectedRootCause)
+        failure.assertHasCause("Could not find method foo()")
+    }
+
+    def "produces sensible error when bad code is supplied in component selection rule with Groovy 4"() {
+        assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
+        buildFile << """
+            dependencies {
+                conf "org.utils:api:1.2"
+            }
+
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all { ComponentSelection selection ->
+                            foo()
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org.utils:api:1.2' {
+                allowAll()
+            }
+        }
+
+        then:
+        fails ':checkDeps'
+        GradleContextualExecuter.configCache || failure.assertHasDescription("Execution failed for task ':checkDeps'.")
+        failure.assertHasFileName("Build file '$buildFile.path'")
+        failure.assertHasLineNumber(40)
+        failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
+        failure.assertHasCause('No signature of method: org.gradle.api.internal.artifacts.DefaultComponentSelection.foo() is applicable for argument types: () values: []')
     }
 
     def "produces sensible error for invalid component selection rule"() {
