@@ -50,7 +50,7 @@ val rules by configurations.creating {
 //  distribution will always "win".  Detecting the `isBundleGroovy4` sysprop won't matter.
 //val isBundleGroovy4 = System.getProperty("bundleGroovy4", "false") == "true"
 val groovyVersion = GroovySystem.getVersion()
-val isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.getVersion()).major >= 4
+val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
 val codenarcVersion = if (isAtLeastGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
 
 dependencies {
