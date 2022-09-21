@@ -41,6 +41,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             .deprecations(KotlinDeprecations) {
                 expectKotlinWorkerSubmitDeprecation(workers, version)
                 expectKotlinArchiveNameDeprecation(version)
+                expectAbstractCompileDestinationDirDeprecation(version)
             }.build()
 
         then:
@@ -127,6 +128,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def result = runner(false, versionNumber, 'compileJava')
             .deprecations(KotlinDeprecations) {
                 expectKotlinArchiveNameDeprecation(kotlinVersion)
+                expectAbstractCompileDestinationDirDeprecation(kotlinVersion)
             }.build()
 
         then:
@@ -163,7 +165,10 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         def versionNumber = VersionNumber.parse(kotlinVersion)
 
         when:
-        def result = runner(false, versionNumber, 'build').build()
+        def result = runner(false, versionNumber, 'build')
+                .deprecations(KotlinDeprecations) {
+                    expectAbstractCompileDestinationDirDeprecation(kotlinVersion)
+                }.build()
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
@@ -293,6 +298,18 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             runner.expectLegacyDeprecationWarningIf(
                 versionNumber >= VersionNumber.parse('1.5.20') && versionNumber <= VersionNumber.parse('1.6.10'),
                 "Project property 'kotlin.parallel.tasks.in.project' is deprecated."
+            )
+        }
+
+        void expectAbstractCompileDestinationDirDeprecation(String version) {
+            VersionNumber versionNumber = VersionNumber.parse(version)
+            runner.expectDeprecationWarningIf(
+                    versionNumber <= VersionNumber.parse("1.6.21"),
+                    "The AbstractCompile.destinationDir property has been deprecated. " +
+                        "This is scheduled to be removed in Gradle 9.0. " +
+                        "Please use the destinationDirectory property instead. " +
+                        "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring",
+            ""
             )
         }
     }
