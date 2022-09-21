@@ -390,15 +390,11 @@ accepting connections via network on Java 9 and above.
 On Java 9 and above, use the special host address value `*` to make the debugger server listen on all network interfaces.
 Otherwise, use the address of one of the machine's network interfaces.
 
-#### Introduced `projectInternalView()` dependency for test suites with access to project internals
-The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now
-supports depending on the internal view of the current project during compile-time.
-Previously it was only possible to depend on the current project's API. This allows
-test suites with access to project internals that are not declared on
-the `api` or `compileOnlyApi` configurations.
+#### Introduced `projectInternalView()` dependency for creating unit-like test suites
 
-For example, the following snippet uses the new `projectInternalView()` API to define a
-test suite with access to project internals:
+The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now has support for depending on the internal view of the current project during compile-time. Previously it was only possible to depend on the current project's API. This allows declaration of unit-like test suites which have access to dependencies of project internals which are not declared on the `api` or `compileOnlyApi` configurations. 
+
+For example, the following snippet uses the new `projectInternalView()` API to define a new unit-like test suite:
 
 ```kotlin
 testing {
