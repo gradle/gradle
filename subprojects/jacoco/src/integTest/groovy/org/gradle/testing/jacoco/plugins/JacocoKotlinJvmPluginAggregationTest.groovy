@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 /**
@@ -132,6 +133,11 @@ class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
 
     def "can aggregate jacoco execution data from a subproject with kotlin-dsl and no tests"() {
         when:
+        executer.expectDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Please use the destinationDirectory property instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring"
+        )
         succeeds(":testCodeCoverageReport")
 
         then:
