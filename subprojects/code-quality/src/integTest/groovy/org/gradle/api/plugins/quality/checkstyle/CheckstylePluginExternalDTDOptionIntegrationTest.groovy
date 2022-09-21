@@ -26,75 +26,54 @@ import static org.gradle.api.plugins.quality.checkstyle.CheckstylePluginMultiPro
 @Issue("https://github.com/gradle/gradle/issues/21624")
 @See("https://checkstyle.sourceforge.io/config_system_properties.html#Enable_External_DTD_load")
 class CheckstylePluginExternalDTDOptionIntegrationTest extends AbstractIntegrationSpec {
-    /**
-     * To ensure the plugins fails (as expected) with configuration cache, do NOT add a repository to the build here,
-     * the tests in the base class are relying on a failure during eager dependency resolution with CC.
-     */
     def setup() {
         buildFile << """
-            apply plugin: 'groovy'
+            plugins {
+                id 'java'
+                id 'checkstyle'
+            }
+
+            ${mavenCentralRepository()}
         """
+
+        file('src/main/java/org/sample/MyClass.java') << multilineJavaClass()
+        file('config/checkstyle/checkstyle-common.xml') << checkStyleCommonXml()
+        file('config/checkstyle/checkstyle.xml') << checkStyleMainXml()
     }
 
     def "can use enable_external_dtd_load feature on extension"() {
         given:
         buildFile """
-            apply plugin: 'checkstyle'
-
-            ${mavenCentralRepository()}
-
             checkstyle {
                 enableExternalDtdLoad = true
             }
         """
 
-        file('src/main/java/org/sample/MyClass.java') << multilineJavaClass()
-        file('config/checkstyle/checkstyle-common.xml') << checkStyleCommonXml()
-        file('config/checkstyle/checkstyle.xml') << checkStyleMainXml()
-
         when:
         fails 'checkstyleMain'
 
         then:
-        result.assertHasErrorOutput("Checkstyle rule violations were found. See the report at:")
-        result.assertHasErrorOutput("Checkstyle files with violations: 1")
-        result.assertHasErrorOutput("Checkstyle violations by severity: [error:2]")
-        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.sample.MyClass"))
+        assertFailedWithCheckstyleVerificationErrors()
     }
 
     def "can use enable_external_dtd_load feature on task"() {
         given:
         buildFile """
-            apply plugin: 'checkstyle'
-
-            ${mavenCentralRepository()}
-
             tasks.withType(Checkstyle).configureEach {
                 enableExternalDtdLoad = true
             }
         """
 
-        file('src/main/java/org/sample/MyClass.java') << multilineJavaClass()
-        file('config/checkstyle/checkstyle-common.xml') << checkStyleCommonXml()
-        file('config/checkstyle/checkstyle.xml') << checkStyleMainXml()
-
         when:
         fails 'checkstyleMain'
 
         then:
-        result.assertHasErrorOutput("Checkstyle rule violations were found. See the report at:")
-        result.assertHasErrorOutput("Checkstyle files with violations: 1")
-        result.assertHasErrorOutput("Checkstyle violations by severity: [error:2]")
-        file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.sample.MyClass"))
+        assertFailedWithCheckstyleVerificationErrors()
     }
 
     def "can use enable_external_dtd_load feature on task to override extension value for a task"() {
         given:
         buildFile """
-            apply plugin: 'checkstyle'
-
-            ${mavenCentralRepository()}
-
             checkstyle {
                 enableExternalDtdLoad = false
             }
@@ -104,63 +83,44 @@ class CheckstylePluginExternalDTDOptionIntegrationTest extends AbstractIntegrati
             }
         """
 
-        file('src/main/java/org/sample/MyClass.java') << multilineJavaClass()
-        file('config/checkstyle/checkstyle-common.xml') << checkStyleCommonXml()
-        file('config/checkstyle/checkstyle.xml') << checkStyleMainXml()
+        when:
+        fails 'checkstyleMain'
+
+        then:
+        assertFailedWithCheckstyleVerificationErrors()
+    }
+
+    def "if use enable_external_dtd_load feature NOT enabled, error if feature used in rules XML"() {
+        given:
+        buildFile """
+            checkstyle {
+                enableExternalDtdLoad = false
+            }
+        """
 
         when:
         fails 'checkstyleMain'
 
         then:
+        assertFailedWithDtdProcessingError()
+    }
+
+    def "enable_external_dtd_load feature NOT enabled by default"() {
+        when:
+        fails 'checkstyleMain'
+
+        then:
+        assertFailedWithDtdProcessingError()
+    }
+
+    private void assertFailedWithCheckstyleVerificationErrors() {
         result.assertHasErrorOutput("Checkstyle rule violations were found. See the report at:")
         result.assertHasErrorOutput("Checkstyle files with violations: 1")
         result.assertHasErrorOutput("Checkstyle violations by severity: [error:2]")
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.sample.MyClass"))
     }
 
-    def "if use enable_external_dtd_load feature NOT enabled, error if feature used in rules XML"() {
-        given:
-        buildFile """
-            apply plugin: 'checkstyle'
-
-            ${mavenCentralRepository()}
-
-            checkstyle {
-                enableExternalDtdLoad = false
-            }
-        """
-
-        file('src/main/java/org/sample/MyClass.java') << multilineJavaClass()
-        file('config/checkstyle/checkstyle-common.xml') << checkStyleCommonXml()
-        file('config/checkstyle/checkstyle.xml') << checkStyleMainXml()
-
-        when:
-        fails 'checkstyleMain'
-
-        then:
-        failedDueToXmlDTDProcessingError()
-    }
-
-    def "enable_external_dtd_load feature NOT enabled by default"() {
-        given:
-        buildFile """
-            apply plugin: 'checkstyle'
-
-            ${mavenCentralRepository()}
-        """
-
-        file('src/main/java/org/sample/MyClass.java') << multilineJavaClass()
-        file('config/checkstyle/checkstyle-common.xml') << checkStyleCommonXml()
-        file('config/checkstyle/checkstyle.xml') << checkStyleMainXml()
-
-        when:
-        fails 'checkstyleMain'
-
-        then:
-        failedDueToXmlDTDProcessingError()
-    }
-
-    private failedDueToXmlDTDProcessingError(String taskName = 'checkstyleMain') {
+    private void assertFailedWithDtdProcessingError(String taskName = 'checkstyleMain') {
         failure.assertHasCause("An error occurred configuring or running the Checkstyle task: $taskName.")
     }
 
