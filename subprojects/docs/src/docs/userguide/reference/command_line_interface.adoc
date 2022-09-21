@@ -21,6 +21,7 @@ The command-line interface is one of the primary methods of interacting with Gra
 Use of the <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> is highly encouraged. You should substitute `./gradlew` or `gradlew.bat` for `gradle` in all following examples when using the Wrapper.
 
 Executing Gradle on the command-line conforms to the following structure. Options are allowed before and after task names.
+
 ----
 gradle [taskName...] [--option-name...]
 ----
@@ -28,17 +29,20 @@ gradle [taskName...] [--option-name...]
 If multiple tasks are specified, they should be separated with a space.
 
 Options that accept values can be specified with or without `=` between the option and argument; however, use of `=` is recommended.
+
 ----
 --console=plain
 ----
 
 Options that enable behavior have long-form options with inverses specified with `--no-`. The following are opposites.
+
 ----
 --build-cache
 --no-build-cache
 ----
 
 Many long-form options, have short option equivalents. The following are equivalent:
+
 ----
 --help
 -h
@@ -63,6 +67,30 @@ $ gradle :myTask
 ----
 
 This will run the single "myTask" and also all of its <<tutorial_using_tasks.adoc#sec:task_dependencies,task dependencies>>.
+
+[[sec:disambiguate_task_options_from_built_in_options]]
+=== Specify options for a task
+
+To pass an option to a task, prefix the option name with `--` after the task name:
+
+----
+$ gradle exampleTask --exampleOption=exampleValue
+----
+
+==== Disambiguate task options from built-in options
+
+Gradle does not prevent tasks from registering options that conflict with Gradle's built-in options, like `--profile` or `--help`.
+You can disambiguate conflicting task options from Gradle's built-in options with a `--` delimiter before the task name in your command:
+
+----
+$ gradle [--built-in-option-name...] -- [taskName...] [--task-option-name...]
+----
+
+Consider a task named "mytask" that accepts an option named "profile":
+
+- If you run `gradle mytask --profile`, Gradle accepts `--profile` as the built-in Gradle option.
+
+- If you run `gradle -- mytask --profile=exampleValue`, Gradle passes `--profile` as a task option.
 
 [[executing_tasks_in_multi_project_builds]]
 === Executing tasks in multi-project builds
