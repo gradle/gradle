@@ -35,6 +35,11 @@ import static org.hamcrest.CoreMatchers.equalTo
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
 class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
+    @Override
+    def setup() {
+        executer.withArgument("-Porg.gradle.java.installations.auto-download=false")
+    }
+
     @Issue("https://issues.gradle.org/browse/GRADLE-1948")
     def "test interrupting its own thread does not kill test execution"() {
         given:
