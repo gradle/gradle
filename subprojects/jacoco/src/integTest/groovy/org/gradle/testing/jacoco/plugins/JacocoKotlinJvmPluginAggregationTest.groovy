@@ -18,9 +18,7 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
-import org.gradle.util.GradleVersion
 import spock.lang.Issue
-
 /**
  * This test class exists to verify a specific issue - if a project uses the `kotlin-jvm` plugin
  * and has no actual tests but is still included on the jacoco aggregation classpath transitively,
@@ -32,6 +30,8 @@ import spock.lang.Issue
  */
 @Issue("https://github.com/gradle/gradle/issues/20532")
 class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
+    def kotlinVersion = "1.7.10" // Must remain >= 1.7, lower versions will produce deprecations warnings, on CI versions >= 1.7 will be used
+
     def setup() {
         multiProjectBuild("root", ["direct", "transitive"]) {
             buildFile.text = """
@@ -116,7 +116,7 @@ class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
             file("transitive/build.gradle") << """
                 plugins {
                     id 'java-library'
-                    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
+                    id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
                 }
             """
             file("transitive/src/main/java/transitive/Powerize.java").java """
@@ -133,11 +133,6 @@ class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
 
     def "can aggregate jacoco execution data from a subproject with kotlin-dsl and no tests"() {
         when:
-        executer.expectDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Please use the destinationDirectory property instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring"
-        )
         succeeds(":testCodeCoverageReport")
 
         then:
