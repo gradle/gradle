@@ -84,7 +84,7 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
     }
 
     @Override
-    public ProjectDependency projectInternalView() {
+    public ProjectDependency projectComplete() {
         return (ProjectDependency) project().attributes(attrs -> {
             attrs.attribute(CompileView.VIEW_ATTRIBUTE, getObjectFactory().named(CompileView.class, CompileView.JAVA_COMPLETE));
         });
