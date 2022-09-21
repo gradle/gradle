@@ -61,6 +61,14 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
             xmlOutputLocation = new File(parameters.temporaryDir.asFile.get(), xmlOutputLocation.name)
         }
 
+        if (configDir) {
+            // User provided their own config_loc
+            def userProvidedConfigLoc = configProperties[CONFIG_LOC_PROPERTY]
+            if (userProvidedConfigLoc) {
+                throw new InvalidUserDataException("Cannot add config_loc to checkstyle.configProperties. Please configure the configDirectory on the checkstyle task instead.")
+            }
+        }
+
         try {
             ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
         } catch (RuntimeException ignore) {
@@ -85,18 +93,11 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
                     property(key: key, value: value.toString())
                 }
 
-                if (configDir) {
-                    // User provided their own config_loc
-                    def userProvidedConfigLoc = configProperties[CONFIG_LOC_PROPERTY]
-                    if (userProvidedConfigLoc) {
-                        throw new InvalidUserDataException("Cannot add config_loc to checkstyle.configProperties. Please configure the configDirectory on the checkstyle task instead.")
-                    }
-                    // Use configDir for config_loc
-                    property(key: CONFIG_LOC_PROPERTY, value: configDir.toString())
-                }
+                // Use configDir for config_loc
+                property(key: CONFIG_LOC_PROPERTY, value: configDir.toString())
             }
         } catch (Exception e) {
-            throw new GradleException("An error occurred configuring or running the Checkstyle task: " + parameters.getTaskName().get() + ".", e)
+            throw new CheckstyleInvocationException("An unexpected error occurred configuring and executing Checkstyle.", e)
         }
 
         if (isHtmlRequired) {
