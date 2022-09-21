@@ -85,8 +85,7 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         step.execute(work, context)
         then:
         def ex = thrown RuntimeException
-        ex.cause == failure
-        ex.message == "Wrapper"
+        ex == failure
         assertOperation(ex)
 
         1 * outputChangeListener.invalidateCachesFor([])
@@ -100,7 +99,6 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
             _ * detectedOverlappingOutputs >> Optional.empty()
         })
         1 * outputSnapshotter.snapshotOutputs(work, _) >> { throw failure }
-        _ * work.decorateOutputFileSnapshottingException(_) >> { OutputSnapshotter.OutputFileSnapshottingException e -> throw new RuntimeException("Wrapper", e) }
         0 * _
     }
 
@@ -200,7 +198,7 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
 
         then:
         _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
-            visitor.visitOutputProperty("output", TreeType.DIRECTORY, outputDir, Mock(FileCollection))
+            visitor.visitOutputProperty("output", TreeType.DIRECTORY, new UnitOfWork.OutputFileValueSupplier(outputDir, Mock(FileCollection)))
             visitor.visitDestroyable(destroyableDir)
             visitor.visitLocalState(localStateDir)
         }

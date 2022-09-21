@@ -171,7 +171,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     HIGH_PERFORMANCE(NOT_MAC_OS_X),
     NOT_EC2_AGENT({
         !InetAddress.getLocalHost().getHostName().startsWith("ip-")
-    })
+    }),
+    STABLE_GROOVY({ !GroovySystem.version.endsWith("-SNAPSHOT") }),
+    NOT_STABLE_GROOVY({ !STABLE_GROOVY.fulfilled })
 
     /**
      * A predicate for testing whether the precondition is fulfilled.

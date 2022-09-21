@@ -58,8 +58,11 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
             import org.gradle.api.internal.tasks.*
             import org.gradle.api.internal.tasks.properties.*
+            import org.gradle.internal.execution.UnitOfWork.InputBehavior
             import org.gradle.internal.fingerprint.DirectorySensitivity
             import org.gradle.internal.fingerprint.LineEndingSensitivity
+
+            import javax.annotation.Nullable
 
             task myTask(type: MyTask) {
                 inputString = "data"
@@ -85,7 +88,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                     def layout = services.get(ProjectLayout)
                     TaskPropertyUtils.visitProperties(services.get(PropertyWalker), it, new PropertyVisitor.Adapter() {
                         @Override
-                        void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, boolean incremental, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                        void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                             inputFiles[propertyName] = layout.files(value)
                         }
 
@@ -397,8 +400,11 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         """
             import org.gradle.api.internal.tasks.*
             import org.gradle.api.internal.tasks.properties.*
+            import org.gradle.internal.execution.UnitOfWork.InputBehavior
             import org.gradle.internal.fingerprint.DirectorySensitivity
             import org.gradle.internal.fingerprint.LineEndingSensitivity
+
+            import javax.annotation.Nullable
 
             class PrintInputsAndOutputs extends DefaultTask {
                 @Internal
@@ -412,7 +418,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                         }
 
                         @Override
-                        void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, boolean incremental, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+                        void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                             println "Input file property '\${propertyName}'"
                         }
 

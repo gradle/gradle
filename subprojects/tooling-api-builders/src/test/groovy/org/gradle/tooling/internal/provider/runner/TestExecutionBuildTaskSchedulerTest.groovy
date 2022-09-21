@@ -98,6 +98,7 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         then:
         0 * buildProjectRegistry.allProjects
         _ * executionPlan.addEntryTasks({ args -> assert args.size() == 0 })
+        _ * executionPlan.addEntryTask({ args -> assert args.size() == 0 })
     }
 
     def "sets test filter with information from #requestType"() {

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
-import org.gradle.internal.execution.ExecutionResult
 import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
@@ -28,6 +27,8 @@ import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
+
+import static org.gradle.internal.execution.ExecutionEngine.Execution
 
 class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> implements SnapshotterFixture {
     def executionHistoryStore = Mock(ExecutionHistoryStore)
@@ -69,7 +70,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
             _ * getOriginMetadata() >> originMetadata
         })
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        _ * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
+        _ * delegateResult.execution >> Try.successful(Mock(Execution))
 
         then:
         interaction { expectStore(true, outputFilesProducedByWork) }
@@ -90,7 +91,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
             1 * getOriginMetadata() >> originMetadata
         })
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        _ * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
+        _ * delegateResult.execution >> Try.failure(new RuntimeException("execution error"))
         _ * context.previousExecutionState >> Optional.empty()
 
         then:
@@ -114,7 +115,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
             _ * getOriginMetadata() >> originMetadata
         })
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        _ * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
+        _ * delegateResult.execution >> Try.failure(new RuntimeException("execution error"))
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         1 * previousExecutionState.outputFilesProducedByWork >> snapshotsOf([:])
 
@@ -138,7 +139,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
             _ * getOutputFilesProducedByWork() >> this.outputFilesProducedByWork
         })
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
-        _ * delegateResult.executionResult >> Try.failure(new RuntimeException("execution error"))
+        _ * delegateResult.execution >> Try.failure(new RuntimeException("execution error"))
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         1 * previousExecutionState.outputFilesProducedByWork >> outputFilesProducedByWork
         0 * _

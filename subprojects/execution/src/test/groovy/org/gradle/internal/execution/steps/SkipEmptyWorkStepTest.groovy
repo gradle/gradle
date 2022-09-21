@@ -30,8 +30,9 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 
-import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
-import static org.gradle.internal.execution.ExecutionOutcome.SHORT_CIRCUITED
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.SHORT_CIRCUITED
+import static org.gradle.internal.execution.UnitOfWork.InputBehavior.PRIMARY
 
 class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def outputChangeListener = Mock(OutputChangeListener)
@@ -39,8 +40,8 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def outputsCleaner = Mock(OutputsCleaner)
     def inputFingerprinter = Mock(InputFingerprinter)
     def fileCollectionSnapshotter = TestFiles.fileCollectionSnapshotter()
-    def primaryFileInputs = EnumSet.of(InputFingerprinter.InputPropertyType.PRIMARY)
-    def allFileInputs = EnumSet.allOf(InputFingerprinter.InputPropertyType)
+    def primaryFileInputs = EnumSet.of(PRIMARY)
+    def allFileInputs = EnumSet.allOf(UnitOfWork.InputBehavior)
 
     def step = new SkipEmptyWorkStep(
         outputChangeListener,
@@ -163,7 +164,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         1 * workInputListeners.broadcastFileSystemInputsOf(work, primaryFileInputs)
 
         then:
-        result.executionResult.get().outcome == SHORT_CIRCUITED
+        result.execution.get().outcome == SHORT_CIRCUITED
         !result.afterExecutionState.present
     }
 
@@ -191,7 +192,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         0 * _
 
         then:
-        result.executionResult.get().outcome == outcome
+        result.execution.get().outcome == outcome
         !result.afterExecutionState.present
 
         where:

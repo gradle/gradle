@@ -22,6 +22,9 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testing.fixture.GroovyCoverage
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -29,6 +32,7 @@ import spock.lang.Issue
 import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ CodeNarcCoverage.supportedVersionsByJdk })
+@Requires(TestPrecondition.STABLE_GROOVY)
 class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         buildFile << """
@@ -48,7 +52,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
             ${JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14) ?
             """
             configurations.codenarc {
-                resolutionStrategy.force 'org.codehaus.groovy:groovy:${GroovySystem.version}'
+                resolutionStrategy.force 'org.codehaus.groovy:groovy:${GroovyCoverage.MINIMAL_GROOVY_3}' // force latest Groovy 3 when using Java 14+.  Do not use GroovySystem#version as Groovy 4 needs different coordinates
             }
             """ : ""}
         """.stripIndent()
