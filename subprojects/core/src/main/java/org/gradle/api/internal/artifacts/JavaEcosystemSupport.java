@@ -31,7 +31,6 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.CompileView;
 import org.gradle.api.attributes.java.TargetJvmEnvironment;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.ReusableAction;
@@ -53,7 +52,6 @@ public abstract class JavaEcosystemSupport {
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         configureUsage(attributesSchema, objectFactory);
         configureLibraryElements(attributesSchema, objectFactory);
-        configureView(attributesSchema, objectFactory);
         configureBundling(attributesSchema);
         configureTargetPlatform(attributesSchema);
         configureTargetEnvironment(attributesSchema);
@@ -61,7 +59,6 @@ public abstract class JavaEcosystemSupport {
         attributesSchema.attributeDisambiguationPrecedence(
                 Category.CATEGORY_ATTRIBUTE,
                 Usage.USAGE_ATTRIBUTE,
-                CompileView.VIEW_ATTRIBUTE,
                 TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
                 LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
                 Bundling.BUNDLING_ATTRIBUTE,
@@ -121,67 +118,8 @@ public abstract class JavaEcosystemSupport {
         });
     }
 
-    private static void configureView(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
-        AttributeMatchingStrategy<CompileView> viewSchema = attributesSchema.attribute(CompileView.VIEW_ATTRIBUTE);
-        viewSchema.getCompatibilityRules().add(CompileViewCompatibilityRules.class);
-        viewSchema.getDisambiguationRules().add(CompileViewDisambiguationRules.class, actionConfiguration -> {
-            actionConfiguration.params(objectFactory.named(CompileView.class, CompileView.JAVA_API));
-            actionConfiguration.params(objectFactory.named(CompileView.class, CompileView.JAVA_COMPLETE));
-        });
-    }
-
     @VisibleForTesting
-    static class CompileViewDisambiguationRules implements AttributeDisambiguationRule<CompileView>, ReusableAction {
-
-        final CompileView javaApi;
-        final CompileView javaComplete;
-
-        @Inject
-        public CompileViewDisambiguationRules(
-                CompileView javaApi,
-                CompileView javaComplete) {
-            this.javaApi = javaApi;
-            this.javaComplete = javaComplete;
-        }
-
-        @Override
-        public void execute(MultipleCandidatesDetails<CompileView> details) {
-            Set<CompileView> candidateValues = details.getCandidateValues();
-            CompileView consumerValue = details.getConsumerValue();
-            if (consumerValue == null) {
-                if (candidateValues.contains(javaApi)) {
-                    // Use the api when nothing has been requested
-                    details.closestMatch(javaApi);
-                }
-            } else if (candidateValues.contains(consumerValue)) {
-                // Use what they requested, if available
-                details.closestMatch(consumerValue);
-            }
-        }
-    }
-
-    @VisibleForTesting
-    static class CompileViewCompatibilityRules implements AttributeCompatibilityRule<CompileView>, ReusableAction {
-
-        @Override
-        public void execute(CompatibilityCheckDetails<CompileView> details) {
-            CompileView consumerValue = details.getConsumerValue();
-            CompileView producerValue = details.getProducerValue();
-            if (consumerValue == null) {
-                // consumer didn't express any preferences, everything fits
-                details.compatible();
-                return;
-            }
-            // The API view is a subset of the complete view, so the complete view can fulfill
-            // a request for the API.
-            if (CompileView.JAVA_API.equals(consumerValue.getName()) && CompileView.JAVA_COMPLETE.equals(producerValue.getName())) {
-                details.compatible();
-            }
-        }
-    }
-
-    @VisibleForTesting
-    static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
+    public static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
         final Usage javaApi;
         final Usage javaRuntime;
         final Usage javaApiJars;
@@ -242,7 +180,7 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage>, ReusableAction {
+    public static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage>, ReusableAction {
         private static final Set<String> COMPATIBLE_WITH_JAVA_API = ImmutableSet.of(
                 DEPRECATED_JAVA_API_JARS,
                 DEPRECATED_JAVA_RUNTIME_JARS,
@@ -250,20 +188,15 @@ public abstract class JavaEcosystemSupport {
         );
         @Override
         public void execute(CompatibilityCheckDetails<Usage> details) {
-            Usage consumerValue = details.getConsumerValue();
-            Usage producerValue = details.getProducerValue();
-            if (consumerValue == null) {
-                // consumer didn't express any preferences, everything fits
-                details.compatible();
-                return;
-            }
-            if (consumerValue.getName().equals(Usage.JAVA_API)) {
-                if (COMPATIBLE_WITH_JAVA_API.contains(producerValue.getName())) {
+            String consumerValue = details.getConsumerValue().getName();
+            String producerValue = details.getProducerValue().getName();
+            if (consumerValue.equals(Usage.JAVA_API)) {
+                if (COMPATIBLE_WITH_JAVA_API.contains(producerValue)) {
                     details.compatible();
                 }
                 return;
             }
-            if (consumerValue.getName().equals(Usage.JAVA_RUNTIME) && producerValue.getName().equals(DEPRECATED_JAVA_RUNTIME_JARS)) {
+            if (consumerValue.equals(Usage.JAVA_RUNTIME) && producerValue.equals(DEPRECATED_JAVA_RUNTIME_JARS)) {
                 details.compatible();
                 return;
             }
@@ -271,7 +204,7 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    static class LibraryElementsDisambiguationRules implements AttributeDisambiguationRule<LibraryElements>, ReusableAction {
+    public static class LibraryElementsDisambiguationRules implements AttributeDisambiguationRule<LibraryElements>, ReusableAction {
         final LibraryElements jar;
 
         @Inject
@@ -289,14 +222,14 @@ public abstract class JavaEcosystemSupport {
                     details.closestMatch(jar);
                 }
             } else if (candidateValues.contains(consumerValue)) {
-                // Use what they requested, if available
+                // Classes or resources requested, some Jars found, let's prefer these
                 details.closestMatch(consumerValue);
             }
         }
     }
 
     @VisibleForTesting
-    static class LibraryElementsCompatibilityRules implements AttributeCompatibilityRule<LibraryElements>, ReusableAction {
+    public static class LibraryElementsCompatibilityRules implements AttributeCompatibilityRule<LibraryElements>, ReusableAction {
 
         @Override
         public void execute(CompatibilityCheckDetails<LibraryElements> details) {
@@ -319,10 +252,7 @@ public abstract class JavaEcosystemSupport {
         }
     }
 
-    private static class TargetJvmEnvironmentCompatibilityRules implements AttributeCompatibilityRule<TargetJvmEnvironment>, ReusableAction {
-
-        // public constructor to make reflective initialization happy.
-        public TargetJvmEnvironmentCompatibilityRules() {}
+    public static class TargetJvmEnvironmentCompatibilityRules implements AttributeCompatibilityRule<TargetJvmEnvironment>, ReusableAction {
 
         @Override
         public void execute(CompatibilityCheckDetails<TargetJvmEnvironment> details) {
@@ -330,10 +260,7 @@ public abstract class JavaEcosystemSupport {
         }
     }
 
-    private static class TargetJvmEnvironmentDisambiguationRules implements AttributeDisambiguationRule<TargetJvmEnvironment>, ReusableAction {
-
-        // public constructor to make reflective initialization happy.
-        public TargetJvmEnvironmentDisambiguationRules() {}
+    public static class TargetJvmEnvironmentDisambiguationRules implements AttributeDisambiguationRule<TargetJvmEnvironment>, ReusableAction {
 
         @Override
         public void execute(MultipleCandidatesDetails<TargetJvmEnvironment> details) {
@@ -348,7 +275,7 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    static class BundlingCompatibilityRules implements AttributeCompatibilityRule<Bundling>, ReusableAction {
+    public static class BundlingCompatibilityRules implements AttributeCompatibilityRule<Bundling>, ReusableAction {
         private static final Set<String> COMPATIBLE_WITH_EXTERNAL = ImmutableSet.of(
                 // if we ask for "external" dependencies, it's still fine to bring a fat jar if nothing else is available
                 Bundling.EMBEDDED,
@@ -380,7 +307,7 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    static class BundlingDisambiguationRules implements AttributeDisambiguationRule<Bundling>, ReusableAction {
+    public static class BundlingDisambiguationRules implements AttributeDisambiguationRule<Bundling>, ReusableAction {
 
         @Override
         public void execute(MultipleCandidatesDetails<Bundling> details) {
