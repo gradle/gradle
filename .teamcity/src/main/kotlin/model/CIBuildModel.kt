@@ -13,7 +13,7 @@ import common.toCapitalized
 import configurations.BaseGradleBuildType
 import configurations.BuildDistributions
 import configurations.CheckLinks
-import configurations.CompileAllProduction
+import configurations.CompileAll
 import configurations.ConfigCacheDocsTest
 import configurations.FlakyTestQuarantine
 import configurations.FunctionalTest
@@ -74,6 +74,7 @@ data class CIBuildModel(
             specificBuilds = listOf(
                 SpecificBuild.BuildDistributions,
                 SpecificBuild.Gradleception,
+                SpecificBuild.GradleceptionWithGroovy4,
                 SpecificBuild.CheckLinks,
                 SpecificBuild.SmokeTestsMaxJavaVersion,
                 SpecificBuild.SantaTrackerSmokeTests,
@@ -334,7 +335,7 @@ const val GRADLE_BUILD_SMOKE_TEST_NAME = "gradleBuildSmokeTest"
 enum class SpecificBuild {
     CompileAll {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return CompileAllProduction(model, stage)
+            return CompileAll(model, stage)
         }
     },
     SanityCheck {
@@ -350,6 +351,11 @@ enum class SpecificBuild {
     Gradleception {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return Gradleception(model, stage)
+        }
+    },
+    GradleceptionWithGroovy4 {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return Gradleception(model, stage, true)
         }
     },
     CheckLinks {

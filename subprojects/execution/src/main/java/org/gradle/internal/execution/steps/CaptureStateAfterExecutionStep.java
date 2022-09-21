@@ -18,10 +18,9 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.file.FileCollection;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
@@ -89,8 +88,8 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
             }
 
             @Override
-            public Try<ExecutionResult> getExecutionResult() {
-                return result.getExecutionResult();
+            public Try<Execution> getExecution() {
+                return result.getExecution();
             }
 
             @Override
@@ -104,8 +103,8 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
-                builder.add(root.getAbsolutePath());
+            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+                builder.add(value.getValue().getAbsolutePath());
             }
 
             @Override
@@ -130,22 +129,18 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
     private AfterExecutionState captureStateAfterExecution(UnitOfWork work, BeforeExecutionContext context, BeforeExecutionState beforeExecutionState, Duration duration) {
         return operation(
             operationContext -> {
-                try {
-                    Timer timer = Time.startTimer();
-                    ImmutableSortedMap<String, FileSystemSnapshot> outputsProducedByWork = captureOutputs(work, context, beforeExecutionState);
-                    long snapshotOutputDuration = timer.getElapsedMillis();
+                Timer timer = Time.startTimer();
+                ImmutableSortedMap<String, FileSystemSnapshot> outputsProducedByWork = captureOutputs(work, context, beforeExecutionState);
+                long snapshotOutputDuration = timer.getElapsedMillis();
 
-                    // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
-                    // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
-                    // which is currently the _only_ thing this value is used for.
-                    Duration originExecutionTime = duration.plus(Duration.ofMillis(snapshotOutputDuration));
-                    OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), originExecutionTime);
-                    AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(beforeExecutionState, outputsProducedByWork, originMetadata, false);
-                    operationContext.setResult(Operation.Result.INSTANCE);
-                    return afterExecutionState;
-                } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
-                    throw work.decorateOutputFileSnapshottingException(e);
-                }
+                // The origin execution time is recorded as “work duration” + “output snapshotting duration”,
+                // As this is _roughly_ the amount of time that is avoided by reusing the outputs,
+                // which is currently the _only_ thing this value is used for.
+                Duration originExecutionTime = duration.plus(Duration.ofMillis(snapshotOutputDuration));
+                OriginMetadata originMetadata = new OriginMetadata(buildInvocationScopeId.asString(), originExecutionTime);
+                AfterExecutionState afterExecutionState = new DefaultAfterExecutionState(beforeExecutionState, outputsProducedByWork, originMetadata, false);
+                operationContext.setResult(Operation.Result.INSTANCE);
+                return afterExecutionState;
             },
             BuildOperationDescriptor
                 .displayName("Snapshot outputs after executing " + work.getDisplayName())
