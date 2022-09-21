@@ -8,6 +8,8 @@ and a new [strongly-typed dependencies block](#strongly-typed-dependencies) for 
 There are also enhancements to the [configuration cache](#configuration) and
 [incremental compilation](#incremental-compilation-after-failure).
 
+This release introduces a [Service Provider Interface (SPI) for Java Toolchains](#toolchain-spi).
+
 The Kotlin DSL now supports [named dependency arguments](#named-kotlin-dsl-dependency-arguments) for external dependencies.
 
 <!--
@@ -266,13 +268,38 @@ can be passed from the command line as follows:
 gradle myCustomTask --integer-option=123
 ```
 
-#### TODO: Expanded Java Toolchain support for Service Provider Interfaces
+<a name="toolchain-spi"></a>
+#### Add support for Java Toolchain downloads from arbitrary repositories
 
-Provides a way for plugins to register a provider of Java Toolchain that will allow auto provisioning for any toolchain specification. Service Provider Interface (SPI) TODO: link and definition.
+Starting in Gradle 7.6, Gradle can download toolchains from arbitrary repositories.
+By default, Gradle downloads toolchains from Adoptium/AdoptOpenJDK. You can now override the default providers with repositories
+of your choice using a toolchain resolver plugin.
+The following example uses custom plugins that provide `AzulResolver` and `AdoptiumResolver` to add custom toolchains for Adoptium and Azul:
 
-Related issues:
+```kotlin
+toolchainManagement {
+    jvm {
+        javaRepositories {
+            repository("azul") {
+                resolverClass.set(AzulResolver::class.java)
+                credentials {
+                    username = "user"
+                    password = "password"
+                }
+                authentication {
+                    create<DigestAuthentication>("digest")
+                }
+            }
+            repository("adoptium") {
+                resolverClass.set(AdoptiumResolver::class.java)
+            }
+        }
+    }
+}
+```
 
-[Support "Zulu OpenJDK Discovery API" for auto provisioning toolchains gradle#19140](https://github.com/gradle/gradle/issues/19140)
+For more information about using custom toolchain resolvers, see the [Toolchain Download Repositories documentation](userguide/toolchains.html#sub:download_repositories).
+For more information about writing custom toolchain resolvers, see the [Toolchain Resolver Plugins documentation](userguide/toolchain_plugins.html).
 
 <a name="plugin-publish"></a>
 #### Enhanced the plugin declaration DSL for the java-gradle-plugin
