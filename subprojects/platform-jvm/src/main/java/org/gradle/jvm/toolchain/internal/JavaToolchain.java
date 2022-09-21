@@ -120,6 +120,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     }
 
     @Internal
+    @Override
     public boolean isCurrentJvm() {
         return javaHome.getAsFile().equals(Jvm.current().getJavaHome());
     }
