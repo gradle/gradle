@@ -269,7 +269,7 @@ gradle myCustomTask --integer-option=123
 ```
 
 <a name="toolchain-spi"></a>
-#### Add support for Java Toolchain downloads from arbitrary repositories
+#### Added support for Java Toolchain downloads from arbitrary repositories
 
 Starting in Gradle 7.6, Gradle can download toolchains from arbitrary repositories.
 By default, Gradle downloads toolchains from Adoptium/AdoptOpenJDK. You can now override the default providers with repositories
