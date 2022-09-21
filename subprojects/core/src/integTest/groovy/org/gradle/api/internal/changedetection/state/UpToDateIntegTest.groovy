@@ -142,7 +142,7 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
         '''
 
         def customTask = ':customTask'
-        def notUpToDateBecause = /Task '${customTask}' is not up-to-date because:/
+        def notUpToDateBecause = /Executing task '${customTask}' because:/
         when:
         run customTask, '-Pcontent=first', '--info'
         then:

@@ -48,14 +48,14 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         run("myTask", "--info")
         then:
         executedAndNotSkipped(":myTask")
-        outputContains("Task ':myTask' is not up-to-date because:")
+        outputContains("Executing task ':myTask' because:")
         outputContains("Task state is not tracked.")
 
         when:
         run("myTask", "--info")
         then:
         executedAndNotSkipped(":myTask")
-        outputContains("Task ':myTask' is not up-to-date because:")
+        outputContains("Executing task ':myTask' because:")
         outputContains("Task state is not tracked.")
     }
 
@@ -102,7 +102,7 @@ class UntrackedTaskIntegrationTest extends AbstractIntegrationSpec implements Di
         run("myTask", "--info")
         then:
         executedAndNotSkipped(":myTask")
-        outputContains("Task ':myTask' is not up-to-date because:")
+        outputContains("Executing task ':myTask' because:")
         outputContains("Task state is not tracked.")
     }
 

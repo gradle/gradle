@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
@@ -143,7 +142,7 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
     private void logExecutionReasons(List<String> reasons, UnitOfWork work) {
         if (LOGGER.isInfoEnabled()) {
             Formatter formatter = new Formatter();
-            formatter.format("%s is not up-to-date because:", StringUtils.capitalize(work.getDisplayName()));
+            formatter.format("Executing %s because:", work.getDisplayName());
             for (String message : reasons) {
                 formatter.format("%n  %s", message);
             }
