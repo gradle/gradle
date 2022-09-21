@@ -19,9 +19,6 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
-import static org.junit.Assume.assumeFalse
-import static org.junit.Assume.assumeTrue
-
 @Issue("https://github.com/gradle/gradle/issues/13018")
 class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
     // A list of project paths: project000, project001, ..., project300
@@ -33,7 +30,7 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
     }.join(", ")
 
     def "including over 250 projects is not possible via varargs in Groovy 3"() {
-        assumeFalse('Requires Groovy 3', isAtLeastGroovy4)
+        assumeGroovy3()
         // Groovy doesn't even support >=255 args at compilation, so to trigger the right error
         // 254 projects must be used instead.
         settingsFile << """
@@ -51,7 +48,7 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "including over 250 projects is not possible via varargs in Groovy 4"() {
-        assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
+        assumeGroovy4()
         // Groovy doesn't even support >=255 args at compilation, so to trigger the right error
         // 254 projects must be used instead.
         settingsFile << """
@@ -70,7 +67,7 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "including large amounts of projects is not possible via varargs in Groovy 3"() {
-        assumeFalse('Requires Groovy 3', isAtLeastGroovy4)
+        assumeGroovy3()
         settingsFile << """
             rootProject.name = 'root'
             $includeFunction $projectNamesCommaSeparated
@@ -89,7 +86,7 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "including large amounts of projects is not possible via varargs in Groovy 4"() {
-        assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
+        assumeGroovy4()
         settingsFile << """
             rootProject.name = 'root'
             $includeFunction $projectNamesCommaSeparated
