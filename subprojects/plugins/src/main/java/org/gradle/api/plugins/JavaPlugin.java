@@ -395,14 +395,12 @@ public class JavaPlugin implements Plugin<Project> {
         Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
         Configuration compileOnly = configurations.getByName(COMPILE_ONLY_CONFIGURATION_NAME);
 
-        final Configuration compileElementsConfiguration = jvmServices.createOutgoingElements(COMPILE_ELEMENTS_CONFIGURATION_NAME,
+        final DeprecatableConfiguration compileElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(COMPILE_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(mainSourceSet)
                 .providesApi()
                 .withDescription("Compile elements for main.")
                 .extendsFrom(implementationConfiguration, compileOnly));
-        compileElementsConfiguration.setVisible(false);
-        compileElementsConfiguration.setCanBeConsumed(true);
-        compileElementsConfiguration.setCanBeResolved(false);
+        compileElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
         compileElementsConfiguration.getAttributes().attribute(CompileView.VIEW_ATTRIBUTE, objectFactory.named(CompileView.class, CompileView.JAVA_COMPLETE));
 
         // Configure variants
