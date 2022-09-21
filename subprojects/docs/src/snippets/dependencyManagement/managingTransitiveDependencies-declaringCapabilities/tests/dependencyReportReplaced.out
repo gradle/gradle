@@ -1,15 +1,14 @@
 org.slf4j:log4j-over-slf4j:1.7.10
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | 11           |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | 11           |
    Selection reasons:
       - By conflict resolution: On capability log4j:log4j use slf4j in place of log4j
 
@@ -22,16 +21,15 @@ org.slf4j:log4j-over-slf4j:1.7.10
 
 org.slf4j:slf4j-log4j12:1.6.1
   Variant compile:
-    | Attribute Name                 | Provided      | Requested    |
-    |--------------------------------|---------------|--------------|
-    | org.gradle.status              | release       |              |
-    | org.gradle.category            | library       | library      |
-    | org.gradle.compile-view        | java-complete | java-api     |
-    | org.gradle.libraryelements     | jar           | classes      |
-    | org.gradle.usage               | java-api      | java-api     |
-    | org.gradle.dependency.bundling |               | external     |
-    | org.gradle.jvm.environment     |               | standard-jvm |
-    | org.gradle.jvm.version         |               | 11           |
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | 11           |
 
 org.slf4j:slf4j-log4j12:1.6.1
 \--- org.apache.zookeeper:zookeeper:3.4.9
