@@ -394,7 +394,7 @@ Otherwise, use the address of one of the machine's network interfaces.
 The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now
 supports depending on the internal view of the current project during compile-time.
 Previously it was only possible to depend on the current project's API. This allows
-test suites to access project internals that are not declared on
+test suites with access to project internals that are not declared on
 the `api` or `compileOnlyApi` configurations.
 
 For example, the following snippet uses the new `projectInternalView()` API to define a
@@ -403,7 +403,7 @@ test suite with access to project internals:
 ```kotlin
 testing {
     suites {
-        val unitLikeTestSuite by registering(JvmTestSuite::class) {
+        val unitLikeTestSuite by getting(JvmTestSuite::class) {
             useJUnitJupiter()
             dependencies {
                 implementation(projectInternalView())
