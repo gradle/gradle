@@ -298,16 +298,17 @@ tasks.register("compileClasspathArtifacts") {
     }
 }
 tasks.register("failRuntimeClasspathResolve") {
+    FileCollection runtimeClasspath = configurations["runtimeClasspath"]
     doLast {
-        configurations["runtimeClasspath"].each { println(it.name) }
+        runtimeClasspath.each { println(it.name) }
     }
 }
 tasks.register("runtimeClasspathArtifacts") {
     FileCollection runtimeClasspath = configurations["runtimeClasspath"]
+    configurations["runtimeClasspath"].attributes {
+        attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture, "x86"))
+    }
     doLast {
-        runtimeClasspath.attributes {
-            attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named(MachineArchitecture, "x86"))
-        }
         runtimeClasspath.findAll { !it.name.startsWith("commons-lang3") }.each { println(it.name) }
     }
 }

@@ -294,16 +294,17 @@ tasks.register("compileClasspathArtifacts") {
     }
 }
 tasks.register("failRuntimeClasspathResolve") {
+    val runtimeClasspath: FileCollection = configurations["runtimeClasspath"]
     doLast {
-        configurations["runtimeClasspath"].forEach { println(it.name) }
+        runtimeClasspath.forEach { println(it.name) }
     }
 }
 tasks.register("runtimeClasspathArtifacts") {
     val runtimeClasspath: FileCollection = configurations["runtimeClasspath"]
+    configurations["runtimeClasspath"].attributes {
+        attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named("x86"))
+    }
     doLast {
-        runtimeClasspath.attributes {
-            attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, objects.named("x86"))
-        }
         runtimeClasspath.filter { !it.name.startsWith("commons-lang3") }.forEach { println(it.name) }
     }
 }
