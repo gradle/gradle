@@ -317,7 +317,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public Object loadRestoredOutput(File workspace) {
+        public Object loadAlreadyProducedOutput(File workspace) {
             TransformationResultSerializer resultSerializer = new TransformationResultSerializer(getOutputDir(workspace));
             return resultSerializer.readResultsFile(getResultsFile(workspace));
         }
@@ -346,8 +346,10 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
-            return transformer.requiresInputChanges() ? InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS : InputChangeTrackingStrategy.NONE;
+        public ExecutionBehavior getExecutionBehavior() {
+            return transformer.requiresInputChanges()
+                ? ExecutionBehavior.INCREMENTAL
+                : ExecutionBehavior.NON_INCREMENTAL;
         }
 
         @Override

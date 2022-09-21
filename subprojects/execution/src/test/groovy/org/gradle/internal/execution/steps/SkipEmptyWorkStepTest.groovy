@@ -30,8 +30,8 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 
-import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
-import static org.gradle.internal.execution.ExecutionOutcome.SHORT_CIRCUITED
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.SHORT_CIRCUITED
 import static org.gradle.internal.execution.UnitOfWork.InputBehavior.PRIMARY
 
 class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
@@ -164,7 +164,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         1 * workInputListeners.broadcastFileSystemInputsOf(work, primaryFileInputs)
 
         then:
-        result.executionResult.get().outcome == SHORT_CIRCUITED
+        result.execution.get().outcome == SHORT_CIRCUITED
         !result.afterExecutionState.present
     }
 
@@ -192,7 +192,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         0 * _
 
         then:
-        result.executionResult.get().outcome == outcome
+        result.execution.get().outcome == outcome
         !result.afterExecutionState.present
 
         where:
