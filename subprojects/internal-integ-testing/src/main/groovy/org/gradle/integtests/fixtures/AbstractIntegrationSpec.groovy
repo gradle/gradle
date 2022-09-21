@@ -45,6 +45,7 @@ import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.intellij.lang.annotations.Language
+import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -63,7 +64,7 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
 @CleanupTestDirectory
 @SuppressWarnings("IntegrationTestFixtures")
 @IntegrationTestTimeout(DEFAULT_TIMEOUT_SECONDS)
-class AbstractIntegrationSpec extends Specification {
+abstract class AbstractIntegrationSpec extends Specification {
 
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -98,6 +99,8 @@ class AbstractIntegrationSpec extends Specification {
 
     protected int maxHttpRetries = 1
     protected Integer maxUploadAttempts
+
+    @Lazy private isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
 
     def setup() {
         // Verify that the previous test (or fixtures) has cleaned up state correctly
@@ -671,5 +674,12 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         recreateExecuter()
     }
 
-    @Lazy boolean isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
+    void assumeGroovy3() {
+        Assume.assumeFalse('Requires Groovy 3', isAtLeastGroovy4)
+    }
+
+    void assumeGroovy4() {
+        Assume.assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
+    }
+
 }

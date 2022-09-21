@@ -20,13 +20,10 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
 
-import static org.junit.Assume.assumeFalse
-import static org.junit.Assume.assumeTrue
-
 class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
 
     def "produces sensible error when bad code is supplied in component selection rule with Groovy 3"() {
-        assumeFalse('Requires Groovy 3', isAtLeastGroovy4)
+        assumeGroovy3()
         buildFile << """
             dependencies {
                 conf "org.utils:api:1.2"
@@ -60,7 +57,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
     }
 
     def "produces sensible error when bad code is supplied in component selection rule with Groovy 4"() {
-        assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
+        assumeGroovy4()
         buildFile << """
             dependencies {
                 conf "org.utils:api:1.2"
