@@ -31,7 +31,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(8)
+                    languageVersion = JavaLanguageVersion.of(11)
                 }
             }
         """
@@ -53,7 +53,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
         then:
 
-        TestFile installLocation = temporaryFolder.file("user-home", "jdks", "temurin-8-${architectureInFilename()}-${osInFilename()}")
+        TestFile installLocation = temporaryFolder.file("user-home", "jdks", "eclipse_adoptium-11-${architectureInFilename()}-${osInFilename()}")
 
         File[] subFolders = installLocation.getCanonicalFile().listFiles()
         subFolders.length == 1
