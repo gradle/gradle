@@ -60,13 +60,13 @@ public interface Dependencies {
     ProjectDependency project();
 
     /**
-     * Create a dependency on the current project's internal view. During compile-time, this dependency will
+     * Create a dependency on the current project's complete view. During compile-time, this dependency will
      * resolve the current project's implementation in addition to its API. During runtime, this dependency
      * behaves as a usual project dependency.
      *
      * @return A new dependency
      */
-    ProjectDependency projectInternalView();
+    ProjectDependency projectComplete();
 
     /**
      * Create an {@link ExternalModuleDependency} from the given notation.
