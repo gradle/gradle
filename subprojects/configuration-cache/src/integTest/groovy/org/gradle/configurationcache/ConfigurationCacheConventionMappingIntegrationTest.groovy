@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-import groovy.test.NotYetImplemented
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.ConventionTask
@@ -26,7 +25,6 @@ import org.gradle.api.tasks.TaskAction
 
 class ConfigurationCacheConventionMappingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @NotYetImplemented
     def "doesn't restore convention value to incompatible field type"() {
         given:
         buildFile << """
