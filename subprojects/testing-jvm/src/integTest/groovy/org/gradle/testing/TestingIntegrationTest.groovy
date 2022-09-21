@@ -16,6 +16,7 @@
 package org.gradle.testing
 
 import org.apache.commons.lang.RandomStringUtils
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -257,7 +258,6 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2962")
-    @Requires(TestPrecondition.JDK11_OR_LATER)
     def "incompatible user versions of classes that we also use don't affect test execution"() {
 
         // These dependencies are quite particular.
@@ -275,10 +275,14 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         // In a nutshell, this tests that we don't even try to load classes that are there, but that we shouldn't see.
 
         when:
+        executer
+                .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
+                .withToolchainDetectionEnabled()
         buildScript """
             plugins {
                 id("java")
             }
+            ${withJava11Toolchain()}
             ${mavenCentralRepository()}
             configurations { first {}; last {} }
             dependencies {
@@ -443,14 +447,17 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5305")
-    @Requires(TestPrecondition.JDK11_OR_LATER)
     def "test can install an irreplaceable SecurityManager"() {
         given:
-        executer.withStackTraceChecksDisabled()
+        executer
+                .withStackTraceChecksDisabled()
+                .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
+                .withToolchainDetectionEnabled()
         buildFile << """
             plugins {
                 id("java")
             }
+            ${withJava11Toolchain()}
             ${mavenCentralRepository()}
             dependencies { testImplementation 'junit:junit:4.13' }
         """
@@ -578,6 +585,16 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 public void checkThreadName() {
                     assertEquals("Test worker", Thread.currentThread().getName());
                     Thread.currentThread().setName(getClass().getSimpleName());
+                }
+            }
+        """
+    }
+
+    private static String withJava11Toolchain() {
+        return """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
                 }
             }
         """
