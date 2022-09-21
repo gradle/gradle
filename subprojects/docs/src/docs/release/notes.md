@@ -298,18 +298,6 @@ toolchainManagement {
 For more information about using custom toolchain resolvers, see the [Toolchain Download Repositories documentation](userguide/toolchains.html#sub:download_repositories).
 For more information about writing custom toolchain resolvers, see the [Toolchain Resolver Plugins documentation](userguide/toolchain_plugins.html).
 
-<a name="plugin-publish"></a>
-#### Enhanced the plugin declaration DSL for the java-gradle-plugin
-
-The recently released [version 1.0.0 of the Plugin-Publish plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish/1.0.0)
-significantly improves the plugin publishing process through stronger opinions and more straightforward configuration.
-
-This release includes updates to the `java-gradle-plugin` documentation.
-The enhanced documentation describes the Maven publications generated when
-combined with the `maven-publish plugin`.
-
-For more information, see enhanced Gradle for [Plugin Publish Plugin v1.0.0 gradle#19982](https://github.com/gradle/gradle/pull/19982)
-
 <a name="jvm"></a>
 ### JVM
 
