@@ -50,6 +50,15 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             """.stripIndent()
 
         when:
+        runner.expectDeprecationWarningIf(
+                versionNumber <= VersionNumber.parse("6.0.0"),
+                "The AbstractCompile.archivePath property has been deprecated. " +
+                        "This is scheduled to be removed in Gradle 9.0. " +
+                        "Please use the destinationDirectory property instead. " +
+                        "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring",
+                ""
+        )
+
         def result = runner('shadowJar').build()
 
         then:
