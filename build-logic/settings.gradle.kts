@@ -41,6 +41,13 @@ dependencyResolutionManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven {
+            name = "Apache Snapshots"
+            url = uri("https://repository.apache.org/content/repositories/snapshots/")
+            content {
+                includeVersionByRegex("org\\.apache\\.groovy", ".*", "4.*-SNAPSHOT")
+            }
+        }
     }
 }
 
