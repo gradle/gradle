@@ -35,7 +35,7 @@ interface ProblemsListener {
             throw error
         }
         throw ConfigurationCacheError(
-            "${propertyDescriptionFor(trace)}: ${StructuredMessage.build(message)}",
+            "Configuration cache state could not be cached: $trace: ${StructuredMessage.build(message)}",
             error.maybeUnwrapInvocationTargetException()
         )
     }
