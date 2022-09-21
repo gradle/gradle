@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
+import static org.junit.Assume.assumeTrue
+
 @Issue("https://github.com/gradle/gradle/issues/13018")
 class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
     // A list of project paths: project000, project001, ..., project300
@@ -30,7 +32,26 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         "\"$it\""
     }.join(", ")
 
-    def "including over 250 projects is not possible via varargs in Groovy"() {
+    def "including over 250 projects is not possible via varargs in Groovy 3"() {
+        assumeTrue('Requires Groovy 3', VersionNumber.parse(GroovySystem.version).major == 3)
+        // Groovy doesn't even support >=255 args at compilation, so to trigger the right error
+        // 254 projects must be used instead.
+        settingsFile << """
+            rootProject.name = 'root'
+            $includeFunction ${projectNames.take(254).collect { "\"$it\"" }.join(", ")}
+        """
+
+        expect:
+        def result = fails("projects")
+        result.assertHasDescription("A problem occurred evaluating settings 'root'.")
+        failureCauseContains("org.codehaus.groovy.runtime.ArrayUtil.createArray")
+
+        where:
+        includeFunction << ["include", "includeFlat"]
+    }
+
+    def "including over 250 projects is not possible via varargs in Groovy 4"() {
+        assumeTrue('Requires Groovy 4', VersionNumber.parse(GroovySystem.version).major >= 4)
         // Groovy doesn't even support >=255 args at compilation, so to trigger the right error
         // 254 projects must be used instead.
         settingsFile << """
@@ -42,18 +63,34 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         def result = fails("projects")
         result.assertHasDescription("A problem occurred evaluating settings 'root'.")
         def isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
-        if (isAtLeastGroovy4) {
-            // In Java 8 "call site" is used, in Java 11 "bootstrap method"
-            failureHasCause(~/(call site|bootstrap method) initialization exception/)
-        } else {
-            failureCauseContains("org.codehaus.groovy.runtime.ArrayUtil.createArray")
-        }
+        // In Java 8 "call site" is used, in Java 11 "bootstrap method"
+        failureHasCause(~/(call site|bootstrap method) initialization exception/)
 
         where:
         includeFunction << ["include", "includeFlat"]
     }
 
-    def "including large amounts of projects is not possible via varargs in Groovy"() {
+    def "including large amounts of projects is not possible via varargs in Groovy 3"() {
+        assumeTrue('Requires Groovy 3', VersionNumber.parse(GroovySystem.version).major == 3)
+        settingsFile << """
+            rootProject.name = 'root'
+            $includeFunction $projectNamesCommaSeparated
+        """
+
+        // The failure here emits a stacktrace because it's at compilation time
+        executer.withStackTraceChecksDisabled()
+
+        expect:
+        def result = fails("projects")
+        result.assertThatDescription(containsNormalizedString("Could not compile settings file"))
+        failureCauseContains("The max number of supported arguments is 255, but found 301")
+
+        where:
+        includeFunction << ["include", "includeFlat"]
+    }
+
+    def "including large amounts of projects is not possible via varargs in Groovy 4"() {
+        assumeTrue('Requires Groovy 4', VersionNumber.parse(GroovySystem.version).major >= 4)
         settingsFile << """
             rootProject.name = 'root'
             $includeFunction $projectNamesCommaSeparated
@@ -65,14 +102,9 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         expect:
         def result = fails("projects")
         def isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
-        if (isAtLeastGroovy4) {
-            result.assertHasDescription("A problem occurred evaluating settings 'root'.")
-            // Java 8 does not print the exception name
-            failureHasCause(~/(java.lang.IllegalArgumentException: )?bad parameter count 302/)
-        } else {
-            result.assertThatDescription(containsNormalizedString("Could not compile settings file"))
-            failureCauseContains("The max number of supported arguments is 255, but found 301")
-        }
+        result.assertHasDescription("A problem occurred evaluating settings 'root'.")
+        // Java 8 does not print the exception name
+        failureHasCause(~/(java.lang.IllegalArgumentException: )?bad parameter count 302/)
 
         where:
         includeFunction << ["include", "includeFlat"]
