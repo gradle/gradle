@@ -85,4 +85,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         } as FileFilter)
     }
 
+    def cleanup() {
+        executer.gradleUserHomeDir.file("jdks").deleteDir()
+    }
 }
