@@ -163,6 +163,23 @@ gradle test --rerun
 
 For more information about the rerun option, see [Built-in Task Options](userguide/command_line_interface.html#sec:builtin_task_options).
 
+#### Introduced ability to explain why a task was skipped with a message
+
+You can now provide a reason message when conditionally disabling a task using the
+[`Task.onlyIf` predicate](userguide/more_about_tasks.html#sec:using_a_predicate):
+
+```groovy
+tasks.register("slowBenchmark") {
+    def slowBenchmarksEnabled = providers.gradleProperty("my.build.benchmark.slow").map { it.toBoolean() }.orElse(false)
+    onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") {
+        slowBenchmarksEnabled.get()
+    }
+}
+```
+
+Gradle outputs reason messages at log level `INFO`.
+To output reason messages to the console, use the `--info` or `--debug` [log levels](userguide/logging.html).
+
 <a name="configuration"></a>
 ### Configuration
 
@@ -227,26 +244,6 @@ Gradle now stores configuration caches for online and offline modes separately.
 This change supports builds and plugins that need to behave differently during configuration depending on whether the `--offline` option is in effect.
 
 For more information, see [the `--offline` CLI option](userguide/command_line_interface.html#sec:command_line_execution_options).
-
-<a name="execution"></a>
-### Execution
-
-#### Introduced ability to explain why a task was skipped with a message
-
-You can now provide a reason message when conditionally disabling a task using the
-[`Task.onlyIf` predicate](userguide/more_about_tasks.html#sec:using_a_predicate):
-
-```groovy
-tasks.register("slowBenchmark") {
-    def slowBenchmarksEnabled = providers.gradleProperty("my.build.benchmark.slow").map { it.toBoolean() }.orElse(false)
-    onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") {
-        slowBenchmarksEnabled.get()
-    }
-}
-```
-
-Gradle outputs reason messages at log level `INFO`.
-To output reason messages to the console, use the `--info` or `--debug` [log levels](userguide/logging.html).
 
 <a name="plugin"></a>
 ### Plugin
