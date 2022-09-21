@@ -27,44 +27,38 @@ class DefaultJvmVendorSpecTest extends Specification {
 
     def "unknown does not match known vendor"() {
         given:
-        def toolchain = Mock(JavaToolchain) {
-            getMetadata() >> Mock(JvmInstallationMetadata) {
-                getVendor() >> JvmVendor.fromString("some unknown")
-            }
+        def metadata = Mock(JvmInstallationMetadata) {
+            getVendor() >> JvmVendor.fromString("some unknown")
         }
 
         when:
-        def asPredicate = (Predicate<JavaToolchain>)JvmVendorSpec.ADOPTOPENJDK
+        def asPredicate = (Predicate<JvmInstallationMetadata>)JvmVendorSpec.ADOPTOPENJDK
 
         then:
-        !asPredicate.test(toolchain)
+        !asPredicate.test(metadata)
     }
 
     def "matches known vendors"() {
         given:
-        def toolchain = Mock(JavaToolchain) {
-            getMetadata() >> Mock(JvmInstallationMetadata) {
-                getVendor() >> JvmVendor.fromString("bellsoft")
-            }
+        def metadata = Mock(JvmInstallationMetadata) {
+            getVendor() >> JvmVendor.fromString("bellsoft")
         }
 
         expect:
-        assertMatches(JvmVendorSpec.BELLSOFT, toolchain)
-        assertDoesNotMatch(JvmVendorSpec.IBM, toolchain)
+        assertMatches(JvmVendorSpec.BELLSOFT, metadata)
+        assertDoesNotMatch(JvmVendorSpec.IBM, metadata)
     }
 
     def "matches by raw string"() {
         given:
-        def toolchain = Mock(JavaToolchain) {
-            getMetadata() >> Mock(JvmInstallationMetadata) {
-                getVendor() >> JvmVendor.fromString("someCustomJdk")
-            }
+        def metadata = Mock(JvmInstallationMetadata) {
+            getVendor() >> JvmVendor.fromString("someCustomJdk")
         }
 
         expect:
-        assertDoesNotMatch(JvmVendorSpec.IBM, toolchain)
-        assertDoesNotMatch(JvmVendorSpec.AMAZON, toolchain)
-        assertMatches(JvmVendorSpec.matching("customjdk"), toolchain)
+        assertDoesNotMatch(JvmVendorSpec.IBM, metadata)
+        assertDoesNotMatch(JvmVendorSpec.AMAZON, metadata)
+        assertMatches(JvmVendorSpec.matching("customjdk"), metadata)
     }
 
     void assertMatches(JvmVendorSpec spec, actualToolchain) {
