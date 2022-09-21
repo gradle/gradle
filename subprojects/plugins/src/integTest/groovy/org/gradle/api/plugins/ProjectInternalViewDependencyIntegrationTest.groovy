@@ -37,13 +37,14 @@ class ProjectInternalViewDependencyIntegrationTest extends AbstractIntegrationSp
             }
         """
         writeBaseBuildFile()
-        writeNonApiAccessibilityTest()
+        writeSuccessfulNonApiAccessibilityTest()
 
         when:
         succeeds "customTest"
 
         then:
         result.assertTaskExecuted(":jar")
+        result.assertTaskExecuted(":customTest")
     }
 
     def "can test against the internal view of java library"() {
@@ -63,14 +64,15 @@ class ProjectInternalViewDependencyIntegrationTest extends AbstractIntegrationSp
             }
         """
         writeBaseBuildFile()
-        writeNonApiAccessibilityTest()
-        writeApiAccessibilityTest()
+        writeSuccessfulNonApiAccessibilityTest()
+        writeSuccessfulApiAccessibilityTest()
 
         when:
         succeeds "customTest"
 
         then:
         result.assertTaskExecuted(":jar")
+        result.assertTaskExecuted(":customTest")
     }
 
     def writeBaseBuildFile() {
@@ -88,9 +90,7 @@ class ProjectInternalViewDependencyIntegrationTest extends AbstractIntegrationSp
                 }
             }
         """)
-    }
 
-    def writeNonApiAccessibilityTest() {
         file ("src/main/java/com/example/MyClass.java") << """
             package com.example;
             public class MyClass {
@@ -99,6 +99,9 @@ class ProjectInternalViewDependencyIntegrationTest extends AbstractIntegrationSp
                 }
             }
         """
+    }
+
+    def writeSuccessfulNonApiAccessibilityTest() {
         file("src/customTest/java/com/example/SuccessfulNonApiAccessibilityTest.java") << """
             package com.example;
             public class SuccessfulNonApiAccessibilityTest {
@@ -124,7 +127,7 @@ class ProjectInternalViewDependencyIntegrationTest extends AbstractIntegrationSp
         """
     }
 
-    def writeApiAccessibilityTest() {
+    def writeSuccessfulApiAccessibilityTest() {
         file("src/customTest/java/com/example/SuccessfulApiAccessibilityTest.java") << """
             package com.example;
             public class SuccessfulApiAccessibilityTest {
