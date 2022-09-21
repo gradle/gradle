@@ -299,7 +299,7 @@
         {
             "type": "org.gradle.api.plugins.quality.CheckstylePlugin",
             "member": "Class org.gradle.api.plugins.quality.CheckstylePlugin",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
             "changes": [
                 "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.getJavaPluginConvention()"
             ]
@@ -307,7 +307,7 @@
         {
             "type": "org.gradle.api.plugins.quality.CodeNarcPlugin",
             "member": "Class org.gradle.api.plugins.quality.CodeNarcPlugin",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
             "changes": [
                 "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.getJavaPluginConvention()"
             ]
@@ -315,7 +315,7 @@
         {
             "type": "org.gradle.api.plugins.quality.PmdPlugin",
             "member": "Class org.gradle.api.plugins.quality.PmdPlugin",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
             "changes": [
                 "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.getJavaPluginConvention()"
             ]
