@@ -26,7 +26,7 @@ trait WithKotlinDeprecations extends WithReportDeprecations {
     private static final VersionNumber KOTLIN_VERSION_USING_INPUT_CHANGES_API = VersionNumber.parse('1.6.0')
 
     private static final String ABSTRACT_COMPILE_DESTINATION_DIR_DEPRECATION = "The AbstractCompile.destinationDir property has been deprecated. " +
-        "This is scheduled to be removed in Gradle 9.0. " +
+        "This is scheduled to be removed in Gradle 8.0. " +
         "Please use the destinationDirectory property instead. " +
         "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring"
 
