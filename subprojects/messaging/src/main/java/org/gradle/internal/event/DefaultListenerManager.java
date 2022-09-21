@@ -430,9 +430,7 @@ public class DefaultListenerManager implements ListenerManager, AnnotatedService
             public void dispatch(MethodInvocation invocation) {
                 List<Dispatch<MethodInvocation>> dispatchers = startNotification(includeLogger);
                 try {
-                    if (!dispatchers.isEmpty()) {
-                        dispatch(invocation, dispatchers.iterator());
-                    }
+                    dispatch(invocation, dispatchers);
                 } finally {
                     endNotification(dispatchers);
                 }

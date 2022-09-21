@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.internal.component.model;
 
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 
-public interface ArtifactTransforms {
-    /**
-     * Returns a selector that selects the variant matching the supplied attributes, or which can be transformed to match.
-     */
-    VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, boolean selectFromAllVariants, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver);
+import java.util.Set;
+
+/**
+ * Represents all variants available for artifact selection.
+ *
+ * TODO: Combine this with ComponentArtifactResolveState
+ */
+public interface ComponentArtifactResolveVariantState {
+    Set<ResolvedVariant> getAllVariants();
 }

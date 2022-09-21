@@ -18,7 +18,6 @@ package org.gradle.plugins.ide
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.http.HttpArtifact
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
@@ -117,11 +116,13 @@ dependencies {
         and:
         module.pom.expectGet()
         module.artifact.expectGet()
+
+        sourceArtifact.expectHead()
         sourceArtifact.expectGetBroken()
+
+        javadocArtifact.expectHead()
         javadocArtifact.expectGetBroken()
 
-        expectBehaviorAfterBrokenMavenArtifact(sourceArtifact)
-        expectBehaviorAfterBrokenMavenArtifact(javadocArtifact)
 
         then:
         succeeds ideTask
@@ -265,9 +266,6 @@ dependencies {
         def javadocArtifact = module.getArtifact(classifier: "my-javadoc")
         sourceArtifact.expectGetBroken()
         javadocArtifact.expectGetBroken()
-
-        expectBehaviorAfterBrokenIvyArtifact(sourceArtifact)
-        expectBehaviorAfterBrokenIvyArtifact(javadocArtifact)
 
         then:
         succeeds ideTask
@@ -616,7 +614,5 @@ task resolve {
 
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
 
-    abstract void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact)
 
-    abstract void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact)
 }
