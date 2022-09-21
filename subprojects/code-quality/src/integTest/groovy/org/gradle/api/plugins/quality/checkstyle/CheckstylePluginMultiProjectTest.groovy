@@ -17,8 +17,11 @@ package org.gradle.api.plugins.quality.checkstyle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.hamcrest.Matcher
 
+import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.internal.TextUtil.getPlatformLineSeparator
+import static org.hamcrest.CoreMatchers.containsString
 
 class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 
@@ -129,5 +132,19 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 
     static String javaClassWithNewLineAtEnd() {
         "public class Dummy {}${getPlatformLineSeparator()}"
+    }
+
+    static String multilineJavaClass() {
+        return """
+            package org.sample;
+
+            class MyClass {
+              int i = 0;
+            }
+            """
+    }
+
+    static Matcher<String> containsClass(String className) {
+        containsLine(containsString(className.replace(".", File.separator)))
     }
 }
