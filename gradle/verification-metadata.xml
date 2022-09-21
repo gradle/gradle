@@ -884,14 +884,9 @@
          <artifact name="japicmp-gradle-plugin-0.4.1.jar">
             <sha256 value="5e87d84077de0c60d9ff4eedbc9fac1506693019eb6f55652afc9e1ff2b482ba" origin="Artifact is not signed"/>
          </artifact>
-      </component>
-      <component group="me.champeau.jmh" name="jmh-gradle-plugin" version="0.6.4">
-         <artifact name="jmh-gradle-plugin-0.6.4.jar">
-            <pgp value="0191e61acbbe76323ac15c83b5ad94bdd6bdb924"/>
-         </artifact>
-      </component>
-      <component group="me.champeau.jmh" name="jmh-gradle-plugin" version="0.6.7">
-         <artifact name="jmh-gradle-plugin-0.6.7.jar">
+      </component> 
+      <component group="me.champeau.jmh" name="jmh-gradle-plugin" version="0.6.8">
+         <artifact name="jmh-gradle-plugin-0.6.8.jar">
             <pgp value="0191e61acbbe76323ac15c83b5ad94bdd6bdb924"/>
          </artifact>
       </component>
