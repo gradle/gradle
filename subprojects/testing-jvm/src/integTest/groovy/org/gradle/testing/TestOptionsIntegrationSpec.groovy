@@ -252,6 +252,83 @@ class TestOptionsIntegrationSpec extends AbstractSampleIntegrationTest {
         'integTest' | 'integTest(JvmTestSuite)'     | 'integTest' | 'excludeTags'
     }
 
+    def "can set test framework in test task prior to setting #type option within #suiteName suite"() {
+        given:
+        resources.maybeCopy("TestOptionsIntegrationSpec")
+        buildFile << """
+        // Ensure non-default suites exist
+        testing {
+           suites {
+               $suiteDeclaration
+            }
+        }
+
+        // Configure task directly using name
+        $task {
+            useJUnitPlatform()
+        }
+
+        // Configure task through suite
+        testing.suites.$suiteName {
+           useJUnitJupiter()
+           targets {
+               all {
+                   testTask.configure {
+                       options {
+                           ${type} 'fast'
+                       }
+                   }
+               }
+           }
+        }""".stripMargin()
+
+        expect:
+        succeeds ":$task"
+
+        where:
+        suiteName   | suiteDeclaration              | task        | type
+        'test'      | 'test'                        | 'test'      | 'includeTags'
+        'test'      | 'test'                        | 'test'      | 'excludeTags'
+        'integTest' | 'integTest(JvmTestSuite)'     | 'integTest' | 'includeTags'
+        'integTest' | 'integTest(JvmTestSuite)'     | 'integTest' | 'excludeTags'
+    }
+
+    def "can set test framework in #suiteName suite prior to setting #type option within test task"() {
+        given:
+        resources.maybeCopy("TestOptionsIntegrationSpec")
+        buildFile << """
+        // Configure task through suite
+        testing {
+           suites {
+               $suiteDeclaration {
+                   useJUnitJupiter()
+                   dependencies {
+                       implementation 'org.junit.jupiter:junit-jupiter-engine:5.4.2'
+                   }
+               }
+           }
+        }
+
+        // Configure task directly using name
+        $task {
+            options {
+                ${type} 'fast'
+            }
+        }
+
+        """.stripMargin()
+
+        expect:
+        succeeds ":$task"
+
+        where:
+        suiteName   | suiteDeclaration              | task        | type
+        'test'      | 'test'                        | 'test'      | 'includeTags'
+        'test'      | 'test'                        | 'test'      | 'excludeTags'
+        'integTest' | 'integTest(JvmTestSuite)'     | 'integTest' | 'includeTags'
+        'integTest' | 'integTest(JvmTestSuite)'     | 'integTest' | 'excludeTags'
+    }
+
     // See JUnitCategoriesIntegrationSpec for the inspiration for this test
     def "re-executes test when #type is changed in #suiteName"() {
         given:
