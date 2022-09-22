@@ -18,9 +18,12 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
+
+import java.util.HashMap;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadata> extends AbstractComponentGraphResolveState<T> {
     public DefaultComponentGraphResolveState(T metadata) {
@@ -40,21 +43,32 @@ public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadat
 
     private static class DefaultVariantArtifactResolveState implements VariantArtifactResolveState {
         private final ComponentResolveMetadata component;
-        private final ConfigurationMetadata configuration;
+        private final ConfigurationMetadata graphSelectedVariant;
 
-        public DefaultVariantArtifactResolveState(ComponentResolveMetadata componentMetadata, ConfigurationMetadata configuration) {
+        public DefaultVariantArtifactResolveState(ComponentResolveMetadata componentMetadata, ConfigurationMetadata graphSelectedVariant) {
             this.component = componentMetadata;
-            this.configuration = configuration;
+            this.graphSelectedVariant = graphSelectedVariant;
         }
 
         @Override
         public ComponentArtifactMetadata resolveArtifact(IvyArtifactName artifact) {
-            return configuration.artifact(artifact);
+            return graphSelectedVariant.artifact(artifact);
         }
 
         @Override
-        public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            return artifactSelector.resolveArtifacts(component, configuration, exclusions, overriddenAttributes);
+        public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+            // We do not currently cache ResolvedVariants beyond this invocation yet
+            return artifactSelector.resolveArtifacts(component, new HashMap<>(), () -> buildAllVariants(), graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
+        }
+
+        private Set<? extends VariantResolveMetadata> buildAllVariants() {
+            final Set<? extends VariantResolveMetadata> allVariants;
+            if (component.getVariantsForGraphTraversal().isPresent()) {
+                allVariants = component.getVariantsForGraphTraversal().get().stream().map(ModuleConfigurationMetadata.class::cast).flatMap(variant -> variant.getVariants().stream()).collect(Collectors.toSet());
+            } else {
+                allVariants = graphSelectedVariant.getVariants();
+            }
+            return allVariants;
         }
     }
 }

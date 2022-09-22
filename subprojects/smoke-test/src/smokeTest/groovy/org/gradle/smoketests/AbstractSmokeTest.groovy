@@ -93,7 +93,7 @@ abstract class AbstractSmokeTest extends Specification {
         static tomcat = "2.7.0"
 
         // https://plugins.gradle.org/plugin/io.spring.dependency-management
-        static springDependencyManagement = "1.0.13.RELEASE"
+        static springDependencyManagement = "1.0.14.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
         static springBoot = "2.7.3"

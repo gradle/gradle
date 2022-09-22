@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -41,9 +42,9 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
     }
 
     @Override
-    public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ModuleVersionIdentifier ownerId, ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
         try {
-            resolver.resolveArtifact(artifact, moduleSources, result);
+            resolver.resolveArtifact(ownerId, artifact, moduleSources, result);
         } catch (Exception t) {
             result.failed(new ArtifactResolveException(artifact.getId(), t));
         }

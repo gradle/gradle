@@ -40,6 +40,7 @@ import org.gradle.api.internal.artifacts.result.DefaultComponentArtifactsResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedArtifactResult;
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedComponentResult;
+import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ArtifactType;
@@ -87,6 +88,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         GlobalDependencyResolutionRules metadataHandler,
         ComponentTypeRegistry componentTypeRegistry,
         ImmutableAttributesFactory attributesFactory,
+        ArtifactTypeRegistry artifactTypeRegistry,
         ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor
     ) {
         this.configurationContainer = configurationContainer;
@@ -189,11 +191,11 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
 
         for (ComponentArtifactMetadata artifactMetaData : artifactSetResolveResult.getResult()) {
             BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
-            artifactResolver.resolveArtifact(artifactMetaData, componentState.getSources(), resolveResult);
-            if (resolveResult.getFailure() != null) {
-                artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, resolveResult.getFailure()));
-            } else {
-                artifacts.addArtifact(ivyFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, Collections.emptyList(), Describables.of(componentState.getId().getDisplayName()), type, resolveResult.getResult())));
+            artifactResolver.resolveArtifact(null, artifactMetaData, componentState.getSources(), resolveResult);
+            try {
+                artifacts.addArtifact(ivyFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, Collections.emptyList(), Describables.of(componentState.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
+            } catch (Exception e) {
+                artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, e));
             }
         }
     }
