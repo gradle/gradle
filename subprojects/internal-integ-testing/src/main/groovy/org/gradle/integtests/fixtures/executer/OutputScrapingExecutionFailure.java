@@ -321,7 +321,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
 
         @Override
         public void assertHasFirstCause(String message) {
-            String firstCause = causes.isEmpty() ? "" : causes.get(0);
+            String firstCause = causes.stream().findFirst().orElse("");
             if (!firstCause.equals(message)) {
                 throw new AssertionFailedError(String.format("Expected first cause '%s', got '%s'", message, firstCause));
             }
