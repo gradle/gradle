@@ -46,7 +46,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         result = executer
                 .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
                 .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                        "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                        "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
                         "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
                         "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
                 .run()
@@ -69,7 +69,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         result = executer
                 .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
                 .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                        "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+                        "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
                         "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
                         "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
                 .run()
