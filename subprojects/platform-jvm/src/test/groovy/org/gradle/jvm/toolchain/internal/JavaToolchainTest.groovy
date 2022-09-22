@@ -54,6 +54,7 @@ class JavaToolchainTest extends Specification {
     }
 
     def "installation metadata identifies whether it is a #description JVM"() {
+        def javaHome = new File(javaHomePath).absolutePath
         def metadata = Mock(JvmInstallationMetadata) {
             getJavaHome() >> Paths.get(javaHome)
             getLanguageVersion() >> Jvm.current().javaVersion
@@ -68,7 +69,7 @@ class JavaToolchainTest extends Specification {
         installationMetadata.isCurrentJvm() == isCurrentJvm
 
         where:
-        description   | isCurrentJvm | javaHome
+        description   | isCurrentJvm | javaHomePath
         "current"     | true         | Jvm.current().javaHome.toString()
         "not current" | false        | "/some/path"
     }
