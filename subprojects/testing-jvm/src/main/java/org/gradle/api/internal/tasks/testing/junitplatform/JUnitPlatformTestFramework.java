@@ -73,18 +73,8 @@ public class JUnitPlatformTestFramework implements TestFramework {
         return new JUnitPlatformTestFramework(
             (DefaultTestFilter) newTestFilters,
             useImplementationDependencies,
-            copyOf(options)
+            new JUnitPlatformOptions(options)
         );
-    }
-
-    private static JUnitPlatformOptions copyOf(JUnitPlatformOptions source) {
-        return new JUnitPlatformOptions()
-            .includeEngines(source.getIncludeEngines().toArray(new String[0]))
-            .excludeEngines(source.getExcludeEngines().toArray(new String[0]))
-            .includeTags(source.getIncludeTags().toArray(new String[0]))
-            .excludeTags(source.getExcludeTags().toArray(new String[0]));
-
-
     }
 
     @Override

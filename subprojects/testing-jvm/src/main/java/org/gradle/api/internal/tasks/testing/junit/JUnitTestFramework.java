@@ -65,19 +65,9 @@ public class JUnitTestFramework implements TestFramework {
         return new JUnitTestFramework(
             (DefaultTestFilter) newTestFilters,
             useImplementationDependencies,
-            copyOf(options),
+            new JUnitOptions(options),
             testTaskTemporaryDir
         );
-    }
-
-    private static JUnitOptions copyOf(JUnitOptions source) {
-        // TODO: I believe we should copy the options, because they are mutable.
-        //       I don't think this would be an issue for the current use case in the test-retry
-        //       plugin, but it would be cleaner.
-        //       If you agree, I'd like to introduce a `clone` method on the TestFrameworkOptions level.
-        return new JUnitOptions()
-            .includeCategories(source.getIncludeCategories().toArray(new String[0]))
-            .excludeCategories(source.getExcludeCategories().toArray(new String[0]));
     }
 
     @Override
