@@ -27,6 +27,10 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         return "check"
     }
 
+    /**
+     * To ensure the plugins fails (as expected) with configuration cache, do NOT add a repository to the build here,
+     * the tests in the base class are relying on a failure during eager dependency resolution with CC.
+     */
     def setup() {
         buildFile << """
             apply plugin: 'groovy'
@@ -39,13 +43,15 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         buildFile """
             apply plugin: 'checkstyle'
 
-            dependencies { implementation localGroovy() }
             ${mavenCentralRepository()}
+
+            dependencies { implementation localGroovy() }
 
             checkstyle {
                 configProperties["some"] = new URL("https://gradle.org/")
             }
         """
+
         file('src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
         file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
 
