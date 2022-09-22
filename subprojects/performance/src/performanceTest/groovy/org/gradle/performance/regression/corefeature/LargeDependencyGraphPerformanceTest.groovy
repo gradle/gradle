@@ -20,6 +20,7 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
+import org.junit.Assume
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -29,17 +30,15 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 )
 class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
-    public static final String MIN_MEMORY = "-Xms800m"
-    public static final String MAX_MEMORY = "-Xmx800m"
-
     def setup() {
         runner.minimumBaseVersion = '5.6.4'
     }
 
     def "resolve large dependency graph from file repo"() {
+        Assume.assumeTrue(false)
+
         given:
         runner.tasksToRun = ['resolveDependencies']
-        runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
         runner.args = ["-PnoExcludes"]
 
         when:
@@ -50,11 +49,11 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
     }
 
     def "resolve large dependency graph (parallel = #parallel, locking = #locking)"() {
+        Assume.assumeTrue(false)
         startServer()
 
         given:
         runner.tasksToRun = ['resolveDependencies']
-        runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
         runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes']
         if (parallel) {
             runner.args += '--parallel'
