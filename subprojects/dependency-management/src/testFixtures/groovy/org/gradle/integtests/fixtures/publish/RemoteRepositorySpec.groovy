@@ -76,6 +76,19 @@ class RemoteRepositorySpec {
         }
     }
 
+    def gav(String notation, @DelegatesTo(value=ModuleVersionSpec, strategy = Closure.DELEGATE_ONLY) Closure spec = {}) {
+        def (gid, aid, v) = notation.split(':') as List
+        assert gid && aid && v
+        group(gid) {
+            module(aid) {
+                version(v, spec)
+            }
+        }
+    }
+
+    /**
+     * Use {@link #gav} when possible since it doesn't rely on methodMissing and integrates better with IDEs.
+     */
     void methodMissing(String name, args) {
         def (gid, aid, v) = name.split(':') as List
         Closure spec = {}

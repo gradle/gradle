@@ -17,6 +17,7 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.HasAttributes
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.PropertyHost
@@ -171,5 +172,86 @@ class DefaultMutableAttributeContainerTest extends Specification {
         !container.@state.contains(testLazy)
         container.@lazyAttributes.containsKey(testLazy)
         !container.@lazyAttributes.containsKey(testEager)
+    }
+
+    def "can query contents of container"() {
+        def thing = Attribute.of("thing", String)
+
+        expect:
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+
+        container.empty
+        container.keySet().empty
+        !container.contains(thing)
+        container.getAttribute(thing) == null
+
+        container.attribute(thing, "thing")
+
+        !container.empty
+        container.keySet() == [thing] as Set
+        container.contains(thing)
+        container.getAttribute(thing) == "thing"
+    }
+
+    def "A copy of an attribute container contains the same attributes and the same values as the original"() {
+        given:
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        container.attribute(Attribute.of("a1", Integer), 1)
+        container.attribute(Attribute.of("a2", String), "2")
+
+        when:
+        def copy = container.asImmutable()
+
+        then:
+        copy.keySet().size() == 2
+        copy.getAttribute(Attribute.of("a1", Integer)) == 1
+        copy.getAttribute(Attribute.of("a2", String)) == "2"
+    }
+
+    def "changes to attribute container are not seen by immutable copy"() {
+        given:
+        AttributeContainerInternal container = new DefaultMutableAttributeContainer(attributesFactory)
+        container.attribute(Attribute.of("a1", Integer), 1)
+        container.attribute(Attribute.of("a2", String), "2")
+        def immutable = container.asImmutable()
+
+        when:
+        container.attribute(Attribute.of("a1", Integer), 2)
+        container.attribute(Attribute.of("a3", String), "3")
+
+        then:
+        immutable.keySet().size() == 2
+        immutable.getAttribute(Attribute.of("a1", Integer)) == 1
+        immutable.getAttribute(Attribute.of("a2", String)) == "2"
+    }
+
+    def "An attribute container can provide the attributes through the HasAttributes interface"() {
+        given:
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        container.attribute(Attribute.of("a1", Integer), 1)
+
+        when:
+        HasAttributes access = container
+
+        then:
+        access.attributes.getAttribute(Attribute.of("a1", Integer)) == 1
+        access.attributes == access
+    }
+
+    def "has useful string representation"() {
+        def a = Attribute.of("a", String)
+        def b = Attribute.of("b", String)
+        def c = Attribute.of("c", String)
+
+        expect:
+        def container = new DefaultMutableAttributeContainer(attributesFactory)
+        container.toString() == "{}"
+        container.asImmutable().toString() == "{}"
+
+        container.attribute(b, "b")
+        container.attribute(c, "c")
+        container.attribute(a, "a")
+        container.toString() == "{a=a, b=b, c=c}"
+        container.asImmutable().toString() == "{a=a, b=b, c=c}"
     }
 }
