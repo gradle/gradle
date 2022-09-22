@@ -670,7 +670,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                     module("org:platform:2.7.9")
                 }
                 String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataPublished() ? 'enforcedRuntimeElements' : 'enforced-platform-runtime'
-                module("org:platform:2.7.9:$expectedVariant") {
+                edge("org:platform:{strictly 2.7.9}", "org:platform:2.7.9:$expectedVariant") {
                     constraint('org:core:2.7.9')
                     constraint('org:databind:2.7.9')
                     constraint('org:annotations:2.7.9')
