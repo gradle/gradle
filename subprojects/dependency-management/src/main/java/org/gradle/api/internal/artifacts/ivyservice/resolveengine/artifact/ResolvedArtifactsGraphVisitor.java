@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -41,13 +40,11 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private int nextId;
     private final Map<Long, ArtifactsForNode> artifactsByNodeId = Maps.newHashMap();
     private final ArtifactSelector artifactSelector;
-    private final ArtifactTypeRegistry artifactTypeRegistry;
     private final DependencyArtifactsVisitor artifactResults;
 
-    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactSelector artifactSelector, ArtifactTypeRegistry artifactTypeRegistry) {
+    public ResolvedArtifactsGraphVisitor(DependencyArtifactsVisitor artifactsBuilder, ArtifactSelector artifactSelector) {
         this.artifactResults = artifactsBuilder;
         this.artifactSelector = artifactSelector;
-        this.artifactTypeRegistry = artifactTypeRegistry;
     }
 
     @Override
@@ -100,7 +97,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         ArtifactsForNode configurationArtifactSet = artifactsByNodeId.get(toNode.getNodeId());
         if (configurationArtifactSet == null) {
             ExcludeSpec exclusions = dependency.getExclusions();
-            ArtifactSet nodeArtifacts = variantState.resolveArtifacts(artifactSelector, artifactTypeRegistry, exclusions, overriddenAttributes);
+            ArtifactSet nodeArtifacts = variantState.resolveArtifacts(artifactSelector, exclusions, overriddenAttributes);
             int id = nextId++;
             configurationArtifactSet = new ArtifactsForNode(id, nodeArtifacts);
 

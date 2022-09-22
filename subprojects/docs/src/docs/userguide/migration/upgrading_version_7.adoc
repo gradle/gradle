@@ -77,6 +77,10 @@ In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension 
 
 === Potential breaking changes
 
+=== Changes in the AbstractCodeQualityPlugin class
+
+The deprecated `AbstractCodeQualityPlugin.getJavaPluginConvention()` method was removed in Gradle 8.0. You should use `JavaPluginExtension` instead.
+
 === Remove implicit `--add-opens` for Gradle workers
 Before Gradle 8.0, Gradle workers on JDK9+ automatically opened JDK modules `java.base/java.util` and `java.base/java.lang` by passing `--add-opens` CLI arguments. This enabled code executed in a Gradle worker to perform deep reflection on JDK internals without warning or failing. Workers no longer use these implicit arguments.
 
