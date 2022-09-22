@@ -502,7 +502,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                   1. Add @DisableCachingByDefault(because = ...).
                   2. Add @CacheableTask.
                   3. Add @UntrackedTask(because = ...).
-            """, "validation_problems", "disable_caching_by_default"),
+            """.stripIndent().trim(), "validation_problems", "disable_caching_by_default"),
             warning("""
                 Type 'MyTransformAction' must be annotated either with @CacheableTransform or with @DisableCachingByDefault.
 
@@ -511,7 +511,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 Possible solutions:
                   1. Add @DisableCachingByDefault(because = ...).
                   2. Add @CacheableTransform.
-            """, "validation_problems", "disable_caching_by_default")
+            """.stripIndent().trim(), "validation_problems", "disable_caching_by_default")
         ])
     }
 
