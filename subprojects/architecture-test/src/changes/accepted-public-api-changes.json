@@ -561,6 +561,14 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.ClientModuleScope",
+            "member": "Class org.gradle.kotlin.dsl.ClientModuleScope",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.ClientModuleDelegate.setForce(boolean)"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.getUploadTaskName$annotations(org.gradle.api.NamedDomainObjectProvider)",
             "acceptation": "Class to be removed, functionality deleted",
