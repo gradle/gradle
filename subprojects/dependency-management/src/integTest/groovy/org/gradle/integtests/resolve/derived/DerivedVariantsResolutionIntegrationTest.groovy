@@ -18,6 +18,8 @@ package org.gradle.integtests.resolve.derived
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.MavenHttpModule
+import org.junit.Assume
+
 
 class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     MavenHttpModule direct
@@ -112,6 +114,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
     }
 
     def "direct has GMM and has sources jar"() {
+        Assume.assumeFalse(Boolean.getBoolean("org.gradle.integtest.force.realize.metadata"))
         transitive.adhocVariants().variant("jar", [
             "org.gradle.category": "library",
             "org.gradle.dependency.bundling": "external",
@@ -165,6 +168,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
     }
 
     def "direct has GMM and has javadoc jar"() {
+        Assume.assumeFalse(Boolean.getBoolean("org.gradle.integtest.force.realize.metadata"))
         transitive.adhocVariants().variant("jar", [
             "org.gradle.category": "library",
             "org.gradle.dependency.bundling": "external",
@@ -218,6 +222,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
     }
 
     def "direct has GMM and has both sources and javadoc jars"() {
+        Assume.assumeFalse(Boolean.getBoolean("org.gradle.integtest.force.realize.metadata"))
         transitive.adhocVariants().variant("jar", [
             "org.gradle.category": "library",
             "org.gradle.dependency.bundling": "external",
@@ -300,6 +305,7 @@ class DerivedVariantsResolutionIntegrationTest extends AbstractHttpDependencyRes
     }
 
     def "direct has GMM and no sources jar and transitive has GMM and has sources jar"() {
+        Assume.assumeFalse(Boolean.getBoolean("org.gradle.integtest.force.realize.metadata"))
         transitive.adhocVariants().variant("jar", [
                 "org.gradle.category": "library",
                 "org.gradle.dependency.bundling": "external",
