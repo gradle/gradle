@@ -16,8 +16,9 @@
 
 package org.gradle.jvm.toolchain
 
-
+import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 
 class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownloadSpiIntegrationTest {
@@ -102,8 +103,8 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
                 .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any, implementation=vendor-specific}) from 'https://api.adoptium.net/v3/binary/latest/8/ga/${os()}/x64/jdk/hotspot/normal/eclipse'.")
-                .assertHasCause("Toolchain provisioned from 'https://api.adoptium.net/v3/binary/latest/8/ga/${os()}/x64/jdk/hotspot/normal/eclipse' doesn't satisfy the specification: {languageVersion=11, vendor=any, implementation=vendor-specific}.")
+                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any, implementation=vendor-specific}) from 'https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse'.")
+                .assertHasCause("Toolchain provisioned from 'https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse' doesn't satisfy the specification: {languageVersion=11, vendor=any, implementation=vendor-specific}.")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -181,8 +182,8 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
                 .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse'.")
-                .assertHasCause("Could not read 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/x64/jdk/hotspot/normal/eclipse' as it does not exist.")
+                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse'.")
+                .assertHasCause("Could not read 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse' as it does not exist.")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -430,7 +431,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             public abstract class BrokenToolchainResolver implements JavaToolchainResolver {
                 @Override
                 public Optional<URI> resolve(JavaToolchainRequest request) {
-                    return Optional.of(URI.create("https://api.adoptium.net/v3/binary/latest/8/ga/${os()}/x64/jdk/hotspot/normal/eclipse"));
+                    return Optional.of(URI.create("https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse"));
                 }
             }
             """
@@ -446,6 +447,20 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             return "linux"
         }
         return os.getFamilyName()
+    }
+
+    private static String architecture() {
+        SystemInfo systemInfo = NativeServices.getInstance().get(SystemInfo.class)
+        switch (systemInfo.architecture) {
+            case SystemInfo.Architecture.i386:
+                return "x32";
+            case SystemInfo.Architecture.amd64:
+                return "x64";
+            case SystemInfo.Architecture.aarch64:
+                return "aarch64";
+            default:
+                return "unknown";
+        }
     }
 
 }
