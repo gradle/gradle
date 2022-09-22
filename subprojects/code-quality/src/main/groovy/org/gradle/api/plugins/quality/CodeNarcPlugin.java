@@ -96,7 +96,7 @@ public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
     private void configureDefaultDependencies(Configuration configuration) {
         configuration.defaultDependencies(dependencies ->
-            dependencies.add(project.getDependencies().create("org.codenarc:CodeNarc:" + extension.getToolVersion())) // TODO support Groovy 4 and "legacy" org.codenarc:CodeNarc:xyz coordinates
+            dependencies.add(project.getDependencies().create("org.codenarc:CodeNarc:" + extension.getToolVersion()))
         );
     }
 
