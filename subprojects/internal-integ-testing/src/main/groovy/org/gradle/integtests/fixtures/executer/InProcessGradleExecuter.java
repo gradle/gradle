@@ -876,7 +876,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
         @Override
         public void assertHasFirstCause(String message) {
-            assertEquals(message, causes.isEmpty() ? "" : causes.get(0));
+            assertEquals(message, causes.stream().findFirst().orElse(""));
         }
 
         @Override
