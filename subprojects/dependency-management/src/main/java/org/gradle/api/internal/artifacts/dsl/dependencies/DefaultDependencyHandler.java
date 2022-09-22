@@ -48,6 +48,7 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
+import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -346,7 +347,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     public Dependency enforcedPlatform(Object notation) {
         Dependency platformDependency = create(notation);
         if (platformDependency instanceof ExternalModuleDependency) {
-            ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) platformDependency;
+            AbstractExternalModuleDependency externalModuleDependency = (AbstractExternalModuleDependency) platformDependency;
+            externalModuleDependency.setForceForEnforcedPlatform(true);
             ModuleVersionIdentifier version = DefaultModuleVersionIdentifier.newId(externalModuleDependency.getModule(), externalModuleDependency.getVersion());
             MutableVersionConstraint constraint = (MutableVersionConstraint) externalModuleDependency.getVersionConstraint();
             constraint.strictly(version.getVersion());
