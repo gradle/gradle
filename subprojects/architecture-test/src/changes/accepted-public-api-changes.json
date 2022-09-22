@@ -65,6 +65,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.ExternalDependency",
+            "member": "Method org.gradle.api.artifacts.ExternalDependency.setForce(boolean)",
+            "acceptation": "Deprecated method has been removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.ResolvedArtifact",
             "member": "Method org.gradle.api.artifacts.ResolvedArtifact.getExtension()",
             "acceptation": "Method always could return null",
