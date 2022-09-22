@@ -1,4 +1,3 @@
-import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.jvm.toolchain.JavaToolchainResolver
@@ -34,20 +33,8 @@ toolchainManagement {
 
 rootProject.name = "toolchain-management"
 
-/**
- * Mock Azul repository plugin.
- *
- * @since 7.6
- */
-@Incubating
 abstract class AzulPlugin: DummyPlugin(AzulResolver::class)
 
-/**
- * Mock Adoptium repository plugin.
- *
- * @since 7.6
- */
-@Incubating
 abstract class AdoptiumPlugin: DummyPlugin(AdoptiumResolver::class)
 
 abstract class DummyPlugin(val resolverClass: kotlin.reflect.KClass<out JavaToolchainResolver>): Plugin<Settings> {
