@@ -72,7 +72,7 @@ public interface JavaToolchainUsageProgressDetails {
         String getJvmVersion();
 
         /**
-         * Returns Java VM vendor such as {@code Eclipse Adoptium}.
+         * Returns Java VM vendor such as {@code Oracle}.
          */
         String getJvmVendor();
 
