@@ -310,7 +310,8 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
                     constant.getKey(),
                     Type.getMethodDescriptor(Type.getType(String.class)), null, null);
                 mv.visitCode();
-                mv.visitLdcInsn(constant.getValue());
+                // accommodate cases where the RHS of the String constant is a method, not a hard-coded String
+                mv.visitFieldInsn(Opcodes.GETSTATIC, className, constant.getKey().substring("get".length()), Type.getDescriptor(String.class));
                 mv.visitInsn(Opcodes.ARETURN);
                 mv.visitMaxs(1, 0);
                 mv.visitEnd();
