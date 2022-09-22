@@ -753,12 +753,6 @@ tasks.named("docsTest") { task ->
                 "snippet-groovy-compilation-avoidance_groovy_groovyCompilationAvoidance.sample",
                 "snippet-groovy-compilation-avoidance_kotlin_groovyCompilationAvoidance.sample",
 
-                // TODO(https://github.com/gradle/gradle/issues/21718)
-                "snippet-init-scripts-configuration-injection_groovy_initScriptConfiguration.groovy.sample",
-                "snippet-init-scripts-configuration-injection_kotlin_initScriptConfiguration.kotlin.sample",
-                "snippet-init-scripts-plugins_groovy_usePluginsInInitScripts.groovy.sample",
-                "snippet-init-scripts-plugins_kotlin_usePluginsInInitScripts.kotlin.sample",
-
                 // TODO(https://github.com/gradle/gradle/issues/13469) Ivy Publish plugin support
                 "snippet-ivy-publish-conditional-publishing_groovy_publishingIvyConditionally.sample",
                 "snippet-ivy-publish-descriptor-customization_groovy_publishingIvyGenerateDescriptor.sample",
@@ -812,62 +806,8 @@ tasks.named("docsTest") { task ->
             // Tests that can and has to be fixed to run with the configuration cache enabled.
             // Set the Gradle property runBrokenConfigurationCacheDocsTests=true to run tests from this list or any of the lists above.
             def testsToBeFixedForConfigurationCache = [
-                "snippet-artifacts-define-repository_groovy_defineMavenCentral.sample",
-
-                "snippet-build-cache-cacheable-bundle_groovy_cacheableBundle-caching.sample",
-                "snippet-build-cache-cacheable-bundle_groovy_cacheableBundle.sample",
-                "snippet-build-cache-cacheable-bundle_kotlin_cacheableBundle-caching.sample",
-                "snippet-build-cache-cacheable-bundle_kotlin_cacheableBundle.sample",
-
-                "snippet-buildlifecycle-project-evaluate-events_groovy_projectEvaluateEvents.sample",
-                "snippet-buildlifecycle-project-evaluate-events_kotlin_projectEvaluateEvents.sample",
-
-                "snippet-dependency-management-customizing-resolution-capability-substitution-rule_groovy_capability_substitution.sample",
-                "snippet-dependency-management-customizing-resolution-capability-substitution-rule_kotlin_capability_substitution.sample",
-
-                "snippet-dependency-management-customizing-resolution-classifier-substitution-rule_groovy_resolve.sample",
-                "snippet-dependency-management-customizing-resolution-classifier-substitution-rule_kotlin_resolve.sample",
-
-                "snippet-dependency-management-customizing-resolution-conditional-substitution-rule_groovy_showJarFiles.sample",
-                "snippet-dependency-management-customizing-resolution-conditional-substitution-rule_groovy_showJarFilesLocal.sample",
-                "snippet-dependency-management-customizing-resolution-conditional-substitution-rule_kotlin_showJarFiles.sample",
-                "snippet-dependency-management-customizing-resolution-conditional-substitution-rule_kotlin_showJarFilesLocal.sample",
-
-                "snippet-dependency-management-customizing-resolution-ivy-metadata-rule_groovy_ivyComonentMetadataRule.sample",
-                "snippet-dependency-management-customizing-resolution-ivy-metadata-rule_kotlin_ivyComonentMetadataRule.sample",
-
                 "snippet-dependency-management-customizing-resolution-metadata-rule_groovy_comonentMetadataRules.sample",
                 "snippet-dependency-management-customizing-resolution-metadata-rule_kotlin_comonentMetadataRules.sample",
-
-                "snippet-dependency-management-defining-using-configurations-custom_groovy_custom-configuration.sample",
-                "snippet-dependency-management-defining-using-configurations-custom_kotlin_custom-configuration.sample",
-
-                "snippet-dependency-management-dependency-verification-disabling-verification_groovy_disabling_verification.sample",
-                "snippet-dependency-management-dependency-verification-disabling-verification_kotlin_disabling_verification.sample",
-
-                "snippet-dependency-management-managing-transitive-dependencies-exclude-for-dependency_groovy_exclude-transitive-for-dependency.sample",
-                "snippet-dependency-management-managing-transitive-dependencies-exclude-for-dependency_kotlin_exclude-transitive-for-dependency.sample",
-
-                "snippet-files-archive-naming_groovy_archiveNaming.sample",
-                "snippet-files-archive-naming_kotlin_archiveNaming.sample",
-
-                "snippet-files-archives-changed-base-name_groovy_zipWithArchivesBaseName.sample",
-                "snippet-files-archives-changed-base-name_kotlin_zipWithArchivesBaseName.sample",
-
-                "snippet-files-file-collections_groovy_fileCollectionsFiltering.sample",
-                "snippet-files-file-collections_groovy_fileCollectionsUsage.sample",
-                "snippet-files-file-collections_groovy_fileCollectionsWithClosure.sample",
-                "snippet-files-file-collections_kotlin_fileCollectionsFiltering.sample",
-                "snippet-files-file-collections_kotlin_fileCollectionsUsage.sample",
-                "snippet-files-file-collections_kotlin_fileCollectionsWithClosure.sample",
-
-                "snippet-java-cross-compilation_groovy_java7CrossCompilation.sample",
-                "snippet-java-cross-compilation_kotlin_java7CrossCompilation.sample",
-
-                "snippet-java-fixtures_groovy_javaTestFixtures.sample",
-                "snippet-java-fixtures_kotlin_javaTestFixtures.sample",
-
-                "snippet-kotlin-dsl-multi-project-build_kotlin_build.sample",
 
                 "snippet-tasks-incremental-build-custom-task-class_groovy_customTaskClassWithInputOutputAnnotations.sample",
                 "snippet-tasks-incremental-build-custom-task-class_groovy_incrementalAdHocTask.sample",
@@ -878,21 +818,6 @@ tasks.named("docsTest") { task ->
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_incrementalAdHocTaskNoSource.sample",
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep.sample",
                 "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep2.sample",
-
-                "snippet-tasks-incremental-task_groovy_incrementalTaskChangedProperty.sample",
-                "snippet-tasks-incremental-task_groovy_incrementalTaskFirstRun.sample",
-                "snippet-tasks-incremental-task_groovy_incrementalTaskNoChange.sample",
-                "snippet-tasks-incremental-task_groovy_incrementalTaskRemovedInput.sample",
-                "snippet-tasks-incremental-task_groovy_incrementalTaskRemovedOutput.sample",
-                "snippet-tasks-incremental-task_groovy_incrementalTaskUpdatedInputs.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskChangedProperty.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskFirstRun.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskNoChange.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskRemovedInput.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskRemovedOutput.sample",
-                "snippet-tasks-incremental-task_kotlin_incrementalTaskUpdatedInputs.sample",
-
-                "snippet-testing-test-suite-multi-configure-each-extracted_groovy_checkTask.sample"
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache

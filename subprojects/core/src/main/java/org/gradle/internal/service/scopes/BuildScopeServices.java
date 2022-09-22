@@ -25,7 +25,6 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExternalProcessStartedListener;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
@@ -125,6 +124,7 @@ import org.gradle.initialization.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
+import org.gradle.initialization.DefaultToolchainManagement;
 import org.gradle.initialization.Environment;
 import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.GradleUserHomeDirProvider;
@@ -242,7 +242,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     ExecutionPlanFactory createExecutionPlanFactory(
-        GradleInternal gradleInternal,
+        BuildState build,
         TaskNodeFactory taskNodeFactory,
         OrdinalGroupFactory ordinalGroupFactory,
         TaskDependencyResolver dependencyResolver,
@@ -250,7 +250,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         ResourceLockCoordinationService lockCoordinationService
     ) {
         return new ExecutionPlanFactory(
-            gradleInternal.getIdentityPath().toString(),
+            build.getDisplayName().getDisplayName(),
             taskNodeFactory,
             ordinalGroupFactory,
             dependencyResolver,
@@ -654,5 +654,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             scriptExecutionListener,
             instantiatorFactory.inject()
         );
+    }
+
+    protected DefaultToolchainManagement createToolchainManagement(ObjectFactory objectFactory) {
+        return objectFactory.newInstance(DefaultToolchainManagement.class);
     }
 }

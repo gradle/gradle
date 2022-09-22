@@ -16,11 +16,11 @@
 
 package org.gradle.execution.plan;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * A factory for creating and accessing ordinal nodes
@@ -33,27 +33,38 @@ public class OrdinalNodeAccess {
         this.ordinalGroups = ordinalGroups;
     }
 
-    void addDestroyerNode(OrdinalGroup ordinal, LocalTaskNode destroyer) {
+    void addDestroyerNode(OrdinalGroup ordinal, LocalTaskNode destroyer, Consumer<Node> ordinalNodeConsumer) {
         // Create (or get) a destroyer ordinal node that depends on the output locations of this task node
         ordinal.getDestroyerLocationsNode().addDependenciesFrom(destroyer);
 
         // Depend on any previous producer ordinal nodes (i.e. any producer ordinal nodes with a lower ordinal)
         if (ordinal.getPrevious() != null) {
             OrdinalNode producerLocations = ordinal.getPrevious().getProducerLocationsNode();
-            requiredNodes.add(producerLocations);
+            maybeSchedule(ordinalNodeConsumer, producerLocations);
             destroyer.addDependencySuccessor(producerLocations);
         }
     }
 
-    void addProducerNode(OrdinalGroup ordinal, LocalTaskNode producer) {
+    void addProducerNode(OrdinalGroup ordinal, LocalTaskNode producer, Consumer<Node> ordinalNodeConsumer) {
         // Create (or get) a producer ordinal node that depends on the dependencies of this task node
         ordinal.getProducerLocationsNode().addDependenciesFrom(producer);
 
         // Depend on any previous destroyer ordinal nodes (i.e. any destroyer ordinal nodes with a lower ordinal)
         if (ordinal.getPrevious() != null) {
             OrdinalNode destroyerLocations = ordinal.getPrevious().getDestroyerLocationsNode();
-            requiredNodes.add(destroyerLocations);
+            maybeSchedule(ordinalNodeConsumer, destroyerLocations);
             producer.addDependencySuccessor(destroyerLocations);
+        }
+    }
+
+    private void maybeSchedule(Consumer<Node> ordinalNodeConsumer, OrdinalNode node) {
+        if (requiredNodes.add(node)) {
+            for (Node successor : node.getDependencySuccessors()) {
+                if (successor instanceof OrdinalNode) {
+                    maybeSchedule(ordinalNodeConsumer, (OrdinalNode) successor);
+                }
+            }
+            ordinalNodeConsumer.accept(node);
         }
     }
 
@@ -61,20 +72,8 @@ public class OrdinalNodeAccess {
         return ordinalGroups.getAllGroups();
     }
 
-    Collection<OrdinalNode> getAllNodes() {
-        Set<OrdinalNode> result = new LinkedHashSet<>();
-        List<OrdinalNode> queue = new ArrayList<>(requiredNodes);
-        while (!queue.isEmpty()) {
-            OrdinalNode node = queue.remove(0);
-            if (result.add(node)) {
-                for (Node successor : node.getDependencySuccessors()) {
-                    if (successor instanceof OrdinalNode && !result.contains(successor)) {
-                        queue.add((OrdinalNode) successor);
-                    }
-                }
-            }
-        }
-        return result;
+    Collection<? extends Node> getAllNodes() {
+        return requiredNodes;
     }
 
     public OrdinalGroup group(int ordinal) {

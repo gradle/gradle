@@ -37,7 +37,6 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final LocalComponentProvider provider;
     private final LocalComponentInAnotherBuildProvider otherBuildProvider;
-    private final ProjectArtifactSetResolver projectArtifactSetResolver;
     private final Map<ProjectComponentIdentifier, CalculatedValueContainer<LocalComponentGraphResolveState, ?>> projects = new ConcurrentHashMap<>();
 
     public DefaultLocalComponentRegistry(
@@ -45,15 +44,13 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
         ProjectStateRegistry projectStateRegistry,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         LocalComponentProvider provider,
-        LocalComponentInAnotherBuildProvider otherBuildProvider,
-        ProjectArtifactSetResolver projectArtifactSetResolver
+        LocalComponentInAnotherBuildProvider otherBuildProvider
     ) {
         this.thisBuild = thisBuild;
         this.projectStateRegistry = projectStateRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.provider = provider;
         this.otherBuildProvider = otherBuildProvider;
-        this.projectArtifactSetResolver = projectArtifactSetResolver;
     }
 
     @Override
@@ -77,9 +74,9 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
         @Override
         public LocalComponentGraphResolveState calculateValue(NodeExecutionContext context) {
             if (isLocalProject(projectState.getComponentIdentifier())) {
-                return new DefaultLocalComponentGraphResolveState(provider.getComponent(projectState), projectArtifactSetResolver);
+                return new DefaultLocalComponentGraphResolveState(provider.getComponent(projectState));
             } else {
-                return new DefaultLocalComponentGraphResolveState(otherBuildProvider.getComponent(projectState), projectArtifactSetResolver);
+                return new DefaultLocalComponentGraphResolveState(otherBuildProvider.getComponent(projectState));
             }
         }
 

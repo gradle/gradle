@@ -36,16 +36,24 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         executer.requireOwnGradleUserHomeDir()
-        executer.withToolchainDownloadEnabled()
+        executer
+            .withToolchainDetectionEnabled()
+            .withToolchainDownloadEnabled()
     }
 
     def "can download missing jdk automatically"() {
         when:
-        succeeds("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+        result = executer
+                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
+                        "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
+                        "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
+                        "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
+                .run()
 
         then:
         javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded("hotspot")
+        assertJdkWasDownloaded("adoptopenjdk")
     }
 
     def "can download missing j9 jdk automatically"() {
@@ -58,7 +66,13 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+        result = executer
+                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
+                        "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
+                        "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
+                        "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
+                .run()
 
         then:
         javaClassFile("Foo.class").assertExists()
@@ -71,4 +85,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         } as FileFilter)
     }
 
+    def cleanup() {
+        executer.gradleUserHomeDir.file("jdks").deleteDir()
+    }
 }
