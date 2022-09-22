@@ -22,9 +22,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 
 class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
+    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#???)
     def "download and provisioning works end-to-end"() {
         buildFile << """
             apply plugin: "java"
@@ -44,10 +46,6 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
                 .withToolchainDownloadEnabled()
-                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                        "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
-                        "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                        "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
                 .run()
 
         then:
@@ -64,6 +62,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#???)
     def "can properly fails for missing combination"() {
         buildFile << """
             apply plugin: "java"
@@ -83,10 +82,6 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .requireOwnGradleUserHomeDir()
             .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
-            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                    "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
-                    "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                    "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
             .runWithFailure()
 
         then:
@@ -127,6 +122,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#???)
     def 'toolchain download on http fails'() {
         buildFile << """
             apply plugin: "java"
@@ -151,10 +147,6 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .requireOwnGradleUserHomeDir()
             .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
-            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                    "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
-                    "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                    "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
             .runWithFailure()
 
         then:
@@ -165,81 +157,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    def 'toolchain download of AdoptOpenJDK emits deprecation warning'() {
-        buildFile << """
-            apply plugin: "java"
-
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(99)
-                    vendor = JvmVendorSpec.ADOPTOPENJDK
-                }
-            }
-        """
-
-        propertiesFile << """
-            org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri=https://example.com
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        failure = executer
-            .withTasks("compileJava")
-            .requireOwnGradleUserHomeDir()
-            .withToolchainDetectionEnabled()
-            .withToolchainDownloadEnabled()
-            .expectDeprecationWarning('Due to changes in AdoptOpenJDK download endpoint, downloading a JDK with an explicit vendor of AdoptOpenJDK should be replaced with a spec without a vendor or using Eclipse Temurin / IBM Semeru.')
-            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                    "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
-                    "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                    "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
-            .runWithFailure()
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=ADOPTOPENJDK, implementation=vendor-specific}) from 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse'.")
-    }
-
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    def 'toolchain download of Adoptium does not emit deprecation warning'() {
-        buildFile << """
-            apply plugin: "java"
-
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(99)
-                    vendor = JvmVendorSpec.ADOPTIUM
-                }
-            }
-        """
-
-        propertiesFile << """
-            org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri=https://example.com
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        failure = executer
-            .withTasks("compileJava")
-            .requireOwnGradleUserHomeDir()
-            .withToolchainDetectionEnabled()
-            .withToolchainDownloadEnabled()
-            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                    "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
-                    "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                    "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
-            .runWithFailure()
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=ADOPTIUM, implementation=vendor-specific}) from 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse'.")
-    }
-
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#???)
     def 'toolchain download of Semeru forces openj9'() {
         buildFile << """
             apply plugin: "java"
@@ -264,10 +182,6 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .requireOwnGradleUserHomeDir()
             .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
-            .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                    "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
-                    "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                    "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
             .runWithFailure()
 
         then:
