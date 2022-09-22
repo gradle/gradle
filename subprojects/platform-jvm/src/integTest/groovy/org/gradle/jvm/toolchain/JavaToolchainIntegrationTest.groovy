@@ -18,8 +18,11 @@ package org.gradle.jvm.toolchain
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 
-class JavaToolchainSpecIntegrationTest extends AbstractIntegrationSpec {
+class JavaToolchainIntegrationTest extends AbstractIntegrationSpec {
 
     def "fails when using an invalid toolchain spec when #description"() {
         buildScript """
@@ -63,5 +66,45 @@ class JavaToolchainSpecIntegrationTest extends AbstractIntegrationSpec {
         "configured with language version"          | 'languageVersion = JavaLanguageVersion.of(9)'
         "configured not only with language version" | 'languageVersion = JavaLanguageVersion.of(9); vendor = JvmVendorSpec.AZUL'
         "unconfigured"                              | ''
+    }
+
+    def "identify whether #tool toolchain corresponds to the #current JVM"() {
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(jvm as Jvm)
+
+        buildScript """
+            apply plugin: "java"
+
+            def tool = javaToolchains.${toolMethod} {
+                languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
+            }.get()
+
+            println("Toolchain isCurrentJvm=" + tool.metadata.isCurrentJvm())
+        """
+
+        when:
+        withInstallations(jdkMetadata).run ':help'
+
+        then:
+        outputContains("Toolchain isCurrentJvm=${isCurrentJvm}")
+
+        where:
+        tool          | isCurrentJvm | jvm
+        "compiler"    | true         | Jvm.current()
+        "compiler"    | false        | AvailableJavaHomes.differentVersion
+        "launcher"    | true         | Jvm.current()
+        "launcher"    | false        | AvailableJavaHomes.differentVersion
+        "javadocTool" | true         | Jvm.current()
+        "javadocTool" | false        | AvailableJavaHomes.differentVersion
+
+        and:
+        toolMethod = "${tool}For"
+        current = (isCurrentJvm ? "current" : "non-current")
+    }
+
+    private withInstallations(JvmInstallationMetadata... jdkMetadata) {
+        def installationPaths = jdkMetadata.collect { it.javaHome.toAbsolutePath().toString() }.join(",")
+        executer
+            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
+        this
     }
 }
