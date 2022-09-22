@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 public abstract class AbstractExternalModuleDependency extends AbstractModuleDependency implements ExternalModuleDependency {
     private final ModuleIdentifier moduleIdentifier;
     private boolean changing;
+    private boolean force;
     private final DefaultMutableVersionConstraint versionConstraint;
 
     public AbstractExternalModuleDependency(ModuleIdentifier module, String version, @Nullable String configuration) {
@@ -61,7 +62,8 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         if (!isCommonContentEquals(dependencyRhs)) {
             return false;
         }
-        return changing == dependencyRhs.isChanging() && Objects.equal(getVersionConstraint(), dependencyRhs.getVersionConstraint());
+        return force == dependencyRhs.isForce() && changing == dependencyRhs.isChanging() &&
+                Objects.equal(getVersionConstraint(), dependencyRhs.getVersionConstraint());
     }
 
     @Override
@@ -86,7 +88,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
 
     @Override
     public boolean isForce() {
-        return false; // The public force API is removed - we'll never be forcing now
+        return force; // The public force API is removed - but there is still an internal API for enforcedPlatforms that could be used
     }
 
     @Override
@@ -122,6 +124,19 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
             throw new InvalidUserDataException("Name must not be null!");
         }
         return DefaultModuleIdentifier.newId(group, name);
+    }
+
+    /**
+     * Internal API for use with enforced platforms.
+     *
+     * Replaces removed {@code setForce} in {@link org.gradle.api.artifacts.ExternalModuleDependency}
+     *
+     * @param force true if this dependency should be forced
+     * @return this
+     */
+    public AbstractExternalModuleDependency setForceForEnforcedPlatform(boolean force) {
+        this.force = force;
+        return this;
     }
 
     @Override
