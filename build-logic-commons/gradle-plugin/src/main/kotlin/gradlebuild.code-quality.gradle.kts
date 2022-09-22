@@ -108,7 +108,7 @@ abstract class CodeNarcRule @Inject constructor(
             withDependencies {
                 val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
                 val groovyGroup = if(isAtLeastGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
-                removeAll { listOf("org.apache.groovy", "org.codehaus.groovy").contains(it.group) }
+                removeAll { it.group == groovyGroup }
                 add("$groovyGroup:groovy") {
                     version { prefer(groovyVersion) }
                     because("We use the packaged groovy")
