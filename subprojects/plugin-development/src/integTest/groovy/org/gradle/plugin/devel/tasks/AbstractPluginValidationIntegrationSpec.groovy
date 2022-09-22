@@ -709,7 +709,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         final boolean defaultDocLink
 
         DocumentedProblem(String message, Severity severity, String id = "more_about_tasks", String section = "sec:up_to_date_checks") {
-            this.message = message
+            this.message = message.stripIndent().trim()
             this.severity = severity
             this.id = id
             this.section = section
