@@ -23,7 +23,9 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
+import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -31,6 +33,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
@@ -42,12 +45,39 @@ public class JUnitTestFramework implements TestFramework {
     private JUnitDetector detector;
     private final DefaultTestFilter filter;
     private final boolean useImplementationDependencies;
+    private final Factory<File> testTaskTemporaryDir;
 
     public JUnitTestFramework(Test testTask, DefaultTestFilter filter, boolean useImplementationDependencies) {
+        this(filter, useImplementationDependencies, new JUnitOptions(), testTask.getTemporaryDirFactory());
+    }
+
+    private JUnitTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitOptions options, Factory<File> testTaskTemporaryDir) {
         this.filter = filter;
         this.useImplementationDependencies = useImplementationDependencies;
-        options = new JUnitOptions();
-        detector = new JUnitDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
+        this.options = options;
+        this.testTaskTemporaryDir = testTaskTemporaryDir;
+        this.detector = new JUnitDetector(new ClassFileExtractionManager(testTaskTemporaryDir));
+    }
+
+    @UsedByScanPlugin("test-retry")
+    @Override
+    public TestFramework copyWithFilters(TestFilter newTestFilters) {
+        return new JUnitTestFramework(
+            (DefaultTestFilter) newTestFilters,
+            useImplementationDependencies,
+            copyOf(options),
+            testTaskTemporaryDir
+        );
+    }
+
+    private static JUnitOptions copyOf(JUnitOptions source) {
+        // TODO: I believe we should copy the options, because they are mutable.
+        //       I don't think this would be an issue for the current use case in the test-retry
+        //       plugin, but it would be cleaner.
+        //       If you agree, I'd like to introduce a `clone` method on the TestFrameworkOptions level.
+        return new JUnitOptions()
+            .includeCategories(source.getIncludeCategories().toArray(new String[0]))
+            .excludeCategories(source.getExcludeCategories().toArray(new String[0]));
     }
 
     @Override

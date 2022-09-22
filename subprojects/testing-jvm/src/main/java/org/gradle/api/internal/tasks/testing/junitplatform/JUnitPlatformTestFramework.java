@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
@@ -57,9 +58,33 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     public JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies) {
+        this(filter, useImplementationDependencies, new JUnitPlatformOptions());
+    }
+
+    private JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitPlatformOptions options) {
         this.filter = filter;
         this.useImplementationDependencies = useImplementationDependencies;
-        this.options = new JUnitPlatformOptions();
+        this.options = options;
+    }
+
+    @UsedByScanPlugin("test-retry")
+    @Override
+    public TestFramework copyWithFilters(TestFilter newTestFilters) {
+        return new JUnitPlatformTestFramework(
+            (DefaultTestFilter) newTestFilters,
+            useImplementationDependencies,
+            copyOf(options)
+        );
+    }
+
+    private static JUnitPlatformOptions copyOf(JUnitPlatformOptions source) {
+        return new JUnitPlatformOptions()
+            .includeEngines(source.getIncludeEngines().toArray(new String[0]))
+            .excludeEngines(source.getExcludeEngines().toArray(new String[0]))
+            .includeTags(source.getIncludeTags().toArray(new String[0]))
+            .excludeTags(source.getExcludeTags().toArray(new String[0]));
+
+
     }
 
     @Override
