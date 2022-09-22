@@ -1368,7 +1368,7 @@ dependencies {
                       .incoming.artifactView {
                           attributes.attribute(Attribute.of('artifactType', String), 'jar')
                       }.artifacts.resolvedArtifacts.map { artifacts ->
-                            artifacts.collect { it.id }
+                          artifacts.collect { it.id }
                       }
                 )
                 outputFile = layout.buildDirectory.file('ids.txt')
