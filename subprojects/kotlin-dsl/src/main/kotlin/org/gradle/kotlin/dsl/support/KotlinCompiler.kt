@@ -483,6 +483,13 @@ class LoggingMessageCollector(
     private val pathTranslation: (String) -> String
 ) : MessageCollector {
 
+    companion object {
+        private
+        val silencedMessages = listOf(
+            "Using new faster version of JAR FS: it should make your build faster, but the new implementation is experimental"
+        )
+    }
+
     val errors = arrayListOf<ScriptCompilationError>()
 
     override fun hasErrors() = errors.isNotEmpty()
@@ -490,6 +497,10 @@ class LoggingMessageCollector(
     override fun clear() = errors.clear()
 
     override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageSourceLocation?) {
+
+        if (message in silencedMessages) {
+            return
+        }
 
         fun msg() =
             location?.run {
