@@ -51,6 +51,7 @@ import org.jetbrains.kotlin.config.JVMConfigurationKeys.JDK_HOME
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.USE_FAST_JAR_FILE_SYSTEM
 import org.jetbrains.kotlin.config.JvmAnalysisFlags
 import org.jetbrains.kotlin.config.JvmDefaultMode
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
@@ -343,6 +344,7 @@ private
 fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfiguration =
     CompilerConfiguration().apply {
         put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
+        put(USE_FAST_JAR_FILE_SYSTEM, true)
         put(JVM_TARGET, JVM_1_8)
         put(JDK_HOME, File(System.getProperty("java.home")))
         addJvmSdkRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
