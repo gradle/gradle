@@ -32,7 +32,9 @@
             <property name="option" value="text"/>
             <property name="tokens" value="LITERAL_CATCH"/>
         </module>
-        <module name="AvoidNestedBlocks"/>
+        <module name="AvoidNestedBlocks">
+            <property name="allowInSwitchCase" value="true"/>
+        </module>
 
         <!-- Braces -->
         <module name="LeftCurly"/>

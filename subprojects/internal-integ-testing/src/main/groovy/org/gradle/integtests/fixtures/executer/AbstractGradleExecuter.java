@@ -870,7 +870,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter withToolchainDownloadEnabled() {
-        withToolchainDetectionEnabled();
         disableToolchainDownload = false;
         return this;
     }

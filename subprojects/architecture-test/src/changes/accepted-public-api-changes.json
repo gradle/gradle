@@ -5,7 +5,7 @@
             "member": "Class org.gradle.api.AntBuilder",
             "acceptation": "org.gradle.api.AntBuilder now extends groovy.ant.AntBuilder",
             "changes": [
-                "Abstract method has been added in implemented interface"
+                "Default method has been added in implemented interface"
             ]
         },
         {
@@ -57,9 +57,9 @@
             ]
         },
         {
-            "type": "org.gradle.api.artifacts.ExternalDependency",
-            "member": "Method org.gradle.api.artifacts.ExternalDependency.setForce(boolean)",
-            "acceptation": "Removed for Gradle 8.0",
+            "type": "org.gradle.api.artifacts.DependencySubstitutions$Substitution",
+            "member": "Method org.gradle.api.artifacts.DependencySubstitutions$Substitution.with(org.gradle.api.artifacts.component.ComponentSelector)",
+            "acceptation": "Deprecated method has been removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
@@ -297,6 +297,30 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.quality.CheckstylePlugin",
+            "member": "Class org.gradle.api.plugins.quality.CheckstylePlugin",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.getJavaPluginConvention()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CodeNarcPlugin",
+            "member": "Class org.gradle.api.plugins.quality.CodeNarcPlugin",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.getJavaPluginConvention()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.PmdPlugin",
+            "member": "Class org.gradle.api.plugins.quality.PmdPlugin",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.getJavaPluginConvention()"
+            ]
+        },
+        {
             "type": "org.gradle.api.reporting.ConfigurableReport",
             "member": "Method org.gradle.api.reporting.ConfigurableReport.setDestination(org.gradle.api.provider.Provider)",
             "acceptation": "Deprecated method removed",
@@ -406,6 +430,14 @@
             "acceptation": "Class to be removed, functionality deleted",
             "changes": [
                 "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getFeaturePreviews()",
+            "acceptation": "Changed type of injected property",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {
@@ -521,14 +553,6 @@
             ]
         },
         {
-            "type": "org.gradle.kotlin.dsl.ClientModuleScope",
-            "member": "Class org.gradle.kotlin.dsl.ClientModuleScope",
-            "acceptation": "Removed for Gradle 8.0",
-            "changes": [
-                "org.gradle.kotlin.dsl.support.delegates.ClientModuleDelegate.setForce(boolean)"
-            ]
-        },
-        {
             "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.getUploadTaskName$annotations(org.gradle.api.NamedDomainObjectProvider)",
             "acceptation": "Class to be removed, functionality deleted",
@@ -573,7 +597,7 @@
             "member": "Method org.gradle.process.JavaExecSpec.setMain(java.lang.String)",
             "acceptation": "Default implementation added to spec for Gradle 8.0",
             "changes": [
-                "METHOD_ABSTRACT_NOW_DEFAULT"
+                "Abstract method is now default method"
             ]
         },
         {

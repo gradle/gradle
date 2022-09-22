@@ -20,19 +20,23 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.internal.resource.ExternalResourceName;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultResourceAwareResolveResult implements ResourceAwareResolveResult {
-    private final Set<String> attempted = Sets.newLinkedHashSet();
+    private Set<String> attempted;
 
     @Override
     public List<String> getAttempted() {
-        return ImmutableList.copyOf(attempted);
+        return attempted == null ? Collections.emptyList() : ImmutableList.copyOf(attempted);
     }
 
     @Override
     public void attempted(String locationDescription) {
+        if (attempted == null) {
+            attempted = Sets.newLinkedHashSet();
+        }
         attempted.add(locationDescription);
     }
 
@@ -43,8 +47,10 @@ public class DefaultResourceAwareResolveResult implements ResourceAwareResolveRe
 
     @Override
     public void applyTo(ResourceAwareResolveResult target) {
-        for (String location : attempted) {
-            target.attempted(location);
+        if (attempted != null) {
+            for (String location : attempted) {
+                target.attempted(location);
+            }
         }
     }
 }

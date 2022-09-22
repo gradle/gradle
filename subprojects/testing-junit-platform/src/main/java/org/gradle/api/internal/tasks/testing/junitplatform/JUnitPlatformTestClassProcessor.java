@@ -87,7 +87,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         @Override
         public void execute(@Nonnull String testClassName) {
             Class<?> klass = loadClass(testClassName);
-            if (isInnerClass(klass) || isNestedClassInsideEnclosedRunner(klass)) {
+            if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
                 return;
             }
             testClasses.add(klass);
@@ -97,6 +97,22 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
             Launcher launcher = LauncherFactory.create();
             launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator));
             launcher.execute(createLauncherDiscoveryRequest(testClasses));
+        }
+    }
+
+    /**
+     * Test whether {@code org.junit.vintage:junit-vintage-engine} and {@code junit:junit} are
+     * available on the classpath. This allows us to enable or disable certain behavior
+     * which may attempt to load classes from these modules.
+     */
+    private boolean supportsVintageTests() {
+        try {
+            ClassLoader applicationClassloader = Thread.currentThread().getContextClassLoader();
+            Class.forName("org.junit.vintage.engine.VintageTestEngine", false, applicationClassloader);
+            Class.forName("org.junit.runner.Request", false, applicationClassloader);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
         }
     }
 

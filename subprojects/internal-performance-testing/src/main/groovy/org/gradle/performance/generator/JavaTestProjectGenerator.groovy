@@ -58,7 +58,7 @@ enum JavaTestProjectGenerator {
     LARGE_GROOVY_MULTI_PROJECT(new TestProjectGeneratorConfigurationBuilder("largeGroovyMultiProject", Language.GROOVY)
         .withSourceFiles(100)
         .withSubProjects(500)
-        .withDaemonMemory('1536m')
+        .withDaemonMemory('2g')
         .withCompilerMemory('256m')
         .withSystemProperties(['org.gradle.groovy.compilation.avoidance': 'true'])
         .withFeaturePreviews('GROOVY_COMPILATION_AVOIDANCE')

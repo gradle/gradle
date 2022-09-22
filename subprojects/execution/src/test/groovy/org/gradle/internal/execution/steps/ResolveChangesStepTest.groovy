@@ -44,7 +44,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         then:
         result == delegateResult
 
-        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
         1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert delegateContext.rebuildReasons == ImmutableList.of("Forced rebuild.")
@@ -78,7 +78,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         then:
         result == delegateResult
 
-        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
         1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
@@ -99,7 +99,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         then:
         result == delegateResult
 
-        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
         1 * delegate.execute(work, _ as IncrementalChangesContext) >> { UnitOfWork work, IncrementalChangesContext delegateContext ->
             def changes = delegateContext.changes.get()
             assert !changes.createInputChanges().incremental
@@ -132,7 +132,7 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
         _ * context.nonIncrementalReason >> Optional.empty()
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
-        _ * work.inputChangeTrackingStrategy >> UnitOfWork.InputChangeTrackingStrategy.NONE
+        _ * work.executionBehavior >> UnitOfWork.ExecutionBehavior.NON_INCREMENTAL
         1 * changeDetector.detectChanges(work, previousExecutionState, beforeExecutionState, _) >> changes
         0 * _
     }

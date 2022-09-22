@@ -64,12 +64,10 @@ abstract class FileContentGenerator {
         }
         ${dependenciesBlock('api', 'implementation', 'testImplementation', subProjectNumber, dependencyTree)}
 
-        allprojects {
-            dependencies{
+        dependencies{
         ${
             language == Language.GROOVY ? directDependencyDeclaration('implementation', 'org.codehaus.groovy:groovy:2.5.8') : ""
         }
-            }
         }
 
 
@@ -90,7 +88,7 @@ abstract class FileContentGenerator {
                     """
                     includeBuild("project$it") {
                         dependencySubstitution {
-                            substitute(module("org.gradle.test.performance:project${it}")).with(project(":"))
+                            substitute(module("org.gradle.test.performance:project${it}")).using(project(":"))
                         }
                     }
                     """
