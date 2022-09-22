@@ -547,7 +547,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private ConfigurationFileCollection fileCollectionFromSpec(Spec<? super Dependency> dependencySpec) {
-        return new ConfigurationFileCollection(new SelectedArtifactsProvider(), dependencySpec, configurationAttributes, Specs.satisfyAll(), false, false, new DefaultResolutionHost());
+        return new ConfigurationFileCollection(new SelectedArtifactsProvider(), dependencySpec, configurationAttributes, Specs.satisfyAll(), false, false, false, new DefaultResolutionHost());
     }
 
     @Override
@@ -843,7 +843,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
                 (attributes, filter) -> {
                     ImmutableAttributes fullAttributes = attributesFactory.concat(configurationAttributes.asImmutable(), attributes);
-                    return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), fullAttributes, filter, false, false, new DefaultResolutionHost());
+                    return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), fullAttributes, filter, false, false, false, new DefaultResolutionHost());
                 });
         }
         return dependenciesResolverFactory;
@@ -1450,18 +1450,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final Spec<? super ComponentIdentifier> componentSpec;
         private final boolean lenient;
         private final boolean allowNoMatchingVariants;
+        private final boolean selectFromAllVariants;
         private final ResolutionResultProvider<VisitedArtifactSet> resultProvider;
         private final ResolutionHost resolutionHost;
         private SelectedArtifactSet selectedArtifacts;
 
         private ConfigurationFileCollection(
-            ResolutionResultProvider<VisitedArtifactSet> resultProvider,
-            Spec<? super Dependency> dependencySpec,
-            AttributeContainerInternal viewAttributes,
-            Spec<? super ComponentIdentifier> componentSpec,
-            boolean lenient,
-            boolean allowNoMatchingVariants,
-            ResolutionHost resolutionHost
+                ResolutionResultProvider<VisitedArtifactSet> resultProvider,
+                Spec<? super Dependency> dependencySpec,
+                AttributeContainerInternal viewAttributes,
+                Spec<? super ComponentIdentifier> componentSpec,
+                boolean lenient,
+                boolean allowNoMatchingVariants,
+                boolean selectFromAllVariants,
+                ResolutionHost resolutionHost
         ) {
             this.resultProvider = resultProvider;
             this.dependencySpec = dependencySpec;
@@ -1469,12 +1471,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             this.componentSpec = componentSpec;
             this.lenient = lenient;
             this.allowNoMatchingVariants = allowNoMatchingVariants;
+            this.selectFromAllVariants = selectFromAllVariants;
             this.resolutionHost = resolutionHost;
         }
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            SelectedArtifactSet selected = resultProvider.getTaskDependencyValue().select(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants);
+            SelectedArtifactSet selected = resultProvider.getTaskDependencyValue().select(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants, selectFromAllVariants);
             FailureCollectingTaskDependencyResolveContext collectingContext = new FailureCollectingTaskDependencyResolveContext(context);
             selected.visitDependencies(collectingContext);
             if (!lenient) {
@@ -1503,7 +1506,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         private SelectedArtifactSet getSelectedArtifacts() {
             if (selectedArtifacts == null) {
-                selectedArtifacts = resultProvider.getValue().select(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants);
+                selectedArtifacts = resultProvider.getValue().select(dependencySpec, viewAttributes, componentSpec, allowNoMatchingVariants, selectFromAllVariants);
             }
             return selectedArtifacts;
         }
@@ -1758,10 +1761,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private ConfigurationArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants) {
+    private ConfigurationArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
         ImmutableAttributes viewAttributes = attributes.asImmutable();
         DefaultResolutionHost failureHandler = new DefaultResolutionHost();
-        ConfigurationFileCollection files = new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, failureHandler);
+        ConfigurationFileCollection files = new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, failureHandler);
         return new ConfigurationArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
     }
 
@@ -1828,7 +1831,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public ArtifactCollection getArtifacts() {
-            return artifactCollection(configurationAttributes, Specs.satisfyAll(), false, false);
+            return artifactCollection(configurationAttributes, Specs.satisfyAll(), false, false, false);
         }
 
         @Override
@@ -1843,7 +1846,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             // This is a little coincidental: if view attributes have not been accessed, don't allow no matching variants
             boolean allowNoMatchingVariants = config.attributesUsed;
             ArtifactView view;
-            view = new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants);
+            view = new ConfigurationArtifactView(viewAttributes, config.lockComponentFilter(), config.lenient, allowNoMatchingVariants, config.reselectVariant);
             return view;
         }
 
@@ -1866,12 +1869,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             private final Spec<? super ComponentIdentifier> componentFilter;
             private final boolean lenient;
             private final boolean allowNoMatchingVariants;
+            private final boolean selectFromAllVariants;
 
-            ConfigurationArtifactView(ImmutableAttributes viewAttributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants) {
+            ConfigurationArtifactView(ImmutableAttributes viewAttributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
                 this.viewAttributes = viewAttributes;
                 this.componentFilter = componentFilter;
                 this.lenient = lenient;
                 this.allowNoMatchingVariants = allowNoMatchingVariants;
+                this.selectFromAllVariants = selectFromAllVariants;
             }
 
             @Override
@@ -1881,13 +1886,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             @Override
             public ArtifactCollection getArtifacts() {
-                return artifactCollection(viewAttributes, componentFilter, lenient, allowNoMatchingVariants);
+                return artifactCollection(viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants);
             }
 
             @Override
             public FileCollection getFiles() {
                 // TODO maybe make detached configuration is flag is true
-                return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, new DefaultResolutionHost());
+                return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, new DefaultResolutionHost());
             }
         }
 
