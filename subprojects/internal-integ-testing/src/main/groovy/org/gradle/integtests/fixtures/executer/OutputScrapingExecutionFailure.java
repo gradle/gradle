@@ -320,8 +320,18 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         }
 
         @Override
+        public void assertHasFirstCause(String message) {
+            String firstCause = causes.isEmpty() ? "" : causes.get(0);
+            if (!firstCause.equals(message)) {
+                throw new AssertionFailedError(String.format("Expected first cause '%s', got '%s'", message, firstCause));
+            }
+        }
+
+        @Override
         public void assertHasCauses(int count) {
-            assert causes.size() == count;
+            if (causes.size() != count) {
+                throw new AssertionFailedError(String.format("Expecting %d cause(s), got %d", count, causes.size()));
+            }
         }
     }
 }
