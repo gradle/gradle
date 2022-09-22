@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalCo
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentInAnotherBuildProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactSetResolver
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectInternal
@@ -181,11 +180,10 @@ class DefaultBuildModelControllerServices(
             calculatedValueContainerFactory: CalculatedValueContainerFactory,
             cache: BuildTreeConfigurationCache,
             provider: LocalComponentProvider,
-            otherBuildProvider: LocalComponentInAnotherBuildProvider,
-            projectArtifactSetResolver: ProjectArtifactSetResolver
+            otherBuildProvider: LocalComponentInAnotherBuildProvider
         ): LocalComponentRegistry {
             val effectiveProvider = ConfigurationCacheAwareLocalComponentProvider(provider, cache)
-            return VintageModelProvider().createLocalComponentRegistry(currentBuild, projectStateRegistry, calculatedValueContainerFactory, effectiveProvider, otherBuildProvider, projectArtifactSetResolver)
+            return VintageModelProvider().createLocalComponentRegistry(currentBuild, projectStateRegistry, calculatedValueContainerFactory, effectiveProvider, otherBuildProvider)
         }
     }
 
@@ -210,10 +208,9 @@ class DefaultBuildModelControllerServices(
             projectStateRegistry: ProjectStateRegistry,
             calculatedValueContainerFactory: CalculatedValueContainerFactory,
             provider: LocalComponentProvider,
-            otherBuildProvider: LocalComponentInAnotherBuildProvider,
-            projectArtifactSetResolver: ProjectArtifactSetResolver
+            otherBuildProvider: LocalComponentInAnotherBuildProvider
         ): LocalComponentRegistry {
-            return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, projectStateRegistry, calculatedValueContainerFactory, provider, otherBuildProvider, projectArtifactSetResolver)
+            return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, projectStateRegistry, calculatedValueContainerFactory, provider, otherBuildProvider)
         }
     }
 }
