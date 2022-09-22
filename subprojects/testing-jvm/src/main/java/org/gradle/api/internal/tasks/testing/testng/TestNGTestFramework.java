@@ -43,9 +43,7 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -105,30 +103,8 @@ public class TestNGTestFramework implements TestFramework {
             testTaskClasspath,
             testTaskTemporaryDir,
             htmlReport,
-            copyOf(options, objects)
+            new TestNGOptions(options)
         );
-    }
-
-    private static TestNGOptions copyOf(TestNGOptions source, ObjectFactory objects) {
-        TestNGOptions target = objects.newInstance(TestNGOptions.class);
-
-        target.setOutputDirectory(source.getOutputDirectory());
-        target.setIncludeGroups(new HashSet<String>(source.getIncludeGroups()));
-        target.setExcludeGroups(new HashSet<String>(source.getExcludeGroups()));
-        target.setConfigFailurePolicy(source.getConfigFailurePolicy());
-        target.setListeners(new HashSet<String>(source.getListeners()));
-        target.setUseDefaultListeners(source.getUseDefaultListeners());
-        target.setParallel(source.getParallel());
-        target.setThreadCount(source.getThreadCount());
-        target.setSuiteName(source.getSuiteName());
-        target.setTestName(source.getTestName());
-        target.setSuiteXmlFiles(new ArrayList<File>(source.getSuiteXmlFiles()));
-        target.setPreserveOrder(source.getPreserveOrder());
-        target.setGroupByInstances(source.getGroupByInstances());
-        target.setSuiteXmlWriter(source.getSuiteXmlWriter());
-        target.setSuiteXmlBuilder(source.getSuiteXmlBuilder());
-
-        return target;
     }
 
     @Override

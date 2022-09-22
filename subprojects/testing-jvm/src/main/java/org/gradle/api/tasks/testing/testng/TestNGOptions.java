@@ -87,6 +87,25 @@ public class TestNGOptions extends TestFrameworkOptions {
         this.projectDir = projectLayout.getProjectDirectory().getAsFile();
     }
 
+    public TestNGOptions(TestNGOptions other) {
+        projectDir = other.projectDir;
+        outputDirectory = other.outputDirectory;
+        includeGroups.addAll(other.includeGroups);
+        excludeGroups.addAll(other.excludeGroups);
+        configFailurePolicy = other.configFailurePolicy;
+        listeners.addAll(other.listeners);
+        useDefaultListeners = other.useDefaultListeners;
+        parallel = other.parallel;
+        threadCount = other.threadCount;
+        suiteName = other.suiteName;
+        testName = other.testName;
+        suiteXmlFiles.addAll(other.suiteXmlFiles);
+        preserveOrder = other.preserveOrder;
+        groupByInstances = other.groupByInstances;
+        suiteXmlWriter = other.suiteXmlWriter;
+        suiteXmlBuilder = other.suiteXmlBuilder;
+    }
+
     public MarkupBuilder suiteXmlBuilder() {
         suiteXmlWriter = new StringWriter();
         suiteXmlBuilder = new MarkupBuilder(suiteXmlWriter);
