@@ -18,31 +18,30 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.MutableVariantFilesMetadata;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DependencyConstraintsMetadata;
 import org.gradle.api.artifacts.DirectDependenciesMetadata;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
-import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.MutableVariantFilesMetadata;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.VariantFilesRules;
 import org.gradle.internal.component.model.CapabilitiesRules;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DependencyMetadataRules;
 import org.gradle.internal.component.model.VariantAttributesRules;
+import org.gradle.internal.component.model.VariantFilesRules;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class VariantMetadataRules {
@@ -69,7 +68,7 @@ public class VariantMetadataRules {
 
     public CapabilitiesMetadata applyCapabilitiesRules(VariantResolveMetadata variant, CapabilitiesMetadata capabilities) {
         if (capabilitiesRules != null) {
-            ArrayList<Capability> descriptors = Lists.newArrayList(capabilities.getCapabilities());
+            List<Capability> descriptors = Lists.newArrayList(capabilities.getCapabilities());
             if (descriptors.isEmpty()) {
                 // we must add the implicit capability here because it is assumed that if there's a rule
                 // "addCapability" would effectively _add_ a capability, so the implicit one must not be forgotten

@@ -144,7 +144,10 @@ public class JdkCacheDirectory {
     }
 
     private static String toDirectoryName(JvmInstallationMetadata metadata) {
-        String vendor = metadata.getVendor().getRawVendor();
+        String vendor = metadata.getJvmVendor();
+        if (vendor == null || vendor.isEmpty()) {
+            vendor = metadata.getVendor().getRawVendor();
+        }
         String version = metadata.getLanguageVersion().getMajorVersion();
         String architecture = metadata.getArchitecture();
         String os = OperatingSystem.current().getFamilyName();

@@ -753,12 +753,6 @@ tasks.named("docsTest") { task ->
                 "snippet-groovy-compilation-avoidance_groovy_groovyCompilationAvoidance.sample",
                 "snippet-groovy-compilation-avoidance_kotlin_groovyCompilationAvoidance.sample",
 
-                // TODO(https://github.com/gradle/gradle/issues/21718)
-                "snippet-init-scripts-configuration-injection_groovy_initScriptConfiguration.groovy.sample",
-                "snippet-init-scripts-configuration-injection_kotlin_initScriptConfiguration.kotlin.sample",
-                "snippet-init-scripts-plugins_groovy_usePluginsInInitScripts.groovy.sample",
-                "snippet-init-scripts-plugins_kotlin_usePluginsInInitScripts.kotlin.sample",
-
                 // TODO(https://github.com/gradle/gradle/issues/13469) Ivy Publish plugin support
                 "snippet-ivy-publish-conditional-publishing_groovy_publishingIvyConditionally.sample",
                 "snippet-ivy-publish-descriptor-customization_groovy_publishingIvyGenerateDescriptor.sample",
