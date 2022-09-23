@@ -55,8 +55,8 @@ class GroovyCoverage {
         SINCE_3_0 = versionsAbove(SUPPORTED_BY_JDK, "3.0.0")
         CURRENT_STABLE = isCurrentGroovyVersionStable()
             ? GroovySystem.version
-            : versionsBelow(SUPPORTED_BY_JDK, GroovySystem.version).sort().last()
-        MINIMAL_GROOVY_3 = versionsBelow(SINCE_3_0, "4.0.0").sort().first()
+            : versionsBelow(SUPPORTED_BY_JDK, GroovySystem.version).last()
+        MINIMAL_GROOVY_3 = versionsBelow(SINCE_3_0, "4.0.0").first()
     }
 
     static boolean supportsJavaVersion(String groovyVersion, JavaVersion javaVersion) {
