@@ -327,6 +327,10 @@ class EmptyDependenciesResolverFactory(private val fileCollectionFactory: FileCo
         return this
     }
 
+    override fun getContext(): String {
+        return "Empty context"
+    }
+
     override fun dependenciesFor(transformationStep: TransformationStep): TransformUpstreamDependencies {
         return this
     }

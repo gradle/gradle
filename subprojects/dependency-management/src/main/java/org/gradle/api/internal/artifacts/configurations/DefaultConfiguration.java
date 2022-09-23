@@ -1528,6 +1528,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public ResolutionResult getValue() {
             return getResultsForArtifacts().getResolutionResult();
         }
+
+        @Override
+        public String getContext() {
+            return getDisplayName();
+        }
     }
 
     private class SelectedArtifactsProvider implements ResolutionResultProvider<VisitedArtifactSet> {
@@ -1542,6 +1547,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             assertIsResolvable();
             ResolveState currentState = resolveToStateOrLater(ARTIFACTS_RESOLVED);
             return currentState.getCachedResolverResults().getVisitedArtifacts();
+        }
+
+        @Override
+        public String getContext() {
+            return getDisplayName();
         }
     }
 

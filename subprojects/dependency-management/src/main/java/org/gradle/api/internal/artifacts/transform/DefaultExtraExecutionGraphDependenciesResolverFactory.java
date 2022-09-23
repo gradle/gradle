@@ -47,4 +47,9 @@ public class DefaultExtraExecutionGraphDependenciesResolverFactory implements Ex
         }
         return new DefaultTransformUpstreamDependenciesResolver(componentIdentifier, resolutionResultProvider, owner, filteredResultFactory, calculatedValueContainerFactory);
     }
+
+    @Override
+    public String getContext() {
+        return resolutionResultProvider.getContext();
+    }
 }

@@ -39,6 +39,7 @@ import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.component.model.DescriberSelector;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -56,6 +57,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final boolean ignoreWhenNoMatches;
     private final boolean selectFromAllVariants;
     private final ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver;
+    private final Set<String> loggedTransformations = new HashSet<>();
 
     AttributeMatchingVariantSelector(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
@@ -131,6 +133,10 @@ class AttributeMatchingVariantSelector implements VariantSelector {
 
         if (transformedVariants.size() == 1) {
             TransformedVariant result = transformedVariants.get(0);
+            String message = "Need to run transforms for " + dependenciesResolver.getContext() + " to match attributes " + requested;
+            if (loggedTransformations.add(message)) {
+                System.out.println(message);
+            }
             return factory.asTransformed(result.getRoot(), result.getVariantChain(), dependenciesResolver, transformedVariantFactory);
         }
 

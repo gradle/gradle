@@ -31,4 +31,6 @@ public interface ExtraExecutionGraphDependenciesResolverFactory {
      * @return an {@code ExecutionGraphDependenciesResolver} based on the provided parameters
      */
     TransformUpstreamDependenciesResolver create(ComponentIdentifier componentIdentifier, Transformation transformation);
+
+    String getContext();
 }

@@ -33,4 +33,6 @@ public interface ResolutionResultProvider<T> {
      * Returns the finalized value.
      */
     T getValue();
+
+    String getContext();
 }
