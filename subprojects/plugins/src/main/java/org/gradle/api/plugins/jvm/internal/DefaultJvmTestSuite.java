@@ -375,6 +375,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         };
     }
 
+    /**
+     * TODO update javadoc on {@link JvmTestSuite#useSpock()} to indicate that
+     *  2.2-groovy-4.0 becomes the new default once Groovy 4 is permanently enabled.
+     *
+     * @return a spock version compatible spock with the bundled Groovy version
+     */
     private static String getAppropriateSpockVersion() {
         if (VersionNumber.parse(GroovySystem.getVersion()).getMajor() >= 4) {
             return "2.2-groovy-4.0";
