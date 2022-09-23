@@ -24,7 +24,7 @@ import spock.lang.Issue
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 
-@IgnoreIf({ VersionNumber.parse(GroovySystem.version).major >= 4}) // FIXME cannot with Groovy 4 without regenerating library-versions.properties
+@IgnoreIf({ VersionNumber.parse(GroovySystem.version).major >= 4}) // FIXME if Groovy 4 is bundled, cannot run without regenerating library-versions.properties
 class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Override
