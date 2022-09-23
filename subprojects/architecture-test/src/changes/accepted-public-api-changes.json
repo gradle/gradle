@@ -257,6 +257,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.JavaBasePlugin",
+            "member": "Method org.gradle.api.plugins.JavaBasePlugin.getJavaToolchainQueryService()",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory",
             "member": "Class org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory",
             "acceptation": "Removed deprecated class in Gradle 8.0",
