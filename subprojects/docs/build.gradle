@@ -655,6 +655,7 @@ tasks.named("docsTest") { task ->
         filter {
             // Configuration cache samples enable configuration cache explicitly. We're not going to run them with the configuration cache executer.
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-configuration-cache-*.sample"
+            excludeTestsMatching "*WithoutCC*.sample"
 
             // These tests cover features that are not planned to be supported in the first stable release of the configuration cache.
             def testsForUnsupportedFeatures = [
@@ -809,15 +810,6 @@ tasks.named("docsTest") { task ->
                 "snippet-dependency-management-customizing-resolution-metadata-rule_groovy_comonentMetadataRules.sample",
                 "snippet-dependency-management-customizing-resolution-metadata-rule_kotlin_comonentMetadataRules.sample",
 
-                "snippet-tasks-incremental-build-custom-task-class_groovy_customTaskClassWithInputOutputAnnotations.sample",
-                "snippet-tasks-incremental-build-custom-task-class_groovy_incrementalAdHocTask.sample",
-                "snippet-tasks-incremental-build-custom-task-class_groovy_inferredTaskDep.sample",
-                "snippet-tasks-incremental-build-custom-task-class_groovy_inferredTaskDep2.sample",
-                "snippet-tasks-incremental-build-custom-task-class_kotlin_customTaskClassWithInputOutputAnnotations.sample",
-                "snippet-tasks-incremental-build-custom-task-class_kotlin_incrementalAdHocTask.sample",
-                "snippet-tasks-incremental-build-custom-task-class_kotlin_incrementalAdHocTaskNoSource.sample",
-                "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep.sample",
-                "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep2.sample",
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
@@ -829,6 +821,10 @@ tasks.named("docsTest") { task ->
                     excludeTestsMatching testMask
                 }
             }
+        }
+    } else {
+        filter {
+            excludeTestsMatching "*WithCC*.sample"
         }
     }
 }
