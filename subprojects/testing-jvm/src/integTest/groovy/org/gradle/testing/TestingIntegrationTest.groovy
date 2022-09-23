@@ -24,6 +24,7 @@ import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.CoreMatchers
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -258,6 +259,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2962")
+    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#22138)
     def "incompatible user versions of classes that we also use don't affect test execution"() {
 
         // These dependencies are quite particular.
@@ -447,6 +449,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5305")
+    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#22138)
     def "test can install an irreplaceable SecurityManager"() {
         given:
         executer

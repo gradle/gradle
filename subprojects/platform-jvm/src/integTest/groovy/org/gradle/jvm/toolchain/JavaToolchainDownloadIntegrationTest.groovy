@@ -26,7 +26,7 @@ import spock.lang.Ignore
 
 class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
-    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#???)
+    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#22138)
     def "download and provisioning works end-to-end"() {
         buildFile << """
             apply plugin: "java"
@@ -62,7 +62,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#???)
+    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#22138)
     def "can properly fails for missing combination"() {
         buildFile << """
             apply plugin: "java"
@@ -122,7 +122,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#???)
+    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#22138)
     def 'toolchain download on http fails'() {
         buildFile << """
             apply plugin: "java"
@@ -157,7 +157,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#???)
+    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#22138)
     def 'toolchain download of Semeru forces openj9'() {
         buildFile << """
             apply plugin: "java"
