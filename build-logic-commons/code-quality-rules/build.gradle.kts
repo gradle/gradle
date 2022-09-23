@@ -30,7 +30,7 @@ java {
 group = "gradlebuild"
 
 val groovyVersion = GroovySystem.getVersion()
-val isGroovy4 = VersionNumber.parse(groovyVersion) >= VersionNumber.version(4)
+val isGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
 val codenarcVersion = if (isGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
 
 dependencies {

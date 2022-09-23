@@ -45,10 +45,6 @@ val rules by configurations.creating {
     }
 }
 
-// FIXME the below changes are ineffective - the Worker API will classload the lib directory of the current Gradle distribution
-//  which includes Groovy 3.0.13.  All the version wrangling below makes no difference, as the bundled Groovy version from the current
-//  distribution will always "win".  Detecting the `isBundleGroovy4` sysprop won't matter.
-//val isBundleGroovy4 = System.getProperty("bundleGroovy4", "false") == "true"
 val groovyVersion = GroovySystem.getVersion()
 val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
 val codenarcVersion = if (isAtLeastGroovy4) "3.1.0-groovy-4.0" else "3.1.0"
@@ -60,7 +56,7 @@ dependencies {
     codenarc("gradlebuild:code-quality-rules") {
         because("Provides the IntegrationTestFixturesRule implementation")
     }
-    codenarc("org.codenarc:CodeNarc:$codenarcVersion") // TODO Why not read from dependency-modules ?
+    codenarc("org.codenarc:CodeNarc:$codenarcVersion")
     codenarc(embeddedKotlin("stdlib"))
 
     components {
@@ -112,7 +108,7 @@ abstract class CodeNarcRule @Inject constructor(
             withDependencies {
                 val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
                 val groovyGroup = if(isAtLeastGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
-                removeAll { listOf("org.apache.groovy", "org.codehaus.groovy").contains(it.group) }
+                removeAll { it.group == groovyGroup }
                 add("$groovyGroup:groovy") {
                     version { prefer(groovyVersion) }
                     because("We use the packaged groovy")
