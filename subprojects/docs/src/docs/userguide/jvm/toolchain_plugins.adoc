@@ -22,7 +22,7 @@ For details on how toolchain auto-provisioning interacts with these plugins, see
 == Provide a download URI
 
 Toolchain resolver plugins provide logic to map a toolchain request to a download URI.
-They do this with an implementation of link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainResolver.html[JavaToolchainResolver]:
+They do this via an implementation of link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainResolver.html[JavaToolchainResolver]:
 
 [source, java]
 ----
