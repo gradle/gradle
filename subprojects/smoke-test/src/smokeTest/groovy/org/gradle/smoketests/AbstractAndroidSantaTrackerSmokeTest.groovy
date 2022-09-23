@@ -26,7 +26,7 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.junit.Rule
 
-class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
+abstract class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
 
     protected static final Iterable<String> TESTED_AGP_VERSIONS = TestedVersions.androidGradle.versions
 
