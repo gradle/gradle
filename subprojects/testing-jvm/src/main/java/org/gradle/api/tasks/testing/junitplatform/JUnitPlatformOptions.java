@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.testing.junitplatform;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 
@@ -41,6 +42,11 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
     public JUnitPlatformOptions() {
     }
 
+    /**
+     * Copies the JUnit Platform options.
+     * @since 8.0
+     */
+    @Incubating
     public JUnitPlatformOptions(JUnitPlatformOptions other) {
         includeEngines.addAll(other.includeEngines);
         excludeEngines.addAll(other.excludeEngines);

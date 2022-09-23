@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.testing.junit;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 
@@ -34,6 +35,11 @@ public class JUnitOptions extends TestFrameworkOptions {
     public JUnitOptions() {
     }
 
+    /**
+     * Copies the JUnit options.
+     * @since 8.0
+     */
+    @Incubating
     public JUnitOptions(JUnitOptions other) {
         includeCategories.addAll(other.includeCategories);
         excludeCategories.addAll(other.excludeCategories);

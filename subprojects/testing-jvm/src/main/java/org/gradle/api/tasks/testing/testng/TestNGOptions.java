@@ -19,6 +19,7 @@ package org.gradle.api.tasks.testing.testng;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.xml.MarkupBuilder;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -87,6 +88,11 @@ public class TestNGOptions extends TestFrameworkOptions {
         this.projectDir = projectLayout.getProjectDirectory().getAsFile();
     }
 
+    /**
+     * Copies the TestNG options.
+     * @since 8.0
+     */
+    @Incubating
     public TestNGOptions(TestNGOptions other) {
         projectDir = other.projectDir;
         outputDirectory = other.outputDirectory;
