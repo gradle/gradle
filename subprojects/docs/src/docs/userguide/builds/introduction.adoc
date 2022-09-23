@@ -1,0 +1,11 @@
+[[introduction_to_gradle_builds]]
+= Introduction to Gradle Builds
+
+You may know Gradle as the tool that helps you build Java or Android projects.
+Perhaps you use Gradle through your IDE. Maybe you've dabbled in the CLI.
+You've probably made small edits to your Gradle build files: squashing bugs, or even integrating frameworks and libraries.
+This introduction will help you understand the fundamentals of Gradle.
+With this knowledge, you can take on bigger tasks, like speeding up your Gradle builds,
+running style checks, and optimizing your test suites.
+
+
