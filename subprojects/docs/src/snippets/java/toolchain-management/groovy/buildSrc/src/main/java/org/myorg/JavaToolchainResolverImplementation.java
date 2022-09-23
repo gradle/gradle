@@ -8,7 +8,7 @@ import org.gradle.jvm.toolchains.JavaToolchainRequest;
 public abstract class JavaToolchainResolverImplementation
         implements JavaToolchainResolver { // <1>
 
-    public Optional<URI> resolve(JavaToolchainRequest request) { // <2>
+    public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) { // <2>
         return Optional.empty(); // custom mapping logic goes here instead
     }
 }
