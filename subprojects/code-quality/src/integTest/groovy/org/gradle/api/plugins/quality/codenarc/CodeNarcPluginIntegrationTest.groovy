@@ -171,7 +171,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds 'help'
     }
 
-    def "allows configuring tool dependencies explicitly via #method"() {
+    def "allows configuring tool dependencies explicitly via #method"(String method, String buildScriptSnippet) {
         expect: //defaults exist and can be inspected
         succeeds("dependencies", "--configuration", "codenarc")
         output.contains "org.codenarc:CodeNarc:${CodeNarcPlugin.DEFAULT_CODENARC_VERSION}"
