@@ -43,7 +43,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory())
 
         when:
-        def uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem)).get()
+        def uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem)).get().getUri()
 
         then:
         uri.toString() == expectedPath
@@ -72,7 +72,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory)
 
         when:
-        def uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem)).get()
+        def uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem)).get().getUri()
 
         then:
         uri.toString() == "http://foobar/v3/binary/latest/11/ga/mac/x64/jdk/hotspot/normal/eclipse"
@@ -133,7 +133,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
         then:
         download.isPresent()
-        download.get() == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk")
+        download.get().getUri() == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk")
 
         where:
         vendor << [JvmVendorSpec.ADOPTOPENJDK, JvmVendorSpec.matching("adoptopenjdk"), DefaultJvmVendorSpec.any()]
@@ -153,7 +153,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
         then:
         download.isPresent()
-        download.get() == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/11/ga/mac/x64/jdk/openj9/normal/adoptopenjdk")
+        download.get().getUri() == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/11/ga/mac/x64/jdk/openj9/normal/adoptopenjdk")
     }
 
     private static DefaultJavaToolchainRequest newToolchainRequest(DefaultToolchainSpec spec, SystemInfo sysInfo, OperatingSystem os) {
