@@ -41,6 +41,11 @@ class TestNGFailurePolicyIntegrationTest extends AbstractTestNGVersionIntegratio
                     }
                 }
             }
+            test {
+                options {
+                    useDefaultListeners = true
+                }
+            }
         """
     }
 

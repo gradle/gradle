@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
-import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -47,6 +46,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
@@ -136,7 +136,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final String name;
     private final DependencyFactory dependencyFactory;
     private final JvmComponentDependencies dependencies;
-    private boolean attachedDependencies = false;
 
     protected abstract Property<VersionedTestingFramework> getVersionedTestingFramework();
 
@@ -164,41 +163,67 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         if (!name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             useJUnitJupiter();
-        } else {
-            // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
-            // if a user explicitly calls useJUnit or useJUnitJupiter, the built-in test suite will behave like a custom one
-            // and add dependencies automatically.
-            getVersionedTestingFramework().convention((VersionedTestingFramework) null);
         }
 
         addDefaultTestTarget();
 
-        // Until the values here can be finalized upon the user setting them (see the org.gradle.api.tasks.testing.Test#testFramework(Closure) method),
-        // in Gradle 8, we will be executing the provider lambda used as the convention multiple times.  So make sure, within a Test Suite, that we
-        // always return the same one via computeIfAbsent() against this map.
-        final Map<TestingFramework, TestFramework> frameworkLookup = new HashMap<>(4);
-
         this.targets.withType(JvmTestSuiteTarget.class).configureEach(target -> {
             target.getTestTask().configure(task -> {
-                task.getTestFrameworkProperty().convention(getVersionedTestingFramework().map(vtf -> {
-                    switch(vtf.getFramework()) {
-                        case JUNIT4:
-                            return frameworkLookup.computeIfAbsent(vtf.getFramework(), f -> new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), false));
-                        case KOTLIN_TEST: // fall-through
-                        case JUNIT_JUPITER: // fall-through
-                        case JUNIT_PLATFORM: // fall-through
-                        case SPOCK:
-                            return frameworkLookup.computeIfAbsent(vtf.getFramework(), f -> new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter(), false));
-                        case TESTNG:
-                            return frameworkLookup.computeIfAbsent(vtf.getFramework(), f -> new TestNGTestFramework(task, task.getClasspath(), (DefaultTestFilter) task.getFilter(), getObjectFactory()));
-                        default:
-                            throw new IllegalStateException("do not know how to handle " + vtf);
+
+                // By default, our versioned testing framework is whatever the Test says their framework is.
+                // However, `setFrameworkTo` will override out versioned testing framework with a `set` call and
+                // further `set` the Test's test framework.
+                // From now on, the test suite is "in control" of the framework. Before then, the test had complete
+                // control over which framework it is using. This allows the users to continue to interact with
+                // Test tasks directly and the test suite handles those cases.
+                // Regardless of how our versioned testing framework is calculated (either by convention by reading the
+                // Test's test framework or via a `setFrameworkTo` call), we will add the proper dependencies to the
+                // Test's corresponding source set.
+                getVersionedTestingFramework().convention(task.getTestFrameworkProperty().map(framework -> {
+                    if (name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
+                        return null;
+                    } else if (framework instanceof JUnitPlatformTestFramework) {
+                        return new VersionedTestingFramework(TestingFramework.JUNIT_PLATFORM, TestingFramework.JUNIT_PLATFORM.getDefaultVersion());
+                    } else if (framework instanceof JUnitTestFramework) {
+                        return new VersionedTestingFramework(TestingFramework.JUNIT4, TestingFramework.JUNIT4.getDefaultVersion());
+                    } else if (framework instanceof TestNGTestFramework) {
+                        return new VersionedTestingFramework(TestingFramework.TESTNG, TestingFramework.TESTNG.getDefaultVersion());
+                    } else {
+                        throw new IllegalStateException("Unknown TestFramework type!" + framework);
                     }
-                    // In order to maintain compatibility for the default test suite, we need to load JUnit4 from the Gradle distribution
-                    // instead of including it in testImplementation.
-                }).orElse(new DefaultProvider<>(() -> frameworkLookup.computeIfAbsent(null, f -> new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), true)))));
+                }));
             });
         });
+
+        implementation.withDependencies(deps -> {
+            this.dependencies.getImplementation().bundle(getVersionedTestingFramework().map(vtf ->
+                createDependencies(vtf.getImplementationDependencies())).orElse(Collections.emptyList()));
+        });
+        runtimeOnly.withDependencies(deps -> {
+            this.dependencies.getRuntimeOnly().bundle(getVersionedTestingFramework().map(vtf ->
+                createDependencies(vtf.getRuntimeOnlyDependencies())).orElse(Collections.emptyList()));
+        });
+    }
+
+    // Until the values here can be finalized upon the user setting them (see the org.gradle.api.tasks.testing.Test#testFramework(Closure) method),
+    // in Gradle 8, we will be executing the provider lambda used as the convention multiple times.  So make sure, within a Test Suite, that we
+    // always return the same one via computeIfAbsent() against this map.
+    private final Map<TestingFramework, TestFramework> frameworkLookup = new HashMap<>(4);
+
+    private TestFramework getTestFramework(TestingFramework framework, Test task) {
+        switch(framework) {
+            case JUNIT4:
+                return frameworkLookup.computeIfAbsent(framework, f -> new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), false));
+            case KOTLIN_TEST: // fall-through
+            case JUNIT_JUPITER: // fall-through
+            case JUNIT_PLATFORM: // fall-through
+            case SPOCK:
+                return frameworkLookup.computeIfAbsent(framework, f -> new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter(), false));
+            case TESTNG:
+                return frameworkLookup.computeIfAbsent(framework, f -> new TestNGTestFramework(task, task.getClasspath(), (DefaultTestFilter) task.getFilter(), getObjectFactory()));
+            default:
+                throw new IllegalStateException("do not know how to handle " + framework);
+        }
     }
 
     private List<ExternalModuleDependency> createDependencies(List<ModuleVersionIdentifier> dependencies) {
@@ -211,36 +236,11 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private void setFrameworkTo(TestingFramework framework, Provider<String> version) {
         getVersionedTestingFramework().set(version.map(v -> new VersionedTestingFramework(framework, v)));
 
-        // This whole way of adding the dependencies here is messed up. Once a user calls the useXXX method, they can't
-        // go back. This is fine except for that we call useJunitJupiter() FOR ALL USER DEFINED TEST SUITES.
-        // This is a real problem. Users who want to use anything but JUnit Jupiter will always have JUnit Jupiter on
-        // their classpath and will have to manually declare the implementation dependencies for the test framework
-        // they want to use.
-
-        // Consider this solution: We move the dependency provider declarations below, into the constructor. This works
-        // except for if the configurations' dependencies get realized early, before a useXXX method is called.
-        // Note, we're talking about the realizing a configuration's dependencies, not resolving its dependency graph.
-        // If a DependencySet is realized, its provider dependencies get resolved early by the backing
-        // DomainObjectCollection and the result is cached (see `AbstractIterationOrderRetainingElementSource`). Future
-        // calls to any useXXX would then be ignored since the collection would use the cached result instead of querying
-        // the provider.
-
-        // There are two different solutions here: 1) Restrict users from realizing configuration dependencies early
-        // OR 2) ensure that the DefaultDependencySet is aware of the changing nature of the dependency bundle
-        // we are passing it (see `ChangingValue` and `DefaultArtifactProvider` as an example implementation).
-        // Option 2 could potentially be expanded to a generic solution so that we can reduce similar problems
-        // in other places going forward.
-
-        // A concrete example of this occurs when using the Kotlin Gradle Plugin. See the function
-        // `configureKotlinTestDependency` added at the below linked commit. This resolves the dependencies before
-        // configuration-time is over, and would break an implementation where the below lines are instead located in
-        // the constructor.
-        // See: https://github.com/JetBrains/kotlin/commit/4a172286217a1a7d4e7a7f0eb6a0bc53ebf56515
-        if (!attachedDependencies) {
-            this.dependencies.getImplementation().bundle(getVersionedTestingFramework().map(vtf -> createDependencies(vtf.getImplementationDependencies())));
-            this.dependencies.getRuntimeOnly().bundle(getVersionedTestingFramework().map(vtf -> createDependencies(vtf.getRuntimeOnlyDependencies())));
-            attachedDependencies = true;
-        }
+        // Only if the user chooses a test framework via the test suites do we
+        // override the test framework on the test itself.
+        targets.configureEach(target -> target.getTestTask().configure(task -> {
+            task.getTestFrameworkProperty().set(getTestFramework(framework, task));
+        }));
     }
 
     @Override

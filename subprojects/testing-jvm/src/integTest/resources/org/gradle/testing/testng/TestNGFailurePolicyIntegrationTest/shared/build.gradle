@@ -19,9 +19,3 @@ apply plugin: "java"
 repositories {
     mavenCentral()
 }
-
-test {
-    useTestNG {
-        useDefaultListeners = true
-    }
-}
