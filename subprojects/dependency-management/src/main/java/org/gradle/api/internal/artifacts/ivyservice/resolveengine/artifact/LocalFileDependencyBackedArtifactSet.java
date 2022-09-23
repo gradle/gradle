@@ -202,6 +202,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
+        public Set<ResolvedVariant> getAllVariants() {
+            return getVariants();
+        }
+
+        @Override
         public ImmutableAttributes getOverriddenAttributes() {
             return ImmutableAttributes.EMPTY;
         }
