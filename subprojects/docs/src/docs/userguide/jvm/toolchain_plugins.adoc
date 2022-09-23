@@ -17,6 +17,7 @@
 
 In Gradle version 7.6 and above, Gradle provides a way to define Java toolchain auto-provisioning logic in plugins.
 This page explains how to author a toolchain resolver plugin.
+For details on how toolchain auto-provisioning interacts with these plugins, see <<toolchains.adoc#sub:download_repositories,Toolchains>>.
 
 == Provide a download URI
 
