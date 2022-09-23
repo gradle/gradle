@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import groovy.lang.GroovySystem;
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.artifacts.Configuration;
@@ -46,6 +47,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.util.internal.VersionNumber;
 
 import javax.inject.Inject;
 import java.util.Collections;
@@ -69,7 +71,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         )),
         // Should be the same as the version listed in the junit-bom corresponding to the default junit-jupiter version.
         JUNIT_PLATFORM("org.junit.platform", "junit-platform-launcher", "1.8.2"),
-        SPOCK("org.spockframework", "spock-core", "2.2-groovy-3.0", Collections.singletonList(
+        SPOCK("org.spockframework", "spock-core", getAppropriateSpockVersion(), Collections.singletonList(
             // spock-core references junit-jupiter's BOM, which in turn specifies the platform version
             DefaultModuleVersionIdentifier.newId("org.junit.platform", "junit-platform-launcher", "")
         )),
@@ -372,4 +374,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             }
         };
     }
+
+    private static String getAppropriateSpockVersion() {
+        if (VersionNumber.parse(GroovySystem.getVersion()).getMajor() >= 4) {
+            return "2.2-groovy-4.0";
+        }
+        return "2.2-groovy-3.0";
+    }
+
 }
