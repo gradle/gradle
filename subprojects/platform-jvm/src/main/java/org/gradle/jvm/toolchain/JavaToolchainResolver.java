@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 
-import java.net.URI;
 import java.util.Optional;
 
 /**

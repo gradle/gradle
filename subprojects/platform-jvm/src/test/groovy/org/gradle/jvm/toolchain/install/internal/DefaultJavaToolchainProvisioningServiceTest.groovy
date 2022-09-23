@@ -92,8 +92,8 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         then:
         List<BuildOperationDescriptor> descriptors = operationExecutor.log.getDescriptors()
-        descriptors.find {it.name == "Examining toolchain URI " + DOWNLOAD }
-        descriptors.find {it.name == "Downloading toolchain from URI " + DOWNLOAD }
+        descriptors.find {it.name == "Examining toolchain URI " + DOWNLOAD.getUri() }
+        descriptors.find {it.name == "Downloading toolchain from URI " + DOWNLOAD.getUri() }
         descriptors.find {it.name == "Unpacking toolchain archive " + ARCHIVE_NAME }
     }
 
@@ -158,7 +158,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         provisioningService.tryInstall(spec)
 
         then:
-        1 * downloader.download(DOWNLOAD, new File(temporaryFolder, ARCHIVE_NAME), _)
+        1 * downloader.download(DOWNLOAD.getUri(), new File(temporaryFolder, ARCHIVE_NAME), _)
     }
 
     ProviderFactory createProviderFactory(String propertyValue) {
