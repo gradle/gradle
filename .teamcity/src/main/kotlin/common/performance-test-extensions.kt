@@ -31,7 +31,8 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, arch: Arch = Arch.
     """.trimIndent()
     detectHangingBuilds = false
     requirements {
-        requiresNoEc2Agent()
+        requiresNotEc2Agent()
+        requiresNotSharedHost()
     }
     params {
         param("env.JPROFILER_HOME", os.jprofilerHome)
