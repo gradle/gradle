@@ -27,14 +27,6 @@ class FunctionalTest(
     this.id(id)
     val testTasks = getTestTaskName(testCoverage, subprojects)
 
-    if (name.contains("(configuration-cache)")) {
-        requirements {
-            doesNotContain("teamcity.agent.name", "ec2")
-            // US region agents have name "EC2-XXX"
-            doesNotContain("teamcity.agent.name", "EC2")
-        }
-    }
-
     applyTestDefaults(
         model, this, testTasks,
         dependsOnQuickFeedbackLinux = !testCoverage.withoutDependencies && stage.stageName > StageName.PULL_REQUEST_FEEDBACK,
