@@ -34,19 +34,20 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
     def setup() {
         buildFile << """
             apply plugin: 'groovy'
-
-            dependencies {
-                implementation localGroovy()
-                testImplementation('org.spockframework:spock-core:2.1-groovy-3.0') {
-                    exclude group: 'org.codehaus.groovy'
-                }
-            }
+            apply plugin: 'jvm-test-suite'
 
             ${mavenCentralRepository()}
 
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                    }
+                }
+            }
+
             test {
                 testLogging.exceptionFormat = 'full'
-                useJUnitPlatform()
             }
         """
     }

@@ -18,6 +18,8 @@ package org.gradle.test.fixtures.junitplatform
 
 import groovy.io.FileType
 
+import java.util.regex.Pattern
+
 class JUnitPlatformTestRewriter {
 
     private static final Map REPLACEMENTS = Collections.unmodifiableMap([

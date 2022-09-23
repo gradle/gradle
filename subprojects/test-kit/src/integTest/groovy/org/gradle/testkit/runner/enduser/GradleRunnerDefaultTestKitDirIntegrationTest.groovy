@@ -44,17 +44,23 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
 
         buildFile << """
             apply plugin: 'groovy'
+            apply plugin: 'jvm-test-suite'
 
             dependencies {
                 implementation localGroovy()
-                testImplementation(platform("org.spockframework:spock-bom:2.1-groovy-3.0"))
-                testImplementation("org.spockframework:spock-core")
             }
 
             ${mavenCentralRepository()}
 
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                    }
+                }
+            }
+
             tasks.withType(Test).configureEach {
-                useJUnitPlatform()
                 testLogging.exceptionFormat = 'full'
                 testLogging.showStandardStreams = true
                 testLogging.events "started", "skipped", "failed", "passed", "standard_out", "standard_error"
