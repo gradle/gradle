@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.isConfigCache() }) // --configuration-cache option unavailables
+@IgnoreIf({ GradleContextualExecuter.isConfigCache() || GradleContextualExecuter.isParallel() }) // --parallel or configuration-cache options unavailable
 class TaskOptionsSpec extends AbstractIntegrationSpec {
 
     def defineTaskWithProfileOption() {
