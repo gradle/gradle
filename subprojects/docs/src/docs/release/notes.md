@@ -113,7 +113,7 @@ The feature can be disabled with the [`incrementalAfterFailure`](javadoc/org/gra
 > 🐣 *This feature is incubating*.
 
 When generating builds with the `init` task and opting in to incubating features,
-Gradle now places convention plugins under the `gradle/plugins` directory instead of in `buildSrc`.
+Gradle now places convention plugins under the `build-logic` directory instead of in `buildSrc`.
 
 For more information about convention plugins, see [Convention Plugins](userguide/sharing_build_logic_between_subprojects.html#sec:convention_plugins).
 
