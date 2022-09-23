@@ -133,6 +133,9 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
             @Override
             Directory getInstallationPath() { return null }
+
+            @Override
+            boolean isCurrentJvm() { return false }
         }
     }
 }
