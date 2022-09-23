@@ -161,7 +161,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             return Collections.emptyList();
         }
         List<CalculateTaskGraphBuildOperationType.TaskIdentity> list = new ArrayList<>();
-        traverseNonTasks(nodes, traverser, newSetFromMap(new IdentityHashMap<>()))
+        traverseNonTasks(new ArrayList<>(nodes), traverser, newSetFromMap(new IdentityHashMap<>()))
             .forEach(taskNode -> list.add(toIdentity(taskNode)));
         return list;
     }
@@ -175,7 +175,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             .transformAndConcat(
                 node -> node instanceof TaskNode
                     ? ImmutableSet.of((TaskNode) node)
-                    : traverseNonTasks(requireNonNull(traverser.apply(node)), traverser, seen)
+                    : traverseNonTasks(new ArrayList<>(requireNonNull(traverser.apply(node))), traverser, seen)
             );
     }
 
