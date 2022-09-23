@@ -1,12 +1,15 @@
-import java.text.FieldPosition
+class UserInfo(
+    var name: String? = null, 
+    var email: String? = null
+)
 
 tasks.register("configure") {
+    val user = UserInfo().apply {
+        name = "Isaac Newton"
+        email = "isaac@newton.me"
+    }
     doLast {
-        val pos = FieldPosition(10).apply {
-            beginIndex = 1
-            endIndex = 5
-        }
-        println(pos.beginIndex)
-        println(pos.endIndex)
+        println(user.name)
+        println(user.email)
     }
 }
