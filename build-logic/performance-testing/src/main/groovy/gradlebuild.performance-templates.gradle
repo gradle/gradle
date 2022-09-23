@@ -530,7 +530,7 @@ private void addGoogleServicesJson(File outputDirectory) {
 performanceTest.registerTestProject("excludeRuleMergingBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     // From master branch
-    ref = "aa321f693adc9af8962209c7c21bbb1d918650d2"
+    ref = "5735e48b01cbbd69fd617e58f4d16571ca1723be"
     subdirectory = 'exclude-merging'
 }
 
