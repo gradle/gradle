@@ -75,6 +75,11 @@ The legacy `AntlrSourceVirtualDirectory` API has been removed.
 This change affects the `antlr` plugin.
 In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
 
+=== Legacy test sources configuration in `idea` plugin
+
+The deprecated `IdeaModule.getTestSourceDirs()` and `IdeaModule.getTestResourceDirs()` were removed in Gradle 8.0.
+You should use `IdeaModule.getTestSources()` and `IdeaModule.getTestResources()` instead.
+
 === Potential breaking changes
 
 === Changes in the AbstractCodeQualityPlugin class
