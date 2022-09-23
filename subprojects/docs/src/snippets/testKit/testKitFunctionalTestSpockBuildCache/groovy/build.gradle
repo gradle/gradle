@@ -4,8 +4,8 @@ plugins {
 }
 
 dependencies {
-    testImplementation('org.spockframework:spock-core:2.2-groovy-4.0') {
-        exclude group: 'org.apache.groovy'
+    testImplementation('org.spockframework:spock-core:2.2-groovy-3.0') {
+        exclude group: 'org.codehaus.groovy'
     }
 }
 
