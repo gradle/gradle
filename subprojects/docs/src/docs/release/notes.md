@@ -20,6 +20,7 @@ We would like to thank the following community members for their contributions t
 [Eliezer Graber](https://github.com/eygraber),
 [Fedor Ihnatkevich](https://github.com/Jeffset),
 [Gabriel Rodriguez](https://github.com/gabrielrodriguez2746),
+[Guruprasad Bagade](https://github.com/prasad-333),
 [Herbert von Broeuschmeul](https://github.com/HvB),
 [Matthew Haughton](https://github.com/3flex),
 [Michael Torres](https://github.com/torresmi),
@@ -27,6 +28,7 @@ We would like to thank the following community members for their contributions t
 [Ricardo Jiang](https://github.com/RicardoJiang),
 [Siddardha Bezawada](https://github.com/SidB3),
 [Stephen Topley](https://github.com/stopley),
+[Victor Maldonado](https://github.com/vmmaldonadoz),
 [Vinay Potluri](https://github.com/vinaypotluri).
 
 ## Upgrade instructions

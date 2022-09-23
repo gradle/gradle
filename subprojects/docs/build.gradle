@@ -665,6 +665,7 @@ tasks.named("docsTest") { task ->
         filter {
             // Configuration cache samples enable configuration cache explicitly. We're not going to run them with the configuration cache executer.
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-configuration-cache-*.sample"
+            excludeTestsMatching "*WithoutCC*.sample"
 
             // These tests cover features that are not planned to be supported in the first stable release of the configuration cache.
             def testsForUnsupportedFeatures = [
@@ -796,38 +797,11 @@ tasks.named("docsTest") { task ->
                 "snippet-signing-maven-publish_kotlin_signingPluginSignPublication.sample",
                 "snippet-signing-tasks_groovy_signingTaskOutput.sample",
                 "snippet-signing-tasks_kotlin_signingTaskOutput.sample",
-
-                // TODO(https://github.com/gradle/gradle/issues/16080) Kotlin lambdas capture the script object when accessing top-level vals
-                "snippet-tasks-custom-task-with-file-property_kotlin_lazyFileProperties.sample",
-                "snippet-tasks-custom-task-with-missing-file-property_kotlin_missingFileProperties.sample",
-                "snippet-tutorial-mkdir-trap_kotlin_mkdirTrap.sample",
-
-                // TODO(https://github.com/gradle/gradle/issues/21711)
-                "snippet-tutorial-configure-object-using-script_groovy_configureObjectUsingScript.sample",
-
-                // TODO(https://github.com/gradle/gradle/issues/21710)
-                "snippet-tutorial-configure-object_groovy_configureObject.sample",
-
-                // TODO(https://github.com/gradle/gradle/issues/21656)
-                "snippet-tutorial-extra-properties_groovy_extraProperties.sample",
-                "snippet-tutorial-extra-properties_kotlin_extraProperties.sample",
             ]
 
             // Tests that can and has to be fixed to run with the configuration cache enabled.
             // Set the Gradle property runBrokenConfigurationCacheDocsTests=true to run tests from this list or any of the lists above.
             def testsToBeFixedForConfigurationCache = [
-                "snippet-dependency-management-customizing-resolution-metadata-rule_groovy_comonentMetadataRules.sample",
-                "snippet-dependency-management-customizing-resolution-metadata-rule_kotlin_comonentMetadataRules.sample",
-
-                "snippet-tasks-incremental-build-custom-task-class_groovy_customTaskClassWithInputOutputAnnotations.sample",
-                "snippet-tasks-incremental-build-custom-task-class_groovy_incrementalAdHocTask.sample",
-                "snippet-tasks-incremental-build-custom-task-class_groovy_inferredTaskDep.sample",
-                "snippet-tasks-incremental-build-custom-task-class_groovy_inferredTaskDep2.sample",
-                "snippet-tasks-incremental-build-custom-task-class_kotlin_customTaskClassWithInputOutputAnnotations.sample",
-                "snippet-tasks-incremental-build-custom-task-class_kotlin_incrementalAdHocTask.sample",
-                "snippet-tasks-incremental-build-custom-task-class_kotlin_incrementalAdHocTaskNoSource.sample",
-                "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep.sample",
-                "snippet-tasks-incremental-build-custom-task-class_kotlin_inferredTaskDep2.sample",
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache
@@ -839,6 +813,10 @@ tasks.named("docsTest") { task ->
                     excludeTestsMatching testMask
                 }
             }
+        }
+    } else {
+        filter {
+            excludeTestsMatching "*WithCC*.sample"
         }
     }
 }
