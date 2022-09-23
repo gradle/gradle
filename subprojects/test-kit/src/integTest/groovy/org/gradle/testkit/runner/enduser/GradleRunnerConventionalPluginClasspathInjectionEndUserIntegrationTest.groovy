@@ -31,13 +31,16 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
             plugins {
                 id "org.gradle.java-gradle-plugin"
                 id "org.gradle.groovy"
+                id "org.gradle.jvm-test-suite"
             }
             ${mavenCentralRepository()}
-            dependencies {
-                testImplementation(platform("org.spockframework:spock-bom:2.1-groovy-3.0"))
-                testImplementation("org.spockframework:spock-core")
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                    }
+                }
             }
-            test.useJUnitPlatform()
         """
 
         plugin.writeSourceFiles()

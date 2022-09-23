@@ -65,6 +65,7 @@ class JavaGradlePluginRelocationTest extends AbstractProjectRelocationIntegratio
             file("build.gradle") << """
                 apply plugin: "java-gradle-plugin"
                 apply plugin: "groovy"
+                apply plugin: "jvm-test-suite"
 
                 gradlePlugin {
                     plugins {
@@ -77,9 +78,11 @@ class JavaGradlePluginRelocationTest extends AbstractProjectRelocationIntegratio
 
                 ${mavenCentralRepository()}
 
-                dependencies {
-                    testImplementation('org.spockframework:spock-core:2.1-groovy-3.0') {
-                        exclude group: 'org.codehaus.groovy'
+                testing {
+                    suites {
+                        test {
+                            useSpock()
+                        }
                     }
                 }
             """
