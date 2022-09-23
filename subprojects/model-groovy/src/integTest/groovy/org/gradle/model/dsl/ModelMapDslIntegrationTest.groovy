@@ -242,7 +242,8 @@ configure test
         outputContains("value = 12")
     }
 
-    def "nested rule cannot reference method of delegate of outer closure"() {
+    def "nested rule cannot reference method of delegate of outer closure with Groovy 3"() {
+        assumeGroovy3()
         buildFile << '''
 model {
     things {
@@ -256,9 +257,25 @@ model {
         fails "model"
         failure.assertHasLineNumber(18)
         failure.assertHasCause('Exception thrown while executing model rule: create(main) { ... } @ build.gradle line 17, column 9')
-        def isAtLeastGroovy4 = System.getProperty('bundleGroovy4', 'false') == 'true'
-        def expectedRootCause = isAtLeastGroovy4 ? 'No signature of method: Thing.create() is applicable for argument types' : 'No signature of method: org.gradle.api.Project.create() is applicable for argument types:'
-        failure.assertHasCause(expectedRootCause)
+        failure.assertHasCause('No signature of method: org.gradle.api.Project.create() is applicable for argument types:')
+    }
+
+    def "nested rule cannot reference method of delegate of outer closure with Groovy 4"() {
+        assumeGroovy4()
+        buildFile << '''
+model {
+    things {
+        create('main') {
+            create('test') { println "no" }
+        }
+    }
+}
+'''
+        expect:
+        fails "model"
+        failure.assertHasLineNumber(18)
+        failure.assertHasCause('Exception thrown while executing model rule: create(main) { ... } @ build.gradle line 17, column 9')
+        failure.assertHasCause('No signature of method: Thing.create() is applicable for argument types')
     }
 
     def "nested rule can reference vars defined in outer closure"() {

@@ -16,14 +16,12 @@
 
 package org.gradle.integtests
 
-import groovy.transform.Immutable
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.internal.VersionNumber
-import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
 
@@ -46,7 +44,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    private void withCodenarc(VersionPair versions, TestFile root = testDirectory) {
+    private void withCodenarc(String groovyVersion, String codenarcVersion = '0.24.1', TestFile root = testDirectory) {
         root.file("config/codenarc/rulesets.groovy") << """
             ruleset {
                 ruleset('rulesets/naming.xml')
@@ -57,11 +55,10 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
                 apply plugin: 'codenarc'
 
                 dependencies {
-                    codenarc("org.codenarc:CodeNarc:${versions.codenarcVersion}") {
-                        exclude group: 'org.apache.groovy'
+                    codenarc('org.codenarc:CodeNarc:$codenarcVersion') {
                         exclude group: 'org.codehaus.groovy'
                     }
-                    codenarc $versions.groovyVersion
+                    codenarc $groovyVersion
                 }
 
                 codenarc {
@@ -86,51 +83,57 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    @IgnoreIf({ VersionNumber.parse(GroovySystem.version).major >= 4}) // FIXME cannot succeed with Worker API due to leaking Groovy 4 jar from parent classloder
-    void 'CodeNarc does not fail with PermGen space error'() {
+    @Issue('https://github.com/gradle/gradle/issues/22172')
+    void 'CodeNarc does not fail with PermGen space error with Groovy 3'() {
         given:
-        withCodenarc(versions)
+        assumeGroovy3()
+        withCodenarc(groovyVersion)
         withCheckstyle()
-        goodCode(versions.groovyVersion)
+        goodCode(groovyVersion)
 
         expect:
         succeeds 'check'
 
         where:
-        versions << groovyAndCodenarcVersions() * 3
+        groovyVersion << groovyVersions() * 3
     }
 
-    @Immutable
-    static class VersionPair {
-        String groovyVersion
-        String codenarcVersion
+    @Issue('https://github.com/gradle/gradle/issues/22172')
+    void 'CodeNarc does not fail with PermGen space error with Groovy 4'() {
+        given:
+        assumeGroovy4()
+        withCodenarc(groovyVersion, '3.1.0-groovy-4.0')
+        withCheckstyle()
+        goodCode(groovyVersion)
+
+        expect:
+        succeeds 'check'
+
+        where:
+        groovyVersion << ['localGroovy()'] * 12
     }
 
-    private static List<VersionPair> groovyAndCodenarcVersions() {
-        def isAtLeastGroovy4 = VersionNumber.parse(GroovySystem.version).major >= 4
-
+    private static List<String> groovyVersions() {
         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
             return [
-                new VersionPair("localGroovy()", isAtLeastGroovy4 ? '3.1.0-groovy-4.0' : '3.1.0'),
-                new VersionPair("'org.codehaus.groovy:groovy:3.0.5', 'org.codehaus.groovy:groovy-templates:3.0.5'", '3.1.0')
+                'localGroovy()',
+                "'org.codehaus.groovy:groovy:3.0.5', 'org.codehaus.groovy:groovy-templates:3.0.5'"
             ]
         }
         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9)) {
             return [
-                new VersionPair("localGroovy()", isAtLeastGroovy4 ? '3.1.0-groovy-4.0' : '3.1.0'),
+                'localGroovy()',
                 // Leave this at 2.4.7 even if Groovy is upgraded
-                new VersionPair("'org.codehaus.groovy:groovy-all:2.4.7'", '3.1.0')
+                "'org.codehaus.groovy:groovy-all:2.4.7'",
             ]
         }
         return [
-            new VersionPair("localGroovy()", isAtLeastGroovy4 ? '3.1.0-groovy-4.0' : '3.1.0'),
-            //new VersionPair("'org.apache.groovy:groovy-all:4.0.5'", '3.1.0-groovy-4.0'), // FIXME cannot work due to leaking Groovy 3 jar
-            new VersionPair("'org.codehaus.groovy:groovy-all:3.0.13'", '3.1.0'),
-            new VersionPair("'org.codehaus.groovy:groovy-all:2.3.10'", '3.1.0'),
-            new VersionPair("'org.codehaus.groovy:groovy-all:2.2.1'", '3.1.0'),
-            new VersionPair("'org.codehaus.groovy:groovy-all:2.1.9'", '3.1.0'),
-            new VersionPair("'org.codehaus.groovy:groovy-all:2.0.4'", '3.1.0'),
-            new VersionPair("'org.codehaus.groovy:groovy-all:1.8.7'", '3.1.0')
+            'localGroovy()',
+            "'org.codehaus.groovy:groovy-all:2.3.10'",
+            "'org.codehaus.groovy:groovy-all:2.2.1'",
+            "'org.codehaus.groovy:groovy-all:2.1.9'",
+            "'org.codehaus.groovy:groovy-all:2.0.4'",
+            "'org.codehaus.groovy:groovy-all:1.8.7'"
         ]
     }
 
