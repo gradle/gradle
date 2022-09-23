@@ -33,7 +33,13 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
      */
     def setup() {
         buildFile << """
-            apply plugin: 'groovy'
+            apply plugin: 'java'
+            apply plugin: 'checkstyle'
+
+            ${mavenCentralRepository()}
+
+            dependencies { implementation localGroovy() }
+
         """
     }
 
@@ -41,12 +47,6 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
     def "can pass a URL in configProperties"() {
         given:
         buildFile """
-            apply plugin: 'checkstyle'
-
-            ${mavenCentralRepository()}
-
-            dependencies { implementation localGroovy() }
-
             checkstyle {
                 configProperties["some"] = new URL("https://gradle.org/")
             }
