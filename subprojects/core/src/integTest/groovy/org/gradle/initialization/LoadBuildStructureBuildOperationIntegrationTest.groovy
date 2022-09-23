@@ -24,7 +24,7 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
 
     final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def "multiproject settings with customizations are are exposed correctly"() {
+    def "multiproject settings with customizations are exposed correctly"() {
         settingsFile << """
         include "b"
         include "a"

@@ -76,12 +76,14 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private final Property<JavaLauncher> javaLauncher;
     private final Property<String> minHeapSize;
     private final Property<String> maxHeapSize;
+    private final Property<Boolean> enableExternalDtdLoad;
 
     public Checkstyle() {
         this.configDirectory = getObjectFactory().directoryProperty();
         this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, this);
         this.minHeapSize = getObjectFactory().property(String.class);
         this.maxHeapSize = getObjectFactory().property(String.class);
+        this.enableExternalDtdLoad = getObjectFactory().property(Boolean.class).convention(false);
         // Set default JavaLauncher to current JVM in case
         // CheckstylePlugin that sets Java launcher convention is not applied
         this.javaLauncher = configureFromCurrentJvmLauncher(getToolchainService(), getObjectFactory());
@@ -182,7 +184,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      *
      * @since 7.5
      */
-    @Incubating
     @Nested
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
@@ -198,6 +199,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
             spec.getForkOptions().setMinHeapSize(minHeapSize.getOrNull());
             spec.getForkOptions().setMaxHeapSize(maxHeapSize.getOrNull());
             spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
+            spec.getForkOptions().getSystemProperties().put("checkstyle.enableExternalDtdLoad", getEnableExternalDtdLoad().get());
             spec.getClasspath().from(getCheckstyleClasspath());
         });
         workQueue.submit(CheckstyleAction.class, this::setupParameters);
@@ -425,7 +427,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      *
      * @since 7.5
      */
-    @Incubating
     @Optional
     @Input
     public Property<String> getMinHeapSize() {
@@ -440,10 +441,24 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      *
      * @since 7.5
      */
-    @Incubating
     @Optional
     @Input
     public Property<String> getMaxHeapSize() {
         return maxHeapSize;
+    }
+
+    /**
+     * Enable the use of external DTD files in configuration files.
+     * <strong>Disabled by default because this may be unsafe.</strong>
+     * See <a href="https://checkstyle.org/config_system_properties.html#Enable_External_DTD_load">Checkstyle documentation</a> for more details.
+     *
+     * @return property to enable the use of external DTD files
+     *
+     * @since 7.6
+     */
+    @Incubating
+    @Input
+    public Property<Boolean> getEnableExternalDtdLoad() {
+        return enableExternalDtdLoad;
     }
 }

@@ -19,13 +19,11 @@ package org.gradle.configurationcache.serialization.beans
 import com.google.common.primitives.Primitives.wrap
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
-import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.withDebugFrame
-import java.io.IOException
 import java.lang.reflect.Field
 
 
@@ -46,7 +44,7 @@ class BeanPropertyWriter(
             val fieldValue =
                 when (val isExplicitValue = relevantField.isExplicitValueField) {
                     null -> field.get(bean)
-                    else -> conventionValueOf(bean, fieldName, field, isExplicitValue)
+                    else -> conventionValueOf(bean, field, isExplicitValue)
                 }
             relevantField.unsupportedFieldType?.let {
                 reportUnsupportedFieldType(it, "serialize", fieldName, fieldValue)
@@ -58,21 +56,25 @@ class BeanPropertyWriter(
     }
 
     private
-    fun conventionValueOf(bean: Any, fieldName: String, field: Field, isExplicitValue: Field) =
+    fun conventionValueOf(bean: Any, field: Field, isExplicitValue: Field) =
         field.get(bean).let { fieldValue ->
             if (isExplicitValue.get(bean).uncheckedCast()) {
                 fieldValue
             } else {
-                bean.uncheckedCast<IConventionAware>()
-                    .conventionMapping
-                    .getConventionValue<Any?>(fieldValue, fieldName, false)
+                getConventionValue(bean, field, fieldValue)
                     ?.takeIf { conventionValue ->
                         // Prevent convention value to be assigned to a field of incompatible type
                         // A common cause is a regular field type being promoted to a Property/Provider type.
                         conventionValue.isAssignableTo(field.type)
-                    }
+                    } ?: fieldValue
             }
         }
+
+    private
+    fun getConventionValue(bean: Any, field: Field, fieldValue: Any?) =
+        bean.uncheckedCast<IConventionAware>()
+            .conventionMapping
+            .getConventionValue<Any?>(fieldValue, field.name, false)
 
     private
     fun Field.debugFrameName() =
@@ -94,10 +96,6 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
     withPropertyTrace(kind, name) {
         try {
             write(value)
-        } catch (passThrough: IOException) {
-            throw passThrough
-        } catch (passThrough: ConfigurationCacheProblemsException) {
-            throw passThrough
         } catch (error: Exception) {
             onError(error) {
                 when {
@@ -105,6 +103,7 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
                         text("error writing value of type ")
                         reference(GeneratedSubclasses.unpackType(value))
                     }
+
                     else -> {
                         text("error writing null value")
                     }

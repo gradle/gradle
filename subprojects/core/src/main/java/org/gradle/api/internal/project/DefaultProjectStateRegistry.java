@@ -139,6 +139,14 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
     }
 
+    @Nullable
+    @Override
+    public BuildProjectRegistry findProjectsFor(BuildIdentifier buildIdentifier) {
+        synchronized (lock) {
+            return projectsByBuild.get(buildIdentifier);
+        }
+    }
+
     @Override
     public <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
         return workerLeaseService.allowUncontrolledAccessToAnyProject(factory);
@@ -237,10 +245,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public DisplayName getDisplayName() {
-            if (projectPath.equals(Path.ROOT)) {
-                return Describables.quoted("root project", projectName);
+            if (identityPath.equals(Path.ROOT)) {
+                return Describables.withTypeAndName("root project", projectName);
+            } else {
+                return Describables.withTypeAndName("project", identityPath.getPath());
             }
-            return Describables.of(identifier);
         }
 
         @Override

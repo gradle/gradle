@@ -6,7 +6,6 @@ description = "Provides plugins to configure quality checks (incubating report, 
 
 dependencies {
     implementation(project(":basics"))
-    implementation(project(":binary-compatibility"))
     implementation(project(":cleanup"))
     implementation(project(":documentation"))
     implementation(project(":integration-testing"))

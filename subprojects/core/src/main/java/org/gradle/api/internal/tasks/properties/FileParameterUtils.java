@@ -113,7 +113,7 @@ public class FileParameterUtils {
         boolean locationOnly,
         Consumer<OutputFilePropertySpec> consumer
     ) {
-        Object unpackedValue = value.getUnprocessedValue();
+        Object unpackedValue = value.call();
         unpackedValue = DeferredUtil.unpackNestableDeferred(unpackedValue);
         if (locationOnly && unpackedValue instanceof FileSystemLocationProperty) {
             unpackedValue = ((FileSystemLocationProperty<?>) unpackedValue).getLocationOnly();

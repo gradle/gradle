@@ -40,8 +40,10 @@ import static org.gradle.util.internal.WrapUtil.toList
 
 class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultExecutionPlan executionPlan
+    DefaultFinalizedExecutionPlan finalizedPlan
 
-    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor())
+    def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
+    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor(), accessHierarchies)
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
 
     def setup() {
@@ -50,7 +52,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
     private DefaultExecutionPlan newExecutionPlan() {
         executionPlan?.close()
-        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
+        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator)
     }
 
     def "schedules tasks in dependency order"() {
@@ -282,7 +284,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         }
 
         when:
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([finalized])
 
         then:
@@ -415,7 +417,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
         //tasks that depends on finalized, we will execute them
         Task df1 = task("df1", dependsOn: [finalized1])
-        Task df2 = task("df1", dependsOn: [finalized2])
+        Task df2 = task("df2", dependsOn: [finalized2])
 
         when:
         addToGraphAndPopulate([df1, df2])
@@ -469,23 +471,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         addToGraphAndPopulate([entryPoint])
 
         then:
-        // TODO(mlopatkin) A potential execution order that was working in 7.4:
-        //   executionPlan.tasks as List == [entryPoint, finalizerDepA, finalizerDepB, finalizerB, finalizerA]
-        // It somewhat violates a finalizer constraint: "only run dependencies of a finalizer after completing a finalized task"
-        // To satisfy that, finalizerDepA should run after finalizerDepB, and finalizerDepB should run after finalizerDepA.
-        // Obviously, both constraints cannot be satisfied at once.
-        // There is an alternative reading though. The entryPoint is finalized by finalizerA, and we started to execute
-        // finalizerA's dependencies; finalizerDepA happen to be finalized by finalizerB, so we schedule it and its dependency after
-        // finalizerDepA. Then we complete everything with finalizerA. This reading is somewhat similar to the case where finalizerDepA
-        // is reachable from the entry point.
-        def e = thrown CircularReferenceException
-        e.message == TextUtil.toPlatformLineSeparators("""Circular dependency between the following tasks:
-:finalizerDepA
-\\--- :finalizerDepB
-     \\--- :finalizerDepA (*)
-
-(*) - details omitted (listed previously)
-""")
+        executes(entryPoint, finalizerDepA, finalizerDepB, finalizerB, finalizerA)
     }
 
     def "cannot add task with circular reference"() {
@@ -682,7 +668,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executedTasks == [a]
 
         when:
-        executionPlan.collectFailures(failures)
+        finalizedPlan.collectFailures(failures)
 
         then:
         failures == [exception]
@@ -696,14 +682,14 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         when:
         addToGraphAndPopulate([a, b])
         coordinator.withStateLock {
-            executionPlan.cancelExecution()
+            finalizedPlan.cancelExecution()
         }
 
         then:
         executedTasks == []
 
         when:
-        executionPlan.collectFailures(failures)
+        finalizedPlan.collectFailures(failures)
 
         then:
         failures.size() == 1
@@ -715,16 +701,16 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         RuntimeException failure = new RuntimeException()
         Task a = task("a", failure: failure)
         Task b = task("b")
-        addToGraphAndPopulate([a, b])
 
         when:
         executionPlan.setContinueOnFailure(true)
+        addToGraphAndPopulate([a, b])
 
         then:
         executedTasks == [a, b]
 
         when:
-        executionPlan.collectFailures(failures)
+        finalizedPlan.collectFailures(failures)
 
         then:
         failures == [failure]
@@ -735,16 +721,16 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         RuntimeException failure = new RuntimeException()
         Task a = task("a", failure: failure)
         Task b = task("b", (orderingRule): [a])
-        addToGraphAndPopulate([a, b])
 
         when:
         executionPlan.setContinueOnFailure(true)
+        addToGraphAndPopulate([a, b])
 
         then:
         executedTasks == [a, b]
 
         when:
-        executionPlan.collectFailures(failures)
+        finalizedPlan.collectFailures(failures)
 
         then:
         failures == [failure]
@@ -760,16 +746,16 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         final Task b = task("b", dependsOn: [a])
         final Task c = task("c")
         final Task d = task("d", dependsOn: [b, c])
-        addToGraphAndPopulate([d])
 
         when:
         executionPlan.setContinueOnFailure(true)
+        addToGraphAndPopulate([d])
 
         then:
         executedTasks == [a, c]
 
         when:
-        executionPlan.collectFailures(failures)
+        finalizedPlan.collectFailures(failures)
 
         then:
         failures == [failure]
@@ -795,7 +781,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         executedTasks == [c]
 
         when:
-        executionPlan.collectFailures(failures)
+        finalizedPlan.collectFailures(failures)
 
         then:
         failures == []
@@ -811,7 +797,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([a, b])
 
         then:
@@ -830,7 +816,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([c])
 
         then:
@@ -849,7 +835,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([b, c])
 
         then:
@@ -870,7 +856,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != b }
 
         when:
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([c])
 
         then:
@@ -917,7 +903,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task b = task("b", dependsOn: [a])
         Task c = task("c")
         def filter = { it != b } as Spec<Task>
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([b, c])
         executes(c)
 
@@ -935,7 +921,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task b = task("b")
         addToGraphAndPopulate([a, b])
         coordinator.withStateLock {
-            executionPlan.cancelExecution()
+            finalizedPlan.cancelExecution()
         }
 
         when:
@@ -971,7 +957,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         def node1 = requiredNode()
         def node2 = requiredNode(node1)
         def node3 = requiredNode(node2)
-        executionPlan.addNodes([node3, node1, node2])
+        executionPlan.setScheduledNodes([node3, node1, node2])
 
         when:
         populateGraph()
@@ -1046,7 +1032,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         addToGraphAndPopulate([task3])
         executes(task1, task2, task3)
         def failures = []
-        executionPlan.collectFailures(failures)
+        finalizedPlan.collectFailures(failures)
 
         then:
         failures == [failure]
@@ -1086,7 +1072,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
     private void populateGraph() {
         executionPlan.determineExecutionPlan()
-        executionPlan.finalizePlan()
+        finalizedPlan = executionPlan.finalizePlan()
     }
 
     void executes(Task... expectedTasks) {
@@ -1122,9 +1108,9 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     List<Node> getExecutedNodes() {
         def nodes = []
         coordinator.withStateLock {
-            while (executionPlan.executionState() != WorkSource.State.NoMoreWorkToStart) {
-                assert executionPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart // There should always be a node ready to start when executing sequentially
-                def selection = executionPlan.selectNext()
+            while (finalizedPlan.executionState() != WorkSource.State.NoMoreWorkToStart) {
+                assert finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart // There should always be a node ready to start when executing sequentially
+                def selection = finalizedPlan.selectNext()
                 if (selection.noMoreWorkToStart) {
                     break
                 }
@@ -1132,10 +1118,10 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
                 def nextNode = selection.item
                 assert !nextNode.isComplete()
                 nodes << nextNode
-                executionPlan.finishedExecuting(nextNode, null)
+                finalizedPlan.finishedExecuting(nextNode, null)
             }
-            assert executionPlan.executionState() == WorkSource.State.NoMoreWorkToStart
-            assert executionPlan.allExecutionComplete()
+            assert finalizedPlan.executionState() == WorkSource.State.NoMoreWorkToStart
+            assert finalizedPlan.allExecutionComplete()
         }
         return nodes
     }

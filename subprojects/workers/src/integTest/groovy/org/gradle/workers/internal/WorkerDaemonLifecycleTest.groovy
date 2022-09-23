@@ -18,7 +18,6 @@ package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.ProcessFixture
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
-import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.workers.fixtures.WorkerExecutorFixture
@@ -27,7 +26,7 @@ import org.gradle.workers.fixtures.WorkerExecutorFixture
 class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationSpec {
     String logSnapshot = ""
 
-    def "worker daemons are reused across builds"() {
+    def "worker daemons are not reused across builds"() {
         fixture.withWorkActionClassInBuildScript()
         buildFile << """
             import org.gradle.workers.internal.WorkerDaemonFactory
@@ -53,7 +52,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         succeeds "runInWorker2"
 
         then:
-        assertSameDaemonWasUsed("runInWorker1", "runInWorker2")
+        assertDifferentDaemonsWereUsed("runInWorker1", "runInWorker2")
     }
 
     def "worker daemons can be restarted when daemon is stopped"() {
@@ -78,59 +77,6 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         succeeds "runInWorker2"
 
         then:
-        assertDifferentDaemonsWereUsed("runInWorker1", "runInWorker2")
-    }
-
-    def "worker daemons are stopped when daemon is stopped"() {
-        fixture.withWorkActionClassInBuildScript()
-        buildFile << """
-            task runInWorker(type: WorkerTask) {
-                isolationMode = 'processIsolation'
-            }
-        """
-
-        when:
-        args("--info")
-        succeeds "runInWorker"
-
-        then:
-        newSnapshot()
-
-        when:
-        stopDaemonsNow()
-
-        then:
-        daemons.daemon.stops()
-        sinceSnapshot().contains("Stopped 1 worker daemon(s).")
-    }
-
-    def "worker daemons are stopped and not reused when log level is changed"() {
-        fixture.withWorkActionClassInBuildScript()
-        buildFile << """
-            task runInWorker1(type: WorkerTask) {
-                isolationMode = 'processIsolation'
-            }
-
-            task runInWorker2(type: WorkerTask) {
-                isolationMode = 'processIsolation'
-            }
-        """
-
-        when:
-        args("--warn")
-        succeeds "runInWorker1"
-
-        then:
-        newSnapshot()
-
-        when:
-        args("--info")
-        succeeds "runInWorker2"
-
-        then:
-        sinceSnapshot().contains("Log level has changed, stopping idle worker daemon with out-of-date log level.")
-
-        and:
         assertDifferentDaemonsWereUsed("runInWorker1", "runInWorker2")
     }
 
@@ -193,13 +139,16 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         fails "runInWorker2"
 
         then:
-        assertSameDaemonWasUsed("runInWorker1", "runInWorker2")
+        assertDifferentDaemonsWereUsed("runInWorker1", "runInWorker2")
 
         then:
         succeeds "runInWorker1"
+
+        and:
+        assertDifferentDaemonsWereUsed("runInWorker1", "runInWorker2")
     }
 
-    def "only compiler daemons are stopped with the build session"() {
+    def "all daemons are stopped with the build session"() {
         fixture.withWorkActionClassInBuildScript()
         file('src/main/java').createDir()
         file('src/main/java/Test.java') << "public class Test {}"
@@ -221,19 +170,11 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
 
         then:
         sinceSnapshot().count("Started Gradle worker daemon") == 2
-        sinceSnapshot().contains("Stopped 1 worker daemon(s).")
-        newSnapshot()
-
-        when:
-        stopDaemonsNow()
-
-        then:
-        daemons.daemon.stops()
-        sinceSnapshot().contains("Stopped 1 worker daemon(s).")
+        sinceSnapshot().contains("Stopped 2 worker daemon(s).")
     }
 
     @Requires(TestPrecondition.UNIX)
-    def "worker daemons exit when the parent build daemon is killed"() {
+    def "worker daemons exit after the build is complete"() {
         fixture.withWorkActionClassInBuildScript()
         buildFile << """
             task runInWorker(type: WorkerTask) {
@@ -251,13 +192,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         daemons.daemon.killDaemonOnly()
 
         then:
-        ConcurrentTestUtil.poll {
-            def info = daemonProcess.getProcessInfo(children)
-            // There is a header line in the process info
-            if (info.size() > 1) {
-                throw new IllegalStateException("Not all child processes have expired for daemon (pid ${daemons.daemon.context.pid}):\n" + info.join("\n"))
-            }
-        }
+        children.length == 0
 
         cleanup:
         // In the event this fails, clean up any orphaned children

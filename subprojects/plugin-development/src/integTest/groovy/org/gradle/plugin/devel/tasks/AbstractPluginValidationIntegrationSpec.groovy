@@ -380,14 +380,14 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.api.tasks.Input;
 
             public class Pojo {
-                private final Boolean enabled;
+                private final boolean enabled;
 
-                public Pojo(Boolean enabled) {
+                public Pojo(boolean enabled) {
                     this.enabled = enabled;
                 }
 
                 @Input
-                public Boolean isEnabled() {
+                public boolean isEnabled() {
                     return enabled;
                 }
             }

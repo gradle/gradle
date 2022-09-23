@@ -16,7 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -28,7 +27,6 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -37,6 +35,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * A {@link TaskNode} implementation for a task in the current build.
@@ -45,16 +44,17 @@ public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
     private final WorkValidationContext validationContext;
     private final ResolveMutationsNode resolveMutationsNode;
+    private boolean hasVisitedMutationsNode;
     private Set<Node> lifecycleSuccessors;
 
     private boolean isolated;
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
 
-    public LocalTaskNode(TaskInternal task, NodeValidator nodeValidator, WorkValidationContext workValidationContext, BuildOperationRunner buildOperationRunner) {
+    public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext, Function<LocalTaskNode, ResolveMutationsNode> resolveNodeFactory) {
         this.task = task;
         this.validationContext = workValidationContext;
-        this.resolveMutationsNode = new ResolveMutationsNode(this, nodeValidator, buildOperationRunner);
+        this.resolveMutationsNode = resolveNodeFactory.apply(this);
     }
 
     /**
@@ -114,12 +114,10 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    public void prepareForExecution(Action<Node> monitor) {
-        ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
-    }
-
-    @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
+        // Make sure it has been configured
+        ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
+
         for (Node targetNode : getDependencies(dependencyResolver)) {
             addDependencySuccessor(targetNode);
         }
@@ -133,7 +131,7 @@ public class LocalTaskNode extends TaskNode {
             addFinalizerNode((TaskNode) targetNode);
         }
         for (Node targetNode : getMustRunAfter(dependencyResolver)) {
-            addMustSuccessor((TaskNode) targetNode);
+            addMustSuccessor(targetNode);
         }
         for (Node targetNode : getShouldRunAfter(dependencyResolver)) {
             addShouldSuccessor(targetNode);
@@ -191,8 +189,16 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
+    public boolean hasPendingPreExecutionNodes() {
+        return !hasVisitedMutationsNode;
+    }
+
+    @Override
     public void visitPreExecutionNodes(Consumer<? super Node> visitor) {
-        visitor.accept(resolveMutationsNode);
+        if (!hasVisitedMutationsNode) {
+            visitor.accept(resolveMutationsNode);
+            hasVisitedMutationsNode = true;
+        }
     }
 
     public Node getPrepareNode() {
@@ -210,7 +216,7 @@ public class LocalTaskNode extends TaskNode {
     @Override
     public void cancelExecution(Consumer<Node> completionAction) {
         super.cancelExecution(completionAction);
-        if (!resolveMutationsNode.isComplete()) {
+        if (resolveMutationsNode.isRequired()) {
             resolveMutationsNode.cancelExecution(completionAction);
         }
     }

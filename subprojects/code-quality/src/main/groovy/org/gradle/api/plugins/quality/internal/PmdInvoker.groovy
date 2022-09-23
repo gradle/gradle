@@ -86,7 +86,7 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
                 ruleSets = ['basic']
             }
             if (parameters.incrementalAnalysis.get()) {
-                assertUnsupportedIncrementalAnalysis(version)
+                PmdInvoker.assertUnsupportedIncrementalAnalysis(version)
             }
         } else if (version < VersionNumber.parse("6.0.0")) {
             // 5.x
@@ -94,7 +94,7 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
                 ruleSets = ['java-basic']
             }
             if (parameters.incrementalAnalysis.get()) {
-                assertUnsupportedIncrementalAnalysis(version)
+                PmdInvoker.assertUnsupportedIncrementalAnalysis(version)
             }
             antPmdArgs['threads'] = parameters.threads.get()
         } else {

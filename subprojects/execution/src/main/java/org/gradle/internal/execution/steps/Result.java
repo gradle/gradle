@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.UnitOfWork;
 
 import java.time.Duration;
@@ -43,5 +43,5 @@ public interface Result {
      */
     Duration getDuration();
 
-    Try<ExecutionResult> getExecutionResult();
+    Try<Execution> getExecution();
 }

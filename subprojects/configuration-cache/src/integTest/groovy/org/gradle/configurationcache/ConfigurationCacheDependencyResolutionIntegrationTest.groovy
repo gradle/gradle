@@ -1333,4 +1333,64 @@ dependencies {
         outputContains 'Transforming input.txt...'
         result.assertTaskExecuted ':summarize'
     }
+
+    def 'can use ListProperty of ComponentArtifactIdentifier as task input'() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildScript '''
+            plugins {
+                id 'java-library'
+            }
+
+            dependencies {
+                implementation(gradleApi())
+            }
+
+            @CacheableTask
+            abstract class PrintArtifactIds extends DefaultTask {
+
+                @Input
+                abstract ListProperty<ComponentArtifactIdentifier> getArtifactIds()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                def printArtifactIds() {
+                    outputFile.get().asFile.text = artifactIds.get().join('\\n')
+                }
+            }
+
+            tasks.register('printArtifactIds', PrintArtifactIds) {
+                artifactIds.addAll(
+                  configurations
+                      .compileClasspath
+                      .incoming.artifactView {
+                          attributes.attribute(Attribute.of('artifactType', String), 'jar')
+                      }.artifacts.resolvedArtifacts.map { artifacts ->
+                          artifacts.collect { it.id }
+                      }
+                )
+                outputFile = layout.buildDirectory.file('ids.txt')
+            }
+        '''
+
+        when:
+        configurationCacheRun ':printArtifactIds', '-s'
+
+        then:
+        configurationCache.assertStateStored()
+
+        and:
+        file('build/ids.txt').text.contains('(Gradle API)')
+
+        when:
+        configurationCacheRun ':printArtifactIds'
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        and:
+        result.assertTaskSkipped ':printArtifactIds'
+    }
 }

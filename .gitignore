@@ -93,6 +93,8 @@ atlassian-ide-plugin.xml
 
 # Thread dumps for troubleshooting
 *.threaddump
+# ps output for cleaning up leaking Java processes
+*.psoutput
 
 # oh-my-zsh gradle plugin
 .gradletasknamecache

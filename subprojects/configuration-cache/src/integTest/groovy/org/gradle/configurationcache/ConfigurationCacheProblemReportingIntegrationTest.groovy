@@ -167,7 +167,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("Configuration cache state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
+        failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
         problems.assertResultHasProblems(failure) {
         }
@@ -184,7 +184,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("Configuration cache state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
+        failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
         problems.assertResultHasProblems(failure) {
         }
@@ -225,7 +225,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("Configuration cache state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
+        failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
         problems.assertResultHasProblems(failure) {
             totalProblemsCount = 2
@@ -245,7 +245,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("Configuration cache state could not be cached: field 'prop' from type 'BrokenTaskType': error writing value of type 'BrokenSerializable'")
+        failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:broken` of type `BrokenTaskType`: error writing value of type 'BrokenSerializable'")
         failure.assertHasCause("BOOM")
         problems.assertResultHasProblems(failure) {
             totalProblemsCount = 2

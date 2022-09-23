@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.execution.EntryTaskSelector
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.buildtree.BuildTreeWorkPreparer
 
@@ -24,9 +25,9 @@ class ConfigurationCacheAwareBuildTreeWorkPreparer(
     private val delegate: BuildTreeWorkPreparer,
     private val cache: BuildTreeConfigurationCache
 ) : BuildTreeWorkPreparer {
-    override fun scheduleRequestedTasks(graph: BuildTreeWorkGraph) {
-        cache.loadOrScheduleRequestedTasks(graph) {
-            delegate.scheduleRequestedTasks(it)
+    override fun scheduleRequestedTasks(graph: BuildTreeWorkGraph, selector: EntryTaskSelector?): BuildTreeWorkGraph.FinalizedGraph {
+        return cache.loadOrScheduleRequestedTasks(graph) {
+            delegate.scheduleRequestedTasks(it, selector)
         }
     }
 }

@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -47,17 +46,11 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         SnapshottingVisitor visitor = new SnapshottingVisitor();
         ((FileCollectionInternal) fileCollection).visitStructure(visitor);
         FileSystemSnapshot snapshot = CompositeFileSystemSnapshot.of(visitor.getRoots());
-        boolean fileTreeOnly = visitor.isFileTreeOnly();
         boolean containsArchiveTrees = visitor.containsArchiveTrees();
         return new Result() {
             @Override
             public FileSystemSnapshot getSnapshot() {
                 return snapshot;
-            }
-
-            @Override
-            public boolean isFileTreeOnly() {
-                return fileTreeOnly;
             }
 
             @Override
@@ -69,46 +62,32 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
     private class SnapshottingVisitor implements FileCollectionStructureVisitor {
         private final List<FileSystemSnapshot> roots = new ArrayList<>();
-        private Boolean fileTreeOnly;
         private boolean containsArchiveTrees;
 
         @Override
         public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
             for (File file : contents) {
-                fileSystemAccess.read(file.getAbsolutePath(), roots::add);
+                roots.add(fileSystemAccess.read(file.getAbsolutePath()));
             }
-            fileTreeOnly = false;
         }
 
         @Override
         public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
             fileSystemAccess.read(
                 root.getAbsolutePath(),
-                new PatternSetSnapshottingFilter(patterns, stat),
-                snapshot -> {
-                    if (snapshot.getType() != FileType.Missing) {
-                        roots.add(snapshot);
-                    }
-                }
-            );
-            if (fileTreeOnly == null) {
-                fileTreeOnly = true;
-            }
+                new PatternSetSnapshottingFilter(patterns, stat)
+            )
+                .map(roots::add);
         }
 
         @Override
         public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-            fileSystemAccess.read(file.getAbsolutePath(), roots::add);
-            fileTreeOnly = false;
+            roots.add(fileSystemAccess.read(file.getAbsolutePath()));
             containsArchiveTrees = true;
         }
 
         public List<FileSystemSnapshot> getRoots() {
             return roots;
-        }
-
-        public boolean isFileTreeOnly() {
-            return fileTreeOnly != null && fileTreeOnly;
         }
 
         public boolean containsArchiveTrees() {

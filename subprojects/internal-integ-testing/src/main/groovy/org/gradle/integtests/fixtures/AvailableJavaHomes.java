@@ -155,7 +155,15 @@ public abstract class AvailableJavaHomes {
      */
     @Nullable
     public static Jvm getDifferentJdk() {
-        return getAvailableJdk(element -> !element.getJavaHome().toFile().equals(Jvm.current().getJavaHome()) && isSupportedVersion(element));
+        return getAvailableJdk(element -> !isCurrentJavaHome(element) && isSupportedVersion(element));
+    }
+
+    /**
+     * Returns a JDK that has a different Java home than the current one, and which is supported by the Gradle version under test.
+     */
+    @Nullable
+    public static Jvm getDifferentJdk(final Spec<? super JvmInstallationMetadata> filter) {
+        return getAvailableJdk(element -> !isCurrentJavaHome(element) && isSupportedVersion(element) && filter.isSatisfiedBy(element));
     }
 
     /**
@@ -170,9 +178,13 @@ public abstract class AvailableJavaHomes {
      * Returns a JDK that has a different Java home to the current one, is supported by the Gradle version under tests and has a valid JRE.
      */
     public static Jvm getDifferentJdkWithValidJre() {
-        return AvailableJavaHomes.getAvailableJdk(jvm -> !jvm.getJavaHome().equals(Jvm.current().getJavaHome().toPath())
+        return AvailableJavaHomes.getAvailableJdk(jvm -> !isCurrentJavaHome(jvm)
             && isSupportedVersion(jvm)
             && Jvm.discovered(jvm.getJavaHome().toFile(), null, jvm.getLanguageVersion()).getJre() != null);
+    }
+
+    private static boolean isCurrentJavaHome(JvmInstallationMetadata metadata) {
+        return metadata.getJavaHome().toFile().equals(Jvm.current().getJavaHome());
     }
 
     /**

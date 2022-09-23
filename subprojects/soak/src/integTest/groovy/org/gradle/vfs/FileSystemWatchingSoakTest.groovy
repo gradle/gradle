@@ -152,7 +152,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
         if (os.windows) {
             return 200
         } else if (os.macOsX) {
-            return 500
+            return 150
         } else {
             return 1000
         }

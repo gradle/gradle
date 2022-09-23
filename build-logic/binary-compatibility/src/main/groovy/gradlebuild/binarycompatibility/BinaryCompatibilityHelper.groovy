@@ -21,6 +21,7 @@ import gradlebuild.binarycompatibility.filters.KotlinInternalFilter
 import gradlebuild.binarycompatibility.rules.AcceptedRegressionsRulePostProcess
 import gradlebuild.binarycompatibility.rules.AcceptedRegressionsRuleSetup
 import gradlebuild.binarycompatibility.rules.BinaryBreakingChangesRule
+import gradlebuild.binarycompatibility.rules.BinaryBreakingSuperclassChangeRule
 import gradlebuild.binarycompatibility.rules.IncubatingInternalInterfaceAddedRule
 import gradlebuild.binarycompatibility.rules.IncubatingMissingRule
 import gradlebuild.binarycompatibility.rules.KotlinModifiersBreakingChangeRule
@@ -42,20 +43,25 @@ class BinaryCompatibilityHelper {
         String currentVersion
     ) {
         japicmpTask.tap {
+            doNotTrackState("classloading issues with rules")
 
             addExcludeFilter(AnonymousClassesFilter)
             addExcludeFilter(KotlinInternalFilter)
 
             def acceptedChangesMap = acceptedViolations.toAcceptedChangesMap()
 
-            richReport.tap {
+            richReport.get().tap {
                 addRule(IncubatingInternalInterfaceAddedRule, [
                     acceptedApiChanges: acceptedChangesMap,
-                    publicApiPatterns: richReport.includedClasses
+                    publicApiPatterns: includedClasses.get()
                 ])
                 addRule(MethodsRemovedInInternalSuperClassRule, [
                     acceptedApiChanges: acceptedChangesMap,
-                    publicApiPatterns: richReport.includedClasses
+                    publicApiPatterns: includedClasses.get()
+                ])
+                addRule(BinaryBreakingSuperclassChangeRule, [
+                    acceptedApiChanges: acceptedChangesMap,
+                    publicApiPatterns: includedClasses.get()
                 ])
                 addRule(BinaryBreakingChangesRule, acceptedChangesMap)
                 addRule(NullabilityBreakingChangesRule, acceptedChangesMap)
@@ -66,18 +72,13 @@ class BinaryCompatibilityHelper {
 
                 addSetupRule(AcceptedRegressionsRuleSetup, acceptedChangesMap)
                 addSetupRule(SinceAnnotationMissingRuleCurrentGradleVersionSetup, [currentVersion: currentVersion])
+                addSetupRule(BinaryCompatibilityRepositorySetupRule, [
+                    (BinaryCompatibilityRepositorySetupRule.Params.sourceRoots): sourceRoots.collect { it.absolutePath } as Set,
+                    (BinaryCompatibilityRepositorySetupRule.Params.sourceCompilationClasspath): newClasspath.collect { it.absolutePath } as Set
+                ])
 
                 addPostProcessRule(AcceptedRegressionsRulePostProcess)
-            }
-
-            doFirst {
-                richReport.tap {
-                    addSetupRule(BinaryCompatibilityRepositorySetupRule, [
-                        (BinaryCompatibilityRepositorySetupRule.Params.sourceRoots): sourceRoots.collect { it.absolutePath } as Set,
-                        (BinaryCompatibilityRepositorySetupRule.Params.sourceCompilationClasspath): newClasspath.collect { it.absolutePath } as Set
-                    ])
-                    addPostProcessRule(BinaryCompatibilityRepositoryPostProcessRule)
-                }
+                addPostProcessRule(BinaryCompatibilityRepositoryPostProcessRule)
             }
         }
     }

@@ -56,6 +56,7 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
+import org.gradle.internal.execution.UnitOfWork.InputBehavior
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.util.internal.DeferredUtil
@@ -250,8 +251,7 @@ sealed class RegisteredProperty {
         val propertyValue: PropertyValue,
         val optional: Boolean,
         val filePropertyType: InputFilePropertyType,
-        val skipWhenEmpty: Boolean,
-        val incremental: Boolean,
+        val behavior: InputBehavior,
         val fileNormalizer: Class<out FileNormalizer>?,
         val directorySensitivity: DirectorySensitivity,
         val lineEndingSensitivity: LineEndingSensitivity
@@ -293,7 +293,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
                     writeBoolean(optional)
                     writeBoolean(true)
                     writeEnum(filePropertyType)
-                    writeBoolean(skipWhenEmpty)
+                    writeEnum(behavior)
                     writeClass(fileNormalizer!!)
                     writeEnum(directorySensitivity)
                     writeEnum(lineEndingSensitivity)
@@ -358,10 +358,9 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
         override fun visitInputFileProperty(
             propertyName: String,
             optional: Boolean,
-            skipWhenEmpty: Boolean,
+            behavior: InputBehavior,
             directorySensitivity: DirectorySensitivity,
             lineEndingSensitivity: LineEndingSensitivity,
-            incremental: Boolean,
             fileNormalizer: Class<out FileNormalizer>?,
             propertyValue: PropertyValue,
             filePropertyType: InputFilePropertyType
@@ -372,8 +371,7 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
                     propertyValue,
                     optional,
                     filePropertyType,
-                    skipWhenEmpty,
-                    incremental,
+                    behavior,
                     fileNormalizer,
                     directorySensitivity,
                     lineEndingSensitivity
@@ -416,7 +414,7 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
             when {
                 isFileInputProperty -> {
                     val filePropertyType = readEnum<InputFilePropertyType>()
-                    val skipWhenEmpty = readBoolean()
+                    val inputBehavior = readEnum<InputBehavior>()
                     val normalizer = readClass()
                     val directorySensitivity = readEnum<DirectorySensitivity>()
                     val lineEndingNormalization = readEnum<LineEndingSensitivity>()
@@ -429,7 +427,7 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                     }.run {
                         withPropertyName(propertyName)
                         optional(optional)
-                        skipWhenEmpty(skipWhenEmpty)
+                        skipWhenEmpty(inputBehavior.shouldSkipWhenEmpty())
                         withNormalizer(normalizer.uncheckedCast())
                         ignoreEmptyDirectories(directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES)
                         normalizeLineEndings(lineEndingNormalization == LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)

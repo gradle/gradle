@@ -16,6 +16,8 @@
 
 package org.gradle.execution.plan;
 
+import com.google.common.collect.ImmutableSet;
+
 import javax.annotation.Nullable;
 import java.util.Set;
 
@@ -27,10 +29,19 @@ public class CompositeNodeGroup extends HasFinalizers {
     private final Set<FinalizerGroup> finalizerGroups;
     private final boolean reachableFromEntryPoint;
 
-    public CompositeNodeGroup(NodeGroup ordinalGroup, Set<FinalizerGroup> finalizerGroups) {
-        this.ordinalGroup = ordinalGroup;
-        this.finalizerGroups = finalizerGroups;
-        this.reachableFromEntryPoint = reachableFromEntryPoint();
+    public static HasFinalizers mergeInto(OrdinalGroup original, HasFinalizers finalizers) {
+        return new CompositeNodeGroup(original.isReachableFromEntryPoint() || finalizers.isReachableFromEntryPoint(), original, finalizers.getFinalizerGroups());
+    }
+
+    public static HasFinalizers mergeInto(HasFinalizers original, HasFinalizers finalizers) {
+        if (original.isReachableFromEntryPoint() == finalizers.isReachableFromEntryPoint() && original.getFinalizerGroups().containsAll(finalizers.getFinalizerGroups())) {
+            return original;
+        }
+        boolean reachableFromEntryPoint = original.isReachableFromEntryPoint() || finalizers.isReachableFromEntryPoint();
+        ImmutableSet.Builder<FinalizerGroup> builder = ImmutableSet.builder();
+        builder.addAll(original.getFinalizerGroups());
+        builder.addAll(finalizers.getFinalizerGroups());
+        return new CompositeNodeGroup(reachableFromEntryPoint, original.getOrdinalGroup(), builder.build());
     }
 
     public CompositeNodeGroup(boolean reachableFromEntryPoint, NodeGroup newOrdinal, Set<FinalizerGroup> finalizerGroups) {
@@ -64,18 +75,6 @@ public class CompositeNodeGroup extends HasFinalizers {
         return reachableFromEntryPoint;
     }
 
-    private boolean reachableFromEntryPoint() {
-        if (ordinalGroup.isReachableFromEntryPoint()) {
-            return true;
-        }
-        for (FinalizerGroup group : finalizerGroups) {
-            if (group.isReachableFromEntryPoint()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     public void addMember(Node node) {
         for (FinalizerGroup group : finalizerGroups) {
@@ -97,12 +96,7 @@ public class CompositeNodeGroup extends HasFinalizers {
 
     @Override
     public boolean isCanCancel() {
-        for (FinalizerGroup group : finalizerGroups) {
-            if (!group.isCanCancel()) {
-                return false;
-            }
-        }
-        return true;
+        return isCanCancel(finalizerGroups);
     }
 
     @Override
