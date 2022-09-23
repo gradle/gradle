@@ -60,10 +60,19 @@ fun Requirements.requiresOs(os: Os) {
     contains("teamcity.agent.jvm.os.name", os.agentRequirement)
 }
 
-fun Requirements.requiresNoEc2Agent() {
+fun Requirements.requiresNotEc2Agent() {
     doesNotContain("teamcity.agent.name", "ec2")
     // US region agents have name "EC2-XXX"
     doesNotContain("teamcity.agent.name", "EC2")
+}
+
+/**
+ * We have some "shared" host where a Linux build agent and a Windows build agent
+ * both run on the same bare metal. Some builds require exclusive access to the
+ * hardware resources (e.g. performance test).
+ */
+fun Requirements.requiresNotSharedHost() {
+    doesNotContain("agent.host.type", "shared")
 }
 
 fun VcsSettings.filterDefaultBranch() {
@@ -71,7 +80,6 @@ fun VcsSettings.filterDefaultBranch() {
 }
 
 const val failedTestArtifactDestination = ".teamcity/gradle-logs"
-
 fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
     artifactRules = """
         build/report-* => $failedTestArtifactDestination
