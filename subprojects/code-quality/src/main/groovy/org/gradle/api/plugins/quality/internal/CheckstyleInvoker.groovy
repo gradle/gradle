@@ -61,38 +61,43 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
             xmlOutputLocation = new File(parameters.temporaryDir.asFile.get(), xmlOutputLocation.name)
         }
 
+        if (configDir) {
+            // User provided their own config_loc
+            def userProvidedConfigLoc = configProperties[CONFIG_LOC_PROPERTY]
+            if (userProvidedConfigLoc) {
+                throw new InvalidUserDataException("Cannot add config_loc to checkstyle.configProperties. Please configure the configDirectory on the checkstyle task instead.")
+            }
+        }
+
         try {
             ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
         } catch (RuntimeException ignore) {
             ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask')
         }
 
-        ant.checkstyle(config: config.asFile, failOnViolation: false,
-            maxErrors: maxErrors, maxWarnings: maxWarnings, failureProperty: FAILURE_PROPERTY_NAME) {
+        try {
+            ant.checkstyle(config: config.asFile, failOnViolation: false,
+                    maxErrors: maxErrors, maxWarnings: maxWarnings, failureProperty: FAILURE_PROPERTY_NAME) {
 
-            source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
+                source.addToAntBuilder(ant, 'fileset', FileCollection.AntType.FileSet)
 
-            if (showViolations) {
-                formatter(type: 'plain', useFile: false)
-            }
-
-            if (isXmlRequired || isHtmlRequired) {
-                formatter(type: 'xml', toFile: xmlOutputLocation)
-            }
-
-            configProperties.each { key, value ->
-                property(key: key, value: value.toString())
-            }
-
-            if (configDir) {
-                // User provided their own config_loc
-                def userProvidedConfigLoc = configProperties[CONFIG_LOC_PROPERTY]
-                if (userProvidedConfigLoc) {
-                    throw new InvalidUserDataException("Cannot add config_loc to checkstyle.configProperties. Please configure the configDirectory on the checkstyle task instead.")
+                if (showViolations) {
+                    formatter(type: 'plain', useFile: false)
                 }
+
+                if (isXmlRequired || isHtmlRequired) {
+                    formatter(type: 'xml', toFile: xmlOutputLocation)
+                }
+
+                configProperties.each { key, value ->
+                    property(key: key, value: value.toString())
+                }
+
                 // Use configDir for config_loc
                 property(key: CONFIG_LOC_PROPERTY, value: configDir.toString())
             }
+        } catch (Exception e) {
+            throw new CheckstyleInvocationException("An unexpected error occurred configuring and executing Checkstyle.", e)
         }
 
         if (isHtmlRequired) {
