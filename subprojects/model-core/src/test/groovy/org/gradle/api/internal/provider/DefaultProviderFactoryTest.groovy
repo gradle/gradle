@@ -21,8 +21,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
-import java.util.concurrent.atomic.AtomicReference
-
 import static org.gradle.api.internal.provider.ProviderTestUtil.withProducer
 import static org.gradle.api.internal.provider.ProviderTestUtil.withValues
 
@@ -93,22 +91,18 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
     }
 
     def "can zip two providers and use null to remove the value, and it is live"() {
-        def reference = new AtomicReference<String>("initial")
-        def provider = providerFactory.provider(reference::get)
+        def provider = withValues("accepted", "accepted", "rejected", "rejected")
         def second = providerFactory.provider { "value" }
 
         when:
         def zipped = providerFactory.zip(provider, second) { s1, s2 ->
-            s1 == "initial" ? "$s1 $s2" : null
+            s1 == "accepted" ? "$s1 $s2" : null
         }
 
         then:
         zipped instanceof Provider
         zipped.isPresent()
-        zipped.get() == "initial value"
-
-        when:
-        reference.set("changed")
+        zipped.get() == "accepted value"
 
         then:
         !zipped.isPresent()
