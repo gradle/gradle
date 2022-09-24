@@ -207,9 +207,6 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun getPlugins(): PluginContainer =
         delegate.plugins
 
-    override fun apply(closure: Closure<*>) =
-        delegate.apply(closure)
-
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         delegate.apply(action)
 

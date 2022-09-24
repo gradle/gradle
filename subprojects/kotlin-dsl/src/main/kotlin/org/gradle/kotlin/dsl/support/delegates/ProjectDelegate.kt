@@ -315,9 +315,6 @@ abstract class ProjectDelegate : Project {
     override fun getLayout(): ProjectLayout =
         delegate.layout
 
-    override fun apply(closure: Closure<*>) =
-        delegate.apply(closure)
-
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         delegate.apply(action)
 

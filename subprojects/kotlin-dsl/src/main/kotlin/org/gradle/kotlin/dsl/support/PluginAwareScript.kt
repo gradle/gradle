@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.support
 
-import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginAware
@@ -39,7 +38,4 @@ open class PluginAwareScript(
 
     override fun apply(options: Map<String, *>) =
         host.applyObjectConfigurationAction(options)
-
-    override fun apply(closure: Closure<Any>) =
-        internalError()
 }

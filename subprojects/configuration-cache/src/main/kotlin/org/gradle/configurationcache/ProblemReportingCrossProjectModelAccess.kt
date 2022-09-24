@@ -715,11 +715,6 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.plugins
         }
 
-        override fun apply(closure: Closure<*>) {
-            onAccess()
-            delegate.apply(closure)
-        }
-
         override fun apply(action: Action<in ObjectConfigurationAction>) {
             onAccess()
             delegate.apply(action)

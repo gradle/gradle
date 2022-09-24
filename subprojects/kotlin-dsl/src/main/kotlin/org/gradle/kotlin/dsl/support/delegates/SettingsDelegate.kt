@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.support.delegates
 
-import groovy.lang.Closure
 import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.initialization.ConfigurableIncludedBuild
@@ -107,9 +106,6 @@ abstract class SettingsDelegate : Settings {
 
     override fun getPlugins(): PluginContainer =
         delegate.plugins
-
-    override fun apply(closure: Closure<Any>) =
-        delegate.apply(closure)
 
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         delegate.apply(action)

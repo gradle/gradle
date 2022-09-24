@@ -16,8 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -43,22 +41,10 @@ public interface PluginAware {
      * Use {@link PluginManager#hasPlugin(String)} or similar to query for the application of plugins instead of doing so via the plugin container.
      *
      * @return the plugin container
-     * @see #apply
+     * @see #apply(Action)
      * @see PluginManager#hasPlugin(String)
      */
     PluginContainer getPlugins();
-
-    /**
-     * Applies zero or more plugins or scripts.
-     * <p>
-     * The given closure is used to configure an {@link ObjectConfigurationAction}, which “builds” the plugin application.
-     * <p>
-     * This method differs from {@link #apply(java.util.Map)} in that it allows methods of the configuration action to be invoked more than once.
-     *
-     * @param closure the closure to configure an {@link ObjectConfigurationAction} with before “executing” it
-     * @see #apply(java.util.Map)
-     */
-    void apply(@DelegatesTo(ObjectConfigurationAction.class) Closure closure);
 
     /**
      * Applies zero or more plugins or scripts.

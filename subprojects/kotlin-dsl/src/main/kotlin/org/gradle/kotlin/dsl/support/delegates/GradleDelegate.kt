@@ -144,9 +144,6 @@ abstract class GradleDelegate : Gradle {
     override fun getPlugins(): PluginContainer =
         delegate.plugins
 
-    override fun apply(closure: Closure<Any>) =
-        delegate.apply(closure)
-
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         delegate.apply(action)
 
