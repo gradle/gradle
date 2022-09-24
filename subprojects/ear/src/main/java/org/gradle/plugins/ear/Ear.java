@@ -15,8 +15,6 @@
  */
 package org.gradle.plugins.ear;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
@@ -40,7 +38,6 @@ import org.gradle.plugins.ear.descriptor.EarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarModule;
 import org.gradle.plugins.ear.descriptor.internal.DefaultEarWebModule;
-import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -175,19 +172,6 @@ public class Ear extends Jar {
     /**
      * Configures the deployment descriptor for this EAR archive.
      *
-     * <p>The given closure is executed to configure the deployment descriptor. The {@link DeploymentDescriptor} is passed to the closure as its delegate.</p>
-     *
-     * @param configureClosure The closure.
-     * @return This.
-     */
-    public Ear deploymentDescriptor(@DelegatesTo(value = DeploymentDescriptor.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, forceDeploymentDescriptor());
-        return this;
-    }
-
-    /**
-     * Configures the deployment descriptor for this EAR archive.
-     *
      * <p>The given action is executed to configure the deployment descriptor.</p>
      *
      * @param configureAction The action.
@@ -212,18 +196,6 @@ public class Ear extends Jar {
     @Internal
     public CopySpec getLib() {
         return ((CopySpecInternal) lib).addChild();
-    }
-
-    /**
-     * Adds dependency libraries to include in the 'lib' directory of the EAR archive.
-     *
-     * <p>The given closure is executed to configure a {@code CopySpec}. The {@link CopySpec} is passed to the closure as its delegate.</p>
-     *
-     * @param configureClosure The closure.
-     * @return The created {@code CopySpec}
-     */
-    public CopySpec lib(@DelegatesTo(value = CopySpec.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, getLib());
     }
 
     /**
