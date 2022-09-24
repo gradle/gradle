@@ -287,6 +287,8 @@ tasks.withType<KotlinCompile>().configureEach {
 
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.13.html[Groovy 3.0.13].
 
+Since the previous version was 3.0.11, the https://groovy-lang.org/changelogs/changelog-3.0.12.html[3.0.12 changes] are also included.
+
 ==== Upgrade to CodeNarc 3.1.0
 
 The default version of CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-310----jun-2022[3.1.0].
