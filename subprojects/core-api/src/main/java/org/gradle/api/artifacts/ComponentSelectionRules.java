@@ -16,8 +16,6 @@
 
 package org.gradle.api.artifacts;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -67,16 +65,6 @@ public interface ComponentSelectionRules {
     ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction);
 
     /**
-     * Adds a component selection rule that will apply to all resolved components.
-     *
-     * Each rule will receive a {@link ComponentSelection} object as an argument.
-     *
-     * @param closure the Closure that implements a rule to be applied
-     * @return this
-     */
-    ComponentSelectionRules all(@DelegatesTo(ComponentSelection.class) Closure<?> closure);
-
-    /**
      * Adds a rule-source backed component selection rule that will apply to all resolved components.
      *
      * The ruleSource provides the rule as exactly one rule method annotated with {@link org.gradle.model.Mutate}.
@@ -101,17 +89,6 @@ public interface ComponentSelectionRules {
      * @return this
      */
     ComponentSelectionRules withModule(Object id, Action<? super ComponentSelection> selectionAction);
-
-    /**
-     * Adds a component selection rule that will apply to the specified module.
-     *
-     * Each rule will receive a {@link ComponentSelection} object as an argument.
-     *
-     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
-     * @param closure the Closure that implements a rule to be applied
-     * @return this
-     */
-    ComponentSelectionRules withModule(Object id, @DelegatesTo(ComponentSelection.class) Closure<?> closure);
 
     /**
      * Adds a rule-source backed component selection rule that will apply to the specified module.

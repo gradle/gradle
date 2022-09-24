@@ -259,16 +259,10 @@ class DefaultComponentSelectionRulesTest extends Specification {
         when: rules.all(Actions.doNothing())
         then: 1 * checker.validateMutation(STRATEGY)
 
-        when: rules.all(Closure.IDENTITY)
-        then: 1 * checker.validateMutation(STRATEGY)
-
         when: rules.all(ruleSource)
         then: 1 * checker.validateMutation(STRATEGY)
 
         when: rules.withModule("something:else", Actions.doNothing())
-        then: 1 * checker.validateMutation(STRATEGY)
-
-        when: rules.withModule("something:else", Closure.IDENTITY)
         then: 1 * checker.validateMutation(STRATEGY)
 
         when: rules.withModule("something:else", ruleSource)

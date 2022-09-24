@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentSelection;
@@ -89,11 +88,6 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     @Override
-    public ComponentSelectionRules all(Closure<?> closure) {
-        return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
-    }
-
-    @Override
     public ComponentSelectionRules all(Object ruleSource) {
         return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
@@ -101,11 +95,6 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     @Override
     public ComponentSelectionRules withModule(Object id, Action<? super ComponentSelection> selectionAction) {
         return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromAction(selectionAction)));
-    }
-
-    @Override
-    public ComponentSelectionRules withModule(Object id, Closure<?> closure) {
-        return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromClosure(ComponentSelection.class, closure)));
     }
 
     @Override
