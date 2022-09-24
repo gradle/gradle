@@ -149,19 +149,6 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         testDescription ==  getTask().getDescription()
     }
 
-    def canSpecifyOnlyIfPredicateUsingClosure() {
-        DefaultTask task = getTask()
-
-        expect:
-        task.getOnlyIf().isSatisfiedBy(task)
-
-        when:
-        task.onlyIf(TestUtil.toClosure("{ task -> false }"))
-
-        then:
-        assertFalse(task.getOnlyIf().isSatisfiedBy(task))
-    }
-
     def canSpecifyOnlyIfPredicateUsingSpec() {
         final Spec<Task> spec = Mock()
         final DefaultTask task = getTask()

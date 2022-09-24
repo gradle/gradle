@@ -16,8 +16,6 @@
 
 package org.gradle.api;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
@@ -52,9 +50,9 @@ import java.util.Set;
  * {@code task} keyword in your build file: </p>
  * <pre>
  * task myTask
- * task myTask { configure closure }
+ * task myTask { configure action }
  * task myTask(type: SomeType)
- * task myTask(type: SomeType) { configure closure }
+ * task myTask(type: SomeType) { configure action }
  * </pre>
  *
  * <p>Each task has a name, which can be used to refer to the task within its owning project, and a fully qualified
@@ -68,9 +66,7 @@ import java.util.Set;
  * actions is executed in turn, by calling {@link Action#execute}. You can add actions to a task by calling {@link
  * #doFirst(Action)} or {@link #doLast(Action)}.</p>
  *
- * <p>Groovy closures can also be used to provide a task action. When the action is executed, the closure is called with
- * the task as parameter.  You can add action closures to a task by calling {@link #doFirst(groovy.lang.Closure)} or
- * {@link #doLast(groovy.lang.Closure)}.</p>
+ * <p>Groovy closures can also be used to provide a task action. The closure is converted to an {@link Action}.
  *
  * <p>There are 2 special exceptions which a task action can throw to abort execution and continue without failing the
  * build. A task action can abort execution of the action and continue to the next action of the task by throwing a
@@ -112,8 +108,8 @@ import java.util.Set;
  * <li>A {@code Callable}. The {@code call()} method may return any of the types listed here. Its return value is
  * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
  *
- * <li>A Groovy {@code Closure} or Kotlin function. The closure may take a {@code Task} as parameter.
- * The closure or function may return any of the types listed here. Its return value is
+ * <li>A Groovy {@code Closure} or Kotlin function. The callable may take a {@code Task} as parameter.
+ * The callable may return any of the types listed here. Its return value is
  * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
  *
  * <li>Anything else is treated as an error.</li>
@@ -260,19 +256,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     Task dependsOn(Object... paths);
 
     /**
-     * <p>Execute the task only if the given closure returns true.  The closure will be evaluated at task execution
-     * time, not during configuration.  The closure will be passed a single parameter, this task. If the closure returns
-     * false, the task will be skipped.</p>
-     *
-     * <p>You may add multiple such predicates. The task is skipped if any of the predicates return false.</p>
-     *
-     * <p>Typical usage:<code>myTask.onlyIf { isProductionEnvironment() }</code></p>
-     *
-     * @param onlyIfClosure code to execute to determine if task should be run
-     */
-    void onlyIf(Closure onlyIfClosure);
-
-    /**
      * Do not track the state of the task.
      *
      * <p>Instructs Gradle to treat the task as untracked.
@@ -346,17 +329,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     void onlyIf(String onlyIfReason, Spec<? super Task> onlyIfSpec);
 
     /**
-     * <p>Execute the task only if the given closure returns true.  The closure will be evaluated at task execution
-     * time, not during configuration.  The closure will be passed a single parameter, this task. If the closure returns
-     * false, the task will be skipped.</p>
-     *
-     * <p>The given predicate replaces all such predicates for this task.</p>
-     *
-     * @param onlyIfClosure code to execute to determine if task should be run
-     */
-    void setOnlyIf(Closure onlyIfClosure);
-
-    /**
      * <p>Execute the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
      * during configuration. If the Spec is not satisfied, the task will be skipped.</p>
      *
@@ -424,15 +396,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     Task doFirst(Action<? super Task> action);
 
     /**
-     * <p>Adds the given closure to the beginning of this task's action list. The closure is passed this task as a
-     * parameter when executed.</p>
-     *
-     * @param action The action closure to execute.
-     * @return This task.
-     */
-    Task doFirst(@DelegatesTo(Task.class) Closure action);
-
-    /**
      * <p>Adds the given {@link Action} to the beginning of this task's action list.</p>
      *
      * @param actionName An arbitrary string that is used for logging.
@@ -463,15 +426,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     Task doLast(String actionName, Action<? super Task> action);
 
     /**
-     * <p>Adds the given closure to the end of this task's action list.  The closure is passed this task as a parameter
-     * when executed.</p>
-     *
-     * @param action The action closure to execute.
-     * @return This task.
-     */
-    Task doLast(@DelegatesTo(Task.class) Closure action);
-
-    /**
      * <p>Returns if this task is enabled or not.</p>
      *
      * @see #setEnabled(boolean)
@@ -488,13 +442,13 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     void setEnabled(boolean enabled);
 
     /**
-     * <p>Applies the statements of the closure against this task object. The delegate object for the closure is set to
+     * <p>Applies the statements of the action against this task object. The delegate object for the action is set to
      * this task.</p>
      *
-     * @param configureClosure The closure to be applied (can be null).
+     * @param action The action to be applied (can be null).
      * @return This task
      */
-    Task configure(Closure configureClosure);
+    Task configure(@Nullable Action<? super Task> action);
 
     /**
      * <p>Returns the <code>AntBuilder</code> for this task.  You can use this in your build file to execute ant

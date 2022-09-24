@@ -38,6 +38,7 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
     /**
      * {@inheritDoc}
      */
+    @Override
     T getByName(String name, Action<? super T> action) throws UnknownTaskException;
 
     /**

@@ -62,6 +62,7 @@ import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerManager;
@@ -319,16 +320,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public void onlyIf(final Closure onlyIfClosure) {
-        taskMutator.mutate("Task.onlyIf(Closure)", new Runnable() {
-            @Override
-            public void run() {
-                onlyIfSpec = onlyIfSpec.and(onlyIfClosure, "Task satisfies onlyIf closure");
-            }
-        });
-    }
-
-    @Override
     public void onlyIf(final Spec<? super Task> spec) {
         taskMutator.mutate("Task.onlyIf(Spec)", new Runnable() {
             @Override
@@ -364,16 +355,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             @Override
             public void run() {
                 onlyIfSpec = createNewOnlyIfSpec().and(spec, onlyIfReason);
-            }
-        });
-    }
-
-    @Override
-    public void setOnlyIf(final Closure onlyIfClosure) {
-        taskMutator.mutate("Task.setOnlyIf(Closure)", new Runnable() {
-            @Override
-            public void run() {
-                onlyIfSpec = createNewOnlyIfSpec().and(onlyIfClosure, "Task satisfies onlyIf closure");
             }
         });
     }
@@ -653,38 +634,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public Task doFirst(final Closure action) {
-        hasCustomActions = true;
-        if (action == null) {
-            throw new InvalidUserDataException("Action must not be null!");
-        }
-        taskMutator.mutate("Task.doFirst(Closure)", new Runnable() {
-            @Override
-            public void run() {
-                getTaskActions().add(0, convertClosureToAction(action, "doFirst {} action"));
-            }
-        });
-        return this;
+    public Task configure(Action<? super Task> action) {
+        return Actions.with(this, action);
     }
 
     @Override
-    public Task doLast(final Closure action) {
-        hasCustomActions = true;
-        if (action == null) {
-            throw new InvalidUserDataException("Action must not be null!");
-        }
-        taskMutator.mutate("Task.doLast(Closure)", new Runnable() {
-            @Override
-            public void run() {
-                getTaskActions().add(convertClosureToAction(action, "doLast {} action"));
-            }
-        });
-        return this;
-    }
-
-    @Override
-    public Task configure(Closure closure) {
-        return ConfigureUtil.configureSelf(closure, this);
+    public Task configure(Closure cl) {
+        return ConfigureUtil.configureSelf(cl, this);
     }
 
     @Internal

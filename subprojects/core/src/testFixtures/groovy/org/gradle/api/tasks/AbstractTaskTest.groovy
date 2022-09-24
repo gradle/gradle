@@ -154,20 +154,6 @@ abstract class AbstractTaskTest extends AbstractProjectBuilderSpec {
         testDescription == getTask().getDescription()
     }
 
-    def "can specify onlyIf predicate using closure"() {
-        given:
-        def task = getTask()
-
-        expect:
-        task.getOnlyIf().isSatisfiedBy(task)
-
-        when:
-        task.onlyIf({ false })
-
-        then:
-        !task.getOnlyIf().isSatisfiedBy(task)
-    }
-
     def "can specify onlyIf predicate using spec"() {
         given:
         final task = getTask()

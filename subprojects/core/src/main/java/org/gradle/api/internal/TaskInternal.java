@@ -53,6 +53,8 @@ public interface TaskInternal extends Task, Configurable<Task> {
     @Internal
     DescribingAndSpec<? super TaskInternal> getOnlyIf();
 
+    Task configure(Action<? super Task> action);
+
     /**
      * Return the reason for not to track state.
      *

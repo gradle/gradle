@@ -15,8 +15,6 @@
  */
 package org.gradle.api;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 

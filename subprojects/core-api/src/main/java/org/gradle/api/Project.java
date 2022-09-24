@@ -200,13 +200,13 @@ import java.util.concurrent.Callable;
  * <li>The build file. The project searches for a matching method declared in the build file.</li>
  *
  * <li>The <em>extensions</em> added to the project by the plugins. Each extension is available as a method which takes
- * a closure or {@link org.gradle.api.Action} as a parameter.</li>
+ * an {@link org.gradle.api.Action} as a parameter.</li>
  *
  * <li>The <em>convention</em> methods added to the project by the plugins. A plugin can add properties and method to
  * a project through the project's {@link Convention} object.</li>
  *
  * <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
- * taking a single closure or {@link org.gradle.api.Action} parameter. The method calls the {@link Task#configure(groovy.lang.Closure)} method for the
+ * taking a single {@link org.gradle.api.Action} parameter. The method calls the {@link Task#configure(Action)} method for the
  * associated task with the provided closure. For example, if the project has a task called <code>compile</code>, then a
  * method is added with the following signature: <code>void compile(Closure configureClosure)</code>.</li>
  *

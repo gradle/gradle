@@ -58,6 +58,7 @@ import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
 
@@ -166,7 +167,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
                         task.doFirst(taskAction);
                     } else if (action != null) {
                         Closure closure = (Closure) action;
-                        task.doFirst(closure);
+                        task.doFirst(ClosureBackedAction.of(closure));
                     }
 
                     addTask(task, replace);
