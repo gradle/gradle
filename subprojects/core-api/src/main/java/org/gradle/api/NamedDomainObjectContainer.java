@@ -15,7 +15,6 @@
  */
 package org.gradle.api;
 
-import groovy.lang.Closure;
 import org.gradle.api.provider.Provider;
 import org.gradle.util.Configurable;
 
@@ -60,17 +59,6 @@ public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, 
      * @throws InvalidUserDataException if an object with the given name already exists in this container.
      */
     T create(String name, Action<? super T> configureAction) throws InvalidUserDataException;
-
-    /**
-     * <p>Allows the container to be configured, creating missing objects as they are referenced.</p>
-     *
-     * <p>TODO: example usage</p>
-     *
-     * @param configureClosure The closure to configure this container with
-     * @return This.
-     */
-    @Override
-    NamedDomainObjectContainer<T> configure(Closure configureClosure);
 
     /**
      * Defines a new object, which will be created and configured when it is required. An object is 'required' when the object is located using query methods such as {@link NamedDomainObjectCollection#getByName(java.lang.String)} or when {@link Provider#get()} is called on the return value of this method.

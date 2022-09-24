@@ -64,6 +64,9 @@ abstract class NamedDomainObjectContainerDelegate<T : Any> : NamedDomainObjectCo
     override fun configure(configureClosure: Closure<Any>): NamedDomainObjectContainer<T> =
         delegate.configure(configureClosure)
 
+    override fun configure(action: Action<in NamedDomainObjectContainer<T>>?): NamedDomainObjectContainer<T> =
+        delegate.configure(action)
+
     override fun addAllLater(provider: Provider<out Iterable<T>>) =
         delegate.addAllLater(provider)
 
