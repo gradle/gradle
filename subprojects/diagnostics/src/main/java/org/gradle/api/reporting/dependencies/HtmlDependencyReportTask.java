@@ -16,7 +16,6 @@
 
 package org.gradle.api.reporting.dependencies;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
@@ -35,7 +34,6 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.logging.ConsoleRenderer;
-import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -94,12 +92,6 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
     @Override
     public DependencyReportContainer getReports() {
         return reports;
-    }
-
-    @Override
-    @SuppressWarnings("rawtypes")
-    public DependencyReportContainer reports(Closure closure) {
-        return reports(new ClosureBackedAction<>(closure));
     }
 
     @Override
