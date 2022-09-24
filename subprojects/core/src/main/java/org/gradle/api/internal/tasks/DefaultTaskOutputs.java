@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSortedSet;
-import groovy.lang.Closure;
 import org.gradle.api.Describable;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
@@ -80,14 +79,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     public AndSpec<? super TaskInternal> getUpToDateSpec() {
         return upToDateSpec;
     }
-
-    @Override
-    public void upToDateWhen(final Closure upToDateClosure) {
-        taskMutator.mutate("TaskOutputs.upToDateWhen(Closure)", () -> {
-            upToDateSpec = upToDateSpec.and(upToDateClosure);
-        });
-    }
-
     @Override
     public void upToDateWhen(final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.upToDateWhen(Spec)", () -> {

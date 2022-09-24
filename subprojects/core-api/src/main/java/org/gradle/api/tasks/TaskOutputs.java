@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
@@ -29,23 +28,6 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @HasInternalProtocol
 public interface TaskOutputs {
-    /**
-     * <p>
-     *     Adds a predicate to determine whether previous outputs of this task can be reused.
-     *     The given closure is executed at task execution time.
-     *     The closure is passed the task as a parameter.
-     *     If the closure returns false, previous outputs of this task cannot be reused and the task will be executed.
-     *     That means the task is out-of-date and no outputs will be loaded from the build cache.
-     * </p>
-     *
-     * <p>
-     *     You can add multiple such predicates.
-     *     The task outputs cannot be reused when any predicate returns false.
-     * </p>
-     *
-     * @param upToDateClosure The closure to use to determine whether the task outputs are up-to-date.
-     */
-    void upToDateWhen(Closure upToDateClosure);
 
     /**
      * <p>
