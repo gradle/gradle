@@ -17,8 +17,8 @@
 package org.gradle.api.distribution.plugins
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.distribution.DistributionContainer
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.bundling.Tar
@@ -27,7 +27,11 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class DistributionPluginTest extends AbstractProjectBuilderSpec {
-    ProjectInternal project = TestUtil.builder(temporaryFolder).withName("test-project").build()
+
+    @Override
+    Project createRootProject() {
+        TestUtil.builder(temporaryFolder).withName("test-project").build()
+    }
 
     def "adds convention object and a main distribution"() {
         when:

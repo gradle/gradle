@@ -35,8 +35,12 @@ class RunBuildDependenciesTaskBuilderTest extends AbstractProjectBuilderSpec {
     Project child1
     Project child2
 
+    @Override
+    Project createRootProject() {
+        TestUtil.builder(temporaryFolder.testDirectory).withName("project").build()
+    }
+
     def setup() {
-        project = TestUtil.builder(temporaryFolder.testDirectory).withName("project").build()
         child1 = ProjectBuilder.builder().withName("child1").withParent(project).build()
         child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
 

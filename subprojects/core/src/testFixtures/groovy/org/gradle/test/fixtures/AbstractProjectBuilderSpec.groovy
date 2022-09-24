@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures
 
+import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
@@ -64,9 +65,13 @@ abstract class AbstractProjectBuilderSpec extends Specification {
     ProjectExecutionServices executionServices
 
     def setup() {
-        project = TestUtil.createRootProject(temporaryFolder.testDirectory)
-        executionServices = new ProjectExecutionServices(project)
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
+        project = (ProjectInternal) createRootProject()
+        executionServices = new ProjectExecutionServices(project)
+    }
+
+    Project createRootProject() {
+        TestUtil.createRootProject(temporaryFolder.testDirectory)
     }
 
     def cleanup() {

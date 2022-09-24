@@ -31,15 +31,18 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
 
 class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
-    Project root
     Project child1
     Project child2
 
+    @Override
+    Project createRootProject() {
+        TestUtil.builder(temporaryFolder).withName("root").build()
+    }
+
     def setup() {
-        root = TestUtil.builder(temporaryFolder).withName("root").build()
-        child1 = ProjectBuilder.builder().withName("child1").withParent(root).build()
-        child2 = ProjectBuilder.builder().withName("child2").withParent(root).build()
-        [root, child1, child2].each { it.pluginManager.apply(IdeaPlugin) }
+        child1 = ProjectBuilder.builder().withName("child1").withParent(project).build()
+        child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
+        [project, child1, child2].each { it.pluginManager.apply(IdeaPlugin) }
     }
 
     def "project source language level matches idea plugin language level for non-jvm projects"() {
@@ -53,7 +56,7 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     def "project source language level matches idea plugin language level for jvm projects with default configuration"() {
         given:
-        root.plugins.apply(pluginType)
+        project.plugins.apply(pluginType)
 
         when:
         def ideaProject = buildIdeaProjectModel()
@@ -68,8 +71,8 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     def "project source language level matches idea plugin language level for jvm projects with explicit configuration"() {
         given:
-        root.plugins.apply(JavaPlugin)
-        root.idea.project.languageLevel = sourceLanguageLevel
+        project.plugins.apply(JavaPlugin)
+        project.idea.project.languageLevel = sourceLanguageLevel
 
         when:
         def ideaProject = buildIdeaProjectModel()
@@ -92,9 +95,9 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     def "module source language level matches sourceCompatibility for java projects"() {
         given:
-        root.plugins.apply(JavaPlugin)
+        project.plugins.apply(JavaPlugin)
         child1.plugins.apply(JavaPlugin)
-        root.sourceCompatibility = '1.9'
+        project.sourceCompatibility = '1.9'
         child1.sourceCompatibility = sourceCompatibility
 
         when:
@@ -109,9 +112,9 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     def "module language level is not inherited for non equal project and module language level"() {
         given:
-        root.plugins.apply(JavaPlugin)
+        project.plugins.apply(JavaPlugin)
         child1.plugins.apply(JavaPlugin)
-        root.sourceCompatibility = '1.2'
+        project.sourceCompatibility = '1.2'
         child1.sourceCompatibility = '1.3'
         when:
         def ideaProject = buildIdeaProjectModel()
@@ -123,11 +126,11 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     def "explicit project language level does not affect module language level"() {
         given:
-        root.plugins.apply(JavaPlugin)
+        project.plugins.apply(JavaPlugin)
         child1.plugins.apply(JavaPlugin)
         child2.plugins.apply(JavaPlugin)
-        root.idea.project.languageLevel = '1.2'
-        root.sourceCompatibility = '1.3'
+        project.idea.project.languageLevel = '1.2'
+        project.sourceCompatibility = '1.3'
         child1.sourceCompatibility = '1.4'
         child2.sourceCompatibility = '1.5'
 
@@ -143,11 +146,11 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     def "explicit project language level doesn't affect module bytecode level"() {
         given:
-        root.plugins.apply(JavaPlugin)
+        project.plugins.apply(JavaPlugin)
         child1.plugins.apply(JavaPlugin)
         child2.plugins.apply(JavaPlugin)
-        root.idea.project.languageLevel = '1.2'
-        root.targetCompatibility = '1.3'
+        project.idea.project.languageLevel = '1.2'
+        project.targetCompatibility = '1.3'
         child1.targetCompatibility = '1.4'
         child2.targetCompatibility = '1.5'
 
@@ -174,8 +177,8 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     def "can handle multi project builds with different source language levels"() {
         given:
-        [root, child1, child2].each { it.plugins.apply(JavaPlugin) }
-        root.sourceCompatibility = '1.3'
+        [project, child1, child2].each { it.plugins.apply(JavaPlugin) }
+        project.sourceCompatibility = '1.3'
         child1.sourceCompatibility = '1.2'
         child2.sourceCompatibility = '1.3'
 
@@ -191,8 +194,8 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     def "can handle multi project builds where only some projects are java projects"() {
         given:
-        root.plugins.apply(JavaPlugin)
-        root.sourceCompatibility = '1.4'
+        project.plugins.apply(JavaPlugin)
+        project.sourceCompatibility = '1.4'
         child1.plugins.apply(JavaPlugin)
         child1.sourceCompatibility = '1.3'
 
@@ -208,7 +211,7 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     def "project target runtime matches current jvm in use"() {
         when:
-        [root, child1, child2].each {
+        [project, child1, child2].each {
             it.plugins.apply(JavaPlugin)
         }
         def ideaProject = buildIdeaProjectModel()
@@ -223,7 +226,7 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
     def "synched module bytecode level marked as inherited"() {
 
         when:
-        [root, child1, child2].each {
+        [project, child1, child2].each {
             it.plugins.apply(JavaPlugin)
             it.targetCompatibility = "1.5"
         }
@@ -238,10 +241,10 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     def "can have mixed bytecode level"() {
         when:
-        [root, child1, child2].each {
+        [project, child1, child2].each {
             it.plugins.apply(JavaPlugin)
         }
-        root.targetCompatibility = "1.5"
+        project.targetCompatibility = "1.5"
         child1.targetCompatibility = "1.6"
         child2.targetCompatibility = "1.7"
 
@@ -256,10 +259,10 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     def "non jvm modules have no java sourceSettings applied"() {
         when:
-        [root, child1].each {
+        [project, child1].each {
             it.plugins.apply(JavaPlugin)
         }
-        root.targetCompatibility = "1.6"
+        project.targetCompatibility = "1.6"
         child1.targetCompatibility = "1.7"
 
         def ideaProject = buildIdeaProjectModel()
@@ -274,9 +277,9 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     def "non convention source and target compatibility properties are ignored"() {
         when:
-        root.ext.sourceCompatibility = '1.2'
-        root.ext.targetCompatibility = '1.2'
-        root.plugins.apply(JavaPlugin)
+        project.ext.sourceCompatibility = '1.2'
+        project.ext.targetCompatibility = '1.2'
+        project.plugins.apply(JavaPlugin)
 
         def ideaProject = buildIdeaProjectModel()
 
@@ -286,7 +289,7 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     private DefaultIdeaProject buildIdeaProjectModel() {
         def builder = createIdeaModelBuilder()
-        buildIdeaProject(builder, root)
+        buildIdeaProject(builder, project)
     }
 
     private IdeaModelBuilder createIdeaModelBuilder() {

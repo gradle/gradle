@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentPublication
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
@@ -37,8 +38,12 @@ class ProjectPublicationsBuilderTest extends AbstractProjectBuilderSpec {
     }
     def builder = new PublicationsBuilder(publicationRegistry)
 
+    @Override
+    Project createRootProject() {
+        TestUtil.builder(temporaryFolder).withName("test").build()
+    }
+
     def "builds basics for project"() {
-        def project = TestUtil.builder(temporaryFolder).withName("test").build()
         project.description = 'a test project'
 
         when:

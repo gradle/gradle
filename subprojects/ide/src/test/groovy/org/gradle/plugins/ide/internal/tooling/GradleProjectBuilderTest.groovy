@@ -16,16 +16,20 @@
 
 package org.gradle.plugins.ide.internal.tooling
 
-
+import org.gradle.api.Project
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class GradleProjectBuilderTest extends AbstractProjectBuilderSpec {
     def builder = new GradleProjectBuilder()
 
+    @Override
+    Project createRootProject() {
+        TestUtil.builder(temporaryFolder).withName("test").build()
+    }
+
     def "builds basics for project"() {
         def buildFile = temporaryFolder.file("build.gradle") << "//empty"
-        def project = TestUtil.builder(temporaryFolder).withName("test").build()
         project.description = 'a test project'
 
         when:
