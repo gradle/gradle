@@ -75,9 +75,6 @@ abstract class TaskContainerDelegate : TaskContainer {
     override fun create(options: Map<String, *>, configureClosure: Closure<Any>): Task =
         delegate.create(options, configureClosure)
 
-    override fun create(name: String, configureClosure: Closure<Any>): Task =
-        delegate.create(name, configureClosure)
-
     override fun create(name: String): Task =
         delegate.create(name)
 

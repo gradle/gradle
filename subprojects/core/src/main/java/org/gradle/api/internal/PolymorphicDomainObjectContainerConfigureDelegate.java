@@ -22,6 +22,7 @@ import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.util.internal.ConfigureUtil;
 
+@SuppressWarnings({"FieldNamingConvention", "NewMethodNamingConvention"})
 public class PolymorphicDomainObjectContainerConfigureDelegate<T> extends ConfigureDelegate {
     private final PolymorphicDomainObjectContainer<T> _container;
 
@@ -38,7 +39,7 @@ public class PolymorphicDomainObjectContainerConfigureDelegate<T> extends Config
     @Override
     protected DynamicInvokeResult _configure(String name, Object[] params) {
         if (params.length == 1 && params[0] instanceof Closure) {
-            return DynamicInvokeResult.found(_container.create(name, (Closure<?>) params[0]));
+            return DynamicInvokeResult.found(_container.create(name, ConfigureUtil.configureUsing((Closure<?>) params[0])));
         } else if (params.length == 1 && params[0] instanceof Class) {
             return DynamicInvokeResult.found(_container.create(name, Cast.<Class<T>>uncheckedCast(params[0])));
         } else if (params.length == 2 && params[0] instanceof Class && params[1] instanceof Closure){

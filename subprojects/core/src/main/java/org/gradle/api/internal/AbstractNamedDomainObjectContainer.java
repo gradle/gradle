@@ -66,12 +66,6 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     }
 
     @Override
-    public T create(String name, Closure configureClosure) {
-        assertMutable("create(String, Closure)");
-        return create(name, ConfigureUtil.configureUsing(configureClosure));
-    }
-
-    @Override
     public T create(String name, Action<? super T> configureAction) throws InvalidUserDataException {
         assertMutable("create(String, Action)");
         assertCanAdd(name);
@@ -81,13 +75,9 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
         return object;
     }
 
-    protected ConfigureDelegate createConfigureDelegate(Closure configureClosure) {
-        return new NamedDomainObjectContainerConfigureDelegate(configureClosure, this);
-    }
-
     @Override
     public AbstractNamedDomainObjectContainer<T> configure(Closure configureClosure) {
-        ConfigureDelegate delegate = createConfigureDelegate(configureClosure);
+        ConfigureDelegate delegate = new NamedDomainObjectContainerConfigureDelegate(configureClosure, this);
         ConfigureUtil.configureSelf(configureClosure, this, delegate);
         return this;
     }

@@ -64,11 +64,6 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     }
 
     @Override
-    public U create(String name, Closure configureClosure) throws InvalidUserDataException {
-        return parent.create(name, type, ConfigureUtil.configureUsing(configureClosure));
-    }
-
-    @Override
     public U maybeCreate(String name) {
         return parent.maybeCreate(name, type);
     }

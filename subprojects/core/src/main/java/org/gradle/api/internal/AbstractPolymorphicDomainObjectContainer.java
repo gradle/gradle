@@ -109,7 +109,6 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         return elementsDynamicObject;
     }
 
-    @Override
     protected ConfigureDelegate createConfigureDelegate(Closure configureClosure) {
         return new PolymorphicDomainObjectContainerConfigureDelegate<>(configureClosure, this);
     }

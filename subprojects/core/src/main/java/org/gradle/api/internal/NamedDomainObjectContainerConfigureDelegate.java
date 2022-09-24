@@ -19,7 +19,9 @@ import groovy.lang.Closure;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
+import org.gradle.util.internal.ConfigureUtil;
 
+@SuppressWarnings({"FieldNamingConvention", "NewMethodNamingConvention"})
 public class NamedDomainObjectContainerConfigureDelegate extends ConfigureDelegate {
     private final NamedDomainObjectContainer _container;
 
@@ -36,7 +38,7 @@ public class NamedDomainObjectContainerConfigureDelegate extends ConfigureDelega
     @Override
     protected DynamicInvokeResult _configure(String name, Object[] params) {
         if (params.length == 1 && params[0] instanceof Closure) {
-            return DynamicInvokeResult.found(_container.create(name, (Closure) params[0]));
+            return DynamicInvokeResult.found(_container.create(name, ConfigureUtil.configureUsing((Closure) params[0])));
         }
         return DynamicInvokeResult.notFound();
     }

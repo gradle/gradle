@@ -70,9 +70,6 @@ abstract class NamedDomainObjectContainerDelegate<T : Any> : NamedDomainObjectCo
     override fun create(name: String): T =
         delegate.create(name)
 
-    override fun create(name: String, configureClosure: Closure<Any>): T =
-        delegate.create(name, configureClosure)
-
     override fun create(name: String, configureAction: Action<in T>): T =
         delegate.create(name, configureAction)
 

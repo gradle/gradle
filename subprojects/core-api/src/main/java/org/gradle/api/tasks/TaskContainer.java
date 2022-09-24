@@ -73,7 +73,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * <tr><td><code>{@value org.gradle.api.Task#TASK_TYPE}</code></td><td>The class of the task to
      * create.</td><td>{@link org.gradle.api.DefaultTask}</td></tr>
      *
-     * <tr><td><code>{@value org.gradle.api.Task#TASK_ACTION}</code></td><td>The closure or {@link Action} to
+     * <tr><td><code>{@value org.gradle.api.Task#TASK_ACTION}</code></td><td>The {@link Action} to
      * execute when the task executes. See {@link Task#doFirst(Action)}.</td><td><code>null</code></td></tr>
      *
      * <tr><td><code>{@value org.gradle.api.Task#TASK_OVERWRITE}</code></td><td>Replace an existing
@@ -122,22 +122,6 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      */
     Task create(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException;
-
-    /**
-     * <p>Creates a {@link Task} with the given name adds it to this container. The given closure is used to configure
-     * the task before it is returned by this method.</p>
-     *
-     * <p>After the task is added, it is made available as a property of the project, so that you can reference the task
-     * by name in your build file.</p>
-     *
-     * @param name The name of the task to be created
-     * @param configureClosure The closure to use to configure the task.
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
-     */
-    @Override
-    Task create(String name, Closure configureClosure) throws InvalidUserDataException;
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this container.</p>
