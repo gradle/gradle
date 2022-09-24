@@ -37,8 +37,11 @@ import org.gradle.api.tasks.TaskState;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A <code>Task</code> represents a single atomic piece of work for a build, such as compiling classes or generating
@@ -87,7 +90,7 @@ import java.util.Set;
  *
  * <ul>
  *
- * <li>A {@code String}, {@code CharSequence} or {@code groovy.lang.GString} task path or name. A relative path is interpreted relative to the task's {@link Project}. This
+ * <li>A {@link String}, {@link CharSequence} or {@link groovy.lang.GString} task path or name. A relative path is interpreted relative to the task's {@link Project}. This
  * allows you to refer to tasks in other projects. These task references will not cause task creation.</li>
  *
  * <li>A {@link Task}.</li>
@@ -102,13 +105,13 @@ import java.util.Set;
  *
  * <li>A {@link Provider} object. May contain any of the types listed here.</li>
  *
- * <li>A {@code Iterable}, {@code Collection}, {@code Map} or array. May contain any of the types listed here. The elements of the
+ * <li>A {@link Iterable}, {@link Collection}, {@link Map} or array. May contain any of the types listed here. The elements of the
  * iterable/collection/map/array are recursively converted to tasks.</li>
  *
- * <li>A {@code Callable}. The {@code call()} method may return any of the types listed here. Its return value is
+ * <li>A {@link Callable}. The {@code call()} method may return any of the types listed here. Its return value is
  * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
  *
- * <li>A Groovy {@code Closure} or Kotlin function. The callable may take a {@code Task} as parameter.
+ * <li>A Groovy {@link groovy.lang.Closure} or Kotlin function. The callable may take a {@code Task} as parameter.
  * The callable may return any of the types listed here. Its return value is
  * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
  *
