@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-import groovy.lang.Closure
 import org.gradle.BuildListener
 import org.gradle.BuildResult
 import org.gradle.api.Action
@@ -93,22 +92,11 @@ class CrossProjectConfigurationReportingGradle private constructor(
         delegate.removeProjectEvaluationListener(CrossProjectModelAccessProjectEvaluationListener(listener, referrerProject, crossProjectModelAccess))
     }
 
-    override fun projectsEvaluated(closure: Closure<*>) =
-        delegate.projectsEvaluated(closure.withCrossProjectModelAccessChecks())
-
     override fun projectsEvaluated(action: Action<in Gradle>) =
         delegate.projectsEvaluated(action.withCrossProjectModelGradleAccessCheck())
 
-    override fun beforeProject(closure: Closure<*>) {
-        delegate.beforeProject(closure.withCrossProjectModelAccessChecks())
-    }
-
     override fun beforeProject(action: Action<in Project>) {
         delegate.beforeProject(action.withCrossProjectModelAccessCheck())
-    }
-
-    override fun afterProject(closure: Closure<*>) {
-        delegate.afterProject(closure.withCrossProjectModelAccessChecks())
     }
 
     override fun afterProject(action: Action<in Project>) {
@@ -151,10 +139,6 @@ class CrossProjectConfigurationReportingGradle private constructor(
         // all the supported listener types other than ProjectEvaluationListener are already reported as configuration cache problems in non-buildSrc builds
         else -> listener
     }
-
-    private
-    fun <T> Closure<T>.withCrossProjectModelAccessChecks(): Closure<T> =
-        CrossProjectModelAccessTrackingClosure(this, referrerProject, crossProjectModelAccess)
 
     private
     fun Action<in Project>.withCrossProjectModelAccessCheck(): Action<Project> {
@@ -228,28 +212,14 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun getStartParameter(): StartParameterInternal =
         delegate.startParameter
 
-    override fun beforeSettings(closure: Closure<*>) =
-        delegate.beforeSettings(closure)
-
     override fun beforeSettings(action: Action<in Settings>) =
         delegate.beforeSettings(action)
-
-    override fun settingsEvaluated(closure: Closure<*>) =
-        delegate.settingsEvaluated(closure)
 
     override fun settingsEvaluated(action: Action<in Settings>) =
         delegate.settingsEvaluated(action)
 
-    override fun projectsLoaded(closure: Closure<*>) =
-        delegate.projectsLoaded(closure)
-
     override fun projectsLoaded(action: Action<in Gradle>) =
         delegate.projectsLoaded(action)
-
-    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
-    override fun buildFinished(closure: Closure<*>) =
-        // already reported as configuration cache problem, no need to override
-        delegate.buildFinished(closure)
 
     @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
     override fun buildFinished(action: Action<in BuildResult>) =

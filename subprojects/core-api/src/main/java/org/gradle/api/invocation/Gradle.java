@@ -15,8 +15,6 @@
  */
 package org.gradle.api.invocation;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
@@ -140,30 +138,12 @@ public interface Gradle extends PluginAware {
     void removeProjectEvaluationListener(ProjectEvaluationListener listener);
 
     /**
-     * Adds a closure to be called immediately before a project is evaluated. The project is passed to the closure as a
-     * parameter.
-     *
-     * @param closure The closure to execute.
-     */
-    void beforeProject(Closure closure);
-
-    /**
      * Adds an action to be called immediately before a project is evaluated.
      *
      * @param action The action to execute.
      * @since 3.4
      */
     void beforeProject(Action<? super Project> action);
-
-    /**
-     * Adds a closure to be called immediately after a project is evaluated.
-     *
-     * The project is passed to the closure as the first parameter. The project evaluation failure, if any,
-     * is passed as the second parameter. Both parameters are optional.
-     *
-     * @param closure The closure to execute.
-     */
-    void afterProject(Closure closure);
 
     /**
      * Adds an action to be called immediately after a project is evaluated.
@@ -176,28 +156,10 @@ public interface Gradle extends PluginAware {
     /**
      * Adds an action to be called before the build settings have been loaded and evaluated.
      *
-     * @param closure The action to execute.
-     * @since 6.0
-     */
-    void beforeSettings(@DelegatesTo(Settings.class) Closure<?> closure);
-
-    /**
-     * Adds an action to be called before the build settings have been loaded and evaluated.
-     *
      * @param action The action to execute.
      * @since 6.0
      */
     void beforeSettings(Action<? super Settings> action);
-
-    /**
-     * Adds a closure to be called when the build settings have been loaded and evaluated.
-     *
-     * The settings object is fully configured and is ready to use to load the build projects. The
-     * {@link org.gradle.api.initialization.Settings} object is passed to the closure as a parameter.
-     *
-     * @param closure The closure to execute.
-     */
-    void settingsEvaluated(Closure closure);
 
     /**
      * Adds an action to be called when the build settings have been loaded and evaluated.
@@ -210,30 +172,6 @@ public interface Gradle extends PluginAware {
     void settingsEvaluated(Action<? super Settings> action);
 
     /**
-     * Adds a closure to be called when the projects for the build have been created from the settings.
-     *
-     * None of the projects have been evaluated. This {@code Gradle} instance is passed to the closure as a parameter.
-     * <p>
-     * An example of hooking into the projectsLoaded to configure buildscript classpath from the init script.
-     * <pre class='autoTested'>
-     * //init.gradle
-     * gradle.projectsLoaded {
-     *   rootProject.buildscript {
-     *     repositories {
-     *       //...
-     *     }
-     *     dependencies {
-     *       //...
-     *     }
-     *   }
-     * }
-     * </pre>
-     *
-     * @param closure The closure to execute.
-     */
-    void projectsLoaded(Closure closure);
-
-    /**
      * Adds an action to be called when the projects for the build have been created from the settings.
      *
      * None of the projects have been evaluated.
@@ -244,16 +182,6 @@ public interface Gradle extends PluginAware {
     void projectsLoaded(Action<? super Gradle> action);
 
     /**
-     * Adds a closure to be called when all projects for the build have been evaluated.
-     *
-     * The project objects are fully configured and are ready to use to populate the task graph.
-     * This {@code Gradle} instance is passed to the closure as a parameter.
-     *
-     * @param closure The closure to execute.
-     */
-    void projectsEvaluated(Closure closure);
-
-    /**
      * Adds an action to be called when all projects for the build have been evaluated.
      *
      * The project objects are fully configured and are ready to use to populate the task graph.
@@ -262,18 +190,6 @@ public interface Gradle extends PluginAware {
      * @since 3.4
      */
     void projectsEvaluated(Action<? super Gradle> action);
-
-    /**
-     * Adds a closure to be called when the build is completed.
-     *
-     * All selected tasks have been executed.
-     * A {@link BuildResult} instance is passed to the closure as a parameter.
-     *
-     * @param closure The closure to execute.
-     * @deprecated This method is not supported when configuration caching is enabled.
-     */
-    @Deprecated
-    void buildFinished(Closure closure);
 
     /**
      * Adds an action to be called when the build is completed.

@@ -17,7 +17,6 @@
 package org.gradle.invocation;
 
 import com.google.common.collect.ImmutableList;
-import groovy.lang.Closure;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
@@ -62,7 +61,6 @@ import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 
@@ -288,21 +286,9 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    public void beforeProject(Closure closure) {
-        assertProjectMutatingMethodAllowed("beforeProject(Closure)");
-        projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.beforeProject", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
-    }
-
-    @Override
     public void beforeProject(Action<? super Project> action) {
         assertProjectMutatingMethodAllowed("beforeProject(Action)");
         projectEvaluationListenerBroadcast.add("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.beforeProject", action));
-    }
-
-    @Override
-    public void afterProject(Closure closure) {
-        assertProjectMutatingMethodAllowed("afterProject(Closure)");
-        projectEvaluationListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Gradle.afterProject", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
 
     @Override
@@ -312,29 +298,13 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    public void beforeSettings(Closure<?> closure) {
-        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeSettings", closure));
-    }
-
-    @Override
     public void beforeSettings(Action<? super Settings> action) {
         buildListenerBroadcast.add("beforeSettings", action);
     }
 
     @Override
-    public void settingsEvaluated(Closure closure) {
-        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("settingsEvaluated", closure));
-    }
-
-    @Override
     public void settingsEvaluated(Action<? super Settings> action) {
         buildListenerBroadcast.add("settingsEvaluated", action);
-    }
-
-    @Override
-    public void projectsLoaded(Closure closure) {
-        assertProjectMutatingMethodAllowed("projectsLoaded(Closure)");
-        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsLoaded", getListenerBuildOperationDecorator().decorate("Gradle.projectsLoaded", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
     }
 
     @Override
@@ -344,22 +314,9 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    public void projectsEvaluated(Closure closure) {
-        assertProjectMutatingMethodAllowed("projectsEvaluated(Closure)");
-        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("projectsEvaluated", getListenerBuildOperationDecorator().decorate("Gradle.projectsEvaluated", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
-    }
-
-    @Override
     public void projectsEvaluated(Action<? super Gradle> action) {
         assertProjectMutatingMethodAllowed("projectsEvaluated(Action)");
         buildListenerBroadcast.add("projectsEvaluated", getListenerBuildOperationDecorator().decorate("Gradle.projectsEvaluated", action));
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public void buildFinished(Closure closure) {
-        notifyListenerRegistration("Gradle.buildFinished", closure);
-        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("buildFinished", closure));
     }
 
     @SuppressWarnings("deprecation")
