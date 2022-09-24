@@ -16,8 +16,6 @@
 
 package org.gradle.api.tasks.javadoc;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -51,7 +49,6 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -363,15 +360,6 @@ public class Javadoc extends SourceTask {
     @Nested
     public MinimalJavadocOptions getOptions() {
         return options;
-    }
-
-    /**
-     * Convenience method for configuring Javadoc generation options.
-     *
-     * @param block The configuration block for Javadoc generation options.
-     */
-    public void options(@DelegatesTo(MinimalJavadocOptions.class) Closure<?> block) {
-        ConfigureUtil.configure(block, getOptions());
     }
 
     /**
