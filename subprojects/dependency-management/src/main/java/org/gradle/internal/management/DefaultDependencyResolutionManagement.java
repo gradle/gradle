@@ -17,7 +17,6 @@ package org.gradle.internal.management;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.InvalidUserCodeException;
@@ -30,9 +29,9 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
+import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer;
 import org.gradle.api.initialization.resolve.RepositoriesMode;
 import org.gradle.api.initialization.resolve.RulesMode;
-import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -238,12 +237,6 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         }
 
         @Override
-        public ComponentMetadataHandler all(Closure<?> rule) {
-            components(h -> h.all(rule));
-            return this;
-        }
-
-        @Override
         public ComponentMetadataHandler all(Object ruleSource) {
             components(h -> h.all(ruleSource));
             return this;
@@ -263,12 +256,6 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
 
         @Override
         public ComponentMetadataHandler withModule(Object id, Action<? super ComponentMetadataDetails> rule) {
-            components(h -> h.withModule(id, rule));
-            return this;
-        }
-
-        @Override
-        public ComponentMetadataHandler withModule(Object id, Closure<?> rule) {
             components(h -> h.withModule(id, rule));
             return this;
         }

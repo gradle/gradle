@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import com.google.common.collect.Interner;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.InvalidUserCodeException;
@@ -168,11 +167,6 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     @Override
-    public ComponentMetadataHandler all(Closure<?> rule) {
-        return addRule(createAllSpecRuleAction(ruleActionAdapter.createFromClosure(ComponentMetadataDetails.class, rule)));
-    }
-
-    @Override
     public ComponentMetadataHandler all(Object ruleSource) {
         return addRule(createAllSpecRuleAction(ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
     }
@@ -180,11 +174,6 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     @Override
     public ComponentMetadataHandler withModule(Object id, Action<? super ComponentMetadataDetails> rule) {
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromAction(rule)));
-    }
-
-    @Override
-    public ComponentMetadataHandler withModule(Object id, Closure<?> rule) {
-        return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromClosure(ComponentMetadataDetails.class, rule)));
     }
 
     @Override

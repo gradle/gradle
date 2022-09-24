@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts.dsl;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
@@ -71,28 +69,6 @@ public interface ComponentMetadataHandler {
     ComponentMetadataHandler all(Action<? super ComponentMetadataDetails> rule);
 
     /**
-     * Adds a rule closure that may modify the metadata of any resolved software component.
-     *
-     * <p>The supplied rule closure must declare a {@link ComponentMetadataDetails} as it's first parameter,
-     * allowing the component metadata to be modified.
-     *
-     * <p>In addition, the rule can declare additional (read-only) parameters, which may provide extra details
-     * about the component. The order of these additional parameters is not significant.
-     *
-     * <p>The following additional parameter types are supported:
-     * <ul>
-     *     <li>{@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor} - additional Ivy-specific
-     *     metadata. Rules declaring this parameter will only be invoked for components packaged as an Ivy module.</li>
-     *     <li>{@link org.gradle.api.artifacts.maven.PomModuleDescriptor} - additional Maven-specific
-     *     metadata. Rules declaring this parameter will only be invoked for components packaged as a POM module.</li>
-     * </ul>
-     *
-     * @param rule the rule to be added
-     * @return this
-     */
-    ComponentMetadataHandler all(@DelegatesTo(ComponentMetadataDetails.class) Closure<?> rule);
-
-    /**
      * Adds a rule that may modify the metadata of any resolved software component.
      *
      * <p>The ruleSource is an Object that has a single rule method annotated with {@link org.gradle.model.Mutate}.
@@ -139,17 +115,6 @@ public interface ComponentMetadataHandler {
      * @return this
      */
     ComponentMetadataHandler withModule(Object id, Action<? super ComponentMetadataDetails> rule);
-
-    /**
-     * Adds a rule that may modify the metadata of any resolved software component belonging to the specified module.
-     *
-     * <p>The rule closure parameter is subject to the same requirements as {@link #all(groovy.lang.Closure)}.
-     *
-     * @param id the module to apply this rule to in "group:module" format or as a {@link org.gradle.api.artifacts.ModuleIdentifier}
-     * @param rule the rule to be added
-     * @return this
-     */
-    ComponentMetadataHandler withModule(Object id, @DelegatesTo(ComponentMetadataDetails.class) Closure<?> rule);
 
     /**
      * Adds a rule that may modify the metadata of any resolved software component belonging to the specified module.
