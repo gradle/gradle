@@ -94,7 +94,6 @@ import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
 import org.gradle.util.Path
-import org.gradle.util.internal.ConfigureUtil
 import java.io.File
 import java.net.URI
 import java.util.concurrent.Callable
@@ -305,6 +304,11 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.task(args, name, configureClosure)
         }
 
+        override fun task(args: MutableMap<String, *>, name: String, action: Action<in Task>): Task {
+            onAccess()
+            return delegate.task(args, name, action)
+        }
+
         override fun task(name: String, configureAction: Action<in Task>): Task {
             onAccess()
             return delegate.task(name, configureAction)
@@ -486,6 +490,11 @@ class ProblemReportingCrossProjectModelAccess(
             delegate.configurations(configureClosure)
         }
 
+        override fun configurations(action: Action<in ConfigurationContainer>) {
+            onAccess()
+            delegate.configurations(action)
+        }
+
         override fun getArtifacts(): ArtifactHandler {
             onAccess()
             return delegate.artifacts
@@ -606,6 +615,11 @@ class ProblemReportingCrossProjectModelAccess(
             delegate.repositories(configureClosure)
         }
 
+        override fun repositories(action: Action<in RepositoryHandler>) {
+            onAccess()
+            delegate.repositories(action)
+        }
+
         override fun getDependencies(): DependencyHandler {
             onAccess()
             return delegate.dependencies
@@ -614,6 +628,11 @@ class ProblemReportingCrossProjectModelAccess(
         override fun dependencies(configureClosure: Closure<*>) {
             onAccess()
             delegate.dependencies(configureClosure)
+        }
+
+        override fun dependencies(action: Action<in DependencyHandler>) {
+            onAccess()
+            delegate.dependencies(action)
         }
 
         override fun getDependencyFactory(): DependencyFactory {

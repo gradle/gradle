@@ -1158,13 +1158,28 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    public void configurations(Action<? super ConfigurationContainer> action) {
+        Actions.with(getConfigurations(), action);
+    }
+
+    @Override
     public void repositories(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getRepositories());
     }
 
     @Override
+    public void repositories(Action<? super RepositoryHandler> action) {
+        Actions.with(getRepositories(), action);
+    }
+
+    @Override
     public void dependencies(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getDependencies());
+    }
+
+    @Override
+    public void dependencies(Action<? super DependencyHandler> action) {
+        Actions.with(getDependencies(), action);
     }
 
     @Override
@@ -1203,6 +1218,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public Task task(Map options, String task, Closure configureClosure) {
         return taskContainer.create(addMaps(Cast.uncheckedNonnullCast(options), singletonMap(Task.TASK_NAME, task))).configure(ConfigureUtil.configureUsing(configureClosure));
+    }
+
+    @Override
+    public Task task(Map<String, ?> options, String name, Action<? super Task> action) {
+        Task task = taskContainer.create(addMaps(Cast.uncheckedNonnullCast(options), singletonMap(Task.TASK_NAME, name)));
+        return Actions.with(task, action);
     }
 
     @Inject

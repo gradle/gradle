@@ -508,6 +508,27 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
+     * closure is executed to configure the task. A map of creation options can be passed to this method to control how
+     * the task is created. See {@link #task(java.util.Map, String)} for the available options.</p>
+     *
+     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
+     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
+     *
+     * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
+     * to true, an exception is thrown.</p>
+     *
+     * @param args The task creation options.
+     * @param name The name of the task to be created
+     * @param action The action to use to configure the created task.
+     * @return The newly created task object
+     * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     *
+     * @since 8.0
+     */
+    Task task(Map<String, ?> args, String name, Action<? super Task> action);
+
+    /**
+     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
      * action is executed to configure the task.</p> <p>After the task is added to the project, it is made
      * available as a property of the project, so that you can reference the task by name in your build file.  See <a
      * href="#properties">here</a> for more details</p>
@@ -1084,6 +1105,20 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void configurations(Closure configureClosure);
 
     /**
+     * <p>Configures the dependency configurations for this project.
+     *
+     * <p>This method executes the given action against the {@link ConfigurationContainer}
+     * for this project.
+     *
+     * <h3>Examples:</h3> See docs for {@link ConfigurationContainer}
+     *
+     * @param action the action to use to configure the dependency configurations.
+     *
+     * @since 8.0
+     */
+    void configurations(Action<? super ConfigurationContainer> action);
+
+    /**
      * Returns a handler for assigning artifacts produced by the project to configurations.
      * <h3>Examples:</h3>See docs for {@link ArtifactHandler}
      */
@@ -1328,6 +1363,17 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void repositories(Closure configureClosure);
 
     /**
+     * <p>Configures the repositories for this project.
+     *
+     * <p>This method executes the given action against the {@link RepositoryHandler} for this project.
+     *
+     * @param action the action to use to configure the repositories.
+     *
+     * @since 8.0
+     */
+    void repositories(Action<? super RepositoryHandler> action);
+
+    /**
      * Returns the dependency handler of this project. The returned dependency handler instance can be used for adding
      * new dependencies. For accessing already declared dependencies, the configurations can be used.
      *
@@ -1351,6 +1397,20 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure the closure to use to configure the dependencies.
      */
     void dependencies(Closure configureClosure);
+
+    /**
+     * <p>Configures the dependencies for this project.
+     *
+     * <p>This method executes the given action against the {@link DependencyHandler} for this project.
+     *
+     * <h3>Examples:</h3>
+     * See docs for {@link DependencyHandler}
+     *
+     * @param action the action to use to configure the dependencies.
+     *
+     * @since 8.0
+     */
+    void dependencies(Action<? super DependencyHandler> action);
 
     /**
      * Provides access to methods to create various kinds of {@link org.gradle.api.artifacts.Dependency Dependency} instances.
