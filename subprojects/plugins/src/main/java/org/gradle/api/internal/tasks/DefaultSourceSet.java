@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks;
 
-import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
@@ -30,7 +29,6 @@ import org.gradle.util.internal.GUtil;
 import javax.annotation.Nullable;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 public abstract class DefaultSourceSet implements SourceSet {
     private final String name;
@@ -255,12 +253,6 @@ public abstract class DefaultSourceSet implements SourceSet {
     }
 
     @Override
-    public SourceSet java(@Nullable Closure configureClosure) {
-        configure(configureClosure, getJava());
-        return this;
-    }
-
-    @Override
     public SourceSet java(Action<? super SourceDirectorySet> configureAction) {
         configureAction.execute(getJava());
         return this;
@@ -274,12 +266,6 @@ public abstract class DefaultSourceSet implements SourceSet {
     @Override
     public SourceDirectorySet getResources() {
         return resources;
-    }
-
-    @Override
-    public SourceSet resources(@Nullable Closure configureClosure) {
-        configure(configureClosure, getResources());
-        return this;
     }
 
     @Override
