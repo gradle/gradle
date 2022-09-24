@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import com.google.common.collect.Lists;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -36,7 +35,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -71,12 +69,6 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     @Override
     public FlatDirectoryArtifactRepository flatDir(Action<? super FlatDirectoryArtifactRepository> action) {
         return addRepository(repositoryFactory.createFlatDirRepository(), FLAT_DIR_DEFAULT_NAME, action);
-    }
-
-    @Override
-    @SuppressWarnings("rawtypes")
-    public FlatDirectoryArtifactRepository flatDir(Closure configureClosure) {
-        return flatDir(ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
@@ -162,20 +154,8 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
-    public MavenArtifactRepository maven(Closure closure) {
-        return maven(ConfigureUtil.configureUsing(closure));
-    }
-
-    @Override
     public IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action) {
         return addRepository(repositoryFactory.createIvyRepository(), IVY_REPO_DEFAULT_NAME, action);
-    }
-
-    @Override
-    @SuppressWarnings("rawtypes")
-    public IvyArtifactRepository ivy(Closure closure) {
-        return ivy(ConfigureUtil.configureUsing(closure));
     }
 
     @Override

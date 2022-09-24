@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts.dsl;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
@@ -67,14 +65,6 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      * are specified.
      */
     FlatDirectoryArtifactRepository flatDir(Map<String, ?> args);
-
-    /**
-     * Adds an configures a repository which will look for dependencies in a number of local directories.
-     *
-     * @param configureClosure The closure to execute to configure the repository.
-     * @return The repository.
-     */
-    FlatDirectoryArtifactRepository flatDir(@DelegatesTo(FlatDirectoryArtifactRepository.class) Closure configureClosure);
 
     /**
      * Adds an configures a repository which will look for dependencies in a number of local directories.
@@ -301,28 +291,12 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
     MavenArtifactRepository google(Action<? super MavenArtifactRepository> action);
 
     /**
-     * Adds and configures a Maven repository. Newly created instance of {@code MavenArtifactRepository} is passed as an argument to the closure.
-     *
-     * @param closure The closure to use to configure the repository.
-     * @return The added repository.
-     */
-    MavenArtifactRepository maven(@DelegatesTo(MavenArtifactRepository.class) Closure closure);
-
-    /**
      * Adds and configures a Maven repository.
      *
      * @param action The action to use to configure the repository.
      * @return The added repository.
      */
     MavenArtifactRepository maven(Action<? super MavenArtifactRepository> action);
-
-    /**
-     * Adds and configures an Ivy repository. Newly created instance of {@code IvyArtifactRepository} is passed as an argument to the closure.
-     *
-     * @param closure The closure to use to configure the repository.
-     * @return The added repository.
-     */
-    IvyArtifactRepository ivy(@DelegatesTo(IvyArtifactRepository.class) Closure closure);
 
     /**
      * Adds and configures an Ivy repository.
