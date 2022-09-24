@@ -23,7 +23,7 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
+import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.Collection;
 
@@ -73,18 +73,13 @@ class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectSet<T
     }
 
     @Override
-    public PluginCollection<T> matching(Closure spec) {
-        return matching(Specs.<T>convertClosureToSpec(spec));
-    }
-
-    @Override
     public Action<? super T> whenPluginAdded(Action<? super T> action) {
         return whenObjectAdded(action);
     }
 
     @Override
     public void whenPluginAdded(Closure closure) {
-        whenObjectAdded(closure);
+        whenObjectAdded(ConfigureUtil.configureUsing(closure));
     }
 
 }

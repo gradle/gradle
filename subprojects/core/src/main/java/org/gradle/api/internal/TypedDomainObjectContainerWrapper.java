@@ -100,13 +100,8 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     }
 
     @Override
-    public Set<U> findAll(Closure spec) {
+    public Set<U> findAll(Spec<? super U> spec) {
         return delegate.findAll(spec);
-    }
-
-    @Override
-    public NamedDomainObjectSet<U> matching(Closure spec) {
-        return delegate.matching(spec);
     }
 
     @Override
@@ -158,12 +153,6 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     public boolean addAll(Collection<? extends U> c) {
         return delegate.addAll(c);
     }
-
-    @Override
-    public Rule addRule(String description, Closure ruleAction) {
-        return delegate.addRule(description, ruleAction);
-    }
-
     @Override
     public Rule addRule(String description, Action<String> ruleAction) {
         return delegate.addRule(description, ruleAction);
@@ -198,12 +187,6 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     public U getByName(String name) throws UnknownDomainObjectException {
         return delegate.getByName(name);
     }
-
-    @Override
-    public U getByName(String name, Closure configureClosure) throws UnknownDomainObjectException {
-        return delegate.getByName(name, configureClosure);
-    }
-
     @Override
     public U getByName(String name, Action<? super U> configureAction) throws UnknownDomainObjectException {
         return delegate.getByName(name, configureAction);
@@ -229,10 +212,6 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         delegate.all(action);
     }
 
-    @Override
-    public void all(Closure action) {
-        delegate.all(action);
-    }
 
     @Override
     public void configureEach(Action<? super U> action) {
@@ -243,30 +222,13 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     public Action<? super U> whenObjectAdded(Action<? super U> action) {
         return delegate.whenObjectAdded(action);
     }
-
-    @Override
-    public void whenObjectAdded(Closure action) {
-        delegate.whenObjectAdded(action);
-    }
-
     @Override
     public Action<? super U> whenObjectRemoved(Action<? super U> action) {
         return delegate.whenObjectRemoved(action);
     }
-
-    @Override
-    public void whenObjectRemoved(Closure action) {
-        delegate.whenObjectRemoved(action);
-    }
-
     @Override
     public <S extends U> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
         return delegate.withType(type, configureAction);
-    }
-
-    @Override
-    public <S extends U> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure) {
-        return delegate.withType(type, configureClosure);
     }
 
     @Override

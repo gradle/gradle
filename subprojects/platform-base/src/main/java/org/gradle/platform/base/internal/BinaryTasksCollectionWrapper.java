@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
@@ -83,15 +82,8 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
         return delegate.matching(spec);
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
-    public DomainObjectSet<Task> matching(Closure spec) {
-        return delegate.matching(spec);
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public Set<Task> findAll(Closure spec) {
+    public Set<Task> findAll(Spec<? super Task> spec) {
         return delegate.findAll(spec);
     }
 
@@ -100,21 +92,9 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
         return delegate.withType(type, configureAction);
     }
 
-    @SuppressWarnings("rawtypes")
-    @Override
-    public <S extends Task> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure) {
-        return delegate.withType(type, configureClosure);
-    }
-
     @Override
     public Action<? super Task> whenObjectAdded(Action<? super Task> action) {
         return delegate.whenObjectAdded(action);
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public void whenObjectAdded(Closure action) {
-        delegate.whenObjectAdded(action);
     }
 
     @Override
@@ -122,20 +102,8 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
         return delegate.whenObjectRemoved(action);
     }
 
-    @SuppressWarnings("rawtypes")
-    @Override
-    public void whenObjectRemoved(Closure action) {
-        delegate.whenObjectRemoved(action);
-    }
-
     @Override
     public void all(Action<? super Task> action) {
-        delegate.all(action);
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public void all(Closure action) {
         delegate.all(action);
     }
 

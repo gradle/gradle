@@ -85,12 +85,7 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
     }
 
     @Override
-    public DomainObjectSet<T> matching(Closure spec) {
-        return matching(Specs.<T>convertClosureToSpec(spec));
-    }
-
-    @Override
-    public Set<T> findAll(Closure cl) {
+    public Set<T> findAll(Spec<? super T> cl) {
         return findAll(cl, new LinkedHashSet<T>());
     }
 }

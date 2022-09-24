@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectCollectionSchema;
@@ -32,7 +31,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
@@ -78,18 +76,8 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     }
 
     @Override
-    public TaskCollection<T> matching(Closure spec) {
-        return matching(Specs.<T>convertClosureToSpec(spec));
-    }
-
-    @Override
     public Action<? super T> whenTaskAdded(Action<? super T> action) {
         return whenObjectAdded(action);
-    }
-
-    @Override
-    public void whenTaskAdded(Closure closure) {
-        whenObjectAdded(closure);
     }
 
     @Override

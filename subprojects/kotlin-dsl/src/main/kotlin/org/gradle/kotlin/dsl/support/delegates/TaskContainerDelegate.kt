@@ -54,17 +54,11 @@ abstract class TaskContainerDelegate : TaskContainer {
     override fun matching(spec: Spec<in Task>): TaskCollection<Task> =
         delegate.matching(spec)
 
-    override fun matching(closure: Closure<Any>): TaskCollection<Task> =
-        delegate.matching(closure)
-
     override fun clear() =
         delegate.clear()
 
     override fun addRule(rule: Rule): Rule =
         delegate.addRule(rule)
-
-    override fun addRule(description: String, ruleAction: Closure<Any>): Rule =
-        delegate.addRule(description, ruleAction)
 
     override fun addRule(description: String, ruleAction: Action<String>): Rule =
         delegate.addRule(description, ruleAction)
@@ -102,9 +96,6 @@ abstract class TaskContainerDelegate : TaskContainer {
     override fun whenTaskAdded(action: Action<in Task>): Action<in Task> =
         delegate.whenTaskAdded(action)
 
-    override fun whenTaskAdded(closure: Closure<Any>) =
-        delegate.whenTaskAdded(closure)
-
     override fun removeAll(elements: Collection<Task>): Boolean =
         delegate.removeAll(elements)
 
@@ -115,9 +106,6 @@ abstract class TaskContainerDelegate : TaskContainer {
         delegate.add(element)
 
     override fun all(action: Action<in Task>) =
-        delegate.all(action)
-
-    override fun all(action: Closure<Any>) =
         delegate.all(action)
 
     override fun register(name: String, configurationAction: Action<in Task>): TaskProvider<Task> =
@@ -168,10 +156,7 @@ abstract class TaskContainerDelegate : TaskContainer {
     override fun whenObjectRemoved(action: Action<in Task>): Action<in Task> =
         delegate.whenObjectRemoved(action)
 
-    override fun whenObjectRemoved(action: Closure<Any>) =
-        delegate.whenObjectRemoved(action)
-
-    override fun findAll(spec: Closure<Any>): MutableSet<Task> =
+    override fun findAll(spec: Spec<in Task>): MutableSet<Task> =
         delegate.findAll(spec)
 
     override fun addLater(provider: Provider<out Task>) =
@@ -185,9 +170,6 @@ abstract class TaskContainerDelegate : TaskContainer {
 
     override fun <U : Task> containerWithType(type: Class<U>): NamedDomainObjectContainer<U> =
         delegate.containerWithType(type)
-
-    override fun getByName(name: String, configureClosure: Closure<Any>): Task =
-        delegate.getByName(name, configureClosure)
 
     override fun getByName(name: String): Task =
         delegate.getByName(name)
@@ -213,16 +195,10 @@ abstract class TaskContainerDelegate : TaskContainer {
     override fun <S : Task> withType(type: Class<S>, configureAction: Action<in S>): DomainObjectCollection<S> =
         delegate.withType(type, configureAction)
 
-    override fun <S : Task> withType(type: Class<S>, configureClosure: Closure<Any>): DomainObjectCollection<S> =
-        delegate.withType(type, configureClosure)
-
     override fun findByName(name: String): Task? =
         delegate.findByName(name)
 
     override fun whenObjectAdded(action: Action<in Task>): Action<in Task> =
-        delegate.whenObjectAdded(action)
-
-    override fun whenObjectAdded(action: Closure<Any>) =
         delegate.whenObjectAdded(action)
 
     override fun retainAll(elements: Collection<Task>): Boolean =

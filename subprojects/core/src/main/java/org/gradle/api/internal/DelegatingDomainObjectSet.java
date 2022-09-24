@@ -15,14 +15,11 @@
  */
 package org.gradle.api.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
-import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -33,11 +30,6 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
 
     public DelegatingDomainObjectSet(DomainObjectSet<T> backingSet) {
         this.backingSet = backingSet;
-    }
-
-    @Override
-    public DomainObjectSet<T> matching(Closure spec) {
-        return matching(Specs.convertClosureToSpec(spec));
     }
 
     @Override
@@ -56,11 +48,6 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
     }
 
     @Override
-    public void all(Closure action) {
-        all(ConfigureUtil.configureUsing(action));
-    }
-
-    @Override
     public void configureEach(Action<? super T> action) {
         backingSet.configureEach(action);
     }
@@ -71,28 +58,13 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
     }
 
     @Override
-    public void whenObjectAdded(Closure action) {
-        whenObjectAdded(ConfigureUtil.configureUsing(action));
-    }
-
-    @Override
     public Action<? super T> whenObjectRemoved(Action<? super T> action) {
         return backingSet.whenObjectRemoved(action);
     }
 
     @Override
-    public void whenObjectRemoved(Closure action) {
-        whenObjectRemoved(ConfigureUtil.configureUsing(action));
-    }
-
-    @Override
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
         return backingSet.withType(type, configureAction);
-    }
-
-    @Override
-    public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure) {
-        return withType(type, ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
@@ -171,7 +143,7 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T> {
     }
 
     @Override
-    public Set<T> findAll(Closure spec) {
+    public Set<T> findAll(Spec<? super T> spec) {
         return backingSet.findAll(spec);
     }
 }

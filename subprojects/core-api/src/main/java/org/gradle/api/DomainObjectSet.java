@@ -15,7 +15,6 @@
  */
 package org.gradle.api;
 
-import groovy.lang.Closure;
 import org.gradle.api.specs.Spec;
 
 import java.util.Set;
@@ -45,11 +44,5 @@ public interface DomainObjectSet<T> extends DomainObjectCollection<T>, Set<T> {
      * {@inheritDoc}
      */
     @Override
-    DomainObjectSet<T> matching(Closure spec);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Set<T> findAll(Closure spec);
+    Set<T> findAll(Spec<? super T> spec);
 }

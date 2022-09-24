@@ -70,17 +70,12 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
                 return element != "b"
             }
         }
-        def testClosure = {
-            return it != "b"
-        }
-
         container.add("a")
         container.add("b")
         container.add("c")
 
         expect:
         toList(container.matching(spec)) == ["a", "c"]
-        toList(container.matching(testClosure)) == ["a", "c"]
     }
 
     def filteredCollectionIsLive() {
@@ -125,32 +120,6 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         then:
         1 * action.execute("b")
         0 * action._
-    }
-
-    def filteredCollectionExecutesClosureWhenMatchingObjectAdded() {
-        def seen = []
-        def closure = { seen << it }
-
-        def spec = new Spec<CharSequence>() {
-            boolean isSatisfiedBy(CharSequence element) {
-                return element != "a"
-            }
-        }
-
-        given:
-        container.matching(spec).whenObjectAdded(closure)
-
-        when:
-        container.add("a")
-
-        then:
-        seen.empty
-
-        when:
-        container.add("b")
-
-        then:
-        seen == ["b"]
     }
 
     def canChainFilteredCollections() {
@@ -234,47 +203,6 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         then:
         1 * action.execute("a")
         0 * action._
-    }
-
-    def callsClosureWithNewObjectAsParameterWhenObjectAdded() {
-        def seen = []
-        def closure = { seen << it }
-
-        container.whenObjectAdded(closure)
-
-        when:
-        container.add("a")
-
-        then:
-        seen == ["a"]
-    }
-
-    def callsClosureWithRemovedObjectAsParameterWhenObjectRemoved() {
-        def seen = []
-        def closure = { seen << it }
-
-        container.add("a");
-        container.whenObjectRemoved(closure)
-
-        when:
-        container.remove("a")
-
-        then:
-        seen == ["a"]
-
-        when:
-        container.remove("a")
-        container.remove("b")
-
-        then:
-        seen == ["a"]
-    }
-
-    def callsClosureWithNewObjectAsDelegateWhenObjectAdded() {
-        container.whenObjectAdded { assert delegate == 'a' }
-
-        expect:
-        container.add("a")
     }
 
     def callsRemoveActionWhenObjectRemoved() {
@@ -361,20 +289,6 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         0 * action._
     }
 
-    def allCallsClosureForEachExistingObject() {
-        def seen = []
-        def closure = { seen << it }
-
-        container.add("a")
-        container.add("b")
-
-        when:
-        container.all(closure)
-
-        then:
-        seen == ["a", "b"]
-    }
-
     def allCallsActionForEachNewObject() {
         def action = Mock(Action)
 
@@ -386,25 +300,6 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         then:
         1 * action.execute("a")
         0 * action._
-    }
-
-    def allCallsClosureForEachNewObject() {
-        def seen = []
-        def closure = { seen << it }
-
-        container.all(closure)
-
-        when:
-        container.add("a")
-
-        then:
-        seen == ["a"]
-    }
-
-    def allCallsClosureWithObjectAsDelegate() {
-        expect:
-        container.all { assert delegate == 'a' }
-        container.add("a")
     }
 
     def canRemoveAndMaintainOrder() {

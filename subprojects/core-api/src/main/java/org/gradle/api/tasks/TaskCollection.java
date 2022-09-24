@@ -39,14 +39,7 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
     /**
      * {@inheritDoc}
      */
-    @Override
-    TaskCollection<T> matching(Closure closure);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    T getByName(String name, Closure configureClosure) throws UnknownTaskException;
+    T getByName(String name, Action<? super T> action) throws UnknownTaskException;
 
     /**
      * {@inheritDoc}
@@ -71,16 +64,6 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectSet<T> 
      */
     @SuppressWarnings("UnusedDeclaration")
     Action<? super T> whenTaskAdded(Action<? super T> action);
-
-    /**
-     * Adds a closure to be called when a task is added to this collection. The task is passed to the closure as the
-     * parameter.
-     *
-     * @param closure The closure to be called
-     * @see #whenTaskAdded(Action)
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    void whenTaskAdded(Closure closure);
 
     /**
      * {@inheritDoc}

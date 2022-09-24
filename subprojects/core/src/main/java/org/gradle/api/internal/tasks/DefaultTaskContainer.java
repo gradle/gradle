@@ -645,11 +645,6 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         throw new UnsupportedOperationException("Registering actions on task removal is not supported.");
     }
 
-    @Override
-    public void whenObjectRemoved(Closure action) {
-        throw new UnsupportedOperationException("Registering actions on task removal is not supported.");
-    }
-
     // Cannot be private due to reflective instantiation
     public class TaskCreatingProvider<I extends Task> extends AbstractDomainObjectCreatingProvider<I> implements TaskProvider<I> {
         private final TaskIdentity<I> identity;

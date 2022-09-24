@@ -52,17 +52,11 @@ abstract class NamedDomainObjectContainerDelegate<T : Any> : NamedDomainObjectCo
     override fun matching(spec: Spec<in T>): NamedDomainObjectSet<T> =
         delegate.matching(spec)
 
-    override fun matching(spec: Closure<Any>): NamedDomainObjectSet<T> =
-        delegate.matching(spec)
-
     override fun clear() =
         delegate.clear()
 
     override fun addRule(rule: Rule): Rule =
         delegate.addRule(rule)
-
-    override fun addRule(description: String, ruleAction: Closure<Any>): Rule =
-        delegate.addRule(description, ruleAction)
 
     override fun addRule(description: String, ruleAction: Action<String>): Rule =
         delegate.addRule(description, ruleAction)
@@ -89,9 +83,6 @@ abstract class NamedDomainObjectContainerDelegate<T : Any> : NamedDomainObjectCo
         delegate.add(element)
 
     override fun all(action: Action<in T>) =
-        delegate.all(action)
-
-    override fun all(action: Closure<Any>) =
         delegate.all(action)
 
     override fun register(name: String, configurationAction: Action<in T>): NamedDomainObjectProvider<T> =
@@ -124,10 +115,7 @@ abstract class NamedDomainObjectContainerDelegate<T : Any> : NamedDomainObjectCo
     override fun whenObjectRemoved(action: Action<in T>): Action<in T> =
         delegate.whenObjectRemoved(action)
 
-    override fun whenObjectRemoved(action: Closure<Any>) =
-        delegate.whenObjectRemoved(action)
-
-    override fun findAll(spec: Closure<Any>): MutableSet<T> =
+    override fun findAll(spec: Spec<in T>): MutableSet<T> =
         delegate.findAll(spec)
 
     override fun addLater(provider: Provider<out T>) =
@@ -151,14 +139,8 @@ abstract class NamedDomainObjectContainerDelegate<T : Any> : NamedDomainObjectCo
     override fun getByName(name: String): T =
         delegate.getByName(name)
 
-    override fun getByName(name: String, configureClosure: Closure<Any>): T =
-        delegate.getByName(name, configureClosure)
-
     override fun getByName(name: String, configureAction: Action<in T>): T =
         delegate.getByName(name, configureAction)
-
-    override fun <S : T> withType(type: Class<S>, configureClosure: Closure<Any>): DomainObjectCollection<S> =
-        delegate.withType(type, configureClosure)
 
     override fun configureEach(action: Action<in T>) =
         delegate.configureEach(action)
@@ -176,9 +158,6 @@ abstract class NamedDomainObjectContainerDelegate<T : Any> : NamedDomainObjectCo
         delegate.findByName(name)
 
     override fun whenObjectAdded(action: Action<in T>): Action<in T> =
-        delegate.whenObjectAdded(action)
-
-    override fun whenObjectAdded(action: Closure<Any>) =
         delegate.whenObjectAdded(action)
 
     override fun retainAll(elements: Collection<T>): Boolean =

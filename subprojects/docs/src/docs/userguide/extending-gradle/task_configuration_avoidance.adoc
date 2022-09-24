@@ -196,7 +196,7 @@ This will cause your build to eagerly create fewer tasks that are registered by 
 
 2. **Migrate tasks configured by name.**
 Similar to the previous point, this will cause your build to eagerly create fewer tasks that are registered by plugins.
-For example, logic that uses `TaskContainer#getByName(String, Closure)` should be converted to `TaskContainer#named(String, Action)`.
+For example, logic that uses `TaskContainer#getByName(String, Action)` should be converted to `TaskContainer#named(String, Action)`.
 This also includes <<#task_configuration_avoidance_pitfalls_hidden_eager_task_realization, task configuration via DSL blocks>>.
 
 3. **Migrate tasks creation to `register(...)`.**
@@ -375,7 +375,6 @@ It is highly recommended to have cross-version test coverage using <<test_kit.ad
 
 [NOTE]
 ====
-* Methods that take a `groovy.lang.Closure` are covered in the new API with methods taking `org.gradle.api.Action`.
 * More convenience methods may be added in the future based on user feedback.
 * Some old API methods may never have a direct replacement in the new API.
 * Some APIs may be restricted when accessed in a configuration action registered via the configuration avoidance methods.
@@ -402,7 +401,7 @@ It is highly recommended to have cross-version test coverage using <<test_kit.ad
 .2+| This returns a `TaskProvider` instead of a `Task`.
 | Use: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-[TaskContainer.register(java.lang.String)]
 
-| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-groovy.lang.Closure-[TaskContainer.create(java.lang.String, groovy.lang.Closure)]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-org.gradle.api.Action-[TaskContainer.create(java.lang.String, org.gradle.api.Action)]
 .2+| This returns a `TaskProvider` instead of a `Task`.
 | Use: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-org.gradle.api.Action-[TaskContainer.register(java.lang.String, org.gradle.api.Action)]
 
@@ -422,7 +421,7 @@ It is highly recommended to have cross-version test coverage using <<test_kit.ad
 .2+| This returns a `TaskProvider` instead of a `Task`.
 | Use: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-[TaskCollection.named(java.lang.String)]
 
-| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-groovy.lang.Closure-[TaskCollection.getByName(java.lang.String, groovy.lang.Closure)]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-org.gradle.api.Action-[TaskCollection.getByName(java.lang.String, org.gradle.api.Action)]
 .2+| This returns a `TaskProvider` instead of a `Task`.
 | Use: `named(java.lang.String, Action)`
 
@@ -462,11 +461,11 @@ It is highly recommended to have cross-version test coverage using <<test_kit.ad
 .2+| This returns `void`, so it cannot be chained.
 | Use: link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#configureEach-org.gradle.api.Action-[DomainObjectCollection.configureEach(org.gradle.api.Action)]
 
-| Instead of: link:{javadocPath}/org/gradle/api/NamedDomainObjectSet.html#findAll-groovy.lang.Closure-[NamedDomainObjectSet.findAll(groovy.lang.Closure)]
+| Instead of: link:{javadocPath}/org/gradle/api/NamedDomainObjectSet.html#findAll-org.gradle.api.specs.Spec-[NamedDomainObjectSet.findAll(org.gradle.api.specs.Spec)]
 .2+| Avoid calling this method. `matching(Spec)` and `configureEach(Action)` are more appropriate in most cases.
 | Use: _OK_, with issues.
 
-| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#matching-groovy.lang.Closure-[TaskCollection.matching(groovy.lang.Closure)]
+| Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#matching-org.gradle.api.specs.Spec-[TaskCollection.matching(org.gradle.api.specs.Spec)]
 .2+| `matching(Spec)` requires all tasks to be created, so try to limit the impact by restricting the type of task, like `withType(java.lang.Class).matching(Spec)`.
 | Use: _OK_, with issues.
 
@@ -475,7 +474,7 @@ It is highly recommended to have cross-version test coverage using <<test_kit.ad
 | Use: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-[TaskCollection.named(java.lang.String)]
 
 | Instead of: `iterator()` or implicit iteration over the `Task` collection
-.2+| Avoid doing this as it requires creating and configuring all tasks. See `findAll(Closure)` above.
+.2+| Avoid doing this as it requires creating and configuring all tasks. See `findAll(Spec)` above.
 | Use: _OK_, with issues.
 
 | Instead of: `remove(org.gradle.api.Task)`

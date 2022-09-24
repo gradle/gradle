@@ -56,7 +56,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
             "${containerType}#getByName(String)":    "testContainer.getByName('unrealized')",
             "${containerType}#named(String)":        "testContainer.named('unrealized')",
             "${containerType}#named(String, Class)": "testContainer.named('unrealized', testContainer.type)",
-            "${containerType}#findAll(Closure)":     "testContainer.findAll { it.name == 'unrealized' }",
+            "${containerType}#findAll(Spec)":     "testContainer.findAll { it.name == 'unrealized' }",
             "${containerType}#findByName(String)":   "testContainer.findByName('unrealized')",
             "${containerType}#TaskProvider.get()":   "unrealized.get()",
             "${containerType}#iterator()":           "for (def element : testContainer) { println element.name }",

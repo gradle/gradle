@@ -35,7 +35,7 @@ import org.gradle.util.Configurable;
  * </pre>
  *
  * <p>A dynamic method is added for each resolver which takes a configuration closure. This is equivalent to calling
- * {@link #getByName(String, groovy.lang.Closure)}. For example:</p>
+ * {@link #getByName(String, Action)}. For example:</p>
  *
  * <pre class='autoTested'>
  * repositories.maven { name 'myResolver' }
@@ -77,12 +77,6 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      */
     @Override
     ArtifactRepository getByName(String name) throws UnknownRepositoryException;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    ArtifactRepository getByName(String name, @DelegatesTo(ArtifactRepository.class) Closure configureClosure) throws UnknownRepositoryException;
 
     /**
      * {@inheritDoc}

@@ -15,7 +15,6 @@
  */
 package org.gradle.api;
 
-import groovy.lang.Closure;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
@@ -46,7 +45,7 @@ import java.util.SortedSet;
  * </pre>
  *
  * <p>A dynamic method is added for each object which takes a configuration closure. This is equivalent to calling
- * {@link #getByName(String, groovy.lang.Closure)}. For example:</p>
+ * {@link #getByName(String, org.gradle.api.Action)}. For example:</p>
  *
  * <pre>
  * books.add(new Book(name: "gradle", title: null))
@@ -137,17 +136,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     T getByName(String name) throws UnknownDomainObjectException;
 
     /**
-     * Locates an object by name, failing if there is no such object. The given configure closure is executed against
-     * the object before it is returned from this method. The object is passed to the closure as its delegate.
-     *
-     * @param name The object name
-     * @param configureClosure The closure to use to configure the object.
-     * @return The object with the given name, after the configure closure has been applied to it. Never returns null.
-     * @throws UnknownDomainObjectException when there is no such object in this collection.
-     */
-    T getByName(String name, Closure configureClosure) throws UnknownDomainObjectException;
-
-    /**
      * Locates an object by name, failing if there is no such object. The given configure action is executed against
      * the object before it is returned from this method.
      *
@@ -178,16 +166,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     Rule addRule(Rule rule);
 
     /**
-     * Adds a rule to this collection. The given closure is executed when an unknown object is requested by name. The
-     * requested name is passed to the closure as a parameter.
-     *
-     * @param description The description of the rule.
-     * @param ruleAction The closure to execute to apply the rule.
-     * @return The added rule.
-     */
-    Rule addRule(String description, Closure ruleAction);
-
-    /**
      * Adds a rule to this collection. The given action is executed when an unknown object is requested by name. The
      * requested name is passed to the action.
      *
@@ -216,12 +194,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      */
     @Override
     NamedDomainObjectCollection<T> matching(Spec<? super T> spec);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    NamedDomainObjectCollection<T> matching(Closure spec);
 
     /**
      * Locates a object by name, without triggering its creation or configuration, failing if there is no such object.

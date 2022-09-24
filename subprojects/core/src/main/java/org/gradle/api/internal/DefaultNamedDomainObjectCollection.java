@@ -279,11 +279,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
-    public NamedDomainObjectCollection<T> matching(Closure spec) {
-        return matching(Specs.<T>convertClosureToSpec(spec));
-    }
-
-    @Override
     public T findByName(String name) {
         T value = findByNameWithoutRules(name);
         if (value != null) {
@@ -334,12 +329,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
         return t;
     }
-
-    @Override
-    public T getByName(String name, Closure configureClosure) throws UnknownDomainObjectException {
-        return getByName(name, ConfigureUtil.configureUsing(configureClosure));
-    }
-
     @Override
     public T getByName(String name, Action<? super T> configureAction) throws UnknownDomainObjectException {
         assertMutable("getByName(String, Action)");
@@ -455,17 +444,6 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         rules.add(rule);
         return rule;
     }
-
-    @Override
-    public Rule addRule(final String description, final Closure ruleAction) {
-        return addRule(new RuleAdapter(description) {
-            @Override
-            public void apply(String domainObjectName) {
-                ruleAction.call(domainObjectName);
-            }
-        });
-    }
-
     @Override
     public Rule addRule(final String description, final Action<String> ruleAction) {
         return addRule(new RuleAdapter(description) {

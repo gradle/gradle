@@ -16,7 +16,6 @@
 package org.gradle.api.internal;
 
 import com.google.common.collect.Lists;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.CollectionEventRegister;
@@ -31,9 +30,7 @@ import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
-import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.AbstractCollection;
 import java.util.ArrayList;
@@ -114,11 +111,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     @Override
-    public DomainObjectCollection<T> matching(Closure spec) {
-        return matching(Specs.convertClosureToSpec(spec));
-    }
-
-    @Override
     public <S extends T> DomainObjectCollection<S> withType(final Class<S> type) {
         return filtered(createFilter(type));
     }
@@ -192,11 +184,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     @Override
-    public void all(Closure action) {
-        all(toAction(action));
-    }
-
-    @Override
     public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
         assertMutable("withType(Class, Action)");
         DomainObjectCollection<S> result = withType(type);
@@ -205,19 +192,9 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     @Override
-    public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure) {
-        return withType(type, toAction(configureClosure));
-    }
-
-    @Override
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
         assertMutable("whenObjectAdded(Action)");
         return addEagerAction(action);
-    }
-
-    @Override
-    public void whenObjectAdded(Closure action) {
-        whenObjectAdded(toAction(action));
     }
 
     private Action<? super T> addEagerAction(Action<? super T> action) {
@@ -231,17 +208,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return action;
     }
 
-    @Override
-    public void whenObjectRemoved(Closure action) {
-        whenObjectRemoved(toAction(action));
-    }
-
     private Action<? super T> decorate(Action<? super T> action) {
         return eventRegister.getDecorator().decorate(action);
-    }
-
-    private Action<? super T> toAction(Closure action) {
-        return ConfigureUtil.configureUsing(action);
     }
 
     @Override
@@ -437,15 +405,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     @Override
-    public Collection<T> findAll(Closure cl) {
-        return findAll(cl, new ArrayList<T>());
+    public Collection<T> findAll(Spec<? super T> spec) {
+        return findAll(spec, new ArrayList<T>());
     }
 
-    protected <S extends Collection<? super T>> S findAll(Closure cl, S matches) {
+    protected <S extends Collection<? super T>> S findAll(Spec<? super T> spec, S matches) {
         if (store.constantTimeIsEmpty()) {
             return matches;
         }
-        for (T t : filteredStore(createFilter(Specs.<Object>convertClosureToSpec(cl)))) {
+        for (T t : filteredStore(createFilter(spec))) {
             matches.add(t);
         }
         return matches;

@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.internal.HasInternalProtocol;
@@ -35,8 +33,8 @@ import org.gradle.internal.HasInternalProtocol;
  * configurations.myConfiguration.transitive = false
  * </pre>
  *
- * <p>A dynamic method is added for each configuration which takes a configuration closure. This is equivalent to
- * calling {@link #getByName(String, groovy.lang.Closure)}. For example:</p>
+ * <p>A dynamic method is added for each configuration which takes a configuration action. This is equivalent to
+ * calling {@link #getByName(String, Action)}. For example:</p>
  *
  * <pre class='autoTested'>
  * configurations.create('myConfiguration')
@@ -104,12 +102,6 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      */
     @Override
     Configuration getAt(String name) throws UnknownConfigurationException;
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    Configuration getByName(String name, @DelegatesTo(Configuration.class) Closure configureClosure) throws UnknownConfigurationException;
 
     /**
      * {@inheritDoc}

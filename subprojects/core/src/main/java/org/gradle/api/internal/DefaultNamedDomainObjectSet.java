@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectSet;
@@ -23,7 +22,6 @@ import org.gradle.api.Namer;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.SortedSetElementSource;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -73,12 +71,7 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     }
 
     @Override
-    public NamedDomainObjectSet<T> matching(Closure spec) {
-        return matching(Specs.<T>convertClosureToSpec(spec));
-    }
-
-    @Override
-    public Set<T> findAll(Closure cl) {
+    public Set<T> findAll(Spec<? super T> cl) {
         return findAll(cl, new LinkedHashSet<T>());
     }
 
