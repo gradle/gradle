@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
@@ -130,7 +129,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
-import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.WrapUtil;
 
 import javax.annotation.Nullable;
@@ -153,7 +151,6 @@ import static org.gradle.api.internal.artifacts.configurations.ConfigurationInte
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 @SuppressWarnings("rawtypes")
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
@@ -531,11 +528,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public Set<File> files(Closure dependencySpecClosure) {
-        return fileCollection(dependencySpecClosure).getFiles();
-    }
-
-    @Override
     public Set<File> files(Spec<? super Dependency> dependencySpec) {
         return fileCollection(dependencySpec).getFiles();
     }
@@ -548,11 +540,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private ConfigurationFileCollection fileCollectionFromSpec(Spec<? super Dependency> dependencySpec) {
         return new ConfigurationFileCollection(new SelectedArtifactsProvider(), dependencySpec, configurationAttributes, Specs.satisfyAll(), false, false, false, new DefaultResolutionHost());
-    }
-
-    @Override
-    public FileCollection fileCollection(Closure dependencySpecClosure) {
-        return fileCollection(Specs.convertClosureToSpec(dependencySpecClosure));
     }
 
     @Override
@@ -1258,16 +1245,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public Configuration copy(Closure dependencySpec) {
-        return copy(Specs.convertClosureToSpec(dependencySpec));
-    }
-
-    @Override
-    public Configuration copyRecursive(Closure dependencySpec) {
-        return copyRecursive(Specs.convertClosureToSpec(dependencySpec));
-    }
-
-    @Override
     public ResolutionStrategyInternal getResolutionStrategy() {
         if (resolutionStrategy == null) {
             resolutionStrategy = resolutionStrategyFactory.create();
@@ -1303,12 +1280,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public boolean getReturnAllVariants() {
         return this.returnAllVariants;
-    }
-
-    @Override
-    public Configuration resolutionStrategy(Closure closure) {
-        configure(closure, getResolutionStrategy());
-        return this;
     }
 
     @Override
@@ -1809,18 +1780,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public void beforeResolve(Closure action) {
-            beforeResolve(ConfigureUtil.configureUsing(action));
-        }
-
-        @Override
         public void afterResolve(Action<? super ResolvableDependencies> action) {
             dependencyResolutionListeners.add("afterResolve", userCodeApplicationContext.reapplyCurrentLater(action));
-        }
-
-        @Override
-        public void afterResolve(Closure action) {
-            afterResolve(ConfigureUtil.configureUsing(action));
         }
 
         @Override
@@ -1943,12 +1904,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
 
             @Override
-            public void allDependencies(Closure closure) {
-                resolve();
-                delegate.allDependencies(closure);
-            }
-
-            @Override
             public Set<ResolvedComponentResult> getAllComponents() {
                 resolve();
                 return delegate.getAllComponents();
@@ -1958,12 +1913,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             public void allComponents(Action<? super ResolvedComponentResult> action) {
                 resolve();
                 delegate.allComponents(action);
-            }
-
-            @Override
-            public void allComponents(Closure closure) {
-                resolve();
-                delegate.allComponents(closure);
             }
 
             @Override

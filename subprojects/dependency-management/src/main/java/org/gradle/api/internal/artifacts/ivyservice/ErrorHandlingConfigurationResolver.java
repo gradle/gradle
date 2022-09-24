@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.LenientConfiguration;
@@ -235,12 +234,6 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        @SuppressWarnings("rawtypes")
-        public void allDependencies(Closure closure) {
-            resolutionResult.allDependencies(closure);
-        }
-
-        @Override
         public Set<ResolvedComponentResult> getAllComponents() {
             try {
                 return resolutionResult.getAllComponents();
@@ -252,12 +245,6 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         @Override
         public void allComponents(Action<? super ResolvedComponentResult> action) {
             resolutionResult.allComponents(action);
-        }
-
-        @Override
-        @SuppressWarnings("rawtypes")
-        public void allComponents(Closure closure) {
-            resolutionResult.allComponents(closure);
         }
 
         @Override

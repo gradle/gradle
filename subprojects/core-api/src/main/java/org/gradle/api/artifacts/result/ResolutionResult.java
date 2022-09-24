@@ -16,8 +16,6 @@
 
 package org.gradle.api.artifacts.result;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.AttributeContainer;
@@ -76,14 +74,6 @@ public interface ResolutionResult {
     void allDependencies(Action<? super DependencyResult> action);
 
     /**
-     * Applies given closure for each dependency.
-     * An instance of {@link DependencyResult} is passed as parameter to the closure.
-     *
-     * @param closure - closure that is applied for each dependency
-     */
-    void allDependencies(@DelegatesTo(DependencyResult.class) Closure closure);
-
-    /**
      * Retrieves all instances of {@link ResolvedComponentResult} from the graph,
      * e.g. all nodes of the dependency graph.
      *
@@ -98,14 +88,6 @@ public interface ResolutionResult {
      * @param action - action that is applied for each component
      */
     void allComponents(Action<? super ResolvedComponentResult> action);
-
-    /**
-     * Applies given closure for each component.
-     * An instance of {@link ResolvedComponentResult} is passed as parameter to the closure.
-     *
-     * @param closure - closure that is applied for each component
-     */
-    void allComponents(@DelegatesTo(ResolvedComponentResult.class) Closure closure);
 
     /**
      * The attributes that were requested. Those are the attributes which

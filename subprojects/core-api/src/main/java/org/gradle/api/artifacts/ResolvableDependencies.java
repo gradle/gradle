@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
@@ -83,25 +81,11 @@ public interface ResolvableDependencies extends ArtifactView {
     void beforeResolve(Action<? super ResolvableDependencies> action);
 
     /**
-     * Adds an action to be executed before the dependencies in this set are resolved.
-     *
-     * @param action The action to execute.
-     */
-    void beforeResolve(@DelegatesTo(ResolvableDependencies.class) Closure action);
-
-    /**
      * Adds an action to be executed after the dependencies of this set have been resolved.
      *
      * @param action The action to execute.
      */
     void afterResolve(Action<? super ResolvableDependencies> action);
-
-    /**
-     * Adds an action to be executed after the dependencies of this set have been resolved.
-     *
-     * @param action The action to execute.
-     */
-    void afterResolve(@DelegatesTo(ResolvableDependencies.class) Closure action);
 
     /**
      * Returns the resolved dependency graph, performing the resolution if required. This will resolve the dependency graph but will not resolve or download the files.

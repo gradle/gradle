@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.attributes.HasConfigurableAttributes;
@@ -29,8 +27,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
-
-import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
  * A {@code Configuration} represents a group of artifacts and their dependencies.
@@ -57,16 +53,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @since 1.0-milestone-6
      */
     ResolutionStrategy getResolutionStrategy();
-
-    /**
-     * The resolution strategy provides extra details on how to resolve this configuration.
-     * See docs for {@link ResolutionStrategy} for more info and examples.
-     *
-     * @param closure closure applied to the {@link ResolutionStrategy}
-     * @return this configuration instance
-     * @since 1.0-milestone-6
-     */
-    Configuration resolutionStrategy(@DelegatesTo(value = ResolutionStrategy.class, strategy = DELEGATE_FIRST) Closure closure);
 
     /**
      * The resolution strategy provides extra details on how to resolve this configuration.
@@ -200,15 +186,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     Set<File> resolve();
 
     /**
-     * Takes a closure which gets coerced into a {@link Spec}. Behaves otherwise in the same way as
-     * {@link #files(org.gradle.api.specs.Spec)}.
-     *
-     * @param dependencySpecClosure The closure describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
-     * @return The files of a subset of dependencies of this configuration.
-     */
-    Set<File> files(Closure dependencySpecClosure);
-
-    /**
      * Resolves this configuration. This locates and downloads the files which make up this configuration.
      * But only the resulting set of files belonging to the subset of dependencies specified by the dependencySpec
      * is returned.
@@ -237,15 +214,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return The FileCollection with a subset of dependencies of this configuration.
      */
     FileCollection fileCollection(Spec<? super Dependency> dependencySpec);
-
-    /**
-     * Takes a closure which gets coerced into a {@link Spec}. Behaves otherwise in the same way as
-     * {@link #fileCollection(org.gradle.api.specs.Spec)}.
-     *
-     * @param dependencySpecClosure The closure describing a filter applied to the all the dependencies of this configuration (including dependencies from extended configurations).
-     * @return The FileCollection with a subset of dependencies of this configuration.
-     */
-    FileCollection fileCollection(Closure dependencySpecClosure);
 
     /**
      * Resolves this configuration lazily. The resolve happens when the elements of the returned {@link FileCollection} get accessed the first time.
@@ -496,22 +464,6 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return copy of this configuration
      */
     Configuration copyRecursive(Spec<? super Dependency> dependencySpec);
-
-    /**
-     * Takes a closure which gets coerced into a {@link Spec}. Behaves otherwise in the same way as {@link #copy(org.gradle.api.specs.Spec)}
-     *
-     * @param dependencySpec filtering requirements
-     * @return copy of this configuration
-     */
-    Configuration copy(Closure dependencySpec);
-
-    /**
-     * Takes a closure which gets coerced into a {@link Spec}. Behaves otherwise in the same way as {@link #copyRecursive(org.gradle.api.specs.Spec)}
-     *
-     * @param dependencySpec filtering requirements
-     * @return copy of this configuration
-     */
-    Configuration copyRecursive(Closure dependencySpec);
 
     /**
      * Configures if a configuration can be consumed.

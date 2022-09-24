@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.result;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
@@ -27,7 +26,6 @@ import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
-import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -67,11 +65,6 @@ public class DefaultResolutionResult implements ResolutionResult {
         eachElement(getRoot(), Actions.doNothing(), action, new HashSet<>());
     }
 
-    @Override
-    public void allDependencies(final Closure closure) {
-        allDependencies(ConfigureUtil.configureUsing(closure));
-    }
-
     private void eachElement(
         ResolvedComponentResult node,
         Action<? super ResolvedComponentResult> moduleAction, Action<? super DependencyResult> dependencyAction,
@@ -99,11 +92,6 @@ public class DefaultResolutionResult implements ResolutionResult {
     @Override
     public void allComponents(final Action<? super ResolvedComponentResult> action) {
         eachElement(getRoot(), action, Actions.doNothing(), new HashSet<>());
-    }
-
-    @Override
-    public void allComponents(final Closure closure) {
-        allComponents(ConfigureUtil.configureUsing(closure));
     }
 
     @Override
