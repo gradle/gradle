@@ -17,8 +17,6 @@
 package org.gradle.api.tasks.testing;
 
 import com.google.common.collect.Lists;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -88,7 +86,6 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
-import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -101,7 +98,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 import static com.google.common.base.Preconditions.checkState;
-import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
 /**
  * Executes JUnit (3.8.x, 4.x or 5.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
@@ -899,9 +895,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return testFramework(null);
     }
 
-    public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
+    public TestFramework testFramework(Action<? super TestFrameworkOptions> action) {
         if (!testFramework.isPresent()) {
-            useJUnit(testFrameworkConfigure);
+            useJUnit(action);
         }
 
         // To maintain backwards compatibility with builds that may configure the test framework
@@ -941,18 +937,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     public TestFrameworkOptions getOptions() {
         optionsAccessed = true;
         return getTestFramework().getOptions();
-    }
-
-    /**
-     * Configures test framework specific options. Make sure to call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
-     * <p>
-     * Any previous option configuration will be <strong>DISCARDED</strong> upon changing the test framework.  Accessing options prior to setting the test framework will be
-     * deprecated in Gradle 8.
-     *
-     * @return The test framework options.
-     */
-    public TestFrameworkOptions options(@DelegatesTo(TestFrameworkOptions.class) Closure testFrameworkConfigure) {
-        return ConfigureUtil.configure(testFrameworkConfigure, getOptions());
     }
 
     /**
@@ -1008,17 +992,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * <p>
      * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.junit.JUnitOptions JUnit4 specific options}.
      *
-     * @param testFrameworkConfigure A closure used to configure JUnit4 options.
-     */
-    public void useJUnit(@Nullable @DelegatesTo(JUnitOptions.class) Closure testFrameworkConfigure) {
-        useJUnit(ConfigureUtil.<JUnitOptions>configureUsing(testFrameworkConfigure));
-    }
-
-    /**
-     * Specifies that JUnit4 should be used to discover and execute the tests with additional configuration.
-     * <p>
-     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.junit.JUnitOptions JUnit4 specific options}.
-     *
      * @param testFrameworkConfigure An action used to configure JUnit4 options.
      * @since 3.5
      */
@@ -1065,17 +1038,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     public void useTestNG() {
         useTestNG(Actions.<TestFrameworkOptions>doNothing());
-    }
-
-    /**
-     * Specifies that TestNG should be used to discover and execute the tests with additional configuration.
-     * <p>
-     * The supplied action configures an instance of {@link org.gradle.api.tasks.testing.testng.TestNGOptions TestNG specific options}.
-     *
-     * @param testFrameworkConfigure A closure used to configure TestNG options.
-     */
-    public void useTestNG(@DelegatesTo(TestNGOptions.class) Closure testFrameworkConfigure) {
-        useTestNG(configureUsing(testFrameworkConfigure));
     }
 
     /**

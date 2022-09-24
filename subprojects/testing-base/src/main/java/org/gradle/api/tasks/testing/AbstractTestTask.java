@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.DirectoryProperty;
@@ -30,6 +29,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
+import org.gradle.api.internal.tasks.testing.TestListenerStub;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
@@ -75,8 +75,6 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -214,9 +212,18 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     /**
-     * Registers a test listener with this task. Consider also the following handy methods for quicker hooking into test execution: {@link #beforeTest(groovy.lang.Closure)}, {@link
-     * #afterTest(groovy.lang.Closure)}, {@link #beforeSuite(groovy.lang.Closure)}, {@link #afterSuite(groovy.lang.Closure)} <p> This listener will NOT be notified of tests executed by other tasks. To
-     * get that behavior, use {@link org.gradle.api.invocation.Gradle#addListener(Object)}.
+     * Registers a test listener with this task.
+     * <p>
+     * Consider also the following handy methods for quicker hooking into test execution:
+     * <ul>
+     *     <li>{@link #beforeTest(Action)}</li>
+     *     <li>{@link #afterTest(groovy.lang.Closure)}</li>
+     *     <li>{@link #beforeSuite(Action)}</li>
+     *     <li>{@link #afterSuite(groovy.lang.Closure)}</li>
+     * </ul>
+     * <p>
+     * This listener will NOT be notified of tests executed by other tasks.
+     * To get that behavior, use {@link org.gradle.api.invocation.Gradle#addListener(Object)}.
      *
      * @param listener The listener to add.
      */
@@ -301,19 +308,30 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @param closure The closure to call.
      */
-    public void onOutput(Closure closure) {
-        testOutputListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("onOutput", closure));
+    public void onOutput(final Closure closure) {
+        // TODO: Make this a BiConsumer
+        testOutputListenerBroadcaster.add(new TestOutputListener() {
+            @Override
+            public void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {
+                closure.call(testDescriptor, outputEvent);
+            }
+        });
     }
 
     /**
-     * <p>Adds a closure to be notified before a test suite is executed. A {@link TestDescriptor} instance is passed to the closure as a parameter.</p>
+     * <p>Adds a action to be notified before a test suite is executed. A {@link TestDescriptor} instance is passed to the action as a parameter.</p>
      *
      * <p>This method is also called before any test suites are executed. The provided descriptor will have a null parent suite.</p>
      *
-     * @param closure The closure to call.
+     * @param action The action to call.
      */
-    public void beforeSuite(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("beforeSuite", closure));
+    public void beforeSuite(final Action<? super TestDescriptor> action) {
+        testListenerBroadcaster.add(new TestListenerStub() {
+            @Override
+            public void beforeSuite(TestDescriptor suite) {
+                action.execute(suite);
+            }
+        });
     }
 
     /**
@@ -324,17 +342,28 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @param closure The closure to call.
      */
-    public void afterSuite(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("afterSuite", closure));
+    public void afterSuite(final Closure closure) {
+        // TODO: Make this a BiConsumer
+        testListenerBroadcaster.add(new TestListenerStub() {
+            @Override
+            public void afterSuite(TestDescriptor suite, TestResult result) {
+                closure.call(suite, result);
+            }
+        });
     }
 
     /**
-     * Adds a closure to be notified before a test is executed. A {@link TestDescriptor} instance is passed to the closure as a parameter.
+     * Adds a action to be notified before a test is executed. A {@link TestDescriptor} instance is passed to the action as a parameter.
      *
-     * @param closure The closure to call.
+     * @param action The action to call.
      */
-    public void beforeTest(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("beforeTest", closure));
+    public void beforeTest(final Action<? super TestDescriptor> action) {
+        testListenerBroadcaster.add(new TestListenerStub() {
+            @Override
+            public void beforeTest(TestDescriptor suite) {
+                action.execute(suite);
+            }
+        });
     }
 
     /**
@@ -342,8 +371,14 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @param closure The closure to call.
      */
-    public void afterTest(Closure closure) {
-        testListenerBroadcaster.add(new ClosureBackedMethodInvocationDispatch("afterTest", closure));
+    public void afterTest(final Closure closure) {
+        // TODO: Make this a BiConsumer
+        testListenerBroadcaster.add(new TestListenerStub() {
+            @Override
+            public void afterTest(TestDescriptor testDescriptor, TestResult result) {
+                closure.call(testDescriptor, result);
+            }
+        });
     }
 
     /**
@@ -365,24 +400,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     // TODO:LPTR Should be @Nested with @Console inside
     public TestLoggingContainer getTestLogging() {
         return testLogging;
-    }
-
-    /**
-     * Allows configuring the logging of the test execution, for example log eagerly the standard output, etc.
-     *
-     * <pre class='autoTested'>
-     * apply plugin: 'java'
-     *
-     * // makes the standard streams (err and out) visible at console when running tests
-     * test.testLogging {
-     *    showStandardStreams = true
-     * }
-     * </pre>
-     *
-     * @param closure configure closure
-     */
-    public void testLogging(@DelegatesTo(TestLoggingContainer.class) Closure closure) {
-        ConfigureUtil.configure(closure, testLogging);
     }
 
     /**
