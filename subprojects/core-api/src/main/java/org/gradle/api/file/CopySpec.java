@@ -83,7 +83,7 @@ import java.util.regex.Pattern;
  * </pre>
  *
  * @see org.gradle.api.tasks.Copy Copy Task
- * @see org.gradle.api.Project#copy(groovy.lang.Closure) Project.copy()
+ * @see org.gradle.api.Project#copy(Action) Project.copy()
  */
 @HasInternalProtocol
 public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFilterable {

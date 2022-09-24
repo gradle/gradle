@@ -77,9 +77,6 @@ abstract class ProjectDelegate : Project {
     override fun afterEvaluate(action: Action<in Project>) =
         delegate.afterEvaluate(action)
 
-    override fun afterEvaluate(closure: Closure<*>) =
-        delegate.afterEvaluate(closure)
-
     override fun getDefaultTasks(): MutableList<String> =
         delegate.defaultTasks
 
@@ -115,9 +112,6 @@ abstract class ProjectDelegate : Project {
     override fun uri(path: Any): URI =
         delegate.uri(path)
 
-    override fun copySpec(closure: Closure<*>): CopySpec =
-        delegate.copySpec(closure)
-
     override fun copySpec(action: Action<in CopySpec>): CopySpec =
         delegate.copySpec(action)
 
@@ -133,14 +127,8 @@ abstract class ProjectDelegate : Project {
     override fun beforeEvaluate(action: Action<in Project>) =
         delegate.beforeEvaluate(action)
 
-    override fun beforeEvaluate(closure: Closure<*>) =
-        delegate.beforeEvaluate(closure)
-
     override fun property(propertyName: String): Any? =
         delegate.property(propertyName)
-
-    override fun buildscript(configureClosure: Closure<*>) =
-        delegate.buildscript(configureClosure)
 
     override fun buildscript(action: Action<in ScriptHandler>) {
         delegate.buildscript(action)
@@ -161,9 +149,6 @@ abstract class ProjectDelegate : Project {
     override fun allprojects(action: Action<in Project>) =
         delegate.allprojects(action)
 
-    override fun allprojects(configureClosure: Closure<*>) =
-        delegate.allprojects(configureClosure)
-
     override fun <T : Any?> container(type: Class<T>): NamedDomainObjectContainer<T> =
         delegate.container(type)
 
@@ -179,17 +164,8 @@ abstract class ProjectDelegate : Project {
     override fun evaluationDependsOnChildren() =
         delegate.evaluationDependsOnChildren()
 
-    override fun configure(`object`: Any, configureClosure: Closure<*>): Any =
-        delegate.configure(`object`, configureClosure)
-
-    override fun configure(objects: Iterable<*>, configureClosure: Closure<*>): Iterable<*> =
-        delegate.configure(objects, configureClosure)
-
     override fun <T : Any?> configure(objects: Iterable<T>, configureAction: Action<in T>): Iterable<T> =
         delegate.configure(objects, configureAction)
-
-    override fun exec(closure: Closure<*>): ExecResult =
-        delegate.exec(closure)
 
     override fun exec(action: Action<in ExecSpec>): ExecResult =
         delegate.exec(action)
@@ -215,9 +191,6 @@ abstract class ProjectDelegate : Project {
     override fun files(vararg paths: Any?): ConfigurableFileCollection =
         delegate.files(*paths)
 
-    override fun files(paths: Any, configureClosure: Closure<*>): ConfigurableFileCollection =
-        delegate.files(paths, configureClosure)
-
     override fun files(paths: Any, configureAction: Action<in ConfigurableFileCollection>): ConfigurableFileCollection =
         delegate.files(paths, configureAction)
 
@@ -242,9 +215,6 @@ abstract class ProjectDelegate : Project {
 
     override fun compareTo(other: Project?): Int =
         delegate.compareTo(other)
-
-    override fun artifacts(configureClosure: Closure<*>) =
-        delegate.artifacts(configureClosure)
 
     override fun artifacts(configureAction: Action<in ArtifactHandler>) =
         delegate.artifacts(configureAction)
@@ -280,9 +250,6 @@ abstract class ProjectDelegate : Project {
     override fun project(path: String): Project =
         delegate.project(path)
 
-    override fun project(path: String, configureClosure: Closure<*>): Project =
-        delegate.project(path, configureClosure)
-
     override fun project(path: String, configureAction: Action<in Project>): Project =
         delegate.project(path, configureAction)
 
@@ -295,14 +262,8 @@ abstract class ProjectDelegate : Project {
     override fun task(args: Map<String, *>, name: String, configureClosure: Closure<*>): Task =
         delegate.task(args, name, configureClosure)
 
-    override fun task(name: String, configureClosure: Closure<*>): Task =
-        delegate.task(name, configureClosure)
-
     override fun task(name: String, configureAction: Action<in Task>): Task =
         delegate.task(name, configureAction)
-
-    override fun copy(closure: Closure<*>): WorkResult =
-        delegate.copy(closure)
 
     override fun copy(action: Action<in CopySpec>): WorkResult =
         delegate.copy(action)
@@ -312,9 +273,6 @@ abstract class ProjectDelegate : Project {
 
     override fun subprojects(action: Action<in Project>) =
         delegate.subprojects(action)
-
-    override fun subprojects(configureClosure: Closure<*>) =
-        delegate.subprojects(configureClosure)
 
     override fun getBuildscript(): ScriptHandler =
         delegate.buildscript
@@ -354,9 +312,6 @@ abstract class ProjectDelegate : Project {
     override fun evaluationDependsOn(path: String): Project =
         delegate.evaluationDependsOn(path)
 
-    override fun javaexec(closure: Closure<*>): ExecResult =
-        delegate.javaexec(closure)
-
     override fun javaexec(action: Action<in JavaExecSpec>): ExecResult =
         delegate.javaexec(action)
 
@@ -383,9 +338,6 @@ abstract class ProjectDelegate : Project {
 
     override fun getPlugins(): PluginContainer =
         delegate.plugins
-
-    override fun ant(configureClosure: Closure<*>): AntBuilder =
-        delegate.ant(configureClosure)
 
     override fun ant(configureAction: Action<in AntBuilder>): AntBuilder =
         delegate.ant(configureAction)
@@ -435,9 +387,6 @@ abstract class ProjectDelegate : Project {
 
     override fun fileTree(baseDir: Any): ConfigurableFileTree =
         delegate.fileTree(baseDir)
-
-    override fun fileTree(baseDir: Any, configureClosure: Closure<*>): ConfigurableFileTree =
-        delegate.fileTree(baseDir, configureClosure)
 
     override fun fileTree(baseDir: Any, configureAction: Action<in ConfigurableFileTree>): ConfigurableFileTree =
         delegate.fileTree(baseDir, configureAction)

@@ -305,11 +305,6 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.task(args, name, configureClosure)
         }
 
-        override fun task(name: String, configureClosure: Closure<*>): Task {
-            onAccess()
-            return delegate.task(name, configureClosure)
-        }
-
         override fun task(name: String, configureAction: Action<in Task>): Task {
             onAccess()
             return delegate.task(name, configureAction)
@@ -383,11 +378,6 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.files(*paths)
         }
 
-        override fun files(paths: Any, configureClosure: Closure<*>): ConfigurableFileCollection {
-            onAccess()
-            return delegate.files(paths, configureClosure)
-        }
-
         override fun files(paths: Any, configureAction: Action<in ConfigurableFileCollection>): ConfigurableFileCollection {
             onAccess()
             return delegate.files(paths, configureAction)
@@ -396,11 +386,6 @@ class ProblemReportingCrossProjectModelAccess(
         override fun fileTree(baseDir: Any): ConfigurableFileTree {
             onAccess()
             return delegate.fileTree(baseDir)
-        }
-
-        override fun fileTree(baseDir: Any, configureClosure: Closure<*>): ConfigurableFileTree {
-            onAccess()
-            return delegate.fileTree(baseDir, configureClosure)
         }
 
         override fun fileTree(baseDir: Any, configureAction: Action<in ConfigurableFileTree>): ConfigurableFileTree {
@@ -458,19 +443,9 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.delete(action)
         }
 
-        override fun javaexec(closure: Closure<*>): ExecResult {
-            onAccess()
-            return delegate.javaexec(closure)
-        }
-
         override fun javaexec(action: Action<in JavaExecSpec>): ExecResult {
             onAccess()
             return delegate.javaexec(action)
-        }
-
-        override fun exec(closure: Closure<*>): ExecResult {
-            onAccess()
-            return delegate.exec(closure)
         }
 
         override fun exec(action: Action<in ExecSpec>): ExecResult {
@@ -496,11 +471,6 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.createAntBuilder()
         }
 
-        override fun ant(configureClosure: Closure<*>): AntBuilder {
-            onAccess()
-            return delegate.ant(configureClosure)
-        }
-
         override fun ant(configureAction: Action<in AntBuilder>): AntBuilder {
             onAccess()
             return delegate.ant(configureAction)
@@ -519,11 +489,6 @@ class ProblemReportingCrossProjectModelAccess(
         override fun getArtifacts(): ArtifactHandler {
             onAccess()
             return delegate.artifacts
-        }
-
-        override fun artifacts(configureClosure: Closure<*>) {
-            onAccess()
-            delegate.artifacts(configureClosure)
         }
 
         override fun artifacts(configureAction: Action<in ArtifactHandler>) {
@@ -546,10 +511,6 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.depth
         }
 
-        override fun project(path: String, configureClosure: Closure<*>): Project {
-            return project(path, ConfigureUtil.configureUsing(configureClosure))
-        }
-
         override fun project(path: String, configureAction: Action<in Project>): Project {
             return delegate.project(referrer, path, configureAction)
         }
@@ -570,10 +531,6 @@ class ProblemReportingCrossProjectModelAccess(
             delegate.subprojects(referrer, action)
         }
 
-        override fun subprojects(configureClosure: Closure<*>) {
-            delegate.subprojects(referrer, ConfigureUtil.configureUsing(configureClosure))
-        }
-
         override fun subprojects(referrer: ProjectInternal, configureAction: Action<in Project>) {
             delegate.subprojects(referrer, configureAction)
         }
@@ -590,10 +547,6 @@ class ProblemReportingCrossProjectModelAccess(
             delegate.allprojects(referrer, action)
         }
 
-        override fun allprojects(configureClosure: Closure<*>) {
-            delegate.allprojects(referrer, ConfigureUtil.configureUsing(configureClosure))
-        }
-
         override fun allprojects(referrer: ProjectInternal, configureAction: Action<in Project>) {
             delegate.allprojects(referrer, configureAction)
         }
@@ -606,16 +559,6 @@ class ProblemReportingCrossProjectModelAccess(
         override fun afterEvaluate(action: Action<in Project>) {
             onAccess()
             delegate.afterEvaluate(action)
-        }
-
-        override fun beforeEvaluate(closure: Closure<*>) {
-            onAccess()
-            delegate.beforeEvaluate(closure)
-        }
-
-        override fun afterEvaluate(closure: Closure<*>) {
-            onAccess()
-            delegate.afterEvaluate(closure)
         }
 
         override fun hasProperty(propertyName: String): Boolean {
@@ -648,16 +591,6 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.logging
         }
 
-        override fun configure(target: Any, configureClosure: Closure<*>): Any {
-            onAccess()
-            return delegate.configure(target, configureClosure)
-        }
-
-        override fun configure(targets: MutableIterable<*>, configureClosure: Closure<*>): MutableIterable<*> {
-            onAccess()
-            return delegate.configure(targets, configureClosure)
-        }
-
         override fun <T : Any?> configure(targets: MutableIterable<T>, configureAction: Action<in T>): MutableIterable<T> {
             onAccess()
             return delegate.configure(targets, configureAction)
@@ -688,29 +621,14 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.dependencyFactory
         }
 
-        override fun buildscript(configureClosure: Closure<*>) {
-            onAccess()
-            delegate.buildscript(configureClosure)
-        }
-
         override fun buildscript(action: Action<in ScriptHandler>) {
             onAccess()
             delegate.buildscript(action)
         }
 
-        override fun copy(closure: Closure<*>): WorkResult {
-            onAccess()
-            return delegate.copy(closure)
-        }
-
         override fun copy(action: Action<in CopySpec>): WorkResult {
             onAccess()
             return delegate.copy(action)
-        }
-
-        override fun copySpec(closure: Closure<*>): CopySpec {
-            onAccess()
-            return delegate.copySpec(closure)
         }
 
         override fun copySpec(action: Action<in CopySpec>): CopySpec {

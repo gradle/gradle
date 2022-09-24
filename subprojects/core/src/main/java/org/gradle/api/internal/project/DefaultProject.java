@@ -107,7 +107,6 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
-import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.model.Model;
 import org.gradle.model.RuleSource;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
@@ -148,7 +147,6 @@ import java.util.concurrent.Callable;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
-import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 import static org.gradle.util.internal.GUtil.addMaps;
 
 @NoConventionMapping
@@ -690,11 +688,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public void allprojects(Closure configureClosure) {
-        allprojects(this, ConfigureUtil.configureUsing(configureClosure));
-    }
-
-    @Override
     public void allprojects(Action<? super Project> action) {
         allprojects(this, action);
     }
@@ -712,11 +705,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer) {
         return getCrossProjectModelAccess().getSubprojects(referrer, this);
-    }
-
-    @Override
-    public void subprojects(Closure configureClosure) {
-        subprojects(this, ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
@@ -942,11 +930,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public ConfigurableFileCollection files(Object paths, Closure closure) {
-        return ConfigureUtil.configure(closure, files(paths));
-    }
-
-    @Override
     public ConfigurableFileCollection files(Object paths, Action<? super ConfigurableFileCollection> configureAction) {
         ConfigurableFileCollection files = files(paths);
         configureAction.execute(files);
@@ -956,11 +939,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public ConfigurableFileTree fileTree(Object baseDir) {
         return getFileOperations().fileTree(baseDir);
-    }
-
-    @Override
-    public ConfigurableFileTree fileTree(Object baseDir, Closure closure) {
-        return ConfigureUtil.configure(closure, fileTree(baseDir));
     }
 
     @Override
@@ -1055,20 +1033,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         failAfterProjectIsEvaluated("afterEvaluate(Action)");
         evaluationListener.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action));
     }
-
-    @Override
-    public void beforeEvaluate(Closure closure) {
-        assertMutatingMethodAllowed("beforeEvaluate(Closure)");
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("beforeEvaluate", getListenerBuildOperationDecorator().decorate("Project.beforeEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
-    }
-
-    @Override
-    public void afterEvaluate(Closure closure) {
-        assertMutatingMethodAllowed("afterEvaluate(Closure)");
-        failAfterProjectIsEvaluated("afterEvaluate(Closure)");
-        evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", Cast.<Closure<?>>uncheckedNonnullCast(closure))));
-    }
-
     private void failAfterProjectIsEvaluated(String methodPrototype) {
         if (!state.isUnconfigured() && !state.isConfiguring()) {
             throw new InvalidUserCodeException("Cannot run Project." + methodPrototype + " when the project is already evaluated.");
@@ -1124,11 +1088,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public WorkResult copy(Closure closure) {
-        return copy(configureUsing(closure));
-    }
-
-    @Override
     public WorkResult copy(Action<? super CopySpec> action) {
         return getFileOperations().copy(action);
     }
@@ -1136,11 +1095,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public WorkResult sync(Action<? super SyncSpec> action) {
         return getFileOperations().sync(action);
-    }
-
-    @Override
-    public CopySpec copySpec(Closure closure) {
-        return ConfigureUtil.configure(closure, copySpec());
     }
 
     @Override
@@ -1158,18 +1112,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public abstract ProcessOperations getProcessOperations();
 
     @Override
-    public ExecResult javaexec(Closure closure) {
-        return javaexec(configureUsing(closure));
-    }
-
-    @Override
     public ExecResult javaexec(Action<? super JavaExecSpec> action) {
         return getProcessOperations().javaexec(action);
-    }
-
-    @Override
-    public ExecResult exec(Closure closure) {
-        return exec(configureUsing(closure));
     }
 
     @Override
@@ -1190,22 +1134,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     @Inject
     public abstract DependencyMetaDataProvider getDependencyMetaDataProvider();
-
-    @Override
-    public AntBuilder ant(Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, getAnt());
-    }
-
     @Override
     public AntBuilder ant(Action<? super AntBuilder> configureAction) {
         AntBuilder ant = getAnt();
         configureAction.execute(ant);
         return ant;
-    }
-
-    @Override
-    public Project project(String path, Closure configureClosure) {
-        return project(this, path, ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
@@ -1219,20 +1152,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         getProjectConfigurator().project(project, configureAction);
         return project;
     }
-
-    @Override
-    public Object configure(Object object, Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, object);
-    }
-
-    @Override
-    public Iterable<?> configure(Iterable<?> objects, Closure configureClosure) {
-        for (Object object : objects) {
-            configure(object, configureClosure);
-        }
-        return objects;
-    }
-
     @Override
     public void configurations(Closure configureClosure) {
         ((Configurable<?>) getConfigurations()).configure(configureClosure);
@@ -1249,18 +1168,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public void artifacts(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getArtifacts());
-    }
-
-    @Override
     public void artifacts(Action<? super ArtifactHandler> configureAction) {
         configureAction.execute(getArtifacts());
-    }
-
-    @Override
-    public void buildscript(Closure configureClosure) {
-        buildscript(ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
@@ -1283,15 +1192,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public Task task(String task, Closure configureClosure) {
-        return taskContainer.create(task).configure(ConfigureUtil.configureUsing(configureClosure));
-    }
-
-    public Task task(Object task, Closure configureClosure) {
-        return task(task.toString(), configureClosure);
-    }
-
-    @Override
     public Task task(Map options, String task) {
         return taskContainer.create(addMaps(Cast.uncheckedNonnullCast(options), singletonMap(Task.TASK_NAME, task)));
     }
@@ -1303,10 +1203,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public Task task(Map options, String task, Closure configureClosure) {
         return taskContainer.create(addMaps(Cast.uncheckedNonnullCast(options), singletonMap(Task.TASK_NAME, task))).configure(ConfigureUtil.configureUsing(configureClosure));
-    }
-
-    public Task task(Map options, Object task, Closure configureClosure) {
-        return task(options, task.toString(), configureClosure);
     }
 
     @Inject
