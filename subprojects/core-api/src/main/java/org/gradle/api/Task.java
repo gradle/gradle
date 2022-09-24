@@ -448,10 +448,10 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * <p>Applies the statements of the action against this task object. The delegate object for the action is set to
      * this task.</p>
      *
-     * @param action The action to be applied (can be null).
+     * @param action The action to be applied.
      * @return This task
      */
-    Task configure(@Nullable Action<? super Task> action);
+    Task configure(Action<? super Task> action);
 
     /**
      * <p>Returns the <code>AntBuilder</code> for this task.  You can use this in your build file to execute ant

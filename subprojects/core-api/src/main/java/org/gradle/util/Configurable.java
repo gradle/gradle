@@ -17,12 +17,28 @@
 package org.gradle.util;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.internal.Cast;
 
 /**
- * An object that can be configured with a Groovy closure.
+ * An object that can be configured.
  *
- * @param <T> the closure return type.
+ * @param <T> the return type.
  */
 public interface Configurable<T> {
     T configure(Closure cl);
+
+    /**
+     * Configures this object with the given action.
+     *
+     * @param action the action to configure with
+     * @return this
+     *
+     * @since 8.0
+     */
+    default T configure(Action<? super T> action) {
+        T target = Cast.uncheckedCast(this);
+        action.execute(target);
+        return target;
+    }
 }
