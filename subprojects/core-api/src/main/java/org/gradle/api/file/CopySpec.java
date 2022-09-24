@@ -15,8 +15,6 @@
  */
 package org.gradle.api.file;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
@@ -208,12 +206,6 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     @Override
-    CopySpec from(Object sourcePath, @DelegatesTo(CopySpec.class) Closure c);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction);
 
     // PatternFilterable overrides to broaden return type
@@ -264,14 +256,6 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
      */
     @Override
-    CopySpec include(Closure includeSpec);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
-     */
-    @Override
     CopySpec exclude(String... excludes);
 
     /**
@@ -290,14 +274,6 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     @Override
     CopySpec exclude(Spec<FileTreeElement> excludeSpec);
 
-    /**
-     * {@inheritDoc}
-     *
-     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
-     */
-    @Override
-    CopySpec exclude(Closure excludeSpec);
-
     // CopyProcessingSpec overrides to broaden return type
 
     /**
@@ -311,26 +287,10 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * The destination is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      *
      * @param destPath Path to the destination directory for a Copy
-     * @param configureClosure The closure to use to configure the child {@code CopySpec}.
-     * @return this
-     */
-    CopySpec into(Object destPath, @DelegatesTo(CopySpec.class) Closure configureClosure);
-
-    /**
-     * Creates and configures a child {@code CopySpec} with the given destination path.
-     * The destination is evaluated as per {@link org.gradle.api.Project#file(Object)}.
-     *
-     * @param destPath Path to the destination directory for a Copy
      * @param copySpec The action to use to configure the child {@code CopySpec}.
      * @return this
      */
     CopySpec into(Object destPath, Action<? super CopySpec> copySpec);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    CopySpec rename(Closure closure);
 
     /**
      * {@inheritDoc}
@@ -366,12 +326,6 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     @Override
-    CopySpec filter(Closure closure);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     CopySpec filter(Transformer<String, String> transformer);
 
     /**
@@ -391,12 +345,6 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      */
     @Override
     CopySpec eachFile(Action<? super FileCopyDetails> action);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    CopySpec eachFile(@DelegatesTo(FileCopyDetails.class) Closure closure);
 
     /**
      * Gets the charset used to read and write files when filtering.

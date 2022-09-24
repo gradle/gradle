@@ -17,7 +17,6 @@
 package org.gradle.api.internal.file.copy;
 
 import com.google.common.annotations.VisibleForTesting;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
@@ -30,7 +29,6 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SyncSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
-import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -38,8 +36,6 @@ import java.io.FilterReader;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-
-import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 /**
  * Wraps another CopySpec impl, only exposing the CopySpec API.
@@ -124,11 +120,6 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    public CopySpec from(Object sourcePath, final Closure c) {
-        return delegate.from(sourcePath, new ClosureBackedAction<>(c));
-    }
-
-    @Override
     public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
         return delegate.from(sourcePath, configureAction);
     }
@@ -164,12 +155,6 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    public CopySpec include(Closure includeSpec) {
-        delegate.include(includeSpec);
-        return this;
-    }
-
-    @Override
     public CopySpec exclude(String... excludes) {
         delegate.exclude(excludes);
         return this;
@@ -188,35 +173,14 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    public CopySpec exclude(Closure excludeSpec) {
-        delegate.exclude(excludeSpec);
-        return this;
-    }
-
-    @Override
     public CopySpec into(Object destPath) {
         delegate.into(destPath);
         return this;
     }
 
     @Override
-    public CopySpec into(Object destPath, Closure configureClosure) {
-        return delegate.into(destPath, configureClosure);
-    }
-
-    @Override
     public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
         return delegate.into(destPath, copySpec);
-    }
-
-    @Override
-    public CopySpec rename(final Closure closure) {
-        delegate.rename(transformer(s -> {
-            Object res = closure.call(s);
-            //noinspection ConstantConditions
-            return res == null ? null : res.toString();
-        }));
-        return this;
     }
 
     @Override
@@ -250,12 +214,6 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    public CopySpec filter(Closure closure) {
-        delegate.filter(closure);
-        return this;
-    }
-
-    @Override
     public CopySpec filter(Transformer<String, String> transformer) {
         delegate.filter(transformer);
         return this;
@@ -276,12 +234,6 @@ public class CopySpecWrapper implements SyncSpec {
     @Override
     public CopySpec eachFile(Action<? super FileCopyDetails> action) {
         delegate.eachFile(action);
-        return this;
-    }
-
-    @Override
-    public CopySpec eachFile(Closure closure) {
-        delegate.eachFile(closure);
         return this;
     }
 

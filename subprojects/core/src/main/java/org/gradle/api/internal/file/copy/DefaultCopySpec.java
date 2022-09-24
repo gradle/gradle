@@ -19,7 +19,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonExtensible;
@@ -46,8 +45,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.util.internal.ClosureBackedAction;
-import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -146,11 +143,6 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public CopySpec from(Object sourcePath, Closure c) {
-        return from(sourcePath, new ClosureBackedAction<>(c));
-    }
-
-    @Override
     public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
         Preconditions.checkNotNull(configureAction, "Gradle does not allow passing null for the configuration action for CopySpec.from().");
         CopySpecInternal child = addChild();
@@ -241,11 +233,6 @@ public class DefaultCopySpec implements CopySpecInternal {
     public CopySpec into(Object destDir) {
         this.destDir = destDir;
         return this;
-    }
-
-    @Override
-    public CopySpec into(Object destPath, Closure configureClosure) {
-        return into(destPath, new ClosureBackedAction<>(configureClosure));
     }
 
     @Override
@@ -345,12 +332,6 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public CopySpec include(Closure includeSpec) {
-        patternSet.include(includeSpec);
-        return this;
-    }
-
-    @Override
     public Set<String> getIncludes() {
         return patternSet.getIncludes();
     }
@@ -375,12 +356,6 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec exclude(Spec<FileTreeElement> excludeSpec) {
-        patternSet.exclude(excludeSpec);
-        return this;
-    }
-
-    @Override
-    public CopySpec exclude(Closure excludeSpec) {
         patternSet.exclude(excludeSpec);
         return this;
     }
@@ -415,11 +390,6 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public CopySpec filter(final Closure closure) {
-        return filter(new ClosureBackedTransformer(closure));
-    }
-
-    @Override
     public CopySpec filter(final Transformer<String, String> transformer) {
         appendCopyAction(new TransformerBackedFilterAction(transformer));
         return this;
@@ -441,11 +411,6 @@ public class DefaultCopySpec implements CopySpecInternal {
     public CopySpec expand(final Map<String, ?> properties, final Action<? super ExpandDetails> action) {
         appendCopyAction(new MapBackedExpandAction(properties, action));
         return this;
-    }
-
-    @Override
-    public CopySpec rename(Closure closure) {
-        return rename(new ClosureBackedTransformer(closure));
     }
 
     @Override
@@ -500,12 +465,6 @@ public class DefaultCopySpec implements CopySpecInternal {
     @Override
     public CopySpecInternal preserve(Action<? super PatternFilterable> action) {
         action.execute(this.preserve);
-        return this;
-    }
-
-    @Override
-    public CopySpec eachFile(Closure closure) {
-        appendCopyAction(ConfigureUtil.configureUsing(closure));
         return this;
     }
 

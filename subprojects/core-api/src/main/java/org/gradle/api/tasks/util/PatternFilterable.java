@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.util;
 
-import groovy.lang.Closure;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
 
@@ -139,19 +138,6 @@ public interface PatternFilterable {
     PatternFilterable include(Spec<FileTreeElement> includeSpec);
 
     /**
-     * Adds an include spec. This method may be called multiple times to append new specs. The given closure is passed a
-     * {@link org.gradle.api.file.FileTreeElement} as its parameter.
-     *
-     * If includes are not provided, then all files in this container will be included. If includes are provided, then a
-     * file must match at least one of the include patterns or specs to be included.
-     *
-     * @param includeSpec the spec to add
-     * @return this
-     * @see PatternFilterable Pattern Format
-     */
-    PatternFilterable include(Closure includeSpec);
-
-    /**
      * Adds an ANT style exclude pattern. This method may be called multiple times to append new patterns and multiple
      * patterns may be specified in a single call.
      *
@@ -189,25 +175,4 @@ public interface PatternFilterable {
      */
     PatternFilterable exclude(Spec<FileTreeElement> excludeSpec);
 
-    /**
-     * Adds an exclude spec. This method may be called multiple times to append new specs.The given closure is passed a
-     * {@link org.gradle.api.file.FileTreeElement} as its parameter. The closure should return true or false. Example:
-     *
-     * <pre class='autoTested'>
-     * copySpec {
-     *   from 'source'
-     *   into 'destination'
-     *   //an example of excluding files from certain configuration:
-     *   exclude { it.file in configurations.someConf.files }
-     * }
-     * </pre>
-     *
-     * If excludes are not provided, then no files will be excluded. If excludes are provided, then files must not match
-     * any exclude pattern to be processed.
-     *
-     * @param excludeSpec the spec to add
-     * @return this
-     * @see FileTreeElement
-     */
-    PatternFilterable exclude(Closure excludeSpec);
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
@@ -27,9 +26,6 @@ import org.gradle.internal.Factory;
 
 import java.util.List;
 import java.util.function.Consumer;
-
-import static org.gradle.api.internal.file.AbstractFileTree.fileVisitorFrom;
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * A {@link FileTree} that contains the union of zero or more file trees.
@@ -54,14 +50,6 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
     }
 
     @Override
-    public FileTree matching(final Closure filterConfigClosure) {
-        return new FilteredFileTree(this, patternSetFactory, () -> {
-            // For backwards compatibility, run the closure each time the file tree contents are queried
-            return configure(filterConfigClosure, patternSetFactory.create());
-        });
-    }
-
-    @Override
     public FileTree matching(final Action<? super PatternFilterable> filterConfigAction) {
         return new FilteredFileTree(this, patternSetFactory, () -> {
             // For backwards compatibility, run the action each time the file tree contents are queried
@@ -81,11 +69,6 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
             patternSet.copyFrom(patterns);
             return patternSet;
         });
-    }
-
-    @Override
-    public FileTree visit(Closure visitor) {
-        return visit(fileVisitorFrom(visitor));
     }
 
     @Override

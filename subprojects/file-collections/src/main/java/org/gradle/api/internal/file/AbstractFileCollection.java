@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
-import groovy.lang.Closure;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
@@ -30,7 +29,6 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
@@ -344,11 +342,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public FileTreeInternal getAsFileTree() {
         return new FileCollectionBackedFileTree(patternSetFactory, this);
-    }
-
-    @Override
-    public FileCollection filter(Closure filterClosure) {
-        return filter(Specs.convertClosureToSpec(filterClosure));
     }
 
     @Override

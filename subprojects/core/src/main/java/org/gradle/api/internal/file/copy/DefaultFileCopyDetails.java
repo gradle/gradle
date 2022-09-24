@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file.copy;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ContentFilterable;
@@ -194,11 +193,6 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     @Override
     public void setMode(int mode) {
         this.mode = mode;
-    }
-
-    @Override
-    public ContentFilterable filter(Closure closure) {
-        return filter(new ClosureBackedTransformer(closure));
     }
 
     @Override

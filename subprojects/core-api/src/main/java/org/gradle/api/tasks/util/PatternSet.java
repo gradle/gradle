@@ -17,10 +17,8 @@
 package org.gradle.api.tasks.util;
 
 import com.google.common.collect.Sets;
-import groovy.lang.Closure;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.api.tasks.util.internal.IntersectionPatternSet;
 import org.gradle.api.tasks.util.internal.PatternSetAntBuilderDelegate;
@@ -253,12 +251,6 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
     @Override
-    public PatternSet include(Closure closure) {
-        include(Specs.<FileTreeElement>convertClosureToSpec(closure));
-        return this;
-    }
-
-    @Override
     public PatternSet exclude(String... excludes) {
         Collections.addAll(getExcludes(), excludes);
         return this;
@@ -280,12 +272,6 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     public PatternSet excludeSpecs(Iterable<Spec<FileTreeElement>> excludes) {
         CollectionUtils.addAll(getExcludeSpecs(), excludes);
-        return this;
-    }
-
-    @Override
-    public PatternSet exclude(Closure closure) {
-        exclude(Specs.<FileTreeElement>convertClosureToSpec(closure));
         return this;
     }
 

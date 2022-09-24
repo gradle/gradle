@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file.copy;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.CopyProcessingSpec;
@@ -27,7 +26,6 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
-import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.annotation.Nullable;
 import java.io.FilterReader;
@@ -100,11 +98,6 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public CopySpec from(Object sourcePath, final Closure c) {
-        return getDelegateCopySpec().from(sourcePath, new ClosureBackedAction<>(c));
-    }
-
-    @Override
     public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
         return getDelegateCopySpec().from(sourcePath, configureAction);
     }
@@ -135,11 +128,6 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public CopySpec include(Closure includeSpec) {
-        return getDelegateCopySpec().include(includeSpec);
-    }
-
-    @Override
     public CopySpec exclude(String... excludes) {
         return getDelegateCopySpec().exclude(excludes);
     }
@@ -155,28 +143,13 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public CopySpec exclude(Closure excludeSpec) {
-        return getDelegateCopySpec().exclude(excludeSpec);
-    }
-
-    @Override
     public CopySpec into(Object destPath) {
         return getDelegateCopySpec().into(destPath);
     }
 
     @Override
-    public CopySpec into(Object destPath, Closure configureClosure) {
-        return getDelegateCopySpec().into(destPath, configureClosure);
-    }
-
-    @Override
     public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
         return getDelegateCopySpec().into(destPath, copySpec);
-    }
-
-    @Override
-    public CopySpec rename(Closure closure) {
-        return getDelegateCopySpec().rename(closure);
     }
 
     @Override
@@ -205,11 +178,6 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public CopySpec filter(Closure closure) {
-        return getDelegateCopySpec().filter(closure);
-    }
-
-    @Override
     public CopySpec filter(Transformer<String, String> transformer) {
         return getDelegateCopySpec().filter(transformer);
     }
@@ -227,11 +195,6 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     @Override
     public CopySpec eachFile(Action<? super FileCopyDetails> action) {
         return getDelegateCopySpec().eachFile(action);
-    }
-
-    @Override
-    public CopySpec eachFile(Closure closure) {
-        return getDelegateCopySpec().eachFile(closure);
     }
 
     @Override

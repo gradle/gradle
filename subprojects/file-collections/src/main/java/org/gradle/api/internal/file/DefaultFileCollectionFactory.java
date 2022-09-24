@@ -18,7 +18,6 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
@@ -256,11 +255,6 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         @Override
         public boolean isEmpty() {
             return true;
-        }
-
-        @Override
-        public FileTree matching(Closure filterConfigClosure) {
-            return this;
         }
 
         @Override

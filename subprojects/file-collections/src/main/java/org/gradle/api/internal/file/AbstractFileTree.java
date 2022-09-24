@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.file;
 
-import groovy.lang.Closure;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileTree;
@@ -33,8 +31,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 public abstract class AbstractFileTree extends AbstractFileCollection implements FileTreeInternal {
     public AbstractFileTree() {
@@ -71,11 +67,6 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     @Override
-    public FileTree matching(Closure filterConfigClosure) {
-        return matching(configure(filterConfigClosure, patternSetFactory.create()));
-    }
-
-    @Override
     public FileTree matching(Action<? super PatternFilterable> filterConfigAction) {
         PatternSet patternSet = patternSetFactory.create();
         filterConfigAction.execute(patternSet);
@@ -106,15 +97,6 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     @Override
     public FileTree plus(FileTree fileTree) {
         return new UnionFileTree(this, Cast.cast(FileTreeInternal.class, fileTree));
-    }
-
-    @Override
-    public FileTree visit(Closure closure) {
-        return visit(fileVisitorFrom(closure));
-    }
-
-    static FileVisitor fileVisitorFrom(Closure closure) {
-        return DefaultGroovyMethods.asType(closure, FileVisitor.class);
     }
 
     @Override

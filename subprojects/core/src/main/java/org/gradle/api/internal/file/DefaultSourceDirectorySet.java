@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file;
 
-import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
@@ -157,12 +156,6 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     }
 
     @Override
-    public PatternFilterable include(Closure includeSpec) {
-        patterns.include(includeSpec);
-        return this;
-    }
-
-    @Override
     public PatternFilterable exclude(Iterable<String> excludes) {
         patterns.exclude(excludes);
         return this;
@@ -179,13 +172,6 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         patterns.exclude(excludeSpec);
         return this;
     }
-
-    @Override
-    public PatternFilterable exclude(Closure excludeSpec) {
-        patterns.exclude(excludeSpec);
-        return this;
-    }
-
     @Override
     public PatternFilterable getFilter() {
         return filter;

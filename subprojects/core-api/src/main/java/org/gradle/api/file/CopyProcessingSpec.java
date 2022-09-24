@@ -15,8 +15,6 @@
  */
 package org.gradle.api.file;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 
@@ -35,16 +33,6 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @return this
      */
     CopyProcessingSpec into(Object destPath);
-
-    /**
-     * Renames a source file. The closure will be called with a single parameter, the name of the file.
-     * The closure should return a String object with a new target name. The closure may return null,
-     * in which case the original name will be used.
-     *
-     * @param closure rename closure
-     * @return this
-     */
-    CopyProcessingSpec rename(Closure closure);
 
     /**
      * Renames a source file. The function will be called with a single parameter, the name of the file.
@@ -132,13 +120,4 @@ public interface CopyProcessingSpec extends ContentFilterable {
      */
     CopyProcessingSpec eachFile(Action<? super FileCopyDetails> action);
 
-    /**
-     * Adds an action to be applied to each file as it about to be copied into its destination. The given closure is
-     * called with a {@link org.gradle.api.file.FileCopyDetails} as its parameter. Actions are executed in the order
-     * added, and are inherited from the parent spec.
-     *
-     * @param closure The action to execute.
-     * @return this
-     */
-    CopyProcessingSpec eachFile(@DelegatesTo(value=FileCopyDetails.class, strategy = Closure.DELEGATE_FIRST) Closure closure);
 }

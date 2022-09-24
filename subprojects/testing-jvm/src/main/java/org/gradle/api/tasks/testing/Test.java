@@ -757,15 +757,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Test include(Closure includeSpec) {
-        patternSet.include(includeSpec);
-        return this;
-    }
-
-    /**
      * Adds exclude patterns for the files in the test classes directory (e.g. '**&#47;*Test.class')).
      *
      * @see #setExcludes(Iterable)
@@ -792,15 +783,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Override
     public Test exclude(Spec<FileTreeElement> excludeSpec) {
-        patternSet.exclude(excludeSpec);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Test exclude(Closure excludeSpec) {
         patternSet.exclude(excludeSpec);
         return this;
     }

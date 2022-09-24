@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import groovy.lang.Closure;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileTree;
@@ -133,15 +132,6 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
      * {@inheritDoc}
      */
     @Override
-    public SourceTask include(Closure includeSpec) {
-        patternSet.include(includeSpec);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public SourceTask exclude(String... excludes) {
         patternSet.exclude(excludes);
         return this;
@@ -161,15 +151,6 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
      */
     @Override
     public SourceTask exclude(Spec<FileTreeElement> excludeSpec) {
-        patternSet.exclude(excludeSpec);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public SourceTask exclude(Closure excludeSpec) {
         patternSet.exclude(excludeSpec);
         return this;
     }

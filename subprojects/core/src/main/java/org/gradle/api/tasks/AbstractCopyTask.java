@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
@@ -32,7 +31,6 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.file.copy.ClosureBackedTransformer;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -43,7 +41,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
@@ -282,15 +279,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask from(Object sourcePath, Closure c) {
-        getMainSpec().from(sourcePath, new ClosureBackedAction<>(c));
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public AbstractCopyTask from(Object sourcePath, Action<? super CopySpec> configureAction) {
         getMainSpec().from(sourcePath, configureAction);
         return this;
@@ -311,15 +299,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @Override
     public AbstractCopyTask into(Object destDir) {
         getRootSpec().into(destDir);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public AbstractCopyTask into(Object destPath, Closure configureClosure) {
-        getMainSpec().into(destPath, configureClosure);
         return this;
     }
 
@@ -363,15 +342,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask include(Closure includeSpec) {
-        getMainSpec().include(includeSpec);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public AbstractCopyTask exclude(String... excludes) {
         getMainSpec().exclude(excludes);
         return this;
@@ -391,15 +361,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Override
     public AbstractCopyTask exclude(Spec<FileTreeElement> excludeSpec) {
-        getMainSpec().exclude(excludeSpec);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public AbstractCopyTask exclude(Closure excludeSpec) {
         getMainSpec().exclude(excludeSpec);
         return this;
     }
@@ -444,14 +405,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask rename(Closure closure) {
-        return rename(new ClosureBackedTransformer(closure));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public AbstractCopyTask rename(Transformer<String, String> renamer) {
         getMainSpec().rename(renamer);
         return this;
@@ -490,15 +443,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @Override
     public AbstractCopyTask filter(Class<? extends FilterReader> filterType) {
         getMainSpec().filter(filterType);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public AbstractCopyTask filter(Closure closure) {
-        getMainSpec().filter(closure);
         return this;
     }
 
@@ -571,15 +515,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @Override
     public AbstractCopyTask eachFile(Action<? super FileCopyDetails> action) {
         getMainSpec().eachFile(action);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public AbstractCopyTask eachFile(Closure closure) {
-        getMainSpec().eachFile(closure);
         return this;
     }
 

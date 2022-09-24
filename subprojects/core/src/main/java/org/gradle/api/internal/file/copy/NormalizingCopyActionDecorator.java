@@ -17,7 +17,6 @@ package org.gradle.api.internal.file.copy;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ContentFilterable;
@@ -215,11 +214,6 @@ public class NormalizingCopyActionDecorator implements CopyAction {
 
         @Override
         public ContentFilterable filter(Class<? extends FilterReader> filterType) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ContentFilterable filter(Closure closure) {
             throw new UnsupportedOperationException();
         }
 
