@@ -25,6 +25,7 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.SyncSpec;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.DefaultFileOperations;
@@ -40,6 +41,7 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
@@ -121,9 +123,14 @@ public abstract class DefaultScript extends BasicScript {
 
     @Override
     public void apply(Closure closure) {
-        DefaultObjectConfigurationAction action = createObjectConfigurationAction();
-        ConfigureUtil.configure(closure, action);
-        action.execute();
+        apply(ConfigureUtil.configureUsing(closure));
+    }
+
+    @Override
+    public void apply(Action<? super ObjectConfigurationAction> action) {
+        DefaultObjectConfigurationAction configurationAction = createObjectConfigurationAction();
+        action.execute(configurationAction);
+        configurationAction.execute();
     }
 
     @Override
@@ -141,6 +148,11 @@ public abstract class DefaultScript extends BasicScript {
     @Override
     public void buildscript(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getBuildscript());
+    }
+
+    @Override
+    public void buildscript(Action<? super ScriptHandler> action) {
+        Actions.with(getBuildscript(), action);
     }
 
     @Override
@@ -169,6 +181,11 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     @Override
+    public ConfigurableFileCollection files(Object paths, Action<? super ConfigurableFileCollection> action) {
+        return Actions.with(files(paths), action);
+    }
+
+    @Override
     public String relativePath(Object path) {
         return fileOperations.relativePath(path);
     }
@@ -186,6 +203,11 @@ public abstract class DefaultScript extends BasicScript {
     @Override
     public ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, fileOperations.fileTree(baseDir));
+    }
+
+    @Override
+    public ConfigurableFileTree fileTree(Object baseDir, Action<? super ConfigurableFileTree> action) {
+        return Actions.with(fileTree(baseDir), action);
     }
 
     @Override
@@ -208,17 +230,24 @@ public abstract class DefaultScript extends BasicScript {
         return copy(ConfigureUtil.configureUsing(closure));
     }
 
+    @Override
     public WorkResult copy(Action<? super CopySpec> action) {
         return fileOperations.copy(action);
     }
 
-    public WorkResult sync(Action<? super CopySpec> action) {
+    @Override
+    public WorkResult sync(Action<? super SyncSpec> action) {
         return fileOperations.sync(action);
     }
 
     @Override
     public CopySpec copySpec(Closure closure) {
         return Actions.with(copySpec(), ConfigureUtil.configureUsing(closure));
+    }
+
+    @Override
+    public CopySpec copySpec(Action<? super CopySpec> action) {
+        return Actions.with(fileOperations.copySpec(), action);
     }
 
     public CopySpec copySpec() {

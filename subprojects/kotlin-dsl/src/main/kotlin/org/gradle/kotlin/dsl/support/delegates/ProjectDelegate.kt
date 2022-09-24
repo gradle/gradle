@@ -142,6 +142,10 @@ abstract class ProjectDelegate : Project {
     override fun buildscript(configureClosure: Closure<*>) =
         delegate.buildscript(configureClosure)
 
+    override fun buildscript(action: Action<in ScriptHandler>) {
+        delegate.buildscript(action)
+    }
+
     override fun getProject(): Project =
         delegate.project
 

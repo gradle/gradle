@@ -21,9 +21,11 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.SyncSpec;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
@@ -60,6 +62,17 @@ public interface Script {
     /**
      * <p>Configures the delegate object for this script using plugins or scripts.
      *
+     * <p>The given action is used to configure an {@link org.gradle.api.plugins.ObjectConfigurationAction} which is
+     * then used to configure the delegate object.</p>
+     *
+     * @param action The action to configure the {@code ObjectConfigurationAction}.
+     * @since 8.0
+     */
+    void apply(Action<? super ObjectConfigurationAction> action);
+
+    /**
+     * <p>Configures the delegate object for this script using plugins or scripts.
+     *
      * <p>The following options are available:</p>
      *
      * <ul><li>{@code from}: A script to apply to the delegate object. Accepts any path supported by {@link
@@ -92,6 +105,16 @@ public interface Script {
      * @param configureClosure the closure to use to configure the script classpath.
      */
     void buildscript(Closure configureClosure);
+
+    /**
+     * Configures the classpath for this script.
+     *
+     * <p>The given action is executed against this script's {@link ScriptHandler}. </p>
+     *
+     * @param action the action to use to configure the script classpath.
+     * @since 8.0
+     */
+    void buildscript(Action<? super ScriptHandler> action);
 
     /**
      * <p>Resolves a file path relative to the directory containing this script. This works as described for {@link
@@ -142,6 +165,20 @@ public interface Script {
      * @return the configured file tree. Never returns null.
      */
     ConfigurableFileCollection files(Object paths, Closure configureClosure);
+
+    /**
+     * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The file collection is configured
+     * using the given action. This method works as described for {@link Project#files(Object, Action)}.
+     * Relative paths are resolved relative to the directory containing this script.</p>
+     *
+     * @param paths The contents of the file collection. Evaluated as per {@link #files(Object...)}.
+     * @param action The action to use to configure the file collection.
+     * @return the configured file tree. Never returns null.
+     *
+     * @see Project#files(Object, Action)
+     * @since 8.0
+     */
+    ConfigurableFileCollection files(Object paths, Action<? super ConfigurableFileCollection> action);
 
     /**
      * <p>Returns the relative path from the directory containing this script to the given path. The given path object
@@ -200,6 +237,31 @@ public interface Script {
      * @return the configured file tree. Never returns null.
      */
     ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure);
+
+    /**
+     * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
+     * as per {@link #file(Object)}. The action will be used to configure the new file tree.
+     * Example:</p>
+     *
+     * <pre>
+     * fileTree('src') {
+     *    exclude '**&#47;.svn/**'
+     * }.copy { into 'dest'}
+     * </pre>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
+     *
+     * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
+     * @param action Action to configure the {@code ConfigurableFileTree} object.
+     * @return the configured file tree. Never returns null.
+     *
+     * @see Project#fileTree(Object, Action)
+     *
+     * @since 8.0
+     */
+    ConfigurableFileTree fileTree(Object baseDir, Action<? super ConfigurableFileTree> action);
 
     /**
      * <p>Creates a new {@code FileTree} which contains the contents of the given ZIP file. The given zipPath path is
@@ -282,6 +344,52 @@ public interface Script {
     WorkResult copy(Closure closure);
 
     /**
+     * Copy the specified files.  The given action is used to configure a {@link org.gradle.api.file.CopySpec}, which
+     * is then used to copy the files. Example:
+     * <pre>
+     * copy {
+     *    from configurations.runtimeClasspath
+     *    into 'build/deploy/lib'
+     * }
+     * </pre>
+     * Note that CopySpecs can be nested:
+     * <pre>
+     * copy {
+     *    into 'build/webroot'
+     *    exclude '**&#47;.svn/**'
+     *    from('src/main/webapp') {
+     *       include '**&#47;*.jsp'
+     *       filter(ReplaceTokens, tokens:[copyright:'2009', version:'2.3.1'])
+     *    }
+     *    from('src/main/js') {
+     *       include '**&#47;*.js'
+     *    }
+     * }
+     * </pre>
+     *
+     * @param action Action to configure the CopySpec
+     * @return {@link org.gradle.api.tasks.WorkResult} that can be used to check if the copy did any work.
+     *
+     * @see Project#copy(Action)
+     *
+     * @since 8.0
+     */
+    WorkResult copy(Action<? super CopySpec> action);
+
+    /**
+     * Synchronizes the contents of a destination directory with some source directories and files.
+     * The given action is used to configure a {@link SyncSpec}, which is then used to synchronize the files.
+     *
+     * @param action Action to configure the SyncSpec
+     * @return {@link org.gradle.api.tasks.WorkResult} that can be used to check if the sync did any work.
+     *
+     * @see Project#sync(Action)
+     *
+     * @since 8.0
+     */
+    WorkResult sync(Action<? super SyncSpec> action);
+
+    /**
      * Creates a {@link org.gradle.api.file.CopySpec} which can later be used to copy files or create an archive. The
      * given closure is used to configure the {@link org.gradle.api.file.CopySpec} before it is returned by this
      * method.
@@ -290,6 +398,19 @@ public interface Script {
      * @return The CopySpec
      */
     CopySpec copySpec(Closure closure);
+
+    /**
+     * Creates a {@link org.gradle.api.file.CopySpec} which can later be used to copy files or create an archive. The
+     * given action is used to configure the {@link org.gradle.api.file.CopySpec} before it is returned by this
+     * method.
+     *
+     * @param action Action to configure the CopySpec
+     * @return The CopySpec
+     *
+     * @since 8.0
+     * @see Project#copySpec(Action)
+     */
+    CopySpec copySpec(Action<? super CopySpec> action);
 
     /**
      * Creates a directory and returns a file pointing to it.

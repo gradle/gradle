@@ -47,6 +47,7 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SyncSpec;
+import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -1259,7 +1260,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public void buildscript(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getBuildscript());
+        buildscript(ConfigureUtil.configureUsing(configureClosure));
+    }
+
+    @Override
+    public void buildscript(Action<? super ScriptHandler> action) {
+        Actions.with(getBuildscript(), action);
     }
 
     @Override
@@ -1278,7 +1284,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Task task(String task, Closure configureClosure) {
-        return taskContainer.create(task).configure(configureClosure);
+        return taskContainer.create(task).configure(ConfigureUtil.configureUsing(configureClosure));
     }
 
     public Task task(Object task, Closure configureClosure) {
@@ -1296,7 +1302,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Task task(Map options, String task, Closure configureClosure) {
-        return taskContainer.create(addMaps(Cast.uncheckedNonnullCast(options), singletonMap(Task.TASK_NAME, task))).configure(configureClosure);
+        return taskContainer.create(addMaps(Cast.uncheckedNonnullCast(options), singletonMap(Task.TASK_NAME, task))).configure(ConfigureUtil.configureUsing(configureClosure));
     }
 
     public Task task(Map options, Object task, Closure configureClosure) {

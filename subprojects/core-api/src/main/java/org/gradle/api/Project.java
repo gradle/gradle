@@ -1582,6 +1582,17 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void buildscript(Closure configureClosure);
 
     /**
+     * <p>Configures the build script classpath for this project.
+     *
+     * @param action the action to use to configure the build script classpath.
+     *
+     * @see Script#buildscript(Action)
+     *
+     * @since 8.0
+     */
+    void buildscript(Action<? super ScriptHandler> action);
+
+    /**
      * Copies the specified files.  The given closure is used to configure a {@link CopySpec}, which is then used to
      * copy the files. Example:
      * <pre>
