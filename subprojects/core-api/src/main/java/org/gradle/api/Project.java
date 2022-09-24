@@ -16,7 +16,6 @@
 
 package org.gradle.api;
 
-import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
@@ -206,8 +205,7 @@ import java.util.concurrent.Callable;
  *
  * <li>The tasks of the project. A method is added for each task, using the name of the task as the method name and
  * taking a single {@link org.gradle.api.Action} parameter. The method calls the {@link Task#configure(Action)} method for the
- * associated task with the provided closure. For example, if the project has a task called <code>compile</code>, then a
- * method is added with the following signature: <code>void compile(Closure configureClosure)</code>.</li>
+ * associated task with the provided configuration.</li>
  *
  * <li>The methods of the parent project, recursively up to the root project.</li>
  *
@@ -500,25 +498,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param args The task creation options.
      * @param name The name of the task to be created
-     * @param configureClosure The closure to use to configure the created task.
-     * @return The newly created task object
-     * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     */
-    Task task(Map<String, ?> args, String name, Closure configureClosure);
-
-    /**
-     * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
-     * closure is executed to configure the task. A map of creation options can be passed to this method to control how
-     * the task is created. See {@link #task(java.util.Map, String)} for the available options.</p>
-     *
-     * <p>After the task is added to the project, it is made available as a property of the project, so that you can
-     * reference the task by name in your build file.  See <a href="#properties">here</a> for more details</p>
-     *
-     * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
-     * to true, an exception is thrown.</p>
-     *
-     * @param args The task creation options.
-     * @param name The name of the task to be created
      * @param action The action to use to configure the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
@@ -670,7 +649,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>A {@link org.gradle.api.resources.TextResource}.</li>
      *
-     * <li>A Groovy {@link Closure} or Kotlin function that returns any supported type. The closure's return value is resolved recursively.</li>
+     * <li>A Groovy {@link groovy.lang.Closure} or Kotlin function that returns any supported type. The closure's return value is resolved recursively.</li>
      *
      * <li>A {@link java.util.concurrent.Callable} that returns any supported type. The callable's return value is resolved recursively.</li>
      *
@@ -736,7 +715,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>A {@link java.util.concurrent.Callable} that returns any supported type. The return value of the {@code call()} method is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
      *
-     * <li>A Groovy {@link Closure} or Kotlin function that returns any of the types listed here. The return value of the closure is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
+     * <li>A Groovy {@link groovy.lang.Closure} or Kotlin function that returns any of the types listed here. The return value of the closure is recursively converted to files. A {@code null} return value is treated as an empty collection.</li>
      *
      * <li>A {@link Task}. Converted to the task's output files. The task is executed if the file collection is used as an input to another task.</li>
      *
@@ -1095,18 +1074,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * <p>Configures the dependency configurations for this project.
      *
-     * <p>This method executes the given closure against the {@link ConfigurationContainer}
-     * for this project. The {@link ConfigurationContainer} is passed to the closure as the closure's delegate.
-     *
-     * <h3>Examples:</h3> See docs for {@link ConfigurationContainer}
-     *
-     * @param configureClosure the closure to use to configure the dependency configurations.
-     */
-    void configurations(Closure configureClosure);
-
-    /**
-     * <p>Configures the dependency configurations for this project.
-     *
      * <p>This method executes the given action against the {@link ConfigurationContainer}
      * for this project.
      *
@@ -1355,16 +1322,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * <p>Configures the repositories for this project.
      *
-     * <p>This method executes the given closure against the {@link RepositoryHandler} for this project. The {@link
-     * RepositoryHandler} is passed to the closure as the closure's delegate.
-     *
-     * @param configureClosure the closure to use to configure the repositories.
-     */
-    void repositories(Closure configureClosure);
-
-    /**
-     * <p>Configures the repositories for this project.
-     *
      * <p>This method executes the given action against the {@link RepositoryHandler} for this project.
      *
      * @param action the action to use to configure the repositories.
@@ -1384,19 +1341,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @see #getConfigurations()
      */
     DependencyHandler getDependencies();
-
-    /**
-     * <p>Configures the dependencies for this project.
-     *
-     * <p>This method executes the given closure against the {@link DependencyHandler} for this project. The {@link
-     * DependencyHandler} is passed to the closure as the closure's delegate.
-     *
-     * <h3>Examples:</h3>
-     * See docs for {@link DependencyHandler}
-     *
-     * @param configureClosure the closure to use to configure the dependencies.
-     */
-    void dependencies(Closure configureClosure);
 
     /**
      * <p>Configures the dependencies for this project.
@@ -1563,19 +1507,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The container.
      */
     <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<T> factory);
-
-    /**
-     * <p>Creates a container for managing named objects of the specified type. The given closure is used to create object instances. The name of the instance to be created is passed as a parameter to
-     * the closure.</p>
-     *
-     * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
-     *
-     * @param type The type of objects for the container to contain.
-     * @param factoryClosure The closure to use to create object instances.
-     * @param <T> The type of objects for the container to contain.
-     * @return The container.
-     */
-    <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure);
 
     /**
      * Allows adding DSL extensions to the project. Useful for plugin authors.

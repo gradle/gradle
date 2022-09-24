@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.support.delegates
 
-import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.AntBuilder
 import org.gradle.api.NamedDomainObjectContainer
@@ -137,9 +136,6 @@ abstract class ProjectDelegate : Project {
     override fun getProject(): Project =
         delegate.project
 
-    override fun dependencies(configureClosure: Closure<*>) =
-        delegate.dependencies(configureClosure)
-
     override fun dependencies(action: Action<in DependencyHandler>) {
         delegate.dependencies(action)
     }
@@ -159,12 +155,6 @@ abstract class ProjectDelegate : Project {
     override fun <T : Any?> container(type: Class<T>, factory: NamedDomainObjectFactory<T>): NamedDomainObjectContainer<T> =
         delegate.container(type, factory)
 
-    override fun <T : Any?> container(type: Class<T>, factoryClosure: Closure<*>): NamedDomainObjectContainer<T> =
-        delegate.container(type, factoryClosure)
-
-    override fun repositories(configureClosure: Closure<*>) =
-        delegate.repositories(configureClosure)
-
     override fun repositories(action: Action<in RepositoryHandler>) {
         delegate.repositories(action)
     }
@@ -180,9 +170,6 @@ abstract class ProjectDelegate : Project {
 
     override fun sync(action: Action<in SyncSpec>): WorkResult =
         delegate.sync(action)
-
-    override fun configurations(configureClosure: Closure<*>) =
-        delegate.configurations(configureClosure)
 
     override fun configurations(action: Action<in ConfigurationContainer>) {
         delegate.configurations(action)
@@ -270,9 +257,6 @@ abstract class ProjectDelegate : Project {
 
     override fun task(args: Map<String, *>, name: String): Task =
         delegate.task(args, name)
-
-    override fun task(args: Map<String, *>, name: String, configureClosure: Closure<*>): Task =
-        delegate.task(args, name, configureClosure)
 
     override fun task(args: MutableMap<String, *>, name: String, action: Action<in Task>): Task =
         delegate.task(args, name, action)
