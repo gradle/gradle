@@ -48,12 +48,6 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
         dynamicMethods = new DynamicMethods();
     }
 
-    @SuppressWarnings("rawtypes")
-    private PublishArtifact pushArtifact(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
-        Action<Object> configureAction = ConfigureUtil.configureUsing(configureClosure);
-        return pushArtifact(configuration, notation, configureAction);
-    }
-
     private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
         warnIfConfigurationIsDeprecated((DeprecatableConfiguration) configuration);
         ConfigurablePublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
@@ -83,12 +77,6 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
-    public PublishArtifact add(String configurationName, Object artifactNotation, Closure configureClosure) {
-        return pushArtifact(configurationContainer.getByName(configurationName), artifactNotation, configureClosure);
-    }
-
-    @Override
     public MethodAccess getAdditionalMethods() {
         return dynamicMethods;
     }
@@ -110,7 +98,7 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
             }
             List<Object> normalizedArgs = GUtil.flatten(Arrays.asList(arguments), false);
             if (normalizedArgs.size() == 2 && normalizedArgs.get(1) instanceof Closure) {
-                return DynamicInvokeResult.found(pushArtifact(configuration, normalizedArgs.get(0), (Closure) normalizedArgs.get(1)));
+                return DynamicInvokeResult.found(pushArtifact(configuration, normalizedArgs.get(0), ConfigureUtil.configureUsing((Closure) normalizedArgs.get(1))));
             } else {
                 for (Object notation : normalizedArgs) {
                     pushArtifact(configuration, notation, Actions.doNothing());

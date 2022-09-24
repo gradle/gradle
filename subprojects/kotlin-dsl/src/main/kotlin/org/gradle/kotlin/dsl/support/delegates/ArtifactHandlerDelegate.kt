@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.support.delegates
 
-import groovy.lang.Closure
-
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.PublishArtifact
@@ -36,9 +34,6 @@ abstract class ArtifactHandlerDelegate : ArtifactHandler {
 
     override fun add(configurationName: String, artifactNotation: Any): PublishArtifact =
         delegate.add(configurationName, artifactNotation)
-
-    override fun add(configurationName: String, artifactNotation: Any, configureClosure: Closure<Any>): PublishArtifact =
-        delegate.add(configurationName, artifactNotation, configureClosure)
 
     override fun add(configurationName: String, artifactNotation: Any, configureAction: Action<in ConfigurablePublishArtifact>): PublishArtifact =
         delegate.add(configurationName, artifactNotation, configureAction)
