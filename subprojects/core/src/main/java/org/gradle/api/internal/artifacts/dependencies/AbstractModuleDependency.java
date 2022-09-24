@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.base.Objects;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.DependencyArtifact;
@@ -40,8 +39,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
 public abstract class AbstractModuleDependency extends AbstractDependency implements ModuleDependency {
     private final static Logger LOG = Logging.getLogger(AbstractModuleDependency.class);
@@ -122,11 +119,6 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         validateNoTargetConfiguration();
         artifacts.add(artifact);
         return this;
-    }
-
-    @Override
-    public DependencyArtifact artifact(Closure configureClosure) {
-        return artifact(configureUsing(configureClosure));
     }
 
     @Override

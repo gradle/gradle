@@ -113,7 +113,7 @@ import java.util.Map;
  * More examples of advanced configuration, useful when dependency module has multiple artifacts:
  * <ul>
  *   <li>Declaring dependency to a specific configuration of the module.</li>
- *   <li>Explicit specification of the artifact. See also {@link org.gradle.api.artifacts.ModuleDependency#artifact(groovy.lang.Closure)}.</li>
+ *   <li>Explicit specification of the artifact. See also {@link org.gradle.api.artifacts.ModuleDependency#artifact(Action)}.</li>
  * </ul>
  *
  * <pre class='autoTested'>

@@ -15,8 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
@@ -26,8 +24,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
  * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a module outside the current project.
@@ -96,20 +92,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @return this
      */
     ModuleDependency addArtifact(DependencyArtifact artifact);
-
-    /**
-     * <p>Adds an artifact to this dependency. The given closure is passed a {@link
-     * org.gradle.api.artifacts.DependencyArtifact} instance, which it can configure.</p>
-     *
-     * <p>If no artifact is added to a dependency, an implicit default artifact is used. This default artifact has the
-     * same name as the module and its type and extension is {@code jar}. If at least one artifact is explicitly added,
-     * the implicit default artifact won't be used any longer.</p>
-     *
-     * @return the added artifact
-     *
-     * @see DependencyArtifact
-     */
-    DependencyArtifact artifact(@DelegatesTo(value = DependencyArtifact.class, strategy = DELEGATE_FIRST) Closure configureClosure);
 
     /**
      * <p>Adds an artifact to this dependency. The given action is passed a {@link

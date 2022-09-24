@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.catalog;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -86,12 +85,6 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     @Override
     public ModuleDependency addArtifact(DependencyArtifact artifact) {
         return delegate.addArtifact(artifact);
-    }
-
-    @Override
-    @SuppressWarnings("rawtypes")
-    public DependencyArtifact artifact(Closure configureClosure) {
-        return delegate.artifact(configureClosure);
     }
 
     @Override

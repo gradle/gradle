@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.support.delegates
 
-import groovy.lang.Closure
-
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Dependency
@@ -61,9 +59,6 @@ abstract class ClientModuleDelegate : ClientModule {
 
     override fun addArtifact(artifact: DependencyArtifact): ModuleDependency =
         delegate.addArtifact(artifact)
-
-    override fun artifact(configureClosure: Closure<Any>): DependencyArtifact =
-        delegate.artifact(configureClosure)
 
     override fun artifact(configureAction: Action<in DependencyArtifact>): DependencyArtifact =
         delegate.artifact(configureAction)
