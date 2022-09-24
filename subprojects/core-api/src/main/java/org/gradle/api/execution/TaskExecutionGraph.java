@@ -15,7 +15,6 @@
  */
 package org.gradle.api.execution;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 
@@ -32,7 +31,7 @@ import java.util.Set;
  *
  * <p>The <code>TaskExecutionGraph</code> is populated only after all the projects in the build have been evaluated. It
  * is empty before then. You can receive a notification when the graph is populated, using {@link
- * #whenReady(groovy.lang.Closure)} or {@link #addTaskExecutionGraphListener(TaskExecutionGraphListener)}.</p>
+ * #whenReady(Action)} or {@link #addTaskExecutionGraphListener(TaskExecutionGraphListener)}.</p>
  */
 public interface TaskExecutionGraph {
     /**
@@ -68,14 +67,6 @@ public interface TaskExecutionGraph {
     void removeTaskExecutionListener(TaskExecutionListener listener);
 
     /**
-     * <p>Adds a closure to be called when this graph has been populated. This graph is passed to the closure as a
-     * parameter.</p>
-     *
-     * @param closure The closure to execute when this graph has been populated.
-     */
-    void whenReady(Closure closure);
-
-    /**
      * <p>Adds an action to be called when this graph has been populated. This graph is passed to the action as a
      * parameter.</p>
      *
@@ -84,16 +75,6 @@ public interface TaskExecutionGraph {
      * @since 3.1
      */
     void whenReady(Action<TaskExecutionGraph> action);
-
-    /**
-     * <p>Adds a closure to be called immediately before a task is executed. The task is passed to the closure as a
-     * parameter.</p>
-     *
-     * @param closure The closure to execute when a task is about to be executed.
-     * @deprecated This method is not supported when configuration caching is enabled.
-     */
-    @Deprecated
-    void beforeTask(Closure closure);
 
     /**
      * <p>Adds an action to be called immediately before a task is executed. The task is passed to the action as a
@@ -106,17 +87,6 @@ public interface TaskExecutionGraph {
      */
     @Deprecated
     void beforeTask(Action<Task> action);
-
-    /**
-     * <p>Adds a closure to be called immediately after a task has executed. The task is passed to the closure as the
-     * first parameter. A {@link org.gradle.api.tasks.TaskState} is passed as the second parameter. Both parameters are
-     * optional.</p>
-     *
-     * @param closure The closure to execute when a task has been executed
-     * @deprecated This method is not supported when configuration caching is enabled.
-     */
-    @Deprecated
-    void afterTask(Closure closure);
 
     /**
      * <p>Adds an action to be called immediately after a task has executed. The task is passed to the action as the

@@ -36,7 +36,7 @@ public interface GradleEnterprisePluginService {
     /**
      * Used to signal a start of the execution of main tasks of a build tree, also known as <a href="https://docs.gradle.org/current/userguide/build_lifecycle.html#sec:build_phases">the "execution phase"</a>.
      * At this point the configuration phase is already completed and all user code related to it finished executing,
-     * including late callbacks like {@link org.gradle.api.execution.TaskExecutionGraph#whenReady(Closure)}.
+     * including late callbacks like {@link org.gradle.api.execution.TaskExecutionGraph#whenReady(org.gradle.api.Action)}.
      * This callback is invoked before any of the tasks of the execution phase starts.
      * However, the tasks of the included builds that contribute project and settings plugins, and tasks of the buildSrc build
      * run before the execution phase, at the configuration phase, and, therefore, before this callback.

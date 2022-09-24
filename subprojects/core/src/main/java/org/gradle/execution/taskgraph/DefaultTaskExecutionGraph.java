@@ -18,7 +18,6 @@ package org.gradle.execution.taskgraph;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
@@ -36,7 +35,6 @@ import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.TaskNode;
-import org.gradle.internal.Cast;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -47,7 +45,6 @@ import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,19 +159,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public void whenReady(final Closure closure) {
-        graphListeners.add(
-            new ClosureBackedMethodInvocationDispatch(
-                "graphPopulated",
-                listenerBuildOperationDecorator.decorate(
-                    "TaskExecutionGraph.whenReady",
-                    Cast.<Closure<?>>uncheckedCast(closure)
-                )
-            )
-        );
-    }
-
-    @Override
     public void whenReady(final Action<TaskExecutionGraph> action) {
         graphListeners.add(
             decorateListener("TaskExecutionGraph.whenReady", action::execute)
@@ -193,12 +177,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public void beforeTask(final Closure closure) {
-        notifyListenerRegistration("TaskExecutionGraph.beforeTask", closure);
-        taskListeners.add(new ClosureBackedMethodInvocationDispatch("beforeExecute", closure));
-    }
-
-    @Override
     public void beforeTask(final Action<Task> action) {
         notifyListenerRegistration("TaskExecutionGraph.beforeTask", action);
         taskListeners.add(new TaskExecutionAdapter() {
@@ -207,12 +185,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
                 action.execute(task);
             }
         });
-    }
-
-    @Override
-    public void afterTask(final Closure closure) {
-        notifyListenerRegistration("TaskExecutionGraph.afterTask", closure);
-        taskListeners.add(new ClosureBackedMethodInvocationDispatch("afterExecute", closure));
     }
 
     @Override

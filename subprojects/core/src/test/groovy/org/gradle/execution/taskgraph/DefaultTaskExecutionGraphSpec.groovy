@@ -419,14 +419,12 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         Task a = task("a")
 
         when:
-        taskGraph.whenReady(closure)
         taskGraph.whenReady(action)
         def finalizedPlan = Stub(FinalizedExecutionPlan)
         taskGraph.populate(finalizedPlan)
         taskGraph.execute(finalizedPlan)
 
         then:
-        1 * closure.call()
         1 * action.execute(_)
 
         then:
@@ -485,14 +483,11 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         final Task b = task("b")
 
         when:
-        taskGraph.beforeTask(closure)
         taskGraph.beforeTask(action)
         taskExecutionListeners.source.beforeExecute(a)
         taskExecutionListeners.source.beforeExecute(b)
 
         then:
-        1 * closure.call(a)
-        1 * closure.call(b)
         1 * action.execute(a)
         1 * action.execute(b)
     }
@@ -507,14 +502,11 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         final Task b = task("b")
 
         when:
-        taskGraph.afterTask(closure)
         taskGraph.afterTask(action)
         taskExecutionListeners.source.afterExecute(a, a.state)
         taskExecutionListeners.source.afterExecute(b, b.state)
 
         then:
-        1 * closure.call(a)
-        1 * closure.call(b)
         1 * action.execute(a)
         1 * action.execute(b)
     }
