@@ -16,7 +16,6 @@
 
 package org.gradle.groovy.scripts;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.PathValidation;
 import org.gradle.api.Script;
@@ -122,11 +121,6 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     @Override
-    public void apply(Closure closure) {
-        apply(ConfigureUtil.configureUsing(closure));
-    }
-
-    @Override
     public void apply(Action<? super ObjectConfigurationAction> action) {
         DefaultObjectConfigurationAction configurationAction = createObjectConfigurationAction();
         action.execute(configurationAction);
@@ -143,11 +137,6 @@ public abstract class DefaultScript extends BasicScript {
     @Override
     public ScriptHandler getBuildscript() {
         return scriptServices.get(ScriptHandler.class);
-    }
-
-    @Override
-    public void buildscript(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getBuildscript());
     }
 
     @Override
@@ -176,11 +165,6 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     @Override
-    public ConfigurableFileCollection files(Object paths, Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, files(paths));
-    }
-
-    @Override
     public ConfigurableFileCollection files(Object paths, Action<? super ConfigurableFileCollection> action) {
         return Actions.with(files(paths), action);
     }
@@ -198,11 +182,6 @@ public abstract class DefaultScript extends BasicScript {
     @Override
     public ConfigurableFileTree fileTree(Map<String, ?> args) {
         return fileOperations.fileTree(args);
-    }
-
-    @Override
-    public ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, fileOperations.fileTree(baseDir));
     }
 
     @Override
@@ -226,11 +205,6 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     @Override
-    public WorkResult copy(Closure closure) {
-        return copy(ConfigureUtil.configureUsing(closure));
-    }
-
-    @Override
     public WorkResult copy(Action<? super CopySpec> action) {
         return fileOperations.copy(action);
     }
@@ -238,11 +212,6 @@ public abstract class DefaultScript extends BasicScript {
     @Override
     public WorkResult sync(Action<? super SyncSpec> action) {
         return fileOperations.sync(action);
-    }
-
-    @Override
-    public CopySpec copySpec(Closure closure) {
-        return Actions.with(copySpec(), ConfigureUtil.configureUsing(closure));
     }
 
     @Override
@@ -269,18 +238,8 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     @Override
-    public ExecResult javaexec(Closure closure) {
-        return processOperations.javaexec(ConfigureUtil.configureUsing(closure));
-    }
-
-    @Override
     public ExecResult javaexec(Action<? super JavaExecSpec> action) {
         return processOperations.javaexec(action);
-    }
-
-    @Override
-    public ExecResult exec(Closure closure) {
-        return processOperations.exec(ConfigureUtil.configureUsing(closure));
     }
 
     @Override

@@ -15,8 +15,6 @@
  */
 package org.gradle.api;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
@@ -49,15 +47,6 @@ import java.util.concurrent.Callable;
  * on this {@code Script} object is forwarded to the delegate object.</p>
  */
 public interface Script {
-    /**
-     * <p>Configures the delegate object for this script using plugins or scripts.
-     *
-     * <p>The given closure is used to configure an {@link org.gradle.api.plugins.ObjectConfigurationAction} which is
-     * then used to configure the delegate object.</p>
-     *
-     * @param closure The closure to configure the {@code ObjectConfigurationAction}.
-     */
-    void apply(Closure closure);
 
     /**
      * <p>Configures the delegate object for this script using plugins or scripts.
@@ -95,16 +84,6 @@ public interface Script {
      * @return the classpath handler. Never returns null.
      */
     ScriptHandler getBuildscript();
-
-    /**
-     * Configures the classpath for this script.
-     *
-     * <p>The given closure is executed against this script's {@link ScriptHandler}. The {@link ScriptHandler} is passed
-     * to the closure as the closure's delegate.
-     *
-     * @param configureClosure the closure to use to configure the script classpath.
-     */
-    void buildscript(Closure configureClosure);
 
     /**
      * Configures the classpath for this script.
@@ -154,17 +133,6 @@ public interface Script {
      * @return The file collection. Never returns null.
      */
     ConfigurableFileCollection files(Object... paths);
-
-    /**
-     * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The file collection is configured
-     * using the given closure. This method works as described for {@link Project#files(Object, groovy.lang.Closure)}.
-     * Relative paths are resolved relative to the directory containing this script.</p>
-     *
-     * @param paths The contents of the file collection. Evaluated as per {@link #files(Object...)}.
-     * @param configureClosure The closure to use to configure the file collection.
-     * @return the configured file tree. Never returns null.
-     */
-    ConfigurableFileCollection files(Object paths, Closure configureClosure);
 
     /**
      * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The file collection is configured
@@ -219,27 +187,6 @@ public interface Script {
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
-     * as per {@link #file(Object)}. The closure will be used to configure the new file tree.
-     * The file tree is passed to the closure as its delegate.  Example:</p>
-     *
-     * <pre>
-     * fileTree('src') {
-     *    exclude '**&#47;.svn/**'
-     * }.copy { into 'dest'}
-     * </pre>
-     *
-     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
-     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
-     * queried.</p>
-     *
-     * @param baseDir The base directory of the file tree. Evaluated as per {@link #file(Object)}.
-     * @param configureClosure Closure to configure the {@code ConfigurableFileTree} object.
-     * @return the configured file tree. Never returns null.
-     */
-    ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure);
-
-    /**
-     * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
      * as per {@link #file(Object)}. The action will be used to configure the new file tree.
      * Example:</p>
      *
@@ -265,7 +212,7 @@ public interface Script {
 
     /**
      * <p>Creates a new {@code FileTree} which contains the contents of the given ZIP file. The given zipPath path is
-     * evaluated as per {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * evaluated as per {@link #file(Object)}. You can combine this method with the {@link #copy(Action)}
      * method to unzip a ZIP file.</p>
      *
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
@@ -290,7 +237,7 @@ public interface Script {
      * <p>
      * Unless custom implementation of resources is passed, the tar tree attempts to guess the compression based on the file extension.
      * <p>
-     * You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * You can combine this method with the {@link #copy(Action)}
      * method to untar a TAR file:
      *
      * <pre class='autoTested'>
@@ -313,35 +260,6 @@ public interface Script {
      * @return the file tree. Never returns null.
      */
     FileTree tarTree(Object tarPath);
-
-    /**
-     * Copy the specified files.  The given closure is used to configure a {@link org.gradle.api.file.CopySpec}, which
-     * is then used to copy the files. Example:
-     * <pre>
-     * copy {
-     *    from configurations.runtimeClasspath
-     *    into 'build/deploy/lib'
-     * }
-     * </pre>
-     * Note that CopySpecs can be nested:
-     * <pre>
-     * copy {
-     *    into 'build/webroot'
-     *    exclude '**&#47;.svn/**'
-     *    from('src/main/webapp') {
-     *       include '**&#47;*.jsp'
-     *       filter(ReplaceTokens, tokens:[copyright:'2009', version:'2.3.1'])
-     *    }
-     *    from('src/main/js') {
-     *       include '**&#47;*.js'
-     *    }
-     * }
-     * </pre>
-     *
-     * @param closure Closure to configure the CopySpec
-     * @return {@link org.gradle.api.tasks.WorkResult} that can be used to check if the copy did any work.
-     */
-    WorkResult copy(Closure closure);
 
     /**
      * Copy the specified files.  The given action is used to configure a {@link org.gradle.api.file.CopySpec}, which
@@ -391,16 +309,6 @@ public interface Script {
 
     /**
      * Creates a {@link org.gradle.api.file.CopySpec} which can later be used to copy files or create an archive. The
-     * given closure is used to configure the {@link org.gradle.api.file.CopySpec} before it is returned by this
-     * method.
-     *
-     * @param closure Closure to configure the CopySpec
-     * @return The CopySpec
-     */
-    CopySpec copySpec(Closure closure);
-
-    /**
-     * Creates a {@link org.gradle.api.file.CopySpec} which can later be used to copy files or create an archive. The
      * given action is used to configure the {@link org.gradle.api.file.CopySpec} before it is returned by this
      * method.
      *
@@ -430,28 +338,12 @@ public interface Script {
     boolean delete(Object... paths);
 
     /**
-     * Executes a Java main class. The closure configures a {@link org.gradle.process.JavaExecSpec}.
-     *
-     * @param closure The closure for configuring the execution.
-     * @return the result of the execution
-     */
-    ExecResult javaexec(@DelegatesTo(JavaExecSpec.class) Closure closure);
-
-    /**
      * Executes a Java main class.
      *
      * @param action The action for configuring the execution.
      * @return the result of the execution
      */
     ExecResult javaexec(Action<? super JavaExecSpec> action);
-
-    /**
-     * Executes an external command. The closure configures a {@link org.gradle.process.ExecSpec}.
-     *
-     * @param closure The closure for configuring the execution.
-     * @return the result of the execution
-     */
-    ExecResult exec(@DelegatesTo(ExecSpec.class) Closure closure);
 
     /**
      * Executes an external command.

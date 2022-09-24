@@ -18,6 +18,8 @@ package org.gradle.plugin.use.internal;
 
 import groovy.lang.Closure;
 import org.gradle.groovy.scripts.DefaultScript;
+import org.gradle.groovy.scripts.internal.InitialPassStatementTransformer;
+import org.gradle.groovy.scripts.internal.ScriptBlock;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.PluginDependenciesSpec;
 import org.gradle.util.internal.ConfigureUtil;
@@ -26,6 +28,9 @@ abstract public class PluginsAwareScript extends DefaultScript {
 
     private PluginRequestCollector pluginRequestCollector;
 
+    /**
+     * Used by {@link InitialPassStatementTransformer#addLineNumberToMethodCall(ScriptBlock)}
+     */
     public void plugins(int lineNumber, Closure configureClosure) {
         if (pluginRequestCollector == null) {
             pluginRequestCollector = new PluginRequestCollector(getScriptSource());
