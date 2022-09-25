@@ -17,8 +17,6 @@
 package org.gradle.jvm.tasks;
 
 import com.google.common.collect.ImmutableList;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
@@ -36,7 +34,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.serialization.Cached;
-import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.nio.charset.Charset;
@@ -177,19 +174,6 @@ public class Jar extends Zip {
     /**
      * Configures the manifest for this JAR archive.
      *
-     * <p>The given closure is executed to configure the manifest. The {@link org.gradle.api.java.archives.Manifest} is passed to the closure as its delegate.</p>
-     *
-     * @param configureClosure The closure.
-     * @return This.
-     */
-    public Jar manifest(@DelegatesTo(Manifest.class) Closure<?> configureClosure) {
-        ConfigureUtil.configure(configureClosure, forceManifest());
-        return this;
-    }
-
-    /**
-     * Configures the manifest for this JAR archive.
-     *
      * <p>The given action is executed to configure the manifest.</p>
      *
      * @param configureAction The action.
@@ -211,18 +195,6 @@ public class Jar extends Zip {
     @Internal
     public CopySpec getMetaInf() {
         return metaInf.addChild();
-    }
-
-    /**
-     * Adds content to this JAR archive's META-INF directory.
-     *
-     * <p>The given closure is executed to configure a {@code CopySpec}. The {@link org.gradle.api.file.CopySpec} is passed to the closure as its delegate.</p>
-     *
-     * @param configureClosure The closure.
-     * @return The created {@code CopySpec}
-     */
-    public CopySpec metaInf(@DelegatesTo(CopySpec.class) Closure<?> configureClosure) {
-        return ConfigureUtil.configure(configureClosure, getMetaInf());
     }
 
     /**

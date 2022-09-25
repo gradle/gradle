@@ -15,8 +15,6 @@
  */
 package org.gradle.api.tasks.bundling;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
@@ -32,7 +30,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.Transformers;
-import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
@@ -87,18 +84,6 @@ public class War extends Jar {
     @Internal
     public CopySpec getWebInf() {
         return webInf.addChild();
-    }
-
-    /**
-     * Adds some content to the {@code WEB-INF} directory for this WAR archive.
-     *
-     * <p>The given closure is executed to configure a {@link CopySpec}. The {@code CopySpec} is passed to the closure as its delegate.
-     *
-     * @param configureClosure The closure to execute
-     * @return The newly created {@code CopySpec}.
-     */
-    public CopySpec webInf(@DelegatesTo(CopySpec.class) Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, getWebInf());
     }
 
     /**
