@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import groovy.lang.Closure
 import groovy.lang.GroovyObjectSupport
 import groovy.lang.Script
 import org.gradle.api.Action
@@ -298,6 +299,11 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.task(args, name)
         }
 
+        override fun task(args: MutableMap<String, *>, name: String, configureClosure: Closure<*>): Task {
+            onAccess()
+            return delegate.task(args, name, configureClosure)
+        }
+
         override fun task(args: MutableMap<String, *>, name: String, action: Action<in Task>): Task {
             onAccess()
             return delegate.task(args, name, action)
@@ -479,6 +485,11 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.configurations
         }
 
+        override fun configurations(configureClosure: Closure<*>) {
+            onAccess()
+            delegate.configurations(configureClosure)
+        }
+
         override fun configurations(action: Action<in ConfigurationContainer>) {
             onAccess()
             delegate.configurations(action)
@@ -599,6 +610,11 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.repositories
         }
 
+        override fun repositories(configureClosure: Closure<*>) {
+            onAccess()
+            delegate.repositories(configureClosure)
+        }
+
         override fun repositories(action: Action<in RepositoryHandler>) {
             onAccess()
             delegate.repositories(action)
@@ -607,6 +623,11 @@ class ProblemReportingCrossProjectModelAccess(
         override fun getDependencies(): DependencyHandler {
             onAccess()
             return delegate.dependencies
+        }
+
+        override fun dependencies(configureClosure: Closure<*>) {
+            onAccess()
+            delegate.dependencies(configureClosure)
         }
 
         override fun dependencies(action: Action<in DependencyHandler>) {
@@ -652,6 +673,11 @@ class ProblemReportingCrossProjectModelAccess(
         override fun <T : Any?> container(type: Class<T>, factory: NamedDomainObjectFactory<T>): NamedDomainObjectContainer<T> {
             onAccess()
             return delegate.container(type, factory)
+        }
+
+        override fun <T : Any?> container(type: Class<T>, factoryClosure: Closure<*>): NamedDomainObjectContainer<T> {
+            onAccess()
+            return delegate.container(type, factoryClosure)
         }
 
         override fun getResources(): ResourceHandler {

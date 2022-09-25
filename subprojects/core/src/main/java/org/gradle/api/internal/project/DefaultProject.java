@@ -127,8 +127,10 @@ import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
+import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -1150,6 +1152,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         getProjectConfigurator().project(project, configureAction);
         return project;
     }
+    @Override
+    public void configurations(Closure configureClosure) {
+        ((Configurable<?>) getConfigurations()).configure(configureClosure);
+    }
 
     @Override
     public void configurations(Action<? super ConfigurationContainer> action) {
@@ -1157,8 +1163,18 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    public void repositories(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getRepositories());
+    }
+
+    @Override
     public void repositories(Action<? super RepositoryHandler> action) {
         Actions.with(getRepositories(), action);
+    }
+
+    @Override
+    public void dependencies(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getDependencies());
     }
 
     @Override
@@ -1197,6 +1213,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     public Task task(Map options, Object task) {
         return task(options, task.toString());
+    }
+
+    @Override
+    public Task task(Map options, String task, Closure configureClosure) {
+        return taskContainer.create(addMaps(Cast.uncheckedNonnullCast(options), singletonMap(Task.TASK_NAME, task))).configure(ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
@@ -1256,6 +1277,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainer(type, factory);
     }
 
+    @Override
     public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
         return getServices().get(DomainObjectCollectionFactory.class).newNamedDomainObjectContainer(type, factoryClosure);
     }
