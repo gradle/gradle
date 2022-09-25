@@ -94,7 +94,6 @@ import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
 import org.gradle.util.Path
-import org.gradle.util.internal.ConfigureUtil
 import java.io.File
 import java.net.URI
 import java.util.concurrent.Callable
