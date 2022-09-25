@@ -70,6 +70,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
     @Override
     public void resolveBuildDependencies(ConfigurationInternal configuration, ResolverResults result) {
+        configuration.runDependencyActions();
         if (configuration.getAllDependencies().isEmpty()) {
             emptyGraph(configuration, result, false);
         } else {
@@ -79,6 +80,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
 
     @Override
     public void resolveGraph(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
+        configuration.runDependencyActions();
         if (configuration.getAllDependencies().isEmpty()) {
             emptyGraph(configuration, results, true);
         } else {
