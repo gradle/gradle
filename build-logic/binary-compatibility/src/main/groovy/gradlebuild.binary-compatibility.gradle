@@ -106,6 +106,7 @@ dependencies {
 }
 
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
+    enabled = false
     def baseVersion = moduleIdentity.version.map { it.baseVersion.version }
     def isSnapshot = moduleIdentity.snapshot
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
