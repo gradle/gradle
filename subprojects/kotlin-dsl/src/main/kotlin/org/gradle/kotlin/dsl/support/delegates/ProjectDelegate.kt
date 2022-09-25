@@ -140,10 +140,6 @@ abstract class ProjectDelegate : Project {
     override fun dependencies(configureClosure: Closure<*>) =
         delegate.dependencies(configureClosure)
 
-    override fun dependencies(action: Action<in DependencyHandler>) {
-        delegate.dependencies(action)
-    }
-
     override fun getPath(): String =
         delegate.path
 
@@ -165,10 +161,6 @@ abstract class ProjectDelegate : Project {
     override fun repositories(configureClosure: Closure<*>) =
         delegate.repositories(configureClosure)
 
-    override fun repositories(action: Action<in RepositoryHandler>) {
-        delegate.repositories(action)
-    }
-
     override fun evaluationDependsOnChildren() =
         delegate.evaluationDependsOnChildren()
 
@@ -183,10 +175,6 @@ abstract class ProjectDelegate : Project {
 
     override fun configurations(configureClosure: Closure<*>) =
         delegate.configurations(configureClosure)
-
-    override fun configurations(action: Action<in ConfigurationContainer>) {
-        delegate.configurations(action)
-    }
 
     override fun getExtensions(): ExtensionContainer =
         delegate.extensions
@@ -273,9 +261,6 @@ abstract class ProjectDelegate : Project {
 
     override fun task(args: Map<String, *>, name: String, configureClosure: Closure<*>): Task =
         delegate.task(args, name, configureClosure)
-
-    override fun task(args: MutableMap<String, *>, name: String, action: Action<in Task>): Task =
-        delegate.task(args, name, action)
 
     override fun task(name: String, configureAction: Action<in Task>): Task =
         delegate.task(name, configureAction)
