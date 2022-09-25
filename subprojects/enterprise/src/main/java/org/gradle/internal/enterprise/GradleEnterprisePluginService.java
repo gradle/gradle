@@ -16,7 +16,6 @@
 
 package org.gradle.internal.enterprise;
 
-import groovy.lang.Closure;
 import org.gradle.internal.operations.notify.BuildOperationNotificationListener;
 
 /**

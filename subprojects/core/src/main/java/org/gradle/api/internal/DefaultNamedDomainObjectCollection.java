@@ -39,7 +39,6 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
@@ -523,7 +522,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         private boolean isConfigureMethod(String name, Object... arguments) {
-            return (arguments.length == 1 && arguments[0] instanceof Closure) && hasProperty(name);
+            return arguments.length == 1 && arguments[0] instanceof Closure && hasProperty(name);
         }
     }
 

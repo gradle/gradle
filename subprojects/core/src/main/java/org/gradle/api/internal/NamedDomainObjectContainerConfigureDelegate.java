@@ -35,6 +35,7 @@ public class NamedDomainObjectContainerConfigureDelegate extends ConfigureDelega
         return DynamicInvokeResult.found(_container.create(name));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected DynamicInvokeResult _configure(String name, Object[] params) {
         if (params.length == 1 && params[0] instanceof Closure) {
