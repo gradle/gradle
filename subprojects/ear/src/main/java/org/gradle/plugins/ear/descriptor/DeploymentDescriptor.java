@@ -15,8 +15,6 @@
  */
 package org.gradle.plugins.ear.descriptor;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 
@@ -163,18 +161,6 @@ public interface DeploymentDescriptor {
     Map<String, String> getModuleTypeMappings();
 
     void setModuleTypeMappings(Map<String, String> moduleTypeMappings);
-
-    /**
-     * Adds a closure to be called when the XML document has been created. The XML is passed to the closure as a
-     * parameter in form of a {@link groovy.util.Node}. The closure can modify the XML before it is written to the
-     * output file. This allows additional JavaEE version 6 elements like "data-source" or "resource-ref" to be
-     * included.
-     *
-     * @param closure
-     *            The closure to execute when the XML has been created
-     * @return this
-     */
-    DeploymentDescriptor withXml(@DelegatesTo(XmlProvider.class) Closure closure);
 
     /**
      * Adds an action to be called when the XML document has been created. The XML is passed to the action as a

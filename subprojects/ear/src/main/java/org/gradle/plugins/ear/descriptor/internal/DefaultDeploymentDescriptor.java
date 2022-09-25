@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ear.descriptor.internal;
 
-import groovy.lang.Closure;
 import groovy.namespace.QName;
 import groovy.util.Node;
 import groovy.xml.XmlParser;
@@ -212,12 +211,6 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
         EarSecurityRole role = objectFactory.newInstance(DefaultEarSecurityRole.class);
         action.execute(role);
         securityRoles.add(role);
-        return this;
-    }
-
-    @Override
-    public DeploymentDescriptor withXml(Closure closure) {
-        transformer.addAction(closure);
         return this;
     }
 
