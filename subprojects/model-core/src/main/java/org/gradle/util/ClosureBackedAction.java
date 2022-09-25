@@ -25,8 +25,6 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 
 /**
  * This class is only here to maintain binary compatibility with existing plugins.
- * <p>
- * To apply a configuration (represented by a Groovy closure) on an object, use {@link org.gradle.api.Project#configure(Object, Closure)}.
  *
  * @deprecated Will be removed in Gradle 9.0.
  * @param <T> The action type.
