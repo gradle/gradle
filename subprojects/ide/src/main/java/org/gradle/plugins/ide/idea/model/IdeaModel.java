@@ -16,14 +16,10 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Preconditions;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 
 import java.io.File;
 import java.util.Map;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * DSL-friendly model of the IDEA project information.
@@ -86,13 +82,6 @@ public class IdeaModel {
 
     /**
      * Configures IDEA module information. <p> For examples see docs for {@link IdeaModule}.
-     */
-    public void module(@DelegatesTo(IdeaModule.class) Closure closure) {
-        configure(closure, getModule());
-    }
-
-    /**
-     * Configures IDEA module information. <p> For examples see docs for {@link IdeaModule}.
      * @since 3.5
      */
     public void module(Action<? super IdeaModule> action) {
@@ -101,24 +90,10 @@ public class IdeaModel {
 
     /**
      * Configures IDEA project information. <p> For examples see docs for {@link IdeaProject}.
-     */
-    public void project(@DelegatesTo(IdeaProject.class) Closure closure) {
-        configure(closure, getProject());
-    }
-
-    /**
-     * Configures IDEA project information. <p> For examples see docs for {@link IdeaProject}.
      * @since 3.5
      */
     public void project(Action<? super IdeaProject> action) {
         action.execute(getProject());
-    }
-
-    /**
-     * Configures IDEA workspace information. <p> For examples see docs for {@link IdeaWorkspace}.
-     */
-    public void workspace(@DelegatesTo(IdeaWorkspace.class) Closure closure) {
-        configure(closure, getWorkspace());
     }
 
     /**

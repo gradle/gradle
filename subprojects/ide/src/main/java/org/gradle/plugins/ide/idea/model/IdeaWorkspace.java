@@ -15,12 +15,8 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning workspace details (*.iws file) of the IDEA plugin.
@@ -53,15 +49,6 @@ public class IdeaWorkspace {
 
     public void setIws(XmlFileContentMerger iws) {
         this.iws = iws;
-    }
-
-    /**
-     * Enables advanced manipulation of the output XML.
-     * <p>
-     * For example see docs for {@link IdeaWorkspace}
-     */
-    public void iws(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
-        configure(closure, iws);
     }
 
     /**

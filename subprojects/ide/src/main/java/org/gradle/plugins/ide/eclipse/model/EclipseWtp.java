@@ -15,16 +15,12 @@
  */
 package org.gradle.plugins.ide.eclipse.model;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 
 import javax.inject.Inject;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning wtp/wst details of the Eclipse plugin
@@ -88,15 +84,6 @@ public class EclipseWtp {
      * Configures wtp component.
      * <p>
      * For examples see docs for {@link EclipseWtpComponent}
-     */
-    public void component(@DelegatesTo(EclipseWtpComponent.class) Closure action) {
-        configure(action, component);
-    }
-
-    /**
-     * Configures wtp component.
-     * <p>
-     * For examples see docs for {@link EclipseWtpComponent}
      *
      * @since 3.5
      */
@@ -120,15 +107,6 @@ public class EclipseWtp {
 
     public void setFacet(EclipseWtpFacet facet) {
         this.facet = facet;
-    }
-
-    /**
-     * Configures wtp facet.
-     * <p>
-     * For examples see docs for {@link EclipseWtpFacet}
-     */
-    public void facet(@DelegatesTo(EclipseWtpFacet.class) Closure action) {
-        configure(action, getFacet());
     }
 
     /**

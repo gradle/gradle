@@ -17,8 +17,6 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
@@ -38,7 +36,6 @@ import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
-import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -320,17 +317,6 @@ public class EclipseClasspath {
     public void containers(String... containers) {
         Preconditions.checkNotNull(containers);
         this.containers.addAll(Arrays.asList(containers));
-    }
-
-    /**
-     * Enables advanced configuration like tinkering with the output XML or affecting the way
-     * that the contents of an existing .classpath file is merged with Gradle build information.
-     * The object passed to the whenMerged{} and beforeMerged{} closures is of type {@link Classpath}.
-     * <p>
-     * See {@link EclipseProject} for an example.
-     */
-    public void file(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
-        ConfigureUtil.configure(closure, file);
     }
 
     /**

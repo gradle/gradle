@@ -16,8 +16,6 @@
 package org.gradle.internal.xml;
 
 import com.google.common.collect.Lists;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import groovy.util.IndentPrinter;
 import groovy.util.Node;
 import groovy.xml.XmlNodePrinter;
@@ -30,7 +28,6 @@ import org.gradle.api.internal.DomNode;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.TextUtil;
 import org.w3c.dom.Document;
@@ -71,10 +68,6 @@ public class XmlTransformer implements Transformer<String, String> {
 
     public void setIndentation(String indentation) {
         this.indentation = indentation;
-    }
-
-    public void addAction(@DelegatesTo(XmlProvider.class) Closure closure) {
-        actions.add(ConfigureUtil.configureUsing(closure));
     }
 
     public void transform(File destination, final String encoding, final Action<? super Writer> generator) {

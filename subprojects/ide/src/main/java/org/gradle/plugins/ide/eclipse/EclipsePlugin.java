@@ -389,7 +389,7 @@ public class EclipsePlugin extends IdePlugin {
         project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
             @Override
             public void execute(JavaBasePlugin javaBasePlugin) {
-                model.setJdt(project.getObjects().newInstance(EclipseJdt.class, new PropertiesFileContentMerger(new PropertiesTransformer())));
+                model.setJdt(project.getObjects().newInstance(EclipseJdt.class, project.getObjects().newInstance(PropertiesFileContentMerger.class, new PropertiesTransformer())));
                 final TaskProvider<GenerateEclipseJdt> task = project.getTasks().register(ECLIPSE_JDT_TASK_NAME, GenerateEclipseJdt.class, model.getJdt());
                 task.configure(new Action<GenerateEclipseJdt>() {
                     @Override

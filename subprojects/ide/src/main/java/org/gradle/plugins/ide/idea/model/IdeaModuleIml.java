@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.idea.model;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 
+import javax.inject.Inject;
 import java.io.File;
 
 /**
@@ -29,6 +30,7 @@ public class IdeaModuleIml extends XmlFileContentMerger {
 
     private File generateTo;
 
+    @Inject
     public IdeaModuleIml(XmlTransformer xmlTransformer, File generateTo) {
         super(xmlTransformer);
         this.generateTo = generateTo;

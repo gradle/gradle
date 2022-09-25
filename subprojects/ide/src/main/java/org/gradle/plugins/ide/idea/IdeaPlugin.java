@@ -254,7 +254,7 @@ public class IdeaPlugin extends IdePlugin {
     }
 
     private void configureIdeaModule(final ProjectInternal project) {
-        IdeaModuleIml iml = new IdeaModuleIml(new XmlTransformer(), project.getProjectDir());
+        IdeaModuleIml iml = project.getObjects().newInstance(IdeaModuleIml.class, new XmlTransformer(), project.getProjectDir());
         final IdeaModule module = instantiator.newInstance(IdeaModule.class, project, iml);
 
         final TaskProvider<GenerateIdeaModule> task = project.getTasks().register(IDEA_MODULE_TASK_NAME, GenerateIdeaModule.class, module);

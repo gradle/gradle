@@ -18,8 +18,6 @@ package org.gradle.plugins.ide.idea.model;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -36,8 +34,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning module details (*.iml file) of the IDEA plugin.
@@ -509,15 +505,6 @@ public class IdeaModule {
 
     public void setSingleEntryLibraries(Map<String, Iterable<File>> singleEntryLibraries) {
         this.singleEntryLibraries = singleEntryLibraries;
-    }
-
-    /**
-     * Enables advanced configuration like tinkering with the output XML or affecting the way existing *.iml content is merged with gradle build information.
-     * <p>
-     * For example see docs for {@link IdeaModule}.
-     */
-    public void iml(@DelegatesTo(IdeaModuleIml.class) Closure closure) {
-        configure(closure, getIml());
     }
 
     /**

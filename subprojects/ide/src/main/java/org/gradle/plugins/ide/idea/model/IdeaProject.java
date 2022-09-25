@@ -16,8 +16,6 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.collect.Sets;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -36,8 +34,6 @@ import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning project details (*.ipr file) of the IDEA plugin.
@@ -166,16 +162,6 @@ public class IdeaProject implements IdeWorkspace {
      */
     public XmlFileContentMerger getIpr() {
         return ipr;
-    }
-
-    /**
-     * Enables advanced configuration like tinkering with the output XML
-     * or affecting the way existing *.ipr content is merged with Gradle build information.
-     * <p>
-     * See the examples in the docs for {@link IdeaProject}
-     */
-    public void ipr(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
-        configure(closure, ipr);
     }
 
     /**

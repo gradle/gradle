@@ -19,8 +19,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -37,8 +35,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning wtp component details of the Eclipse plugin
@@ -168,18 +164,6 @@ public class EclipseWtpComponent {
      */
     public XmlFileContentMerger getFile() {
         return file;
-    }
-
-    /**
-     * Enables advanced configuration like tinkering with the output XML
-     * or affecting the way existing wtp component file content is merged with gradle build information
-     * <p>
-     * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link WtpComponent}
-     * <p>
-     * For example see docs for {@link EclipseWtpComponent}
-     */
-    public void file(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
-        configure(closure, file);
     }
 
     /**

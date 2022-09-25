@@ -17,8 +17,6 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -31,8 +29,6 @@ import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Map;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * DSL-friendly model of the Eclipse project information.
@@ -167,29 +163,11 @@ public class EclipseModel {
      * Configures eclipse project information
      * <p>
      * For examples see docs for {@link EclipseProject}
-     */
-    public void project(@DelegatesTo(EclipseProject.class) Closure closure) {
-        configure(closure, getProject());
-    }
-
-    /**
-     * Configures eclipse project information
-     * <p>
-     * For examples see docs for {@link EclipseProject}
      *
      * @since 3.5
      */
     public void project(Action<? super EclipseProject> action) {
         action.execute(getProject());
-    }
-
-    /**
-     * Configures eclipse classpath information
-     * <p>
-     * For examples see docs for {@link EclipseClasspath}
-     */
-    public void classpath(@DelegatesTo(EclipseClasspath.class) Closure closure) {
-        configure(closure, classpath);
     }
 
     /**
@@ -207,29 +185,11 @@ public class EclipseModel {
      * Configures eclipse wtp information
      * <p>
      * For examples see docs for {@link EclipseWtp}
-     */
-    public void wtp(@DelegatesTo(EclipseWtp.class) Closure closure) {
-        configure(closure, wtp);
-    }
-
-    /**
-     * Configures eclipse wtp information
-     * <p>
-     * For examples see docs for {@link EclipseWtp}
      *
      * @since 3.5
      */
     public void wtp(Action<? super EclipseWtp> action) {
         action.execute(wtp);
-    }
-
-    /**
-     * Configures eclipse java compatibility information (jdt)
-     * <p>
-     * For examples see docs for {@link EclipseProject}
-     */
-    public void jdt(@DelegatesTo(EclipseJdt.class) Closure closure) {
-        configure(closure, getJdt());
     }
 
     /**

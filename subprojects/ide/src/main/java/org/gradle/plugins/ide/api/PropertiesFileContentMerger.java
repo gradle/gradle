@@ -15,11 +15,10 @@
  */
 package org.gradle.plugins.ide.api;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.PropertiesTransformer;
-import org.gradle.util.internal.ClosureBackedAction;
 
+import javax.inject.Inject;
 import java.util.Properties;
 
 /**
@@ -32,6 +31,7 @@ public class PropertiesFileContentMerger extends FileContentMerger {
 
     private PropertiesTransformer transformer;
 
+    @Inject
     public PropertiesFileContentMerger(PropertiesTransformer transformer) {
         this.transformer = transformer;
     }
@@ -42,19 +42,6 @@ public class PropertiesFileContentMerger extends FileContentMerger {
 
     public void setTransformer(PropertiesTransformer transformer) {
         this.transformer = transformer;
-    }
-
-    /**
-     * Adds a closure to be called when the file has been created.
-     * The {@link Properties} are passed to the closure as a parameter.
-     * The closure can modify the Properties before they are written to the output file.
-     * <p>
-     * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseJdt} and others.
-     *
-     * @param closure The closure to execute when the Properties have been created.
-     */
-    public void withProperties(Closure closure) {
-        withProperties(new ClosureBackedAction<Properties>(closure, Closure.OWNER_FIRST));
     }
 
     /**

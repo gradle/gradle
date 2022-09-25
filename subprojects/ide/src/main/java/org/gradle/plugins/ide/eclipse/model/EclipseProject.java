@@ -18,21 +18,16 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter;
-import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning project details (.project file) of the Eclipse plugin
@@ -321,18 +316,6 @@ public class EclipseProject {
      * <p>
      * For examples, see docs for {@link ResourceFilter}
      *
-     * @param configureClosure The closure to use to configure the resource filter.
-     * @since 3.5
-     */
-    public ResourceFilter resourceFilter(@DelegatesTo(value=ResourceFilter.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
-        return resourceFilter(new ClosureBackedAction<ResourceFilter>(configureClosure));
-    }
-
-    /**
-     * Adds a resource filter to the eclipse project.
-     * <p>
-     * For examples, see docs for {@link ResourceFilter}
-     *
      * @param configureAction The action to use to configure the resource filter.
      * @since 3.5
      */
@@ -341,16 +324,6 @@ public class EclipseProject {
         configureAction.execute(f);
         resourceFilters.add(f);
         return f;
-    }
-
-    /**
-     * Enables advanced configuration like tinkering with the output XML or affecting the way existing .project content is merged with gradle build information <p> The object passed to whenMerged{}
-     * and beforeMerged{} closures is of type {@link Project} <p>
-     *
-     * For example see docs for {@link EclipseProject}
-     */
-    public void file(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
-        configure(closure, file);
     }
 
     /**

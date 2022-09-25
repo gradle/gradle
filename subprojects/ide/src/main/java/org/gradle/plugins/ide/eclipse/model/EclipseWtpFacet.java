@@ -17,22 +17,17 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
  * Enables fine-tuning wtp facet details of the Eclipse plugin
@@ -94,19 +89,6 @@ public class EclipseWtpFacet {
      */
     public XmlFileContentMerger getFile() {
         return file;
-    }
-
-    /**
-     * Enables advanced configuration like tinkering with the output XML
-     * or affecting the way existing wtp facet file content is merged with gradle build information
-     * <p>
-     * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link WtpFacet}
-     * <p>
-     *
-     * For example see docs for {@link EclipseWtpFacet}
-     */
-    public void file(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
-        configure(closure, file);
     }
 
     /**

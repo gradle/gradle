@@ -16,12 +16,9 @@
 
 package org.gradle.plugins.ide.eclipse.model;
 
-import groovy.lang.Closure;
-import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
-import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
 
@@ -145,20 +142,6 @@ public class EclipseJdt {
      */
     public PropertiesFileContentMerger getFile() {
         return file;
-    }
-
-    /**
-     * Enables advanced configuration like affecting the way existing jdt file content
-     * is merged with gradle build information
-     * <p>
-     * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link Jdt}
-     * <p>
-     * The object passed to withProperties{} closures is of type {@link java.util.Properties}
-     * <p>
-     * For example see docs for {@link EclipseJdt}
-     */
-    public void file(@DelegatesTo(PropertiesFileContentMerger.class) Closure closure) {
-        ConfigureUtil.configure(closure, file);
     }
 
     /**
