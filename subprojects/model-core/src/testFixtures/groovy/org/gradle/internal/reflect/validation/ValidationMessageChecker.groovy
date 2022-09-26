@@ -364,23 +364,6 @@ trait ValidationMessageChecker {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
-    )
-    String notCacheableWithoutReason(@DelegatesTo(value = NotCacheableWithoutReason, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        def config = display(NotCacheableWithoutReason, "disable_caching_by_default", spec)
-        config.description("must be annotated either with ${config.cacheableAnnotation} or with @DisableCachingByDefault.")
-            .reason("The ${config.workType} author should make clear why a ${config.workType} is not cacheable.")
-            .solution("Add @DisableCachingByDefault(because = ...)")
-            .solution("Add ${config.cacheableAnnotation}.")
-
-        config.otherAnnotations.each { annotation ->
-            config.solution("Add ${annotation}.")
-        }
-
-        config.render()
-    }
-
-    @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
     String dummyValidationProblem(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
