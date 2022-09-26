@@ -1,5 +1,3 @@
-import gradlebuild.basics.isBundleGroovy4
-
 plugins {
     id("gradlebuild.distribution.api-java")
 }
@@ -196,11 +194,3 @@ tasks.compileTestGroovy {
 
 integTest.usesJavadocCodeSnippets.set(true)
 testFilesCleanup.reportOnly.set(true)
-
-tasks {
-    withType<Test>().configureEach {
-        if (isBundleGroovy4) {
-            systemProperty(gradlebuild.basics.BuildParams.BUNDLE_GROOVY_4, "true")
-        }
-    }
-}
