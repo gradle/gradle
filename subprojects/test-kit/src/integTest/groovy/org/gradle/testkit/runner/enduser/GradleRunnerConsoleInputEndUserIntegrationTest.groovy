@@ -33,7 +33,6 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
     def setup() {
         buildFile << """
             apply plugin: 'groovy'
-            apply plugin: 'jvm-test-suite'
 
             dependencies {
                 testImplementation localGroovy()

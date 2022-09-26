@@ -29,7 +29,6 @@ class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         file("build.gradle") << """
             plugins {
                 id("groovy")
-                id("jvm-test-suite")
             }
 
             ${mavenCentralRepository()}
@@ -95,7 +94,6 @@ class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     private void writeSpockDependencies() {
         file("build.gradle") << """
             apply plugin: 'groovy'
-            apply plugin: 'jvm-test-suite'
 
             ${mavenCentralRepository()}
 

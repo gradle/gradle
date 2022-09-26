@@ -65,7 +65,6 @@ class JavaGradlePluginRelocationTest extends AbstractProjectRelocationIntegratio
             file("build.gradle") << """
                 apply plugin: "java-gradle-plugin"
                 apply plugin: "groovy"
-                apply plugin: "jvm-test-suite"
 
                 gradlePlugin {
                     plugins {

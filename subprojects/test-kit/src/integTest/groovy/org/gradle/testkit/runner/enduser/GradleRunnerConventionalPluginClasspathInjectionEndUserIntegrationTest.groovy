@@ -31,7 +31,6 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
             plugins {
                 id "org.gradle.java-gradle-plugin"
                 id "org.gradle.groovy"
-                id "org.gradle.jvm-test-suite"
             }
             ${mavenCentralRepository()}
             testing {

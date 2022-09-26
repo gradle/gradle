@@ -34,7 +34,6 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
     def setup() {
         buildFile << """
             apply plugin: 'groovy'
-            apply plugin: 'jvm-test-suite'
 
             ${mavenCentralRepository()}
 

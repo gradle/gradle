@@ -822,7 +822,6 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             plugins {
                 id 'groovy-gradle-plugin'
-                id 'jvm-test-suite'
             }
 
             ${mavenCentralRepository()}

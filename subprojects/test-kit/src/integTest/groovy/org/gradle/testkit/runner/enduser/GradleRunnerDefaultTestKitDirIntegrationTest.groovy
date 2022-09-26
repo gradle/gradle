@@ -44,7 +44,6 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
 
         buildFile << """
             apply plugin: 'groovy'
-            apply plugin: 'jvm-test-suite'
 
             dependencies {
                 implementation localGroovy()

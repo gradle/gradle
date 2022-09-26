@@ -40,6 +40,10 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
+    static String excludeGroovy() {
+        applyPlugins(['groovy'])
+    }
+
     static String gradleApiDependency() {
         """
             dependencies {
@@ -63,7 +67,7 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
     }
     static String testablePluginProject(List<String> plugins = ['groovy-gradle-plugin']) {
         StringBuilder buildFile = new StringBuilder()
-        buildFile << applyPlugins(plugins + ['jvm-test-suite'])
+        buildFile << applyPlugins(plugins)
         buildFile << mavenCentralRepository()
         buildFile << """
             testing {

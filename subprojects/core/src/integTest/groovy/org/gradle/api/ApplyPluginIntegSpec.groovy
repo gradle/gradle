@@ -193,7 +193,6 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
     static String spockBasedBuildScript() {
         """
-            apply plugin: 'jvm-test-suite'
             ${basicBuildScript()}
 
             configurations.all { exclude group: 'org.codehaus.groovy' }
