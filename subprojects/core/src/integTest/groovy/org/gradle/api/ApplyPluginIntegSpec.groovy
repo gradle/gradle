@@ -77,6 +77,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
         and:
         buildFile << spockBasedBuildScript()
+        buildFile << addOpens()
 
         expect:
         succeeds("test")
@@ -108,24 +109,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
         and:
         buildFile << junitBasedBuildScript()
-        buildFile << """
-            // Needed when using ProjectBuilder
-            class AddOpensArgProvider implements CommandLineArgumentProvider {
-                private final Test test;
-                public AddOpensArgProvider(Test test) {
-                    this.test = test;
-                }
-                @Override
-                Iterable<String> asArguments() {
-                    return test.javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)
-                        ? ["--add-opens=java.base/java.lang=ALL-UNNAMED"]
-                        : []
-                }
-            }
-            tasks.withType(Test).configureEach {
-                jvmArgumentProviders.add(new AddOpensArgProvider(it))
-            }
-        """
+        buildFile << addOpens()
 
         expect:
         executer.withArgument("--info")
@@ -176,6 +160,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
         and:
         buildFile << spockBasedBuildScript()
+        buildFile << addOpens()
 
         expect:
         succeeds('test')
@@ -204,6 +189,31 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
                     }
                 }
             }
+        """
+    }
+
+    /**
+     * Configures tests to include open access to java.base/java.lang modules
+     * ProjectBuilder usages will fail without this
+     */
+    static String addOpens() {
+        """
+        // Needed when using ProjectBuilder
+        class AddOpensArgProvider implements CommandLineArgumentProvider {
+            private final Test test;
+            public AddOpensArgProvider(Test test) {
+                this.test = test;
+            }
+            @Override
+            Iterable<String> asArguments() {
+                return test.javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)
+                    ? ["--add-opens=java.base/java.lang=ALL-UNNAMED"]
+                    : []
+            }
+        }
+        tasks.withType(Test).configureEach {
+            jvmArgumentProviders.add(new AddOpensArgProvider(it))
+        }
         """
     }
 
