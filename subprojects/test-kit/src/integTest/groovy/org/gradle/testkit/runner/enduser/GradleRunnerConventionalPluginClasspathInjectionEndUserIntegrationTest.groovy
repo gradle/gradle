@@ -33,15 +33,13 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
                 id "org.gradle.groovy"
             }
             ${mavenCentralRepository()}
-
-            def isAtLeastGroovy4 = org.gradle.util.internal.VersionNumber.parse(GroovySystem.version).major >= 4
-            def spockVersion = isAtLeastGroovy4 ? '2.2-groovy-4.0' : '2.2-groovy-3.0'
-
-            dependencies {
-                testImplementation(platform("org.spockframework:spock-bom:\$spockVersion"))
-                testImplementation("org.spockframework:spock-core")
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                    }
+                }
             }
-            test.useJUnitPlatform()
         """
 
         plugin.writeSourceFiles()

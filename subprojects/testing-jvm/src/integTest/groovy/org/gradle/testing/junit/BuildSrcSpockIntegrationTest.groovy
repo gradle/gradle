@@ -33,15 +33,23 @@ class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
             ${mavenCentralRepository()}
 
-            def isAtLeastGroovy4 = org.gradle.util.internal.VersionNumber.parse(GroovySystem.version).major >= 4
-            def spockVersion = isAtLeastGroovy4 ? '2.2-groovy-4.0' : '2.1-groovy-3.0'
-
             dependencies {
                 implementation gradleApi()
                 implementation localGroovy()
+            }
 
-                testImplementation '$dependencyNotation',
-                    "org.spockframework:spock-core:\$spockVersion"
+            testing {
+                suites {
+                    // Must explicitly use `named` to avoid being rewritten by JUnitPlatformTestRewriter.rewriteBuildFile
+                    named('test') {
+                        useSpock()
+                        dependencies {
+                            ${dependencyNotation.collect { "implementation '$it'" }.join('\n')}
+                            // Required to use Spock mocking
+                            runtimeOnly 'net.bytebuddy:byte-buddy:1.12.17'
+                        }
+                    }
+                }
             }
         """
         file("src/main/groovy/MockIt.groovy") << """
@@ -89,12 +97,17 @@ class BuildSrcSpockIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
             ${mavenCentralRepository()}
 
-            def isAtLeastGroovy4 = org.gradle.util.internal.VersionNumber.parse(GroovySystem.version).major >= 4
-            def spockVersion = isAtLeastGroovy4 ? '2.2-groovy-4.0' : '2.2-groovy-3.0'
-
-            dependencies {
-                testImplementation localGroovy()
-                testImplementation '$dependencyNotation', "org.spockframework:spock-core:\${spockVersion}@jar"
+            testing {
+                suites {
+                    // Must explicitly use `named` to avoid being rewritten by JUnitPlatformTestRewriter.rewriteBuildFile
+                    named('test') {
+                        useSpock()
+                        dependencies {
+                            implementation localGroovy()
+                            ${dependencyNotation.collect { "implementation '$it'" }.join('\n')}
+                        }
+                    }
+                }
             }
         """
     }

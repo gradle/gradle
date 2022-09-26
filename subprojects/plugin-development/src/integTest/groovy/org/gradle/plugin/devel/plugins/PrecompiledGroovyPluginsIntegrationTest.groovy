@@ -823,13 +823,15 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id 'groovy-gradle-plugin'
             }
+
             ${mavenCentralRepository()}
 
-            def isAtLeastGroovy4 = org.gradle.util.internal.VersionNumber.parse(GroovySystem.version).major >= 4
-            def spockVersion = isAtLeastGroovy4 ? '2.2-groovy-4.0' : '2.2-groovy-3.0'
-
-            dependencies {
-                testImplementation "org.spockframework:spock-core:\$spockVersion"
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                    }
+                }
             }
         """
 
