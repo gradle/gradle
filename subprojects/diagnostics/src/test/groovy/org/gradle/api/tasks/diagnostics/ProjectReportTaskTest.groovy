@@ -22,12 +22,12 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class ProjectReportTaskTest extends AbstractProjectBuilderSpec {
-    ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     final ProjectReportTask task = TestUtil.createTask(ProjectReportTask, project)
     final TestStyledTextOutput output = new TestStyledTextOutput().ignoreStyle()
 
     def setup() {
         task.renderer.output = output
+        new File(project.projectDir, "settings.gradle") << ""
     }
 
     def rendersReportForRootProjectWithChildren() {

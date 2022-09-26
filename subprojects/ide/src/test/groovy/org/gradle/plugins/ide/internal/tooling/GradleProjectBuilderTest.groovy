@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling
 
-
+import org.gradle.api.Project
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
@@ -25,7 +25,6 @@ class GradleProjectBuilderTest extends AbstractProjectBuilderSpec {
 
     def "builds basics for project"() {
         def buildFile = temporaryFolder.file("build.gradle") << "//empty"
-        def project = TestUtil.builder(temporaryFolder).withName("test").build()
         project.description = 'a test project'
 
         when:
@@ -33,7 +32,7 @@ class GradleProjectBuilderTest extends AbstractProjectBuilderSpec {
 
         then:
         model.path == ':'
-        model.name == 'test'
+        model.name == 'test-project'
         model.description == 'a test project'
         model.buildDirectory == project.buildDir
         model.buildScript.sourceFile == buildFile

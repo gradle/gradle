@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures
 
+
 import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
@@ -60,13 +61,17 @@ abstract class AbstractProjectBuilderSpec extends Specification {
 
     @Rule SetSystemProperties systemProperties
 
-    ProjectInternal project
+    private ProjectInternal rootProject
     ProjectExecutionServices executionServices
 
     def setup() {
-        project = TestUtil.createRootProject(temporaryFolder.testDirectory)
-        executionServices = new ProjectExecutionServices(project)
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
+        rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
+        executionServices = new ProjectExecutionServices(rootProject)
+    }
+
+    final ProjectInternal getProject() {
+        return rootProject
     }
 
     def cleanup() {
