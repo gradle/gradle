@@ -55,7 +55,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 public class ProviderMigrationArchitectureTest {
     private static final DescribedPredicate<JavaMethod> getters = new DescribedPredicate<JavaMethod>("getters") {
         @Override
-        public boolean apply(JavaMethod input) {
+        public boolean test(JavaMethod input) {
             PropertyAccessorType accessorType = PropertyAccessorType.fromName(input.getName());
             return accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER;
         }
@@ -63,9 +63,9 @@ public class ProviderMigrationArchitectureTest {
 
     private static final DescribedPredicate<JavaClass> class_with_any_mutable_property = new DescribedPredicate<JavaClass>("class with any mutable property") {
         @Override
-        public boolean apply(JavaClass input) {
+        public boolean test(JavaClass input) {
             return input.getAllMethods().stream()
-                .filter(getters::apply)
+                .filter(getters)
                 .anyMatch(ProviderMigrationArchitectureTest::hasSetter);
         }
     };
