@@ -354,7 +354,7 @@ Reason: A property of type 'FileCollection' annotated with @Input cannot determi
 
 Possible solutions:
   1. Annotate with @InputFile for regular files.
-  2. Annotate with @InputDirectory for directories.
+  2. Annotate with @InputFiles for collections of files.
   3. If you want to track the path, return File.absolutePath as a String and keep @Input.
 
 Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#incorrect_use_of_input_annotation for more details about this problem.
