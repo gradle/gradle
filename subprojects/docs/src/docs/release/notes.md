@@ -29,7 +29,8 @@ We would like to thank the following community members for their contributions t
 [Siddardha Bezawada](https://github.com/SidB3),
 [Stephen Topley](https://github.com/stopley),
 [Victor Maldonado](https://github.com/vmmaldonadoz),
-[Vinay Potluri](https://github.com/vinaypotluri).
+[Vinay Potluri](https://github.com/vinaypotluri),
+[Jeff Gaston](https://github.com/mathjeff).
 
 ## Upgrade instructions
 
