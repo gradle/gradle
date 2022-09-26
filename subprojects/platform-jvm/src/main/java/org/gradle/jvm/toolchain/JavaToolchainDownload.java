@@ -32,11 +32,11 @@ import java.net.URI;
  * @since 7.6
  */
 @Incubating
-public abstract class JavaToolchainDownload {
+public interface JavaToolchainDownload {
 
-    public abstract URI getUri();
+    URI getUri();
 
-    public static JavaToolchainDownload fromUri(URI uri) {
+    static JavaToolchainDownload fromUri(URI uri) {
         return DefaultJavaToolchainDownload.fromUri(uri);
     }
 

@@ -20,7 +20,7 @@ import org.gradle.jvm.toolchain.JavaToolchainDownload;
 
 import java.net.URI;
 
-public class DefaultJavaToolchainDownload extends JavaToolchainDownload {
+public class DefaultJavaToolchainDownload implements JavaToolchainDownload {
 
     public static DefaultJavaToolchainDownload fromUri(URI uri) {
         return new DefaultJavaToolchainDownload(uri);
