@@ -25,8 +25,8 @@ import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.launcher.daemon.server.health.LowHeapSpaceDaemonExpirationStrategy;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
-import org.junit.ComparisonFailure;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -186,8 +186,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
      * Lambdas do have some non-deterministic class names, depending on when they are loaded.
      * Since we want to assert the Lambda class name for some deprecation warning tests, we replace the non-deterministic part by {@code <non-deterministic>}.
      */
-    private String normalizeLambdaIds(String line) {
-        return line.replaceAll("\\$\\$Lambda\\$[0-9]+/(0x)?[0-9a-f]+", "\\$\\$Lambda\\$<non-deterministic>");
+    public static String normalizeLambdaIds(@Nullable String line) {
+        return line == null ? null : line.replaceAll("\\$\\$Lambda\\$[0-9]+/(0x)?[0-9a-f]+", "\\$\\$Lambda\\$<non-deterministic>");
     }
 
     @Override
@@ -391,7 +391,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private void failOnMissingOutput(String message, String type, String expected, String actual) {
-        throw new ComparisonFailure(unexpectedOutputMessage(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s", message, expected, type, actual)), expected, actual);
+        throw new AssertionError(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s", message, expected, type, actual));
     }
 
     protected void failureOnUnexpectedOutput(String message) {

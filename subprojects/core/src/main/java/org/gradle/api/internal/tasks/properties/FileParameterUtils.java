@@ -113,7 +113,7 @@ public class FileParameterUtils {
         boolean locationOnly,
         Consumer<OutputFilePropertySpec> consumer
     ) {
-        Object unpackedValue = value.getUnprocessedValue();
+        Object unpackedValue = value.call();
         unpackedValue = DeferredUtil.unpackNestableDeferred(unpackedValue);
         if (locationOnly && unpackedValue instanceof FileSystemLocationProperty) {
             unpackedValue = ((FileSystemLocationProperty<?>) unpackedValue).getLocationOnly();
@@ -155,11 +155,6 @@ public class FileParameterUtils {
                         FileCollectionInternal outputFiles = fileCollectionFactory.fixed(content);
                         consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "$" + index.incrementAndGet(), outputFiles, outputType));
                     }
-                }
-
-                @Override
-                public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                    failOnInvalidOutputType(fileTree);
                 }
 
                 @Override

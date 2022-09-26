@@ -296,8 +296,6 @@ Some error
             =======
 
             Some message
-
-            Output:
             '''))
 
         when:
@@ -313,8 +311,6 @@ Some error
             =======
 
             Some error
-
-            Output:
             '''))
     }
 

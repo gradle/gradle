@@ -294,7 +294,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-classif
 include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/kotlin",files="lib/build.gradle.kts[tags=dependencies]"]
 ====
 
-What happens is that Gradle would perform conflict resolution between `quasar-core` 0.8.0 and `quasar-core` 0.7.12_r3.
+What happens is that Gradle would perform conflict resolution between `quasar-core` 0.8.0 and `quasar-core` 0.7.10.
 Because 0.8.0 is higher, we select this version, but the dependency in `lib` has a classifier, `jdk8` and this classifier _doesn't exist anymore_ in release 0.8.0.
 
 To fix this problem, you can ask Gradle to resolve both dependencies _without classifier_:

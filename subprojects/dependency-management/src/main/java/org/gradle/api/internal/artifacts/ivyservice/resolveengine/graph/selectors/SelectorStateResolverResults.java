@@ -39,7 +39,7 @@ class SelectorStateResolverResults {
 
     public SelectorStateResolverResults(Comparator<Version> versionComparator, VersionParser versionParser, int size) {
         this.versionParser = versionParser;
-        results = Lists.newArrayListWithCapacity(size);
+        this.results = Lists.newArrayListWithCapacity(size);
         this.versionComparator = versionComparator;
     }
 
@@ -47,7 +47,11 @@ class SelectorStateResolverResults {
         ModuleVersionResolveException failure = null;
         List<T> resolved = null;
         boolean hasSoftForce = hasSoftForce();
-        for (Registration entry : results) {
+
+        int size = results.size();
+        //noinspection ForLoopReplaceableByForEach
+        for (int i = 0; i < size; i++) {
+            Registration entry = results.get(i);
             ResolvableSelectorState selectorState = entry.selector;
             ComponentIdResolveResult idResolveResult = entry.result;
 
@@ -95,7 +99,10 @@ class SelectorStateResolverResults {
     }
 
     private boolean hasSoftForce() {
-        for (Registration entry : results) {
+        int size = results.size();
+        //noinspection ForLoopReplaceableByForEach
+        for (int i = 0; i < size; i++) {
+            Registration entry = results.get(i);
             ResolvableSelectorState selectorState = entry.selector;
             if (selectorState.isSoftForce()) {
                 return true;
@@ -105,7 +112,7 @@ class SelectorStateResolverResults {
     }
 
     public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
-        T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());
+        T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getState());
         if (idResolveResult.isRejected()) {
             component.reject();
         }
@@ -116,13 +123,21 @@ class SelectorStateResolverResults {
      * Check already resolved results for a compatible version, and use it for this dependency rather than re-resolving.
      */
     boolean alreadyHaveResolutionForSelector(ResolvableSelectorState selector) {
-        for (Registration registration : results) {
+        int size = results.size();
+        ComponentIdResolveResult found = null;
+        //noinspection ForLoopReplaceableByForEach
+        for (int i = 0; i < size; i++) {
+            Registration registration = results.get(i);
             ComponentIdResolveResult discovered = registration.result;
             if (selectorAcceptsCandidate(selector, discovered, registration.selector.isFromLock())) {
-                register(selector, discovered);
+                found = discovered;
                 selector.markResolved();
-                return true;
+                break;
             }
+        }
+        if (found!=null) {
+            register(selector, found);
+            return true;
         }
         return false;
     }
@@ -130,11 +145,14 @@ class SelectorStateResolverResults {
     boolean replaceExistingResolutionsWithBetterResult(ComponentIdResolveResult candidate, boolean isFromLock) {
         // Check already-resolved dependencies and use this version if it's compatible
         boolean replaces = false;
-        for (Registration registration : results) {
+        int size = results.size();
+        //noinspection ForLoopReplaceableByForEach
+        for (int i = 0; i < size; i++) {
+            Registration registration = results.get(i);
             ComponentIdResolveResult previous = registration.result;
             ResolvableSelectorState previousSelector = registration.selector;
             if (emptyVersion(previous) || sameVersion(previous, candidate) ||
-                    (selectorAcceptsCandidate(previousSelector, candidate, isFromLock) && lowerVersion(previous, candidate))) {
+                (selectorAcceptsCandidate(previousSelector, candidate, isFromLock) && lowerVersion(previous, candidate))) {
                 registration.result = candidate;
                 replaces = true;
             }
@@ -181,7 +199,7 @@ class SelectorStateResolverResults {
         }
         VersionSelector versionSelector = versionConstraint.getRequiredSelector();
         if (versionSelector != null &&
-                (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
+            (candidateIsFromLock || versionSelector.canShortCircuitWhenVersionAlreadyPreselected())) {
 
             if (candidateIsFromLock && versionSelector instanceof LatestVersionSelector) {
                 // Always assume a candidate from a lock will satisfy the latest version selector

@@ -55,11 +55,16 @@ dependencies {
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":platform-native")))
+    testImplementation(testFixtures(project(":language-groovy")))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+
+    testFixturesImplementation(project(":testing-base"))
+    testFixturesImplementation(libs.testng)
+    testFixturesImplementation(libs.bsh)
 }
 
 strictCompile {
@@ -69,16 +74,6 @@ strictCompile {
 
 packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
-}
-
-tasks.test {
-    exclude("org/gradle/api/internal/tasks/testing/junit/AJunit*.*")
-    exclude("org/gradle/api/internal/tasks/testing/junit/BJunit*.*")
-    exclude("org/gradle/api/internal/tasks/testing/junit/ATestClass*.*")
-    exclude("org/gradle/api/internal/tasks/testing/junit/ATestSetUp*.*")
-    exclude("org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*")
-    exclude("org/gradle/api/internal/tasks/testing/junit/ATestSetUpWithBrokenSetUp*.*")
-    exclude("org/gradle/api/internal/tasks/testing/testng/ATestNGFactoryClass*.*")
 }
 
 integTest.usesJavadocCodeSnippets.set(true)

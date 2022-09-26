@@ -61,7 +61,7 @@ import java.util.Set;
  * This can also be changed by setting the <code>reports.html.destination</code> property:
  * <pre>
  * htmlDependencyReport {
- *     reports.html.destination = file("build/reports/project/dependencies")
+ *     reports.html.outputLocation = file("build/reports/project/dependencies")
  * }
  * </pre>
  */

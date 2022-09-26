@@ -22,6 +22,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -44,6 +45,7 @@ import org.gradle.api.internal.tasks.testing.worker.TestWorker;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -71,13 +73,15 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
+import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -194,7 +198,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         forkOptions.setExecutable(null);
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
         javaLauncher = getObjectFactory().property(JavaLauncher.class);
-        testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
+        testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
     }
 
     @Inject
@@ -274,7 +278,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Input
     public JavaVersion getJavaVersion() {
-        return getServices().get(JvmVersionDetector.class).getJavaVersion(getEffectiveExecutable());
+        return JavaVersion.toVersion(getLauncherTool().get().getMetadata().getLanguageVersion().asInt());
     }
 
     /**
@@ -1037,7 +1041,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 3.5
      */
     public void useJUnit(Action<? super JUnitOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()), testFrameworkConfigure);
+        useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true), testFrameworkConfigure);
     }
 
     /**
@@ -1048,8 +1052,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * JUnit Platform supports multiple test engines, which allows other testing frameworks to be built on top of it.
      * You may need to use this option even if you are not using JUnit directly.
      *
-     * @since 4.6
      * @see #useJUnitPlatform(org.gradle.api.Action) Configure JUnit Platform specific options.
+     * @since 4.6
      */
     public void useJUnitPlatform() {
         useJUnitPlatform(Actions.<JUnitPlatformOptions>doNothing());
@@ -1069,7 +1073,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 4.6
      */
     public void useJUnitPlatform(Action<? super JUnitPlatformOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter()), testFrameworkConfigure);
+        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), true), testFrameworkConfigure);
     }
 
     /**
@@ -1252,12 +1256,41 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private String getEffectiveExecutable() {
-        if (javaLauncher.isPresent()) {
-            // The below line is OK because it will only be exercised in the Gradle daemon and not in the worker running tests.
-            return javaLauncher.get().getExecutablePath().toString();
-        }
-        final String executable = getExecutable();
-        return executable == null ? Jvm.current().getJavaExecutable().getAbsolutePath() : executable;
+        return getLauncherTool().get().getExecutablePath().toString();
     }
 
+    private Provider<JavaLauncher> getLauncherTool() {
+        JavaToolchainSpec toolchainSpec = determineExplicitToolchain();
+        if (toolchainSpec == null) {
+            if (javaLauncher.isPresent()) {
+                return javaLauncher;
+            } else {
+                toolchainSpec = new CurrentJvmToolchainSpec(getObjectFactory());
+            }
+        }
+
+        return getJavaToolchainService().launcherFor(toolchainSpec);
+    }
+
+    @Nullable
+    private JavaToolchainSpec determineExplicitToolchain() {
+        String customExecutable = forkOptions.getExecutable();
+        if (customExecutable != null) {
+            File executable = new File(customExecutable);
+            if (executable.exists()) {
+                // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
+                File parentJavaHome = executable.getParentFile().getParentFile();
+                return new SpecificInstallationToolchainSpec(getObjectFactory(), parentJavaHome);
+            } else {
+                throw new InvalidUserDataException("The configured executable does not exist (" + executable.getAbsolutePath() + ")");
+            }
+        }
+
+        return null;
+    }
+
+    @Inject
+    protected JavaToolchainService getJavaToolchainService() {
+        throw new UnsupportedOperationException();
+    }
 }

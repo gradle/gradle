@@ -22,7 +22,7 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -164,8 +164,8 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
             }
 
             @Override
-            public Try<ExecutionResult> getExecutionResult() {
-                return result.getExecutionResult();
+            public Try<Execution> getExecution() {
+                return result.getExecution();
             }
 
             @Override

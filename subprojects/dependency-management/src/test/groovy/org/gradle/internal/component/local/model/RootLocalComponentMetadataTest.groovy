@@ -28,9 +28,14 @@ import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.locking.DefaultDependencyLockingState
 
 class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
-    def dependencyLockingHandler = Mock(DependencyLockingProvider)
-    def metadata = new RootLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal), dependencyLockingHandler)
+    DependencyLockingProvider dependencyLockingHandler
     private ModuleIdentifier mid = DefaultModuleIdentifier.newId('org', 'foo')
+
+    @Override
+    protected DefaultLocalComponentMetadata createMetadata() {
+        dependencyLockingHandler = Mock(DependencyLockingProvider)
+        return new RootLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal), dependencyLockingHandler)
+    }
 
     def 'locking constraints are attached to a configuration and not its children'() {
         given:
@@ -86,8 +91,8 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
         "dependency was locked to version '1.1' (update/lenient mode)"  | false
     }
 
-    private addConfiguration(String name, Collection<String> extendsFrom = [], ImmutableAttributes attributes = ImmutableAttributes.EMPTY) {
-        metadata.addConfiguration(name, "", extendsFrom as Set, ImmutableSet.copyOf(extendsFrom + [name]), true, true, attributes, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
+    BuildableLocalConfigurationMetadata addConfiguration(String name, Collection<String> extendsFrom = [], ImmutableAttributes attributes = ImmutableAttributes.EMPTY) {
+        return metadata.addConfiguration(name, "", extendsFrom as Set, ImmutableSet.copyOf(extendsFrom + [name]), true, true, attributes, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
     }
 
 }

@@ -16,10 +16,11 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
+import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -36,6 +37,10 @@ import org.gradle.work.InputChanges;
 import java.io.File;
 import java.time.Duration;
 import java.util.Optional;
+
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_INCREMENTALLY;
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE;
 
 public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Result> {
 
@@ -92,29 +97,23 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         }
 
         Duration duration = Duration.ofMillis(timer.getElapsedMillis());
-        ExecutionOutcome outcome = determineOutcome(context, workOutput);
+        ExecutionOutcome mode = determineOutcome(context, workOutput);
 
-        return ResultImpl.success(duration, new ExecutionResultImpl(outcome, workOutput));
+        return ResultImpl.success(duration, new ExecutionResultImpl(mode, workOutput));
     }
 
     private static ExecutionOutcome determineOutcome(InputChangesContext context, UnitOfWork.WorkOutput workOutput) {
-        ExecutionOutcome outcome;
         switch (workOutput.getDidWork()) {
             case DID_NO_WORK:
-                outcome = ExecutionOutcome.UP_TO_DATE;
-                break;
+                return UP_TO_DATE;
             case DID_WORK:
-                boolean incremental = context.getInputChanges()
-                    .map(InputChanges::isIncremental)
-                    .orElse(false);
-                outcome = incremental
-                    ? ExecutionOutcome.EXECUTED_INCREMENTALLY
-                    : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
-                break;
+                return context.getInputChanges()
+                    .filter(InputChanges::isIncremental)
+                    .map(Functions.constant(EXECUTED_INCREMENTALLY))
+                    .orElse(EXECUTED_NON_INCREMENTALLY);
             default:
                 throw new AssertionError();
         }
-        return outcome;
     }
 
     /*
@@ -135,19 +134,19 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
     private static final class ResultImpl implements Result {
 
         private final Duration duration;
-        private final Try<ExecutionResult> executionResultTry;
+        private final Try<Execution> outcome;
 
-        private ResultImpl(Duration duration, Try<ExecutionResult> executionResultTry) {
+        private ResultImpl(Duration duration, Try<Execution> outcome) {
             this.duration = duration;
-            this.executionResultTry = executionResultTry;
+            this.outcome = outcome;
         }
 
         private static Result failed(Throwable t, Duration duration) {
             return new ResultImpl(duration, Try.failure(t));
         }
 
-        private static Result success(Duration duration, ExecutionResult executionResult) {
-            return new ResultImpl(duration, Try.successful(executionResult));
+        private static Result success(Duration duration, Execution outcome) {
+            return new ResultImpl(duration, Try.successful(outcome));
         }
 
         @Override
@@ -156,23 +155,23 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         }
 
         @Override
-        public Try<ExecutionResult> getExecutionResult() {
-            return executionResultTry;
+        public Try<Execution> getExecution() {
+            return outcome;
         }
     }
 
-    private static final class ExecutionResultImpl implements ExecutionResult {
-        private final ExecutionOutcome outcome;
+    private static final class ExecutionResultImpl implements Execution {
+        private final ExecutionOutcome mode;
         private final UnitOfWork.WorkOutput workOutput;
 
-        public ExecutionResultImpl(ExecutionOutcome outcome, UnitOfWork.WorkOutput workOutput) {
-            this.outcome = outcome;
+        public ExecutionResultImpl(ExecutionOutcome mode, UnitOfWork.WorkOutput workOutput) {
+            this.mode = mode;
             this.workOutput = workOutput;
         }
 
         @Override
         public ExecutionOutcome getOutcome() {
-            return outcome;
+            return mode;
         }
 
         @Override

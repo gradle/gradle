@@ -350,7 +350,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         where:
         type               | reference                    | query   | problem
         "Provider<String>" | "project.providers.provider" | "get()" | "value 'provider(?)' failed to unpack provider"
-        "FileCollection"   | "project.files"              | "files" | "value 'file collection' failed to visit file collection"
     }
 
     def "restores task fields whose value is property of type #type"() {

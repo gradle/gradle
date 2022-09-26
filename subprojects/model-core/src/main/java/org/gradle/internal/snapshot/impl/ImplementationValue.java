@@ -32,4 +32,9 @@ public class ImplementationValue {
     public Object getValue() {
         return value;
     }
+
+    @Override
+    public String toString() {
+        return "(" + classIdentifier + ") " + value;
+    }
 }

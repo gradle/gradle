@@ -21,7 +21,6 @@ import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -72,13 +71,13 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *     sourceDirs += file('some-extra-source-folder')
  *
  *     //and some extra test source dirs
- *     testSourceDirs += file('some-extra-test-dir')
+ *     testSources.from(file('some-extra-test-dir'))
  *
  *     //and some extra resource dirs
  *     resourceDirs += file('some-extra-resource-dir')
  *
  *     //and some extra test resource dirs
- *     testResourceDirs += file('some-extra-test-resource-dir')
+ *     testResources.from(file('some-extra-test-resource-dir'))
  *
  *     //and hint to mark some of existing source dirs as generated sources
  *     generatedSourceDirs += file('some-extra-source-folder')
@@ -163,19 +162,11 @@ public class IdeaModule {
     private Set<File> sourceDirs;
     private Set<File> generatedSourceDirs = Sets.newLinkedHashSet();
     private Set<File> resourceDirs = Sets.newLinkedHashSet();
-    /**
-     * <strong>This field will be {@code @Deprecated} soon, please use {@link #testResources} instead.</strong>
-     */
-    private Set<File> testResourceDirs = Sets.newLinkedHashSet();
     private ConfigurableFileCollection testResources;
     private Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
     private boolean downloadSources = true;
     private boolean downloadJavadoc;
     private File contentRoot;
-    /**
-     * <strong>This field will be {@code @Deprecated} soon, please use {@link #testSources} instead.</strong>
-     */
-    private Set<File> testSourceDirs;
     private ConfigurableFileCollection testSources;
     private Set<File> excludeDirs;
     private Boolean inheritOutputDirs;
@@ -197,9 +188,6 @@ public class IdeaModule {
 
         this.testSources = project.getObjects().fileCollection();
         this.testResources = project.getObjects().fileCollection();
-
-        testSources.from(project.provider(() -> getTestSourceDirs()));
-        testResources.from(project.provider(() -> getTestResourceDirs()));
     }
 
     /**
@@ -331,34 +319,11 @@ public class IdeaModule {
     }
 
     /**
-     * The directories containing the test sources.
-     *
-     * <strong>Note that late changes to default test directories may NOT be reflected in this collection and {@link #getTestSources()} should be preferred.</strong>
-     *
-     * For example see docs for {@link IdeaModule}
-     *
-     * <strong>This field will be {@code @Deprecated} soon, please use {@link #getTestSources()} instead.</strong>
-     */
-    public Set<File> getTestSourceDirs() {
-        return testSourceDirs;
-    }
-
-    /**
-     * <strong>This field will be {@code @Deprecated} soon, please use {@link #getTestSources()} instead to access the new collection property.</strong>
-     */
-    public void setTestSourceDirs(Set<File> testSourceDirs) {
-        this.testSourceDirs = testSourceDirs;
-    }
-
-    /**
      * The complete and up-to-date collection of test source directories
-     *
-     * This should be preferred to {@link #getTestSourceDirs()} as it will include late changes to default directories.
      *
      * @return lazily configurable collection of test source directories
      * @since 7.4
      */
-    @Incubating
     public ConfigurableFileCollection getTestSources() {
         return testSources;
     }
@@ -382,36 +347,11 @@ public class IdeaModule {
     }
 
     /**
-     * The directories containing the test resources. <p> For example see docs for {@link IdeaModule}
-     *
-     * <strong>This field will be {@code @Deprecated} soon, please use {@link #getTestResources()} instead.</strong>
-     *
-     * @since 4.7
-     */
-    public Set<File> getTestResourceDirs() {
-        return testResourceDirs;
-    }
-
-    /**
-     * Sets the directories containing the test resources. <p> For example see docs for {@link IdeaModule}
-     *
-     * <strong>This field will be {@code @Deprecated} soon, please use {@link #getTestResources()} instead to access the new collection property.</strong>
-     *
-     * @since 4.7
-     */
-    public void setTestResourceDirs(Set<File> testResourceDirs) {
-        this.testResourceDirs = testResourceDirs;
-    }
-
-    /**
      * The complete and up-to-date collection of test resource directories.
-     *
-     * This should be preferred to {@link #getTestResourceDirs()} as it will include late changes to default directories.
      *
      * @return lazily configurable collection of test resource directories
      * @since 7.4
      */
-    @Incubating
     public ConfigurableFileCollection getTestResources() {
         return testResources;
     }

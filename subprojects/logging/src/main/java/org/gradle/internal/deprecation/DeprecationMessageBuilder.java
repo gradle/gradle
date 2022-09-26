@@ -26,6 +26,7 @@ import java.util.List;
 public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
     private static final GradleVersion GRADLE8 = GradleVersion.version("8.0");
+    private static final GradleVersion GRADLE9 = GradleVersion.version("9.0");
 
     private String summary;
     private DeprecationTimeline deprecationTimeline;
@@ -73,6 +74,31 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         return new WithDeprecationTimeline(this);
     }
 
+    /**
+     * Output: This is scheduled to be removed in Gradle 9.0.
+     */
+    public WithDeprecationTimeline willBeRemovedInGradle9() {
+        this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(GRADLE9);
+        return new WithDeprecationTimeline(this);
+    }
+
+    /**
+     * Output: This will fail with an error in Gradle 9.0.
+     */
+    public WithDeprecationTimeline willBecomeAnErrorInGradle9() {
+        this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(GRADLE9);
+        return new WithDeprecationTimeline(this);
+    }
+
+    /**
+     * Output: This will change in Gradle 9.0.
+     */
+    public WithDeprecationTimeline willChangeInGradle9() {
+        this.deprecationTimeline = DeprecationTimeline.willChangeInVersion(GRADLE9);
+        return new WithDeprecationTimeline(this);
+    }
+
+
     void setIndirectUsage() {
         this.usageType = DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT;
     }
@@ -101,50 +127,16 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType);
     }
 
-    public static class WithDeprecationTimeline {
+    public static class WithDeprecationTimeline extends Documentation.AbstractBuilder<WithDocumentation> {
         private final DeprecationMessageBuilder<?> builder;
 
         public WithDeprecationTimeline(DeprecationMessageBuilder<?> builder) {
             this.builder = builder;
         }
 
-        /**
-         * Allows proceeding to terminal {@link WithDocumentation#nagUser()} operation without including any documentation reference.
-         * Consider using one of the documentation providing methods instead.
-         */
-        public WithDocumentation undocumented() {
-            return new WithDocumentation(builder);
-        }
-
-        /**
-         * Output: See USER_MANUAL_URL for more details.
-         */
-        public WithDocumentation withUserManual(String documentationId) {
-            builder.setDocumentation(Documentation.userManual(documentationId));
-            return new WithDocumentation(builder);
-        }
-
-        /**
-         * Output: See USER_MANUAL_URL for more details.
-         */
-        public WithDocumentation withUserManual(String documentationId, String section) {
-            builder.setDocumentation(Documentation.userManual(documentationId, section));
-            return new WithDocumentation(builder);
-        }
-
-        /**
-         * Output: See DSL_REFERENCE_URL for more details.
-         */
-        public WithDocumentation withDslReference(Class<?> targetClass, String property) {
-            builder.setDocumentation(Documentation.dslReference(targetClass, property));
-            return new WithDocumentation(builder);
-        }
-
-        /**
-         * Output: Consult the upgrading guide for further information: UPGRADE_GUIDE_URL
-         */
-        public WithDocumentation withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
-            builder.setDocumentation(Documentation.upgradeGuide(majorVersion, upgradeGuideSection));
+        @Override
+        protected WithDocumentation withDocumentation(Documentation documentation) {
+            builder.setDocumentation(documentation);
             return new WithDocumentation(builder);
         }
     }
@@ -207,6 +199,22 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
     }
 
+    public static class DeprecateAction extends WithReplacement<String, DeprecateAction> {
+        DeprecateAction(String subject) {
+            super(subject);
+        }
+
+        @Override
+        String formatSummary(String subject) {
+            return String.format("%s has been deprecated.", subject);
+        }
+
+        @Override
+        String formatAdvice(String replacement) {
+            return String.format("Please use %s instead.", replacement);
+        }
+    }
+
     public static class DeprecateNamedParameter extends WithReplacement<String, DeprecateNamedParameter> {
 
         DeprecateNamedParameter(String parameter) {
@@ -237,6 +245,12 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         @Override
         public WithDeprecationTimeline willBeRemovedInGradle8() {
             setDeprecationTimeline(DeprecationTimeline.willBeRemovedInVersion(GRADLE8));
+            return new WithDeprecationTimeline(this);
+        }
+
+        @Override
+        public WithDeprecationTimeline willBeRemovedInGradle9() {
+            setDeprecationTimeline(DeprecationTimeline.willBeRemovedInVersion(GRADLE9));
             return new WithDeprecationTimeline(this);
         }
 
@@ -393,6 +407,23 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
     }
 
+    public static class DeprecateType extends WithReplacement<String, DeprecateType> {
+
+        DeprecateType(String type) {
+            super(type);
+        }
+
+        @Override
+        String formatSummary(String type) {
+            return String.format("The %s type has been deprecated.", type);
+        }
+
+        @Override
+        String formatAdvice(String replacement) {
+            return String.format("Please use the %s type instead.", replacement);
+        }
+    }
+
     public static class DeprecateTask extends WithReplacement<String, DeprecateTask> {
         DeprecateTask(String task) {
             super(task);
@@ -480,18 +511,25 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         /**
-         * Output: This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0.
+         * Output: This behavior is scheduled to be removed in Gradle 8.0.
          */
         public WithDeprecationTimeline willBeRemovedInGradle8() {
             setDeprecationTimeline(DeprecationTimeline.behaviourWillBeRemovedInVersion(GRADLE8));
             return new WithDeprecationTimeline(this);
         }
 
+        /**
+         * Output: This behavior is scheduled to be removed in Gradle 9.0.
+         */
+        public WithDeprecationTimeline willBeRemovedInGradle9() {
+            setDeprecationTimeline(DeprecationTimeline.behaviourWillBeRemovedInVersion(GRADLE9));
+            return new WithDeprecationTimeline(this);
+        }
+
         @Override
         DeprecationMessage build() {
-            setSummary(behaviour);
+            setSummary(String.format("%s This behavior has been deprecated.", behaviour));
             return super.build();
         }
     }
-
 }

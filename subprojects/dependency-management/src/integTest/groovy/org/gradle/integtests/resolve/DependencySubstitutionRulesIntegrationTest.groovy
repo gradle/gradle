@@ -18,7 +18,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -994,7 +993,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     void "rule selects unavailable version"() {
         mavenRepo.module("org.utils", "api", '1.3').publish()
 

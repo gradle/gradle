@@ -150,7 +150,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
     public static class RefreshDependenciesOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
         public RefreshDependenciesOption() {
-            super(null, CommandLineOptionConfiguration.create("refresh-dependencies", "Refresh the state of dependencies."));
+            super(null, CommandLineOptionConfiguration.create("refresh-dependencies", "U", "Refresh the state of dependencies."));
         }
 
         @Override

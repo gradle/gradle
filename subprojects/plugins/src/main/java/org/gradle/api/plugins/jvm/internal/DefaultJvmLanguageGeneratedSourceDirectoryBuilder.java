@@ -103,8 +103,7 @@ public class DefaultJvmLanguageGeneratedSourceDirectoryBuilder implements JvmLan
             project.getObjects().directoryProperty().convention(sourceDirectory)
         );
         DefaultSourceSetOutput sourceSetOutput = Cast.cast(DefaultSourceSetOutput.class, sourceSet.getOutput());
-        sourceSetOutput.addClassesDir(details.compileTask.flatMap(task -> details.compileMapping.apply(Cast.uncheckedCast(task))));
-        sourceSetOutput.registerClassesContributor(details.compileTask);
+        sourceSetOutput.addClassesDir(details.compileTask.flatMap(task -> details.compileMapping.apply(Cast.uncheckedCast(task))), details.compileTask);
         sourceSetOutput.getGeneratedSourcesDirs().from(sourceDirectory);
         project.getTasks().matching(DefaultJvmLanguageGeneratedSourceDirectoryBuilder::isClassesTask).configureEach(classes ->
             classes.dependsOn(details.compileTask));

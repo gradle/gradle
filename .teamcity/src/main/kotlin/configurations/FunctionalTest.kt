@@ -4,10 +4,8 @@ import common.functionalTestExtraParameters
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import model.CIBuildModel
 import model.Stage
-import model.StageNames
-import model.StageNames.READY_FOR_RELEASE
+import model.StageName
 import model.TestCoverage
-import model.TestType
 
 const val functionalTestTag = "FunctionalTest"
 
@@ -29,16 +27,10 @@ class FunctionalTest(
     this.id(id)
     val testTasks = getTestTaskName(testCoverage, subprojects)
 
-    if (name.contains("(configuration-cache)")) {
-        requirements {
-            doesNotContain("teamcity.agent.name", "ec2")
-            // US region agents have name "EC2-XXX"
-            doesNotContain("teamcity.agent.name", "EC2")
-        }
-    }
-
     applyTestDefaults(
-        model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
+        model, this, testTasks,
+        dependsOnQuickFeedbackLinux = !testCoverage.withoutDependencies && stage.stageName > StageName.PULL_REQUEST_FEEDBACK,
+        os = testCoverage.os,
         buildJvm = testCoverage.buildJvm,
         arch = testCoverage.arch,
         extraParameters = (
@@ -52,19 +44,16 @@ class FunctionalTest(
         preSteps = preBuildSteps
     )
 
-    if (testCoverage.testType == TestType.soak || testTasks.contains("plugins:")) {
-        failureConditions {
-            // JavaExecDebugIntegrationTest.debug session fails without debugger might cause JVM crash
-            // Some soak tests produce OOM exceptions
-            javaCrash = false
-        }
+    failureConditions {
+        // We have test-retry to handle the crash in tests
+        javaCrash = false
     }
 })
 
 private fun determineFlakyTestStrategy(stage: Stage): String {
-    val stageName = StageNames.values().first { it.stageName == stage.stageName.stageName }
+    val stageName = StageName.values().first { it.stageName == stage.stageName.stageName }
     // See gradlebuild.basics.FlakyTestStrategy
-    return if (stageName.ordinal < READY_FOR_RELEASE.ordinal) "exclude" else "include"
+    return if (stageName < StageName.READY_FOR_RELEASE) "exclude" else "include"
 }
 
 fun getTestTaskName(testCoverage: TestCoverage, subprojects: List<String>): String {
@@ -73,6 +62,7 @@ fun getTestTaskName(testCoverage: TestCoverage, subprojects: List<String>): Stri
         subprojects.isEmpty() -> {
             testTaskName
         }
+
         else -> {
             subprojects.joinToString(" ") { "$it:$testTaskName" }
         }

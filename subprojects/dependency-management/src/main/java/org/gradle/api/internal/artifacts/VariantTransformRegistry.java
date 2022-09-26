@@ -28,16 +28,6 @@ public interface VariantTransformRegistry {
     /**
      * Register an artifact transformation.
      *
-     * @see org.gradle.api.artifacts.transform.VariantTransform
-     * @deprecated Use {@link #registerTransform(Class, Action)} instead
-     */
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    void registerTransform(Action<? super org.gradle.api.artifacts.transform.VariantTransform> registrationAction);
-
-    /**
-     * Register an artifact transformation.
-     *
      * @see TransformAction
      */
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);

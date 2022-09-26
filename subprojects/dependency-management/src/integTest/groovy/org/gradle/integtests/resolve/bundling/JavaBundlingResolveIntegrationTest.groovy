@@ -21,7 +21,6 @@ import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -101,7 +100,6 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
         bundling << [Bundling.EMBEDDED, Bundling.SHADOWED]
     }
 
-    @ToBeFixedForConfigurationCache(iterationMatchers = [".*selected=null.*"])
     def "selects the appropriate variant (producer=#bundling, requested=#requested, selected=#selected)"() {
         given:
         repository {

@@ -57,7 +57,7 @@ tasks {
     val santaTracker by registering(RemoteProject::class) {
         remoteUri.set(santaGitUri)
         // Pinned from branch main
-        ref.set("1513dc23b6026c000f80b872b4346b1ba0f6dfa1")
+        ref.set("607f6e78d637e769035cd5654facb86657b778c3")
     }
 
     val gradleBuildCurrent by registering(RemoteProject::class) {
@@ -171,8 +171,8 @@ plugins.withType<IdeaPlugin>().configureEach {
     val smokeTestCompileClasspath: Configuration by configurations
     val smokeTestRuntimeClasspath: Configuration by configurations
     model.module {
-        testSourceDirs = testSourceDirs + smokeTestSourceSet.groovy.srcDirs
-        testResourceDirs = testResourceDirs + smokeTestSourceSet.resources.srcDirs
+        testSources.from(smokeTestSourceSet.groovy.srcDirs)
+        testResources.from(smokeTestSourceSet.resources.srcDirs)
         scopes["TEST"]!!["plus"]!!.add(smokeTestCompileClasspath)
         scopes["TEST"]!!["plus"]!!.add(smokeTestRuntimeClasspath)
     }

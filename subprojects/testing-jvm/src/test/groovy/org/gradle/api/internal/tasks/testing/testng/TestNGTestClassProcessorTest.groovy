@@ -22,7 +22,6 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
-import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.internal.actor.TestActorFactory
@@ -30,14 +29,6 @@ import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import org.testng.ITestContext
-import org.testng.ITestListener
-import org.testng.ITestResult
-import org.testng.annotations.AfterClass
-import org.testng.annotations.AfterMethod
-import org.testng.annotations.BeforeClass
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.Factory
 import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
@@ -56,9 +47,13 @@ class TestNGTestClassProcessorTest extends Specification {
 
     @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
-    void process(Class ... clazz) {
+    void process(Class... clazz) {
+        process(clazz*.name)
+    }
+
+    void process(Iterable<String> classNames) {
         classProcessor.startProcessing(processor)
-        for (String c : clazz*.name) {
+        for (String c : classNames) {
             classProcessor.processTestClass(new DefaultTestClassRunInfo(c))
         }
         classProcessor.stop()
@@ -350,86 +345,4 @@ class TestNGTestClassProcessorTest extends Specification {
         then:
         UnsupportedOperationException uoe = thrown()
     }
-}
-
-public class FailSkippedTestsListener implements ITestListener {
-    void onTestStart(ITestResult result) {}
-    void onTestSuccess(ITestResult result) {
-        result.setStatus(ITestResult.FAILURE)
-    }
-    void onTestFailure(ITestResult result) {}
-    void onTestSkipped(ITestResult result) {
-
-    }
-    void onTestFailedButWithinSuccessPercentage(ITestResult result) {}
-    void onStart(ITestContext context) {}
-    void onFinish(ITestContext context) {}
-}
-
-public class ATestNGClassWithSkippedTest {
-    @org.testng.annotations.Test
-    public void skipMe() {}
-}
-
-public class ATestNGClass {
-    @BeforeClass public void beforeClass() {}
-    @AfterClass public void afterClass() {}
-    @BeforeMethod public void beforeMethod() {}
-    @AfterMethod public void afterMethod() {}
-    @org.testng.annotations.Test public void ok() {}
-    @org.testng.annotations.Test(enabled = false) public void skipped() {}
-}
-
-public class ATestNGClassWithBeforeAndAfter {
-    @BeforeClass public void beforeClass() { assert false }
-    @AfterClass public void afterClass() { assert false }
-    @BeforeMethod public void beforeMethod() { assert false }
-    @AfterMethod public void afterMethod() { assert false }
-    @org.testng.annotations.Test public void ok() {}
-}
-
-public class ATestNGClassWithExpectedException {
-    @org.testng.annotations.Test(expectedExceptions = RuntimeException)
-    public void ok() {
-        throw new RuntimeException()
-    }
-}
-
-public class ATestNGClassWithManyMethods {
-    @org.testng.annotations.Test public void ok() {}
-    @org.testng.annotations.Test public void ok2() {}
-    @org.testng.annotations.Test public void another() {}
-    @org.testng.annotations.Test public void yetAnother() {}
-}
-
-public class ATestNGClassWithGroups {
-    @org.testng.annotations.Test(groups="group1") public void group1() {}
-    @org.testng.annotations.Test(groups="group2") public void group2() {}
-    @org.testng.annotations.Test(groups="group2,group3") public void excluded() {}
-    @org.testng.annotations.Test(groups="group4") public void ignored() {}
-}
-
-public class ATestNGFactoryClass {
-    @Factory
-    public Object[] suite() {
-        return [new ATestNGClass()] as Object[]
-    }
-}
-
-public class ATestNGClassWithBrokenConstructor {
-    static TestFailure failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
-    def ATestNGClassWithBrokenConstructor() { throw failure.rawFailure }
-    @org.testng.annotations.Test public void test() {}
-}
-
-public class ATestNGClassWithBrokenSetupMethod {
-    static TestFailure failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
-    @BeforeMethod public void beforeMethod() { throw failure.rawFailure }
-    @org.testng.annotations.Test public void test() {}
-}
-
-public class ATestNGClassWithBrokenDependencyMethod {
-    static TestFailure failure = TestFailure.fromTestFrameworkFailure(new RuntimeException())
-    @org.testng.annotations.Test public void beforeMethod() { throw failure.rawFailure }
-    @org.testng.annotations.Test(dependsOnMethods = 'beforeMethod') public void test() {}
 }

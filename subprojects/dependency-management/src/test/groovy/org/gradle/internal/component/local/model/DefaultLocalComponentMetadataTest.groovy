@@ -41,7 +41,11 @@ import spock.lang.Specification
 class DefaultLocalComponentMetadataTest extends Specification {
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
-    def metadata = new DefaultLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal))
+    def metadata = createMetadata()
+
+    protected DefaultLocalComponentMetadata createMetadata() {
+        new DefaultLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal))
+    }
 
     def "can lookup configuration after it has been added"() {
         when:
@@ -72,9 +76,14 @@ class DefaultLocalComponentMetadataTest extends Specification {
         then:
         def conf = metadata.getConfiguration('conf')
         conf.dependencies.empty
-        conf.artifacts.empty
         conf.excludes.empty
         conf.files.empty
+
+        when:
+        conf.prepareToResolveArtifacts()
+
+        then:
+        conf.artifacts.empty
     }
 
     def "can lookup artifact in various ways after it has been added"() {
@@ -82,10 +91,11 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def file = new File("artifact.zip")
 
         given:
-        addConfiguration("conf")
+        def conf = addConfiguration("conf")
 
         when:
-        addArtifact("conf", artifact, file)
+        addArtifact(conf, artifact, file)
+        conf.prepareToResolveArtifacts()
 
         then:
         metadata.getConfiguration("conf").artifacts.size() == 1
@@ -108,15 +118,18 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def file3 = new File("artifact-3.zip")
 
         given:
-        addConfiguration("conf1")
-        addConfiguration("conf2")
-        addConfiguration("child1", ["conf1", "conf2"])
-        addConfiguration("child2", ["conf1"])
+        def conf1 = addConfiguration("conf1")
+        def conf2 = addConfiguration("conf2")
+        def child1 = addConfiguration("child1", ["conf1", "conf2"])
+        def child2 = addConfiguration("child2", ["conf1"])
 
         when:
-        addArtifact("conf1", artifact1, file1)
-        addArtifact("conf2", artifact2, file2)
-        addArtifact("child1", artifact3, file3)
+        addArtifact(conf1, artifact1, file1)
+        addArtifact(conf2, artifact2, file2)
+        addArtifact(child1, artifact3, file3)
+        conf1.prepareToResolveArtifacts()
+        child1.prepareToResolveArtifacts()
+        child2.prepareToResolveArtifacts()
 
         then:
         metadata.getConfiguration("conf1").artifacts.size() == 1
@@ -124,11 +137,11 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.getConfiguration("child2").artifacts.size() == 1
     }
 
-    private addConfiguration(String name, Collection<String> extendsFrom = [], AttributeContainerInternal attributes = ImmutableAttributes.EMPTY) {
-        metadata.addConfiguration(name, "", extendsFrom as Set, ImmutableSet.copyOf(extendsFrom + [name]), true, true, attributes as ImmutableAttributes, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
+    BuildableLocalConfigurationMetadata addConfiguration(String name, Collection<String> extendsFrom = [], AttributeContainerInternal attributes = ImmutableAttributes.EMPTY) {
+        return metadata.addConfiguration(name, "", extendsFrom as Set, ImmutableSet.copyOf(extendsFrom + [name]), true, true, attributes as ImmutableAttributes, true, null, true, ImmutableCapabilities.EMPTY, Collections.&emptyList)
     }
 
-    def addArtifact(String configuration, IvyArtifactName name, File file, TaskDependency buildDeps = null) {
+    void addArtifact(BuildableLocalConfigurationMetadata configuration, IvyArtifactName name, File file, TaskDependency buildDeps = null) {
         PublishArtifact publishArtifact = new DefaultPublishArtifact(name.name, name.extension, name.type, name.classifier, new Date(), file)
         if (buildDeps != null) {
             publishArtifact.builtBy(buildDeps)
@@ -136,8 +149,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
         addArtifact(configuration, publishArtifact)
     }
 
-    def addArtifact(String configuration, PublishArtifact publishArtifact) {
-        metadata.addArtifacts(configuration, new DefaultPublishArtifactSet("arts", WrapUtil.toDomainObjectSet(PublishArtifact, publishArtifact), TestFiles.fileCollectionFactory()))
+    void addArtifact(BuildableLocalConfigurationMetadata configuration, PublishArtifact publishArtifact) {
+        configuration.addArtifacts(new DefaultPublishArtifactSet("arts", WrapUtil.toDomainObjectSet(PublishArtifact, publishArtifact), TestFiles.fileCollectionFactory()))
     }
 
     def "can add artifact to several configurations"() {
@@ -145,13 +158,15 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def file = new File("artifact.zip")
 
         given:
-        addConfiguration("conf1")
-        addConfiguration("conf2")
+        def conf1 = addConfiguration("conf1")
+        def conf2 = addConfiguration("conf2")
 
         when:
         def publishArtifact = new DefaultPublishArtifact(artifact.name, artifact.extension, artifact.type, artifact.classifier, new Date(), file)
-        addArtifact("conf1", publishArtifact)
-        addArtifact("conf2", publishArtifact)
+        conf1.addArtifacts([publishArtifact])
+        conf2.addArtifacts([publishArtifact])
+        conf1.prepareToResolveArtifacts()
+        conf2.prepareToResolveArtifacts()
 
         then:
         metadata.getConfiguration("conf1").artifacts.size() == 1
@@ -163,15 +178,14 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def file = new File("artifact.zip")
 
         given:
-        addConfiguration("conf")
+        def conf = addConfiguration("conf")
 
         and:
-        addArtifact("conf", artifact, file)
-
-        and:
-        def ivyArtifact = artifactName()
+        addArtifact(conf, artifact, file)
+        conf.prepareToResolveArtifacts()
 
         expect:
+        def ivyArtifact = artifactName()
         def resolveArtifact = metadata.getConfiguration("conf").artifact(ivyArtifact)
         resolveArtifact.file == file
     }
@@ -180,7 +194,8 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def artifact = artifactName()
 
         given:
-        addConfiguration("conf")
+        def conf = addConfiguration("conf")
+        conf.prepareToResolveArtifacts()
 
         expect:
         def resolveArtifact = metadata.getConfiguration("conf").artifact(artifact)
@@ -195,10 +210,12 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def file2 = new File("artifact-2.zip")
 
         when:
-        addConfiguration("conf1")
-        addConfiguration("conf2")
-        addArtifact("conf1", artifact1, file1)
-        addArtifact("conf2", artifact2, file2)
+        def conf1 = addConfiguration("conf1")
+        def conf2 = addConfiguration("conf2")
+        addArtifact(conf1, artifact1, file1)
+        addArtifact(conf2, artifact2, file2)
+        conf1.prepareToResolveArtifacts()
+        conf2.prepareToResolveArtifacts()
 
         then:
         def conf1Artifacts = metadata.getConfiguration("conf1").artifacts as List
@@ -224,22 +241,28 @@ class DefaultLocalComponentMetadataTest extends Specification {
         def variant2Artifacts = ([Stub(PublishArtifact)] as Set)
 
         when:
-        addConfiguration("conf1")
-        addConfiguration("conf2", ["conf1"])
-        metadata.addVariant("conf1", "variant1", Stub(VariantResolveMetadata.Identifier), Stub(DisplayName), variant1Attrs, ImmutableCapabilities.EMPTY, variant1Artifacts)
-        metadata.addVariant("conf2", "variant2", Stub(VariantResolveMetadata.Identifier), Stub(DisplayName), variant2Attrs, ImmutableCapabilities.EMPTY, variant2Artifacts)
+        def conf1 = addConfiguration("conf1")
+        def conf2 = addConfiguration("conf2", ["conf1"])
+        conf1.addVariant("variant1", Stub(VariantResolveMetadata.Identifier), Stub(DisplayName), variant1Attrs, ImmutableCapabilities.EMPTY, variant1Artifacts)
+        conf2.addVariant("variant2", Stub(VariantResolveMetadata.Identifier), Stub(DisplayName), variant2Attrs, ImmutableCapabilities.EMPTY, variant2Artifacts)
 
         then:
         def config1 = metadata.getConfiguration("conf1")
         config1.variants.size() == 1
         config1.variants.first().name == "variant1"
         config1.variants.first().attributes == variant1Attrs
-        config1.variants.first().artifacts.size() == 1
 
         def config2 = metadata.getConfiguration("conf2")
         config2.variants.size() == 1
         config2.variants.first().name == "variant2"
         config2.variants.first().attributes == variant2Attrs
+
+        when:
+        config1.prepareToResolveArtifacts()
+        config2.prepareToResolveArtifacts()
+
+        then:
+        config1.variants.first().artifacts.size() == 1
         config2.variants.first().artifacts.size() == 1
     }
 

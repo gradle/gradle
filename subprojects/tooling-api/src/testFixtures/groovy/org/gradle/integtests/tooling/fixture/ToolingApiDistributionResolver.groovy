@@ -24,28 +24,57 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.CommitDistribution
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.testfixtures.internal.ProjectBuilderImpl
+
 
 class ToolingApiDistributionResolver {
+
+    static interface ResolverAction<T> {
+        T run(ToolingApiDistributionResolver resolver)
+    }
+
+    /**
+     * Executes given {@code block} against a fresh instance of the {@code ToolingApiDistributionResolver}
+     * and returns the result.
+     */
+    static <T> T use(ResolverAction<T> block) {
+        def project = (ProjectInternal) ProjectBuilder.builder().build()
+        try {
+            def resolver = new ToolingApiDistributionResolver(project)
+            return block.run(resolver)
+        } finally {
+            ProjectBuilderImpl.stop(project)
+        }
+    }
+
+    private final ProjectInternal project
     private final DependencyResolutionServices resolutionServices
+
     private final Map<String, ToolingApiDistribution> distributions = [:]
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     private boolean useExternalToolingApiDistribution = false
 
-    ToolingApiDistributionResolver() {
-        resolutionServices = createResolutionServices()
+    private ToolingApiDistributionResolver(ProjectInternal project) {
+        this.project = project
+        this.resolutionServices = project.services.get(DependencyResolutionServices)
         def localRepository = buildContext.localRepository
         if (localRepository) {
-            resolutionServices.resolveRepositoryHandler.maven { url localRepository.toURI().toURL() }
+            this.resolutionServices.resolveRepositoryHandler.maven { url = localRepository.toURI().toURL() }
         }
     }
 
     ToolingApiDistributionResolver withRepository(String repositoryUrl) {
-        resolutionServices.resolveRepositoryHandler.maven { url repositoryUrl }
+        resolutionServices.resolveRepositoryHandler.maven { url = repositoryUrl }
         this
     }
 
     ToolingApiDistributionResolver withDefaultRepository() {
         withRepository(RepoScriptBlockUtil.gradleRepositoryMirrorUrl())
+    }
+
+    ToolingApiDistributionResolver withExternalToolingApiDistribution() {
+        this.useExternalToolingApiDistribution = true
+        this
     }
 
     ToolingApiDistribution resolve(String toolingApiVersion) {
@@ -73,16 +102,5 @@ class ToolingApiDistributionResolver {
     private boolean useToolingApiFromTestClasspath(String toolingApiVersion) {
         !useExternalToolingApiDistribution &&
             toolingApiVersion == buildContext.version.baseVersion.version
-    }
-
-    private DependencyResolutionServices createResolutionServices() {
-        // Create a dummy project and use its services
-        ProjectInternal project = ProjectBuilder.builder().build()
-        return project.services.get(DependencyResolutionServices)
-    }
-
-    ToolingApiDistributionResolver withExternalToolingApiDistribution() {
-        this.useExternalToolingApiDistribution = true
-        this
     }
 }

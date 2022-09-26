@@ -23,5 +23,5 @@ import java.io.File
 
 internal
 fun FileSystemAccess.hashCodeOf(file: File): HashCode? =
-    readRegularFileContentHash(file.path) { hashCode -> hashCode }
+    readRegularFileContentHash(file.path)
         .orElse(null)

@@ -152,7 +152,7 @@ To disable the configuration cache, run the build with `--no-configuration-cache
 
 Tasks known to have problems are listed in the build logic. You can find this list at:
 
-    build-logic-settings/cc-experiment-plugin/src/main/kotlin/gradlebuild.internal.cc-experiment.settings.gradle.kts
+    build-logic-settings/build-logic-settings-plugin/src/main/kotlin/gradlebuild.internal.cc-experiment.settings.gradle.kts
 
 If you discover a task that doesn't work with the configuration but it not in this list, please add it.
 

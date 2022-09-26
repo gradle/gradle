@@ -145,18 +145,6 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             }
 
             @Override
-            public boolean usesMutableProjectState() {
-                // Transforms do not require access to any mutable model state
-                return false;
-            }
-
-            @Nullable
-            @Override
-            public ProjectInternal getOwningProject() {
-                return null;
-            }
-
-            @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
                 context.add(transformationStep);
                 context.add(upstreamDependencies);
@@ -177,7 +165,10 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
                             throw new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformationStep.getDisplayName(), "artifact transform", Collections.singleton(e));
                         }
 
-                        return transformationStep.createInvocation(initialArtifactTransformationSubject, upstreamDependencies, context).invoke().get();
+                        return transformationStep
+                            .createInvocation(initialArtifactTransformationSubject, upstreamDependencies, context)
+                            .completeAndGet()
+                            .get();
                     }
 
                     @Override
@@ -229,18 +220,6 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
             }
 
             @Override
-            public boolean usesMutableProjectState() {
-                // Transforms do not require access to any mutable model state
-                return false;
-            }
-
-            @Nullable
-            @Override
-            public ProjectInternal getOwningProject() {
-                return null;
-            }
-
-            @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
                 context.add(transformationStep);
                 context.add(upstreamDependencies);
@@ -252,8 +231,11 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
                 return buildOperationExecutor.call(new ArtifactTransformationStepBuildOperation() {
                     @Override
                     protected TransformationSubject transform() {
-                        return previousTransformationNode.getTransformedSubject().flatMap(transformedSubject ->
-                            transformationStep.createInvocation(transformedSubject, upstreamDependencies, context).invoke()).get();
+                        return previousTransformationNode.getTransformedSubject()
+                            .flatMap(transformedSubject -> transformationStep
+                                .createInvocation(transformedSubject, upstreamDependencies, context)
+                                .completeAndGet())
+                            .get();
                     }
 
                     @Override

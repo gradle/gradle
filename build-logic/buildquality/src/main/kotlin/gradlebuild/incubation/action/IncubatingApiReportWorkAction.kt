@@ -62,7 +62,7 @@ abstract class IncubatingApiReportWorkAction : WorkAction<IncubatingApiReportPar
                             versionToIncubating.getOrPut(version) { mutableSetOf() }.addAll(incubating)
                         }
                     } catch (e: Exception) {
-                        throw Exception("Unable to parse $sourceFile: ${e.message}")
+                        throw Exception("Unable to parse $sourceFile", e)
                     }
                 }
             }
@@ -257,6 +257,10 @@ class JavaVersionsToIncubatingCollector(srcDir: File) : VersionsToIncubatingColl
 
 
 private
+val NEWLINE_REGEX = "\\n\\s*".toRegex()
+
+
+private
 class KotlinVersionsToIncubatingCollector : VersionsToIncubatingCollector {
 
     override fun collectFrom(sourceFile: File): VersionsToIncubating {
@@ -286,7 +290,7 @@ class KotlinVersionsToIncubatingCollector : VersionsToIncubatingCollector {
                 incubating += ", top-level in ${sourceFile.name}"
             }
         }
-        return incubating
+        return incubating.replace(NEWLINE_REGEX, " ")
     }
 
     private

@@ -427,13 +427,6 @@
     "crossVersionTests": false
   },
   {
-    "dirName": "kotlin-compiler-embeddable",
-    "name": "kotlin-compiler-embeddable",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "dirName": "kotlin-dsl",
     "name": "kotlin-dsl",
     "unitTests": true,
