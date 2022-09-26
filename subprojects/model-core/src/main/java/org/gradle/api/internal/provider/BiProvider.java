@@ -41,7 +41,11 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
-        return left.calculatePresence(consumer) && right.calculatePresence(consumer);
+        if (!left.calculatePresence(consumer) || !right.calculatePresence(consumer)) {
+            return false;
+        }
+        // Purposefully only calculate full value if left & right are both present, to save time
+        return super.calculatePresence(consumer);
     }
 
     @Override
@@ -68,7 +72,7 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
 
         R combinedUnpackedValue = combiner.apply(leftValue.getWithoutSideEffect(), rightValue.getWithoutSideEffect());
 
-        return Value.of(combinedUnpackedValue)
+        return Value.ofNullable(combinedUnpackedValue)
             .withSideEffect(SideEffect.fixedFrom(leftValue))
             .withSideEffect(SideEffect.fixedFrom(rightValue));
     }
