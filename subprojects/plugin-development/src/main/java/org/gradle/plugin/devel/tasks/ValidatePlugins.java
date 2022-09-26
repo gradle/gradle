@@ -87,7 +87,7 @@ public abstract class ValidatePlugins extends DefaultTask {
                         toMessageList(problemMessages));
                 } else {
                     throw WorkValidationException.forProblems(problemMessages)
-                        .withSummary(helper -> "Plugin validation failed with " + helper.size() + helper.pluralize(" problem"))
+                        .withSummaryForPlugin()
                         .getWithExplanation(String.format("See %s for more information on how to annotate task properties.",
                             getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations")));
                 }
