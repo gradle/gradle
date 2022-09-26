@@ -24,7 +24,6 @@ class Spock2IntegrationSpec extends AbstractIntegrationSpec {
         buildScript("""
             plugins {
                 id("groovy")
-                id("jvm-test-suite")
             }
 
             ${mavenCentralRepository()}

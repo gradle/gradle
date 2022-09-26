@@ -29,7 +29,6 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
         apply plugin: 'groovy'
-        apply plugin: 'jvm-test-suite'
 
         dependencies {
             implementation localGroovy()

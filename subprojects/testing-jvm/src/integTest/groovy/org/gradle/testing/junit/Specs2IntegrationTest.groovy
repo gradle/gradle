@@ -33,9 +33,7 @@ class Specs2IntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 id("scala")
             }
 
-            repositories {
-                 mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation 'org.scala-lang:scala-library:2.11.8'

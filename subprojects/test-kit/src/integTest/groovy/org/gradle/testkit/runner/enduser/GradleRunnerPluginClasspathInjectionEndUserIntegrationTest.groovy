@@ -48,7 +48,6 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
                 testImplementation files(createClasspathManifest)
             }
 
-            apply plugin: 'jvm-test-suite'
             testing {
                 suites {
                     test {
