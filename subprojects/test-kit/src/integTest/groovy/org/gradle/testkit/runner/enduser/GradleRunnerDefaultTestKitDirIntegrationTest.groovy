@@ -45,19 +45,21 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
         buildFile << """
             apply plugin: 'groovy'
 
-            def isAtLeastGroovy4 = org.gradle.util.internal.VersionNumber.parse(GroovySystem.version).major >= 4
-            def spockVersion = isAtLeastGroovy4 ? '2.2-groovy-4.0' : '2.2-groovy-3.0'
-
             dependencies {
                 implementation localGroovy()
-                testImplementation(platform("org.spockframework:spock-bom:\$spockVersion"))
-                testImplementation("org.spockframework:spock-core")
             }
 
             ${mavenCentralRepository()}
 
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                    }
+                }
+            }
+
             tasks.withType(Test).configureEach {
-                useJUnitPlatform()
                 testLogging.exceptionFormat = 'full'
                 testLogging.showStandardStreams = true
                 testLogging.events "started", "skipped", "failed", "passed", "standard_out", "standard_error"

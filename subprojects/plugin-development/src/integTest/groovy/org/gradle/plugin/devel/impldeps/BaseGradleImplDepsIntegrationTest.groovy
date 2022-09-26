@@ -40,32 +40,14 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
+    static String excludeGroovy() {
+        applyPlugins(['groovy'])
+    }
+
     static String gradleApiDependency() {
         """
             dependencies {
                 implementation gradleApi()
-            }
-        """
-    }
-
-    static String junitDependency() {
-        """
-            dependencies {
-                testImplementation 'junit:junit:4.13.1'
-            }
-        """
-    }
-
-    static String spockDependency() {
-        """
-            def isAtLeastGroovy4 = org.gradle.util.internal.VersionNumber.parse(GroovySystem.version).major >= 4
-            def spockVersion = isAtLeastGroovy4 ? '2.2-groovy-4.0' : '2.2-groovy-3.0'
-
-            dependencies {
-                testImplementation("org.spockframework:spock-core:\$spockVersion") {
-                    exclude group: 'org.apache.groovy'
-                    exclude group: 'org.codehaus.groovy'
-                }
             }
         """
     }
@@ -87,8 +69,15 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
         StringBuilder buildFile = new StringBuilder()
         buildFile << applyPlugins(plugins)
         buildFile << mavenCentralRepository()
-        buildFile << junitDependency()
         buildFile << """
+            testing {
+                suites {
+                    test {
+                        useJUnit()
+                    }
+                }
+            }
+
             gradlePlugin {
                 plugins {
                     plugin {

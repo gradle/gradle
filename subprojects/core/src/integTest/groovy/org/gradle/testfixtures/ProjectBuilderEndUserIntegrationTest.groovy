@@ -30,19 +30,21 @@ class ProjectBuilderEndUserIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
         apply plugin: 'groovy'
 
-        def spockVersion = System.getProperty('bundleGroovy4', 'false') == 'true' ? '2.2-groovy-4.0' : '2.2-groovy-3.0'
-
         dependencies {
             implementation localGroovy()
             implementation gradleApi()
-            testImplementation(platform("org.spockframework:spock-bom:\$spockVersion"))
-            testImplementation("org.spockframework:spock-core")
         }
 
         ${mavenCentralRepository()}
 
+        testing {
+            suites {
+                test {
+                    useSpock()
+                }
+            }
+        }
         test {
-            useJUnitPlatform()
             testLogging.exceptionFormat = 'full'
         }
 
