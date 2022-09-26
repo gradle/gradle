@@ -24,6 +24,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.AnnotationCategory;
@@ -38,6 +39,7 @@ import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandlerSupport.validateUnsupportedPropertyValueTypes;
+import static org.gradle.internal.reflect.validation.Severity.ERROR;
 import static org.gradle.internal.reflect.validation.Severity.WARNING;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
@@ -71,7 +73,8 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         validateUnsupportedPropertyValueTypes(propertyMetadata, validationContext, getAnnotationType());
         Class<?> valueType = propertyMetadata.getGetterMethod().getReturnType();
         validateNotDirectoryType(propertyMetadata, validationContext, valueType);
-        validateNotFileType(propertyMetadata, validationContext, valueType);
+        validateNotFileTypeErrors(propertyMetadata, validationContext, valueType);
+        validateNotFileTypeWarnings(propertyMetadata, validationContext, valueType);
         validateNotPrimitiveType(propertyMetadata, validationContext, valueType);
     }
 
@@ -79,7 +82,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
             validationContext.visitPropertyProblem(problem ->
                 problem.withId(ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE)
-                    .reportAs(WARNING)
+                    .reportAs(ERROR)
                     .forProperty(propertyMetadata.getPropertyName())
                     .withDescription(() -> "of type " + valueType.getName() + " shouldn't be annotated with @Optional")
                     .happensBecause("Properties of primitive type cannot be optional")
@@ -90,22 +93,42 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         }
     }
 
-    private void validateNotFileType(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
+    private void validateNotFileTypeErrors(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
         if (File.class.isAssignableFrom(valueType)
-            || RegularFile.class.isAssignableFrom(valueType)
-            || RegularFileProperty.class.isAssignableFrom(valueType)
             || java.nio.file.Path.class.isAssignableFrom(valueType)
             || FileCollection.class.isAssignableFrom(valueType)) {
             validationContext.visitPropertyProblem(problem ->
                 problem.withId(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION)
                         .forProperty(propertyMetadata.getPropertyName())
-                        .reportAs(WARNING)
+                        .reportAs(ERROR)
                         .withDescription(() -> String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
                         .happensBecause(() -> "A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
                         .addPossibleSolution("Annotate with @InputFile for regular files")
                         .addPossibleSolution("Annotate with @InputFiles for collections of files")
                         .addPossibleSolution("If you want to track the path, return File.absolutePath as a String and keep @Input")
                         .documentedAt("validation_problems", "incorrect_use_of_input_annotation")
+            );
+        }
+    }
+
+    /**
+     * The problems checked here will become errors in Gradle 8.0.
+     */
+    @Deprecated
+    @ReplacedBy("These checks will be consolidated into validateNotFileTypeErrors in Gradle 8.0.")
+    private void validateNotFileTypeWarnings(PropertyMetadata propertyMetadata, TypeValidationContext validationContext, Class<?> valueType) {
+        if (RegularFile.class.isAssignableFrom(valueType)
+            || RegularFileProperty.class.isAssignableFrom(valueType)) {
+            validationContext.visitPropertyProblem(problem ->
+                    problem.withId(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION)
+                            .forProperty(propertyMetadata.getPropertyName())
+                            .reportAs(WARNING)
+                            .withDescription(() -> String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
+                            .happensBecause(() -> "A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
+                            .addPossibleSolution("Annotate with @InputFile for regular files")
+                            .addPossibleSolution("Annotate with @InputFiles for collections of files")
+                            .addPossibleSolution("If you want to track the path, return File.absolutePath as a String and keep @Input")
+                            .documentedAt("validation_problems", "incorrect_use_of_input_annotation")
             );
         }
     }

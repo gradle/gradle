@@ -209,7 +209,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            warning(optionalOnPrimitive {
+            error(optionalOnPrimitive {
                 type('MyTask').property('primitive')
                 .primitive(primitiveType)
             }, "validation_problems", "cannot_use_optional_on_primitive_types"),
