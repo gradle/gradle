@@ -48,13 +48,48 @@ class TestInputAnnotationFailuresIntegrationTest extends AbstractIntegrationSpec
         """
 
         expect:
+        fails 'myTask'
+
+        where:
+        elementType             | elementName   | elementInitialization                                                             | elementRead
+        'File'                  | 'myField'     | "File myField = project.layout.projectDirectory.file('myFile.txt').getAsFile()"   | 'myField.absolutePath'
+    }
+
+    // This test should be removed in Gradle 8.0, as once the validation is restored to an error from the current warning, it will become an error
+    def "using @Input annotation on #elementType file elements succeeds but produces validation with helpful error message"() {
+        given:
+        buildFile << """
+            import groovy.transform.CompileStatic
+
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            abstract class MyTask extends DefaultTask {
+                @Inject
+                public abstract ObjectFactory getObjectFactory()
+
+                @Input
+                $elementInitialization
+
+                @TaskAction
+                void action() {
+                    logger.warn("Input file: {}", $elementRead)
+                }
+            }
+
+            tasks.register('myTask', MyTask)
+        """
+
+        expect:
         executer.expectDeprecationWarning("Type 'MyTask' property '$elementName' has @Input annotation used on property of type '$elementType'. " +
                 "Reason: A property of type '$elementType' annotated with @Input cannot determine how to interpret the file.")
         succeeds 'myTask'
 
         where:
         elementType             | elementName   | elementInitialization                                                             | elementRead
-        'File'                  | 'myField'     | "File myField = project.layout.projectDirectory.file('myFile.txt').getAsFile()"   | 'myField.absolutePath'
         'RegularFile'           | 'myField'     | "RegularFile myField = project.layout.projectDirectory.file('myFile.txt')"        | 'myField.getAsFile().absolutePath'
     }
 
