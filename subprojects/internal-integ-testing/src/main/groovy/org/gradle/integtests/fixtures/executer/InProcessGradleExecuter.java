@@ -851,37 +851,17 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
     }
 
-    private static class FailureDetails implements ExecutionFailure.Failure {
+    private static class FailureDetails extends AbstractFailure {
         final Throwable failure;
-        final String description;
-        final List<String> causes;
 
         public FailureDetails(Throwable failure, String description, List<String> causes) {
+            super(description, causes);
             this.failure = failure;
-            this.description = description;
-            this.causes = causes;
         }
 
         @Override
         public String toString() {
             return description;
-        }
-
-        @Override
-        public void assertHasCause(String message) {
-            if (!causes.contains(message)) {
-                throw new AssertionFailedError(String.format("Expected cause '%s' not found in %s", message, causes));
-            }
-        }
-
-        @Override
-        public void assertHasFirstCause(String message) {
-            assertEquals(message, causes.stream().findFirst().orElse(""));
-        }
-
-        @Override
-        public void assertHasCauses(int count) {
-            assertEquals(count, causes.size());
         }
     }
 
