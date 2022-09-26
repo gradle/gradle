@@ -31,7 +31,7 @@ import java.util.Set;
  * meaning that when we get a value from the container, the returned value type is
  * inferred from the type of the attribute. In a way, an attribute container is
  * similar to a {@link java.util.Map} where the entry is a "typed String" and the value
- * is of the string type. However the set of methods available to the container is
+ * is of the string type. However, the set of methods available to the container is
  * much more limited.
  *
  * It is not allowed to have two attributes with the same name but different types in

@@ -21,6 +21,7 @@ import org.gradle.api.attributes.HasAttributes
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.PropertyHost
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.util.AttributeTestUtil
@@ -176,21 +177,35 @@ class DefaultMutableAttributeContainerTest extends Specification {
 
     def "can query contents of container"() {
         def thing = Attribute.of("thing", String)
+        def thing2 = Attribute.of("thing2", String)
 
-        expect:
+        when:
         def container = new DefaultMutableAttributeContainer(attributesFactory)
 
+        then:
         container.empty
         container.keySet().empty
         !container.contains(thing)
         container.getAttribute(thing) == null
 
+        when:
         container.attribute(thing, "thing")
 
+        then:
         !container.empty
         container.keySet() == [thing] as Set
         container.contains(thing)
         container.getAttribute(thing) == "thing"
+
+        when:
+        container.attributeProvider(thing2, Providers.of("value"))
+
+        then:
+        !container.empty
+        container.keySet() == [thing, thing2] as Set
+        container.contains(thing2)
+        container.getAttribute(thing2) == "value"
+
     }
 
     def "A copy of an attribute container contains the same attributes and the same values as the original"() {
@@ -198,14 +213,16 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def container = new DefaultMutableAttributeContainer(attributesFactory)
         container.attribute(Attribute.of("a1", Integer), 1)
         container.attribute(Attribute.of("a2", String), "2")
+        container.attributeProvider(Attribute.of("a3", String), Providers.of("3"))
 
         when:
         def copy = container.asImmutable()
 
         then:
-        copy.keySet().size() == 2
+        copy.keySet().size() == 3
         copy.getAttribute(Attribute.of("a1", Integer)) == 1
         copy.getAttribute(Attribute.of("a2", String)) == "2"
+        copy.getAttribute(Attribute.of("a3", String)) == "3"
     }
 
     def "changes to attribute container are not seen by immutable copy"() {
@@ -213,28 +230,33 @@ class DefaultMutableAttributeContainerTest extends Specification {
         AttributeContainerInternal container = new DefaultMutableAttributeContainer(attributesFactory)
         container.attribute(Attribute.of("a1", Integer), 1)
         container.attribute(Attribute.of("a2", String), "2")
+        container.attributeProvider(Attribute.of("a3", String), Providers.of("3"))
         def immutable = container.asImmutable()
 
         when:
         container.attribute(Attribute.of("a1", Integer), 2)
         container.attribute(Attribute.of("a3", String), "3")
+        container.attributeProvider(Attribute.of("a3", String), Providers.of("4"))
 
         then:
-        immutable.keySet().size() == 2
+        immutable.keySet().size() == 3
         immutable.getAttribute(Attribute.of("a1", Integer)) == 1
         immutable.getAttribute(Attribute.of("a2", String)) == "2"
+        immutable.getAttribute(Attribute.of("a3", String)) == "3"
     }
 
     def "An attribute container can provide the attributes through the HasAttributes interface"() {
         given:
         def container = new DefaultMutableAttributeContainer(attributesFactory)
         container.attribute(Attribute.of("a1", Integer), 1)
+        container.attributeProvider(Attribute.of("a2", String), Providers.of("2"))
 
         when:
         HasAttributes access = container
 
         then:
         access.attributes.getAttribute(Attribute.of("a1", Integer)) == 1
+        access.attributes.getAttribute(Attribute.of("a2", String)) == "2"
         access.attributes == access
     }
 
@@ -243,15 +265,20 @@ class DefaultMutableAttributeContainerTest extends Specification {
         def b = Attribute.of("b", String)
         def c = Attribute.of("c", String)
 
-        expect:
+        when:
         def container = new DefaultMutableAttributeContainer(attributesFactory)
+
+        then:
         container.toString() == "{}"
         container.asImmutable().toString() == "{}"
 
+        when:
         container.attribute(b, "b")
         container.attribute(c, "c")
-        container.attribute(a, "a")
-        container.toString() == "{a=a, b=b, c=c}"
+        container.attributeProvider(a, Providers.of("a"))
+
+        then:
+        container.toString() == "{a=fixed(class java.lang.String, a), b=b, c=c}"
         container.asImmutable().toString() == "{a=a, b=b, c=c}"
     }
 }

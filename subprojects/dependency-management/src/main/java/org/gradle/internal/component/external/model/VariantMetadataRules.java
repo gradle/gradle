@@ -57,6 +57,9 @@ public class VariantMetadataRules {
     private VariantFilesRules variantFilesRules;
 
     private final AttributeContainerInternal baseAttributes;
+    // If two configurations have a dependency on the same module, there is a chance they can be
+    // resolved concurrently. Dependency resolution exercises this code when performing attribute
+    // matching, so this map must support concurrent modification.
     private final Map<String, AttributeContainerInternal> variantAttributes = new ConcurrentHashMap<>();
 
     public VariantMetadataRules(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId) {

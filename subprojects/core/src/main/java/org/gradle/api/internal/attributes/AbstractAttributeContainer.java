@@ -23,7 +23,7 @@ import java.util.Map;
 
 /**
  * Common base class for {@link AttributeContainerInternal} which enforces implementation of
- * {@link #hashCode()} and {@link #toString()}.
+ * {@link #hashCode} and {@link #equals}.
  */
 public abstract class AbstractAttributeContainer implements AttributeContainerInternal {
 

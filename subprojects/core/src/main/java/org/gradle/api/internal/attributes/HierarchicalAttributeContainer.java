@@ -33,12 +33,12 @@ import java.util.TreeMap;
  * override attributes in the parent container. All mutation operations are forwarded to
  * the child container.
  */
-public class JoinedAttributeContainer extends AbstractAttributeContainer {
+public class HierarchicalAttributeContainer extends AbstractAttributeContainer {
     private final ImmutableAttributesFactory attributesFactory;
     private final AttributeContainerInternal parent;
     private final AttributeContainerInternal child;
 
-    public JoinedAttributeContainer(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal parent, AttributeContainerInternal child) {
+    public HierarchicalAttributeContainer(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal parent, AttributeContainerInternal child) {
         this.attributesFactory = attributesFactory;
         this.parent = parent;
         this.child = child;
@@ -90,7 +90,7 @@ public class JoinedAttributeContainer extends AbstractAttributeContainer {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        JoinedAttributeContainer that = (JoinedAttributeContainer) o;
+        HierarchicalAttributeContainer that = (HierarchicalAttributeContainer) o;
         return parent.equals(that.parent) && child.equals(that.child);
     }
 
