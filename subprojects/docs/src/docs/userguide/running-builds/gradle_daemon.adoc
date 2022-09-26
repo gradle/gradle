@@ -247,8 +247,8 @@ Similarly, the Daemon maintains in-memory caches of build data such as the hashe
 Gradle actively monitors heap usage to detect memory leaks in the Daemon.
 When a memory leak exhausts available heap space, the Daemon:
 
-1. Finishes the currently running build
-1. Restarts before running the next build
+. Finishes the currently running build.
+. Restarts before running the next build.
 
 Gradle enables this monitoring by default.
 To disable this monitoring, set the `org.gradle.daemon.performance.enable-monitoring` Daemon option to
