@@ -44,7 +44,7 @@ class PatternSetCodec(private val patternSetFactory: Factory<PatternSet>) : Code
 }
 
 
-object IntersectPatternSetCodec : Codec<IntersectionPatternSet> {
+object IntersectionPatternSetCodec : Codec<IntersectionPatternSet> {
 
     override suspend fun WriteContext.encode(value: IntersectionPatternSet) {
         write(value.other)
