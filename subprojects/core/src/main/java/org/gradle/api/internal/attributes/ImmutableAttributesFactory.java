@@ -31,8 +31,12 @@ public interface ImmutableAttributesFactory {
 
     /**
      * Returns a new attribute container which attaches a parent container to a child container. Changes
-     * in either container are reflected in the returned container. All mutable operations are forwarded
-     * to the child.
+     * in either container are reflected in the returned container.
+     * <p>
+     * Despite the mutability of either {@code parent} or {@code child}, this method will always return
+     * a non-immutable container. All mutable operations are forwarded to the child. Therefore, if the
+     * child container is immutable, mutable operations are not supported on this container.
+     *
      * @param parent Provides base attributes.
      * @param child Overrides any attributes in the base container.
      */

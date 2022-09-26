@@ -37,17 +37,9 @@ public interface ImmutableAttributes extends AttributeContainerInternal {
     @Override
     ImmutableSet<Attribute<?>> keySet();
 
-    /**
-     * @deprecated Immutable attributes cannot be mutated.
-     */
-    @Deprecated
     @Override
     <T> AttributeContainer attribute(Attribute<T> key, T value);
 
-    /**
-     * @deprecated Immutable attributes cannot be mutated.
-     */
-    @Deprecated
     @Override
     <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider);
 }

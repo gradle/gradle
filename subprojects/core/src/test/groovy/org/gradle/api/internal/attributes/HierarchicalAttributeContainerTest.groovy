@@ -22,9 +22,9 @@ import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 /**
- * Tests {@link JoinedAttributeContainer}.
+ * Tests {@link HierarchicalAttributeContainer}.
  */
-class JoinedAttributeContainerTest extends Specification {
+class HierarchicalAttributeContainerTest extends Specification {
     def attributesFactory = AttributeTestUtil.attributesFactory()
 
     def one = Attribute.of("one", String)
@@ -38,11 +38,11 @@ class JoinedAttributeContainerTest extends Specification {
         given:
         def parent = mutable()
         def child = mutable()
-        def joined = new JoinedAttributeContainer(attributesFactory, parent, child)
+        def joined = new HierarchicalAttributeContainer(attributesFactory, parent, child)
 
         when:
         parent.attribute(one, "parent")
-        parent.attribute(two, "parent")
+        parent.attributeProvider(two, Providers.of("parent"))
         child.attribute(one, "child")
 
         then:
@@ -54,18 +54,22 @@ class JoinedAttributeContainerTest extends Specification {
         given:
         def parent = mutable()
         def child = mutable()
-        def joined = new JoinedAttributeContainer(attributesFactory, parent, child)
+        def joined = new HierarchicalAttributeContainer(attributesFactory, parent, child)
 
-        parent.attribute(one, "parent")
+        parent.attributeProvider(one, Providers.of("parent"))
         parent.attribute(two, "parent")
         child.attribute(two, "child")
 
         when:
         def immutable1 = joined.asImmutable()
+
+        then:
         immutable1 instanceof ImmutableAttributes
-        immutable1.getAttribute(one) == "child"
-        immutable1.getAttribute(two) == "parent"
-        child.attribute(two, "new child")
+        immutable1.getAttribute(one) == "parent"
+        immutable1.getAttribute(two) == "child"
+
+        when:
+        child.attributeProvider(two, Providers.of("new child"))
         parent.attribute(one, "new parent")
         parent.attribute(two, "new parent")
 
@@ -87,7 +91,7 @@ class JoinedAttributeContainerTest extends Specification {
         given:
         def parent = mutable()
         def child = mutable()
-        def joined = new JoinedAttributeContainer(attributesFactory, parent, child)
+        def joined = new HierarchicalAttributeContainer(attributesFactory, parent, child)
 
         when:
         parent.attribute(one, "parent")
@@ -96,13 +100,13 @@ class JoinedAttributeContainerTest extends Specification {
         joined.keySet() == [one] as Set
 
         when:
-        child.attribute(one, "child")
+        child.attributeProvider(one, Providers.of("child"))
 
         then:
         joined.keySet() == [one] as Set
 
         when:
-        parent.attribute(two, "parent")
+        parent.attributeProvider(two, Providers.of("parent"))
 
         then:
         joined.keySet() == [one, two] as Set
@@ -118,7 +122,7 @@ class JoinedAttributeContainerTest extends Specification {
         given:
         def parent = mutable()
         def child = mutable()
-        def joined = new JoinedAttributeContainer(attributesFactory, parent, child)
+        def joined = new HierarchicalAttributeContainer(attributesFactory, parent, child)
 
         when:
         joined.attribute(one, "joined")
@@ -142,8 +146,8 @@ class JoinedAttributeContainerTest extends Specification {
         def parent = mutable()
         def middle = mutable()
         def child = mutable()
-        def chain = new JoinedAttributeContainer(attributesFactory, parent,
-            new JoinedAttributeContainer(attributesFactory, middle, child))
+        def chain = new HierarchicalAttributeContainer(attributesFactory, parent,
+            new HierarchicalAttributeContainer(attributesFactory, middle, child))
 
         when:
         parent.attribute(one, "parent")
@@ -158,7 +162,7 @@ class JoinedAttributeContainerTest extends Specification {
         chain.getAttribute(one) == "middle"
 
         when:
-        child.attribute(one, "child")
+        child.attributeProvider(one, Providers.of("child"))
 
         then:
         chain.getAttribute(one) == "child"
@@ -175,28 +179,28 @@ class JoinedAttributeContainerTest extends Specification {
         hasBoth.attribute(one, "one").attribute(two, "two")
 
         expect:
-        new JoinedAttributeContainer(attributesFactory, hasOne, hasTwo) == new JoinedAttributeContainer(attributesFactory, hasOne, hasTwo)
-        new JoinedAttributeContainer(attributesFactory, hasBoth, hasNone) != new JoinedAttributeContainer(attributesFactory, hasNone, hasBoth)
-        new JoinedAttributeContainer(attributesFactory, hasBoth, hasNone) != new JoinedAttributeContainer(attributesFactory, hasBoth, hasOne)
-        new JoinedAttributeContainer(attributesFactory, hasNone, hasBoth) != new JoinedAttributeContainer(attributesFactory, hasOne, hasBoth)
+        new HierarchicalAttributeContainer(attributesFactory, hasOne, hasTwo) == new HierarchicalAttributeContainer(attributesFactory, hasOne, hasTwo)
+        new HierarchicalAttributeContainer(attributesFactory, hasBoth, hasNone) != new HierarchicalAttributeContainer(attributesFactory, hasNone, hasBoth)
+        new HierarchicalAttributeContainer(attributesFactory, hasBoth, hasNone) != new HierarchicalAttributeContainer(attributesFactory, hasBoth, hasOne)
+        new HierarchicalAttributeContainer(attributesFactory, hasNone, hasBoth) != new HierarchicalAttributeContainer(attributesFactory, hasOne, hasBoth)
 
         // Same as above, but checking hash code
-        new JoinedAttributeContainer(attributesFactory, hasOne, hasTwo).hashCode() == new JoinedAttributeContainer(attributesFactory, hasOne, hasTwo).hashCode()
-        new JoinedAttributeContainer(attributesFactory, hasBoth, hasNone).hashCode() != new JoinedAttributeContainer(attributesFactory, hasNone, hasBoth).hashCode()
-        new JoinedAttributeContainer(attributesFactory, hasBoth, hasNone).hashCode() != new JoinedAttributeContainer(attributesFactory, hasBoth, hasOne).hashCode()
-        new JoinedAttributeContainer(attributesFactory, hasNone, hasBoth).hashCode() != new JoinedAttributeContainer(attributesFactory, hasOne, hasBoth).hashCode()
+        new HierarchicalAttributeContainer(attributesFactory, hasOne, hasTwo).hashCode() == new HierarchicalAttributeContainer(attributesFactory, hasOne, hasTwo).hashCode()
+        new HierarchicalAttributeContainer(attributesFactory, hasBoth, hasNone).hashCode() != new HierarchicalAttributeContainer(attributesFactory, hasNone, hasBoth).hashCode()
+        new HierarchicalAttributeContainer(attributesFactory, hasBoth, hasNone).hashCode() != new HierarchicalAttributeContainer(attributesFactory, hasBoth, hasOne).hashCode()
+        new HierarchicalAttributeContainer(attributesFactory, hasNone, hasBoth).hashCode() != new HierarchicalAttributeContainer(attributesFactory, hasOne, hasBoth).hashCode()
     }
 
     def "has useful toString"() {
         given:
         def parent = mutable()
         def child = mutable()
-        def joined = new JoinedAttributeContainer(attributesFactory, parent, child)
+        def joined = new HierarchicalAttributeContainer(attributesFactory, parent, child)
 
         when:
         parent.attribute(one, "parent")
         parent.attribute(two, "parent")
-        child.attribute(two, "child")
+        child.attributeProvider(two, Providers.of("child"))
 
         then:
         joined.toString() == "{one=parent, two=child}"
@@ -206,7 +210,7 @@ class JoinedAttributeContainerTest extends Specification {
         given:
         def parent = mutable()
         def child = mutable()
-        def joined = new JoinedAttributeContainer(attributesFactory, parent, child)
+        def joined = new HierarchicalAttributeContainer(attributesFactory, parent, child)
 
         expect:
         joined.empty
@@ -236,7 +240,7 @@ class JoinedAttributeContainerTest extends Specification {
         joined.asImmutable().keySet() == [one] as Set
 
         when:
-        child.attribute(two, "child")
+        child.attributeProvider(two, Providers.of("child"))
 
         then:
         joined.keySet() == [one, two] as Set
@@ -245,7 +249,7 @@ class JoinedAttributeContainerTest extends Specification {
 
         when:
         def child2 = mutable()
-        def joined2 = new JoinedAttributeContainer(attributesFactory, mutable(), child2)
+        def joined2 = new HierarchicalAttributeContainer(attributesFactory, mutable(), child2)
         child2.attribute(one, "child")
 
         then:

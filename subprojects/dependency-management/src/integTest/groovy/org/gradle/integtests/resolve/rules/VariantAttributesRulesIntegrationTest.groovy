@@ -39,7 +39,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
     void withDefaultVariantToTest() {
         repository {
-            gav('org.test:moduleA:1.0') {
+            id('org.test:moduleA:1.0') {
                 variant 'customVariant', [format: 'custom']
                 dependsOn('org.test:moduleB:1.0')
             }
@@ -88,18 +88,18 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         """
 
         repository {
-            gav('org.test:moduleB:1.0') {
+            id('org.test:moduleB:1.0') {
                 variant 'customVariant', [:]
             }
         }
 
         when:
         repositoryInteractions {
-            gav('org.test:moduleA:1.0') {
+            id('org.test:moduleA:1.0') {
                 expectGetMetadata()
                 expectGetArtifact()
             }
-            gav('org.test:moduleB:1.0') {
+            id('org.test:moduleB:1.0') {
                 expectGetMetadata()
                 expectGetArtifact()
             }
@@ -149,7 +149,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         """
 
         repository {
-            gav('org.test:moduleB:1.0') {
+            id('org.test:moduleB:1.0') {
                 variant('customVariant') {
                     if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
                         artifact 'variant1'
@@ -161,11 +161,11 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         when:
         repositoryInteractions {
-            gav('org.test:moduleA:1.0') {
+            id('org.test:moduleA:1.0') {
                 expectGetMetadata()
                 expectGetArtifact()
             }
-            gav('org.test:moduleB:1.0') {
+            id('org.test:moduleB:1.0') {
                 expectGetMetadata()
                 if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
                     expectGetVariantArtifacts('customVariant')
@@ -258,7 +258,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         """
 
         repository {
-            gav('org.test:moduleB:1.0') {
+            id('org.test:moduleB:1.0') {
                 variant('customVariant') {
                     if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
                         artifact 'variant1'
@@ -269,11 +269,11 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         when:
         repositoryInteractions {
-            gav('org.test:moduleA:1.0') {
+            id('org.test:moduleA:1.0') {
                 expectGetMetadata()
                 expectGetArtifact()
             }
-            gav('org.test:moduleB:1.0') {
+            id('org.test:moduleB:1.0') {
                 expectGetMetadata()
                 if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
                     expectGetVariantArtifacts('customVariant')
@@ -326,18 +326,18 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         """
 
         repository {
-            gav('org.test:moduleB:1.0') {
+            id('org.test:moduleB:1.0') {
                 variant 'customVariant', [format: 'custom']
             }
         }
 
         when:
         repositoryInteractions {
-            gav('org.test:moduleA:1.0') {
+            id('org.test:moduleA:1.0') {
                 expectGetMetadata()
                 expectGetArtifact()
             }
-            gav('org.test:moduleB:1.0') {
+            id('org.test:moduleB:1.0') {
                 expectGetMetadata()
                 expectGetArtifact()
             }
@@ -390,7 +390,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         """
 
         repository {
-            gav('org.test:moduleB:1.0') {
+            id('org.test:moduleB:1.0') {
                 variant('customVariant1') {
                     attribute 'format', 'custom'
                     artifact 'variant1'
@@ -406,11 +406,11 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         // @RequiredFeatures not compatible with @Unroll at method level
         if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
             repositoryInteractions {
-                gav('org.test:moduleA:1.0') {
+                id('org.test:moduleA:1.0') {
                     expectGetMetadata()
                     expectGetArtifact()
                 }
-                gav('org.test:moduleB:1.0') {
+                id('org.test:moduleB:1.0') {
                     expectGetMetadata()
                     expectGetVariantArtifacts(selectedVariant)
                 }
@@ -443,7 +443,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
     def "published variant metadata can be overwritten"() {
         given:
         repository {
-            gav('org.test:module:1.0') {
+            id('org.test:module:1.0') {
                 variant('customVariant1') {
                     attribute 'quality', 'canary'
                 }
@@ -491,7 +491,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         when:
         repositoryInteractions {
-            gav('org.test:module:1.0') {
+            id('org.test:module:1.0') {
                 expectGetMetadata()
                 expectGetArtifact()
             }
@@ -511,7 +511,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
     def "component metadata rules can mutate attributes returned from getAttributes()"() {
         given:
         repository {
-            gav('org.test:module:1.0') {
+            id('org.test:module:1.0') {
                 variant('customVariant1') {
                     attribute 'quality', 'canary'
                 }
@@ -557,7 +557,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         when:
         repositoryInteractions {
-            gav('org.test:module:1.0') {
+            id('org.test:module:1.0') {
                 expectGetMetadata()
                 expectGetArtifact()
             }
