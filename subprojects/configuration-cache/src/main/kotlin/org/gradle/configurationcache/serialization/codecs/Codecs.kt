@@ -264,7 +264,7 @@ class Codecs(
         val fileCollectionCodec = FileCollectionCodec(fileCollectionFactory, artifactSetConverter)
         bind(ConfigurableFileCollectionCodec(fileCollectionCodec, fileCollectionFactory))
         bind(fileCollectionCodec)
-        bind(IntersectPatternSetCodec)
+        bind(IntersectionPatternSetCodec)
         bind(PatternSetCodec(patternSetFactory))
     }
 
