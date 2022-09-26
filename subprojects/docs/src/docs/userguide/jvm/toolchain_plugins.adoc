@@ -21,38 +21,25 @@ For details on how toolchain auto-provisioning interacts with these plugins, see
 
 == Provide a download URI
 
-Toolchain resolver plugins provide logic to map a toolchain request to a download URI.
+Toolchain resolver plugins provide logic to map a toolchain request to a download response.
 They do this via an implementation of link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainResolver.html[JavaToolchainResolver]:
 
-[source, java]
+.JavaToolchainResolverImplementation.java
+[source,java]
 ----
-public abstract class JavaToolchainResolverImplementation implements JavaToolchainResolver { // <1>
-
-    public Optional<URI> resolve(JavaToolchainRequest request) { // <2>
-        // custom mapping logic goes here
-    }
-}
+include::{snippetsPath}/java/toolchain-management/groovy/buildSrc/src/main/java/org/myorg/JavaToolchainResolverImplementation.java[tags=java-toolchain-resolver-implementation]
 ----
 <1> This class is `abstract` because `JavaToolchainResolver` is a <<build_services.adoc#build_services,build service>>. Gradle provides dynamic implementations for certain abstract methods at runtime.
-<2> The mapping method returns a `URI` wrapped in an `Optional`. If the resolver implementation can't provide a download link for the requested toolchain, the enclosing `Optional` contains an empty value.
+<2> The mapping method returns a download response wrapped in an `Optional`. If the resolver implementation can't provide a matching toolchain, the enclosing `Optional` contains an empty value.
 
 == Register the resolver in a plugin
 
 Use a settings plugin (`Plugin<Settings>`) to register the `JavaToolchainResolver` implementation:
 
-[source, java]
+.JavaToolchainResolverPlugin.java
+[source,java]
 ----
-public abstract class JavaToolchainResolverPlugin implements Plugin<Settings> { // <1>
-    @Inject
-    protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry(); // <2>
-
-    void apply(Settings settings) {
-        settings.getPlugins().apply("jvm-toolchain-management"); // <3>
-
-        JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
-        registry.register(JavaToolchainResolverImplementation.class);
-    }
-}
+include::{snippetsPath}/java/toolchain-management/groovy/buildSrc/src/main/java/org/myorg/JavaToolchainResolverPlugin.java[tags=java-toolchain-resolver-plugin]
 ----
 <1> The plugin uses <<custom_gradle_types.adoc#property_injection,property injection>>, so it must be `abstract` and a settings plugin.
 <2> To register the resolver implementation, use property injection to access the link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainResolverRegistry.html[JavaToolchainResolverRegistry] Gradle service.

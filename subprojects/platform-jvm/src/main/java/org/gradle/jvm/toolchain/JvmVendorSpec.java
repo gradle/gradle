@@ -69,6 +69,16 @@ public abstract class JvmVendorSpec {
     public static final JvmVendorSpec SAP = matching(KnownJvmVendor.SAP);
 
     /**
+     * Determines if the vendor passed as an argument matches this spec.
+     * @param vendor the vendor to test
+     * @return true if this spec matches the vendor
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public abstract boolean matches(String vendor);
+
+    /**
      * Returns a vendor spec that matches a VM by its vendor.
      * <p>
      * A VM is determined eligible if the system property <code>java.vendor</code> contains

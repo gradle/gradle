@@ -21,6 +21,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.JavaToolchainDownload;
 import org.gradle.jvm.toolchain.JavaToolchainRequest;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
@@ -45,10 +46,10 @@ public class AdoptOpenJdkRemoteBinary {
         this.adoptiumRootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptium.baseUri");
     }
 
-    public Optional<URI> resolve(JavaToolchainRequest request) {
+    public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
         JavaToolchainSpec spec = request.getJavaToolchainSpec();
         if (canProvide(spec)) {
-            return Optional.of(constructUri(spec, request.getBuildPlatform()));
+            return Optional.of(JavaToolchainDownload.fromUri(constructUri(spec, request.getBuildPlatform())));
         } else {
             return Optional.empty();
         }

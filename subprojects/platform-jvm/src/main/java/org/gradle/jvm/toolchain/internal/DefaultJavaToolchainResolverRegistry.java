@@ -28,9 +28,9 @@ import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.services.BuildServiceSpec;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.jvm.toolchain.JavaToolchainResolver;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler;
+import org.gradle.jvm.toolchain.JavaToolchainResolver;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
