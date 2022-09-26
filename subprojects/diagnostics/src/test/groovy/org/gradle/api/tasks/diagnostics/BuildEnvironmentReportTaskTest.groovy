@@ -22,7 +22,6 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class BuildEnvironmentReportTaskTest extends AbstractProjectBuilderSpec {
-    private ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private BuildEnvironmentReportTask task = TestUtil.createTask(BuildEnvironmentReportTask.class, project)
     private DependencyReportRenderer renderer = Mock(DependencyReportRenderer)
 

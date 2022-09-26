@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class IdeaProjectTest extends AbstractProjectBuilderSpec {
-    ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private final ProjectInternal childProject = TestUtil.createChildProject(project, "child", new File("."))
     private final ProjectInternal anotherChildProject = TestUtil.createChildProject(project, "child2", new File("."))
 
