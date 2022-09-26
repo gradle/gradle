@@ -1,5 +1,3 @@
-import gradlebuild.basics.testJavaVersion
-
 plugins {
     id("gradlebuild.internal.java")
     id("gradlebuild.binary-compatibility")
@@ -38,9 +36,6 @@ tasks.test {
         project.file("src/changes/archunit_store"),
         providers.gradleProperty("archunitRefreeze").map { true })
     )
-
-    // https://github.com/gradle/gradle/issues/22189
-    enabled = testJavaVersion.toInt() < 19
 }
 
 class ArchUnitFreezeConfiguration(
