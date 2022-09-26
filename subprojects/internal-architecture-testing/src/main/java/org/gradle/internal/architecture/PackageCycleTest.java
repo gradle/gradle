@@ -91,5 +91,7 @@ public class PackageCycleTest {
     public static final ArchRule there_are_no_package_cycles =
         SlicesRuleDefinition.slices().assignedFrom(GRADLE_SLICE_ASSIGNMENT)
             .should()
-            .beFreeOfCycles();
+            .beFreeOfCycles()
+            // Some projects exclude all classes, that is why we allow empty here
+            .allowEmptyShould(true);
 }
