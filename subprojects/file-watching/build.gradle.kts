@@ -25,7 +25,6 @@ dependencies {
     testImplementation(testFixtures(project(":launcher")))
     testImplementation(testFixtures(project(":snapshots")))
 
-    testImplementation(libs.gradleEnterpriseTestAnnotation)
     testImplementation(libs.commonsIo)
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
