@@ -21,5 +21,5 @@ import org.gradle.api.services.BuildService;
 
 public interface ServiceReferenceSpec {
     String getServiceName();
-    Provider<BuildService<?>> getValue();
+    Provider<? extends BuildService> getValue();
 }

@@ -30,8 +30,10 @@ import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
+import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.internal.Cast;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
@@ -43,7 +45,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -63,7 +64,6 @@ public class LocalTaskNode extends TaskNode {
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
     private Collection<ServiceReferenceSpec> adHocServicesConsumed = Collections.emptySet();
-    private Set<Provider<? extends BuildService<?>>> namedServicesConsumed;
 
     public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext, Function<LocalTaskNode, ResolveMutationsNode> resolveNodeFactory) {
         this.task = task;
@@ -274,7 +274,6 @@ public class LocalTaskNode extends TaskNode {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void addServiceReferences(Collection<ServiceReferenceSpec> servicesConsumed) {
         adHocServicesConsumed = servicesConsumed;
     }
@@ -295,19 +294,21 @@ public class LocalTaskNode extends TaskNode {
         return adHocServicesConsumed.stream().map(it -> mapSpecToService(it, buildServiceRegistry)).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
-    @SuppressWarnings("unchecked")
     private Provider<? extends BuildService<?>> mapSpecToService(ServiceReferenceSpec spec, BuildServiceRegistryInternal buildServiceRegistry) {
-        DefaultProperty asProperty = (DefaultProperty) spec.getValue();
-        if (spec.getServiceName() != null && !asProperty.getProvider().isPresent()) {
-            Optional.ofNullable(
-                buildServiceRegistry.getRegistrations().findByName(spec.getServiceName())
-            ).ifPresent(found -> {
-                if (!asProperty.getProvider().isPresent()) {
-                    asProperty.convention(found.getService());
-                }
-            });
+        DefaultProperty<? extends BuildService<?>> asProperty = Cast.uncheckedCast(spec.getValue());
+        assignServiceIfNeeded(buildServiceRegistry, asProperty, spec.getServiceName());
+        return asProperty.getProvider();
+    }
+
+    @SuppressWarnings("unchecked")
+    private void assignServiceIfNeeded(BuildServiceRegistryInternal buildServiceRegistry, DefaultProperty<?> asProperty, @Nullable String serviceName) {
+        if (serviceName != null && !asProperty.getProvider().isPresent()) {
+            BuildServiceRegistration<?, ?> found = buildServiceRegistry.getRegistrations().findByName(serviceName);
+            if (found != null) {
+                Provider resolved = found.getService();
+                asProperty.convention(resolved);
+            }
         }
-        return ((DefaultProperty)spec.getValue()).getProvider();
     }
 
     @Override
