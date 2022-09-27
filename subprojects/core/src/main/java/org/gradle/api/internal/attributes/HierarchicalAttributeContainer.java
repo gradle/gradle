@@ -29,57 +29,57 @@ import java.util.Set;
 import java.util.TreeMap;
 
 /**
- * Joins a parent attribute container to a child. Any attribute in the child container will
- * override attributes in the parent container. All mutation operations are forwarded to
- * the child container.
+ * Joins a primary and fallback attribute container to each other. Any attribute in the primary
+ * container will override attributes in the fallback container. All mutation operations are
+ * forwarded to the primary container.
  */
 public class HierarchicalAttributeContainer extends AbstractAttributeContainer {
     private final ImmutableAttributesFactory attributesFactory;
-    private final AttributeContainerInternal parent;
-    private final AttributeContainerInternal child;
+    private final AttributeContainerInternal fallback;
+    private final AttributeContainerInternal primary;
 
-    public HierarchicalAttributeContainer(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal parent, AttributeContainerInternal child) {
+    public HierarchicalAttributeContainer(ImmutableAttributesFactory attributesFactory, AttributeContainerInternal fallback, AttributeContainerInternal primary) {
         this.attributesFactory = attributesFactory;
-        this.parent = parent;
-        this.child = child;
+        this.fallback = fallback;
+        this.primary = primary;
     }
 
     @Override
     public Set<Attribute<?>> keySet() {
-        return Sets.union(parent.keySet(), child.keySet());
+        return Sets.union(fallback.keySet(), primary.keySet());
     }
 
     @Override
     public <T> AttributeContainer attribute(Attribute<T> key, T value) {
-        child.attribute(key, value);
+        primary.attribute(key, value);
         return this;
     }
 
     @Override
     public <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider) {
-        child.attributeProvider(key, provider);
+        primary.attributeProvider(key, provider);
         return this;
     }
 
     @Nullable
     @Override
     public <T> T getAttribute(Attribute<T> key) {
-        T attribute = child.getAttribute(key);
+        T attribute = primary.getAttribute(key);
         if (attribute != null) {
             return attribute;
         }
-        return parent.getAttribute(key);
+        return fallback.getAttribute(key);
     }
 
     @Override
     public ImmutableAttributes asImmutable() {
-        if (child.isEmpty()) {
-            return parent.asImmutable();
+        if (primary.isEmpty()) {
+            return fallback.asImmutable();
         }
-        if (parent.isEmpty()) {
-            return child.asImmutable();
+        if (fallback.isEmpty()) {
+            return primary.asImmutable();
         }
-        return attributesFactory.concat(parent.asImmutable(), child.asImmutable());
+        return attributesFactory.concat(fallback.asImmutable(), primary.asImmutable());
     }
 
     @Override
@@ -91,19 +91,19 @@ public class HierarchicalAttributeContainer extends AbstractAttributeContainer {
             return false;
         }
         HierarchicalAttributeContainer that = (HierarchicalAttributeContainer) o;
-        return parent.equals(that.parent) && child.equals(that.child);
+        return fallback.equals(that.fallback) && primary.equals(that.primary);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(parent, child);
+        return Objects.hash(fallback, primary);
     }
 
     @Override
     public String toString() {
         final Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
-        parent.keySet().forEach(key -> sorted.put(key, parent.getAttribute(key)));
-        child.keySet().forEach(key -> sorted.put(key, child.getAttribute(key)));
+        fallback.keySet().forEach(key -> sorted.put(key, fallback.getAttribute(key)));
+        primary.keySet().forEach(key -> sorted.put(key, primary.getAttribute(key)));
         return sorted.toString();
     }
 }
