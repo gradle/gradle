@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -25,6 +26,7 @@ import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.work.InputChanges;
 import org.slf4j.Logger;
@@ -99,7 +101,7 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext, R exte
             }
 
             @Override
-            public Optional<ValidationResult> getValidationProblems() {
+            public ImmutableList<TypeValidationProblem> getValidationProblems() {
                 return context.getValidationProblems();
             }
 

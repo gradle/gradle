@@ -37,6 +37,7 @@ import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.time.Time;
@@ -179,7 +180,7 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
             }
 
             @Override
-            public Optional<ValidationResult> getValidationProblems() {
+            public ImmutableList<TypeValidationProblem> getValidationProblems() {
                 return context.getValidationProblems();
             }
 

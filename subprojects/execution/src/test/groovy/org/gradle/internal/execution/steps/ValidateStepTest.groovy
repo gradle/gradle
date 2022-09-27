@@ -53,7 +53,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
         then:
         result == delegateResult
 
-        1 * delegate.execute(work, { ValidationFinishedContext context -> !context.validationProblems.present }) >> delegateResult
+        1 * delegate.execute(work, { ValidationFinishedContext context -> context.validationProblems.empty }) >> delegateResult
         _ * work.validate(_ as  WorkValidationContext) >> { validated = true }
 
         then:
@@ -146,7 +146,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
 
         then:
         1 * delegate.execute(work, { ValidationFinishedContext context ->
-            convertToSingleLine(renderMinimalInformationAbout(context.validationProblems.get().warnings.first(), false, false)) == expectedWarning })
+            convertToSingleLine(renderMinimalInformationAbout(context.validationProblems.first(), false, false)) == expectedWarning })
         0 * _
     }
 

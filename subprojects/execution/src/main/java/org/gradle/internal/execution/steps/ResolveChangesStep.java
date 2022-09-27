@@ -34,12 +34,15 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetecto
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.IncrementalInputProperties;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
+
+import static org.gradle.internal.execution.history.changes.ExecutionStateChanges.nonIncremental;
 
 public class ResolveChangesStep<C extends CachingContext, R extends Result> implements Step<C, R> {
     private static final ImmutableList<String> NO_HISTORY = ImmutableList.of("No history is available.");
@@ -78,27 +81,14 @@ public class ResolveChangesStep<C extends CachingContext, R extends Result> impl
         IncrementalInputProperties incrementalInputProperties = createIncrementalInputProperties(work);
         return context.getNonIncrementalReason()
             .map(ImmutableList::of)
-            .map(nonIncrementalReason -> ExecutionStateChanges.nonIncremental(
-                nonIncrementalReason,
-                beforeExecution,
-                incrementalInputProperties))
+            .map(nonIncrementalReason -> nonIncremental(nonIncrementalReason, beforeExecution, incrementalInputProperties))
             .orElseGet(() -> context.getPreviousExecutionState()
-                .map(previousExecution -> context.getValidationProblems()
-                    .map(__ -> ExecutionStateChanges.nonIncremental(
-                        VALIDATION_FAILED,
-                        beforeExecution,
-                        incrementalInputProperties
-                    ))
-                    .orElseGet(() -> changeDetector.detectChanges(
-                        work,
-                        previousExecution,
-                        beforeExecution,
-                        incrementalInputProperties)))
-                .orElseGet(() -> ExecutionStateChanges.nonIncremental(
-                    NO_HISTORY,
-                    beforeExecution,
-                    incrementalInputProperties
-                )));
+                .map(previousExecution -> context.getValidationProblems().isEmpty()
+                    ? changeDetector.detectChanges(work, previousExecution, beforeExecution, incrementalInputProperties)
+                    : nonIncremental(VALIDATION_FAILED, beforeExecution, incrementalInputProperties)
+                )
+                .orElseGet(() -> nonIncremental(NO_HISTORY, beforeExecution, incrementalInputProperties))
+            );
     }
 
     private static IncrementalInputProperties createIncrementalInputProperties(UnitOfWork work) {
@@ -185,7 +175,7 @@ public class ResolveChangesStep<C extends CachingContext, R extends Result> impl
             }
 
             @Override
-            public Optional<ValidationResult> getValidationProblems() {
+            public ImmutableList<TypeValidationProblem> getValidationProblems() {
                 return context.getValidationProblems();
             }
 

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
@@ -83,8 +82,8 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             .collect(
                 groupingBy(BaseProblem::getSeverity,
                     mapping(Function.identity(), toList())));
-        ImmutableCollection<TypeValidationProblem> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
-        ImmutableCollection<TypeValidationProblem> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
+        ImmutableList<TypeValidationProblem> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
+        ImmutableList<TypeValidationProblem> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
 
         if (!warnings.isEmpty()) {
             warningReporter.recordValidationWarnings(work, warnings);
@@ -106,10 +105,8 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             }
 
             @Override
-            public Optional<ValidationResult> getValidationProblems() {
-                return warnings.isEmpty()
-                    ? Optional.empty()
-                    : Optional.of(() -> warnings);
+            public ImmutableList<TypeValidationProblem> getValidationProblems() {
+                return warnings;
             }
 
             @Override
