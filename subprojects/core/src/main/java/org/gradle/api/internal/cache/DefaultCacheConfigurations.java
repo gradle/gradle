@@ -17,11 +17,8 @@
 package org.gradle.api.internal.cache;
 
 import org.gradle.api.Action;
-import org.gradle.api.provider.Property;
 import org.gradle.api.cache.CacheConfigurations;
-import org.gradle.internal.reflect.Instantiator;
-
-import javax.inject.Inject;
+import org.gradle.api.model.ObjectFactory;
 
 public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
     private final CacheConfigurations.CacheResourceConfiguration releasedWrappersConfiguration;
@@ -29,16 +26,16 @@ public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
     private final CacheConfigurations.CacheResourceConfiguration downloadedResourcesConfiguration;
     private final CacheConfigurations.CacheResourceConfiguration createdResourcesConfiguration;
 
-    public DefaultCacheConfigurations(Instantiator instantiator) {
-        this.releasedWrappersConfiguration = createResourceConfiguration(instantiator, DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS);
-        this.snapshotWrappersConfiguration = createResourceConfiguration(instantiator, DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
-        this.downloadedResourcesConfiguration = createResourceConfiguration(instantiator, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
-        this.createdResourcesConfiguration = createResourceConfiguration(instantiator, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
+    public DefaultCacheConfigurations(ObjectFactory objectFactory) {
+        this.releasedWrappersConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS);
+        this.snapshotWrappersConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
+        this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
+        this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
     }
 
-    private CacheResourceConfiguration createResourceConfiguration(Instantiator instantiator, int defaultDays) {
-        DefaultCacheResourceConfiguration resourceConfiguration = instantiator.newInstance(DefaultCacheResourceConfiguration.class);
-        resourceConfiguration.getRemoveUnusedEntriesAfterDaysProperty().convention(defaultDays);
+    private CacheResourceConfiguration createResourceConfiguration(ObjectFactory objectFactory, int defaultDays) {
+        CacheResourceConfiguration resourceConfiguration = objectFactory.newInstance(CacheResourceConfiguration.class);
+        resourceConfiguration.getRemoveUnusedEntriesAfterDays().convention(defaultDays);
         return resourceConfiguration;
     }
 
@@ -80,12 +77,5 @@ public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
     @Override
     public CacheResourceConfiguration getCreatedResources() {
         return createdResourcesConfiguration;
-    }
-
-    abstract class DefaultCacheResourceConfiguration implements CacheResourceConfiguration {
-        @Inject
-        Property<Integer> getRemoveUnusedEntriesAfterDaysProperty() {
-            throw new UnsupportedOperationException();
-        }
     }
 }
