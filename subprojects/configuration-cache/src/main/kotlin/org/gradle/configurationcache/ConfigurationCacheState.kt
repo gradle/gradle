@@ -623,9 +623,12 @@ class ConfigurationCacheState(
     suspend fun DefaultReadContext.readGradleEnterprisePluginManager(gradle: GradleInternal) {
         val adapter = read() as GradleEnterprisePluginAdapter?
         if (adapter != null) {
-            adapter.onLoadFromConfigurationCache()
             val manager = gradle.serviceOf<GradleEnterprisePluginManager>()
-            manager.registerAdapter(adapter)
+            if (manager.adapter == null) {
+                // Don't replace the existing adapter. The adapter will be present if the current Gradle invocation wrote this entry.
+                adapter.onLoadFromConfigurationCache()
+                manager.registerAdapter(adapter)
+            }
         }
     }
 
