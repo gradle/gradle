@@ -27,8 +27,6 @@ import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
-import org.gradle.api.cache.CacheConfigurations;
-import org.gradle.api.internal.cache.DefaultCacheConfigurations;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -69,9 +67,5 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
 
     protected GradleInternal createGradleInternal() {
         return settings.getGradle();
-    }
-
-    protected CacheConfigurations createCachesConfiguration(Instantiator instantiator) {
-        return new DefaultCacheConfigurations(instantiator);
     }
 }

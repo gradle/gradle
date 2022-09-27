@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.concurrent.Stoppable;
@@ -36,6 +37,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
     private final UsedGradleVersions usedGradleVersions;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final MonitoredCleanupActionDecorator cleanupActionDecorator;
+    private final CacheConfigurations cacheConfigurations;
 
     public GradleUserHomeCleanupService(
         Deleter deleter,
@@ -43,7 +45,8 @@ public class GradleUserHomeCleanupService implements Stoppable {
         GlobalScopedCache globalScopedCache,
         UsedGradleVersions usedGradleVersions,
         ProgressLoggerFactory progressLoggerFactory,
-        MonitoredCleanupActionDecorator cleanupActionDecorator
+        MonitoredCleanupActionDecorator cleanupActionDecorator,
+        CacheConfigurations cacheConfigurations
     ) {
         this.deleter = deleter;
         this.userHomeDirProvider = userHomeDirProvider;
@@ -51,13 +54,21 @@ public class GradleUserHomeCleanupService implements Stoppable {
         this.usedGradleVersions = usedGradleVersions;
         this.progressLoggerFactory = progressLoggerFactory;
         this.cleanupActionDecorator = cleanupActionDecorator;
+        this.cacheConfigurations = cacheConfigurations;
     }
 
     @Override
     public void stop() {
         File cacheBaseDir = globalScopedCache.getRootDir();
         boolean wasCleanedUp = execute(
-            cleanupActionDecorator.decorate(new VersionSpecificCacheCleanupAction(cacheBaseDir, MAX_UNUSED_DAYS_FOR_RELEASES, MAX_UNUSED_DAYS_FOR_SNAPSHOTS, deleter)));
+            cleanupActionDecorator.decorate(
+                new VersionSpecificCacheCleanupAction(
+                    cacheBaseDir,
+                    cacheConfigurations.getReleasedWrappers().getRemoveUnusedEntriesAfterDays().get(),
+                    cacheConfigurations.getSnapshotWrappers().getRemoveUnusedEntriesAfterDays().get(),
+                    deleter
+                )
+            ));
         if (wasCleanedUp) {
             execute(cleanupActionDecorator.decorate(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions)));
         }
