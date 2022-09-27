@@ -59,10 +59,7 @@ tasks.registerCITestDistributionLifecycleTasks()
 fun configureCompile() {
     java.toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
-        // Do not force Adoptium vendor for M1 Macs
-        if (System.getProperty("os.arch") != "aarch64") {
-            vendor.set(JvmVendorSpec.ADOPTIUM)
-        }
+        vendor.set(JvmVendorSpec.ADOPTIUM)
     }
 
     tasks.withType<JavaCompile>().configureEach {
