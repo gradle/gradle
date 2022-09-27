@@ -71,6 +71,12 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     }
 
     @Override
+    public void resetState() {
+        projectStateRegistry.get().resetState(this);
+        buildLifecycleController.get().resetState();
+    }
+
+    @Override
     public void assertCanAdd(IncludedBuildSpec includedBuildSpec) {
         throw new UnsupportedOperationException("Cannot include build '" + includedBuildSpec.rootDir.getName() + "' in " + getBuildIdentifier() + ". This is not supported yet.");
     }
