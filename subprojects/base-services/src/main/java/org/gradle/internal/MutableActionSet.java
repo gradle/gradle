@@ -33,6 +33,9 @@ public class MutableActionSet<T> implements Action<T>, InternalListener {
         this.actions = actions.add(action);
     }
 
+    public void clear() {
+        actions = ImmutableActionSet.empty();
+    }
     @Override
     public void execute(T t) {
         actions.execute(t);
