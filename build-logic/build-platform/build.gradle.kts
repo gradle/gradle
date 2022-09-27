@@ -16,8 +16,7 @@ val spockVersion = if (isGroovy4) "2.2-groovy-4.0" else "2.2-groovy-3.0"
 val asmVersion = "9.2"
 // To try out better kotlin compilation avoidance and incremental compilation
 // with -Pkotlin.incremental.useClasspathSnapshot=true
-val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
-    .getOrElse(embeddedKotlinVersion)
+val kotlinVersion = "1.7.20-RC"
 
 dependencies {
     constraints {
