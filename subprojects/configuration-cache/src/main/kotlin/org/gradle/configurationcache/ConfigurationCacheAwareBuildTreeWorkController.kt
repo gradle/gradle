@@ -40,7 +40,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
             val result = cache.loadOrScheduleRequestedTasks(graph) {
                 workPreparer.scheduleRequestedTasks(graph, taskSelector)
             }
-            if (!result.wasLoadedFromCache && startParameter.loadAfterStore) {
+            if (!result.wasLoadedFromCache && !result.entryDiscarded && startParameter.loadAfterStore) {
                 // Load the work graph from cache instead
                 null
             } else {
