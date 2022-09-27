@@ -19,6 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.execution.EntryTaskSelector
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildTreeWorkController
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
@@ -28,17 +29,19 @@ import org.gradle.internal.buildtree.BuildTreeWorkPreparer
 class ConfigurationCacheAwareBuildTreeWorkController(
     private val workPreparer: BuildTreeWorkPreparer,
     private val workExecutor: BuildTreeWorkExecutor,
-    private val taskGraph: BuildTreeWorkGraphController,
+    private val workGraph: BuildTreeWorkGraphController,
     private val cache: BuildTreeConfigurationCache,
+    private val buildRegistry: BuildStateRegistry,
     private val startParameter: ConfigurationCacheStartParameter
 ) : BuildTreeWorkController {
 
     override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?): ExecutionResult<Void> {
-        val executionResult = taskGraph.withNewWorkGraph { graph ->
+        val executionResult = workGraph.withNewWorkGraph { graph ->
             val result = cache.loadOrScheduleRequestedTasks(graph) {
                 workPreparer.scheduleRequestedTasks(graph, taskSelector)
             }
             if (!result.wasLoadedFromCache && startParameter.loadAfterStore) {
+                // Load the work graph from cache instead
                 null
             } else {
                 workExecutor.execute(result.graph)
@@ -47,9 +50,10 @@ class ConfigurationCacheAwareBuildTreeWorkController(
         if (executionResult != null) {
             return executionResult
         }
-        return taskGraph.withNewWorkGraph { graph ->
-            val graph = cache.loadRequestedTasks(graph)
-            workExecutor.execute(graph)
+        buildRegistry.resetStateForAllBuilds()
+        return workGraph.withNewWorkGraph { graph ->
+            val finalizedGraph = cache.loadRequestedTasks(graph)
+            workExecutor.execute(finalizedGraph)
         }
     }
 }
