@@ -28,6 +28,7 @@ dependencies {
     implementation(libs.futureKotlin("stdlib-jdk8"))
     implementation(libs.futureKotlin("gradle-plugin"))
     implementation(libs.futureKotlin("sam-with-receiver"))
+    implementation(libs.futureKotlin("assignment"))
 
     integTestImplementation(project(":base-services"))
     integTestImplementation(project(":logging"))
