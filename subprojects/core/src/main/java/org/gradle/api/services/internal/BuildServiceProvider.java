@@ -35,6 +35,8 @@ import javax.annotation.Nullable;
 @SuppressWarnings("rawtypes")
 public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements Managed {
 
+    private final int maxUsages;
+
     public interface Listener {
         Listener EMPTY = provider -> {
         };
@@ -62,7 +64,8 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
         InstantiationScheme instantiationScheme,
         IsolatableFactory isolatableFactory,
         ServiceRegistry internalServices,
-        Listener listener
+        Listener listener,
+        int maxUsages
     ) {
         this.buildIdentifier = buildIdentifier;
         this.name = name;
@@ -73,6 +76,15 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
         this.isolatableFactory = isolatableFactory;
         this.internalServices = internalServices;
         this.listener = listener;
+        this.maxUsages = maxUsages;
+    }
+
+    public int getMaxUsages() {
+        return maxUsages;
+    }
+
+    public boolean isLockRequired() {
+        return getMaxUsages() > 0;
     }
 
     /**

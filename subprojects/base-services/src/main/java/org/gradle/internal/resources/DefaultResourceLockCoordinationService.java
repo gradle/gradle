@@ -190,7 +190,6 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         private Set<ResourceLock> lockedResources;
         private Set<ResourceLock> unlockedResources;
         boolean rollback;
-
         @Override
         public void registerLocked(ResourceLock resourceLock) {
             if (!rollback && (unlockedResources == null || !unlockedResources.remove(resourceLock))) {
@@ -214,7 +213,6 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         Collection<ResourceLock> getUnlockedResources() {
             return unlockedResources == null ? Collections.<ResourceLock>emptyList() : unlockedResources;
         }
-
         @Override
         public void releaseLocks() {
             if (lockedResources != null) {

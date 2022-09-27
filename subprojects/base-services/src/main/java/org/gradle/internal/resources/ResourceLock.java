@@ -20,9 +20,28 @@ import org.gradle.api.Describable;
 
 /**
  * Represents a lock on an abstract resource.  Implementations of this interface should see that methods fail if they are called
- * outside of a {@link ResourceLockCoordinationService#withStateLock(Transformer)} transform.
+ * outside of a {@link ResourceLockCoordinationService#withStateLock(org.gradle.api.Transformer)} transform.
  */
 public interface ResourceLock extends Describable {
+    enum Kind {
+        SHARED_BUILD_SERVICE,
+        UNSPECIFIC
+    }
+
+    /**
+     * The name that identifies this lock.
+     *
+     * @return the name of this lock, or null
+     */
+    String getName();
+
+    /**
+     * The kind of this lock.
+     *
+     * @return the kind of this lock, or {@link Kind#UNSPECIFIC}
+     */
+    ResourceLock.Kind getKind();
+
     /**
      * Returns true if this resource is locked by any thread.
      *

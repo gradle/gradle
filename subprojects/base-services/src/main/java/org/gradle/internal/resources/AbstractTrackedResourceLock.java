@@ -39,6 +39,11 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
     }
 
     @Override
+    public Kind getKind() {
+        return Kind.UNSPECIFIC;
+    }
+
+    @Override
     public boolean tryLock() {
         if (!isLockedByCurrentThread()) {
             if (acquireLock()) {
@@ -100,6 +105,11 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
 
     @Override
     public String getDisplayName() {
+        return displayName;
+    }
+
+    @Override
+    public String getName() {
         return displayName;
     }
 }

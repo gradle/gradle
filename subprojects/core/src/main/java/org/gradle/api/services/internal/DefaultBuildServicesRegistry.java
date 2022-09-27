@@ -16,6 +16,7 @@
 
 package org.gradle.api.services.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
@@ -40,6 +41,9 @@ import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
@@ -148,6 +152,23 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         });
     }
 
+    public List<ResourceLock> getSharedResources(Set<Provider<? extends BuildService<?>>> services) {
+        if (services == null || services.isEmpty()) {
+            return Collections.emptyList();
+        }
+        ImmutableList.Builder<ResourceLock> locks = ImmutableList.builder();
+        for (Provider<? extends BuildService<?>> service : services) {
+            if (!service.isPresent()) {
+                continue;
+            }
+            SharedResource resource = forService(service);
+            if (resource.getMaxUsages() > 0) {
+                locks.add(resource.getResourceLock());
+            }
+        }
+        return locks.build();
+    }
+
     @Nullable
     private <T extends BuildService<P>, P extends BuildServiceParameters> P instantiateParametersOf(Class<T> implementationType) {
         Class<P> parameterType = isolationScheme.parameterTypeFor(implementationType);
@@ -182,7 +203,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             instantiatorFactory.injectScheme(),
             isolatableFactory,
             services,
-            listener
+            listener,
+            maxParallelUsages == null ? -1 : maxParallelUsages
         );
 
         DefaultServiceRegistration<T, P> registration = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceRegistration.class, name, parameters, provider));

@@ -17,7 +17,6 @@
 package org.gradle.api.internal;
 
 import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
@@ -54,6 +53,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
+import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
@@ -76,7 +76,7 @@ import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
 import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resources.ResourceLock;
-import org.gradle.internal.resources.SharedResource;
+import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scripts.ScriptOriginUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -1049,20 +1049,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public List<ResourceLock> getSharedResources() {
-        if (requiredServices == null) {
-            return Collections.emptyList();
-        }
-        ImmutableList.Builder<ResourceLock> locks = ImmutableList.builder();
-        BuildServiceRegistryInternal serviceRegistry = getServices().get(BuildServiceRegistryInternal.class);
-        for (Provider<? extends BuildService<?>> service : requiredServices) {
-            SharedResource resource = serviceRegistry.forService(service);
-            if (resource.getMaxUsages() > 0) {
-                locks.add(resource.getResourceLock());
-            }
-        }
-        return locks.build();
+        return getServices().get(BuildServiceRegistryInternal.class).getSharedResources(requiredServices);
     }
 
+    @Override
+    public boolean isResourceLocked(BuildServiceProvider toCheck) {
+        SharedResourceLeaseRegistry sharedResourceLeaseRegistry = getServices().get(SharedResourceLeaseRegistry.class);
+        return sharedResourceLeaseRegistry.holdsLock(ResourceLock.Kind.SHARED_BUILD_SERVICE, toCheck.getName());
+    }
     private void notifyProjectAccess() {
         if (state.getExecuting()) {
             getTaskExecutionAccessBroadcaster().onProjectAccess("Task.project", this);

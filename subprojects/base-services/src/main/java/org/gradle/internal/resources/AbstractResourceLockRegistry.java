@@ -83,15 +83,36 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
         lockDetails.locks.add(Cast.<T>uncheckedCast(resourceLock));
     }
 
-    public boolean holdsLock() {
+    public boolean holdsAnyLocks() {
         ThreadLockDetails<T> details = detailsForCurrentThread();
         return !details.locks.isEmpty();
     }
 
+    /**
+     * Does the current thread hold a lock of the given kind and name?
+     */
+    public boolean holdsLock(ResourceLock.Kind kind, String name) {
+        assert kind != ResourceLock.Kind.UNSPECIFIC : "Can only check for locks of some specific kind";
+        ThreadLockDetails<T> lockDetails = detailsForCurrentThread(false);
+        if (lockDetails == null) {
+            return false;
+        }
+        for (T locked: lockDetails.locks) {
+            if (locked.getKind() == kind && name.equals(locked.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private ThreadLockDetails<T> detailsForCurrentThread() {
+        return detailsForCurrentThread(true);
+    }
+
+    private ThreadLockDetails<T> detailsForCurrentThread(boolean createIfMissing) {
         long id = Thread.currentThread().getId();
         ThreadLockDetails<T> lockDetails = threadLocks.get(id);
-        if (lockDetails == null) {
+        if (lockDetails == null && createIfMissing) {
             lockDetails = new ThreadLockDetails<T>();
             threadLocks.put(id, lockDetails);
         }
