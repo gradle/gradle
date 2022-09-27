@@ -253,6 +253,7 @@
             <trusting group="org.antlr" name="antlr4-runtime"/>
          </trusted-key>
          <trusted-key id="d9aa7402ba75f78720d975211d185615d0a84648" group="net.sf.saxon" name="Saxon-HE"/>
+         <trusted-key id="db467d22a2666d061fdd120db5bd4591883d638c" group="com.tngtech.archunit"/>
          <trusted-key id="dc98224c6421a7a5bb87f346ed2378cd09a08cde" group="org.jline"/>
          <trusted-key id="dddee87612e9fb95f5c8d91e411063a3a0ffd119">
             <trusting group="commons-beanutils"/>

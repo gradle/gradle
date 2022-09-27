@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.toolchain.management;
+package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.jvm.toolchain.JavaToolchainDownload;
 
-/**
- * Configures how toolchains are resolved.
- * <p>
- * <code>ToolchainManagement</code> is extended by plugins to support different ecosystems.
- * <p>
- * One option available at present is using the <code>jvm-toolchain-management</code> plugin, which
- * adds a <code>jvm</code> block to it, allowing for the configuration of toolchains used in the
- * JVM ecosystem.
- *
- * @since 7.6
- */
-@Incubating
-public interface ToolchainManagement extends ExtensionAware {
+import java.net.URI;
+
+public class DefaultJavaToolchainDownload implements JavaToolchainDownload {
+
+    public static DefaultJavaToolchainDownload fromUri(URI uri) {
+        return new DefaultJavaToolchainDownload(uri);
+    }
+
+    private final URI uri;
+
+    private DefaultJavaToolchainDownload(URI uri) {
+        this.uri = uri;
+    }
+
+    @Override
+    public URI getUri() {
+        return uri;
+    }
 }

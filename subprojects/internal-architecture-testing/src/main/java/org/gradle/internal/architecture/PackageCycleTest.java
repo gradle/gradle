@@ -16,8 +16,8 @@
 
 package org.gradle.internal.architecture;
 
-import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.PackageMatchers;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -40,7 +40,7 @@ public class PackageCycleTest {
     private static final ImmutableSet<String> IGNORED_CLASSES_FOR_CYCLES = ImmutableSet.copyOf(ignoredClassesForCycles());
 
     private static boolean isInIgnoredPackage(JavaClass javaClass) {
-        return IGNORED_PACKAGES_FOR_CYCLES.apply(javaClass.getPackageName());
+        return IGNORED_PACKAGES_FOR_CYCLES.test(javaClass.getPackageName());
     }
 
     private static boolean isIgnoredClass(JavaClass javaClass) {
@@ -91,5 +91,7 @@ public class PackageCycleTest {
     public static final ArchRule there_are_no_package_cycles =
         SlicesRuleDefinition.slices().assignedFrom(GRADLE_SLICE_ASSIGNMENT)
             .should()
-            .beFreeOfCycles();
+            .beFreeOfCycles()
+            // Some projects exclude all classes, that is why we allow empty here
+            .allowEmptyShould(true);
 }
