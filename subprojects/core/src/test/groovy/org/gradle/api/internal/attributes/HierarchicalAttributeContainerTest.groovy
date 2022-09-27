@@ -34,126 +34,126 @@ class HierarchicalAttributeContainerTest extends Specification {
         return new DefaultMutableAttributeContainer(attributesFactory)
     }
 
-    def "can override attributes from parent"() {
+    def "can override attributes from fallback"() {
         given:
-        def parent = mutable()
-        def child = mutable()
-        def joined = new HierarchicalAttributeContainer(attributesFactory, parent, child)
+        def fallback = mutable()
+        def primary = mutable()
+        def joined = new HierarchicalAttributeContainer(attributesFactory, fallback, primary)
 
         when:
-        parent.attribute(one, "parent")
-        parent.attributeProvider(two, Providers.of("parent"))
-        child.attribute(one, "child")
+        fallback.attribute(one, "fallback")
+        fallback.attributeProvider(two, Providers.of("fallback"))
+        primary.attribute(one, "primary")
 
         then:
-        joined.getAttribute(one) == "child"
-        joined.getAttribute(two) == "parent"
+        joined.getAttribute(one) == "primary"
+        joined.getAttribute(two) == "fallback"
     }
 
-    def "immutable containers are not modified when updating parent or child"() {
+    def "immutable containers are not modified when updating fallback or primary"() {
         given:
-        def parent = mutable()
-        def child = mutable()
-        def joined = new HierarchicalAttributeContainer(attributesFactory, parent, child)
+        def fallback = mutable()
+        def primary = mutable()
+        def joined = new HierarchicalAttributeContainer(attributesFactory, fallback, primary)
 
-        parent.attributeProvider(one, Providers.of("parent"))
-        parent.attribute(two, "parent")
-        child.attribute(two, "child")
+        fallback.attributeProvider(one, Providers.of("fallback"))
+        fallback.attribute(two, "fallback")
+        primary.attribute(two, "primary")
 
         when:
         def immutable1 = joined.asImmutable()
 
         then:
         immutable1 instanceof ImmutableAttributes
-        immutable1.getAttribute(one) == "parent"
-        immutable1.getAttribute(two) == "child"
+        immutable1.getAttribute(one) == "fallback"
+        immutable1.getAttribute(two) == "primary"
 
         when:
-        child.attributeProvider(two, Providers.of("new child"))
-        parent.attribute(one, "new parent")
-        parent.attribute(two, "new parent")
+        primary.attributeProvider(two, Providers.of("new primary"))
+        fallback.attribute(one, "new fallback")
+        fallback.attribute(two, "new fallback")
 
         then:
-        joined.getAttribute(one) == "new parent"
-        joined.getAttribute(two) == "new child"
-        immutable1.getAttribute(one) == "parent"
-        immutable1.getAttribute(two) == "child"
+        joined.getAttribute(one) == "new fallback"
+        joined.getAttribute(two) == "new primary"
+        immutable1.getAttribute(one) == "fallback"
+        immutable1.getAttribute(two) == "primary"
 
         when:
         def immutable2 = joined.asImmutable()
 
         then:
-        immutable2.getAttribute(one) == "new parent"
-        immutable2.getAttribute(two) == "new child"
+        immutable2.getAttribute(one) == "new fallback"
+        immutable2.getAttribute(two) == "new primary"
     }
 
-    def "keySet contains attributes from both parent and child"() {
+    def "keySet contains attributes from both fallback and primary"() {
         given:
-        def parent = mutable()
-        def child = mutable()
-        def joined = new HierarchicalAttributeContainer(attributesFactory, parent, child)
+        def fallback = mutable()
+        def primary = mutable()
+        def joined = new HierarchicalAttributeContainer(attributesFactory, fallback, primary)
 
         when:
-        parent.attribute(one, "parent")
+        fallback.attribute(one, "fallback")
 
         then:
         joined.keySet() == [one] as Set
 
         when:
-        child.attributeProvider(one, Providers.of("child"))
+        primary.attributeProvider(one, Providers.of("primary"))
 
         then:
         joined.keySet() == [one] as Set
 
         when:
-        parent.attributeProvider(two, Providers.of("parent"))
+        fallback.attributeProvider(two, Providers.of("fallback"))
 
         then:
         joined.keySet() == [one, two] as Set
 
         when:
-        child.attribute(two, "child")
+        primary.attribute(two, "primary")
 
         then:
         joined.keySet() == [one, two] as Set
     }
 
-    def "mutations are passed to child container"() {
+    def "mutations are passed to primary container"() {
         given:
-        def parent = mutable()
-        def child = mutable()
-        def joined = new HierarchicalAttributeContainer(attributesFactory, parent, child)
+        def fallback = mutable()
+        def primary = mutable()
+        def joined = new HierarchicalAttributeContainer(attributesFactory, fallback, primary)
 
         when:
         joined.attribute(one, "joined")
 
         then:
         joined.getAttribute(one) == "joined"
-        child.getAttribute(one) == "joined"
-        parent.getAttribute(one) == null
+        primary.getAttribute(one) == "joined"
+        fallback.getAttribute(one) == null
 
         when:
         joined.attributeProvider(two, Providers.of("joined-provider"))
 
         then:
         joined.getAttribute(two) == "joined-provider"
-        child.getAttribute(two) == "joined-provider"
-        parent.getAttribute(two) == null
+        primary.getAttribute(two) == "joined-provider"
+        fallback.getAttribute(two) == null
     }
 
     def "can chain joined containers"() {
         given:
-        def parent = mutable()
+        def fallback = mutable()
         def middle = mutable()
-        def child = mutable()
-        def chain = new HierarchicalAttributeContainer(attributesFactory, parent,
-            new HierarchicalAttributeContainer(attributesFactory, middle, child))
+        def primary = mutable()
+        def chain = new HierarchicalAttributeContainer(attributesFactory, fallback,
+            new HierarchicalAttributeContainer(attributesFactory, middle, primary))
 
         when:
-        parent.attribute(one, "parent")
+        fallback.attribute(one, "fallback")
 
         then:
-        chain.getAttribute(one) == "parent"
+        chain.getAttribute(one) == "fallback"
 
         when:
         middle.attribute(one, "middle")
@@ -162,13 +162,13 @@ class HierarchicalAttributeContainerTest extends Specification {
         chain.getAttribute(one) == "middle"
 
         when:
-        child.attributeProvider(one, Providers.of("child"))
+        primary.attributeProvider(one, Providers.of("primary"))
 
         then:
-        chain.getAttribute(one) == "child"
+        chain.getAttribute(one) == "primary"
     }
 
-    def "joined containers are equal if their parents and children are equal"() {
+    def "joined containers are equal if their fallbacks and primaryren are equal"() {
         given:
         def hasNone = mutable()
         def hasOne = mutable()
@@ -193,24 +193,24 @@ class HierarchicalAttributeContainerTest extends Specification {
 
     def "has useful toString"() {
         given:
-        def parent = mutable()
-        def child = mutable()
-        def joined = new HierarchicalAttributeContainer(attributesFactory, parent, child)
+        def fallback = mutable()
+        def primary = mutable()
+        def joined = new HierarchicalAttributeContainer(attributesFactory, fallback, primary)
 
         when:
-        parent.attribute(one, "parent")
-        parent.attribute(two, "parent")
-        child.attributeProvider(two, Providers.of("child"))
+        fallback.attribute(one, "fallback")
+        fallback.attribute(two, "fallback")
+        primary.attributeProvider(two, Providers.of("primary"))
 
         then:
-        joined.toString() == "{one=parent, two=child}"
+        joined.toString() == "{one=fallback, two=primary}"
     }
 
-    def "can inherit attributes from parent container"() {
+    def "can inherit attributes from fallback container"() {
         given:
-        def parent = mutable()
-        def child = mutable()
-        def joined = new HierarchicalAttributeContainer(attributesFactory, parent, child)
+        def fallback = mutable()
+        def primary = mutable()
+        def joined = new HierarchicalAttributeContainer(attributesFactory, fallback, primary)
 
         expect:
         joined.empty
@@ -220,43 +220,43 @@ class HierarchicalAttributeContainerTest extends Specification {
         joined.getAttribute(one) == null
 
         when:
-        parent.attribute(one, "parent")
+        fallback.attribute(one, "fallback")
 
         then:
         !joined.empty
         joined.keySet() == [one] as Set
         joined.contains(one)
-        joined.getAttribute(one) == "parent"
+        joined.getAttribute(one) == "fallback"
         joined.asImmutable().keySet() == [one] as Set
 
         when:
-        child.attribute(one, "child")
+        primary.attribute(one, "primary")
 
         then:
         !joined.empty
         joined.keySet() == [one] as Set
         joined.contains(one)
-        joined.getAttribute(one) == "child"
+        joined.getAttribute(one) == "primary"
         joined.asImmutable().keySet() == [one] as Set
 
         when:
-        child.attributeProvider(two, Providers.of("child"))
+        primary.attributeProvider(two, Providers.of("primary"))
 
         then:
         joined.keySet() == [one, two] as Set
-        joined.getAttribute(two) == "child"
+        joined.getAttribute(two) == "primary"
         joined.asImmutable().keySet() == [one, two] as Set
 
         when:
-        def child2 = mutable()
-        def joined2 = new HierarchicalAttributeContainer(attributesFactory, mutable(), child2)
-        child2.attribute(one, "child")
+        def primary2 = mutable()
+        def joined2 = new HierarchicalAttributeContainer(attributesFactory, mutable(), primary2)
+        primary2.attribute(one, "primary")
 
         then:
         !joined2.empty
         joined2.keySet() == [one] as Set
         joined2.contains(one)
-        joined2.getAttribute(one) == "child"
+        joined2.getAttribute(one) == "primary"
         joined2.asImmutable().keySet() == [one] as Set
     }
 }
