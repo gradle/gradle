@@ -196,6 +196,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
@@ -791,7 +792,7 @@ class DependencyManagementBuildScopeServices {
                 }
 
                 @Override
-                public Optional<ValidationResult> getValidationProblems() {
+                public ImmutableList<TypeValidationProblem> getValidationProblems() {
                     return context.getValidationProblems();
                 }
 

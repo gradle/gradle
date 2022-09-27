@@ -36,6 +36,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +74,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
         CachingState cachingState;
         if (!buildCache.isEnabled() && !buildScansEnabled) {
             cachingState = BUILD_CACHE_DISABLED_STATE;
-        } else if (context.getValidationProblems().isPresent()) {
+        } else if (!context.getValidationProblems().isEmpty()) {
             cachingState = VALIDATION_FAILED_STATE;
         } else {
             cachingState = context.getBeforeExecutionState()
@@ -133,7 +134,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
             }
 
             @Override
-            public Optional<ValidationResult> getValidationProblems() {
+            public ImmutableList<TypeValidationProblem> getValidationProblems() {
                 return context.getValidationProblems();
             }
 

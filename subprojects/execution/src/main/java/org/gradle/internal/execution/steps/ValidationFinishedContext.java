@@ -16,18 +16,12 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
-
-import java.util.Optional;
 
 public interface ValidationFinishedContext extends BeforeExecutionContext {
     /**
-     * Returns validation warnings or {@link Optional#empty()} if there were no validation problems.
+     * Returns the list of validation warnings encountered so far.
      */
-    Optional<ValidationResult> getValidationProblems();
-
-    interface ValidationResult {
-        ImmutableCollection<TypeValidationProblem> getWarnings();
-    }
+    ImmutableList<TypeValidationProblem> getValidationProblems();
 }
