@@ -117,8 +117,12 @@ public enum PropertyAccessorType {
         return null;
     }
 
+    /**
+     * Convenience method org.gradle.util.internal.VersionNumber#parse(String) is not available, therefore check {@link GroovySystem#getVersion()} directly.
+     * @return true if Groovy 3 is bundled, false otherwise
+     */
     private static boolean isGroovy3() {
-        return GroovySystem.getVersion().startsWith("3."); // FIXME total hack
+        return GroovySystem.getVersion().startsWith("3.");
     }
 
     public static PropertyAccessorType fromName(String methodName) {
