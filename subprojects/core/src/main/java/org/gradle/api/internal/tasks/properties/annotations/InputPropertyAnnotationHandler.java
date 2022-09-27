@@ -38,7 +38,7 @@ import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandlerSupport.validateUnsupportedPropertyValueTypes;
-import static org.gradle.internal.reflect.validation.Severity.WARNING;
+import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
@@ -79,7 +79,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
             validationContext.visitPropertyProblem(problem ->
                 problem.withId(ValidationProblemId.CANNOT_USE_OPTIONAL_ON_PRIMITIVE_TYPE)
-                    .reportAs(WARNING)
+                    .reportAs(ERROR)
                     .forProperty(propertyMetadata.getPropertyName())
                     .withDescription(() -> "of type " + valueType.getName() + " shouldn't be annotated with @Optional")
                     .happensBecause("Properties of primitive type cannot be optional")
@@ -99,7 +99,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
             validationContext.visitPropertyProblem(problem ->
                 problem.withId(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION)
                         .forProperty(propertyMetadata.getPropertyName())
-                        .reportAs(WARNING)
+                        .reportAs(ERROR)
                         .withDescription(() -> String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
                         .happensBecause(() -> "A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
                         .addPossibleSolution("Annotate with @InputFile for regular files")
@@ -116,7 +116,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
             validationContext.visitPropertyProblem(problem ->
                     problem.withId(ValidationProblemId.INCORRECT_USE_OF_INPUT_ANNOTATION)
                             .forProperty(propertyMetadata.getPropertyName())
-                            .reportAs(WARNING)
+                            .reportAs(ERROR)
                             .withDescription(() -> String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName()))
                             .happensBecause(() -> "A property of type '" + ModelType.of(valueType).getDisplayName() + "' annotated with @Input cannot determine how to interpret the file")
                             .addPossibleSolution("Annotate with @InputDirectory for directories")

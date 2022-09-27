@@ -21,7 +21,6 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import spock.lang.Issue
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
-import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
@@ -92,13 +91,13 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
                     property 'archiveFile'
                     propertyType 'RegularFileProperty'
                     includeLink()
-                }] = WARNING
+                }] = ERROR
                 messages[incorrectUseOfInputAnnotation {
                     type'org.springframework.boot.gradle.tasks.bundling.BootBuildImage'
                     property 'jar'
                     propertyType 'RegularFileProperty'
                     includeLink()
-                }] = WARNING
+                }] = ERROR
 
                 failsWith messages
             }
