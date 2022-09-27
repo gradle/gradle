@@ -162,7 +162,7 @@ public interface ProviderFactory {
      *
      * @param variableNamePrefix The prefix of the system property names
      * @return The provider. Never returns null.
-     * @since 7.6
+     * @since 8.0
      */
     @Incubating
     Provider<Map<String, String>> gradlePropertiesPrefixedBy(String variableNamePrefix);
@@ -173,7 +173,7 @@ public interface ProviderFactory {
      *
      * @param variableNamePrefix The prefix of the system property names
      * @return The provider. Never returns null.
-     * @since 7.6
+     * @since 8.0
      */
     @Incubating
     Provider<Map<String, String>> gradlePropertiesPrefixedBy(Provider<String> variableNamePrefix);
