@@ -81,12 +81,12 @@ class ExtraAttributeDisambiguationIntegrationTest extends AbstractIntegrationSpe
         file("other/build.gradle") << text
     }
 
-    def configurationResolved(String name) {
+    void assertConfigurationResolved(String name) {
         succeeds "consumeConfiguration"
         if (name == "runtimeElements") {
-            return outputContains("Resolved: [other.jar]")
+            outputContains("Resolved: [other.jar]")
         } else {
-            return outputContains("Resolved: [$name]")
+            outputContains("Resolved: [$name]")
         }
     }
 
@@ -143,7 +143,7 @@ class ExtraAttributeDisambiguationIntegrationTest extends AbstractIntegrationSpe
         """)
 
         expect:
-        configurationResolved("runtimeElements")
+        assertConfigurationResolved("runtimeElements")
     }
 
     def "Disambiguating on attribute defined after CompileView in precedence order succeeds -- with non-empty request attributes"() {
@@ -175,7 +175,7 @@ class ExtraAttributeDisambiguationIntegrationTest extends AbstractIntegrationSpe
         """)
 
         expect:
-        configurationResolved("another")
+        assertConfigurationResolved("another")
     }
 
     def "Disambiguating on custom attribute succeeds when both variants have identical ordered attributes"() {
@@ -217,7 +217,7 @@ class ExtraAttributeDisambiguationIntegrationTest extends AbstractIntegrationSpe
         """)
 
         expect:
-        configurationResolved("another")
+        assertConfigurationResolved("another")
     }
 
     def "Disambiguating on custom attribute succeeds when both variants have identical ordered attributes -- with non-empty request attributes"() {
@@ -273,6 +273,6 @@ class ExtraAttributeDisambiguationIntegrationTest extends AbstractIntegrationSpe
         """)
 
         expect:
-        configurationResolved("another")
+        assertConfigurationResolved("another")
     }
 }
