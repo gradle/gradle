@@ -16,6 +16,8 @@
 
 package org.gradle.internal.reflect;
 
+import groovy.lang.GroovySystem;
+
 import javax.annotation.Nullable;
 import java.beans.Introspector;
 import java.lang.reflect.Method;
@@ -104,8 +106,8 @@ public enum PropertyAccessorType {
             if (isGetGetterName(methodName)) {
                 return GET_GETTER;
             }
-            // is method that returns Boolean is not a getter according to JavaBeans, but include it for compatibility with Groovy
-            if (isIsGetterName(methodName) && (method.getReturnType().equals(Boolean.TYPE) || method.getReturnType().equals(Boolean.class))) {
+            // is method that returns Boolean is not a getter according to JavaBeans, but include it for compatibility with Groovy 3
+            if (isIsGetterName(methodName) && (method.getReturnType().equals(Boolean.TYPE) || (isGroovy3() && method.getReturnType().equals(Boolean.class)))) {
                 return IS_GETTER;
             }
         }
@@ -113,6 +115,10 @@ public enum PropertyAccessorType {
             return SETTER;
         }
         return null;
+    }
+
+    private static boolean isGroovy3() {
+        return GroovySystem.getVersion().startsWith("3."); // FIXME total hack
     }
 
     public static PropertyAccessorType fromName(String methodName) {
