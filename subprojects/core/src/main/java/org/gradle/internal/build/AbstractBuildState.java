@@ -73,6 +73,7 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     @Override
     public void resetState() {
         projectStateRegistry.get().resetState(this);
+        workGraphController.get().resetState();
         buildLifecycleController.get().resetState();
     }
 
