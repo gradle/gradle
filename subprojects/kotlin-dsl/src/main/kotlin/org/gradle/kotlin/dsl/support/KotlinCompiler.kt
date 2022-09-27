@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.SupportsKotlinAssignment
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 
@@ -63,11 +64,15 @@ import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
+import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 
-import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor.Companion.registerExtension
+import org.jetbrains.kotlin.extensions.internal.InternalNonStableExtensionPoints
 
 import org.jetbrains.kotlin.name.NameUtils
+import org.jetbrains.kotlin.resolve.extensions.AssignResolutionAltererExtension
 
+import org.jetbrains.kotlin.assignment.plugin.CliAssignPluginResolutionAltererExtension
+import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentContainerContributor
 import org.jetbrains.kotlin.samWithReceiver.CliSamWithReceiverComponentContributor
 
 import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
@@ -185,6 +190,7 @@ fun compileKotlinScriptModuleTo(
             val configuration = compilerConfigurationFor(messageCollector, jvmTarget).apply {
                 put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
+                put(IR, true)
                 setModuleName(moduleName)
                 addScriptingCompilerComponents()
                 addScriptDefinition(scriptDef)
@@ -194,6 +200,7 @@ fun compileKotlinScriptModuleTo(
 
             val environment = kotlinCoreEnvironmentFor(configuration).apply {
                 HasImplicitReceiverCompilerPlugin.apply(project)
+                KotlinAssignmentCompilerPlugin.apply(project)
             }
 
             compileBunchOfSources(environment)
@@ -204,10 +211,22 @@ fun compileKotlinScriptModuleTo(
 
 
 private
+object KotlinAssignmentCompilerPlugin {
+
+    @OptIn(InternalNonStableExtensionPoints::class)
+    fun apply(project: Project) {
+        val annotations = listOf(SupportsKotlinAssignment::class.qualifiedName!!)
+        AssignResolutionAltererExtension.Companion.registerExtension(project, CliAssignPluginResolutionAltererExtension(annotations))
+        StorageComponentContainerContributor.registerExtension(project, AssignmentComponentContainerContributor(annotations))
+    }
+}
+
+
+private
 object HasImplicitReceiverCompilerPlugin {
 
     fun apply(project: Project) {
-        registerExtension(project, samWithReceiverComponentContributor)
+        StorageComponentContainerContributor.registerExtension(project, samWithReceiverComponentContributor)
     }
 
     val samWithReceiverComponentContributor = CliSamWithReceiverComponentContributor(
