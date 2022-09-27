@@ -21,6 +21,7 @@ import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.internal.enterprise.impl.DefautGradleEnterprisePluginCheckInService
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
@@ -178,6 +179,41 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         runBuildWithScanRequest('-I', 'init.gradle')
+
+        then:
+        pluginAppliedOnce()
+
+        where:
+        sequence | version
+        "older"  | PLUGIN_MINIMUM_VERSION
+        "same"   | PLUGIN_AUTO_APPLY_VERSION
+        "newer"  | PLUGIN_NEWER_VERSION
+    }
+
+    def "uses #sequence version of plugin when applied transitively by custom settings plugin"() {
+        when:
+        fixture.runtimeVersion = version
+        fixture.artifactVersion = version
+
+        def pluginBuilder = new PluginBuilder(file("plugin"))
+        pluginBuilder.addPluginDependency(AutoAppliedGradleEnterprisePlugin.GROUP, AutoAppliedGradleEnterprisePlugin.NAME, version)
+        pluginBuilder.addSettingsPlugin('settings.getPluginManager().apply("com.gradle.enterprise");', "ge-including-plugin")
+        pluginBuilder.publishAs("com.example", "custom-settings-plugin", "1.0", mavenRepo, createExecuter())
+
+        // Gradle will attempt to resolve the auto-apply version range so make sure there's a plugin that fits that range.
+        if (version != AutoAppliedGradleEnterprisePlugin.VERSION) {
+            pluginBuilder.addUnloadablePlugin(AutoAppliedGradleEnterprisePlugin.ID.id)
+            pluginBuilder.publishAs(AutoAppliedGradleEnterprisePlugin.GROUP, AutoAppliedGradleEnterprisePlugin.NAME, AutoAppliedGradleEnterprisePlugin.VERSION, mavenRepo, createExecuter())
+        }
+
+        settingsFile << """
+plugins {
+  id 'ge-including-plugin' version '1.0'
+}
+"""
+
+        and:
+        runBuildWithScanRequest()
 
         then:
         pluginAppliedOnce()

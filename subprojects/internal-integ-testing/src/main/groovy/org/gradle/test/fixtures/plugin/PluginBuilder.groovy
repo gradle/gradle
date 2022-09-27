@@ -41,6 +41,7 @@ class PluginBuilder {
     String packageName = "org.gradle.test"
 
     final Map<String, String> pluginIds = [:]
+    final List<Map<String, String>> pluginDependencies = []
 
     PluginBuilder(TestFile projectDir) {
         this.projectDir = projectDir
@@ -110,6 +111,9 @@ class PluginBuilder {
 
         // The implementation jar module.
         def module = mavenRepo.module(group, artifact, version)
+        pluginDependencies.each { dep ->
+            module.dependsOn(dep['group'], dep['name'], dep['version'])
+        }
         def pluginModule = module.publish()
         def artifactFile = module.getArtifactFile()
 
@@ -132,6 +136,9 @@ class PluginBuilder {
 
         // The implementation jar module.
         def module = ivyRepo.module(omr.get(0), omr.get(1), omr.get(2))
+        pluginDependencies.each { dep ->
+            module.dependsOn(dep['group'], dep['name'], dep['version'])
+        }
         def artifactFile = module.artifact([:]).getJarFile()
         module.publish()
 
@@ -164,6 +171,11 @@ class PluginBuilder {
                 }
             }
         """
+    }
+
+    PluginBuilder addPluginDependency(String group, String name, String version) {
+        pluginDependencies << [group: group, name: name, version: version]
+        this
     }
 
     PluginBuilder addPluginSource(String id, String className, String impl) {
