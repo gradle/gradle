@@ -30,7 +30,8 @@ We would like to thank the following community members for their contributions t
 [Stephen Topley](https://github.com/stopley),
 [Victor Maldonado](https://github.com/vmmaldonadoz),
 [Vinay Potluri](https://github.com/vinaypotluri),
-[Jeff Gaston](https://github.com/mathjeff).
+[Jeff Gaston](https://github.com/mathjeff),
+[David Morris](https://github.com/codefish1).
 
 ## Upgrade instructions
 
