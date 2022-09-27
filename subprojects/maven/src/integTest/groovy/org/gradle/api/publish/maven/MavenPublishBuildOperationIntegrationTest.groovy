@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.internal.resource.ExternalResourceReadBuildOperationType
 import org.gradle.internal.resource.ExternalResourceWriteBuildOperationType
