@@ -303,25 +303,9 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         }
     }
 
-    private static class Problem implements Failure {
-        final String description;
-        final List<String> causes;
-
+    private static class Problem extends AbstractFailure {
         private Problem(String description, List<String> causes) {
-            this.description = description;
-            this.causes = causes;
-        }
-
-        @Override
-        public void assertHasCause(String message) {
-            if (!causes.contains(message)) {
-                throw new AssertionFailedError(String.format("Expected cause '%s' not found in %s", message, causes));
-            }
-        }
-
-        @Override
-        public void assertHasCauses(int count) {
-            assert causes.size() == count;
+            super(description, causes);
         }
     }
 }

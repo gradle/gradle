@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
@@ -61,7 +60,6 @@ class DefaultConfigurationCache internal constructor(
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val buildActionModelRequirements: BuildActionModelRequirements,
     private val buildStateRegistry: BuildStateRegistry,
-    private val projectStateRegistry: ProjectStateRegistry,
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationExecutor: BuildOperationExecutor,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController,
@@ -125,16 +123,21 @@ class DefaultConfigurationCache internal constructor(
         this.host = host
     }
 
-    override fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph): BuildTreeWorkGraph.FinalizedGraph {
+    override fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph): BuildTreeConfigurationCache.WorkGraphResult {
         return if (isLoaded) {
-            loadWorkGraph(graph)
+            val finalizedGraph = loadWorkGraph(graph)
+            BuildTreeConfigurationCache.WorkGraphResult(finalizedGraph, true)
         } else {
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
                 saveWorkGraph()
-                finalizedGraph
+                BuildTreeConfigurationCache.WorkGraphResult(finalizedGraph, false)
             }
         }
+    }
+
+    override fun loadRequestedTasks(graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
+        return loadWorkGraph(graph)
     }
 
     override fun maybePrepareModel(action: () -> Unit) {
