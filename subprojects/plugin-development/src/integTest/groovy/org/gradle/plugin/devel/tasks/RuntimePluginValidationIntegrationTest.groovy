@@ -187,12 +187,20 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         """
 
         expect:
+        executer.expectDeprecationWarning("Type 'MyTask' property 'file' has @Input annotation used on property of type 'File'. " +
+                "Reason: A property of type 'File' annotated with @Input cannot determine how to interpret the file.")
+        executer.expectDeprecationWarning("Type 'MyTask' property 'fileCollection' has @Input annotation used on property of type 'FileCollection'. " +
+                "Reason: A property of type 'FileCollection' annotated with @Input cannot determine how to interpret the file.")
+        executer.expectDeprecationWarning("Type 'MyTask' property 'filePath' has @Input annotation used on property of type 'Path'. " +
+                "Reason: A property of type 'Path' annotated with @Input cannot determine how to interpret the file.")
+        executer.expectDeprecationWarning("Type 'MyTask' property 'fileTree' has @Input annotation used on property of type 'FileTree'. " +
+                "Reason: A property of type 'FileTree' annotated with @Input cannot determine how to interpret the file.")
         executer.withArgument("-Dorg.gradle.internal.max.validation.errors=10")
         assertValidationFailsWith([
-                error(incorrectUseOfInputAnnotation { type('MyTask').property('file').propertyType('File') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
-                error(incorrectUseOfInputAnnotation { type('MyTask').property('fileCollection').propertyType('FileCollection') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
-                error(incorrectUseOfInputAnnotation { type('MyTask').property('filePath').propertyType('Path') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
-                error(incorrectUseOfInputAnnotation { type('MyTask').property('fileTree').propertyType('FileTree') }, 'validation_problems', 'incorrect_use_of_input_annotation'),
+
+                error(missingNormalizationStrategy { type('MyTask').property('inputDirectory').annotatedWith('InputDirectory') }, 'validation_problems', 'missing_normalization_annotation'),
+                error(missingNormalizationStrategy { type('MyTask').property('inputFile').annotatedWith('InputFile') }, 'validation_problems', 'missing_normalization_annotation'),
+                error(missingNormalizationStrategy { type('MyTask').property('inputFiles').annotatedWith('InputFiles') }, 'validation_problems', 'missing_normalization_annotation'),
         ])
     }
 
