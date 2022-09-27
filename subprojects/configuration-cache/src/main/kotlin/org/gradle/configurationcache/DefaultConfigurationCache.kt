@@ -112,11 +112,7 @@ class DefaultConfigurationCache internal constructor(
 
     override fun initializeCacheEntry() {
         cacheAction = determineCacheAction()
-        problems.action(cacheAction) {
-            store.useForStore { layout ->
-                invalidateConfigurationCacheState(layout)
-            }
-        }
+        problems.action(cacheAction)
     }
 
     override fun attachRootBuild(host: Host) {
@@ -126,12 +122,12 @@ class DefaultConfigurationCache internal constructor(
     override fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph): BuildTreeConfigurationCache.WorkGraphResult {
         return if (isLoaded) {
             val finalizedGraph = loadWorkGraph(graph)
-            BuildTreeConfigurationCache.WorkGraphResult(finalizedGraph, true)
+            BuildTreeConfigurationCache.WorkGraphResult(finalizedGraph, true, false)
         } else {
             runWorkThatContributesToCacheEntry {
                 val finalizedGraph = scheduler(graph)
                 saveWorkGraph()
-                BuildTreeConfigurationCache.WorkGraphResult(finalizedGraph, false)
+                BuildTreeConfigurationCache.WorkGraphResult(finalizedGraph, false, problems.shouldDiscardEntry)
             }
         }
     }
@@ -169,7 +165,11 @@ class DefaultConfigurationCache internal constructor(
     }
 
     override fun finalizeCacheEntry() {
-        if (hasSavedValues) {
+        if (problems.shouldDiscardEntry) {
+            store.useForStore { layout ->
+                layout.fileFor(StateType.Entry).delete()
+            }
+        } else if (hasSavedValues) {
             val reusedProjects = mutableSetOf<Path>()
             val updatedProjects = mutableSetOf<Path>()
             intermediateModels.value.visitProjects(reusedProjects::add, updatedProjects::add)
@@ -500,11 +500,6 @@ class DefaultConfigurationCache internal constructor(
     private
     fun unloadGradleProperties() {
         gradlePropertiesController.unloadGradleProperties()
-    }
-
-    private
-    fun invalidateConfigurationCacheState(layout: ConfigurationCacheRepository.Layout) {
-        layout.fileFor(StateType.Entry).delete()
     }
 
     private
