@@ -108,8 +108,10 @@
          </trusted-key>
          <trusted-key id="31fae244a81d64507b47182e1b2718089ce964b8" group="com.thoughtworks.qdox"/>
          <trusted-key id="34441e504a937f43eb0daef96a65176a0fb1cd0b">
-            <trusting group="org.codehaus.groovy"/>
+            <trusting group="org.apache.groovy"/>
             <trusting group="org.codehaus.groovy" name="groovy"/>
+            <trusting group="org.codehaus.groovy"/>
+            <trusting group="org.apache.groovy" name="groovy"/>
          </trusted-key>
          <trusted-key id="34d6ff19930adf43ac127792a50569c7ca7fa1f0" group="com.jcraft"/>
          <trusted-key id="36390de6a0e61ee4c7b4ba02c1d3063467f1ebd1" group="org.asciidoctor"/>
@@ -992,6 +994,11 @@
             <pgp value="2c1708ea05adf6966c32d6454a1bac7f1e3b89b3"/>
          </artifact>
       </component>
+      <component group="org.abego.treelayout" name="org.abego.treelayout.core" version="1.0.3">
+         <artifact name="org.abego.treelayout.core-1.0.3.jar">
+            <pgp value="d790f72ea8fd39551012b62dcf9f3090ce4cb752"/>
+         </artifact>
+      </component>
       <component group="org.antlr" name="antlr4-runtime" version="4.5.2-1">
          <artifact name="antlr4-runtime-4.5.2-1.jar">
             <pgp value="d54a395b5cf3f86eb45f6e426b1b008864323b92"/>
@@ -1025,6 +1032,11 @@
       <component group="org.apache.ivy" name="ivy" version="2.3.0">
          <artifact name="ivy-2.3.0.jar">
             <pgp value="9c60c6b3a5a9df8fedd299d65be0ba8cb80602ae"/>
+         </artifact>
+      </component>
+      <component group="org.apache.ivy" name="ivy" version="2.5.0">
+         <artifact name="ivy-2.5.0.jar">
+            <pgp value="8da70c00df7af1b0d2f9dc74ddbcc1270a29d081"/>
          </artifact>
       </component>
       <component group="org.apache.maven" name="maven-model" version="3.0.4">
