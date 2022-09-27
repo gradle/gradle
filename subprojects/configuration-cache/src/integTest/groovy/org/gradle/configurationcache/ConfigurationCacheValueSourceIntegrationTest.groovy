@@ -16,13 +16,14 @@
 
 package org.gradle.configurationcache
 
+import spock.lang.Issue
+
 class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-
     def "value source without parameters can be used as task input"() {
-         given:
-         def configurationCache = newConfigurationCacheFixture()
+        given:
+        def configurationCache = newConfigurationCacheFixture()
 
-         buildFile("""
+        buildFile("""
             import org.gradle.api.provider.*
 
             abstract class GreetValueSource implements ValueSource<String, ValueSourceParameters.None> {
@@ -53,6 +54,56 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
 
         when:
         configurationCacheRun "greet"
+
+        then:
+        configurationCache.assertStateLoaded()
+        output.contains("Hello!")
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/22215')
+    def 'value source without parameters can be used as nested task input'() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildFile '''
+            import org.gradle.api.provider.*
+
+            class Greeting {
+                @Input String message
+            }
+
+            abstract class GreetValueSource implements ValueSource<Greeting, ValueSourceParameters.None> {
+                Greeting obtain() {
+                    new Greeting().tap {
+                        message = System.getProperty('org.acme.greeting')
+                    }
+                }
+            }
+
+            abstract class MyTask extends DefaultTask {
+
+                @Nested
+                abstract Property<Greeting> getGreeting()
+
+                @TaskAction
+                void run() {
+                    println "${greeting.get().message}!"
+                }
+            }
+
+            tasks.register("greet", MyTask) {
+                greeting = providers.of(GreetValueSource) {}
+            }
+        '''
+        when:
+        configurationCacheRun 'greet', '-Dorg.acme.greeting=Hi'
+
+        then:
+        configurationCache.assertStateStored()
+        output.contains("Hi!")
+
+        when:
+        configurationCacheRun 'greet', '-Dorg.acme.greeting=Hello'
 
         then:
         configurationCache.assertStateLoaded()
