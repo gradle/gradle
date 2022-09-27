@@ -1,6 +1,6 @@
-> Task :buildSrc:pluginUnderTestMetadata UP-TO-DATE
 > Task :buildSrc:compileTestJava NO-SOURCE
 > Task :buildSrc:compileTestGroovy NO-SOURCE
+> Task :buildSrc:pluginUnderTestMetadata UP-TO-DATE
 > Task :buildSrc:processTestResources NO-SOURCE
 > Task :buildSrc:testClasses UP-TO-DATE
 > Task :buildSrc:test NO-SOURCE
