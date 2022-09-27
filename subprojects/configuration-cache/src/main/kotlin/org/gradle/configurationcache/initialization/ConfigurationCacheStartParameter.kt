@@ -34,7 +34,7 @@ class ConfigurationCacheStartParameter(
     private val startParameter: StartParameterInternal,
     options: InternalOptions
 ) {
-    val loadAfterStore = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.load-after-store")).get()
+    val loadAfterStore: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)).get()
 
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
