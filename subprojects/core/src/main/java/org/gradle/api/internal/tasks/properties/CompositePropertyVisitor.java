@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.api.provider.Provider;
+import org.gradle.api.services.BuildService;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
@@ -80,6 +82,13 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     public void visitLocalStateProperty(Object value) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitLocalStateProperty(value);
+        }
+    }
+
+    @Override
+    public void visitServiceReference(Provider<? extends BuildService<?>> value, String name) {
+        for (PropertyVisitor visitor : visitors) {
+            visitor.visitServiceReference(value, name);
         }
     }
 }

@@ -654,11 +654,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         public boolean hasAnnotation(Class<? extends Annotation> type) {
-            if (backingField != null && backingField.getAnnotation(type) != null) {
-                return true;
-            } else {
-                return mainGetter.method.getAnnotation(type) != null;
+            return getAnnotation(type) != null;
+        }
+
+        public <A extends Annotation> A getAnnotation(Class<A> type) {
+            Annotation annotation = null;
+            if (backingField == null || (annotation = backingField.getAnnotation(type)) == null) {
+                annotation = mainGetter.method.getAnnotation(type);
             }
+            return Cast.uncheckedCast(annotation);
         }
 
         public MethodMetadata getMainGetter() {
