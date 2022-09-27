@@ -77,12 +77,28 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         validatePlugins {
             onPlugin(pluginId) {
+                // This is not a problem, since this task type is only used for Gradle versions < 6.4.
+                // See https://github.com/spring-projects/spring-boot/blob/038ae9340644f0128ed6f29d9e5eb7e6c359f291/spring-boot-project/spring-boot-tools/spring-boot-gradle-plugin/src/main/java/org/springframework/boot/gradle/plugin/ApplicationPluginAction.java#L85
+                messages[incompatibleAnnotations {
+                    type'org.springframework.boot.gradle.tasks.application.CreateBootStartScripts'
+                    property 'mainClassName'
+                    annotatedWith 'Optional'
+                    incompatibleWith 'ReplacedBy'
+                    includeLink()
+                }] = ERROR
+
                 messages[incorrectUseOfInputAnnotation {
                     type'org.springframework.boot.gradle.tasks.bundling.BootBuildImage'
                     property 'archiveFile'
                     propertyType 'RegularFileProperty'
                     includeLink()
-                }] = ERROR
+                }] = WARNING
+                messages[incorrectUseOfInputAnnotation {
+                    type'org.springframework.boot.gradle.tasks.bundling.BootBuildImage'
+                    property 'jar'
+                    propertyType 'RegularFileProperty'
+                    includeLink()
+                }] = WARNING
 
                 failsWith messages
             }
