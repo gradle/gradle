@@ -27,7 +27,6 @@ import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 public abstract class AbstractProperty<T, S extends ValueSupplier> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private static final FinalizedValue<Object> FINALIZED_VALUE = new FinalizedValue<>();
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");

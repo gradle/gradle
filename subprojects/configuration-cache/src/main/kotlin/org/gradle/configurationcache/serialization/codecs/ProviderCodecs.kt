@@ -36,6 +36,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.services.internal.BuildServiceDetails
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.configurationcache.extensions.serviceOf
@@ -162,14 +163,12 @@ class BuildServiceProviderCodec(
 
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
         encodePreservingSharedIdentityOf(value) {
-            val buildIdentifier = value.buildIdentifier
-            write(buildIdentifier)
-            writeString(value.name)
-            writeClass(value.implementationType)
-            write(value.parameters)
-            writeInt(
-                buildServiceRegistryOf(buildIdentifier).forService(value).maxUsages
-            )
+            val serviceDetails: BuildServiceDetails<*, *> = value.serviceDetails
+            write(serviceDetails.buildIdentifier)
+            writeString(serviceDetails.name)
+            writeClass(serviceDetails.implementationType)
+            write(serviceDetails.parameters)
+            writeInt(serviceDetails.maxUsages)
         }
     }
 

@@ -21,8 +21,13 @@ import org.gradle.BuildResult
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.component.BuildIdentifier
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.services.BuildServiceRegistry
+import org.gradle.api.services.ServiceReference
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.service.scopes.Scopes
@@ -315,6 +320,23 @@ class DefaultBuildServicesRegistryTest extends Specification {
         registry.forService(service).maxUsages == 42
     }
 
+    def "applies built-in convention to service references"() {
+        given:
+        def services = TestUtil.createTestServices { registrations ->
+            registrations.addProvider(new Object() {
+                BuildServiceRegistry createBuildServiceRegistry() {
+                    return DefaultBuildServicesRegistryTest.this.registry
+                }
+            })
+        }
+        def bean = services.get(ObjectFactory).newInstance(BeanWithBuildServiceProperty.class)
+        Provider<NoParamsServiceImpl> registration = registry.registerIfAbsent("helloService", NoParamsServiceImpl) {}
+        NoParamsServiceImpl service = registration.get()
+        expect:
+        services.get(BuildServiceRegistry) == registry
+        bean.getHello().getOrNull() == service
+    }
+
     private buildFinished() {
         listenerManager.getBroadcaster(BuildListener).buildFinished(Stub(BuildResult))
     }
@@ -371,5 +393,10 @@ class DefaultBuildServicesRegistryTest extends Specification {
             attempts++
             throw failure
         }
+    }
+
+    static abstract class BeanWithBuildServiceProperty {
+        @ServiceReference("helloService")
+        abstract Property<NoParamsServiceImpl> getHello();
     }
 }

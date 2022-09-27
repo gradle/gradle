@@ -67,6 +67,7 @@ class DefaultTaskInputsTest extends Specification {
         getOutputs() >> Stub(TaskOutputsInternal)
         getDestroyables() >> Stub(TaskDestroyablesInternal)
         getLocalState() >> Stub(TaskLocalStateInternal)
+        getRequiredServices() >> Stub(TaskRequiredServices)
     }
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(

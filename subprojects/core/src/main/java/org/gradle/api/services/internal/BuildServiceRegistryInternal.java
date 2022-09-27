@@ -20,11 +20,14 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistry;
+import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.SharedResource;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Set;
 
 @ServiceScope(Scopes.Gradle.class)
 public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
@@ -33,10 +36,13 @@ public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
      */
     BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages);
 
-    SharedResource forService(Provider<? extends BuildService<?>> service);
+    @Nullable
+    SharedResource forService(BuildServiceProvider<?, ?> service);
 
     /**
      * Discards all registered services.
      */
     void discardAll();
+
+    List<ResourceLock> getSharedResources(Set<Provider<? extends BuildService<?>>> services);
 }

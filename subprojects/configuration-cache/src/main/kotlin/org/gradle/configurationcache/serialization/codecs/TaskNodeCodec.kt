@@ -170,7 +170,7 @@ class TaskNodeCodec(
 
     private
     suspend fun WriteContext.writeRegisteredServicesOf(task: TaskInternal) {
-        writeCollection(task.requiredServices)
+        writeCollection(task.requiredServices.requiredServices)
     }
 
     private
