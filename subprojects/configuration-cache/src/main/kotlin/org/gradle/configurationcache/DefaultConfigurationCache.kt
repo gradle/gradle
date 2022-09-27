@@ -137,7 +137,6 @@ class DefaultConfigurationCache internal constructor(
     }
 
     override fun loadRequestedTasks(graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
-        require(isLoaded)
         return loadWorkGraph(graph)
     }
 
