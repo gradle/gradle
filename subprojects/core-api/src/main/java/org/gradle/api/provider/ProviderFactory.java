@@ -160,7 +160,7 @@ public interface ProviderFactory {
      * Creates a {@link Provider} whose value is a name-to-value map of the Gradle properties with the names starting with the given prefix.
      * The prefix comparison is case-sensitive. The returned map is immutable.
      *
-     * @param variableNamePrefix The prefix of the system property names
+     * @param variableNamePrefix The prefix of the Gradle property names
      * @return The provider. Never returns null.
      * @since 8.0
      */
@@ -171,7 +171,7 @@ public interface ProviderFactory {
      * Creates a {@link Provider} whose value is a name-to-value map of the Gradle properties with the names starting with the given prefix.
      * The prefix comparison is case-sensitive. The returned map is immutable.
      *
-     * @param variableNamePrefix The prefix of the system property names
+     * @param variableNamePrefix The prefix of the Gradle property names
      * @return The provider. Never returns null.
      * @since 8.0
      */
