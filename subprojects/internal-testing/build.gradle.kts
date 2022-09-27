@@ -24,6 +24,7 @@ dependencies {
     implementation(libs.spockJUnit4)
     implementation(libs.jsoup)
     implementation(libs.testcontainersSpock)
+    implementation(libs.gradleEnterpriseTestAnnotation)
 
     runtimeOnly(libs.bytebuddy)
 }
