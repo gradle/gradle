@@ -72,9 +72,13 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
     }
 
     private static PluginRequestInternal createGradleEnterprisePluginRequest() {
+        // We use a version range here so that a user-provided version will be preferred (as long as it falls in the range).
+        // Without this, adding `--scan` to the command line can result in a different GE plugin being used.
+        String gePluginVersionRange = "(," + AutoAppliedGradleEnterprisePlugin.VERSION + "]";
+
         ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedGradleEnterprisePlugin.GROUP, AutoAppliedGradleEnterprisePlugin.NAME);
-        ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, AutoAppliedGradleEnterprisePlugin.VERSION);
-        return new DefaultPluginRequest(AutoAppliedGradleEnterprisePlugin.ID, AutoAppliedGradleEnterprisePlugin.VERSION, true, null, getScriptDisplayName(), artifact);
+        ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, gePluginVersionRange);
+        return new DefaultPluginRequest(AutoAppliedGradleEnterprisePlugin.ID, gePluginVersionRange, true, null, getScriptDisplayName(), artifact);
     }
 
     private static String getScriptDisplayName() {
