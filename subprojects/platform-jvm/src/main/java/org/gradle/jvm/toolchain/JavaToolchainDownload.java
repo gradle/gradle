@@ -14,22 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.api.toolchain.management;
+package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.plugins.ExtensionAware;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainDownload;
+
+import java.net.URI;
 
 /**
- * Configures how toolchains are resolved.
+ * The response provided by a {@link JavaToolchainResolver} to a specific
+ * {@link JavaToolchainRequest}.
  * <p>
- * <code>ToolchainManagement</code> is extended by plugins to support different ecosystems.
- * <p>
- * One option available at present is using the <code>jvm-toolchain-management</code> plugin, which
- * adds a <code>jvm</code> block to it, allowing for the configuration of toolchains used in the
- * JVM ecosystem.
+ * Contains the download URI from which a Java toolchain matching the request
+ * can be downloaded from. The URI must point to either a ZIP or a TAR archive
+ * and has to be secure (so simple HTTP is not allowed, only HTTPS).
  *
  * @since 7.6
  */
 @Incubating
-public interface ToolchainManagement extends ExtensionAware {
+public interface JavaToolchainDownload {
+
+    URI getUri();
+
+    static JavaToolchainDownload fromUri(URI uri) {
+        return DefaultJavaToolchainDownload.fromUri(uri);
+    }
+
 }
