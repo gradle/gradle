@@ -21,7 +21,6 @@ import org.gradle.buildinit.plugins.internal.model.Description;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
-import org.gradle.util.internal.VersionNumber;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -198,7 +197,9 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
 
     private void addStandardDependencies(BuildScriptBuilder buildScriptBuilder, boolean constraintsDefined) {
         if (getLanguage() == Language.GROOVY) {
-            buildScriptBuilder.implementationDependency("Use the latest Groovy version for building this library", getGroovyDependency(constraintsDefined));
+            String groovyVersion = libraryVersionProvider.getVersion("groovy");
+            String groovyAllCoordinates = groovyGroupName(groovyVersion) + ":" + (constraintsDefined ? "groovy-all" : "groovy-all:" + groovyVersion);
+            buildScriptBuilder.implementationDependency("Use the latest Groovy version for building this library", groovyAllCoordinates);
         }
         if (getLanguage() == Language.SCALA) {
             String scalaVersion = libraryVersionProvider.getVersion("scala");
@@ -213,21 +214,12 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         buildScriptBuilder.implementationDependencyConstraint("Define dependency versions as constraints", "org.apache.commons:commons-text:" + commonsTextVersion);
 
         if (getLanguage() == Language.GROOVY) {
-            buildScriptBuilder.implementationDependencyConstraint(null, getGroovyDependency(false));
+            buildScriptBuilder.implementationDependencyConstraint(null, groovyModuleDependency("groovy-all", libraryVersionProvider.getVersion("groovy")));
         }
         if (getLanguage() == Language.SCALA) {
             String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
             buildScriptBuilder.implementationDependencyConstraint(null, "org.scala-lang:scala-library:" + scalaLibraryVersion);
         }
-    }
-
-    // TODO Use Groovy 4's groovy-all as a platform instead?
-    private String getGroovyDependency(boolean constraintsDefined) {
-        String groovyVersion = libraryVersionProvider.getVersion("groovy");
-        String groovyModule = VersionNumber.parse(groovyVersion).getMajor() >= 4
-            ? "groovy"
-            : "groovy-all";
-        return groovyGroupName(groovyVersion) + ":" + (constraintsDefined ? groovyModule : groovyModule + ":" + groovyVersion);
     }
 
     private void addTestFramework(BuildInitTestFramework testFramework, BuildScriptBuilder buildScriptBuilder) {
