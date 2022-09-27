@@ -40,6 +40,8 @@ public interface Transformer extends Describable, TaskDependencyContainer {
 
     ImmutableAttributes getFromAttributes();
 
+    ImmutableAttributes getToAttributes();
+
     /**
      * Whether the transformer requires dependencies of the transformed artifact to be injected.
      */

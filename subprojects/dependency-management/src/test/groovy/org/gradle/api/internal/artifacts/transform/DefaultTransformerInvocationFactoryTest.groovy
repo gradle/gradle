@@ -187,6 +187,11 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         @Override
+        ImmutableAttributes getToAttributes() {
+            return ImmutableAttributes.EMPTY
+        }
+
+        @Override
         boolean requiresDependencies() {
             return false
         }
