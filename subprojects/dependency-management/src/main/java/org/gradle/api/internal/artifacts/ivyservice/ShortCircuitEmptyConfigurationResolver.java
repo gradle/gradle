@@ -118,7 +118,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
         private static final EmptyResults INSTANCE = new EmptyResults();
 
         @Override
-        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant) {
+        public SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant, boolean selectFromAllVariants) {
             return this;
         }
 

@@ -21,7 +21,6 @@ import groovy.xml.XmlParser
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
-import org.gradle.api.attributes.CompileView
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -53,7 +52,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     int publishCount = 1
     private boolean hasPom = true
     private boolean gradleMetadataRedirect = false
-    private final List<VariantMetadataSpec> variants = [new VariantMetadataSpec("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (CompileView.VIEW_ATTRIBUTE.name): CompileView.JAVA_COMPLETE, (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): LibraryElements.JAR, (Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY]),
+    private final List<VariantMetadataSpec> variants = [new VariantMetadataSpec("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): LibraryElements.JAR, (Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY]),
                                                         new VariantMetadataSpec("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): LibraryElements.JAR, (Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY])]
     private final List dependencies = []
     private Map<String, ?> mainArtifact = [:]

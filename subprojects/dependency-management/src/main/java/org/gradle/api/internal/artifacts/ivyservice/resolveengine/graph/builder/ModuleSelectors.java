@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
-import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import javax.annotation.Nullable;
@@ -32,33 +31,58 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Function;
 
 public class ModuleSelectors<T extends ResolvableSelectorState> implements Iterable<T> {
 
     private final Version emptyVersion;
 
-    private static <T, U extends Comparable<? super U>> Comparator<T> reverse(
-        Function<? super T, ? extends U> keyExtractor) {
-        return Cast.uncheckedCast(Comparator.comparing(keyExtractor).reversed());
-    }
-
     private final VersionParser versionParser;
     private final List<T> selectors = Lists.newArrayList();
     private boolean deferSelection;
     private boolean forced;
-    final Comparator<ResolvableSelectorState> selectorComparator;
+    private final Comparator<ResolvableSelectorState> selectorComparator;
 
     public ModuleSelectors(Comparator<Version> versionComparator, VersionParser versionParser) {
         this.versionParser = versionParser;
         this.emptyVersion = versionParser.transform("");
-        Comparator<Version> reversed = versionComparator.reversed();
-        selectorComparator = reverse(ResolvableSelectorState::isProject)
-            .thenComparing(reverse(ResolvableSelectorState::isFromLock))
-            .thenComparing(reverse(ModuleSelectors::hasLatestSelector))
-            .thenComparing(ModuleSelectors::isDynamicSelector)
-            .thenComparing(this::requiredVersion, reversed)
-            .thenComparing(this::preferredVersion, reversed);
+        this.selectorComparator = new SelectorComparator(versionComparator);
+    }
+
+    private class SelectorComparator implements Comparator<ResolvableSelectorState> {
+        private final Comparator<Version> versionComparator;
+
+        private SelectorComparator(Comparator<Version> versionComparator) {
+            this.versionComparator = versionComparator;
+        }
+
+        @Override
+        public int compare(ResolvableSelectorState left, ResolvableSelectorState right) {
+            if (right.isProject() == left.isProject()) {
+                if (right.isFromLock() == left.isFromLock()) {
+                    if (hasLatestSelector(right) == hasLatestSelector(left)) {
+                        if (isDynamicSelector(right) == isDynamicSelector(left)) {
+                            Version o1RequiredVersion = ModuleSelectors.this.requiredVersion(right);
+                            Version o2RequiredVersion = ModuleSelectors.this.requiredVersion(left);
+                            int compareRequiredVersion = versionComparator.compare(o1RequiredVersion, o2RequiredVersion);
+                            if (compareRequiredVersion == 0) {
+                                Version o1Version = ModuleSelectors.this.preferredVersion(right);
+                                Version o2Version = ModuleSelectors.this.preferredVersion(left);
+                                return versionComparator.compare(o1Version, o2Version);
+                            } else {
+                                return compareRequiredVersion;
+                            }
+                        } else {
+                            return Boolean.compare(isDynamicSelector(left), isDynamicSelector(right));
+                        }
+                    } else {
+                        return Boolean.compare(hasLatestSelector(right), hasLatestSelector(left));
+                    }
+                } else {
+                    return Boolean.compare(right.isFromLock(), left.isFromLock());
+                }
+            }
+            return Boolean.compare(right.isProject(), left.isProject());
+        }
     }
 
     public boolean checkDeferSelection() {
