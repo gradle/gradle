@@ -39,8 +39,8 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
     def inputChanges = Mock(InputChangesInternal)
 
     @Override
-    protected ChangingOutputsContext createContext() {
-        Stub(ChangingOutputsContext)
+    Class<ChangingOutputsContext> getContextType() {
+        ChangingOutputsContext
     }
 
     def setup() {

@@ -28,8 +28,8 @@ class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
     def step = new ResolveCachingStateStep(buildCache, true, delegate)
 
     @Override
-    protected ValidationFinishedContext createContext() {
-        Stub(ValidationFinishedContext)
+    Class<ValidationFinishedContext> getContextType() {
+        ValidationFinishedContext
     }
 
     def "build cache disabled reason is reported when build cache is disabled"() {

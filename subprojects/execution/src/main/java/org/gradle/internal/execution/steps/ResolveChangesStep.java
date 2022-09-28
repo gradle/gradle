@@ -18,29 +18,18 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
-import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.DefaultIncrementalInputProperties;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.IncrementalInputProperties;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.reflect.validation.TypeValidationProblem;
-import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.io.File;
-import java.util.Optional;
 
 import static org.gradle.internal.execution.history.changes.ExecutionStateChanges.nonIncremental;
 
@@ -65,12 +54,12 @@ public class ResolveChangesStep<C extends CachingContext, R extends Result> impl
     public R execute(UnitOfWork work, C context) {
         IncrementalChangesContext delegateContext = context.getBeforeExecutionState()
             .map(beforeExecution -> resolveExecutionStateChanges(work, context, beforeExecution))
-            .map(changes -> createDelegateContext(context, changes.getChangeDescriptions(), changes))
+            .map(changes -> new IncrementalChangesContext(context, changes.getChangeDescriptions(), changes))
             .orElseGet(() -> {
                 ImmutableList<String> rebuildReason = context.getNonIncrementalReason()
                     .map(ImmutableList::of)
                     .orElse(UNTRACKED);
-                return createDelegateContext(context, rebuildReason, null);
+                return new IncrementalChangesContext(context, rebuildReason, null);
             });
 
         return delegate.execute(work, delegateContext);
@@ -115,74 +104,5 @@ public class ResolveChangesStep<C extends CachingContext, R extends Result> impl
             default:
                 throw new AssertionError();
         }
-    }
-
-    private static IncrementalChangesContext createDelegateContext(CachingContext context, ImmutableList<String> rebuildReasons, @Nullable ExecutionStateChanges changes) {
-        return new IncrementalChangesContext() {
-            @Override
-            public ImmutableList<String> getRebuildReasons() {
-                return rebuildReasons;
-            }
-
-            @Override
-            public Optional<ExecutionStateChanges> getChanges() {
-                return Optional.ofNullable(changes);
-            }
-
-            @Override
-            public CachingState getCachingState() {
-                return context.getCachingState();
-            }
-
-            @Override
-            public Optional<String> getNonIncrementalReason() {
-                return context.getNonIncrementalReason();
-            }
-
-            @Override
-            public WorkValidationContext getValidationContext() {
-                return context.getValidationContext();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                return context.getInputProperties();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                return context.getInputFileProperties();
-            }
-
-            @Override
-            public UnitOfWork.Identity getIdentity() {
-                return context.getIdentity();
-            }
-
-            @Override
-            public File getWorkspace() {
-                return context.getWorkspace();
-            }
-
-            @Override
-            public Optional<ExecutionHistoryStore> getHistory() {
-                return context.getHistory();
-            }
-
-            @Override
-            public Optional<PreviousExecutionState> getPreviousExecutionState() {
-                return context.getPreviousExecutionState();
-            }
-
-            @Override
-            public ImmutableList<TypeValidationProblem> getValidationProblems() {
-                return context.getValidationProblems();
-            }
-
-            @Override
-            public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                return context.getBeforeExecutionState();
-            }
-        };
     }
 }

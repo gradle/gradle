@@ -24,22 +24,16 @@ import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
 import org.gradle.internal.file.TreeType;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
@@ -121,7 +115,7 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
         ImmutableList<String> outputsToBeChanged = builder.build();
         outputChangeListener.invalidateCachesFor(outputsToBeChanged);
         try {
-            return delegate.execute(work, wrapInChangesOutputsContext(context));
+            return delegate.execute(work, new ChangingOutputsContext(context));
         } finally {
             outputChangeListener.invalidateCachesFor(outputsToBeChanged);
         }
@@ -165,70 +159,6 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
         } else {
             return unfilteredOutputSnapshotsAfterExecution;
         }
-    }
-
-    private ChangingOutputsContext wrapInChangesOutputsContext(C context) {
-        return new ChangingOutputsContext() {
-            @Override
-            public File getWorkspace() {
-                return context.getWorkspace();
-            }
-
-            @Override
-            public Optional<ExecutionHistoryStore> getHistory() {
-                return context.getHistory();
-            }
-
-            @Override
-            public ImmutableList<TypeValidationProblem> getValidationProblems() {
-                return context.getValidationProblems();
-            }
-
-            @Override
-            public Optional<PreviousExecutionState> getPreviousExecutionState() {
-                return context.getPreviousExecutionState();
-            }
-
-            @Override
-            public Optional<InputChangesInternal> getInputChanges() {
-                return context.getInputChanges();
-            }
-
-            @Override
-            public boolean isIncrementalExecution() {
-                return context.isIncrementalExecution();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                return context.getInputProperties();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                return context.getInputFileProperties();
-            }
-
-            @Override
-            public UnitOfWork.Identity getIdentity() {
-                return context.getIdentity();
-            }
-
-            @Override
-            public Optional<String> getNonIncrementalReason() {
-                return context.getNonIncrementalReason();
-            }
-
-            @Override
-            public WorkValidationContext getValidationContext() {
-                return context.getValidationContext();
-            }
-
-            @Override
-            public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                return context.getBeforeExecutionState();
-            }
-        };
     }
 
     /*

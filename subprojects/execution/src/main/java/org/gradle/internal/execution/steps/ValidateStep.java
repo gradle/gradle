@@ -18,23 +18,18 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.reflect.validation.ValidationProblemBuilder;
-import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -42,11 +37,9 @@ import org.gradle.problems.BaseProblem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -98,57 +91,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             virtualFileSystem.invalidateAll();
         }
 
-        return delegate.execute(work, new ValidationFinishedContext() {
-            @Override
-            public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                return context.getBeforeExecutionState();
-            }
-
-            @Override
-            public ImmutableList<TypeValidationProblem> getValidationProblems() {
-                return warnings;
-            }
-
-            @Override
-            public Optional<PreviousExecutionState> getPreviousExecutionState() {
-                return context.getPreviousExecutionState();
-            }
-
-            @Override
-            public File getWorkspace() {
-                return context.getWorkspace();
-            }
-
-            @Override
-            public Optional<ExecutionHistoryStore> getHistory() {
-                return context.getHistory();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                return context.getInputProperties();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                return context.getInputFileProperties();
-            }
-
-            @Override
-            public UnitOfWork.Identity getIdentity() {
-                return context.getIdentity();
-            }
-
-            @Override
-            public Optional<String> getNonIncrementalReason() {
-                return context.getNonIncrementalReason();
-            }
-
-            @Override
-            public WorkValidationContext getValidationContext() {
-                return context.getValidationContext();
-            }
-        });
+        return delegate.execute(work, new ValidationFinishedContext(context, warnings));
     }
 
     private void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {

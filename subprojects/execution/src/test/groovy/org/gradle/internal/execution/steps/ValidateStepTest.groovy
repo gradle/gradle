@@ -38,11 +38,13 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
     def delegateResult = Mock(Result)
 
     @Override
-    protected BeforeExecutionContext createContext() {
+    Class<BeforeExecutionContext> getContextType() {
+        BeforeExecutionContext
+    }
+
+    def setup() {
         def validationContext = new DefaultWorkValidationContext(new DocumentationRegistry(), WorkValidationContext.TypeOriginInspector.NO_OP)
-        return Stub(BeforeExecutionContext) {
-            getValidationContext() >> validationContext
-        }
+        context.getValidationContext() >> validationContext
     }
 
     def "executes work when there are no violations"() {

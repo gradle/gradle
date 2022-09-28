@@ -30,8 +30,8 @@ class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
     def step = new IdentifyStep<>(delegate)
 
     @Override
-    protected ExecutionRequestContext createContext() {
-        Stub(ExecutionRequestContext)
+    Class<ExecutionRequestContext> getContextType() {
+        ExecutionRequestContext
     }
 
     def "delegates with assigned workspace"() {

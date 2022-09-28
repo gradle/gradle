@@ -19,9 +19,23 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
 
-public interface ValidationFinishedContext extends BeforeExecutionContext {
+public class ValidationFinishedContext extends BeforeExecutionContext {
+
+    private final ImmutableList<TypeValidationProblem> validationProblems;
+
+    public ValidationFinishedContext(BeforeExecutionContext parent, ImmutableList<TypeValidationProblem> validationProblems) {
+        super(parent);
+        this.validationProblems = validationProblems;
+    }
+
+    protected ValidationFinishedContext(ValidationFinishedContext parent) {
+        this(parent, parent.getValidationProblems());
+    }
+
     /**
      * Returns the list of validation warnings encountered so far.
      */
-    ImmutableList<TypeValidationProblem> getValidationProblems();
+    public ImmutableList<TypeValidationProblem> getValidationProblems() {
+        return validationProblems;
+    }
 }

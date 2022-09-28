@@ -25,8 +25,8 @@ class AssignWorkspaceStepTest extends StepSpec<IdentityContext> {
     def step = new AssignWorkspaceStep<>(delegate)
 
     @Override
-    protected IdentityContext createContext() {
-        Stub(IdentityContext)
+    Class<IdentityContext> getContextType() {
+        IdentityContext
     }
 
     def "delegates with assigned workspace"() {
