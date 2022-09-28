@@ -23,6 +23,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,12 +33,14 @@ import java.util.concurrent.ConcurrentMap;
 public class DefaultTransformedVariantFactory implements TransformedVariantFactory {
     private final TransformationNodeFactory transformationNodeFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final BuildOperationProgressEventEmitter progressEventEmitter;
     private final ConcurrentMap<VariantKey, ResolvedArtifactSet> variants = new ConcurrentHashMap<>();
     private final Factory externalFactory = this::doCreateExternal;
     private final Factory projectFactory = this::doCreateProject;
 
-    public DefaultTransformedVariantFactory(BuildOperationExecutor buildOperationExecutor, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public DefaultTransformedVariantFactory(BuildOperationExecutor buildOperationExecutor, CalculatedValueContainerFactory calculatedValueContainerFactory, BuildOperationProgressEventEmitter progressEventEmitter) {
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.progressEventEmitter = progressEventEmitter;
         this.transformationNodeFactory = new DefaultTransformationNodeFactory(buildOperationExecutor, calculatedValueContainerFactory);
     }
 
@@ -69,6 +72,7 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
         // Can't use computeIfAbsent() as the default implementation does not allow recursive updates
         ResolvedArtifactSet result = variants.get(variantKey);
         if (result == null) {
+            progressEventEmitter.emitNowForCurrent(dependenciesResolverFactory.getTransformProgressEvent(variantKey.target, transformation));
             ResolvedArtifactSet newResult = factory.create(componentIdentifier, sourceVariant, variantDefinition, dependenciesResolverFactory);
             result = variants.putIfAbsent(variantKey, newResult);
             if (result == null) {
