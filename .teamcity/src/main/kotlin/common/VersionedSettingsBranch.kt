@@ -39,6 +39,11 @@ data class VersionedSettingsBranch(val branchName: String, val enableTriggers: B
     fun promoteNightlyTaskName() = nightlyTaskName("promote")
     fun prepNightlyTaskName() = nightlyTaskName("prep")
 
+    fun promoteMilestoneTaskName(): String = when {
+        isRelease -> "promoteReleaseMilestone"
+        else -> "promoteMilestone"
+    }
+
     private fun nightlyTaskName(prefix: String): String = when {
         isMaster -> "${prefix}Nightly"
         isRelease -> "${prefix}ReleaseNightly"

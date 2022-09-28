@@ -65,7 +65,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
 
     protected static class BuildServices {
 
-        protected DefaultBuildPlatform createBuildEnvironment(ObjectFactory objectFactory, SystemInfo systemInfo, OperatingSystem operatingSystem) {
+        protected DefaultBuildPlatform createBuildPlatform(ObjectFactory objectFactory, SystemInfo systemInfo, OperatingSystem operatingSystem) {
             return objectFactory.newInstance(DefaultBuildPlatform.class, systemInfo, operatingSystem);
         }
 
