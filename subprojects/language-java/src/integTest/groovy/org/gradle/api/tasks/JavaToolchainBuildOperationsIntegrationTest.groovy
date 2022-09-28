@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.ToBeImplemented
 import org.gradle.util.internal.VersionNumber
@@ -413,11 +412,11 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         when:
 
         if (VersionNumber.parse(kotlinPluginVersion) <= VersionNumber.parse("1.6.21")) {
-            executer.expectDeprecationWarning(
+            executer.expectDocumentedDeprecationWarning(
                 "The AbstractCompile.destinationDir property has been deprecated. " +
                 "This is scheduled to be removed in Gradle 9.0. " +
                 "Please use the destinationDirectory property instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring")
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
         }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         def eventsOnCompile = toolchainEvents(":compileKotlin")
