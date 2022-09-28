@@ -92,15 +92,14 @@ public class TestNGOptions extends TestFrameworkOptions {
      * @since 8.0
      */
     public TestNGOptions(TestNGOptions other) {
-        this.projectDir = other.projectDir;
         this.outputDirectory = other.outputDirectory;
         this.includeGroups.addAll(other.includeGroups);
         this.excludeGroups.addAll(other.excludeGroups);
         this.configFailurePolicy = other.configFailurePolicy;
         this.listeners.addAll(other.listeners);
-        this.useDefaultListeners = other.useDefaultListeners;
         this.parallel = other.parallel;
         this.threadCount = other.threadCount;
+        this.useDefaultListeners = other.useDefaultListeners;
         this.suiteName = other.suiteName;
         this.testName = other.testName;
         this.suiteXmlFiles.addAll(other.suiteXmlFiles);
@@ -108,6 +107,7 @@ public class TestNGOptions extends TestFrameworkOptions {
         this.groupByInstances = other.groupByInstances;
         this.suiteXmlWriter = other.suiteXmlWriter;
         this.suiteXmlBuilder = other.suiteXmlBuilder;
+        this.projectDir = other.projectDir;
     }
 
     public MarkupBuilder suiteXmlBuilder() {
