@@ -38,6 +38,9 @@ import org.gradle.process.ExecOperations
 
 import javax.inject.Inject
 
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.startsWith
+
 @ConfigurationCacheTest
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
@@ -213,6 +216,56 @@ service: closed with value 10001
         then:
         failure.assertHasDescription("Execution failed for task ':missingService'.")
         failure.assertHasCause("Cannot query the value of task ':missingService' property 'counter' because it has no value available.")
+    }
+
+    def "injection by name not available for configuration"() {
+        given:
+        serviceImplementation()
+        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}(name='counter')")
+        buildFile """
+            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+                maxParallelUsages = 1
+            }
+
+            task invalidUse(type: Consumer) {
+                // attempts to use injected service during configuration (not supported)
+                counter.get()
+            }
+        """
+        enableStableConfigurationCache()
+
+        when:
+        fails 'invalidUse'
+
+        then:
+        failure.assertThatDescription(startsWith("A problem occurred evaluating root project"))
+        failure.assertHasCause("Cannot query the value of task ':invalidUse' property 'counter' because it has no value available.")
+    }
+
+    def "@ServiceReference property must implement BuildService"() {
+        given:
+        buildFile """
+            abstract class CountingService {}
+            abstract class Consumer extends DefaultTask {
+                @ServiceReference
+                abstract Property<CountingService> getCounter()
+                @TaskAction
+                def go() {
+                    //
+                }
+            }
+            task invalidServiceType(type: Consumer) {}
+        """
+        enableStableConfigurationCache()
+
+        when:
+        fails 'invalidServiceType'
+
+        then:
+        failure.assertThatDescription(containsString(
+            "Type 'Consumer' property 'counter' has @ServiceReference annotation used on property of type 'CountingService' which is not a build service implementation."
+        ))
     }
 
     def "service is created once per build on first use and stopped at the end of the build"() {

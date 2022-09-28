@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect.validation
 
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.services.BuildService
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -176,6 +177,18 @@ trait ValidationMessageChecker {
                 .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
                 .render()
         }
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE
+    )
+    String serviceReferenceMustBeABuildService(@DelegatesTo(value = UnsupportedServiceReferenceType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(UnsupportedServiceReferenceType, 'service_reference_must_be_a_build_service', spec)
+        config.description("has @ServiceReference annotation used on property of type '${config.propertyType}' which is not a build service implementation")
+            .reason("A property annotated with @ServiceReference must be of a type that implements '${BuildService.class.name}'")
+            .solution("Make '${config.propertyType}' implement '${BuildService.class.name}'")
+            .solution("Replace the @ServiceReference annotation on '${config.property}' with @Internal and assign a value of type '${config.propertyType}' explicitly")
+            .render()
     }
 
     @ValidationTestFor(
@@ -938,5 +951,13 @@ trait ValidationMessageChecker {
             this
         }
     }
+
+    static class UnsupportedServiceReferenceType extends ValidationMessageDisplayConfiguration<UnsupportedServiceReferenceType> {
+
+        UnsupportedServiceReferenceType(ValidationMessageChecker checker) {
+            super(checker)
+        }
+    }
+
 
 }

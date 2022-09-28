@@ -17,6 +17,8 @@
 package org.gradle.internal.reflect.validation
 
 import groovy.transform.CompileStatic
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.ServiceReference
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
@@ -358,6 +360,33 @@ Possible solutions:
   3. If you want to track the path, return File.absolutePath as a String and keep @Input.
 
 Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#incorrect_use_of_input_annotation for more details about this problem.
+"""
+    }
+
+
+    @ValidationTestFor(
+        ValidationProblemId.SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE
+    )
+    def "tests output of serviceReferenceMustBeABuildService"() {
+        when:
+        render serviceReferenceMustBeABuildService {
+            type('MyTask')
+            property('someService')
+            propertyType('mypackage.FooBar')
+            includeLink()
+        }
+
+        then:
+        outputEquals """
+Type 'MyTask' property 'someService' has @ServiceReference annotation used on property of type 'mypackage.FooBar' which is not a build service implementation.
+
+Reason: A property annotated with @${ServiceReference.class.simpleName} must be of a type that implements '${BuildService.class.name}'.
+
+Possible solutions:
+  1. Make 'mypackage.FooBar' implement '${BuildService.class.name}'.
+  2. Replace the @ServiceReference annotation on 'someService' with @Internal and assign a value of type 'mypackage.FooBar' explicitly.
+
+Please refer to https://docs.gradle.org/current/userguide/validation_problems.html#service_reference_must_be_a_build_service for more details about this problem.
 """
     }
 
