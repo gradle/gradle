@@ -33,6 +33,10 @@ public interface GradleEnterprisePluginBackgroundJobExecutors {
      * <p>
      * The job should not throw exceptions.
      * Any exceptions thrown are going to fail the build and may prevent the {@code buildFinished} callback from firing.
+     * <p>
+     * The build configuration inputs are not recorded for the job.
+     * For example, changes to the environment variables read by the job are not going to invalidate the configuration cache.
+     * The job is also allowed to freely start external processes.
      *
      * @return an instance of Executor
      */
