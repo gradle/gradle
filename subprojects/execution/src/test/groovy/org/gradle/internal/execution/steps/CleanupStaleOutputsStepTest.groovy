@@ -40,11 +40,6 @@ class CleanupStaleOutputsStepTest extends StepSpec<WorkspaceContext> {
 
     def delegateResult = Mock(Result)
 
-    @Override
-    Class<WorkspaceContext> getContextType() {
-        WorkspaceContext
-    }
-
     def "#description is cleaned up: #cleanedUp"() {
         def target = file("target")
         creator(target)

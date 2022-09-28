@@ -24,10 +24,6 @@ class RemoveUntrackedExecutionStateStepTest extends StepSpec<PreviousExecutionCo
     def step = new RemoveUntrackedExecutionStateStep(delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
-    @Override
-    Class<PreviousExecutionContext> getContextType() {
-        PreviousExecutionContext
-    }
 
     def "removes untracked outputs"() {
         when:

@@ -46,11 +46,6 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
 
     def step = new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, delegate)
 
-    @Override
-    Class<ValidationFinishedContext> getContextType() {
-        ValidationFinishedContext
-    }
-
     def setup() {
         _ * work.history >> Optional.of(executionHistoryStore)
         _ * work.inputFingerprinter >> inputFingerprinter

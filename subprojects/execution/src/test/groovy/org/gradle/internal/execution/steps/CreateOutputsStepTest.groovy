@@ -23,11 +23,6 @@ import org.gradle.internal.file.TreeType
 class CreateOutputsStepTest extends StepSpec<ChangingOutputsContext> {
     def step = new CreateOutputsStep<>(delegate)
 
-    @Override
-    Class<ChangingOutputsContext> getContextType() {
-        ChangingOutputsContext
-    }
-
     def "outputs are created"() {
         given:
         def outputDir = file("outDir")
