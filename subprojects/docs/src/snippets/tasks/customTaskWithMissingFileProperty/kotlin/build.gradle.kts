@@ -30,6 +30,7 @@ tasks.register<GreetingFileTask>("greet") {
 
 tasks.register("sayGreeting") {
     dependsOn("greet")
+    val greetingFile = greetingFile
     doLast {
         val file = greetingFile.get().asFile
         println("${file.readText()} (file: ${file.name})")

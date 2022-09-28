@@ -100,8 +100,8 @@ class GeneratedSourcesDirectorySetContributorIntegrationTest extends AbstractInt
 
             jvm.registerJvmLanguageGeneratedSourceDirectory(sourceSets.main) {
                 forSourceGeneratingTask(sourceGen) { it.outputDir }
-                compiledBy {
-                    compileTask = tasks.register("compileSourceGen") {
+                compiledBy { sourceDirectory ->
+                    tasks.register("compileSourceGen") {
                         inputs.files(sourceDirectory)
                         doLast {
                             println "Compiling \${sourceDirectory.get().asFile.name}"

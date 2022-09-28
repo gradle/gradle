@@ -1,3 +1,7 @@
+import gradlebuild.basics.flakyTestStrategy
+import gradlebuild.basics.FlakyTestStrategy
+import gradlebuild.basics.PublicApi
+
 plugins {
     id("gradlebuild.internal.java")
     id("gradlebuild.binary-compatibility")
@@ -36,14 +40,15 @@ tasks.test {
     // Only use one fork, so freezing doesn't have concurrency issues
     maxParallelForks = 1
 
-    systemProperty("org.gradle.public.api.includes", gradlebuild.basics.PublicApi.includes.joinToString(":"))
-    systemProperty("org.gradle.public.api.excludes", gradlebuild.basics.PublicApi.excludes.joinToString(":"))
+    systemProperty("org.gradle.public.api.includes", PublicApi.includes.joinToString(":"))
+    systemProperty("org.gradle.public.api.excludes", PublicApi.excludes.joinToString(":"))
     jvmArgumentProviders.add(ArchUnitFreezeConfiguration(
         project.file("src/changes/archunit_store"),
         providers.gradleProperty("archunitRefreeze").map { true })
     )
 
     dependsOn(verifyAcceptedApiChangesOrdering)
+    enabled = flakyTestStrategy !=  FlakyTestStrategy.ONLY
 }
 
 class ArchUnitFreezeConfiguration(
