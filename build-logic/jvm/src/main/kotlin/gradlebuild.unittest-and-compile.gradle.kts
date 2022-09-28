@@ -134,6 +134,7 @@ fun addDependencies() {
         testImplementation(libs.spock)
         testImplementation(libs.junit5Vintage)
         testImplementation(libs.spockJUnit4)
+        testImplementation(libs.gradleEnterpriseTestAnnotation)
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
 
