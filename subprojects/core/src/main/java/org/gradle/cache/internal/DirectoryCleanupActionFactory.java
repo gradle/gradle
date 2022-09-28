@@ -16,21 +16,6 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.cache.CleanupAction;
-import org.gradle.cache.CleanupActionFactory;
-
-public interface CacheCleanupEnablement extends CleanupActionFactory {
-    boolean isEnabled();
-
-    CacheCleanupEnablement ALWAYS_ENABLED = new CacheCleanupEnablement() {
-        @Override
-        public boolean isEnabled() {
-            return true;
-        }
-
-        @Override
-        public CleanupAction create(CleanupAction cleanup) {
-            return cleanup;
-        }
-    };
+public interface DirectoryCleanupActionFactory {
+    DirectoryCleanupAction create(DirectoryCleanupAction cleanupAction);
 }

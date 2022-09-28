@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.cache
 
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.cache.internal.CacheCleanupEnablement
+import org.gradle.cache.CleanupActionFactory
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.internal.file.FileAccessTimeJournal
@@ -34,7 +34,7 @@ object GradleUserHomeServices {
         inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
         stringInterner: StringInterner,
         classLoaderHasher: ClassLoaderHierarchyHasher,
-        cacheCleanupEnablement: CacheCleanupEnablement
+        cleanupActionFactory: CleanupActionFactory
     ): KotlinDslWorkspaceProvider {
         return KotlinDslWorkspaceProvider(
             cacheRepository,
@@ -42,7 +42,7 @@ object GradleUserHomeServices {
             inMemoryCacheDecoratorFactory,
             stringInterner,
             classLoaderHasher,
-            cacheCleanupEnablement
+            cleanupActionFactory
         )
     }
 }

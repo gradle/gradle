@@ -46,8 +46,8 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
         getUsedGradleVersions() >> ([] as SortedSet)
     }
     def progressLoggerFactory = Stub(ProgressLoggerFactory)
-    def cacheCleanupEnablement = Stub(CacheCleanupEnablement) {
-        isEnabled() >> true
+    def cleanupActionFactory = Stub(DirectoryCleanupActionFactory) {
+        create(_) >> { args -> args[0] }
     }
 
     @Subject def cleanupService = new GradleUserHomeCleanupService(
@@ -56,7 +56,7 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
             globalScopedCache,
             usedGradleVersions,
             progressLoggerFactory,
-            cacheCleanupEnablement
+            cleanupActionFactory
     )
 
     def "cleans up unused version-specific cache directories and deletes distributions for unused versions"() {
@@ -102,7 +102,7 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
         cleanupService.stop()
 
         then:
-        cacheCleanupEnablement.isEnabled() >> false
+        cleanupActionFactory.create(_) >> Stub(DirectoryCleanupAction)
 
         and:
         oldCacheDir.assertExists()

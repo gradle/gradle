@@ -21,8 +21,8 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.CleanupActionFactory;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.internal.CacheCleanupEnablement;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.internal.Factory;
@@ -48,11 +48,11 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
                                  CacheRepository cacheRepository,
                                  WritableArtifactCacheLockingParameters params,
                                  DocumentationRegistry documentationRegistry,
-                                 CacheCleanupEnablement cacheCleanupEnablement
+                                 CleanupActionFactory cleanupActionFactory
                                  ) {
         writableCacheMetadata = new DefaultArtifactCacheMetadata(globalScopedCache);
         writableArtifactCacheLockingManager = new LateInitWritableArtifactCacheLockingManager(() -> {
-            return new WritableArtifactCacheLockingManager(cacheRepository, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions(), cacheCleanupEnablement);
+            return new WritableArtifactCacheLockingManager(cacheRepository, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions(), cleanupActionFactory);
         });
         String roCache = System.getenv(READONLY_CACHE_ENV_VAR);
         if (StringUtils.isNotEmpty(roCache)) {

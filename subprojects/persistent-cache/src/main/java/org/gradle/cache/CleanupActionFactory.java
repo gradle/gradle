@@ -17,5 +17,5 @@
 package org.gradle.cache;
 
 public interface CleanupActionFactory {
-    CleanupAction create(CleanupAction cleanup);
+    CleanupAction create(CleanupAction cleanupAction);
 }

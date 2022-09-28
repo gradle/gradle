@@ -17,23 +17,24 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.CleanupAction;
+import org.gradle.cache.CleanupActionFactory;
+import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.util.Properties;
 
-public class GradleUserHomeCacheCleanupEnablement implements CacheCleanupEnablement {
+public class GradleUserHomeCacheCleanupActionFactory implements CleanupActionFactory, DirectoryCleanupActionFactory {
     public static final String CACHE_CLEANUP_PROPERTY = "org.gradle.cache.cleanup";
 
     private final GradleUserHomeDirProvider userHomeDirProvider;
 
-    public GradleUserHomeCacheCleanupEnablement(GradleUserHomeDirProvider userHomeDirProvider) {
+    public GradleUserHomeCacheCleanupActionFactory(GradleUserHomeDirProvider userHomeDirProvider) {
         this.userHomeDirProvider = userHomeDirProvider;
     }
 
-    @Override
-    public boolean isEnabled() {
+    private boolean isEnabled() {
         File gradleUserHomeDirectory = userHomeDirProvider.getGradleUserHomeDirectory();
         File gradleProperties = new File(gradleUserHomeDirectory, "gradle.properties");
         if (gradleProperties.isFile()) {
@@ -49,6 +50,21 @@ public class GradleUserHomeCacheCleanupEnablement implements CacheCleanupEnablem
         return (cleanableStore, progressMonitor) -> {
             if (isEnabled()) {
                 cleanup.clean(cleanableStore, progressMonitor);
+            }
+        };
+    }
+
+    @Override
+    public DirectoryCleanupAction create(DirectoryCleanupAction cleanupAction) {
+        return new DirectoryCleanupAction() {
+            @Override
+            public boolean execute(CleanupProgressMonitor progressMonitor) {
+                return isEnabled() && cleanupAction.execute(progressMonitor);
+            }
+
+            @Override
+            public String getDisplayName() {
+                return cleanupAction.getDisplayName();
             }
         };
     }
