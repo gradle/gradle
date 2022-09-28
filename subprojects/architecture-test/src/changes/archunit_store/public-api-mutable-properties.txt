@@ -711,8 +711,6 @@ Method <org.gradle.plugins.ide.idea.model.IdeaModule.getSingleEntryLibraries()> 
 Method <org.gradle.plugins.ide.idea.model.IdeaModule.getSourceDirs()> does not have raw return type assignable to org.gradle.api.provider.Property in (IdeaModule.java:247)
 Method <org.gradle.plugins.ide.idea.model.IdeaModule.getTargetBytecodeVersion()> does not have raw return type assignable to org.gradle.api.provider.Property in (IdeaModule.java:544)
 Method <org.gradle.plugins.ide.idea.model.IdeaModule.getTestOutputDir()> does not have raw return type assignable to org.gradle.api.provider.Property in (IdeaModule.java:486)
-Method <org.gradle.plugins.ide.idea.model.IdeaModule.getTestResourceDirs()> does not have raw return type assignable to org.gradle.api.provider.Property in (IdeaModule.java:405)
-Method <org.gradle.plugins.ide.idea.model.IdeaModule.getTestSourceDirs()> does not have raw return type assignable to org.gradle.api.provider.Property in (IdeaModule.java:347)
 Method <org.gradle.plugins.ide.idea.model.IdeaModule.isDownloadJavadoc()> does not have raw return type assignable to org.gradle.api.provider.Property in (IdeaModule.java:318)
 Method <org.gradle.plugins.ide.idea.model.IdeaModule.isDownloadSources()> does not have raw return type assignable to org.gradle.api.provider.Property in (IdeaModule.java:307)
 Method <org.gradle.plugins.ide.idea.model.IdeaModule.isOffline()> does not have raw return type assignable to org.gradle.api.provider.Property in (IdeaModule.java:580)

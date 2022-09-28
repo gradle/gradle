@@ -227,7 +227,7 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         property(project.idea.module).contains(source)
 
         where:
-        property << [{ it.sourceDirs }, { it.testSourceDirs }, { it.resourceDirs }, { it.testResourceDirs }, { it.excludeDirs }]
+        property << [{ it.sourceDirs }, { it.resourceDirs }, { it.excludeDirs }]
     }
 
     @Issue('https://github.com/gradle/gradle/issues/8749')
@@ -244,7 +244,7 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         property(project.idea.module).contains(source)
 
         where:
-        property << [{ it.sourceDirs }, { it.testSourceDirs }, { it.resourceDirs }, { it.testResourceDirs }, { it.excludeDirs }]
+        property << [{ it.sourceDirs }, { it.resourceDirs }, { it.excludeDirs }]
     }
 
     private TypeOf<?> publicTypeOfExtension(String named) {

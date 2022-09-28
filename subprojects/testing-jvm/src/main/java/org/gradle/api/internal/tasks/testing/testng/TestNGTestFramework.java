@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
@@ -55,18 +56,32 @@ public class TestNGTestFramework implements TestFramework {
     private final String testTaskPath;
     private final FileCollection testTaskClasspath;
     private final Factory<File> testTaskTemporaryDir;
+    private final DirectoryReport htmlReport;
     private transient ClassLoader testClassLoader;
 
-    @UsedByScanPlugin("test-retry")
     public TestNGTestFramework(final Test testTask, FileCollection classpath, DefaultTestFilter filter, ObjectFactory objects) {
+        this(
+            filter,
+            objects,
+            testTask.getPath(),
+            classpath,
+            testTask.getTemporaryDirFactory(),
+            testTask.getReports().getHtml(),
+            objects.newInstance(TestNGOptions.class)
+        );
+    }
+
+    private TestNGTestFramework(DefaultTestFilter filter, ObjectFactory objects, String testTaskPath, FileCollection testTaskClasspath, Factory<File> testTaskTemporaryDir, DirectoryReport htmlReport, TestNGOptions options) {
         this.filter = filter;
         this.objects = objects;
-        this.testTaskPath = testTask.getPath();
-        this.testTaskClasspath = classpath;
-        this.testTaskTemporaryDir = testTask.getTemporaryDirFactory();
-        options = objects.newInstance(TestNGOptions.class);
-        conventionMapOutputDirectory(options, testTask.getReports().getHtml());
-        detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
+        this.testTaskPath = testTaskPath;
+        this.testTaskClasspath = testTaskClasspath;
+        this.testTaskTemporaryDir = testTaskTemporaryDir;
+        this.htmlReport = htmlReport;
+        this.options = options;
+        this.detector = new TestNGDetector(new ClassFileExtractionManager(testTaskTemporaryDir));
+
+        conventionMapOutputDirectory(options, htmlReport);
     }
 
     private static void conventionMapOutputDirectory(TestNGOptions options, final DirectoryReport html) {
@@ -76,6 +91,20 @@ public class TestNGTestFramework implements TestFramework {
                 return html.getOutputLocation().getAsFile().getOrNull();
             }
         });
+    }
+
+    @UsedByScanPlugin("test-retry")
+    @Override
+    public TestFramework copyWithFilters(TestFilter newTestFilters) {
+        return new TestNGTestFramework(
+            (DefaultTestFilter) newTestFilters,
+            objects,
+            testTaskPath,
+            testTaskClasspath,
+            testTaskTemporaryDir,
+            htmlReport,
+            new TestNGOptions(options)
+        );
     }
 
     @Override
@@ -133,6 +162,7 @@ public class TestNGTestFramework implements TestFramework {
 
     /**
      * Use reflection to load {@code org.testng.xml.XmlSuite.FailurePolicy}, added in TestNG 6.9.12
+     *
      * @return reference to class, if exists.
      * @throws ClassNotFoundException if using older TestNG version.
      */

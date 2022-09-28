@@ -33,6 +33,7 @@ import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -97,7 +98,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
     @Override
     public <T> void configureAsCompileClasspath(HasConfigurableAttributes<T> configuration) {
-        configureAttributes(configuration, details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM().apiCompileView());
+        configureAttributes(configuration, details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM());
     }
 
     @Override
@@ -193,11 +194,9 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         variant.setDescription("Directories containing compiled class files for " + sourceSet.getName() + ".");
         variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
         variant.artifactsProvider(() ->  {
-            DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
-            List<DefaultSourceSetOutput.DirectoryContribution> classesContributors = output.getClassesContributors();
-
-            return classesContributors.stream().map(contribution ->
-                    new JvmPluginsHelper.ProviderBasedIntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, contribution.getTask(), contribution.getDirectory()))
+            FileCollection classesDirs = sourceSet.getOutput().getClassesDirs();
+            return classesDirs.getFiles().stream().map(file ->
+                    new JvmPluginsHelper.ImmediateIntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs, file))
                 .collect(Collectors.toList());
         });
         return variant;
