@@ -214,22 +214,6 @@ abstract class AbstractSmokeTest extends Specification {
             }
         }
 
-        /**
-         * Since Android 7.3.0 is not yet stable we have to use that.
-         * One stable version is released we should remove this.
-         */
-        String latestStableOrRc() {
-            def stableVersion = latestStable()
-            if (stableVersion != null) {
-                return stableVersion
-            }
-            return versions.reverse().find { version ->
-                    !version.containsIgnoreCase("beta") &&
-                    !version.containsIgnoreCase("alpha") &&
-                    !version.containsIgnoreCase("milestone")
-            }
-        }
-
         String latestStartsWith(String prefix) {
             return versions.reverse().find { it.startsWith(prefix) }
         }

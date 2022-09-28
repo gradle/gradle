@@ -108,7 +108,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
 
         boolean hasExcludedArtifact = artifactsToResolve.size() < artifacts.size();
 
-        if (hasExcludedArtifact) {
+        if (hasExcludedArtifact || identifier == null) {
             // An ad hoc variant, has no identifier
             return createResolvedVariant(null, displayName, variantAttributes, artifacts, capabilities, ownerId, moduleSources, artifactsToResolve);
         } else {
