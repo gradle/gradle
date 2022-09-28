@@ -46,7 +46,6 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
      * Copies the JUnit Platform options.
      * @since 8.0
      */
-    @Incubating
     public JUnitPlatformOptions(JUnitPlatformOptions other) {
         includeEngines.addAll(other.includeEngines);
         excludeEngines.addAll(other.excludeEngines);
