@@ -92,7 +92,6 @@ public class TestNGOptions extends TestFrameworkOptions {
      * Copies the TestNG options.
      * @since 8.0
      */
-    @Incubating
     public TestNGOptions(TestNGOptions other) {
         projectDir = other.projectDir;
         outputDirectory = other.outputDirectory;

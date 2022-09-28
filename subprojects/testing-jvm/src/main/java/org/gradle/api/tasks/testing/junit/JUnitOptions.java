@@ -39,7 +39,6 @@ public class JUnitOptions extends TestFrameworkOptions {
      * Copies the JUnit options.
      * @since 8.0
      */
-    @Incubating
     public JUnitOptions(JUnitOptions other) {
         includeCategories.addAll(other.includeCategories);
         excludeCategories.addAll(other.excludeCategories);
