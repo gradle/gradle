@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.file.FileType
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matcher
+import spock.lang.IgnoreRest
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.matchesRegexp
@@ -718,8 +719,10 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
+    @IgnoreRest
     def "applies chain of transforms to artifacts from local projects matching on some variant attributes"() {
         given:
+        new BuildOperationsFixture(executer, temporaryFolder)
         buildFile << """
             allprojects {
                 dependencies {

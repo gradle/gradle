@@ -37,7 +37,6 @@ import org.gradle.internal.component.VariantSelectionException;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 import org.gradle.internal.component.model.DescriberSelector;
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -54,7 +53,6 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
     private final TransformedVariantFactory transformedVariantFactory;
-    private BuildOperationProgressEventEmitter progressEventEmitter;
     private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
     private final boolean selectFromAllVariants;
@@ -66,7 +64,6 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
         TransformedVariantFactory transformedVariantFactory,
-        BuildOperationProgressEventEmitter progressEventEmitter,
         ImmutableAttributes requested,
         boolean ignoreWhenNoMatches,
         boolean selectFromAllVariants,
@@ -76,7 +73,6 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         this.schema = schema;
         this.attributesFactory = attributesFactory;
         this.transformedVariantFactory = transformedVariantFactory;
-        this.progressEventEmitter = progressEventEmitter;
         this.requested = requested;
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
         this.selectFromAllVariants = selectFromAllVariants;
@@ -137,7 +133,6 @@ class AttributeMatchingVariantSelector implements VariantSelector {
 
         if (transformedVariants.size() == 1) {
             TransformedVariant result = transformedVariants.get(0);
-            progressEventEmitter.emitNowForCurrent(dependenciesResolver.getTransformProgressEvent(requested, result.getTransformation()));
             String message = "Need to run transforms for " + dependenciesResolver.getContext() + " to match attributes " + requested;
             if (loggedTransformations.add(message)) {
                 System.out.println(message);

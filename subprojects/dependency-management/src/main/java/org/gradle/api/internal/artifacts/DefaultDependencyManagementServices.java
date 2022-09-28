@@ -128,7 +128,6 @@ import org.gradle.internal.locking.NoOpDependencyLockingProvider;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
@@ -516,9 +515,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        DependencyVerificationOverride dependencyVerificationOverride,
                                                        ProjectDependencyResolver projectDependencyResolver,
                                                        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
-                                                       WorkerLeaseService workerLeaseService,
-                                                       BuildOperationProgressEventEmitter progressEventEmitter
-        ) {
+                                                       WorkerLeaseService workerLeaseService) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                             new DefaultConfigurationResolver(
@@ -535,8 +532,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                     attributesFactory),
                                             attributesSchema,
                                             attributesFactory,
-                                            transformedVariantFactory,
-                                        progressEventEmitter
+                                            transformedVariantFactory
                                     ),
                                     moduleIdentifierFactory,
                                     buildOperationExecutor,
