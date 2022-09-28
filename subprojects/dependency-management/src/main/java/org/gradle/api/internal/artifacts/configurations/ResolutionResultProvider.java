@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.transform.Transformation;
+
 /**
  * Some value that is calculated as part of dependency resolution, but which may have a partial or different value
  * when the execution graph is calculated.
@@ -35,4 +38,6 @@ public interface ResolutionResultProvider<T> {
     T getValue();
 
     String getContext();
+
+    TransformConfigurationProgressEvent getTransformProgressEvent(AttributeContainer requestedAttributes, Transformation transformation);
 }

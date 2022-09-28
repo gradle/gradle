@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.configurations.TransformConfigurationProgressEvent;
 
 /**
  * Factory for {@link TransformUpstreamDependenciesResolver} that relies on the information provided to its {@code create} method.
@@ -33,4 +35,6 @@ public interface ExtraExecutionGraphDependenciesResolverFactory {
     TransformUpstreamDependenciesResolver create(ComponentIdentifier componentIdentifier, Transformation transformation);
 
     String getContext();
+
+    TransformConfigurationProgressEvent getTransformProgressEvent(AttributeContainer requestedAttributes, Transformation transformation);
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
@@ -82,6 +83,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.artifacts.transform.DefaultExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
+import org.gradle.api.internal.artifacts.transform.Transformation;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -128,6 +130,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -141,8 +144,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -1533,6 +1538,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public String getContext() {
             return getDisplayName();
         }
+
+        @Override
+        public TransformConfigurationProgressEvent getTransformProgressEvent(AttributeContainer requestedAttributes, Transformation transformation) {
+            return new DefaultTransformConfigurationProgressEvent(requestedAttributes, transformation);
+        }
     }
 
     private class SelectedArtifactsProvider implements ResolutionResultProvider<VisitedArtifactSet> {
@@ -1552,6 +1562,114 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public String getContext() {
             return getDisplayName();
+        }
+
+        @Override
+        public TransformConfigurationProgressEvent getTransformProgressEvent(AttributeContainer requestedAttributes, Transformation transformation) {
+            return new DefaultTransformConfigurationProgressEvent(requestedAttributes, transformation);
+        }
+    }
+
+    private class DefaultTransformConfigurationProgressEvent implements TransformConfigurationProgressEvent, CustomOperationTraceSerialization {
+        private final AttributeContainer requestedAttributes;
+        private final Transformation transformation;
+
+        public DefaultTransformConfigurationProgressEvent(AttributeContainer requestedAttributes, Transformation transformation) {
+            this.requestedAttributes = requestedAttributes;
+            this.transformation = transformation;
+        }
+
+        @Override
+        public String getConfigurationName() {
+            return getName();
+        }
+
+        @Nullable
+        @Override
+        public String getProjectPath() {
+            return domainObjectContext.getProjectPath() == null ? null : domainObjectContext.getProjectPath().getPath();
+        }
+
+        @Override
+        public String getBuildPath() {
+            return domainObjectContext.getBuildPath().getPath();
+        }
+
+        @Override
+        public AttributeContainer getRequestedAttributes() {
+            return requestedAttributes;
+        }
+
+        @Override
+        public List<Transform> getTransforms() {
+            ImmutableList.Builder<Transform> builder = ImmutableList.builder();
+            transformation.visitTransformationSteps(step -> {
+                builder.add(new TransformEvent(step.getFromAttributes(), step.getToAttributes(), step.getOwningProject()));
+            });
+            return builder.build();
+        }
+
+        @Override
+        public Object getCustomOperationTraceSerializableModel() {
+            Map<String, Object> model = new HashMap<>();
+            model.put("configurationName", getConfigurationName());
+            model.put("projectPath", getProjectPath());
+            model.put("buildPath", getBuildPath());
+            model.put("requestedAttributes", convertAttributes(requestedAttributes));
+            List<Object> transforms = new ArrayList<>();
+            for (Transform transform : getTransforms()) {
+                Map<String, Object> convertedTransform = new HashMap<>();
+                convertedTransform.put("from", convertAttributes(transform.getFrom()));
+                convertedTransform.put("to", convertAttributes(transform.getTo()));
+                convertedTransform.put("projectPath", transform.getProjectPath());
+                convertedTransform.put("buildPath", transform.getBuildPath());
+                transforms.add(convertedTransform);
+            }
+            model.put("transforms", transforms);
+            return model;
+        }
+
+    }
+
+    private static ImmutableList<Object> convertAttributes(AttributeContainer attributes) {
+        ImmutableList.Builder<Object> builder = new ImmutableList.Builder<>();
+        for (Attribute<?> att : attributes.keySet()) {
+            builder.add(ImmutableMap.of("name", att.getName(), "value", attributes.getAttribute(att).toString()));
+        }
+        return builder.build();
+    }
+
+    private static class TransformEvent implements TransformConfigurationProgressEvent.Transform {
+
+        private AttributeContainer from;
+        private AttributeContainer to;
+        private ProjectInternal owningProject;
+
+        public TransformEvent(AttributeContainer from, AttributeContainer to, ProjectInternal owningProject) {
+            this.from = from;
+            this.to = to;
+            this.owningProject = owningProject;
+        }
+
+        @Override
+        public AttributeContainer getFrom() {
+            return from;
+        }
+
+        @Override
+        public AttributeContainer getTo() {
+            return to;
+        }
+
+        @Nullable
+        @Override
+        public String getProjectPath() {
+            return owningProject.getPath();
+        }
+
+        @Override
+        public String getBuildPath() {
+            return owningProject.getBuildPath().getPath();
         }
     }
 

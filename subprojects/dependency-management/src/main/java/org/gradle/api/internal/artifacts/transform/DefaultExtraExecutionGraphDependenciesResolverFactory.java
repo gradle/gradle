@@ -18,8 +18,10 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
+import org.gradle.api.internal.artifacts.configurations.TransformConfigurationProgressEvent;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
 public class DefaultExtraExecutionGraphDependenciesResolverFactory implements ExtraExecutionGraphDependenciesResolverFactory {
@@ -51,5 +53,10 @@ public class DefaultExtraExecutionGraphDependenciesResolverFactory implements Ex
     @Override
     public String getContext() {
         return resolutionResultProvider.getContext();
+    }
+
+    @Override
+    public TransformConfigurationProgressEvent getTransformProgressEvent(AttributeContainer requestedAttributes, Transformation transformation) {
+        return resolutionResultProvider.getTransformProgressEvent(requestedAttributes, transformation );
     }
 }

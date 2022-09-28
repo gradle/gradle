@@ -29,6 +29,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration
 import org.gradle.api.internal.artifacts.VariantTransformRegistry
+import org.gradle.api.internal.artifacts.configurations.TransformConfigurationProgressEvent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
@@ -329,6 +330,10 @@ class EmptyDependenciesResolverFactory(private val fileCollectionFactory: FileCo
 
     override fun getContext(): String {
         return "Empty context"
+    }
+
+    override fun getTransformProgressEvent(requestedAttributes: AttributeContainer, transformation: Transformation): TransformConfigurationProgressEvent {
+        throw UnsupportedOperationException("Should not be called")
     }
 
     override fun dependenciesFor(transformationStep: TransformationStep): TransformUpstreamDependencies {

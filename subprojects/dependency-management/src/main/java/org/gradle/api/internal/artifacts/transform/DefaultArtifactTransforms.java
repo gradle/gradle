@@ -19,28 +19,32 @@ package org.gradle.api.internal.artifacts.transform;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
 public class DefaultArtifactTransforms implements ArtifactTransforms {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributesFactory attributesFactory;
     private final TransformedVariantFactory transformedVariantFactory;
+    private final BuildOperationProgressEventEmitter progressEventEmitter;
 
     public DefaultArtifactTransforms(
         ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
         AttributesSchemaInternal schema,
         ImmutableAttributesFactory attributesFactory,
-        TransformedVariantFactory transformedVariantFactory
+        TransformedVariantFactory transformedVariantFactory,
+        BuildOperationProgressEventEmitter progressEventEmitter
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
         this.transformedVariantFactory = transformedVariantFactory;
+        this.progressEventEmitter = progressEventEmitter;
     }
 
     @Override
     public VariantSelector variantSelector(AttributeContainerInternal consumerAttributes, boolean allowNoMatchingVariants, boolean selectFromAllVariants, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver) {
-        return new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, schema, attributesFactory, transformedVariantFactory, consumerAttributes.asImmutable(), allowNoMatchingVariants, selectFromAllVariants, dependenciesResolver);
+        return new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, schema, attributesFactory, transformedVariantFactory, progressEventEmitter, consumerAttributes.asImmutable(), allowNoMatchingVariants, selectFromAllVariants, dependenciesResolver);
     }
 
 }
