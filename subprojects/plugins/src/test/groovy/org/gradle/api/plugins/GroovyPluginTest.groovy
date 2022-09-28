@@ -87,7 +87,7 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
         then:
         task instanceof GroovyCompile
         task.description == 'Compiles the test Groovy source.'
-        dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME).matches(task)
+        dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME, 'compileGroovy').matches(task)
     }
 
     def "compile dependency to java compilation can be turned off by changing the compile task classpath"() {
