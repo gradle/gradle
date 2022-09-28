@@ -40,10 +40,6 @@ class RemovePreviousOutputsStepTest extends StepSpec<ChangingOutputsContext> imp
 
     def step = new RemovePreviousOutputsStep<>(deleter, outputChangeListener, delegate)
 
-    @Override
-    Class<ChangingOutputsContext> getContextType() {
-        ChangingOutputsContext
-    }
 
     def "deletes only the previous outputs"() {
         def outputs = new WorkOutputs()

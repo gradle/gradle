@@ -52,11 +52,6 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     def step = new BuildCacheStep(buildCacheController, deleter, outputChangeListener, delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
-    @Override
-    Class<IncrementalChangesContext> getContextType() {
-        IncrementalChangesContext
-    }
-
     def "loads from cache"() {
         def cachedOriginMetadata = Mock(OriginMetadata)
         def outputsFromCache = snapshotsOf("test": [])

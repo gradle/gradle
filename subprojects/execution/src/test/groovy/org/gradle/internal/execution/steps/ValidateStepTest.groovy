@@ -37,10 +37,6 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> implements Valid
     def step = new ValidateStep<>(virtualFileSystem, warningReporter, delegate)
     def delegateResult = Mock(Result)
 
-    @Override
-    Class<BeforeExecutionContext> getContextType() {
-        BeforeExecutionContext
-    }
 
     def setup() {
         def validationContext = new DefaultWorkValidationContext(new DocumentationRegistry(), WorkValidationContext.TypeOriginInspector.NO_OP)

@@ -48,11 +48,6 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
 
     def step = new CaptureStateAfterExecutionStep(buildOperationExecutor, buildInvocationScopeId, outputSnapshotter, outputChangeListener, delegate)
 
-    @Override
-    Class<InputChangesContext> getContextType() {
-        InputChangesContext
-    }
-
     def "no state is captured if before execution state is unavailable"() {
         def delegateDuration = Duration.ofMillis(123)
         context.beforeExecutionState >> Optional.empty()

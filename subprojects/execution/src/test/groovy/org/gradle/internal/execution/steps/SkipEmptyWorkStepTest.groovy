@@ -56,10 +56,6 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def knownInputFileProperties = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint> of()
     def sourceFileFingerprint = Mock(CurrentFileCollectionFingerprint)
 
-    @Override
-    Class<PreviousExecutionContext> getContextType() {
-        PreviousExecutionContext
-    }
 
     def setup() {
         _ * work.inputFingerprinter >> inputFingerprinter

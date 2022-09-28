@@ -47,10 +47,6 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     def step = new StoreExecutionStateStep<PreviousExecutionContext, AfterExecutionResult>(delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
-    @Override
-    Class<BeforeExecutionContext> getContextType() {
-        BeforeExecutionContext
-    }
 
     def setup() {
         _ * context.history >> Optional.of(executionHistoryStore)

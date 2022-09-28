@@ -30,6 +30,7 @@ import org.spockframework.mock.IDefaultResponse
 import org.spockframework.mock.IMockInvocation
 import spock.lang.Specification
 
+import java.lang.reflect.ParameterizedType
 import java.util.function.Consumer
 
 abstract class StepSpec<C extends Context> extends Specification {
@@ -43,8 +44,11 @@ abstract class StepSpec<C extends Context> extends Specification {
     }
     final delegate = Mock(DeferredExecutionAwareStep)
     final work = Stub(UnitOfWork)
-    final C context = Stub(defaultResponse: GuavaImmutablesResponse.INSTANCE, contextType)
+    final C context = createContext()
 
+    /**
+     * Spock helper to mock Guava's immutable collections and maps with empty instances.
+     */
     static class GuavaImmutablesResponse implements IDefaultResponse {
         static final IDefaultResponse INSTANCE = new GuavaImmutablesResponse()
 
@@ -59,7 +63,13 @@ abstract class StepSpec<C extends Context> extends Specification {
         }
     }
 
-    abstract Class<C> getContextType()
+    /**
+     * Create a stub context based on the type parameter of the extended StepSpec.
+     */
+    private C createContext() {
+        def contextType = (getClass().getGenericSuperclass() as ParameterizedType).actualTypeArguments[0] as Class<C>
+        return Stub(contextType, defaultResponse: GuavaImmutablesResponse.INSTANCE) as C
+    }
 
     def setup() {
         _ * context.identity >> identity
