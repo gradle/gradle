@@ -34,6 +34,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class JavaToolchainQueryService {
@@ -73,8 +74,7 @@ public class JavaToolchainQueryService {
 
     @VisibleForTesting
     ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
-        JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) filter;
-        ensureValidSpec(filterInternal);
+        JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) Objects.requireNonNull(filter);
         return new DefaultProvider<>(() -> resolveToolchain(filterInternal));
     }
 
@@ -82,9 +82,13 @@ public class JavaToolchainQueryService {
     private JavaToolchain resolveToolchain(JavaToolchainSpecInternal filterInternal) throws Exception {
         filterInternal.finalizeProperties();
 
-        // This is an intentional duplicate check due to the fact that
-        // the spec could have been mutated before the toolchain provider was unpacked
-        ensureValidSpec(filterInternal);
+        if (!filterInternal.isValid()) {
+            throw DocumentedFailure.builder()
+                .withSummary("Using toolchain specifications without setting a language version is not supported.")
+                .withAdvice("Consider configuring the language version.")
+                .withUpgradeGuideSection(7, "invalid_toolchain_specification_deprecation")
+                .build();
+        }
 
         if (!filterInternal.isConfigured()) {
             return null;
@@ -138,15 +142,5 @@ public class JavaToolchainQueryService {
 
     private Optional<JavaToolchain> asToolchain(InstallationLocation javaHome, JavaToolchainSpec spec) {
         return toolchainFactory.newInstance(javaHome, new JavaToolchainInput(spec));
-    }
-
-    private static void ensureValidSpec(JavaToolchainSpecInternal filterInternal) {
-        if (!filterInternal.isValid()) {
-            throw DocumentedFailure.builder()
-                .withSummary("Using toolchain specifications without setting a language version is not supported.")
-                .withAdvice("Consider configuring the language version.")
-                .withUpgradeGuideSection(7, "invalid_toolchain_specification_deprecation")
-                .build();
-        }
     }
 }
