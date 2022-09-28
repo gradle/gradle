@@ -19,7 +19,6 @@ package org.gradle.api.tasks.testing.testng;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.xml.MarkupBuilder;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
