@@ -39,8 +39,8 @@ public class JUnitOptions extends TestFrameworkOptions {
      * @since 8.0
      */
     public JUnitOptions(JUnitOptions other) {
-        includeCategories.addAll(other.includeCategories);
-        excludeCategories.addAll(other.excludeCategories);
+        this.includeCategories.addAll(other.includeCategories);
+        this.excludeCategories.addAll(other.excludeCategories);
     }
 
     public JUnitOptions includeCategories(String... includeCategories) {

@@ -46,10 +46,10 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
      * @since 8.0
      */
     public JUnitPlatformOptions(JUnitPlatformOptions other) {
-        includeEngines.addAll(other.includeEngines);
-        excludeEngines.addAll(other.excludeEngines);
-        includeTags.addAll(other.includeTags);
-        excludeTags.addAll(other.excludeTags);
+        this.includeEngines.addAll(other.includeEngines);
+        this.excludeEngines.addAll(other.excludeEngines);
+        this.includeTags.addAll(other.includeTags);
+        this.excludeTags.addAll(other.excludeTags);
     }
 
     /**
