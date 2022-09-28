@@ -17,8 +17,11 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 import java.util.concurrent.CompletableFuture
 
@@ -244,6 +247,40 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
 
         then:
         outputContains("backgroundJobExecutor.isInBackground = false")
+    }
+
+    @IgnoreIf({ !GradleContextualExecuter.configCache })
+    def "configuration inputs are not tracked for the job"() {
+        def configurationCache = new ConfigurationCacheFixture(this)
+
+        given:
+        buildFile << """
+            import ${CompletableFuture.name}
+
+            def executors = $executors
+            def future = CompletableFuture.runAsync({
+                println "backgroundJob.property = \${System.getProperty("property")}"
+            }, executors.userJobExecutor)
+
+            // Block until the job completes to ensure it run at the configuration time.
+            future.get()
+
+            task check {}
+        """
+
+        when:
+        succeeds("check", "-Dproperty=value")
+
+        then:
+        outputContains("backgroundJob.property = value")
+        configurationCache.assertStateStored()
+
+        when:
+        succeeds("check", "-Dproperty=other")
+
+        then:
+        outputDoesNotContain("backgroundJob.property = ")
+        configurationCache.assertStateLoaded()
     }
 
     private static String getExecutors() {

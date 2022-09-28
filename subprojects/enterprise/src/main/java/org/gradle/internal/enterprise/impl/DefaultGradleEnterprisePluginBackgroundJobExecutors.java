@@ -16,6 +16,7 @@
 
 package org.gradle.internal.enterprise.impl;
 
+import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.concurrent.ExecutorPolicy;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.ManagedExecutorImpl;
@@ -53,7 +54,16 @@ public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements Grad
     }
 
     private void executeUserJob(Runnable job) {
-        executorService.execute(job);
+        executorService.execute(() -> executeWithoutConfigurationInputTracking(job));
+    }
+
+    private static void executeWithoutConfigurationInputTracking(Runnable job) {
+        Instrumented.disableListenerForCurrentThread();
+        try {
+            job.run();
+        } finally {
+            Instrumented.restoreListenerForCurrentThread();
+        }
     }
 
     @Override
