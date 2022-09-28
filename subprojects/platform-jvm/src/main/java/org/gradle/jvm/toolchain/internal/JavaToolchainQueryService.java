@@ -33,6 +33,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class JavaToolchainQueryService {
@@ -71,16 +72,17 @@ public class JavaToolchainQueryService {
 
     @VisibleForTesting
     ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
-        JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) filter;
-        if (!filterInternal.isValid()) {
-            DeprecationLogger.deprecate("Using toolchain specifications without setting a language version")
-                .withAdvice("Consider configuring the language version.")
-                .willBecomeAnErrorInGradle8()
-                .withUpgradeGuideSection(7, "invalid_toolchain_specification_deprecation")
-                .nagUser();
-        }
+        JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) Objects.requireNonNull(filter);
 
         return new DefaultProvider<>(() -> {
+            if (!filterInternal.isValid()) {
+                DeprecationLogger.deprecate("Using toolchain specifications without setting a language version")
+                    .withAdvice("Consider configuring the language version.")
+                    .willBecomeAnErrorInGradle8()
+                    .withUpgradeGuideSection(7, "invalid_toolchain_specification_deprecation")
+                    .nagUser();
+            }
+
             if (!filterInternal.isConfigured()) {
                 return null;
             }
