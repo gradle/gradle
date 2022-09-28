@@ -36,7 +36,7 @@ class GradleUserHomeCacheCleanupActionFactoryTest extends Specification {
 
     def "wrapping allows cleanup when enabled"() {
         given:
-        enableCacheCleanup('foo')
+        withCacheCleanupEnabledByDefault()
 
         when:
         cacheCleanupEnablement.create(delegateCleanupAction).clean(Mock(CleanableStore), Mock(CleanupProgressMonitor))
@@ -47,7 +47,7 @@ class GradleUserHomeCacheCleanupActionFactoryTest extends Specification {
 
     def "wrapping does not allow cleanup when cleanup is disabled"() {
         given:
-        disableCacheCleanup('foo')
+        withCacheCleanupDisabled()
 
         when:
         cacheCleanupEnablement.create(delegateCleanupAction).clean(Mock(CleanableStore), Mock(CleanupProgressMonitor))
@@ -58,7 +58,7 @@ class GradleUserHomeCacheCleanupActionFactoryTest extends Specification {
 
     def "wrapping allows directory cleanup when enabled"() {
         given:
-        enableCacheCleanup('foo')
+        withCacheCleanupEnabledByDefault()
 
         when:
         cacheCleanupEnablement.create(delegateDirectoryCleanupAction).execute(Mock(CleanupProgressMonitor))
@@ -69,7 +69,7 @@ class GradleUserHomeCacheCleanupActionFactoryTest extends Specification {
 
     def "wrapping does not allow directory cleanup when cleanup is disabled"() {
         given:
-        disableCacheCleanup('foo')
+        withCacheCleanupDisabled()
 
         when:
         cacheCleanupEnablement.create(delegateDirectoryCleanupAction).execute(Mock(CleanupProgressMonitor))
@@ -84,12 +84,12 @@ class GradleUserHomeCacheCleanupActionFactoryTest extends Specification {
         return guh
     }
 
-    private void enableCacheCleanup(String gradleUserHomePath) {
-        setGradleUserHome(gradleUserHomePath)
+    private void withCacheCleanupEnabledByDefault() {
+        setGradleUserHome('guh')
     }
 
-    private void disableCacheCleanup(String gradleUserHomePath) {
-        def guh = setGradleUserHome(gradleUserHomePath)
+    private void withCacheCleanupDisabled() {
+        def guh = setGradleUserHome('guh')
         new File(guh, 'gradle.properties') << "${GradleUserHomeCacheCleanupActionFactory.CACHE_CLEANUP_PROPERTY}=false"
     }
 }
