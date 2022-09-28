@@ -186,7 +186,7 @@
 				]
 			},
 			{
-				"enableTD":false,
+				"enableTD":true,
 				"subprojects":[
 					"file-watching"
 				]
@@ -2814,7 +2814,7 @@
 				"subproject":"docs"
 			},
 			{
-				"enableTD":false,
+				"enableTD":true,
 				"subprojects":[
 					"file-watching"
 				]
@@ -5519,7 +5519,7 @@
 				]
 			},
 			{
-				"enableTD":false,
+				"enableTD":true,
 				"subprojects":[
 					"file-watching"
 				]
@@ -5693,7 +5693,7 @@
 				]
 			},
 			{
-				"enableTD":false,
+				"enableTD":true,
 				"subprojects":[
 					"file-watching"
 				]
@@ -9226,7 +9226,7 @@
 				]
 			},
 			{
-				"enableTD":false,
+				"enableTD":true,
 				"subprojects":[
 					"file-watching"
 				]
@@ -9365,7 +9365,7 @@
 				]
 			},
 			{
-				"enableTD":false,
+				"enableTD":true,
 				"subprojects":[
 					"file-watching"
 				]
