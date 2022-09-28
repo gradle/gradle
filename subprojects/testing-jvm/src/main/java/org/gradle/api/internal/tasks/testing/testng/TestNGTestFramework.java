@@ -64,7 +64,7 @@ public class TestNGTestFramework implements TestFramework {
             filter,
             objects,
             testTask.getPath(),
-            classpath, // TODO: Why not use `testTask.getClasspath()`?
+            classpath,
             testTask.getTemporaryDirFactory(),
             testTask.getReports().getHtml(),
             objects.newInstance(TestNGOptions.class)
