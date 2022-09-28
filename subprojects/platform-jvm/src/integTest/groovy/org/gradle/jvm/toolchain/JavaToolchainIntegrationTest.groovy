@@ -101,6 +101,63 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec {
         current = (isCurrentJvm ? "current" : "non-current")
     }
 
+    def "fails when trying to change java extension toolchain spec property after it has been used to resolve a toolchain"() {
+        def jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
+        def jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
+
+        file("src/main/java/Main.java") << """
+            public class Main {}
+        """
+
+        buildScript """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdkMetadata1.languageVersion.majorVersion})
+                }
+            }
+
+            compileJava {
+                doLast {
+                    java.toolchain.languageVersion.set(JavaLanguageVersion.of(${jdkMetadata2.languageVersion.majorVersion}))
+                }
+            }
+        """
+
+        when:
+        withInstallations(jdkMetadata1, jdkMetadata2).runAndFail ':compileJava'
+
+        then:
+        failure.assertHasCause("The value for property 'languageVersion' is final and cannot be changed any further")
+    }
+
+    def "fails when trying to change captured toolchain spec property after it has been used to resolve a toolchain"() {
+        def jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
+        def jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
+        buildScript """
+            import java.util.concurrent.atomic.AtomicReference
+            import org.gradle.jvm.toolchain.JavaToolchainSpec
+
+            apply plugin: "java"
+
+            def toolchainSpecRef = new AtomicReference<JavaToolchainSpec>(null)
+
+            javaToolchains.launcherFor {
+                toolchainSpecRef.set(delegate)
+                languageVersion = JavaLanguageVersion.of(${jdkMetadata1.languageVersion.majorVersion})
+            }.get()
+
+            toolchainSpecRef.get().languageVersion.set(JavaLanguageVersion.of(${jdkMetadata2.languageVersion.majorVersion}))
+        """
+
+        when:
+        withInstallations(jdkMetadata1, jdkMetadata2).runAndFail ':help'
+
+        then:
+        failure.assertHasCause("The value for property 'languageVersion' is final and cannot be changed any further")
+    }
+
     private withInstallations(JvmInstallationMetadata... jdkMetadata) {
         def installationPaths = jdkMetadata.collect { it.javaHome.toAbsolutePath().toString() }.join(",")
         executer

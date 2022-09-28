@@ -29,6 +29,7 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.HashMap;
@@ -42,6 +43,7 @@ public class JavaToolchainQueryService {
     private final JavaToolchainProvisioningService installService;
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
+    // Map values are either `JavaToolchain` or `Exception`
     private final Map<JavaToolchainSpecInternal.Key, Object> matchingToolchains;
 
     @Inject
@@ -72,46 +74,34 @@ public class JavaToolchainQueryService {
     @VisibleForTesting
     ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
         JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) filter;
-        if (!filterInternal.isValid()) {
-            throw DocumentedFailure.builder()
-                .withSummary("Using toolchain specifications without setting a language version is not supported.")
-                .withAdvice("Consider configuring the language version.")
-                .withUpgradeGuideSection(7, "invalid_toolchain_specification_deprecation")
-                .build();
+        ensureValidSpec(filterInternal);
+        return new DefaultProvider<>(() -> resolveToolchain(filterInternal));
+    }
+
+    @Nullable
+    private JavaToolchain resolveToolchain(JavaToolchainSpecInternal filterInternal) throws Exception {
+        filterInternal.finalizeProperties();
+
+        // This is an intentional duplicate check due to the fact that
+        // the spec could have been mutated before the toolchain provider was unpacked
+        ensureValidSpec(filterInternal);
+
+        if (!filterInternal.isConfigured()) {
+            return null;
         }
 
-        return new DefaultProvider<>(() -> {
-            if (!filterInternal.isConfigured()) {
-                return null;
-            }
-
-            synchronized (matchingToolchains) {
-                if (matchingToolchains.containsKey(filterInternal.toKey())) {
-                    return handleMatchingToolchainCached(filterInternal);
-                } else {
-                    return handleMatchingToolchainUnknown(filterInternal);
-                }
+        Object resolutionResult = matchingToolchains.computeIfAbsent(filterInternal.toKey(), key -> {
+            try {
+                return query(filterInternal);
+            } catch (Exception e) {
+                return e;
             }
         });
-    }
 
-    private JavaToolchain handleMatchingToolchainCached(JavaToolchainSpecInternal filterInternal) throws Exception {
-        Object previousResult = matchingToolchains.get(filterInternal.toKey());
-        if (previousResult instanceof Exception) {
-            throw (Exception) previousResult;
+        if (resolutionResult instanceof Exception) {
+            throw (Exception) resolutionResult;
         } else {
-            return (JavaToolchain) previousResult;
-        }
-    }
-
-    private JavaToolchain handleMatchingToolchainUnknown(JavaToolchainSpecInternal filterInternal) {
-        try {
-            JavaToolchain toolchain = query(filterInternal);
-            matchingToolchains.put(filterInternal.toKey(), toolchain);
-            return toolchain;
-        } catch (Exception e) {
-            matchingToolchains.put(filterInternal.toKey(), e);
-            throw e;
+            return (JavaToolchain) resolutionResult;
         }
     }
 
@@ -148,5 +138,15 @@ public class JavaToolchainQueryService {
 
     private Optional<JavaToolchain> asToolchain(InstallationLocation javaHome, JavaToolchainSpec spec) {
         return toolchainFactory.newInstance(javaHome, new JavaToolchainInput(spec));
+    }
+
+    private static void ensureValidSpec(JavaToolchainSpecInternal filterInternal) {
+        if (!filterInternal.isValid()) {
+            throw DocumentedFailure.builder()
+                .withSummary("Using toolchain specifications without setting a language version is not supported.")
+                .withAdvice("Consider configuring the language version.")
+                .withUpgradeGuideSection(7, "invalid_toolchain_specification_deprecation")
+                .build();
+        }
     }
 }
