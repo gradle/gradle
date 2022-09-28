@@ -25,21 +25,21 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 
-class GradleUserHomeCacheCleanupActionFactoryTest extends Specification {
+class GradleUserHomeCacheCleanupActionDecoratorTest extends Specification {
     @Rule
     TemporaryFolder tmpDir = new TemporaryFolder()
 
     def delegateCleanupAction = Mock(CleanupAction)
     def delegateDirectoryCleanupAction = Mock(DirectoryCleanupAction)
     def gradleUserHomeProvider = Stub(GradleUserHomeDirProvider)
-    def cacheCleanupEnablement = new GradleUserHomeCacheCleanupActionFactory(gradleUserHomeProvider)
+    def cacheCleanupDecorator = new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeProvider)
 
     def "wrapping allows cleanup when enabled"() {
         given:
         withCacheCleanupEnabledByDefault()
 
         when:
-        cacheCleanupEnablement.create(delegateCleanupAction).clean(Mock(CleanableStore), Mock(CleanupProgressMonitor))
+        cacheCleanupDecorator.decorate(delegateCleanupAction).clean(Mock(CleanableStore), Mock(CleanupProgressMonitor))
 
         then:
         1 * delegateCleanupAction.clean(_, _)
@@ -50,7 +50,7 @@ class GradleUserHomeCacheCleanupActionFactoryTest extends Specification {
         withCacheCleanupDisabled()
 
         when:
-        cacheCleanupEnablement.create(delegateCleanupAction).clean(Mock(CleanableStore), Mock(CleanupProgressMonitor))
+        cacheCleanupDecorator.decorate(delegateCleanupAction).clean(Mock(CleanableStore), Mock(CleanupProgressMonitor))
 
         then:
         0 * delegateCleanupAction.clean(_, _)
@@ -61,7 +61,7 @@ class GradleUserHomeCacheCleanupActionFactoryTest extends Specification {
         withCacheCleanupEnabledByDefault()
 
         when:
-        cacheCleanupEnablement.create(delegateDirectoryCleanupAction).execute(Mock(CleanupProgressMonitor))
+        cacheCleanupDecorator.decorate(delegateDirectoryCleanupAction).execute(Mock(CleanupProgressMonitor))
 
         then:
         1 * delegateDirectoryCleanupAction.execute(_)
@@ -72,7 +72,7 @@ class GradleUserHomeCacheCleanupActionFactoryTest extends Specification {
         withCacheCleanupDisabled()
 
         when:
-        cacheCleanupEnablement.create(delegateDirectoryCleanupAction).execute(Mock(CleanupProgressMonitor))
+        cacheCleanupDecorator.decorate(delegateDirectoryCleanupAction).execute(Mock(CleanupProgressMonitor))
 
         then:
         0 * delegateDirectoryCleanupAction.execute(_)
@@ -90,6 +90,6 @@ class GradleUserHomeCacheCleanupActionFactoryTest extends Specification {
 
     private void withCacheCleanupDisabled() {
         def guh = setGradleUserHome('guh')
-        new File(guh, 'gradle.properties') << "${GradleUserHomeCacheCleanupActionFactory.CACHE_CLEANUP_PROPERTY}=false"
+        new File(guh, 'gradle.properties') << "${GradleUserHomeCacheCleanupActionDecorator.CACHE_CLEANUP_PROPERTY}=false"
     }
 }

@@ -25,7 +25,7 @@ trait CacheCleanupEnablementFixture {
     void disableCacheCleanup() {
         gradleUserHomeDir.mkdirs()
         new File(gradleUserHomeDir, 'gradle.properties') << """
-            ${GradleUserHomeCacheCleanupActionFactory.CACHE_CLEANUP_PROPERTY}=false
+            ${GradleUserHomeCacheCleanupActionDecorator.CACHE_CLEANUP_PROPERTY}=false
         """.stripIndent()
     }
 

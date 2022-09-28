@@ -39,7 +39,7 @@ import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.DefaultGlobalCacheLocations;
 import org.gradle.cache.internal.FileContentCacheFactory;
-import org.gradle.cache.internal.GradleUserHomeCacheCleanupActionFactory;
+import org.gradle.cache.internal.GradleUserHomeCacheCleanupActionDecorator;
 import org.gradle.cache.internal.GradleUserHomeCleanupServices;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
@@ -114,8 +114,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         }
     }
 
-    GradleUserHomeCacheCleanupActionFactory createCacheCleanupEnablement(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
-        return new GradleUserHomeCacheCleanupActionFactory(gradleUserHomeDirProvider);
+    GradleUserHomeCacheCleanupActionDecorator createCacheCleanupEnablement(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
+        return new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeDirProvider);
     }
 
     CacheRepository createCacheRepository(GlobalCacheDir globalCacheDir, CacheFactory cacheFactory) {

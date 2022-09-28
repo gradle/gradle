@@ -16,6 +16,8 @@
 
 package org.gradle.cache.internal;
 
-public interface DirectoryCleanupActionFactory {
-    DirectoryCleanupAction create(DirectoryCleanupAction cleanupAction);
+import org.gradle.cache.CleanupAction;
+
+public interface CleanupActionDecorator {
+    CleanupAction decorate(CleanupAction cleanupAction);
 }
