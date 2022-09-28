@@ -18,7 +18,7 @@ package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CleanupActionFactory;
+import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheVersionMapping;
@@ -50,11 +50,11 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final UsedGradleVersions usedGradleVersions;
-    private final CleanupActionFactory cleanupActionFactory;
+    private final CleanupActionDecorator cleanupActionDecorator;
 
-    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CleanupActionFactory cleanupActionFactory) {
+    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CleanupActionDecorator cleanupActionDecorator) {
         this.usedGradleVersions = usedGradleVersions;
-        this.cleanupActionFactory = cleanupActionFactory;
+        this.cleanupActionDecorator = cleanupActionDecorator;
     }
 
     @Override
@@ -64,11 +64,11 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
             .withDisplayName(CACHE_NAME)
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
-            .withCleanup(cleanupActionFactory.create(newCleanupAction(fileAccessTimeJournal)))
+            .withCleanup(cleanupActionDecorator.decorate(createCleanupAction(fileAccessTimeJournal)))
             .open();
     }
 
-    private CompositeCleanupAction newCleanupAction(FileAccessTimeJournal fileAccessTimeJournal) {
+    private CompositeCleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal) {
         return CompositeCleanupAction.builder()
             .add(UnusedVersionsCacheCleanup.create(CACHE_NAME, CACHE_VERSION_MAPPING, usedGradleVersions))
             .add(

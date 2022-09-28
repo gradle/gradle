@@ -19,7 +19,7 @@ import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
-import org.gradle.cache.CleanupActionFactory;
+import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
@@ -48,18 +48,18 @@ public class WritableArtifactCacheLockingManager implements ArtifactCacheLocking
                                                ArtifactCacheMetadata cacheMetaData,
                                                FileAccessTimeJournal fileAccessTimeJournal,
                                                UsedGradleVersions usedGradleVersions,
-                                               CleanupActionFactory cleanupActionFactory
+                                               CleanupActionDecorator cleanupActionDecorator
                                                ) {
         cache = cacheRepository
                 .cache(cacheMetaData.getCacheDir())
                 .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
                 .withDisplayName("artifact cache")
                 .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Don't need to lock anything until we use the caches
-                .withCleanup(cleanupActionFactory.create(newCleanupAction(cacheMetaData, fileAccessTimeJournal, usedGradleVersions)))
+                .withCleanup(cleanupActionDecorator.decorate(createCleanupAction(cacheMetaData, fileAccessTimeJournal, usedGradleVersions)))
                 .open();
     }
 
-    private CleanupAction newCleanupAction(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions) {
+    private CleanupAction createCleanupAction(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions) {
         long maxAgeInDays = Long.getLong("org.gradle.internal.cleanup.external.max.age", DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES);
         return CompositeCleanupAction.builder()
                 .add(UnusedVersionsCacheCleanup.create(CacheLayout.ROOT.getName(), CacheLayout.ROOT.getVersionMapping(), usedGradleVersions))

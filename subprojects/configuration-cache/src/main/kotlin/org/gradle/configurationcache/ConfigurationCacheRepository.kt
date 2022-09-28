@@ -18,7 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.CleanupActionFactory
+import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
@@ -47,7 +47,7 @@ import java.nio.file.StandardCopyOption
 internal
 class ConfigurationCacheRepository(
     cacheRepository: BuildTreeScopedCache,
-    cacheCleanupFactory: CleanupActionFactory,
+    cleanupActionDecorator: CleanupActionDecorator,
     private val fileAccessTimeJournal: FileAccessTimeJournal,
     private val fileSystem: FileSystem
 ) : Stoppable {
@@ -203,7 +203,7 @@ class ConfigurationCacheRepository(
         .crossVersionCache("configuration-cache")
         .withDisplayName("Configuration Cache")
         .withOnDemandLockMode() // Don't need to lock anything until we use the caches
-        .withLruCacheCleanup(cacheCleanupFactory)
+        .withLruCacheCleanup(cleanupActionDecorator)
         .open()
 
     private
@@ -211,9 +211,9 @@ class ConfigurationCacheRepository(
         withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
 
     private
-    fun CacheBuilder.withLruCacheCleanup(cleanupActionFactory: CleanupActionFactory): CacheBuilder =
+    fun CacheBuilder.withLruCacheCleanup(cleanupActionDecorator: CleanupActionDecorator): CacheBuilder =
         withCleanup(
-            cleanupActionFactory.create(
+            cleanupActionDecorator.decorate(
                 LeastRecentlyUsedCacheCleanup(
                     SingleDepthFilesFinder(cleanupDepth),
                     fileAccessTimeJournal,

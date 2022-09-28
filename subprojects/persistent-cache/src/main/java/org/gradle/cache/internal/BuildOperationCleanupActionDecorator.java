@@ -18,22 +18,21 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupAction;
-import org.gradle.cache.CleanupActionFactory;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-public class BuildOperationCleanupActionFactory implements CleanupActionFactory {
+public class BuildOperationCleanupActionDecorator implements CleanupActionDecorator {
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public BuildOperationCleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {
+    public BuildOperationCleanupActionDecorator(BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
-    public CleanupAction create(CleanupAction action) {
+    public CleanupAction decorate(CleanupAction action) {
         return new BuildOperationCacheCleanupDecorator(action, buildOperationExecutor);
     }
 

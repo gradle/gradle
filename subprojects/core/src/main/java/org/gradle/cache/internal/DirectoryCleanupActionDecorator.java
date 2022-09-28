@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.cache;
+package org.gradle.cache.internal;
 
-public interface CleanupActionFactory {
-    CleanupAction create(CleanupAction cleanupAction);
+public interface DirectoryCleanupActionDecorator {
+    DirectoryCleanupAction decorate(DirectoryCleanupAction cleanupAction);
 }

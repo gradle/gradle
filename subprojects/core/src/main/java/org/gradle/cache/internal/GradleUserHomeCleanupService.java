@@ -35,7 +35,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
     private final GlobalScopedCache globalScopedCache;
     private final UsedGradleVersions usedGradleVersions;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final DirectoryCleanupActionFactory cleanupActionFactory;
+    private final DirectoryCleanupActionDecorator cleanupActionDecorator;
 
     public GradleUserHomeCleanupService(
         Deleter deleter,
@@ -43,23 +43,23 @@ public class GradleUserHomeCleanupService implements Stoppable {
         GlobalScopedCache globalScopedCache,
         UsedGradleVersions usedGradleVersions,
         ProgressLoggerFactory progressLoggerFactory,
-        DirectoryCleanupActionFactory cleanupActionFactory
+        DirectoryCleanupActionDecorator cleanupActionDecorator
     ) {
         this.deleter = deleter;
         this.userHomeDirProvider = userHomeDirProvider;
         this.globalScopedCache = globalScopedCache;
         this.usedGradleVersions = usedGradleVersions;
         this.progressLoggerFactory = progressLoggerFactory;
-        this.cleanupActionFactory = cleanupActionFactory;
+        this.cleanupActionDecorator = cleanupActionDecorator;
     }
 
     @Override
     public void stop() {
         File cacheBaseDir = globalScopedCache.getRootDir();
         boolean wasCleanedUp = execute(
-            cleanupActionFactory.create(new VersionSpecificCacheCleanupAction(cacheBaseDir, MAX_UNUSED_DAYS_FOR_RELEASES, MAX_UNUSED_DAYS_FOR_SNAPSHOTS, deleter)));
+            cleanupActionDecorator.decorate(new VersionSpecificCacheCleanupAction(cacheBaseDir, MAX_UNUSED_DAYS_FOR_RELEASES, MAX_UNUSED_DAYS_FOR_SNAPSHOTS, deleter)));
         if (wasCleanedUp) {
-            execute(cleanupActionFactory.create(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions)));
+            execute(cleanupActionDecorator.decorate(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions)));
         }
     }
 

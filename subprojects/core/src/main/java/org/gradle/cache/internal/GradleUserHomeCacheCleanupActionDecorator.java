@@ -17,7 +17,6 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.CleanupAction;
-import org.gradle.cache.CleanupActionFactory;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.util.internal.GUtil;
@@ -25,12 +24,12 @@ import org.gradle.util.internal.GUtil;
 import java.io.File;
 import java.util.Properties;
 
-public class GradleUserHomeCacheCleanupActionFactory implements CleanupActionFactory, DirectoryCleanupActionFactory {
+public class GradleUserHomeCacheCleanupActionDecorator implements CleanupActionDecorator, DirectoryCleanupActionDecorator {
     public static final String CACHE_CLEANUP_PROPERTY = "org.gradle.cache.cleanup";
 
     private final GradleUserHomeDirProvider userHomeDirProvider;
 
-    public GradleUserHomeCacheCleanupActionFactory(GradleUserHomeDirProvider userHomeDirProvider) {
+    public GradleUserHomeCacheCleanupActionDecorator(GradleUserHomeDirProvider userHomeDirProvider) {
         this.userHomeDirProvider = userHomeDirProvider;
     }
 
@@ -46,7 +45,7 @@ public class GradleUserHomeCacheCleanupActionFactory implements CleanupActionFac
     }
 
     @Override
-    public CleanupAction create(CleanupAction cleanup) {
+    public CleanupAction decorate(CleanupAction cleanup) {
         return (cleanableStore, progressMonitor) -> {
             if (isEnabled()) {
                 cleanup.clean(cleanableStore, progressMonitor);
@@ -55,7 +54,7 @@ public class GradleUserHomeCacheCleanupActionFactory implements CleanupActionFac
     }
 
     @Override
-    public DirectoryCleanupAction create(DirectoryCleanupAction cleanupAction) {
+    public DirectoryCleanupAction decorate(DirectoryCleanupAction cleanupAction) {
         return new DirectoryCleanupAction() {
             @Override
             public boolean execute(CleanupProgressMonitor progressMonitor) {
