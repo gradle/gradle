@@ -304,7 +304,7 @@ fun configureTests() {
                     includeAnnotationClasses.addAll("com.gradle.enterprise.testing.annotations.LocalOnly")
                 }
                 remoteOnly {
-                    includeAnnotationClasses.addAll("com.gradle.enterprise.testing.annotationsRemoteOnly")
+                    includeAnnotationClasses.addAll("com.gradle.enterprise.testing.annotations.RemoteOnly")
                 }
 
                 if (BuildEnvironment.isCiServer) {
