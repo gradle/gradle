@@ -19,8 +19,6 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
@@ -72,26 +70,10 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
     @Override
     public AfterExecutionResult execute(UnitOfWork work, C context) {
         Result result = executeDelegateBroadcastingChanges(work, context);
-        Duration duration = result.getDuration();
         Optional<AfterExecutionState> afterExecutionState = context.getBeforeExecutionState()
-            .map(beforeExecutionState -> captureStateAfterExecution(work, context, beforeExecutionState, duration));
+            .map(beforeExecutionState -> captureStateAfterExecution(work, context, beforeExecutionState, result.getDuration()));
 
-        return new AfterExecutionResult() {
-            @Override
-            public Optional<AfterExecutionState> getAfterExecutionState() {
-                return afterExecutionState;
-            }
-
-            @Override
-            public Try<Execution> getExecution() {
-                return result.getExecution();
-            }
-
-            @Override
-            public Duration getDuration() {
-                return duration;
-            }
-        };
+        return new AfterExecutionResult(result, afterExecutionState.orElse(null));
     }
 
     private Result executeDelegateBroadcastingChanges(UnitOfWork work, C context) {

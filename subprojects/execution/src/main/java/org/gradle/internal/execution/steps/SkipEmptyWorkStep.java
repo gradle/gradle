@@ -19,7 +19,6 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
@@ -31,7 +30,6 @@ import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -49,7 +47,6 @@ import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -161,47 +158,18 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
 
         broadcastWorkInputs(work, true);
 
-        return new CachingResult() {
+        Try<Execution> execution = Try.successful(new Execution() {
             @Override
-            public Duration getDuration() {
-                return duration;
+            public ExecutionOutcome getOutcome() {
+                return skipOutcome;
             }
 
             @Override
-            public Try<Execution> getExecution() {
-                return Try.successful(new Execution() {
-                    @Override
-                    public ExecutionOutcome getOutcome() {
-                        return skipOutcome;
-                    }
-
-                    @Override
-                    public Object getOutput() {
-                        return work.loadAlreadyProducedOutput(context.getWorkspace());
-                    }
-                });
+            public Object getOutput() {
+                return work.loadAlreadyProducedOutput(context.getWorkspace());
             }
-
-            @Override
-            public CachingState getCachingState() {
-                return CachingState.NOT_DETERMINED;
-            }
-
-            @Override
-            public ImmutableList<String> getExecutionReasons() {
-                return ImmutableList.of();
-            }
-
-            @Override
-            public Optional<AfterExecutionState> getAfterExecutionState() {
-                return Optional.empty();
-            }
-
-            @Override
-            public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                return Optional.empty();
-            }
-        };
+        });
+        return new CachingResult(duration, execution, null, ImmutableList.of(), null, CachingState.NOT_DETERMINED);
     }
 
     private CachingResult executeWithNonEmptySources(UnitOfWork work, PreviousExecutionContext context) {

@@ -18,7 +18,6 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
@@ -30,10 +29,8 @@ import org.gradle.internal.execution.history.impl.DefaultAfterExecutionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
 import java.util.Formatter;
 import java.util.List;
-import java.util.Optional;
 
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE;
 
@@ -69,75 +66,33 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             previousExecutionState.getOutputFilesProducedByWork(),
             previousExecutionState.getOriginMetadata(),
             true);
-        return new UpToDateResult() {
+        Try<Execution> execution = Try.successful(new Execution() {
             @Override
-            public ImmutableList<String> getExecutionReasons() {
-                return ImmutableList.of();
+            public ExecutionOutcome getOutcome() {
+                return UP_TO_DATE;
             }
 
             @Override
-            public Optional<AfterExecutionState> getAfterExecutionState() {
-                return Optional.of(afterExecutionState);
+            public Object getOutput() {
+                return work.loadAlreadyProducedOutput(context.getWorkspace());
             }
-
-            @Override
-            public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                return Optional.of(previousExecutionState.getOriginMetadata());
-            }
-
-            @Override
-            public Try<Execution> getExecution() {
-                return Try.successful(new Execution() {
-                    @Override
-                    public ExecutionOutcome getOutcome() {
-                        return UP_TO_DATE;
-                    }
-
-                    @Override
-                    public Object getOutput() {
-                        return work.loadAlreadyProducedOutput(context.getWorkspace());
-                    }
-                });
-            }
-
-            @Override
-            public Duration getDuration() {
-                return previousExecutionState.getOriginMetadata().getExecutionTime();
-            }
-        };
+        });
+        return new UpToDateResult(
+            previousExecutionState.getOriginMetadata().getExecutionTime(),
+            execution,
+            afterExecutionState,
+            ImmutableList.of(),
+            previousExecutionState.getOriginMetadata()
+        );
     }
 
     private UpToDateResult executeBecause(UnitOfWork work, ImmutableList<String> reasons, C context) {
         logExecutionReasons(reasons, work);
         AfterExecutionResult result = delegate.execute(work, context);
-        return new UpToDateResult() {
-            @Override
-            public ImmutableList<String> getExecutionReasons() {
-                return reasons;
-            }
-
-            @Override
-            public Optional<AfterExecutionState> getAfterExecutionState() {
-                return result.getAfterExecutionState();
-            }
-
-            @Override
-            public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                return result.getAfterExecutionState()
-                    .filter(AfterExecutionState::isReused)
-                    .map(AfterExecutionState::getOriginMetadata);
-            }
-
-            @Override
-            public Duration getDuration() {
-                return result.getDuration();
-            }
-
-            @Override
-            public Try<Execution> getExecution() {
-                return result.getExecution();
-            }
-        };
+        return new UpToDateResult(result, reasons, result.getAfterExecutionState()
+            .filter(AfterExecutionState::isReused)
+            .map(AfterExecutionState::getOriginMetadata)
+            .orElse(null));
     }
 
     private void logExecutionReasons(List<String> reasons, UnitOfWork work) {
