@@ -90,6 +90,18 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
     }
 
+    @Override
+    public void resetState(BuildState build) {
+        DefaultBuildProjectRegistry registry = projectsByBuild.get(build.getBuildIdentifier());
+        if (registry != null) {
+            for (ProjectStateImpl project : registry.projectsByPath.values()) {
+                projectsById.remove(project.identifier);
+                projectsByPath.remove(project.identityPath);
+            }
+            registry.projectsByPath.clear();
+        }
+    }
+
     private ProjectState addProject(BuildState owner, DefaultBuildProjectRegistry projectRegistry, DefaultProjectDescriptor descriptor) {
         Path projectPath = descriptor.path();
         Path identityPath = owner.calculateIdentityPathForProject(projectPath);

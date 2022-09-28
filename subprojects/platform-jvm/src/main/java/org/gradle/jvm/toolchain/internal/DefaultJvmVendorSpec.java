@@ -59,6 +59,11 @@ public class DefaultJvmVendorSpec extends JvmVendorSpec implements Predicate<Jvm
     }
 
     @Override
+    public boolean matches(String vendor) {
+        return test(JvmVendor.fromString(vendor));
+    }
+
+    @Override
     public String toString() {
         return description;
     }

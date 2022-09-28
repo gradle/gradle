@@ -17,13 +17,12 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler;
 import org.gradle.jvm.toolchain.JvmToolchainManagement;
 
 import javax.inject.Inject;
 
-public abstract class DefaultJvmToolchainManagement implements JvmToolchainManagement, ExtensionAware {
+public abstract class DefaultJvmToolchainManagement implements JvmToolchainManagement {
 
     private final JavaToolchainResolverRegistryInternal registry;
 
