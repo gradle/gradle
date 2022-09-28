@@ -48,8 +48,8 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     def delegateResult = Mock(AfterExecutionResult)
 
     @Override
-    protected BeforeExecutionContext createContext() {
-        Stub(BeforeExecutionContext)
+    Class<BeforeExecutionContext> getContextType() {
+        BeforeExecutionContext
     }
 
     def setup() {

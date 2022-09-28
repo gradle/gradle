@@ -33,8 +33,8 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
     def changes = Mock(ExecutionStateChanges)
 
     @Override
-    protected IncrementalChangesContext createContext() {
-        Stub(IncrementalChangesContext)
+    Class<IncrementalChangesContext> getContextType() {
+        IncrementalChangesContext
     }
 
     def "skips when outputs are up to date"() {

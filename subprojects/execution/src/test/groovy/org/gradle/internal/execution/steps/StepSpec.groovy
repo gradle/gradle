@@ -16,12 +16,18 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableCollection
+import com.google.common.collect.ImmutableMap
+import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import org.spockframework.mock.EmptyOrDummyResponse
+import org.spockframework.mock.IDefaultResponse
+import org.spockframework.mock.IMockInvocation
 import spock.lang.Specification
 
 import java.util.function.Consumer
@@ -37,9 +43,23 @@ abstract class StepSpec<C extends Context> extends Specification {
     }
     final delegate = Mock(DeferredExecutionAwareStep)
     final work = Stub(UnitOfWork)
-    final C context = createContext()
+    final C context = Stub(defaultResponse: GuavaImmutablesResponse.INSTANCE, contextType)
 
-    abstract protected C createContext()
+    static class GuavaImmutablesResponse implements IDefaultResponse {
+        static final IDefaultResponse INSTANCE = new GuavaImmutablesResponse()
+
+        @Override
+        Object respond(IMockInvocation invocation) {
+            if (ImmutableCollection.isAssignableFrom(invocation.method.returnType)
+                || ImmutableMap.isAssignableFrom(invocation.method.returnType)) {
+                return InvokerHelper.invokeStaticMethod(invocation.method.returnType, "of", null)
+            } else {
+                return EmptyOrDummyResponse.INSTANCE.respond(invocation);
+            }
+        }
+    }
+
+    abstract Class<C> getContextType()
 
     def setup() {
         _ * context.identity >> identity

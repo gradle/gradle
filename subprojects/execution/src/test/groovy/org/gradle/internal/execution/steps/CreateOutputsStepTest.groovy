@@ -24,8 +24,8 @@ class CreateOutputsStepTest extends StepSpec<ChangingOutputsContext> {
     def step = new CreateOutputsStep<>(delegate)
 
     @Override
-    protected ChangingOutputsContext createContext() {
-        Stub(ChangingOutputsContext)
+    Class<ChangingOutputsContext> getContextType() {
+        ChangingOutputsContext
     }
 
     def "outputs are created"() {

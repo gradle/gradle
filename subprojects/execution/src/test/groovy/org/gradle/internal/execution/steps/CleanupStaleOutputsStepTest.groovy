@@ -41,8 +41,8 @@ class CleanupStaleOutputsStepTest extends StepSpec<WorkspaceContext> {
     def delegateResult = Mock(Result)
 
     @Override
-    protected WorkspaceContext createContext() {
-        Stub(WorkspaceContext)
+    Class<WorkspaceContext> getContextType() {
+        WorkspaceContext
     }
 
     def "#description is cleaned up: #cleanedUp"() {

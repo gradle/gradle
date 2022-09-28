@@ -34,8 +34,8 @@ class ResolveChangesStepTest extends StepSpec<CachingContext> {
     def delegateResult = Mock(Result)
 
     @Override
-    protected CachingContext createContext() {
-        Stub(CachingContext)
+    Class<CachingContext> getContextType() {
+        CachingContext
     }
 
     def "doesn't provide input file changes when rebuild is forced"() {

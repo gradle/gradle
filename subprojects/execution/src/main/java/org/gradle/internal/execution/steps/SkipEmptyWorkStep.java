@@ -29,11 +29,9 @@ import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkInputListeners;
-import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.history.AfterExecutionState;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -46,7 +44,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
@@ -83,15 +80,14 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         InputFingerprinter.Result newInputs = fingerprintPrimaryInputs(work, context, knownFileFingerprints, knownValueSnapshots);
 
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> sourceFileProperties = newInputs.getFileFingerprints();
-        if (!sourceFileProperties.isEmpty()) {
-            if (hasEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)
-            ) {
+        if (sourceFileProperties.isEmpty()) {
+            return executeWithNonEmptySources(work, context);
+        } else {
+            if (hasEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)) {
                 return skipExecutionWithEmptySources(work, context);
             } else {
-                return executeWithNoEmptySources(work, context, newInputs.getAllFileFingerprints());
+                return executeWithNonEmptySources(work, context.withInputFiles(newInputs.getAllFileFingerprints()));
             }
-        } else {
-            return executeWithNoEmptySources(work, context);
         }
     }
 
@@ -208,51 +204,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         };
     }
 
-    private CachingResult executeWithNoEmptySources(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newInputFileProperties) {
-        return executeWithNoEmptySources(work, new PreviousExecutionContext() {
-            @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                return newInputFileProperties;
-            }
-
-            @Override
-            public Optional<PreviousExecutionState> getPreviousExecutionState() {
-                return context.getPreviousExecutionState();
-            }
-
-            @Override
-            public File getWorkspace() {
-                return context.getWorkspace();
-            }
-
-            @Override
-            public Optional<ExecutionHistoryStore> getHistory() {
-                return context.getHistory();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                return context.getInputProperties();
-            }
-
-            @Override
-            public UnitOfWork.Identity getIdentity() {
-                return context.getIdentity();
-            }
-
-            @Override
-            public Optional<String> getNonIncrementalReason() {
-                return context.getNonIncrementalReason();
-            }
-
-            @Override
-            public WorkValidationContext getValidationContext() {
-                return context.getValidationContext();
-            }
-        });
-    }
-
-    private CachingResult executeWithNoEmptySources(UnitOfWork work, PreviousExecutionContext context) {
+    private CachingResult executeWithNonEmptySources(UnitOfWork work, PreviousExecutionContext context) {
         broadcastWorkInputs(work, false);
         return delegate.execute(work, context);
     }
