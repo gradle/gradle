@@ -46,7 +46,13 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"testing-jvm",
+					"testing-jvm"
+				]
+			},
+			{
+				"enableTD":true,
+				"subprojects":[
+					"plugin-use",
 					"java-compiler-plugin",
 					"logging-api",
 					"base-services-groovy",
@@ -62,7 +68,7 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"plugin-use",
+					"language-java",
 					"files",
 					"internal-testing",
 					"build-cache-packaging",
@@ -78,7 +84,7 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"language-java",
+					"logging",
 					"hashing",
 					"execution",
 					"resources-http",
@@ -94,7 +100,7 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"logging",
+					"scala",
 					"process-services",
 					"wrapper",
 					"base-services",
@@ -110,7 +116,7 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"scala",
+					"model-core",
 					"core-api",
 					"testing-base",
 					"resources-sftp",
@@ -126,7 +132,7 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"model-core",
+					"integ-test",
 					"antlr",
 					"test-kit",
 					"platform-base",
@@ -138,57 +144,51 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"integ-test",
-					"platform-native",
-					"file-collections",
-					"testing-native",
-					"jacoco"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
 					"samples",
-					"kotlin-dsl-tooling-builders",
-					"version-control",
-					"plugin-development"
+					"platform-native",
+					"file-watching",
+					"file-collections",
+					"testing-native"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"build-init",
-					"kotlin-dsl",
-					"ivy",
-					"enterprise"
+					"jacoco",
+					"kotlin-dsl-tooling-builders",
+					"version-control"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"tooling-api",
-					"kotlin-dsl-plugins",
-					"kotlin-dsl-integ-tests"
+					"plugin-development",
+					"kotlin-dsl",
+					"ivy"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"ide",
-					"code-quality"
+					"enterprise",
+					"kotlin-dsl-plugins"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"maven",
-					"workers"
+					"kotlin-dsl-integ-tests",
+					"code-quality"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
-					"file-watching"
+					"workers"
 				]
 			}
 		],
@@ -2708,16 +2708,22 @@
 					"build-events",
 					"resources-sftp",
 					"testing-base",
-					"build-cache-http",
-					"reporting",
-					"model-groovy"
+					"build-cache-http"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"kotlin-dsl-tooling-builders",
-					"tooling-native",
+					"reporting",
+					"model-groovy",
+					"tooling-native"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"model-core",
 					"diagnostics",
 					"wrapper",
 					"signing"
@@ -2726,52 +2732,52 @@
 			{
 				"enableTD":false,
 				"subprojects":[
-					"model-core",
+					"samples",
 					"antlr",
 					"platform-base",
-					"persistent-cache"
-				]
-			},
-			{
-				"enableTD":false,
-				"subprojects":[
-					"samples",
-					"testing-native",
-					"language-groovy",
-					"test-kit"
+					"persistent-cache",
+					"testing-native"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"kotlin-dsl-integ-tests",
-					"ide-native",
-					"platform-native",
-					"file-collections"
+					"language-groovy",
+					"test-kit",
+					"ide-native"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"workers",
-					"jacoco",
-					"version-control",
-					"plugin-development"
+					"platform-native",
+					"file-collections",
+					"file-watching"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"code-quality",
-					"enterprise",
-					"kotlin-dsl"
+					"jacoco",
+					"version-control"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"ivy",
-					"kotlin-dsl-plugins"
+					"plugin-development",
+					"enterprise"
+				]
+			},
+			{
+				"enableTD":false,
+				"subprojects":[
+					"kotlin-dsl-plugins",
+					"kotlin-dsl"
 				]
 			}
 		],
@@ -2812,12 +2818,6 @@
 				"include":false,
 				"number":4,
 				"subproject":"docs"
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
-					"file-watching"
-				]
 			},
 			{
 				"enableTD":true,
@@ -2943,25 +2943,32 @@
 					"diagnostics",
 					"wrapper",
 					"version-control",
-					"jacoco",
-					"file-collections"
+					"file-watching"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"composite-builds",
+					"jacoco",
+					"file-collections",
 					"enterprise",
-					"ivy",
-					"platform-native",
-					"kotlin-dsl"
+					"ivy"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"integ-test",
-					"kotlin-dsl-tooling-builders",
+					"platform-native",
+					"kotlin-dsl",
+					"kotlin-dsl-tooling-builders"
+				]
+			},
+			{
+				"enableTD":true,
+				"subprojects":[
+					"testing-native",
 					"kotlin-dsl-integ-tests",
 					"workers"
 				]
@@ -2969,7 +2976,7 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"testing-native",
+					"model-core",
 					"test-kit",
 					"plugin-development"
 				]
@@ -2977,7 +2984,7 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"model-core",
+					"logging",
 					"kotlin-dsl-plugins",
 					"samples"
 				]
@@ -2985,16 +2992,15 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"logging",
-					"ide-native",
-					"ide"
+					"maven",
+					"ide-native"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
-					"maven",
-					"code-quality"
+					"code-quality",
+					"ide"
 				]
 			}
 		],
@@ -5251,16 +5257,22 @@
 					"resources-sftp",
 					"build-cache",
 					"testing-base",
-					"core-api",
-					"reporting"
+					"core-api"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"language-java",
+					"reporting",
 					"build-cache-http",
-					"build-events",
+					"build-events"
+				]
+			},
+			{
+				"enableTD":true,
+				"subprojects":[
+					"plugin-use",
 					"resources-s3",
 					"antlr"
 				]
@@ -5268,7 +5280,7 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"plugin-use",
+					"launcher",
 					"language-groovy",
 					"persistent-cache",
 					"signing"
@@ -5277,77 +5289,71 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"launcher",
-					"platform-native",
-					"diagnostics",
-					"tooling-api"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
 					"scala",
-					"wrapper",
-					"enterprise"
+					"platform-native",
+					"diagnostics"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"integ-test",
-					"jacoco",
-					"version-control"
+					"tooling-api",
+					"wrapper"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"maven",
-					"file-collections",
-					"testing-native"
+					"enterprise",
+					"jacoco"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"logging",
-					"code-quality",
-					"ide"
+					"file-watching",
+					"version-control",
+					"file-collections"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"kotlin-dsl-plugins",
-					"kotlin-dsl",
-					"workers"
+					"testing-native",
+					"code-quality"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"kotlin-dsl-integ-tests",
-					"ivy",
-					"ide-native"
+					"ide",
+					"kotlin-dsl"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"plugin-development",
-					"test-kit"
+					"workers",
+					"ivy"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
-					"samples"
+					"samples",
+					"ide-native"
 				]
 			},
 			{
-				"enableTD":false,
+				"enableTD":true,
 				"subprojects":[
-					"file-watching"
+					"test-kit"
 				]
 			}
 		],
@@ -5395,34 +5401,40 @@
 					"internal-performance-testing",
 					"internal-integ-testing",
 					"wrapper-shared",
-					"resources",
-					"snapshots",
-					"process-services",
-					"publish"
+					"resources"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"language-java",
+					"snapshots",
+					"process-services",
+					"publish",
 					"base-services",
 					"jvm-services",
 					"messaging",
 					"build-profile",
 					"kotlin-dsl-tooling-builders",
 					"platform-jvm",
-					"testing-base",
-					"resources-gcs",
-					"ear",
-					"resources-sftp"
+					"testing-base"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"launcher",
+					"resources-gcs",
+					"ear",
+					"resources-sftp",
 					"reporting",
-					"build-cache",
+					"build-cache"
+				]
+			},
+			{
+				"enableTD":true,
+				"subprojects":[
+					"testing-jvm",
 					"core-api",
 					"resources-s3",
 					"build-events"
@@ -5431,7 +5443,7 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"testing-jvm",
+					"plugin-use",
 					"build-cache-http",
 					"antlr",
 					"model-groovy"
@@ -5440,7 +5452,7 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"plugin-use",
+					"build-init",
 					"persistent-cache",
 					"language-groovy",
 					"signing"
@@ -5449,7 +5461,7 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"build-init",
+					"scala",
 					"wrapper",
 					"platform-base",
 					"diagnostics"
@@ -5458,7 +5470,7 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"scala",
+					"maven",
 					"file-collections",
 					"tooling-api",
 					"jacoco"
@@ -5467,61 +5479,55 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"maven",
-					"kotlin-dsl-plugins",
-					"platform-native"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
 					"integ-test",
-					"version-control",
-					"ide-native"
+					"file-watching",
+					"kotlin-dsl-plugins"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"model-core",
-					"enterprise",
-					"code-quality"
+					"platform-native",
+					"version-control"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"logging",
-					"ivy",
-					"workers"
+					"ide-native",
+					"enterprise"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"plugin-development",
-					"kotlin-dsl",
-					"testing-native"
+					"code-quality",
+					"ivy"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"test-kit",
-					"ide",
+					"workers",
+					"kotlin-dsl"
+				]
+			},
+			{
+				"enableTD":true,
+				"subprojects":[
+					"kotlin-dsl-integ-tests",
+					"testing-native",
+					"ide"
+				]
+			},
+			{
+				"enableTD":true,
+				"subprojects":[
 					"samples"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
-					"kotlin-dsl-integ-tests"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
-					"file-watching"
 				]
 			}
 		],
@@ -5568,23 +5574,30 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"testing-jvm",
-					"docs",
-					"execution",
-					"resources-http",
-					"internal-performance-testing",
-					"internal-integ-testing",
-					"wrapper-shared",
-					"process-services",
-					"resources",
-					"jvm-services",
-					"snapshots"
+					"testing-jvm"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"maven",
+					"docs",
+					"execution",
+					"resources-http",
+					"internal-performance-testing",
+					"file-watching",
+					"internal-integ-testing",
+					"wrapper-shared",
+					"process-services",
+					"resources",
+					"jvm-services"
+				]
+			},
+			{
+				"enableTD":true,
+				"subprojects":[
+					"build-init",
+					"snapshots",
 					"base-services",
 					"kotlin-dsl-tooling-builders",
 					"build-profile",
@@ -5593,109 +5606,102 @@
 					"platform-jvm",
 					"testing-base",
 					"resources-gcs",
-					"persistent-cache",
-					"resources-sftp"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
-					"build-init",
-					"reporting",
-					"ear",
-					"antlr",
-					"build-cache",
-					"language-groovy",
-					"build-events",
-					"resources-s3"
+					"persistent-cache"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"integ-test",
-					"wrapper",
-					"build-cache-http",
-					"core-api",
-					"signing",
-					"model-groovy"
+					"resources-sftp",
+					"reporting",
+					"ear",
+					"antlr",
+					"build-cache",
+					"language-groovy",
+					"build-events"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"plugin-use",
-					"tooling-api",
-					"jacoco",
-					"file-collections"
+					"resources-s3",
+					"wrapper",
+					"build-cache-http",
+					"core-api",
+					"signing"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"composite-builds",
-					"platform-base",
-					"version-control"
+					"model-groovy",
+					"tooling-api",
+					"jacoco"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"logging",
-					"enterprise",
-					"test-kit"
+					"file-collections",
+					"platform-base"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"model-core",
-					"code-quality",
-					"launcher"
+					"version-control",
+					"enterprise"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"testing-native",
-					"diagnostics",
-					"platform-native"
+					"test-kit",
+					"code-quality"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"ide",
-					"kotlin-dsl-plugins",
-					"kotlin-dsl"
+					"launcher",
+					"diagnostics"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"ivy",
-					"ide-native",
-					"samples"
+					"platform-native",
+					"kotlin-dsl-plugins"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"scala",
-					"kotlin-dsl-integ-tests",
+					"kotlin-dsl",
+					"ide-native"
+				]
+			},
+			{
+				"enableTD":true,
+				"subprojects":[
+					"workers",
+					"samples",
+					"kotlin-dsl-integ-tests"
+				]
+			},
+			{
+				"enableTD":true,
+				"subprojects":[
 					"plugin-development"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
-					"workers"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
-					"file-watching"
 				]
 			}
 		],
@@ -5808,14 +5814,7 @@
 					"org.gradle.integtests.resolve.maven.MavenCustomPackagingRealWorldIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.FlatDirJvmLibraryArtifactResolutionIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.compatibility.ArtifactAndClassifierCompatibilityIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.maven.MavenVersionRangeResolveIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.rules.ComponentMetadataRulesErrorHandlingIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.ClientModuleDependenciesResolveIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.strict.EndorseStrictVersionsIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.rules.VariantAttributesRulesIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.attributes.VariantAwareResolutionWithConfigurationAttributesIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.maven.MavenPomRelocationIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.maven.MavenDependencyResolveIntegrationTest=integTest"
+					"org.gradle.integtests.resolve.maven.MavenVersionRangeResolveIntegrationTest=integTest"
 				],
 				"include":true,
 				"number":1,
@@ -5824,6 +5823,13 @@
 			{
 				"classes":[
 					"org.gradle.integtests.resolve.transform.ArtifactTransformInputArtifactIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.rules.ComponentMetadataRulesErrorHandlingIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.ClientModuleDependenciesResolveIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.strict.EndorseStrictVersionsIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.rules.VariantAttributesRulesIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.attributes.VariantAwareResolutionWithConfigurationAttributesIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.maven.MavenPomRelocationIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.maven.MavenDependencyResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.reproducibility.FailOnChangingVersionsResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.reproducibility.FailOnChangingVersionsNonReproducibleResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.api.DependencyHandlerApiResolveIntegrationTest=integTest",
@@ -5856,16 +5862,7 @@
 					"org.gradle.integtests.resolve.capabilities.CapabilitiesConflictResolutionIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ExternalModuleVariantsIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.http.HttpProxyResolveIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.attributes.ExclusiveVariantsIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.ParallelDownloadsIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.ParallelDownloadsOnAuthenticatedRepoIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.strict.StrictVersionConstraintsIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.maven.MavenScopesIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.maven.MavenCustomPackagingResolveIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.ivy.IvyCustomStatusLatestVersionIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.caching.CachedChangingModulesIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.api.ConfigurationMutationIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.verification.DependencyVerificationSignatureWriteIntegTest=integTest"
+					"org.gradle.integtests.resolve.attributes.ExclusiveVariantsIntegrationTest=integTest"
 				],
 				"include":true,
 				"number":2,
@@ -5874,6 +5871,15 @@
 			{
 				"classes":[
 					"org.gradle.integtests.resolve.RepositoryInteractionDependencyResolveIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.ParallelDownloadsIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.ParallelDownloadsOnAuthenticatedRepoIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.strict.StrictVersionConstraintsIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.maven.MavenScopesIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.maven.MavenCustomPackagingResolveIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.ivy.IvyCustomStatusLatestVersionIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.caching.CachedChangingModulesIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.api.ConfigurationMutationIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.verification.DependencyVerificationSignatureWriteIntegTest=integTest",
 					"org.gradle.integtests.resolve.attributes.ClasspathDependenciesAttributesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.rocache.StaticVersionsReadOnlyCacheDependencyResolutionTest=integTest",
 					"org.gradle.integtests.resolve.api.ConfigurationDefaultsIntegrationTest=integTest",
@@ -5892,7 +5898,15 @@
 					"org.gradle.integtests.resolve.VariantsDependencySubstitutionRulesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ivy.ComponentSelectionRulesErrorHandlingIntegTest=integTest",
 					"org.gradle.integtests.resolve.LocalExcludeResolveIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.capabilities.CapabilitiesRulesIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.capabilities.CapabilitiesRulesIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":3,
+				"subproject":"dependency-management"
+			},
+			{
+				"classes":[
+					"org.gradle.integtests.resolve.catalog.VersionCatalogExtensionIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.api.ResolutionResultApiIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.rules.ComponentAttributesRulesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.transform.ArtifactTransformParallelIntegrationTest=integTest",
@@ -5902,15 +5916,7 @@
 					"org.gradle.integtests.resolve.ProjectDependencyResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ivy.ComponentSelectionRulesProcessingIntegTest=integTest",
 					"org.gradle.integtests.resolve.rules.IvySpecificComponentMetadataRulesIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.rules.DependencyResolveRulesIntegrationTest=integTest"
-				],
-				"include":true,
-				"number":3,
-				"subproject":"dependency-management"
-			},
-			{
-				"classes":[
-					"org.gradle.integtests.resolve.catalog.VersionCatalogExtensionIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.rules.DependencyResolveRulesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.capabilities.CapabilitiesUseCasesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.api.ConfigurationRoleIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.locking.LockingInteractionsIntegrationTest=integTest",
@@ -5922,7 +5928,15 @@
 					"org.gradle.integtests.resolve.rocache.StaticVersionsDynamicListingReadOnlyCacheDependencyResolutionTest=integTest",
 					"org.gradle.integtests.resolve.attributes.ComponentAttributesDynamicVersionIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.reproducibility.FailOnDynamicVersionsResolveIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.maven.MavenLocalRepoResolveIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.maven.MavenLocalRepoResolveIntegrationTest=integTest"
+				],
+				"include":true,
+				"number":4,
+				"subproject":"dependency-management"
+			},
+			{
+				"classes":[
+					"org.gradle.integtests.resolve.verification.DependencyVerificationIntegrityCheckIntegTest=integTest",
 					"org.gradle.integtests.resolve.reproducibility.FailOnDynamicVersionsNonReproducibleResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.rules.VariantFilesMetadataRulesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ivy.IvyBrokenRemoteResolveIntegrationTest=integTest",
@@ -5932,31 +5946,14 @@
 					"org.gradle.integtests.resolve.transform.UndeclaredDependencyResolutionIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.rules.ComponentMetadataRulesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ResolveConfigurationDependenciesBuildOperationIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.rules.ComponentMetadataRulesCachingIntegrationTest=integTest"
-				],
-				"include":true,
-				"number":4,
-				"subproject":"dependency-management"
-			},
-			{
-				"classes":[
-					"org.gradle.integtests.resolve.verification.DependencyVerificationIntegrityCheckIntegTest=integTest",
+					"org.gradle.integtests.resolve.rules.ComponentMetadataRulesCachingIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.maven.MavenDynamicResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ivy.IvyDynamicRevisionResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.maven.MavenPomPackagingResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ArtifactDependenciesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.catalog.CatalogPluginApplyKotlinDSLIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.RepositoriesDeclaredInSettingsIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.api.UnsupportedConfigurationMutationTest=integTest",
-					"org.gradle.integtests.resolve.transform.ArtifactTransformWithFileInputsIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.ivy.IvyHttpRepoResolveIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.maven.MavenBrokenRemoteResolveIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.locking.UsingLockingOnNonProjectConfigurationsIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.caching.CachedMissingModulesIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.rules.DependencyMetadataRulesIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.ResolveConfigurationRepositoriesBuildOperationIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.maven.MavenJvmLibraryArtifactResolutionIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.ivy.ComponentSelectionRulesDependencyResolveIntegTest=integTest"
+					"org.gradle.integtests.resolve.api.UnsupportedConfigurationMutationTest=integTest"
 				],
 				"include":true,
 				"number":5,
@@ -5965,18 +5962,19 @@
 			{
 				"classes":[
 					"org.gradle.integtests.resolve.verification.DependencyVerificationSignatureCheckIntegTest=integTest",
+					"org.gradle.integtests.resolve.transform.ArtifactTransformWithFileInputsIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.ivy.IvyHttpRepoResolveIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.maven.MavenBrokenRemoteResolveIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.locking.UsingLockingOnNonProjectConfigurationsIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.caching.CachedMissingModulesIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.rules.DependencyMetadataRulesIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.ResolveConfigurationRepositoriesBuildOperationIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.maven.MavenJvmLibraryArtifactResolutionIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.ivy.ComponentSelectionRulesDependencyResolveIntegTest=integTest",
 					"org.gradle.integtests.resolve.ivy.IvyJvmLibraryArtifactResolutionIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.alignment.AlignmentIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.transform.TransformationLoggingIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.ConfigurationBuildDependenciesIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.catalog.TomlDependenciesExtensionIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.ExclusiveRepositoryContentFilteringIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.UnsafeConfigurationResolutionDeprecationIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.ivy.IvyDescriptorModuleExcludeResolveIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.http.HttpAuthenticationDependencyResolutionIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.attributes.StringConfigurationAttributesResolveIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.rules.ComponentReplacementIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.maven.MavenSnapshotResolveIntegrationTest=integTest"
+					"org.gradle.integtests.resolve.ConfigurationBuildDependenciesIntegrationTest=integTest"
 				],
 				"include":true,
 				"number":6,
@@ -5985,15 +5983,16 @@
 			{
 				"classes":[
 					"org.gradle.integtests.resolve.api.ResolvedFilesApiIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.catalog.TomlDependenciesExtensionIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.ExclusiveRepositoryContentFilteringIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.UnsafeConfigurationResolutionDeprecationIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.ivy.IvyDescriptorModuleExcludeResolveIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.http.HttpAuthenticationDependencyResolutionIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.attributes.StringConfigurationAttributesResolveIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.rules.ComponentReplacementIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.maven.MavenSnapshotResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.transform.ArtifactTransformValuesInjectionIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.ResolvedArtifactOrderingIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.RepositoryContentFilteringIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.catalog.KotlinDslVersionCatalogExtensionIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.maven.MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.DependencyUnresolvedModuleIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.api.ResolvedArtifactsApiIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.transform.ArtifactTransformWithDependenciesIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.attributes.DependenciesAttributesIntegrationTest=integTest"
+					"org.gradle.integtests.resolve.ResolvedArtifactOrderingIntegrationTest=integTest"
 				],
 				"include":true,
 				"number":7,
@@ -6002,7 +6001,22 @@
 			{
 				"classes":[
 					"org.gradle.integtests.resolve.ivy.IvyDynamicRevisionRemoteResolveIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.verification.DependencyVerificationWritingIntegTest=integTest",
+					"org.gradle.integtests.resolve.RepositoryContentFilteringIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.catalog.KotlinDslVersionCatalogExtensionIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.maven.MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.DependencyUnresolvedModuleIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.api.ResolvedArtifactsApiIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.transform.ArtifactTransformWithDependenciesIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.attributes.DependenciesAttributesIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.verification.DependencyVerificationWritingIntegTest=integTest"
+				],
+				"include":true,
+				"number":8,
+				"subproject":"dependency-management"
+			},
+			{
+				"classes":[
+					"org.gradle.integtests.resolve.locking.DependencyLockingIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ivy.IvyModuleResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.DependencySubstitutionRulesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ivy.IvyDescriptorDependencyExcludeResolveIntegrationTest=integTest",
@@ -6011,7 +6025,7 @@
 					"org.gradle.integtests.resolve.attributes.StronglyTypedConfigurationAttributesResolveIntegrationTest=integTest"
 				],
 				"include":true,
-				"number":8,
+				"number":9,
 				"subproject":"dependency-management"
 			},
 			{
@@ -6120,6 +6134,7 @@
 					"org.gradle.integtests.resolve.FlatDirJvmLibraryArtifactResolutionIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.compatibility.ArtifactAndClassifierCompatibilityIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.maven.MavenVersionRangeResolveIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.transform.ArtifactTransformInputArtifactIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.rules.ComponentMetadataRulesErrorHandlingIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ClientModuleDependenciesResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.strict.EndorseStrictVersionsIntegrationTest=integTest",
@@ -6127,7 +6142,6 @@
 					"org.gradle.integtests.resolve.attributes.VariantAwareResolutionWithConfigurationAttributesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.maven.MavenPomRelocationIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.maven.MavenDependencyResolveIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.transform.ArtifactTransformInputArtifactIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.reproducibility.FailOnChangingVersionsResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.reproducibility.FailOnChangingVersionsNonReproducibleResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.api.DependencyHandlerApiResolveIntegrationTest=integTest",
@@ -6161,6 +6175,7 @@
 					"org.gradle.integtests.resolve.ExternalModuleVariantsIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.http.HttpProxyResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.attributes.ExclusiveVariantsIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.RepositoryInteractionDependencyResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ParallelDownloadsIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ParallelDownloadsOnAuthenticatedRepoIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.strict.StrictVersionConstraintsIntegrationTest=integTest",
@@ -6170,7 +6185,6 @@
 					"org.gradle.integtests.resolve.caching.CachedChangingModulesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.api.ConfigurationMutationIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.verification.DependencyVerificationSignatureWriteIntegTest=integTest",
-					"org.gradle.integtests.resolve.RepositoryInteractionDependencyResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.attributes.ClasspathDependenciesAttributesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.rocache.StaticVersionsReadOnlyCacheDependencyResolutionTest=integTest",
 					"org.gradle.integtests.resolve.api.ConfigurationDefaultsIntegrationTest=integTest",
@@ -6190,6 +6204,7 @@
 					"org.gradle.integtests.resolve.ivy.ComponentSelectionRulesErrorHandlingIntegTest=integTest",
 					"org.gradle.integtests.resolve.LocalExcludeResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.capabilities.CapabilitiesRulesIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.catalog.VersionCatalogExtensionIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.api.ResolutionResultApiIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.rules.ComponentAttributesRulesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.transform.ArtifactTransformParallelIntegrationTest=integTest",
@@ -6200,7 +6215,6 @@
 					"org.gradle.integtests.resolve.ivy.ComponentSelectionRulesProcessingIntegTest=integTest",
 					"org.gradle.integtests.resolve.rules.IvySpecificComponentMetadataRulesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.rules.DependencyResolveRulesIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.catalog.VersionCatalogExtensionIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.capabilities.CapabilitiesUseCasesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.api.ConfigurationRoleIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.locking.LockingInteractionsIntegrationTest=integTest",
@@ -6213,6 +6227,7 @@
 					"org.gradle.integtests.resolve.attributes.ComponentAttributesDynamicVersionIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.reproducibility.FailOnDynamicVersionsResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.maven.MavenLocalRepoResolveIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.verification.DependencyVerificationIntegrityCheckIntegTest=integTest",
 					"org.gradle.integtests.resolve.reproducibility.FailOnDynamicVersionsNonReproducibleResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.rules.VariantFilesMetadataRulesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ivy.IvyBrokenRemoteResolveIntegrationTest=integTest",
@@ -6223,7 +6238,6 @@
 					"org.gradle.integtests.resolve.rules.ComponentMetadataRulesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ResolveConfigurationDependenciesBuildOperationIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.rules.ComponentMetadataRulesCachingIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.verification.DependencyVerificationIntegrityCheckIntegTest=integTest",
 					"org.gradle.integtests.resolve.maven.MavenDynamicResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ivy.IvyDynamicRevisionResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.maven.MavenPomPackagingResolveIntegrationTest=integTest",
@@ -6231,6 +6245,7 @@
 					"org.gradle.integtests.resolve.catalog.CatalogPluginApplyKotlinDSLIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.RepositoriesDeclaredInSettingsIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.api.UnsupportedConfigurationMutationTest=integTest",
+					"org.gradle.integtests.resolve.verification.DependencyVerificationSignatureCheckIntegTest=integTest",
 					"org.gradle.integtests.resolve.transform.ArtifactTransformWithFileInputsIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ivy.IvyHttpRepoResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.maven.MavenBrokenRemoteResolveIntegrationTest=integTest",
@@ -6240,11 +6255,11 @@
 					"org.gradle.integtests.resolve.ResolveConfigurationRepositoriesBuildOperationIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.maven.MavenJvmLibraryArtifactResolutionIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ivy.ComponentSelectionRulesDependencyResolveIntegTest=integTest",
-					"org.gradle.integtests.resolve.verification.DependencyVerificationSignatureCheckIntegTest=integTest",
 					"org.gradle.integtests.resolve.ivy.IvyJvmLibraryArtifactResolutionIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.alignment.AlignmentIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.transform.TransformationLoggingIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ConfigurationBuildDependenciesIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.api.ResolvedFilesApiIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.catalog.TomlDependenciesExtensionIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ExclusiveRepositoryContentFilteringIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.UnsafeConfigurationResolutionDeprecationIntegrationTest=integTest",
@@ -6253,9 +6268,9 @@
 					"org.gradle.integtests.resolve.attributes.StringConfigurationAttributesResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.rules.ComponentReplacementIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.maven.MavenSnapshotResolveIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.api.ResolvedFilesApiIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.transform.ArtifactTransformValuesInjectionIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ResolvedArtifactOrderingIntegrationTest=integTest",
+					"org.gradle.integtests.resolve.ivy.IvyDynamicRevisionRemoteResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.RepositoryContentFilteringIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.catalog.KotlinDslVersionCatalogExtensionIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.maven.MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest=integTest",
@@ -6263,8 +6278,8 @@
 					"org.gradle.integtests.resolve.api.ResolvedArtifactsApiIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.transform.ArtifactTransformWithDependenciesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.attributes.DependenciesAttributesIntegrationTest=integTest",
-					"org.gradle.integtests.resolve.ivy.IvyDynamicRevisionRemoteResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.verification.DependencyVerificationWritingIntegTest=integTest",
+					"org.gradle.integtests.resolve.locking.DependencyLockingIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ivy.IvyModuleResolveIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.DependencySubstitutionRulesIntegrationTest=integTest",
 					"org.gradle.integtests.resolve.ivy.IvyDescriptorDependencyExcludeResolveIntegrationTest=integTest",
@@ -6273,7 +6288,7 @@
 					"org.gradle.integtests.resolve.attributes.StronglyTypedConfigurationAttributesResolveIntegrationTest=integTest"
 				],
 				"include":false,
-				"number":9,
+				"number":10,
 				"subproject":"dependency-management"
 			},
 			{
@@ -7635,31 +7650,32 @@
 					"resources-http",
 					"internal-performance-testing",
 					"internal-integ-testing",
+					"file-watching",
 					"process-services",
 					"wrapper-shared",
 					"resources",
-					"kotlin-dsl-tooling-builders",
-					"base-services"
+					"kotlin-dsl-tooling-builders"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"integ-test",
+					"base-services",
 					"build-profile",
 					"jvm-services",
 					"snapshots",
 					"messaging",
 					"publish",
 					"platform-jvm",
-					"testing-base",
-					"persistent-cache"
+					"testing-base"
 				]
 			},
 			{
 				"enableTD":false,
 				"subprojects":[
 					"build-init",
+					"persistent-cache",
 					"resources-gcs",
 					"resources-sftp",
 					"reporting"
@@ -9154,81 +9170,81 @@
 					"build-cache-http",
 					"reporting",
 					"model-groovy",
-					"signing",
-					"diagnostics"
+					"signing"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"build-init",
+					"diagnostics",
 					"antlr",
 					"language-groovy",
-					"test-kit",
-					"persistent-cache",
-					"platform-native"
+					"test-kit"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"language-java",
-					"platform-base",
-					"testing-native",
-					"tooling-api"
+					"persistent-cache",
+					"platform-native",
+					"platform-base"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"maven",
-					"file-collections",
-					"jacoco",
-					"kotlin-dsl-plugins"
+					"testing-native",
+					"file-watching",
+					"tooling-api"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"logging",
-					"plugin-development",
-					"enterprise"
+					"file-collections",
+					"jacoco"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"model-core",
-					"kotlin-dsl",
-					"version-control"
+					"kotlin-dsl-plugins",
+					"plugin-development"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"ivy",
-					"ide",
-					"ide-native"
+					"enterprise",
+					"kotlin-dsl"
 				]
 			},
 			{
 				"enableTD":true,
 				"subprojects":[
 					"workers",
-					"code-quality",
+					"version-control",
+					"ide"
+				]
+			},
+			{
+				"enableTD":true,
+				"subprojects":[
+					"kotlin-dsl-integ-tests",
+					"ide-native",
+					"code-quality"
+				]
+			},
+			{
+				"enableTD":true,
+				"subprojects":[
 					"samples"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
-					"kotlin-dsl-integ-tests"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
-					"file-watching"
 				]
 			}
 		],
@@ -9305,7 +9321,12 @@
 			{
 				"enableTD":true,
 				"subprojects":[
-					"launcher",
+					"launcher"
+				]
+			},
+			{
+				"enableTD":true,
+				"subprojects":[
 					"antlr",
 					"base-services",
 					"build-cache",
@@ -9324,6 +9345,7 @@
 					"enterprise",
 					"execution",
 					"file-collections",
+					"file-watching",
 					"ide",
 					"integ-test",
 					"internal-integ-testing",
@@ -9362,12 +9384,6 @@
 					"workers",
 					"wrapper",
 					"wrapper-shared"
-				]
-			},
-			{
-				"enableTD":true,
-				"subprojects":[
-					"file-watching"
 				]
 			}
 		],
@@ -9464,12 +9480,19 @@
 					"org.gradle.java.UnsupportedJavaVersionCrossCompilationIntegrationTest=integTest",
 					"org.gradle.groovy.compile.LowerToolchainGroovyCompileIntegrationTest=integTest",
 					"org.gradle.groovy.GroovyCrossCompilationIntegrationTest=integTest",
-					"org.gradle.groovy.compile.HigherToolchainGroovyCompileIntegrationTest=integTest",
-					"org.gradle.groovy.compile.InvokeDynamicGroovyCompilerSpec=integTest",
-					"org.gradle.groovy.compile.InProcessGroovyCompilerIntegrationTest=integTest"
+					"org.gradle.groovy.compile.HigherToolchainGroovyCompileIntegrationTest=integTest"
 				],
 				"include":true,
 				"number":1,
+				"subproject":"plugins"
+			},
+			{
+				"classes":[
+					"org.gradle.groovy.compile.SameToolchainGroovyCompileIntegrationTest=integTest",
+					"org.gradle.groovy.compile.InvokeDynamicGroovyCompilerSpec=integTest"
+				],
+				"include":true,
+				"number":2,
 				"subproject":"plugins"
 			},
 			{
@@ -9479,11 +9502,11 @@
 					"org.gradle.groovy.compile.LowerToolchainGroovyCompileIntegrationTest=integTest",
 					"org.gradle.groovy.GroovyCrossCompilationIntegrationTest=integTest",
 					"org.gradle.groovy.compile.HigherToolchainGroovyCompileIntegrationTest=integTest",
-					"org.gradle.groovy.compile.InvokeDynamicGroovyCompilerSpec=integTest",
-					"org.gradle.groovy.compile.InProcessGroovyCompilerIntegrationTest=integTest"
+					"org.gradle.groovy.compile.SameToolchainGroovyCompileIntegrationTest=integTest",
+					"org.gradle.groovy.compile.InvokeDynamicGroovyCompilerSpec=integTest"
 				],
 				"include":false,
-				"number":2,
+				"number":3,
 				"subproject":"plugins"
 			},
 			{
@@ -9574,8 +9597,8 @@
 					"internal-integ-testing",
 					"integ-test",
 					"ide",
-					"file-collections",
-					"execution"
+					"file-watching",
+					"file-collections"
 				]
 			},
 			{
@@ -9601,7 +9624,8 @@
 					"diagnostics",
 					"docs",
 					"ear",
-					"enterprise"
+					"enterprise",
+					"execution"
 				]
 			}
 		],
