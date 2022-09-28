@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -45,18 +46,20 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     private final ModuleConfigurationMetadata base;
     private final ModuleComponentIdentifier componentId;
     private final VariantMetadataRules variantMetadataRules;
+    private final ImmutableAttributesFactory attributesFactory;
+    private final ImmutableAttributes componentLevelAttributes;
     private final ImmutableList<ExcludeMetadata> excludes;
+    private final boolean externalVariant;
 
     private List<? extends ModuleDependencyMetadata> computedDependencies;
     private ImmutableAttributes computedAttributes;
     private CapabilitiesMetadata computedCapabilities;
     private ImmutableList<? extends ComponentArtifactMetadata> computedArtifacts;
-    private final ImmutableAttributes componentLevelAttributes;
-    private final boolean externalVariant;
 
     LazyRuleAwareWithBaseConfigurationMetadata(String name,
                                                @Nullable ModuleConfigurationMetadata base,
                                                ModuleComponentIdentifier componentId,
+                                               ImmutableAttributesFactory attributesFactory,
                                                ImmutableAttributes componentLevelAttributes,
                                                VariantMetadataRules variantMetadataRules,
                                                ImmutableList<ExcludeMetadata> excludes,
@@ -65,6 +68,7 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
         this.base = base;
         this.componentId = componentId;
         this.variantMetadataRules = variantMetadataRules;
+        this.attributesFactory = attributesFactory;
         this.componentLevelAttributes = componentLevelAttributes;
         this.excludes = excludes;
         this.externalVariant = externalVariant;
@@ -91,7 +95,8 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     @Override
     public ImmutableAttributes getAttributes() {
         if (computedAttributes == null) {
-            computedAttributes = variantMetadataRules.applyVariantAttributeRules(this, base == null ? componentLevelAttributes : base.getAttributes());
+            computedAttributes = variantMetadataRules.applyVariantAttributeRules(this,
+                base != null ? attributesFactory.concat(base.getAttributes(), componentLevelAttributes) : componentLevelAttributes);
         }
         return computedAttributes;
     }
