@@ -92,22 +92,22 @@ public class TestNGOptions extends TestFrameworkOptions {
      * @since 8.0
      */
     public TestNGOptions(TestNGOptions other) {
-        projectDir = other.projectDir;
-        outputDirectory = other.outputDirectory;
-        includeGroups.addAll(other.includeGroups);
-        excludeGroups.addAll(other.excludeGroups);
-        configFailurePolicy = other.configFailurePolicy;
-        listeners.addAll(other.listeners);
-        useDefaultListeners = other.useDefaultListeners;
-        parallel = other.parallel;
-        threadCount = other.threadCount;
-        suiteName = other.suiteName;
-        testName = other.testName;
-        suiteXmlFiles.addAll(other.suiteXmlFiles);
-        preserveOrder = other.preserveOrder;
-        groupByInstances = other.groupByInstances;
-        suiteXmlWriter = other.suiteXmlWriter;
-        suiteXmlBuilder = other.suiteXmlBuilder;
+        this.projectDir = other.projectDir;
+        this.outputDirectory = other.outputDirectory;
+        this.includeGroups.addAll(other.includeGroups);
+        this.excludeGroups.addAll(other.excludeGroups);
+        this.configFailurePolicy = other.configFailurePolicy;
+        this.listeners.addAll(other.listeners);
+        this.useDefaultListeners = other.useDefaultListeners;
+        this.parallel = other.parallel;
+        this.threadCount = other.threadCount;
+        this.suiteName = other.suiteName;
+        this.testName = other.testName;
+        this.suiteXmlFiles.addAll(other.suiteXmlFiles);
+        this.preserveOrder = other.preserveOrder;
+        this.groupByInstances = other.groupByInstances;
+        this.suiteXmlWriter = other.suiteXmlWriter;
+        this.suiteXmlBuilder = other.suiteXmlBuilder;
     }
 
     public MarkupBuilder suiteXmlBuilder() {
