@@ -16,14 +16,12 @@
 
 package org.gradle.internal.watch
 
-import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FileSystemWatchingFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 import static org.junit.Assume.assumeFalse
 
-@LocalOnly
 class AbstractFileSystemWatchingIntegrationTest extends AbstractIntegrationSpec implements FileSystemWatchingFixture {
 
     def setup() {
