@@ -19,6 +19,7 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
 import spock.lang.Issue
+
 /**
  * This test class exists to verify a specific issue - if a project uses the `kotlin-jvm` plugin
  * and has no actual tests but is still included on the jacoco aggregation classpath transitively,
