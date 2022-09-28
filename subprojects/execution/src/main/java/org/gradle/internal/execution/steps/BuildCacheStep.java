@@ -90,32 +90,18 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
                         cacheHit.getResultingSnapshots(),
                         originMetadata,
                         true);
-                    return (AfterExecutionResult) new AfterExecutionResult() {
+                    Try<Execution> execution = Try.successful(new Execution() {
                         @Override
-                        public Try<Execution> getExecution() {
-                            return Try.successful(new Execution() {
-                                @Override
-                                public ExecutionOutcome getOutcome() {
-                                    return ExecutionOutcome.FROM_CACHE;
-                                }
-
-                                @Override
-                                public Object getOutput() {
-                                    return work.loadAlreadyProducedOutput(context.getWorkspace());
-                                }
-                            });
+                        public ExecutionOutcome getOutcome() {
+                            return ExecutionOutcome.FROM_CACHE;
                         }
 
                         @Override
-                        public Duration getDuration() {
-                            return originMetadata.getExecutionTime();
+                        public Object getOutput() {
+                            return work.loadAlreadyProducedOutput(context.getWorkspace());
                         }
-
-                        @Override
-                        public Optional<AfterExecutionState> getAfterExecutionState() {
-                            return Optional.of(afterExecutionState);
-                        }
-                    };
+                    });
+                    return new AfterExecutionResult(originMetadata.getExecutionTime(), execution, afterExecutionState);
                 })
                 .orElseGet(() -> executeAndStoreInCache(cacheableWork, cacheKey, context))
             )
