@@ -238,13 +238,12 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration compileClasspath (i)
+Configuration compileClasspath
 --------------------------------------------------
 Compile classpath for source set 'main'.
 
 Attributes
     - org.gradle.category            = library
-    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -283,13 +282,12 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration testCompileClasspath (i)
+Configuration testCompileClasspath
 --------------------------------------------------
 Compile classpath for source set 'test'.
 
 Attributes
     - org.gradle.category            = library
-    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -318,6 +316,7 @@ Extended Configurations
 
         and:
         doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
     }
 
     def "reports resolvable configurations of a Java Library with module dependencies if --all flag is set"() {
@@ -356,13 +355,12 @@ Configuration archives (l)
 Configuration for archive artifacts.
 
 --------------------------------------------------
-Configuration compileClasspath (i)
+Configuration compileClasspath
 --------------------------------------------------
 Compile classpath for source set 'main'.
 
 Attributes
     - org.gradle.category            = library
-    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -409,13 +407,12 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration testCompileClasspath (i)
+Configuration testCompileClasspath
 --------------------------------------------------
 Compile classpath for source set 'test'.
 
 Attributes
     - org.gradle.category            = library
-    - org.gradle.compile-view        = java-api
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.environment     = standard-jvm
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
@@ -444,6 +441,7 @@ Extended Configurations
 
         and:
         hasLegacyLegend()
+        doesNotHaveIncubatingLegend()
     }
 
     def "specifying a missing config with no configs produces empty report"() {
@@ -537,6 +535,7 @@ The following Attributes have compatibility rules defined.
 
         and:
         doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
     }
 
     def "disambiguation rules are printed if present"() {
@@ -588,6 +587,7 @@ The following Attributes have disambiguation rules defined.
 
         and:
         doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
     }
 
     def "disambiguation rules are printed if added to attributes"() {
@@ -640,7 +640,6 @@ The following Attributes have disambiguation rules defined.
 
     - flavor (1)
     - org.gradle.category
-    - org.gradle.compile-view
     - org.gradle.dependency.bundling
     - org.gradle.jvm.environment
     - org.gradle.jvm.version
@@ -652,6 +651,7 @@ The following Attributes have disambiguation rules defined.
 
         and:
         doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
     }
 
     def "report prints attribute disambiguation precedence"() {
@@ -701,11 +701,10 @@ The following Attributes have disambiguation rules defined.
 
     - flavor
     - org.gradle.category (1)
-    - org.gradle.compile-view (3)
-    - org.gradle.dependency.bundling (6)
-    - org.gradle.jvm.environment (7)
-    - org.gradle.jvm.version (4)
-    - org.gradle.libraryelements (5)
+    - org.gradle.dependency.bundling (5)
+    - org.gradle.jvm.environment (6)
+    - org.gradle.jvm.version (3)
+    - org.gradle.libraryelements (4)
     - org.gradle.plugin.api-version
     - org.gradle.usage (2)
 
@@ -713,6 +712,7 @@ The following Attributes have disambiguation rules defined.
 
         and:
         doesNotHaveLegacyLegend()
+        doesNotHaveIncubatingLegend()
     }
 
     def "specifying --recursive includes transitively extended configurations"() {

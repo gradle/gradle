@@ -75,7 +75,16 @@ The legacy `AntlrSourceVirtualDirectory` API has been removed.
 This change affects the `antlr` plugin.
 In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
 
+=== Legacy test sources configuration in `idea` plugin
+
+The deprecated `IdeaModule.getTestSourceDirs()` and `IdeaModule.getTestResourceDirs()` were removed in Gradle 8.0.
+You should use `IdeaModule.getTestSources()` and `IdeaModule.getTestResources()` instead.
+
 === Potential breaking changes
+
+=== Changes in the AbstractCodeQualityPlugin class
+
+The deprecated `AbstractCodeQualityPlugin.getJavaPluginConvention()` method was removed in Gradle 8.0. You should use `JavaPluginExtension` instead.
 
 === Remove implicit `--add-opens` for Gradle workers
 Before Gradle 8.0, Gradle workers on JDK9+ automatically opened JDK modules `java.base/java.util` and `java.base/java.lang` by passing `--add-opens` CLI arguments. This enabled code executed in a Gradle worker to perform deep reflection on JDK internals without warning or failing. Workers no longer use these implicit arguments.
@@ -274,9 +283,15 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 ```
 
-==== Upgrade to Groovy 3.0.12
+==== Upgrade to Groovy 3.0.13
 
-Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.12.html[Groovy 3.0.12].
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.13.html[Groovy 3.0.13].
+
+Since the previous version was 3.0.11, the https://groovy-lang.org/changelogs/changelog-3.0.12.html[3.0.12 changes] are also included.
+
+==== Upgrade to CodeNarc 3.1.0
+
+The default version of CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-310----jun-2022[3.1.0].
 
 ==== Upgrade to PMD 6.48.0
 

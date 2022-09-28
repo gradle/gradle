@@ -46,14 +46,6 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
 
     def step = new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, delegate)
 
-    @Override
-    protected ValidationFinishedContext createContext() {
-        Stub(ValidationFinishedContext) {
-            getInputProperties() >> ImmutableSortedMap.of()
-            getInputFileProperties() >> ImmutableSortedMap.of()
-        }
-    }
-
     def setup() {
         _ * work.history >> Optional.of(executionHistoryStore)
         _ * work.inputFingerprinter >> inputFingerprinter

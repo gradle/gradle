@@ -257,6 +257,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.JavaBasePlugin",
+            "member": "Method org.gradle.api.plugins.JavaBasePlugin.getJavaToolchainQueryService()",
+            "acceptation": "Removing deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory",
             "member": "Class org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory",
             "acceptation": "Removed deprecated class in Gradle 8.0",
@@ -294,6 +302,30 @@
             "acceptation": "Removed deprecated method in Gradle 8.0",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CheckstylePlugin",
+            "member": "Class org.gradle.api.plugins.quality.CheckstylePlugin",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.getJavaPluginConvention()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.CodeNarcPlugin",
+            "member": "Class org.gradle.api.plugins.quality.CodeNarcPlugin",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.getJavaPluginConvention()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.PmdPlugin",
+            "member": "Class org.gradle.api.plugins.quality.PmdPlugin",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.getJavaPluginConvention()"
             ]
         },
         {
@@ -641,6 +673,24 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.testing.junit.JUnitOptions",
+            "member": "Constructor org.gradle.api.tasks.testing.junit.JUnitOptions(org.gradle.api.tasks.testing.junit.JUnitOptions)",
+            "acceptation": "JUnitOptions offers being copied in Gradle 8.0",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions",
+            "member": "Constructor org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions(org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions)",
+            "acceptation": "JUnitPlatformOptions offers being copied in Gradle 8.0",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.testng.TestNGOptions",
+            "member": "Constructor org.gradle.api.tasks.testing.testng.TestNGOptions(org.gradle.api.tasks.testing.testng.TestNGOptions)",
+            "acceptation": "TestNGOptions offers being copied in Gradle 8.0",
+            "changes": []
+        },
+        {
             "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.getUploadTaskName$annotations(org.gradle.api.NamedDomainObjectProvider)",
             "acceptation": "Class to be removed, functionality deleted",
@@ -667,6 +717,38 @@
         {
             "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.invoke(org.gradle.api.NamedDomainObjectContainer,kotlin.jvm.functions.Function1)",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getTestResourceDirs()",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getTestSourceDirs()",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.setTestResourceDirs(java.util.Set)",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
+            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.setTestSourceDirs(java.util.Set)",
             "acceptation": "Removed deprecated method in Gradle 8.0",
             "changes": [
                 "Method has been removed"

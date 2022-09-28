@@ -34,6 +34,7 @@ class DefaultJavaCompileSpecFactoryTest extends Specification {
         if (toolchainHome != null) {
             toolchain = Mock(JavaToolchain)
             toolchain.installationPath >> TestFiles.fileFactory().dir(toolchainHome)
+            toolchain.isCurrentJvm() >> (Jvm.current().javaHome == toolchainHome)
             toolchain.languageVersion >> JavaLanguageVersion.of(8)
         }
         DefaultJavaCompileSpecFactory factory = new DefaultJavaCompileSpecFactory(options, toolchain)
@@ -51,7 +52,7 @@ class DefaultJavaCompileSpecFactoryTest extends Specification {
         false | null       | false             | false                 | null
         true  | null       | true              | false                 | null
         true  | "X"        | false             | true                  | null
-        true | "X" | true | false | File.createTempDir()
+        true  | "X"        | true              | false                 | File.createTempDir()
         false | null       | false             | false                 | Jvm.current().javaHome
     }
 
