@@ -32,20 +32,16 @@ public class GradleUserHomeCacheCleanupEnablement implements CacheCleanupEnablem
         this.userHomeDirProvider = userHomeDirProvider;
     }
 
-    private boolean isDisabled() {
+    @Override
+    public boolean isEnabled() {
         File gradleUserHomeDirectory = userHomeDirProvider.getGradleUserHomeDirectory();
         File gradleProperties = new File(gradleUserHomeDirectory, "gradle.properties");
         if (gradleProperties.isFile()) {
             Properties properties = GUtil.loadProperties(gradleProperties);
             String cleanup = properties.getProperty(CACHE_CLEANUP_PROPERTY);
-            return cleanup != null && cleanup.equals("false");
+            return cleanup == null || !cleanup.equals("false");
         }
-        return false;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return !isDisabled();
+        return true;
     }
 
     @Override
