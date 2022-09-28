@@ -44,13 +44,14 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
     def buildInvocationScopeId = UniqueId.generate()
     def outputSnapshotter = Mock(OutputSnapshotter)
     def outputChangeListener = Mock(OutputChangeListener)
-    def delegateResult = Mock(Result)
+    def delegateResult = Stub(Result)
 
     def step = new CaptureStateAfterExecutionStep(buildOperationExecutor, buildInvocationScopeId, outputSnapshotter, outputChangeListener, delegate)
 
     def "no state is captured if before execution state is unavailable"() {
         def delegateDuration = Duration.ofMillis(123)
         context.beforeExecutionState >> Optional.empty()
+        delegateResult.duration >> delegateDuration
 
         when:
         def result = step.execute(work, context)
@@ -65,7 +66,6 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         then:
         1 * outputChangeListener.invalidateCachesFor([])
         then:
-        1 * delegateResult.duration >> delegateDuration
         0 * _
     }
 
@@ -75,6 +75,7 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         context.beforeExecutionState >> Optional.of(Mock(BeforeExecutionState) {
             detectedOverlappingOutputs >> Optional.empty()
         })
+        delegateResult.duration >> delegateDuration
 
         when:
         step.execute(work, context)
@@ -89,7 +90,6 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         then:
         1 * outputChangeListener.invalidateCachesFor([])
         then:
-        1 * delegateResult.duration >> delegateDuration
         1 * outputSnapshotter.snapshotOutputs(work, _) >> { throw failure }
         0 * _
     }
@@ -100,6 +100,7 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         context.beforeExecutionState >> Optional.of(Stub(BeforeExecutionState) {
             detectedOverlappingOutputs >> Optional.empty()
         })
+        delegateResult.duration >> delegateDuration
 
         when:
         def result = step.execute(work, context)
@@ -117,7 +118,6 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         then:
         1 * outputChangeListener.invalidateCachesFor([])
         then:
-        1 * delegateResult.duration >> delegateDuration
         1 * outputSnapshotter.snapshotOutputs(work, _) >> outputSnapshots
         0 * _
     }
@@ -154,6 +154,7 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         context.previousExecutionState >> Optional.of(Stub(PreviousExecutionState) {
             outputFilesProducedByWork >> previousOutputs
         })
+        delegateResult.duration >> delegateDuration
 
         when:
         def result = step.execute(work, context)
@@ -170,7 +171,6 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         then:
         1 * outputChangeListener.invalidateCachesFor([])
         then:
-        1 * delegateResult.duration >> delegateDuration
         1 * outputSnapshotter.snapshotOutputs(work, _) >> outputsAfterExecution
         assertOperation()
         0 * _
@@ -187,6 +187,7 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         ]
 
         context.beforeExecutionState >> Optional.empty()
+        delegateResult.duration >> Duration.ofMillis(10)
 
         when:
         step.execute(work, context)
@@ -206,7 +207,6 @@ class CaptureStateAfterExecutionStepTest extends StepSpec<InputChangesContext> {
         then:
         1 * outputChangeListener.invalidateCachesFor(changingOutputs)
         then:
-        1 * delegateResult.duration >> Duration.ofMillis(10)
         0 * _
     }
 

@@ -53,7 +53,8 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     def delegateResult = Mock(AfterExecutionResult)
 
     def "loads from cache"() {
-        def cachedOriginMetadata = Mock(OriginMetadata)
+        def cachedOriginMetadata = Stub(OriginMetadata)
+        cachedOriginMetadata.executionTime >> Duration.ofSeconds(1)
         def outputsFromCache = snapshotsOf("test": [])
         def localStateFile = file("local-state.txt") << "local state"
 

@@ -19,26 +19,20 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.caching.CachingStateFactory;
 import org.gradle.internal.execution.caching.impl.DefaultCachingStateFactory;
-import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.NOPLogger;
 
-import java.time.Duration;
 import java.util.Formatter;
 import java.util.List;
-import java.util.Optional;
 
 public class ResolveCachingStateStep<C extends ValidationFinishedContext> implements Step<C, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResolveCachingStateStep.class);
@@ -80,37 +74,7 @@ public class ResolveCachingStateStep<C extends ValidationFinishedContext> implem
         );
 
         UpToDateResult result = delegate.execute(work, new CachingContext(context, cachingState));
-        return new CachingResult() {
-            @Override
-            public CachingState getCachingState() {
-                return cachingState;
-            }
-
-            @Override
-            public ImmutableList<String> getExecutionReasons() {
-                return result.getExecutionReasons();
-            }
-
-            @Override
-            public Optional<AfterExecutionState> getAfterExecutionState() {
-                return result.getAfterExecutionState();
-            }
-
-            @Override
-            public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                return result.getReusedOutputOriginMetadata();
-            }
-
-            @Override
-            public Try<Execution> getExecution() {
-                return result.getExecution();
-            }
-
-            @Override
-            public Duration getDuration() {
-                return result.getDuration();
-            }
-        };
+        return new CachingResult(result, cachingState);
     }
 
     private CachingState calculateCachingState(UnitOfWork work, BeforeExecutionState beforeExecutionState) {

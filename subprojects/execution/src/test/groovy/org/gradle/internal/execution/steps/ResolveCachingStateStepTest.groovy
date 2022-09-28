@@ -22,11 +22,17 @@ import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.reflect.validation.TypeValidationProblem
 
+import java.time.Duration
+
 class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
 
     def buildCache = Mock(BuildCacheController)
     def step = new ResolveCachingStateStep(buildCache, true, delegate)
+    def delegateResult = Stub(UpToDateResult)
 
+    def setup() {
+        delegateResult.duration >> Duration.ofSeconds(1)
+    }
 
     def "build cache disabled reason is reported when build cache is disabled"() {
         when:
@@ -38,7 +44,7 @@ class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
         1 * delegate.execute(work, { CachingContext context ->
             context.cachingState.whenDisabled().map { it.disabledReasons*.category }.get() == [CachingDisabledReasonCategory.BUILD_CACHE_DISABLED]
             context.cachingState.whenDisabled().map { it.disabledReasons*.message }.get() == ["Build cache is disabled"]
-        })
+        }) >> delegateResult
     }
 
     def "disables caching when work is invalid"() {
@@ -51,7 +57,7 @@ class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
         1 * delegate.execute(work, { CachingContext context ->
             context.cachingState.whenDisabled().map { it.disabledReasons*.category }.get() == [CachingDisabledReasonCategory.VALIDATION_FAILURE]
             context.cachingState.whenDisabled().map { it.disabledReasons*.message }.get() == ["Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details."]
-        })
+        }) >> delegateResult
     }
 
     def "build cache disabled reason is determined without execution state"() {
@@ -66,6 +72,6 @@ class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
         _ * work.shouldDisableCaching(null) >> Optional.of(disabledReason)
         1 * delegate.execute(work, { CachingContext context ->
             context.cachingState.whenDisabled().map { it.disabledReasons }.get() as List == [disabledReason]
-        })
+        }) >> delegateResult
     }
 }
