@@ -149,7 +149,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static org.gradle.api.internal.artifacts.ValidDependencyUsageForConfigurationHelper.ensureValidConfigurationForResolution;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.GRAPH_RESOLVED;
@@ -218,6 +217,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean dependenciesModified;
     private boolean canBeConsumed = true;
     private boolean canBeResolved = true;
+    private boolean canBeDeclared = true;
 
     private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
@@ -589,7 +589,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private ResolveState resolveToStateOrLater(final InternalState requestedState) {
         assertIsResolvable();
-        ensureValidConfigurationForResolution(name, resolutionAlternatives);
+        assertIsProperConfiguration();
 
         ResolveState currentState = currentResolveState.get();
         if (currentState.state.compareTo(requestedState) >= 0) {
@@ -1194,6 +1194,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         copiedConfiguration.canBeConsumed = canBeConsumed;
         copiedConfiguration.canBeResolved = canBeResolved;
+        copiedConfiguration.canBeDeclared = canBeDeclared;
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
@@ -1354,6 +1355,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void preventIllegalMutation(MutationType type) {
         // TODO: Deprecate and eventually prevent these mutations when already resolved
         if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
+            assertIsDeclarable();
             return;
         }
 
@@ -1523,6 +1525,34 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private void assertIsDeclarable() {
+        if (!canBeDeclared) {
+            throw new IllegalStateException("Declaring dependencies for configuration '" + name + "' is not allowed as it is defined as 'canBeDeclared=false'.\n");
+        }
+    }
+
+    /**
+     * Ensure that the combination of consumable, resolvable and declarable flags is sensible.
+     * This method should be called only after all mutations are known to be complete.
+     */
+    private void assertIsProperConfiguration() {
+        if (canBeConsumed && canBeResolved) {
+            DeprecationLogger.deprecateBehaviour("The configuration " + identityPath.toString() + " is both resolvable and consumable. This is considered a legacy configuration and it will eventually only be possible to be one of these.")
+                    .willBecomeAnErrorInGradle9()
+                    .withUserManual("BLAH", "TODO: LOOK ME UP")
+                    .nagUser();
+        }
+
+        if (canBeConsumed && canBeDeclared) {
+            DeprecationLogger.deprecateBehaviour("The configuration " + identityPath.toString() + " is both consumable and declarable. This combination is incorrect, only one of these flags should be set.")
+                    .willBecomeAnErrorInGradle9()
+                    .withUserManual("BLAH", "TODO: LOOK ME UP")
+                    .nagUser();
+        }
+
+        // canBeDeclared && canBeResolved is a valid and expected combination
+    }
+
     @Override
     protected void assertCanCarryBuildDependencies() {
         assertIsResolvable();
@@ -1561,6 +1591,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         canBeResolved = allowed;
     }
 
+    @Override
+    public boolean isCanBeDeclared() {
+        return canBeDeclared;
+    }
+
+    @Override
+    public void setCanBeDeclared(boolean allowed) {
+        validateMutation(MutationType.ROLE);
+        canBeDeclared = allowed;
+    }
+
     @VisibleForTesting
     ListenerBroadcast<DependencyResolutionListener> getDependencyResolutionListeners() {
         return dependencyResolutionListeners;
@@ -1586,7 +1627,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public boolean isFullyDeprecated() {
+    public boolean isFullyDeprecated() { // TODO: Should this include canBeDeclared?
         return declarationAlternatives != null &&
             (!canBeConsumed || consumptionDeprecation != null) &&
             (!canBeResolved || resolutionAlternatives != null);

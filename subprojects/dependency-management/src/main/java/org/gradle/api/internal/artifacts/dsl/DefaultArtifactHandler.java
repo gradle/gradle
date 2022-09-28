@@ -18,13 +18,13 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.internal.Actions;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
@@ -34,8 +34,6 @@ import org.gradle.util.internal.GUtil;
 
 import java.util.Arrays;
 import java.util.List;
-
-import static org.gradle.api.internal.artifacts.ValidDependencyUsageForConfigurationHelper.ensureValidConfigurationForDeclaration;
 
 public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
 
@@ -56,11 +54,17 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
     }
 
     private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
-        ensureValidConfigurationForDeclaration(configuration.getName(), !((DeprecatableConfiguration) configuration).isFullyDeprecated());
+        assertConfigurationIsDeclarable(configuration);
         ConfigurablePublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
         configuration.getArtifacts().add(publishArtifact);
         configureAction.execute(publishArtifact);
         return publishArtifact;
+    }
+
+    private void assertConfigurationIsDeclarable(Configuration configuration) {
+        if (!configuration.isCanBeDeclared()) {
+            throw new GradleException("Dependencies not be declared using the `" + configuration.getName() + "` configuration.");
+        }
     }
 
     @Override

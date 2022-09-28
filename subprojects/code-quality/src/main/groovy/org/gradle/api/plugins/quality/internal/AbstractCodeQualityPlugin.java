@@ -98,8 +98,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         configuration.setVisible(false);
         configuration.setTransitive(true);
         configuration.setDescription("The " + getToolName() + " libraries to be used for this project.");
-        ((DeprecatableConfiguration) configuration).deprecateForConsumption(deprecation -> deprecation.willBecomeAnErrorInGradle8()
-            .withUpgradeGuideSection(7, "plugin_configuration_consumption"));
+        ((DeprecatableConfiguration) configuration).setCanBeConsumed(false);
         // Don't need these things, they're provided by the runtime
         configuration.exclude(excludeProperties("ant", "ant"));
         configuration.exclude(excludeProperties("org.apache.ant", "ant"));
