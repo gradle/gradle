@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
@@ -27,11 +28,8 @@ import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Actions;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import java.util.Collection;
-
-import static org.gradle.api.internal.artifacts.ValidDependencyUsageForConfigurationHelper.ensureValidConfigurationForDeclaration;
 
 public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> implements DependencySet {
     private final Describable displayName;
@@ -61,11 +59,17 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
 
     @Override
     public boolean add(final Dependency o) {
-        ensureValidConfigurationForDeclaration(clientConfiguration.getName(), (DeprecatableConfiguration) clientConfiguration);
+        assertConfigurationIsDeclarable();
         if (o instanceof AbstractModuleDependency) {
             ((AbstractModuleDependency) o).addMutationValidator(mutationValidator);
         }
         return super.add(o);
+    }
+
+    private void assertConfigurationIsDeclarable() {
+        if (!clientConfiguration.isCanBeDeclared()) {
+            throw new GradleException("Dependencies not be declared using the `" + clientConfiguration.getName() + "` configuration.");
+        }
     }
 
     @Override

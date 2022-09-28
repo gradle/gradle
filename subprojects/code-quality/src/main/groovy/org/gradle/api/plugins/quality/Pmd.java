@@ -124,7 +124,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
 
     /**
      * JavaLauncher for toolchain support
-     * @since 7.7
+     * @since 8.0
      */
     @Incubating
     @Nested

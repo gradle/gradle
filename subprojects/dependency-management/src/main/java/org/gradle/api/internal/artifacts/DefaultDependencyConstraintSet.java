@@ -17,15 +17,13 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.DependencyConstraintSet;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import java.util.Collection;
-
-import static org.gradle.api.internal.artifacts.ValidDependencyUsageForConfigurationHelper.ensureValidConfigurationForDeclaration;
 
 public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<DependencyConstraint> implements DependencyConstraintSet {
     private final Describable displayName;
@@ -44,13 +42,19 @@ public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<De
 
     @Override
     public boolean add(final DependencyConstraint dependencyConstraint) {
-        ensureValidConfigurationForDeclaration(clientConfiguration.getName(), (DeprecatableConfiguration) clientConfiguration);
+        assertConfigurationIsDeclarable();
         return addInternalDependencyConstraint(dependencyConstraint);
     }
 
     // For internal use only, allows adding a dependency constraint without issuing a deprecation warning
     public boolean addInternalDependencyConstraint(DependencyConstraint dependencyConstraint) {
         return super.add(dependencyConstraint);
+    }
+
+    private void assertConfigurationIsDeclarable() {
+        if (!clientConfiguration.isCanBeDeclared()) {
+            throw new GradleException("Dependencies not be declared using the `" + clientConfiguration.getName() + "` configuration.");
+        }
     }
 
     @Override
