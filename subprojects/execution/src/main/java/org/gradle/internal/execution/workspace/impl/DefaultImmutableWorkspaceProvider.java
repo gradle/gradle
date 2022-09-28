@@ -19,9 +19,9 @@ package org.gradle.internal.execution.workspace.impl;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CleanupAction;
+import org.gradle.cache.CleanupActionFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.CacheCleanupEnablement;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
@@ -53,7 +53,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHasher,
-        CacheCleanupEnablement cacheCleanupEnablement
+        CleanupActionFactory cleanupActionFactory
     ) {
         return withBuiltInHistory(
             cacheBuilder,
@@ -62,7 +62,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
             stringInterner,
             classLoaderHasher,
             DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
-            cacheCleanupEnablement
+            cleanupActionFactory
         );
     }
 
@@ -73,14 +73,14 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHasher,
         int treeDepthToTrackAndCleanup,
-        CacheCleanupEnablement cacheCleanupEnablement
+        CleanupActionFactory cleanupActionFactory
     ) {
         return new DefaultImmutableWorkspaceProvider(
             cacheBuilder,
             fileAccessTimeJournal,
             cache -> new DefaultExecutionHistoryStore(() -> cache, inMemoryCacheDecoratorFactory, stringInterner, classLoaderHasher),
             treeDepthToTrackAndCleanup,
-            cacheCleanupEnablement
+            cleanupActionFactory
         );
     }
 
@@ -88,14 +88,14 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
-        CacheCleanupEnablement cacheCleanupEnablement
+        CleanupActionFactory cleanupActionFactory
     ) {
         return new DefaultImmutableWorkspaceProvider(
             cacheBuilder,
             fileAccessTimeJournal,
             __ -> executionHistoryStore,
             DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
-            cacheCleanupEnablement
+            cleanupActionFactory
         );
     }
 
@@ -104,10 +104,10 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         FileAccessTimeJournal fileAccessTimeJournal,
         Function<PersistentCache, ExecutionHistoryStore> historyFactory,
         int treeDepthToTrackAndCleanup,
-        CacheCleanupEnablement cacheCleanupEnablement
+        CleanupActionFactory cleanupActionFactory
     ) {
         PersistentCache cache = cacheBuilder
-            .withCleanup(cacheCleanupEnablement.create(createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup)))
+            .withCleanup(cleanupActionFactory.create(newCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup)))
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
         this.cache = cache;
@@ -116,7 +116,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         this.executionHistoryStore = historyFactory.apply(cache);
     }
 
-    private static CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup) {
+    private static CleanupAction newCleanupAction(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup) {
         return new LeastRecentlyUsedCacheCleanup(
             new SingleDepthFilesFinder(treeDepthToTrackAndCleanup),
             fileAccessTimeJournal,

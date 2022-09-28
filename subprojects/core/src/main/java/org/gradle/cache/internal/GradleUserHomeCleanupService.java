@@ -35,7 +35,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
     private final GlobalScopedCache globalScopedCache;
     private final UsedGradleVersions usedGradleVersions;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final CacheCleanupEnablement cacheCleanupEnablement;
+    private final DirectoryCleanupActionFactory cleanupActionFactory;
 
     public GradleUserHomeCleanupService(
         Deleter deleter,
@@ -43,25 +43,23 @@ public class GradleUserHomeCleanupService implements Stoppable {
         GlobalScopedCache globalScopedCache,
         UsedGradleVersions usedGradleVersions,
         ProgressLoggerFactory progressLoggerFactory,
-        CacheCleanupEnablement cacheCleanupEnablement
+        DirectoryCleanupActionFactory cleanupActionFactory
     ) {
         this.deleter = deleter;
         this.userHomeDirProvider = userHomeDirProvider;
         this.globalScopedCache = globalScopedCache;
         this.usedGradleVersions = usedGradleVersions;
         this.progressLoggerFactory = progressLoggerFactory;
-        this.cacheCleanupEnablement = cacheCleanupEnablement;
+        this.cleanupActionFactory = cleanupActionFactory;
     }
 
     @Override
     public void stop() {
-        if (cacheCleanupEnablement.isEnabled()) {
-            File cacheBaseDir = globalScopedCache.getRootDir();
-            boolean wasCleanedUp = execute(
-                new VersionSpecificCacheCleanupAction(cacheBaseDir, MAX_UNUSED_DAYS_FOR_RELEASES, MAX_UNUSED_DAYS_FOR_SNAPSHOTS, deleter));
-            if (wasCleanedUp) {
-                execute(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions));
-            }
+        File cacheBaseDir = globalScopedCache.getRootDir();
+        boolean wasCleanedUp = execute(
+            cleanupActionFactory.create(new VersionSpecificCacheCleanupAction(cacheBaseDir, MAX_UNUSED_DAYS_FOR_RELEASES, MAX_UNUSED_DAYS_FOR_SNAPSHOTS, deleter)));
+        if (wasCleanedUp) {
+            execute(cleanupActionFactory.create(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions)));
         }
     }
 

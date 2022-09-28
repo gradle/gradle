@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal
 
+
 import org.gradle.test.fixtures.file.TestFile
 
 
@@ -24,7 +25,7 @@ trait CacheCleanupEnablementFixture {
     void disableCacheCleanup() {
         gradleUserHomeDir.mkdirs()
         new File(gradleUserHomeDir, 'gradle.properties') << """
-            ${GradleUserHomeCacheCleanupEnablement.CACHE_CLEANUP_PROPERTY}=false
+            ${GradleUserHomeCacheCleanupActionFactory.CACHE_CLEANUP_PROPERTY}=false
         """.stripIndent()
     }
 
