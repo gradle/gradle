@@ -404,7 +404,9 @@ public class JavaBasePlugin implements Plugin<Project> {
             try {
                 // This will call a subclass implementation of getDestinationDir(), which possibly will not call the overridden getter
                 // In the Kotlin plugin, the subclass manages its own field which will be used here.
-                legacyValue = compile.getDestinationDirectory().get().getAsFile();
+                // This was to support tasks that extended AbstractCompile and had their own getDestinationDir().
+                // We actually need to keep this as compile.getDestinationDir to maintain compatibility.
+                legacyValue = compile.getDestinationDir();
             } finally {
                 recursiveCall = false;
             }
