@@ -60,7 +60,6 @@ public class InitBuild extends DefaultTask {
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private final Property<Boolean> allowFileOverwrite = getProject().getObjects().property(Boolean.class);
     private String type;
-    private final Property<Boolean> allowFileOverwrite = getProject().getObjects().property(Boolean.class);
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
     private String dsl;
     private final Property<Boolean> useIncubatingAPIs = getProject().getObjects().property(Boolean.class);
@@ -77,11 +76,10 @@ public class InitBuild extends DefaultTask {
      *
      * This property can be set via command-line option '--overwrite'. Defaults to true.
      *
-     * @since 8.0
+     * @since TODO
      */
     @Input
     @Optional
-    @Incubating
     @Option(option = "overwrite", description = "Allow any existing files in the current directory to be overwritten?")
     public Property<Boolean> getAllowFileOverwrite() {
         return allowFileOverwrite;
