@@ -911,10 +911,12 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Internal
     public TestFramework getTestFramework() {
+        // TODO: Deprecate and remove this method
         return testFramework.get();
     }
 
     public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
+        // TODO: Deprecate and remove this method
         options(testFrameworkConfigure);
         return getTestFramework();
     }
