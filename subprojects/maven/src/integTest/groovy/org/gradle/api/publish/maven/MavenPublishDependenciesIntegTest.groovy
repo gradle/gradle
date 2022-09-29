@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
 
@@ -71,7 +70,6 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-3233")
-    @ToBeFixedForConfigurationCache(because = "Eager dependency resolution in CC causes publishing to fail")
     def "publishes POM dependency with #versionType version for Gradle dependency with null version"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -81,6 +79,11 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
 
             group = 'group'
             version = '1.0'
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
 
             dependencies {
                 api $dependencyNotation
