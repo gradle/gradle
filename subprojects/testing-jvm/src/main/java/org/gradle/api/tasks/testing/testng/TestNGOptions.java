@@ -106,8 +106,8 @@ public class TestNGOptions extends TestFrameworkOptions {
         replace(this.suiteXmlFiles, other.suiteXmlFiles);
         this.preserveOrder = other.preserveOrder;
         this.groupByInstances = other.groupByInstances;
-        this.suiteXmlWriter = other.suiteXmlWriter;
-        this.suiteXmlBuilder = other.suiteXmlBuilder;
+        // not copying suiteXmlWriter as it is transient
+        // not copying suiteXmlBuilder as it is transient
     }
 
     private static <T> void replace(Collection<T> target, Collection<T> source) {
