@@ -1,0 +1,344 @@
+/*
+ * Copyright 2018 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.buildinit.plugins
+
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.util.internal.TextUtil
+
+class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
+
+    String projectTypePrompt = "Select type of project to generate:"
+    String dslPrompt = "Select build script DSL:"
+    String incubatingPrompt = "Generate build using new APIs and behavior (some features may change in the next minor release)?"
+    String basicType = "1: basic"
+    String projectNamePrompt = "Project name (default: some-thing)"
+    String convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
+    String overwriteFilesPrompt = "Found existing files in the current directory: %s/some-thing. Allow these files to be overwritten?"
+    String initOverwriteFilesExceptionMessage = "Unable to generate build with existing files in the current directory: %s"
+
+    @Override
+    String subprojectName() { 'app' }
+
+    def "prompts user when run from an interactive session"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init")
+        def handle = executer.start()
+
+        // Select 'basic'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectTypePrompt)
+            assert handle.standardOutput.contains(basicType)
+            assert handle.standardOutput.contains("2: application")
+            assert handle.standardOutput.contains("3: library")
+            assert handle.standardOutput.contains("4: Gradle plugin")
+            assert !handle.standardOutput.contains("pom")
+        }
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'kotlin'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(dslPrompt)
+            assert handle.standardOutput.contains("1: Groovy")
+            assert handle.standardOutput.contains("2: Kotlin")
+        }
+        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'no'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(incubatingPrompt)
+        }
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
+
+        // Select default project name
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectNamePrompt)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def "does not prompt for options provided on the command-line"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init", "--incubating", "--dsl", "kotlin", "--type", "basic")
+        def handle = executer.start()
+
+        // Select default project name
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectNamePrompt)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def "user can provide details for JVM based build"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init")
+        def handle = executer.start()
+
+        // Select 'application'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectTypePrompt)
+        }
+        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'java'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Select implementation language:")
+            assert handle.standardOutput.contains("1: C++")
+            assert handle.standardOutput.contains("2: Groovy")
+            assert handle.standardOutput.contains("3: Java")
+            assert handle.standardOutput.contains("4: Kotlin")
+        }
+        handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'Single project'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Split functionality across multiple subprojects?:")
+            assert handle.standardOutput.contains("1: no - only one application project")
+            assert handle.standardOutput.contains("2: yes - application and library projects")
+        }
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'kotlin' DSL
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(dslPrompt)
+        }
+        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'no'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(incubatingPrompt)
+        }
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'junit'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Select test framework:")
+            assert handle.standardOutput.contains("1: JUnit 4")
+        }
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+
+        // Select default project name
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectNamePrompt)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
+        // Enter a package name
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Source package (default: some.thing)")
+        }
+        handle.stdinPipe.write(("org.gradle.test" + TextUtil.platformLineSeparator).bytes)
+
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        dslFixtureFor(BuildInitDsl.KOTLIN).assertGradleFilesGenerated()
+    }
+
+    def "prompts user when run from an interactive session and pom.xml present"() {
+        when:
+        pom()
+
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init", "--overwrite")
+        def handle = executer.start()
+
+        // Select 'yes'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(convertMavenBuildPrompt)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        !handle.standardOutput.contains(projectTypePrompt)
+        !handle.standardOutput.contains(dslPrompt)
+        !handle.standardOutput.contains(projectNamePrompt)
+
+        then:
+        rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesGenerated()
+    }
+
+    def "user can skip Maven conversion when pom.xml present"() {
+        when:
+        pom()
+
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init", "--overwrite")
+        def handle = executer.start()
+
+        // Select 'no'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(convertMavenBuildPrompt)
+        }
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'basic'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectTypePrompt)
+            assert handle.standardOutput.contains(basicType)
+            assert !handle.standardOutput.contains("pom")
+        }
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'kotlin'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(dslPrompt)
+        }
+        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'no'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(incubatingPrompt)
+        }
+        handle.stdinPipe.write(("no" + TextUtil.platformLineSeparator).bytes)
+
+        // Select default project name
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(projectNamePrompt)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def 'does not prompt to overwrite files for option given on command-line'() {
+        when:
+        // a file exists in the build dir
+        pom()
+
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+
+        // Initialize with no prompts
+        executer.withTasks('init', '--incubating', '--overwrite', '--dsl', 'groovy', '--type', 'basic', '--project-name', 'some-thing')
+
+        def handle = executer.start()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def 'prompts user to overwrite files and defaults to yes'() {
+        when:
+        // a file exists in the build dir
+        pom()
+
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+
+        // Initialize with only overwrite prompt
+        executer.withTasks('init', '--incubating', '--dsl', 'groovy', '--type', 'basic', '--project-name', 'some-thing')
+
+        def handle = executer.start()
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.path))
+        }
+
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def 'prompts user to overwrite files and fails when answer is no'() {
+        when:
+        // a file exists in the build dir
+        pom()
+
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+
+        // Initialize with only overwrite prompt
+        executer.withTasks('init', '--incubating', '--dsl', 'groovy', '--type', 'basic', '--project-name', 'some-thing')
+
+        def handle = executer.start()
+
+        // Select 'no'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.path))
+        }
+        handle.stdinPipe.write(('no' + TextUtil.platformLineSeparator).bytes)
+
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.path))
+        }
+
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        def result = handle.waitForFailure()
+
+        then:
+        result.assertHasDescription('Execution failed for task \':init\'')
+        result.assertHasCause(String.format(initOverwriteFilesExceptionMessage, executer.testDirectoryProvider.testDirectory.path))
+
+        expect:
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesNotGenerated()
+    }
+
+    def 'prompts user to overwrite files and continues when answer is yes'() {
+        // a file exists in the build dir
+        pom()
+
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+
+        // Initialize with only overwrite prompt
+        executer.withTasks('init', '--incubating', '--dsl', 'groovy', '--type', 'basic', '--project-name', 'some-thing')
+
+        def handle = executer.start()
+
+        // Select 'yes'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.path))
+        }
+        handle.stdinPipe.write(('yes' + TextUtil.platformLineSeparator).bytes)
+
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        expect:
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated()
+    }
+}
