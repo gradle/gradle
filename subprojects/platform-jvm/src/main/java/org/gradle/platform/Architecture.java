@@ -25,5 +25,5 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public enum Architecture {
-    I386, AMD64, AARCH64
+    X86, X86_64, AARCH64
 }
