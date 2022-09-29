@@ -96,6 +96,9 @@ public class TestNGTestFramework implements TestFramework {
     @UsedByScanPlugin("test-retry")
     @Override
     public TestFramework copyWithFilters(TestFilter newTestFilters) {
+        TestNGOptions copiedOptions = objects.newInstance(TestNGOptions.class);
+        copiedOptions.copyFrom(options);
+
         return new TestNGTestFramework(
             (DefaultTestFilter) newTestFilters,
             objects,
@@ -103,7 +106,7 @@ public class TestNGTestFramework implements TestFramework {
             testTaskClasspath,
             testTaskTemporaryDir,
             htmlReport,
-            new TestNGOptions(options)
+            copiedOptions
         );
     }
 

@@ -88,10 +88,10 @@ public class TestNGOptions extends TestFrameworkOptions {
     }
 
     /**
-     * Copies the TestNG options.
+     * Copies the options from the source options into the current one.
      * @since 8.0
      */
-    public TestNGOptions(TestNGOptions other) {
+    public void copyFrom(TestNGOptions other) {
         this.outputDirectory = other.outputDirectory;
         this.includeGroups.addAll(other.includeGroups);
         this.excludeGroups.addAll(other.excludeGroups);
@@ -107,7 +107,6 @@ public class TestNGOptions extends TestFrameworkOptions {
         this.groupByInstances = other.groupByInstances;
         this.suiteXmlWriter = other.suiteXmlWriter;
         this.suiteXmlBuilder = other.suiteXmlBuilder;
-        this.projectDir = other.projectDir;
     }
 
     public MarkupBuilder suiteXmlBuilder() {
