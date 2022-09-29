@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.HasImplicitReceiver
-import org.gradle.api.SupportsKotlinAssignment
+import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
@@ -44,7 +44,7 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
         }
         plugins.apply(AssignmentSubplugin::class.java)
         extensions.configure(AssignmentExtension::class.java) { assignment ->
-            assignment.annotation(SupportsKotlinAssignment::class.qualifiedName!!)
+            assignment.annotation(SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
         }
 
         afterEvaluate {

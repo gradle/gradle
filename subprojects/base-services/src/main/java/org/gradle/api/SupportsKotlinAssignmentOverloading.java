@@ -23,7 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks interface that works with Kotlin assignment.
+ * Marks interface that works with overloaded Kotlin assignment.
  *
  * @since 8.0
  */
@@ -31,5 +31,5 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface SupportsKotlinAssignment {
+public @interface SupportsKotlinAssignmentOverloading {
 }
