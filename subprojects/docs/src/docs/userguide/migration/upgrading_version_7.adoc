@@ -73,7 +73,7 @@ test {
    useJUnitPlatform()
 }
 ```
-You should either set the test framework before configuring options or look into migrating to the <<jvm_test_suite_plugin,JVM test suite plugin>>.
+You should either set the test framework before configuring options or look into migrating to the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>>.
 ```
 test {
    // select test framework before configuring options
