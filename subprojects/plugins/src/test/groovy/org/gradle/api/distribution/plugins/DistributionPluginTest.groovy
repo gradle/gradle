@@ -17,14 +17,12 @@
 package org.gradle.api.distribution.plugins
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Project
 import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
 
 class DistributionPluginTest extends AbstractProjectBuilderSpec {
     def "adds convention object and a main distribution"() {
