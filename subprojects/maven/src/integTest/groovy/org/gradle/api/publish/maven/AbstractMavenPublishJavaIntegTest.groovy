@@ -658,10 +658,8 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with capability requests"() {
         given:
-        javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).hasPackaging('pom').dependencyConstraint(mavenRepo.module('org.test', 'foo', '1.0')).withModuleMetadata().publish()
         createBuildScripts("""
             dependencies {
                 implementation("org.test:foo:1.0") {
@@ -678,7 +676,6 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                 }
             }
         """)
-        addMavenRepoIfConfigCache()
 
         when:
         run "publish"
