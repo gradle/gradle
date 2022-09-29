@@ -45,6 +45,9 @@ class FunctionalTest(
     )
 
     failureConditions {
+        // JavaExecDebugIntegrationTest.debug session fails without debugger might cause JVM crash
+        // Some soak tests produce OOM exceptions
+        // There are also random worker crashes for some tests.
         // We have test-retry to handle the crash in tests
         javaCrash = false
     }
