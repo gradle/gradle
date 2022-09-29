@@ -18,11 +18,29 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Optional;
 
-public interface WorkspaceContext extends IdentityContext {
-    File getWorkspace();
+public class WorkspaceContext extends IdentityContext {
+    private final File workspace;
+    private final ExecutionHistoryStore history;
 
-    Optional<ExecutionHistoryStore> getHistory();
+    public WorkspaceContext(IdentityContext parent, File workspace, @Nullable ExecutionHistoryStore history) {
+        super(parent);
+        this.workspace = workspace;
+        this.history = history;
+    }
+
+    protected WorkspaceContext(WorkspaceContext parent) {
+        this(parent, parent.getWorkspace(), parent.getHistory().orElse(null));
+    }
+
+    public File getWorkspace() {
+        return workspace;
+    }
+
+    public Optional<ExecutionHistoryStore> getHistory() {
+        return Optional.ofNullable(history);
+    }
 }

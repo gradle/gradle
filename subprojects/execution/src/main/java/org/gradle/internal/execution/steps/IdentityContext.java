@@ -21,20 +21,42 @@ import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
-public interface IdentityContext extends ExecutionRequestContext {
+public class IdentityContext extends ExecutionRequestContext {
+
+    private final ImmutableSortedMap<String, ValueSnapshot> inputProperties;
+    private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties;
+    private final Identity identity;
+
+    public IdentityContext(ExecutionRequestContext parent, ImmutableSortedMap<String, ValueSnapshot> inputProperties, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileProperties, Identity identity) {
+        super(parent);
+        this.inputProperties = inputProperties;
+        this.inputFileProperties = inputFileProperties;
+        this.identity = identity;
+    }
+
+    protected IdentityContext(IdentityContext parent) {
+        this(parent, parent.getInputProperties(), parent.getInputFileProperties(), parent.getIdentity());
+    }
+
     /**
      * All currently known input properties.
      */
-    ImmutableSortedMap<String, ValueSnapshot> getInputProperties();
+    public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+        return inputProperties;
+    }
 
     /**
      * All currently known input file properties.
      */
-    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties();
+    public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+        return inputFileProperties;
+    }
 
     /**
      * Returns an identity for the given work item that uniquely identifies it
      * among all the other work items of the same type in the current build.
      */
-    Identity getIdentity();
+    public Identity getIdentity() {
+        return identity;
+    }
 }
