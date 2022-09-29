@@ -78,4 +78,12 @@ public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
     public CacheResourceConfiguration getCreatedResources() {
         return createdResourcesConfiguration;
     }
+
+    @Override
+    public void finalizeAllValues() {
+        releasedWrappersConfiguration.getRemoveUnusedEntriesAfterDays().finalizeValue();
+        snapshotWrappersConfiguration.getRemoveUnusedEntriesAfterDays().finalizeValue();
+        downloadedResourcesConfiguration.getRemoveUnusedEntriesAfterDays().finalizeValue();
+        createdResourcesConfiguration.getRemoveUnusedEntriesAfterDays().finalizeValue();
+    }
 }

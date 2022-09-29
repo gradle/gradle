@@ -16,10 +16,10 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.DefaultCacheConfigurations;
 import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal;
 import org.gradle.api.internal.changedetection.state.GradleUserHomeScopeFileTimeStampInspector;
@@ -231,7 +231,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         return new DefaultTimeoutHandler(executorFactory.createScheduled("execution timeouts", 1), currentBuildOperationRef);
     }
 
-    protected CacheConfigurations createCachesConfiguration(ObjectFactory objectFactory) {
+    protected CacheConfigurationsInternal createCachesConfiguration(ObjectFactory objectFactory) {
         return new DefaultCacheConfigurations(objectFactory);
     }
 }
