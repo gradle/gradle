@@ -35,7 +35,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
     private final GlobalScopedCache globalScopedCache;
     private final UsedGradleVersions usedGradleVersions;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final DirectoryCleanupActionDecorator cleanupActionDecorator;
+    private final MonitoredCleanupActionDecorator cleanupActionDecorator;
 
     public GradleUserHomeCleanupService(
         Deleter deleter,
@@ -43,7 +43,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
         GlobalScopedCache globalScopedCache,
         UsedGradleVersions usedGradleVersions,
         ProgressLoggerFactory progressLoggerFactory,
-        DirectoryCleanupActionDecorator cleanupActionDecorator
+        MonitoredCleanupActionDecorator cleanupActionDecorator
     ) {
         this.deleter = deleter;
         this.userHomeDirProvider = userHomeDirProvider;
@@ -63,7 +63,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
         }
     }
 
-    private boolean execute(DirectoryCleanupAction action) {
+    private boolean execute(MonitoredCleanupAction action) {
         ProgressLogger progressLogger = startNewOperation(action.getClass(), action.getDisplayName());
         try {
             return action.execute(new DefaultCleanupProgressMonitor(progressLogger));

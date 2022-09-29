@@ -46,7 +46,7 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
         getUsedGradleVersions() >> ([] as SortedSet)
     }
     def progressLoggerFactory = Stub(ProgressLoggerFactory)
-    def cleanupActionDecorator = Stub(DirectoryCleanupActionDecorator) {
+    def cleanupActionDecorator = Stub(MonitoredCleanupActionDecorator) {
         decorate(_) >> { args -> args[0] }
     }
 
@@ -102,7 +102,7 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
         cleanupService.stop()
 
         then:
-        cleanupActionDecorator.decorate(_) >> Stub(DirectoryCleanupAction)
+        cleanupActionDecorator.decorate(_) >> Stub(MonitoredCleanupAction)
 
         and:
         oldCacheDir.assertExists()

@@ -30,7 +30,7 @@ class GradleUserHomeCacheCleanupActionDecoratorTest extends Specification {
     TemporaryFolder tmpDir = new TemporaryFolder()
 
     def delegateCleanupAction = Mock(CleanupAction)
-    def delegateDirectoryCleanupAction = Mock(DirectoryCleanupAction)
+    def delegateDirectoryCleanupAction = Mock(MonitoredCleanupAction)
     def gradleUserHomeProvider = Stub(GradleUserHomeDirProvider)
     def cacheCleanupDecorator = new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeProvider)
 

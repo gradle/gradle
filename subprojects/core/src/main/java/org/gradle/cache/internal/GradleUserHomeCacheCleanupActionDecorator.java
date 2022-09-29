@@ -25,10 +25,10 @@ import java.io.File;
 import java.util.Properties;
 
 /**
- * Decorates {@link CleanupAction} and {@link DirectoryCleanupAction} instances with a check for whether or not cache cleanup
+ * Decorates {@link CleanupAction} and {@link MonitoredCleanupAction} instances with a check for whether or not cache cleanup
  * has been disabled for this Gradle user home directory.
  */
-public class GradleUserHomeCacheCleanupActionDecorator implements CleanupActionDecorator, DirectoryCleanupActionDecorator {
+public class GradleUserHomeCacheCleanupActionDecorator implements CleanupActionDecorator, MonitoredCleanupActionDecorator {
     public static final String CACHE_CLEANUP_PROPERTY = "org.gradle.cache.cleanup";
 
     private final GradleUserHomeDirProvider userHomeDirProvider;
@@ -64,14 +64,14 @@ public class GradleUserHomeCacheCleanupActionDecorator implements CleanupActionD
     }
 
     /**
-     * Wraps the provided {@link DirectoryCleanupAction} in a check so that it only executes if cleanup is not disabled
+     * Wraps the provided {@link MonitoredCleanupAction} in a check so that it only executes if cleanup is not disabled
      *
      * @param cleanupAction
      * @return the decorated directory cleanup action
      */
     @Override
-    public DirectoryCleanupAction decorate(DirectoryCleanupAction cleanupAction) {
-        return new DirectoryCleanupAction() {
+    public MonitoredCleanupAction decorate(MonitoredCleanupAction cleanupAction) {
+        return new MonitoredCleanupAction() {
             @Override
             public boolean execute(CleanupProgressMonitor progressMonitor) {
                 return isEnabled() && cleanupAction.execute(progressMonitor);
