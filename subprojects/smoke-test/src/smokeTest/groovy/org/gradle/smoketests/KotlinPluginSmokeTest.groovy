@@ -178,6 +178,49 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
+    def 'kotlin jvm test (kotlin=#kotlinVersion)'() {
+
+        assumeFalse(kotlinVersion.startsWith("1.3."))
+        assumeFalse(kotlinVersion.startsWith("1.4."))
+        assumeFalse(kotlinVersion.startsWith("1.5."))
+
+        given:
+        buildFile << """
+            plugins {
+                id 'java-gradle-plugin'
+                id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
+            }
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+                testImplementation "junit:junit:4.13"
+            }
+        """
+
+        file("gradle.properties") << "kotlin.tests.individualTaskReports=false"
+
+        file("src/main/kotlin/Kotlin.kt") << "class Kotlin { }"
+        file("src/test/kotlin/KotlinTest.kt") << """
+            class KotlinTest {
+                @org.junit.Test fun test() {}
+            }
+        """
+
+        when:
+        def versionNumber = VersionNumber.parse(kotlinVersion)
+        def result = runner(false, versionNumber, 'allTests').build()
+
+        then:
+        result.task(':test').outcome == SUCCESS
+
+        where:
+        kotlinVersion << TestedVersions.kotlin.versions
+    }
+
     private SmokeTestGradleRunner runner(boolean workers, VersionNumber kotlinVersion, String... tasks) {
         return runnerFor(this, workers, kotlinVersion, tasks)
     }
