@@ -237,8 +237,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         targets.register(target);
     }
     protected abstract Property<VersionedTestingFramework> getTestSuiteTestingFramework();
-    @Override
-    public abstract Property<String> getTestType();
 
     private List<ExternalModuleDependency> createDependencies(List<String> dependencies) {
         return dependencies.stream().map(getDependencyFactory()::create).collect(Collectors.toList());
