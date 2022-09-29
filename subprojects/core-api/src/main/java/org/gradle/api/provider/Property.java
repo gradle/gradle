@@ -16,7 +16,7 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.SupportsKotlinAssignment;
+import org.gradle.api.SupportsKotlinAssignmentOverloading;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.annotation.Nullable;
@@ -46,7 +46,7 @@ import javax.annotation.Nullable;
  * @param <T> Type of value represented by the property
  * @since 4.3
  */
-@SupportsKotlinAssignment
+@SupportsKotlinAssignmentOverloading
 public interface Property<T> extends Provider<T>, HasConfigurableValue {
     /**
      * Sets the value of the property to the given value, replacing whatever value the property already had.
