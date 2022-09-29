@@ -34,13 +34,8 @@ import org.gradle.plugins.ide.internal.configurer.EclipseModelAwareUniqueProject
 import org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder
 import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
 
-@UsesNativeServices
-@CleanupTestDirectory
 class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
     Project child1
     Project child2

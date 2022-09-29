@@ -16,9 +16,8 @@
 
 package org.gradle.plugins.ide.internal.tooling
 
-import org.gradle.api.Project
+
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
 
 class GradleProjectBuilderTest extends AbstractProjectBuilderSpec {
     def builder = new GradleProjectBuilder()

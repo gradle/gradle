@@ -15,12 +15,11 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.api.Project
+
 import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.util.TestUtil
 
 class JavaLibraryDistributionPluginTest extends AbstractProjectBuilderSpec {
 
