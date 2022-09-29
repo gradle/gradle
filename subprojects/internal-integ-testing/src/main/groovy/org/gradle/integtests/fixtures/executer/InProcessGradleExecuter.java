@@ -433,28 +433,21 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
         @Override
         public void graphPopulated(TaskExecutionGraph graph) {
-            List<Task> planned = new ArrayList<>(graph.getAllTasks());
-            graph.addTaskExecutionListener(new TaskListenerImpl(planned, executedTasks, skippedTasks));
+            graph.addTaskExecutionListener(new TaskListenerImpl(executedTasks, skippedTasks));
         }
     }
 
     private static class TaskListenerImpl implements TaskExecutionListener, InternalListener {
-        private final List<Task> planned;
         private final List<String> executedTasks;
         private final Set<String> skippedTasks;
 
-        TaskListenerImpl(List<Task> planned, List<String> executedTasks, Set<String> skippedTasks) {
-            this.planned = planned;
+        TaskListenerImpl(List<String> executedTasks, Set<String> skippedTasks) {
             this.executedTasks = executedTasks;
             this.skippedTasks = skippedTasks;
         }
 
         @Override
         public void beforeExecute(Task task) {
-            if (!planned.contains(task)) {
-                System.out.println("Warning: " + task + " was executed even though it is not part of the task plan!");
-            }
-
             String taskPath = path(task);
             executedTasks.add(taskPath);
         }
