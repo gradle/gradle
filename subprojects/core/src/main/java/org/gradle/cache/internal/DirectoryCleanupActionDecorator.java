@@ -16,6 +16,12 @@
 
 package org.gradle.cache.internal;
 
+/**
+ * Allows {@link DirectoryCleanupAction} instances to be decorated with additional functionality, such as checking whether cleanup has been disabled or not.
+ */
 public interface DirectoryCleanupActionDecorator {
+    /**
+     * Decorates the provided {@link DirectoryCleanupAction}
+     */
     DirectoryCleanupAction decorate(DirectoryCleanupAction cleanupAction);
 }
