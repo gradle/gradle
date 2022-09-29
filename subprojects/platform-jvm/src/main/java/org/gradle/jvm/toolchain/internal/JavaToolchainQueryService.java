@@ -29,12 +29,13 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class JavaToolchainQueryService {
 
@@ -43,7 +44,8 @@ public class JavaToolchainQueryService {
     private final JavaToolchainProvisioningService installService;
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
-    private final Map<JavaToolchainSpecInternal.Key, Object> matchingToolchains;
+    // Map values are either `JavaToolchain` or `Exception`
+    private final ConcurrentMap<JavaToolchainSpecInternal.Key, Object> matchingToolchains;
 
     @Inject
     public JavaToolchainQueryService(
@@ -57,7 +59,7 @@ public class JavaToolchainQueryService {
         this.installService = provisioningService;
         this.detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).map(Boolean::parseBoolean);
         this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).map(Boolean::parseBoolean);
-        this.matchingToolchains = new HashMap<>();
+        this.matchingToolchains = new ConcurrentHashMap<>();
     }
 
     <T> Provider<T> toolFor(
@@ -73,47 +75,37 @@ public class JavaToolchainQueryService {
     @VisibleForTesting
     ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
         JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) Objects.requireNonNull(filter);
+        return new DefaultProvider<>(() -> resolveToolchain(filterInternal));
+    }
 
-        return new DefaultProvider<>(() -> {
-            if (!filterInternal.isValid()) {
-                throw DocumentedFailure.builder()
+    @Nullable
+    private JavaToolchain resolveToolchain(JavaToolchainSpecInternal filterInternal) throws Exception {
+        filterInternal.finalizeProperties();
+
+        if (!filterInternal.isValid()) {
+            throw DocumentedFailure.builder()
                 .withSummary("Using toolchain specifications without setting a language version is not supported.")
-                    .withAdvice("Consider configuring the language version.")
-                    .withUpgradeGuideSection(7, "invalid_toolchain_specification_deprecation")
-                    .build();
-            }
+                .withAdvice("Consider configuring the language version.")
+                .withUpgradeGuideSection(7, "invalid_toolchain_specification_deprecation")
+                .build();
+        }
 
-            if (!filterInternal.isConfigured()) {
-                return null;
-            }
+        if (!filterInternal.isConfigured()) {
+            return null;
+        }
 
-            synchronized (matchingToolchains) {
-                if (matchingToolchains.containsKey(filterInternal.toKey())) {
-                    return handleMatchingToolchainCached(filterInternal);
-                } else {
-                    return handleMatchingToolchainUnknown(filterInternal);
-                }
+        Object resolutionResult = matchingToolchains.computeIfAbsent(filterInternal.toKey(), key -> {
+            try {
+                return query(filterInternal);
+            } catch (Exception e) {
+                return e;
             }
         });
-    }
 
-    private JavaToolchain handleMatchingToolchainCached(JavaToolchainSpecInternal filterInternal) throws Exception {
-        Object previousResult = matchingToolchains.get(filterInternal.toKey());
-        if (previousResult instanceof Exception) {
-            throw (Exception) previousResult;
+        if (resolutionResult instanceof Exception) {
+            throw (Exception) resolutionResult;
         } else {
-            return (JavaToolchain) previousResult;
-        }
-    }
-
-    private JavaToolchain handleMatchingToolchainUnknown(JavaToolchainSpecInternal filterInternal) {
-        try {
-            JavaToolchain toolchain = query(filterInternal);
-            matchingToolchains.put(filterInternal.toKey(), toolchain);
-            return toolchain;
-        } catch (Exception e) {
-            matchingToolchains.put(filterInternal.toKey(), e);
-            throw e;
+            return (JavaToolchain) resolutionResult;
         }
     }
 
