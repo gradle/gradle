@@ -32,10 +32,10 @@ import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningServic
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class JavaToolchainQueryService {
 
@@ -45,7 +45,7 @@ public class JavaToolchainQueryService {
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
     // Map values are either `JavaToolchain` or `Exception`
-    private final Map<JavaToolchainSpecInternal.Key, Object> matchingToolchains;
+    private final ConcurrentMap<JavaToolchainSpecInternal.Key, Object> matchingToolchains;
 
     @Inject
     public JavaToolchainQueryService(
@@ -59,7 +59,7 @@ public class JavaToolchainQueryService {
         this.installService = provisioningService;
         this.detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).map(Boolean::parseBoolean);
         this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).map(Boolean::parseBoolean);
-        this.matchingToolchains = new HashMap<>();
+        this.matchingToolchains = new ConcurrentHashMap<>();
     }
 
     <T> Provider<T> toolFor(
