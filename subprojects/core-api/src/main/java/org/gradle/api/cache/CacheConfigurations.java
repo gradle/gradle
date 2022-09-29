@@ -81,6 +81,7 @@ public interface CacheConfigurations {
      *
      * @since 8.0
      */
+    @HasInternalProtocol
     @Incubating
     interface CacheResourceConfiguration {
         /**

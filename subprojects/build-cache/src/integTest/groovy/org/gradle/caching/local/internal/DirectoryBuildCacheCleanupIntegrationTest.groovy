@@ -16,8 +16,8 @@
 
 package org.gradle.caching.local.internal
 
-import org.gradle.cache.internal.GradleUserHomeCacheCleanupFixture
 import org.gradle.cache.internal.DefaultPersistentDirectoryStore
+import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
@@ -28,7 +28,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 import java.util.concurrent.TimeUnit
 
-class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, FileAccessTimeJournalFixture, GradleUserHomeCacheCleanupFixture {
+class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, FileAccessTimeJournalFixture, GradleUserHomeCleanupFixture {
     private final static int MAX_CACHE_AGE_IN_DAYS = 7
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
