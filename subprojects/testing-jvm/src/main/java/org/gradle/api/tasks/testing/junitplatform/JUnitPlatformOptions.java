@@ -38,6 +38,20 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
 
     private Set<String> excludeTags = new LinkedHashSet<String>();
 
+    public JUnitPlatformOptions() {
+    }
+
+    /**
+     * Copies the JUnit Platform options.
+     * @since 8.0
+     */
+    public JUnitPlatformOptions(JUnitPlatformOptions other) {
+        this.includeEngines.addAll(other.includeEngines);
+        this.excludeEngines.addAll(other.excludeEngines);
+        this.includeTags.addAll(other.includeTags);
+        this.excludeTags.addAll(other.excludeTags);
+    }
+
     /**
      * The set of engines to run with.
      *

@@ -31,6 +31,18 @@ public class JUnitOptions extends TestFrameworkOptions {
 
     private Set<String> excludeCategories = new LinkedHashSet<String>();
 
+    public JUnitOptions() {
+    }
+
+    /**
+     * Copies the JUnit options.
+     * @since 8.0
+     */
+    public JUnitOptions(JUnitOptions other) {
+        this.includeCategories.addAll(other.includeCategories);
+        this.excludeCategories.addAll(other.excludeCategories);
+    }
+
     public JUnitOptions includeCategories(String... includeCategories) {
         this.includeCategories.addAll(Arrays.asList(includeCategories));
         return this;

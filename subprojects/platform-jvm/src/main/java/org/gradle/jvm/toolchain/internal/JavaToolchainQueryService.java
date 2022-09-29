@@ -85,12 +85,12 @@ public class JavaToolchainQueryService {
         if (!filterInternal.isValid()) {
             throw DocumentedFailure.builder()
                 .withSummary("Using toolchain specifications without setting a language version is not supported.")
-                .withAdvice("Consider configuring the language version.")
-                .withUpgradeGuideSection(7, "invalid_toolchain_specification_deprecation")
-                .build();
-        }
+                    .withAdvice("Consider configuring the language version.")
+                    .withUpgradeGuideSection(7, "invalid_toolchain_specification_deprecation")
+                    .build();
+            }
 
-        if (!filterInternal.isConfigured()) {
+            if (!filterInternal.isConfigured()) {
             return null;
         }
 

@@ -561,6 +561,24 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.testing.junit.JUnitOptions",
+            "member": "Constructor org.gradle.api.tasks.testing.junit.JUnitOptions(org.gradle.api.tasks.testing.junit.JUnitOptions)",
+            "acceptation": "JUnitOptions offers being copied in Gradle 8.0",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions",
+            "member": "Constructor org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions(org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions)",
+            "acceptation": "JUnitPlatformOptions offers being copied in Gradle 8.0",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.testng.TestNGOptions",
+            "member": "Constructor org.gradle.api.tasks.testing.testng.TestNGOptions(org.gradle.api.tasks.testing.testng.TestNGOptions)",
+            "acceptation": "TestNGOptions offers being copied in Gradle 8.0",
+            "changes": []
+        },
+        {
             "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.getUploadTaskName$annotations(org.gradle.api.NamedDomainObjectProvider)",
             "acceptation": "Class to be removed, functionality deleted",

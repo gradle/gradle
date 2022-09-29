@@ -28,21 +28,14 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             apply plugin: "java"
 
-            def launcher = javaToolchains.launcherFor {
-                $configureInvalid
-            }
-
             task unpackLauncher {
                 doFirst {
-                    println launcher.getOrNull()
+                    javaToolchains.launcherFor {
+                        $configureInvalid
+                    }.getOrNull()
                 }
             }
         """
-
-        when:
-        run ':help'
-        then:
-        executedAndNotSkipped ':help'
 
         when:
         // build error is lazy
