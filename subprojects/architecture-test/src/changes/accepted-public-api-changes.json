@@ -562,15 +562,19 @@
         },
         {
             "type": "org.gradle.api.tasks.testing.junit.JUnitOptions",
-            "member": "Constructor org.gradle.api.tasks.testing.junit.JUnitOptions(org.gradle.api.tasks.testing.junit.JUnitOptions)",
+            "member": "Method org.gradle.api.tasks.testing.junit.JUnitOptions.copyFrom(org.gradle.api.tasks.testing.junit.JUnitOptions)",
             "acceptation": "JUnitOptions offers being copied in Gradle 8.0",
-            "changes": []
+            "changes": [
+                "Method added to public class"
+            ]
         },
         {
             "type": "org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions",
-            "member": "Constructor org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions(org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions)",
+            "member": "Method org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions.copyFrom(org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions)",
             "acceptation": "JUnitPlatformOptions offers being copied in Gradle 8.0",
-            "changes": []
+            "changes": [
+                "Method added to public class"
+            ]
         },
         {
             "type": "org.gradle.api.tasks.testing.testng.TestNGOptions",

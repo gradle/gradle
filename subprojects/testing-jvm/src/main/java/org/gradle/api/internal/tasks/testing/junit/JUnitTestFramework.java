@@ -62,10 +62,13 @@ public class JUnitTestFramework implements TestFramework {
     @UsedByScanPlugin("test-retry")
     @Override
     public TestFramework copyWithFilters(TestFilter newTestFilters) {
+        JUnitOptions copiedOptions = new JUnitOptions();
+        copiedOptions.copyFrom(options);
+
         return new JUnitTestFramework(
             (DefaultTestFilter) newTestFilters,
             useImplementationDependencies,
-            new JUnitOptions(options),
+            copiedOptions,
             testTaskTemporaryDir
         );
     }

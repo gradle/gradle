@@ -31,16 +31,18 @@ public class JUnitOptions extends TestFrameworkOptions {
 
     private Set<String> excludeCategories = new LinkedHashSet<String>();
 
-    public JUnitOptions() {
-    }
-
     /**
-     * Copies the JUnit options.
+     * Copies the options from the source options into the current one.
      * @since 8.0
      */
-    public JUnitOptions(JUnitOptions other) {
-        this.includeCategories.addAll(other.includeCategories);
-        this.excludeCategories.addAll(other.excludeCategories);
+    public void copyFrom(JUnitOptions other) {
+        replace(this.includeCategories, other.includeCategories);
+        replace(this.excludeCategories, other.excludeCategories);
+    }
+
+    private static void replace(Set<String> target, Set<String> source) {
+        target.clear();
+        target.addAll(source);
     }
 
     public JUnitOptions includeCategories(String... includeCategories) {
