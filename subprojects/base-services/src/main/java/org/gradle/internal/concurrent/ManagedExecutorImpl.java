@@ -18,24 +18,25 @@ package org.gradle.internal.concurrent;
 
 import org.gradle.internal.UncheckedException;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-class ManagedExecutorImpl extends AbstractDelegatingExecutorService implements ManagedExecutor {
+public class ManagedExecutorImpl extends AbstractDelegatingExecutorService implements ManagedExecutor {
     private final ExecutorService executor;
     private final ThreadLocal<Object> executing = new ThreadLocal<Object>();
     private final ExecutorPolicy executorPolicy;
 
-    ManagedExecutorImpl(ExecutorService executor, ExecutorPolicy executorPolicy) {
+    public ManagedExecutorImpl(ExecutorService executor, ExecutorPolicy executorPolicy) {
         super(executor);
         this.executor = executor;
         this.executorPolicy = executorPolicy;
     }
 
     @Override
-    public void execute(final Runnable command) {
+    public void execute(@Nonnull final Runnable command) {
         executor.execute(trackedCommand(command));
     }
 
