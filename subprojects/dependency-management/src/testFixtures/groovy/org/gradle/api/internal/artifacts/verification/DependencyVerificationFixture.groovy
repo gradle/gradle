@@ -244,8 +244,8 @@ class DependencyVerificationFixture {
             builder.addKeyServer(uri)
         }
 
-        void trust(String group, String name = null, String version = null, String fileName = null, boolean regex = false) {
-            builder.addTrustedArtifact(group, name, version, fileName, regex)
+        void trust(String group, String name = null, String version = null, String fileName = null, boolean regex = false, String reason = null) {
+            builder.addTrustedArtifact(group, name, version, fileName, regex, reason)
         }
 
         void addGloballyIgnoredKey(String id, String reason = "for tests") {

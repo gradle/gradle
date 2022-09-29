@@ -109,8 +109,12 @@ public class DependencyVerifierBuilder {
     }
 
     public void addTrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+        addTrustedArtifact(group, name, version, fileName, regex, null);
+    }
+
+    public void addTrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, String reason) {
         validateUserInput(group, name, version, fileName);
-        trustedArtifacts.add(new DependencyVerificationConfiguration.TrustedArtifact(group, name, version, fileName, regex));
+        trustedArtifacts.add(new DependencyVerificationConfiguration.TrustedArtifact(group, name, version, fileName, regex, reason));
     }
 
     public void addIgnoredKey(IgnoredKey keyId) {

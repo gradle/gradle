@@ -251,7 +251,8 @@ public class DependencyVerificationsXmlReader {
                 getNullableAttribute(attributes, NAME),
                 getNullableAttribute(attributes, VERSION),
                 getNullableAttribute(attributes, FILE),
-                regex
+                regex,
+                getNullableAttribute(attributes, REASON)
             );
         }
 

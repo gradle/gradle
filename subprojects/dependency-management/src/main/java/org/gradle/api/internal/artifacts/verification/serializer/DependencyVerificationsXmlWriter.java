@@ -202,6 +202,7 @@ public class DependencyVerificationsXmlWriter {
         if (trustedArtifact.isRegex()) {
             writeAttribute(REGEX, "true");
         }
+        writeNullableAttribute(REASON, trustedArtifact.getReason());
     }
 
     private void writeSignatureCheck(DependencyVerificationConfiguration configuration) throws IOException {
