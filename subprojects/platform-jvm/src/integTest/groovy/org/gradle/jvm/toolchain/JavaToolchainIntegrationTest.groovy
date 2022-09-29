@@ -119,10 +119,6 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec {
         def jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         def jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
-        file("src/main/java/Main.java") << """
-            public class Main {}
-        """
-
         buildScript """
             apply plugin: "java"
 
@@ -132,15 +128,15 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            compileJava {
-                doLast {
-                    java.toolchain.languageVersion.set(JavaLanguageVersion.of(${jdkMetadata2.languageVersion.majorVersion}))
-                }
-            }
+            project.getExtensions().getByType(JavaToolchainService.class)
+                .launcherFor(java.toolchain)
+                .get()
+
+            java.toolchain.languageVersion.set(JavaLanguageVersion.of(${jdkMetadata2.languageVersion.majorVersion}))
         """
 
         when:
-        withInstallations(jdkMetadata1, jdkMetadata2).runAndFail ':compileJava'
+        withInstallations(jdkMetadata1, jdkMetadata2).runAndFail ':customTask'
 
         then:
         failure.assertHasCause("The value for property 'languageVersion' is final and cannot be changed any further")
