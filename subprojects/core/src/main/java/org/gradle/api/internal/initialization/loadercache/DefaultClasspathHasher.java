@@ -19,7 +19,7 @@ package org.gradle.api.internal.initialization.loadercache;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.execution.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 

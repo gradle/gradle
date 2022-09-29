@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.fingerprint.impl;
+package org.gradle.internal.execution.impl;
 
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
-import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
+import org.gradle.internal.execution.FileCollectionFingerprinter;
+import org.gradle.internal.execution.FileNormalizationSpec;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
