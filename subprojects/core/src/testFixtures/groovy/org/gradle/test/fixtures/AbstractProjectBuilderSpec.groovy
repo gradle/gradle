@@ -66,11 +66,15 @@ abstract class AbstractProjectBuilderSpec extends Specification {
 
     def setup() {
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
+        // This prevents the ProjectBuilder from finding the Gradle build's root settings.gradle
+        // and treating the root of the repository as the root of the build
+        new File(temporaryFolder.testDirectory, "settings.gradle") << ""
         rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
         executionServices = new ProjectExecutionServices(rootProject)
     }
 
     final ProjectInternal getProject() {
+        assert rootProject!=null
         return rootProject
     }
 

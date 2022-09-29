@@ -37,7 +37,6 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
     Project child4
 
     def setup() {
-        new File(project.projectDir, "settings.gradle") << ""
         child1 = ProjectBuilder.builder().withName("child1").withParent(project).build()
         child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
         child3 = ProjectBuilder.builder().withName("child3").withParent(project).build()

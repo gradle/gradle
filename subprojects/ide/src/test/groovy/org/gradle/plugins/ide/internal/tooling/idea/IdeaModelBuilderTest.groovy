@@ -34,7 +34,6 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
     Project child2
 
     def setup() {
-        new File(project.projectDir, "settings.gradle") << ""
         child1 = ProjectBuilder.builder().withName("child1").withParent(project).build()
         child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
         [project, child1, child2].each { it.pluginManager.apply(IdeaPlugin) }
