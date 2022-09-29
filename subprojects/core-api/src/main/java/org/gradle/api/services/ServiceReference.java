@@ -37,5 +37,5 @@ public @interface ServiceReference {
     /**
      * The optional name of the service which the annotated element references.
      */
-    String name() default "";
+    String value() default "";
 }

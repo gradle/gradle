@@ -133,10 +133,10 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain "'Task#usesService'"
     }
 
-    def "can inject shared build service by name when reference is annotated with @ServiceReference(name='...')"() {
+    def "can inject shared build service by name when reference is annotated with @ServiceReference('...')"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}(name='counter')")
+        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}('counter')")
         buildFile """
             gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
@@ -164,7 +164,7 @@ service: closed with value 11
     def "injection by name can be overridden by explicit convention"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}(name='counter')")
+        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}('counter')")
         buildFile """
             gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
@@ -197,7 +197,7 @@ service: closed with value 10001
     def "injection by name fails if service is not found"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}(name='oneCounter')")
+        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}('oneCounter')")
         buildFile """
             gradle.sharedServices.registerIfAbsent("anotherCounter", CountingService) {
                 parameters.initial = 10
@@ -221,7 +221,7 @@ service: closed with value 10001
     def "injection by name not available for configuration"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}(name='counter')")
+        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}('counter')")
         buildFile """
             gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
