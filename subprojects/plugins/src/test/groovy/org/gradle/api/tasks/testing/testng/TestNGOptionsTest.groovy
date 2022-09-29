@@ -17,6 +17,7 @@ package org.gradle.api.tasks.testing.testng
 
 import org.gradle.api.file.Directory
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import spock.lang.Specification
 
 class TestNGOptionsTest extends Specification {
@@ -62,5 +63,50 @@ class TestNGOptionsTest extends Specification {
         then:
         testngOptions.excludeGroups == groups as Set
         testngOptions.includeGroups.empty
+    }
+
+    def copyFromOverridesOldOptions() {
+        given:
+        def source = testNGOptionsWithPrefix("source", false, 0)
+
+        when:
+        def target = testNGOptionsWithPrefix("target", true, 1)
+        target.copyFrom(source)
+
+        then:
+        with(target) {
+            outputDirectory == source.outputDirectory
+            includeGroups == source.includeGroups
+            excludeGroups == source.excludeGroups
+            configFailurePolicy == source.configFailurePolicy
+            listeners == source.listeners
+            parallel == source.parallel
+            threadCount == source.threadCount
+            useDefaultListeners == source.useDefaultListeners
+            suiteName == source.suiteName
+            testName == source.testName
+            suiteXmlFiles == source.suiteXmlFiles
+            preserveOrder == source.preserveOrder
+            groupByInstances == source.groupByInstances
+        }
+    }
+
+    private TestNGOptions testNGOptionsWithPrefix(String prefix, boolean booleanValue, int intValue) {
+        return new TestNGOptions(layout)
+        .tap {
+            setOutputDirectory(new File(prefix + "OutputDirectory"))
+            setIncludeGroups([prefix + "IncludedGroup"] as Set)
+            setExcludeGroups([prefix + "ExcludedGroup"] as Set)
+            setConfigFailurePolicy(prefix + "ConfigFailurePolicy")
+            setListeners([prefix + "Listener"] as Set)
+            setParallel(prefix + "Parallel")
+            setThreadCount(intValue)
+            setUseDefaultListeners(booleanValue)
+            setSuiteName(prefix + "SuiteName")
+            setTestName(prefix + "TestName")
+            setSuiteXmlFiles([new File(prefix + "SuiteXmlFile")])
+            setPreserveOrder(booleanValue)
+            setGroupByInstances(booleanValue)
+        }
     }
 }
