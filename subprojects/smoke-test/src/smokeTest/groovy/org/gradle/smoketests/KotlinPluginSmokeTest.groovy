@@ -21,7 +21,9 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
+import spock.lang.Issue
 
+import static org.gradle.testkit.runner.TaskOutcome.FAILED
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 import static org.junit.Assume.assumeFalse
@@ -178,44 +180,37 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
-    def 'kotlin jvm test (kotlin=#kotlinVersion)'() {
-
-        assumeFalse(kotlinVersion.startsWith("1.3."))
-        assumeFalse(kotlinVersion.startsWith("1.4."))
-        assumeFalse(kotlinVersion.startsWith("1.5."))
-
+    /**
+     * This tests that the usage of deprecated methods in {@code org.gradle.api.tasks.testing.TestReport} task
+     * is okay, and ensures the methods are not removed until the versions of the kotlin plugin that uses them
+     * is no longer tested.
+     */
+    @Issue("https://github.com/gradle/gradle/issues/22246")
+    def 'ensure kotlin multiplatform test tasks can be created (kotlin=#kotlinVersion)'() {
         given:
         buildFile << """
             plugins {
-                id 'java-gradle-plugin'
-                id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
+                id 'org.jetbrains.kotlin.multiplatform' version '$kotlinVersion'
             }
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
-            dependencies {
-                implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-                testImplementation "junit:junit:4.13"
-            }
-        """
-
-        file("gradle.properties") << "kotlin.tests.individualTaskReports=false"
-
-        file("src/main/kotlin/Kotlin.kt") << "class Kotlin { }"
-        file("src/test/kotlin/KotlinTest.kt") << """
-            class KotlinTest {
-                @org.junit.Test fun test() {}
+            kotlin {
+                jvm()
             }
         """
 
         when:
         def versionNumber = VersionNumber.parse(kotlinVersion)
-        def result = runner(false, versionNumber, 'allTests').build()
+        def standardError = new StringWriter()
+        def result = runner(false, versionNumber, ':tasks')
+            .forwardStdError(standardError)
+            .buildAndFail()
 
         then:
-        result.task(':test').outcome == SUCCESS
+        result.task(':tasks').outcome == FAILED
+        standardError.toString().contains("> Could not create task ':allTests'.")
+        standardError.toString().contains("> org.jetbrains.kotlin.gradle.testing.internal.KotlinTestReport.setDestinationDir(Ljava/io/File;)V")
 
         where:
         kotlinVersion << TestedVersions.kotlin.versions
