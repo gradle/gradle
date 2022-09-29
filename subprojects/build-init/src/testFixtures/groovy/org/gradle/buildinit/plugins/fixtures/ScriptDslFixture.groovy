@@ -87,6 +87,12 @@ class ScriptDslFixture {
         new WrapperTestFixture(parentFolder).generated(gradleVersion)
     }
 
+    void assertGradleFilesNotGenerated(TestFile parentFolder = rootDir) {
+        assert !getBuildFile(parentFolder).exists()
+        assert !getSettingsFile(parentFolder).exists()
+        new WrapperTestFixture(parentFolder).notGenerated()
+    }
+
     void assertWrapperNotGenerated(TestFile parentFolder = rootDir) {
         new WrapperTestFixture(parentFolder).notGenerated()
     }

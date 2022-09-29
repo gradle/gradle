@@ -303,6 +303,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                                   UPGRADE
                                   WARN
 
+     --overwrite     Allow any existing files in the current directory to be overwritten?
+
      --package     Set the package for source files.
 
      --project-name     Set the project name.

@@ -29,6 +29,8 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     String basicType = "1: basic"
     String projectNamePrompt = "Project name (default: some-thing)"
     String convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
+    String overwriteFilesPrompt = "Found existing files in the current directory: %s/some-thing. Allow these files to be overwritten?"
+    String initOverwriteFilesExceptionMessage = "Unable to generate build with existing files in the current directory: %s"
 
     @Override
     String subprojectName() { 'app' }
@@ -171,7 +173,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         executer.withForceInteractive(true)
         executer.withStdinPipe()
-        executer.withTasks("init")
+        executer.withTasks("init", "--overwrite")
         def handle = executer.start()
 
         // Select 'yes'
@@ -196,7 +198,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         executer.withForceInteractive(true)
         executer.withStdinPipe()
-        executer.withTasks("init")
+        executer.withTasks("init", "--overwrite")
         def handle = executer.start()
 
         // Select 'no'
@@ -235,5 +237,108 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def 'does not prompt to overwrite files for option given on command-line'() {
+        when:
+        // a file exists in the build dir
+        pom()
+
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+
+        // Initialize with no prompts
+        executer.withTasks('init', '--incubating', '--overwrite', '--dsl', 'groovy', '--type', 'basic', '--project-name', 'some-thing')
+
+        def handle = executer.start()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def 'prompts user to overwrite files and defaults to yes'() {
+        when:
+        // a file exists in the build dir
+        pom()
+
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+
+        // Initialize with only overwrite prompt
+        executer.withTasks('init', '--incubating', '--dsl', 'groovy', '--type', 'basic', '--project-name', 'some-thing')
+
+        def handle = executer.start()
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.path))
+        }
+
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def 'prompts user to overwrite files and fails when answer is no'() {
+        when:
+        // a file exists in the build dir
+        pom()
+
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+
+        // Initialize with only overwrite prompt
+        executer.withTasks('init', '--incubating', '--dsl', 'groovy', '--type', 'basic', '--project-name', 'some-thing')
+
+        def handle = executer.start()
+
+        // Select 'no'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.path))
+        }
+        handle.stdinPipe.write(('no' + TextUtil.platformLineSeparator).bytes)
+
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.path))
+        }
+
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        def result = handle.waitForFailure()
+
+        then:
+        result.assertHasDescription('Execution failed for task \':init\'')
+        result.assertHasCause(String.format(initOverwriteFilesExceptionMessage, executer.testDirectoryProvider.testDirectory.path))
+
+        expect:
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesNotGenerated()
+    }
+
+    def 'prompts user to overwrite files and continues when answer is yes'() {
+        // a file exists in the build dir
+        pom()
+
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+
+        // Initialize with only overwrite prompt
+        executer.withTasks('init', '--incubating', '--dsl', 'groovy', '--type', 'basic', '--project-name', 'some-thing')
+
+        def handle = executer.start()
+
+        // Select 'yes'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(String.format(overwriteFilesPrompt, executer.testDirectoryProvider.testDirectory.path))
+        }
+        handle.stdinPipe.write(('yes' + TextUtil.platformLineSeparator).bytes)
+
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+        handle.stdinPipe.close()
+        handle.waitForFinish()
+
+        expect:
+        ScriptDslFixture.of(BuildInitDsl.GROOVY, targetDir, null).assertGradleFilesGenerated()
     }
 }

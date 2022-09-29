@@ -16,9 +16,11 @@
 
 package org.gradle.buildinit.tasks;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
@@ -43,6 +45,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.lang.model.SourceVersion;
+import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
@@ -55,6 +58,7 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
 @DisableCachingByDefault(because = "Not worth caching")
 public class InitBuild extends DefaultTask {
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
+    private final Property<Boolean> allowFileOverwrite = getProject().getObjects().property(Boolean.class);
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
     private String dsl;
@@ -66,6 +70,20 @@ public class InitBuild extends DefaultTask {
 
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
+
+    /**
+     * Should we allow any existing files in the current directory to be overwritten?
+     *
+     * This property can be set via command-line option '--overwrite'. Defaults to true.
+     *
+     * @since TODO
+     */
+    @Input
+    @Optional
+    @Option(option = "overwrite", description = "Allow any existing files in the current directory to be overwritten?")
+    public Property<Boolean> getAllowFileOverwrite() {
+        return allowFileOverwrite;
+    }
 
     /**
      * The desired type of project to generate, defaults to 'pom' if a 'pom.xml' is found in the project root and if no 'pom.xml' is found, it defaults to 'basic'.
@@ -185,6 +203,24 @@ public class InitBuild extends DefaultTask {
     public void setupProjectLayout() {
         UserInputHandler inputHandler = getServices().get(UserInputHandler.class);
         ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
+
+        try {
+            if (!FileUtils.isEmptyDirectory(projectDir.getAsFile())) {
+                final String projectDirPath = projectDir.getAsFile().getPath();
+                boolean allowFileOverwrite;
+                if (this.allowFileOverwrite.isPresent()) {
+                    allowFileOverwrite = this.allowFileOverwrite.get();
+                } else {
+                    allowFileOverwrite = inputHandler.askYesNoQuestion("Found existing files in the current directory: " + projectDirPath +
+                        ". Allow these files to be overwritten?", true);
+                }
+                if (!allowFileOverwrite) {
+                    throw new GradleException("Unable to generate build with existing files in the current directory: " + projectDirPath);
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
 
         BuildInitializer initDescriptor = null;
         if (isNullOrEmpty(type)) {
