@@ -522,31 +522,7 @@
         },
         {
             "type": "org.gradle.api.tasks.testing.TestReport",
-            "member": "Method org.gradle.api.tasks.testing.TestReport.getDestinationDir()",
-            "acceptation": "Removing deprecated method in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.TestReport",
             "member": "Method org.gradle.api.tasks.testing.TestReport.getTestResultDirs()",
-            "acceptation": "Removing deprecated method in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.TestReport",
-            "member": "Method org.gradle.api.tasks.testing.TestReport.reportOn(java.lang.Object[])",
-            "acceptation": "Removing deprecated method in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.TestReport",
-            "member": "Method org.gradle.api.tasks.testing.TestReport.setDestinationDir(java.io.File)",
             "acceptation": "Removing deprecated method in Gradle 8.0",
             "changes": [
                 "Method has been removed"
