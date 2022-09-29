@@ -130,8 +130,9 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
             }
 
             task checkFiles {
+                def files = configurations.compile
                 doLast {
-                    assert configurations.compile.files == [jarFile] as Set
+                    assert files.files == [jarFile] as Set
                 }
             }
 '''
