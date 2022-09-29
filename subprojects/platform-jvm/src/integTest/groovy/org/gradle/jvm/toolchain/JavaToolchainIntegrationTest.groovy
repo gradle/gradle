@@ -28,14 +28,18 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             apply plugin: "java"
 
-            javaToolchains.launcherFor {
-                $configureInvalid
+            task unpackLauncher {
+                doFirst {
+                    javaToolchains.launcherFor {
+                        $configureInvalid
+                    }.getOrNull()
+                }
             }
         """
 
         when:
-        runAndFail ':help'
-
+        // build error is lazy
+        runAndFail ':unpackLauncher'
         then:
         failure.assertHasDocumentedCause("Using toolchain specifications without setting a language version is not supported. Consider configuring the language version. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#invalid_toolchain_specification_deprecation")
 
@@ -47,25 +51,28 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "do not nag user when toolchain spec is valid (#description)"() {
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
+
         buildScript """
             apply plugin: "java"
 
             javaToolchains.launcherFor {
-                $configure
-            }
+                ${languageVersion ? "languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})" : ""}
+                ${vendor ? "vendor = JvmVendorSpec.matching('${jdkMetadata.vendor.rawVendor}')" : ""}
+            }.getOrNull()
         """
 
         when:
-        run ':help'
+        withInstallations(jdkMetadata).run ':help'
 
         then:
         executedAndNotSkipped ':help'
 
         where:
-        description                                 | configure
-        "configured with language version"          | 'languageVersion = JavaLanguageVersion.of(9)'
-        "configured not only with language version" | 'languageVersion = JavaLanguageVersion.of(9); vendor = JvmVendorSpec.AZUL'
-        "unconfigured"                              | ''
+        description                                 | languageVersion | vendor
+        "configured with language version"          | true            | false
+        "configured not only with language version" | true            | true
+        "unconfigured"                              | false           | false
     }
 
     def "identify whether #tool toolchain corresponds to the #current JVM"() {
