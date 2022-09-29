@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.SupportsKotlinAssignment
+import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 
@@ -215,7 +215,7 @@ object KotlinAssignmentCompilerPlugin {
 
     @OptIn(InternalNonStableExtensionPoints::class)
     fun apply(project: Project) {
-        val annotations = listOf(SupportsKotlinAssignment::class.qualifiedName!!)
+        val annotations = listOf(SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
         AssignResolutionAltererExtension.Companion.registerExtension(project, CliAssignPluginResolutionAltererExtension(annotations))
         StorageComponentContainerContributor.registerExtension(project, AssignmentComponentContainerContributor(annotations))
     }
