@@ -264,12 +264,7 @@ abstract class AbstractSmokeTest extends Specification {
             .withProjectDir(testProjectDir)
             .forwardOutput()
             .withArguments(
-                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters() +
-                [
-                        "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}",
-                        "-Porg.gradle.java.installations.auto-detect=false",
-                        "-Porg.gradle.java.installations.auto-download=false"
-                ]
+                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters() + toolchainParameters()
             ) as DefaultGradleRunner
         gradleRunner.withJvmArguments(["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"])
         return new SmokeTestGradleRunner(gradleRunner)
@@ -305,6 +300,14 @@ abstract class AbstractSmokeTest extends Specification {
             '--init-script', mirrorInitScriptPath,
             "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
             "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
+        ]
+    }
+
+    private static List<String> toolchainParameters() {
+        return [
+            "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}" as String,
+            '-Porg.gradle.java.installations.auto-detect=false',
+            '-Porg.gradle.java.installations.auto-download=false',
         ]
     }
 
