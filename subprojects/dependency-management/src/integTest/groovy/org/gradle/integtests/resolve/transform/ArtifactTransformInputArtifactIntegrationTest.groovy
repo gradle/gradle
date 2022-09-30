@@ -540,7 +540,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         then: // name has changed, should run
         result.assertTasksNotSkipped(":b:producer", ":a:resolve")
         transformed("b-blue")
-        outputContains("result = [b-blue.green, c-dir.green]")
+        outputContains("resxult = [b-blue.green, c-dir.green]")
 
         when:
         executer.withArguments("-DbOutputDir=out", "-DbDirName=b-blue", "-DbContent=new")
