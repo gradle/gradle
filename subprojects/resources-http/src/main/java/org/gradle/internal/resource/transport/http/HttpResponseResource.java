@@ -97,7 +97,8 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
             }
         } else {
             // extracts file name from URL
-            String sourceInStringForm = response.getEffectiveUri().toString();
+            URI uri = response.getEffectiveUri() == null ? source : response.getEffectiveUri();
+            String sourceInStringForm = uri.toString();
             int fileNameIndex = sourceInStringForm.lastIndexOf("/");
             if (fileNameIndex >= 0) {
                 return sourceInStringForm.substring(fileNameIndex + 1);
