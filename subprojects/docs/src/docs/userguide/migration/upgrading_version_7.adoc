@@ -161,6 +161,19 @@ In the past, the task would be executed with the default toolchain or JVM runnin
 ==== Internal DependencyFactory was renamed
 The internal `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory` type was renamed to `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal`. As an internal type, it should not be used, but for compatibility reasons the inner `ClassPathNotation` type is still available. This name for the type is deprecated and will be removed in Gradle 8.0. The public API for this is on `DependencyHandler`, with methods such as `localGroovy()` providing the same functionality.
 
+==== Replacement collections in `org.gradle.plugins.ide.idea.model.IdeaModule`
+
+The `testResourcesDirs` and `testSourcesDirs` fields and their getters and setters have been deprecated.
+Replace usages with the now stable `getTestSources()` and `getTestResources()` methods and their respective setters.
+These new methods return and are backed by `ConfigurableFileCollection` instances for improved flexibility of use.
+Gradle now warns upon usage of these deprecated methods. They will be removed in Gradle 8.0.
+
+==== Replacement methods in `org.gradle.api.tasks.testing.TestReport`
+
+The `getDestinationDir()`, `setDestinationDir(File)`, and `getTestResultsDirs()` and `setTestResultsDirs(Iterable)` methods have been deprecated.
+Replace usages with the now stable `getDestinationDirectory()` and `getTestResults()` methods and their associated setters.
+These deprecated elements will be removed in Gradle 8.0.
+
 [[changes_7.5]]
 == Upgrading from 7.4 and earlier
 
