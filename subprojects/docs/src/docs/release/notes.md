@@ -463,19 +463,6 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-### Replacement collections in `org.gradle.plugins.ide.idea.model.IdeaModule`
-
-The `testResourcesDirs` and `testSourcesDirs` fields and their getters and setters are now `@Deprecated`.
-Any usages of these elements should be replaced by the now stable `getTestSources()` and `getTestResources()` methods and their respective setters.
-These new methods return and are backed by `ConfigurableFileCollection` instances for improved flexibility in how these collections of files can be used.
-Gradle now warns upon usage of these deprecated methods that they will be removed in Gradle 8.0.
-
-### Replacement methods in `org.gradle.api.tasks.testing.TestReport`
-
-The `getDestinationDir()`, `setDestinationDir(File)`, and `getTestResultsDirs()` and `setTestResultsDirs(Iterable)` methods are now `@Deprecated`.
-Any usages of them should be replaced by the now stable `getDestinationDirectory()` and `getTestResults()` methods and their associated setters.
-These deprecated elements will be removed in Gradle 8.0.
-
 <!--
 ### Example promoted
 -->
