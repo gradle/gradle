@@ -16,11 +16,14 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.event.BuildEventsListenerRegistry
@@ -62,6 +65,105 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         then:
         configurationCache.assertStateLoaded()
         outputDoesNotContain onFinishMessage
+    }
+
+    def "build service is not restored when using @ServiceReference"() {
+        given:
+        withCountingServicePlugin()
+        file('settings.gradle') << """
+            pluginManagement {
+                repositories {
+                    maven { url '$mavenRepo.uri' }
+                }
+            }
+        """
+        file('build.gradle') << """
+            plugins { id 'counting-service-plugin' version '1.0' }
+
+            tasks.register('count', CountingTask) {}
+        """
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun(":count")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains 'Count: 1'
+
+        when:
+        configurationCacheRun(":count")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains 'Count: 1'
+    }
+
+    private void withCountingServicePlugin() {
+        createDir('plugin') {
+            file("src/main/java/CountingServicePlugin.java") << """
+                public abstract class CountingServicePlugin implements $Plugin.name<$Project.name> {
+
+                    @Override
+                    public void apply($Project.name project) {
+                        project.getGradle().getSharedServices().registerIfAbsent(
+                            "counter",
+                            CountingService.class,
+                            (spec) -> {}
+                        );
+                    }
+                }
+
+                abstract class CountingTask extends $DefaultTask.name {
+
+                    @$ServiceReference.name("counter")
+                    public abstract $Property.name<CountingService> getCountingService();
+
+                    @$Inject.name
+                    public CountingTask() {}
+
+                    @$TaskAction.name
+                    void doIt() {
+                        System.out.println("Count: " + getCountingService().get().increment());
+                    }
+                }
+
+                abstract class CountingService implements
+                    $BuildService.name<${BuildServiceParameters.name}.None> {
+
+                    private ${AtomicInteger.name} count = new ${AtomicInteger.name}();
+
+                    @$Inject.name
+                    public CountingService() {}
+
+                    public int increment() {
+                        return count.incrementAndGet();
+                    }
+               }
+            """
+            file("build.gradle") << """
+                plugins {
+                    id("java-gradle-plugin")
+                    id("maven-publish")
+                }
+                group = "com.example"
+                version = "1.0"
+                publishing {
+                    repositories {
+                        maven { url '$mavenRepo.uri' }
+                    }
+                }
+                gradlePlugin {
+                    plugins {
+                        buildServicePlugin {
+                            id = 'counting-service-plugin'
+                            implementationClass = 'CountingServicePlugin'
+                        }
+                    }
+                }
+            """
+        }
+        executer.inDirectory(file("plugin")).withTasks("publish").run()
     }
 
     private void withListenerBuildServicePlugin(String onFinishMessage) {
