@@ -28,6 +28,7 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.collect.AtomicHashSet;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.StateTransitionControllerFactory;
@@ -43,7 +44,6 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -229,7 +229,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         private final ResourceLock allProjectsLock;
         private final ResourceLock projectLock;
         private final ResourceLock taskLock;
-        private final Set<Thread> canDoAnythingToThisProject = new CopyOnWriteArraySet<>();
+        private final AtomicHashSet<Thread> canDoAnythingToThisProject = new AtomicHashSet<>();
         private final ProjectLifecycleController controller;
 
         ProjectStateImpl(
