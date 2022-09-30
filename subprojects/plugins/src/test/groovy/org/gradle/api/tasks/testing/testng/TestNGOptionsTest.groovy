@@ -17,7 +17,6 @@ package org.gradle.api.tasks.testing.testng
 
 import org.gradle.api.file.Directory
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import spock.lang.Specification
 
 class TestNGOptionsTest extends Specification {
