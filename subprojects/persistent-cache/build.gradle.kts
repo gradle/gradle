@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":native"))
     implementation(project(":files"))
+    implementation(project(":functional"))
     implementation(project(":resources"))
     implementation(project(":logging"))
 

@@ -35,6 +35,7 @@ import org.gradle.cache.internal.filelock.Version1LockStateSerializer;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.collect.AtomicHashSet;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.id.IdGenerator;
@@ -47,8 +48,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -63,7 +62,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileLockManager.class);
     public static final int DEFAULT_LOCK_TIMEOUT = 60000;
 
-    private final Set<File> lockedFiles = new CopyOnWriteArraySet<>();
+    private final AtomicHashSet<File> lockedFiles = new AtomicHashSet<>();
     private final ProcessMetaDataProvider metaDataProvider;
     private final int lockTimeoutMs;
     private final IdGenerator<Long> generator;
