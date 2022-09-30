@@ -54,6 +54,7 @@ Each init script has a link:{groovyDslPath}/org.gradle.api.invocation.Gradle.htm
 Any property reference and method call in the init script will delegate to this `Gradle` instance.
 
 Each init script also implements the link:{groovyDslPath}/org.gradle.api.Script.html[Script] interface.
+Kotlin init scripts implement the link:https://gradle.github.io/kotlin-dsl-docs/api/org.gradle.kotlin.dsl/-kotlin-init-script/index.html[KotlinInitScript] type.
 
 [NOTE]
 ====
