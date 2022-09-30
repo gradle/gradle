@@ -22,6 +22,7 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMa
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheQuietOption
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.BuildOperationTreeFixture
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
@@ -262,6 +263,9 @@ abstract class AbstractSmokeTest extends Specification {
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
             .withProjectDir(testProjectDir)
             .forwardOutput()
+            .withArguments("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
+            .withArguments("-Porg.gradle.java.installations.auto-detect=false")
+            .withArguments("-Porg.gradle.java.installations.auto-download=false")
             .withArguments(
                 tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters()
             ) as DefaultGradleRunner
