@@ -33,7 +33,7 @@ public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
         this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
     }
 
-    private CacheResourceConfiguration createResourceConfiguration(ObjectFactory objectFactory, int defaultDays) {
+    private static CacheResourceConfiguration createResourceConfiguration(ObjectFactory objectFactory, int defaultDays) {
         CacheResourceConfiguration resourceConfiguration = objectFactory.newInstance(CacheResourceConfiguration.class);
         resourceConfiguration.getRemoveUnusedEntriesAfterDays().convention(defaultDays);
         return resourceConfiguration;
