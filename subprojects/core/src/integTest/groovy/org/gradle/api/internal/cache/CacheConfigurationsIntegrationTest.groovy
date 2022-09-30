@@ -20,6 +20,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 
 class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
+    private static final int MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS + 1
+    private static final int MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS + 1
+    private static final int MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES + 1
+    private static final int MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1
 
     def "can configure caches via init script and query from settings script"() {
         requireOwnGradleUserHomeDir()
@@ -34,10 +38,10 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
         settingsFile << """
             caches {
-                assert releasedWrappers.removeUnusedEntriesAfterDays.get() == ${CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS + 1}
-                assert snapshotWrappers.removeUnusedEntriesAfterDays.get() == ${CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS + 1}
-                assert downloadedResources.removeUnusedEntriesAfterDays.get() == ${CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES + 1}
-                assert createdResources.removeUnusedEntriesAfterDays.get() == ${CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1}
+                assert releasedWrappers.removeUnusedEntriesAfterDays.get() == ${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}
+                assert snapshotWrappers.removeUnusedEntriesAfterDays.get() == ${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}
+                assert downloadedResources.removeUnusedEntriesAfterDays.get() == ${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}
+                assert createdResources.removeUnusedEntriesAfterDays.get() == ${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}
             }
         """
 
@@ -59,10 +63,10 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     static String getModifiedCacheConfigurations() {
         return """
-                    releasedWrappers.removeUnusedEntriesAfterDays = ${CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS + 1}
-                    snapshotWrappers.removeUnusedEntriesAfterDays = ${CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS + 1}
-                    downloadedResources.removeUnusedEntriesAfterDays = ${CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES + 1}
-                    createdResources.removeUnusedEntriesAfterDays = ${CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1}
+                    releasedWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}
+                    snapshotWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}
+                    downloadedResources.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}
+                    createdResources.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}
         """
     }
 }
