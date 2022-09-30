@@ -69,6 +69,19 @@ With plugins, you can write a task once and use it in multiple builds. Or you ca
 like logging, dependencies, and version management, in one place. This reduces duplication in
 build scripts.
 
+=== Build Phases
+
+Gradle evaluates and executes build scripts in three *build phases* of the <<build_lifecycle#build_lifecycle,Build Lifecycle>>:
+
+Initialization::
+Sets up the environment for the build and determine which projects will take part in it.
+
+Configuration::
+Constructs and configures the task graph for the build. Determines which tasks need to run and in which order, based on the task the user wants to run.
+
+Execution::
+Runs the tasks selected at the end of the configuration phase.
+
 === Builds
 
 A build is an execution of a collection of tasks in a Gradle project. You instantiate a build with a Gradle command
@@ -109,28 +122,4 @@ It's easy to view Gradle's build scripts as executable code, because that's what
 But that's an implementation detail: well-designed build scripts describe _what_ steps build the software,
 not _how_ those steps do the work. That's a job for custom task types and plugins.
 
-== Build Phases
 
-Gradle evaluates and executes build scripts in three *build phases* of the <<build_lifecycle#build_lifecycle,Build Lifecycle>>:
-
- 1. Initialization
-+
-Sets up the environment for the build and determine which projects will take part in it.
-
- 2. Configuration
-+
-Constructs and configures the task graph for the build. Determines which tasks need to run and in which order, based on the task the user wants to run.
-
- 3. Execution
-+
-Runs the tasks selected at the end of the configuration phase.
-
-[NOTE]
-.Maven Phases and Gradle
-====
-Gradle's build phases are not like Maven's phases.
-Maven uses phases to divide the build execution into multiple stages.
-Maven phases serve a similar role to Gradle's task graph, although less flexibly.
-
-Maven's concept of a build lifecycle is loosely similar to Gradle's <<base_plugin#sec:base_tasks,lifecycle tasks>>.
-====

@@ -279,3 +279,27 @@ Listed below are the imports added to each script:
 ----
 include::default-imports.txt[]
 ----
+
+[[sec:groovy_script_variables]]
+== Groovy script variables
+
+For users of the Groovy DSL it is important to understand how Groovy deals with script variables.
+Groovy has two types of script variables.
+One with a local scope and one with a script-wide scope.
+
+=== Example: Variables scope: local and script wide
+
+[source,groovy]
+.scope.groovy
+----
+include::{snippetsPath}/tutorial/groovyScope/groovy/src/main/groovy/scope.groovy[]
+----
+
+.Output of `groovy scope.groovy`
+----
+> groovy scope.groovy
+include::{snippetsPath}/tutorial/groovyScope/tests/scope.out[]
+----
+
+Variables which are declared with a type modifier are visible within closures but not visible within methods.
+

@@ -1,0 +1,74 @@
+// Copyright 2022 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+= Plugin Variants
+
+[[plugin-with-variants]]
+== Providing multiple variants of a plugin for different Gradle versions
+
+NOTE: The support for multi-variant plugins currently requires you to use the raw <<variant_model.adoc#understanding-variant-selection,variant aware dependency management>> APIs of Gradle.
+More conveniences around this may be provided in the future.
+
+Currently, the most convenient way to configure additional plugin variants is to use <<feature_variants.adoc#feature_variants,feature variants>>, a concept available in all Gradle projects that apply one of the Java plugins.
+As described in the <<feature_variants.adoc#feature_variants,documentation>>, there are several options to design feature variants.
+They may be bundled inside the same Jar, or each variant may come with its own Jar.
+Here we show how each plugin variant is developed in isolation.
+That is, in a separate source set that is compiled separately and packaged in a separate Jar.
+Other setups are possible though.
+
+The following sample demonstrates how to add a variant that is compatible with Gradle 7+ while the "main" variant is compatible with older versions.
+Note that only Gradle versions 7 or higher can be explicitly targeted by a variant, as support for this was only added in Gradle 7.
+
+====
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=add-plugin-variant]"]
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=add-plugin-variant]"]
+====
+
+First, we declare a separate _source set_, and a _feature variant_ based on that, for our Gradle7 plugin variant.
+We need to do some specific wiring to turn the feature into a proper Gradle plugin variant:
+
+<1> Assign the <<component_capabilities.adoc#declaring-component-capabilities,implicit capability that corresponds to the components GAV>> to the variant.
+<2> Assign the <<variant_attributes.adoc#sub:gradle_plugins_default_attributes,Gradle API version attribute>> to all <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>> of our Gradle7 variant. This information is used by Gradle to determine which variant to select during plugin resolution.
+<3> Configure the `processGradle7Resources` task to make sure the plugin descriptor file is added to the Gradle7 variant Jar.
+<4> Add a dependency to the `gradleApi()` for our new variant so that the API is visible during compilation time.
+
+Note that there is currently no convenient way to access the API of other Gradle versions as the one you are building the plugin with.
+Ideally, every variant should be able to declare a dependency to the API of the minimal Gradle version it supports.
+This will be improved in the future.
+
+The above snippet assumes that all variants of your plugin have the plugin class at the same location.
+That is, if you followed this chapter and your plugin class is `org.example.GreetingPlugin`, you need to create a second variant of that class in `src/gradle7/java/org/example`.
+
+== Using version-specific variants of multi-variant plugins
+
+Given a dependency on a multi-variant plugin, Gradle will automatically choose its variant that best matches the current Gradle version when it resolves any of:
+
+* plugins specified in the <<plugins.adoc#sec:plugins_block,`plugins {}` block>>;
+* `buildscript` classpath dependencies;
+* dependencies in the root project of the <<organizing_gradle_projects.adoc#sec:build_sources,build source (`buildSrc`)>> that appear on the compile or runtime classpath;
+* dependencies in a project that applies the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development plugin>> or the <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL plugin>>, appearing on the compile or runtime classpath.
+
+The best matching variant is the variant that targets the highest Gradle API version not exceeding the current build's Gradle version.
+
+In all other cases, a plugin variant that does not specify the supported Gradle API version is preferred, if such a variant is present.
+
+In projects that use plugins as dependencies, it is possible to request the variants of plugin dependencies that support a different Gradle version.
+This allows a multi-variant plugin that depends on other plugins to access their APIs which are exclusively provided in their version-specific variants.
+
+This snippet makes the <<#plugin-with-variants,plugin variant `gradle7` defined above>> consume the matching variants of its dependencies on other multi-variant plugins.
+
+====
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=consume-plugin-variant]"]
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=consume-plugin-variant]"]
+====

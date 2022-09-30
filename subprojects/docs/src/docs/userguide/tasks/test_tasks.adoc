@@ -1,0 +1,26 @@
+// Copyright 2022 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[sec:writing_tests_for_your_task_class]]
+= Test Tasks
+
+You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[ProjectBuilder] class to create link:{groovyDslPath}/org.gradle.api.Project.html[Project] instances to use when you test your task class.
+
+=== Example: Testing a custom task
+
+[source.multi-language-sample,groovy]
+.src/test/groovy/org/gradle/GreetingTaskTest.groovy
+----
+include::{snippetsPath}/base/customExternalTask/groovy/task/src/test/groovy/org/gradle/GreetingTaskTest.groovy[tag=test-task]
+----

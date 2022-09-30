@@ -1,0 +1,59 @@
+// Copyright 2022 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[sec:creating_a_plugin_id]]
+= Plugin Name Conventions
+
+Plugin ids are fully qualified in a manner similar to Java packages (i.e. a reverse domain name). This helps to avoid collisions and provides a way to group plugins with similar ownership.
+
+Your plugin id should be a combination of components that reflect namespace (a reasonable pointer to you or your organization) and the name of the plugin it provides.
+For example if you had a Github account named "foo" and your plugin was named "bar", a suitable plugin id might be `com.github.foo.bar`.
+Similarly, if the plugin was developed at the baz organization, the plugin id might be `org.baz.bar`.
+
+Plugin ids should conform to the following:
+
+* May contain any alphanumeric character, '.', and '-'.
+* Must contain at least one '.' character separating the namespace from the name of the plugin.
+* Conventionally use a lowercase reverse domain name convention for the namespace.
+* Conventionally use only lowercase characters in the name.
+* `org.gradle` and `com.gradleware` namespaces may not be used.
+* Cannot start or end with a '.' character.
+* Cannot contain consecutive '.' characters (i.e. '..').
+
+Although there are conventional similarities between plugin ids and package names, package names are generally more detailed than is necessary for a plugin id.
+For instance, it might seem reasonable to add "gradle" as a component of your plugin id, but since plugin ids are only used for Gradle plugins, this would be superfluous.
+Generally, a namespace that identifies ownership and a name are all that are needed for a good plugin id.
+
+== Assigning appropriate plugin identifiers
+
+A descriptive plugin identifier makes it easy for consumers to apply the plugin to a project.
+The ID should reflect the purpose of the plugin with a single term.
+Additionally, a domain name should be added to avoid conflicts between other plugins with similar functionality.
+In the previous sections, dependencies shown in code examples use the group ID `org.myorg`.
+We could use the same identifier as domain name.
+
+When publishing multiple plugins as part of a single JAR artifact the same naming conventions should apply.
+This serves as a nice way to group related plugins together.
+There’s no limitation to the number of plugins that can be registered by identifier.
+For illustration, the Gradle Android plugin defines two different plugins.
+
+The identifiers for plugins written as a class should be defined in the build script of the project containing the plugin classes.
+For this, the `java-gradle-plugin` needs to be applied.
+
+====
+include::sample[dir="snippets/developingPlugins/pluginIdentifier/groovy",files="buildSrc/build.gradle[]"]
+include::sample[dir="snippets/developingPlugins/pluginIdentifier/kotlin",files="buildSrc/build.gradle.kts[]"]
+====
+
+Note that identifiers for <<custom_plugins.adoc#sec:precompiled_plugins,precompiled script plugins>> are automatically registered based on the file name of the script plugin.
