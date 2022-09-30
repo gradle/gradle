@@ -22,7 +22,9 @@ dependencies {
     implementation(project(":testing-base"))
 
     implementation(libs.slf4jApi)
-    implementation(libs.groovy) // for 'Closure'
+    implementation(libs.groovy) {
+        because("Needed for Closure")
+    }
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)

@@ -27,7 +27,9 @@ dependencies {
     implementation(project(":tooling-api"))
     implementation(project(":workers"))
 
-    implementation(libs.groovy) // for 'Closure'
+    implementation(libs.groovy) {
+        because("Needed for Closure")
+    }
     implementation(libs.guava)
     implementation(libs.commonsIo)
 
