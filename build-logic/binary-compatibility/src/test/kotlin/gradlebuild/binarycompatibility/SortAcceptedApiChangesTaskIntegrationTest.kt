@@ -16,21 +16,40 @@
 
 package gradlebuild.binarycompatibility
 
+import com.google.gson.Gson
+import org.gradle.testkit.runner.TaskOutcome
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
 
-class AlphabeticalAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiChangesMaintenanceTaskIntegrationTest() {
+class SortAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiChangesMaintenanceTaskIntegrationTest() {
     @Test
-    fun `verify AlphabeticalAcceptedApiChangesTask detects misordered changes`() {
+    fun `verify misordered changes can be sorted`() {
         //language=JSON
         acceptedApiChangesFile.writeText(
             """
                 {
                     "acceptedApiChanges": [
                         {
+                            "type": "org.gradle.api.file.SourceDirectorySet",
+                            "member": "Method org.gradle.api.file.SourceDirectorySet.getOutputDir()",
+                            "acceptation": "Deprecated method removed",
+                            "changes": [
+                                "Method has been removed"
+                            ]
+                        },
+{
                             "type": "org.gradle.api.tasks.AbstractExecTask",
                             "member": "Method org.gradle.api.tasks.AbstractExecTask.getExecResult()",
                             "acceptation": "Removed for Gradle 8.0",
+                            "changes": [
+                                "Method has been removed"
+                            ]
+                        },
+                        {
+                            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+                            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBinResultsDir()",
+                            "acceptation": "Deprecated method removed",
                             "changes": [
                                 "Method has been removed"
                             ]
@@ -41,14 +60,6 @@ class AlphabeticalAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiCha
                             "acceptation": "org.gradle.api.AntBuilder now extends groovy.ant.AntBuilder",
                             "changes": [
                                 "Abstract method has been added in implemented interface"
-                            ]
-                        },
-                        {
-                            "type": "org.gradle.api.file.SourceDirectorySet",
-                            "member": "Method org.gradle.api.file.SourceDirectorySet.getOutputDir()",
-                            "acceptation": "Deprecated method removed",
-                            "changes": [
-                                "Method has been removed"
                             ]
                         },
                         {
@@ -66,34 +77,22 @@ class AlphabeticalAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiCha
                             "changes": [
                                 "Method has been removed"
                             ]
-                        },
-                        {
-                            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
-                            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBinResultsDir()",
-                            "acceptation": "Deprecated method removed",
-                            "changes": [
-                                "Method has been removed"
-                            ]
                         }
                     ]
                 }
             """.trimIndent()
         )
 
-        assertHasMisorderedChanges(
-            listOf(
-                Change("org.gradle.api.tasks.AbstractExecTask", "Method org.gradle.api.tasks.AbstractExecTask.getExecResult()"),
-                Change("org.gradle.api.AntBuilder", "Class org.gradle.api.AntBuilder"),
-                Change("org.gradle.api.file.SourceDirectorySet", "Method org.gradle.api.file.SourceDirectorySet.getOutputDir()"),
-                Change("org.gradle.api.file.SourceDirectorySet", "Method org.gradle.api.file.SourceDirectorySet.setOutputDir(java.io.File)")
-            )
-        )
-    }
+        val initialVerifyResult = run(":verifyAcceptedApiChangesOrdering").buildAndFail()
+        Assertions.assertEquals(TaskOutcome.FAILED, initialVerifyResult.task(":verifyAcceptedApiChangesOrdering")!!.outcome)
 
-    @Test
-    fun `verify AlphabeticalAcceptedApiChangesTask accepts properly ordered changes`() {
-        //language=JSON
-        acceptedApiChangesFile.writeText(
+        val sortingResult = run(":sortAcceptedApiChanges").build()
+        Assertions.assertEquals(TaskOutcome.SUCCESS, sortingResult.task(":sortAcceptedApiChanges")!!.outcome)
+
+        val finalVerifyResult = run(":verifyAcceptedApiChangesOrdering").build()
+        Assertions.assertEquals(TaskOutcome.SUCCESS, finalVerifyResult.task(":verifyAcceptedApiChangesOrdering")!!.outcome)
+
+        val expectedJson = loadChangesJson(
             """
                 {
                     "acceptedApiChanges": [
@@ -115,7 +114,31 @@ class AlphabeticalAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiCha
                         },
                         {
                             "type": "org.gradle.api.file.SourceDirectorySet",
+                            "member": "Method org.gradle.api.file.SourceDirectorySet.setOutputDir(java.io.File)",
+                            "acceptation": "Deprecated method removed",
+                            "changes": [
+                                "Method has been removed"
+                            ]
+                        },
+                        {
+                            "type": "org.gradle.api.file.SourceDirectorySet",
                             "member": "Method org.gradle.api.file.SourceDirectorySet.setOutputDir(org.gradle.api.provider.Provider)",
+                            "acceptation": "Deprecated method removed",
+                            "changes": [
+                                "Method has been removed"
+                            ]
+                        },
+                        {
+                            "type": "org.gradle.api.tasks.AbstractExecTask",
+                            "member": "Method org.gradle.api.tasks.AbstractExecTask.getExecResult()",
+                            "acceptation": "Removed for Gradle 8.0",
+                            "changes": [
+                                "Method has been removed"
+                            ]
+                        },
+                        {
+                            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+                            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBinResultsDir()",
                             "acceptation": "Deprecated method removed",
                             "changes": [
                                 "Method has been removed"
@@ -123,9 +146,12 @@ class AlphabeticalAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiCha
                         }
                     ]
                 }
-            """.trimIndent()
-        )
+            """)
+        val actualJson = loadChangesJson(acceptedApiChangesFile.readText())
 
-        assertChangesProperlyOrdered()
+        Assertions.assertEquals(expectedJson, actualJson)
     }
+
+    private
+    fun loadChangesJson(rawText: String) = Gson().fromJson(rawText, AbstractAcceptedApiChangesMaintenanceTask.AcceptedApiChanges::class.java)
 }
