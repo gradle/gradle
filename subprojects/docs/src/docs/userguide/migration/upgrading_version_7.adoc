@@ -172,7 +172,7 @@ Gradle now warns upon usage of these deprecated methods. They will be removed in
 
 The `getDestinationDir()`, `setDestinationDir(File)`, and `getTestResultsDirs()` and `setTestResultsDirs(Iterable)` methods have been deprecated.
 Replace usages with the now stable `getDestinationDirectory()` and `getTestResults()` methods and their associated setters.
-These deprecated elements will be removed in Gradle 8.0.
+These deprecated elements will be removed in a future version of Gradle.
 
 [[changes_7.5]]
 == Upgrading from 7.4 and earlier
