@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -88,26 +89,30 @@ public class TestNGOptions extends TestFrameworkOptions {
     }
 
     /**
-     * Copies the TestNG options.
+     * Copies the options from the source options into the current one.
      * @since 8.0
      */
-    public TestNGOptions(TestNGOptions other) {
+    public void copyFrom(TestNGOptions other) {
         this.outputDirectory = other.outputDirectory;
-        this.includeGroups.addAll(other.includeGroups);
-        this.excludeGroups.addAll(other.excludeGroups);
+        replace(this.includeGroups, other.includeGroups);
+        replace(this.excludeGroups, other.excludeGroups);
         this.configFailurePolicy = other.configFailurePolicy;
-        this.listeners.addAll(other.listeners);
+        replace(this.listeners, other.listeners);
         this.parallel = other.parallel;
         this.threadCount = other.threadCount;
         this.useDefaultListeners = other.useDefaultListeners;
         this.suiteName = other.suiteName;
         this.testName = other.testName;
-        this.suiteXmlFiles.addAll(other.suiteXmlFiles);
+        replace(this.suiteXmlFiles, other.suiteXmlFiles);
         this.preserveOrder = other.preserveOrder;
         this.groupByInstances = other.groupByInstances;
-        this.suiteXmlWriter = other.suiteXmlWriter;
-        this.suiteXmlBuilder = other.suiteXmlBuilder;
-        this.projectDir = other.projectDir;
+        // not copying suiteXmlWriter as it is transient
+        // not copying suiteXmlBuilder as it is transient
+    }
+
+    private static <T> void replace(Collection<T> target, Collection<T> source) {
+        target.clear();
+        target.addAll(source);
     }
 
     public MarkupBuilder suiteXmlBuilder() {
