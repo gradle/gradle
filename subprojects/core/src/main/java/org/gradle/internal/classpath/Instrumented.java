@@ -39,56 +39,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class Instrumented {
-    private static final Listener NO_OP = new Listener() {
-        @Override
-        public void systemPropertyQueried(String key, @Nullable Object value, String consumer) {
-        }
+    private static final InstrumentedListenerHolder LISTENER_HOLDER = new InstrumentedListenerHolder();
 
-        @Override
-        public void systemPropertyChanged(Object key, @Nullable Object value, String consumer) {
-        }
-
-        @Override
-        public void systemPropertyRemoved(Object key, String consumer) {
-        }
-
-        @Override
-        public void systemPropertiesCleared(String consumer) {
-        }
-
-        @Override
-        public void envVariableQueried(String key, @Nullable String value, String consumer) {
-        }
-
-        @Override
-        public void externalProcessStarted(String command, String consumer) {
-        }
-
-        @Override
-        public void fileOpened(File file, String consumer) {
-        }
-
-        @Override
-        public void fileObserved(File file, String consumer) {
-        }
-
-        @Override
-        public void fileCollectionObserved(FileCollection fileCollection, String consumer) {
-        }
-    };
-
-    private static final AtomicReference<Listener> LISTENER = new AtomicReference<>(NO_OP);
+    private static Listener listener() {
+        return LISTENER_HOLDER.listenerForCurrentThread();
+    }
 
     public static void setListener(Listener listener) {
-        LISTENER.set(listener);
+        LISTENER_HOLDER.setGlobalListener(listener);
     }
 
     public static void discardListener() {
-        setListener(NO_OP);
+        LISTENER_HOLDER.discardGlobalListener();
+    }
+
+    public static void disableListenerForCurrentThread() {
+        LISTENER_HOLDER.disableListenerForCurrentThread();
+    }
+
+    public static void restoreListenerForCurrentThread() {
+        LISTENER_HOLDER.restoreListenerForCurrentThread();
     }
 
     private static final CallInterceptorsSet CALL_INTERCEPTORS = new CallInterceptorsSet(
@@ -400,10 +373,6 @@ public class Instrumented {
 
     private static void externalProcessStarted(List<?> command, String consumer) {
         externalProcessStarted(joinCommand(command), consumer);
-    }
-
-    private static Listener listener() {
-        return LISTENER.get();
     }
 
     private static String convertToString(Object arg) {
