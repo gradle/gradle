@@ -263,11 +263,13 @@ abstract class AbstractSmokeTest extends Specification {
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
             .withProjectDir(testProjectDir)
             .forwardOutput()
-            .withArguments("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
-            .withArguments("-Porg.gradle.java.installations.auto-detect=false")
-            .withArguments("-Porg.gradle.java.installations.auto-download=false")
             .withArguments(
-                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters()
+                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters() +
+                [
+                        "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}",
+                        "-Porg.gradle.java.installations.auto-detect=false",
+                        "-Porg.gradle.java.installations.auto-download=false"
+                ]
             ) as DefaultGradleRunner
         gradleRunner.withJvmArguments(["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"])
         return new SmokeTestGradleRunner(gradleRunner)
