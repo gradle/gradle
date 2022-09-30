@@ -21,7 +21,7 @@ Everyone has to start somewhere and if you're new to Gradle, this is where to be
 
 In order to use Gradle effectively, you need to know what it is and understand some of its fundamental concepts. So before you start using Gradle in earnest, we highly recommend you read <<what_is_gradle#what_is_gradle,What is Gradle?>>.
 
-Even if you're an experienced Gradle user, we suggest you read "<<what_is_gradle,What is Gradle?>>" as it clears up some common misconceptions.
+Even if you're an experienced Gradle user, we suggest you read "<<what_is_gradle#what_is_gradle,What is Gradle?>>" as it clears up some common misconceptions.
 
 [[gs:installation]]
 == Installation
