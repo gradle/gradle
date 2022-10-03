@@ -24,8 +24,8 @@ import me.champeau.gradle.japicmp.report.Violation
 
 class IncubatingInternalInterfaceAddedRule extends AbstractSuperClassChangesRule {
 
-    IncubatingInternalInterfaceAddedRule(Map params) {
-        super(params)
+    IncubatingInternalInterfaceAddedRule(Map<String, Object> params) {
+        super((Map<String, String>)params['acceptedApiChanges'], (List<String>)params['publicApiPatterns'], (String)params['apiChangesJsonFile'], (String)params['projectRootDir'])
     }
 
     protected boolean changed(JApiCompatibility member) {

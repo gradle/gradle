@@ -27,8 +27,9 @@ import java.util.Map;
 
 public class NewIncubatingAPIRule extends AbstractGradleViolationRule {
 
-    public NewIncubatingAPIRule(Map<String, String> acceptedViolations) {
-        super(acceptedViolations);
+    @SuppressWarnings("unchecked")
+    public NewIncubatingAPIRule(Map<String, Object> params) {
+        super((Map<String, String>)params.get("acceptedApiChanges"), (String)params.get("apiChangesJsonFile"), (String)params.get("projectRootDir"));
     }
 
     @Override

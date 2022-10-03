@@ -32,7 +32,9 @@ import gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRule
 import gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRuleCurrentGradleVersionSetup
 import japicmp.model.JApiChangeStatus
 import me.champeau.gradle.japicmp.JapicmpTask
+import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFile
 
 class BinaryCompatibilityHelper {
 
@@ -40,7 +42,9 @@ class BinaryCompatibilityHelper {
         JapicmpTask japicmpTask,
         AcceptedApiChanges acceptedViolations,
         FileCollection sourceRoots,
-        String currentVersion
+        String currentVersion,
+        RegularFile apiChangesJsonFile,
+        Directory projectRootDir
     ) {
         japicmpTask.tap {
             doNotTrackState("classloading issues with rules")
@@ -53,22 +57,52 @@ class BinaryCompatibilityHelper {
             richReport.get().tap {
                 addRule(IncubatingInternalInterfaceAddedRule, [
                     acceptedApiChanges: acceptedChangesMap,
-                    publicApiPatterns: includedClasses.get()
+                    publicApiPatterns: includedClasses.get(),
+                    apiChangesJsonFile: apiChangesJsonFile.asFile.path,
+                    projectRootDir: projectRootDir.asFile.path
                 ])
                 addRule(MethodsRemovedInInternalSuperClassRule, [
                     acceptedApiChanges: acceptedChangesMap,
-                    publicApiPatterns: includedClasses.get()
+                    publicApiPatterns: includedClasses.get(),
+                    apiChangesJsonFile: apiChangesJsonFile.asFile.path,
+                    projectRootDir: projectRootDir.asFile.path
                 ])
                 addRule(BinaryBreakingSuperclassChangeRule, [
                     acceptedApiChanges: acceptedChangesMap,
-                    publicApiPatterns: includedClasses.get()
+                    publicApiPatterns: includedClasses.get(),
+                    apiChangesJsonFile: apiChangesJsonFile.asFile.path,
+                    projectRootDir: projectRootDir.asFile.path
                 ])
-                addRule(BinaryBreakingChangesRule, acceptedChangesMap)
-                addRule(NullabilityBreakingChangesRule, acceptedChangesMap)
-                addRule(KotlinModifiersBreakingChangeRule, acceptedChangesMap)
-                addRule(JApiChangeStatus.NEW, IncubatingMissingRule, acceptedChangesMap)
-                addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, acceptedChangesMap)
-                addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, acceptedChangesMap)
+                addRule(BinaryBreakingChangesRule, [
+                        acceptedApiChanges: acceptedChangesMap,
+                        apiChangesJsonFile: apiChangesJsonFile.asFile.path,
+                        projectRootDir: projectRootDir.asFile.path
+                ])
+                addRule(NullabilityBreakingChangesRule, [
+                        acceptedApiChanges: acceptedChangesMap,
+                        apiChangesJsonFile: apiChangesJsonFile.asFile.path,
+                        projectRootDir: projectRootDir.asFile.path
+                ])
+                addRule(KotlinModifiersBreakingChangeRule, [
+                        acceptedApiChanges: acceptedChangesMap,
+                        apiChangesJsonFile: apiChangesJsonFile.asFile.path,
+                        projectRootDir: projectRootDir.asFile.path
+                ])
+                addRule(JApiChangeStatus.NEW, IncubatingMissingRule, [
+                        acceptedApiChanges: acceptedChangesMap,
+                        apiChangesJsonFile: apiChangesJsonFile.asFile.path,
+                        projectRootDir: projectRootDir.asFile.path
+                ])
+                addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, [
+                        acceptedApiChanges: acceptedChangesMap,
+                        apiChangesJsonFile: apiChangesJsonFile.asFile.path,
+                        projectRootDir: projectRootDir.asFile.path
+                ])
+                addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, [
+                        acceptedApiChanges: acceptedChangesMap,
+                        apiChangesJsonFile: apiChangesJsonFile.asFile.path,
+                        projectRootDir: projectRootDir.asFile.path
+                ])
 
                 addSetupRule(AcceptedRegressionsRuleSetup, acceptedChangesMap)
                 addSetupRule(SinceAnnotationMissingRuleCurrentGradleVersionSetup, [currentVersion: currentVersion])

@@ -28,9 +28,9 @@ abstract class AbstractSuperClassChangesRule extends AbstractGradleViolationRule
 
     private final List<Pattern> publicApiPatterns
 
-    AbstractSuperClassChangesRule(Map params) {
-        super(params['acceptedApiChanges'])
-        this.publicApiPatterns = params['publicApiPatterns'].collect { Pattern.compile(it) }
+    AbstractSuperClassChangesRule(Map<String, String> acceptedApiChanges, List<String> publicApiPatterns, String apiChangesJsonFile, String projectRootDir) {
+        super(acceptedApiChanges, apiChangesJsonFile, projectRootDir)
+        this.publicApiPatterns = publicApiPatterns.collect { Pattern.compile(it) }
     }
 
     Violation maybeViolation(final JApiCompatibility member) {

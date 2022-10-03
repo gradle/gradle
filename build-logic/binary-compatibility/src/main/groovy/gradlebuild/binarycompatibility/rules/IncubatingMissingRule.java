@@ -28,8 +28,9 @@ import java.util.Map;
 
 public class IncubatingMissingRule extends AbstractGradleViolationRule {
 
-    public IncubatingMissingRule(Map<String, String> acceptedViolations) {
-        super(acceptedViolations);
+    @SuppressWarnings("unchecked")
+    public IncubatingMissingRule(Map<String, Object> params) {
+        super((Map<String, String>)params.get("acceptedApiChanges"), (String)params.get("apiChangesJsonFile"), (String)params.get("projectRootDir"));
     }
 
     @Override
