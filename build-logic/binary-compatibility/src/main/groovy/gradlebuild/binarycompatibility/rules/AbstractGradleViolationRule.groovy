@@ -45,10 +45,14 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
     private final File apiChangesJsonFile
     private final File projectRootDir
 
+    AbstractGradleViolationRule(Map<String, String> acceptedApiChanges) {
+        this(acceptedApiChanges, null, null)
+    }
+
     AbstractGradleViolationRule(Map<String, String> acceptedApiChanges, String apiChangesJsonFile, String projectRootDir) {
-        this.acceptedApiChanges = AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges)
-        this.apiChangesJsonFile = new File(apiChangesJsonFile)
-        this.projectRootDir = new File(projectRootDir)
+        this.acceptedApiChanges = acceptedApiChanges ? AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges) : [:]
+        this.apiChangesJsonFile = apiChangesJsonFile ? new File(apiChangesJsonFile) : null
+        this.projectRootDir = projectRootDir ? new File(projectRootDir) : null
     }
 
     protected BinaryCompatibilityRepository getRepository() {
@@ -201,6 +205,10 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
     }
 
     private String relativePathToApiChanges() {
-        return projectRootDir.relativePath(apiChangesJsonFile)
+        if (null != apiChangesJsonFile && null != projectRootDir) {
+            return projectRootDir.relativePath(apiChangesJsonFile)
+        } else {
+            return "sample/path/to/changes.json"
+        }
     }
 }
