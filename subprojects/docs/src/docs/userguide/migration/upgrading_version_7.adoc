@@ -173,8 +173,8 @@ eclipse {
 
 ==== Simplifying PMD custom rules configuration
 
-Previously to configure PMD to use custom rules and ignore the default ones you have to explicitly clear default rules with following line `ruleSets = []`.
-In the Gradle 8.0 it's done by default as soon as `ruleSetConfig` or `ruleSetFiles` was set to non-empty value.
+Previously, you had to explicitly configure PMD to ignore default rules with `ruleSets = []`.
+In the Gradle 8.0, setting `ruleSetConfig` or `ruleSetFiles` to a non-empty value implicitly ignores default rules.
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
