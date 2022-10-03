@@ -25,8 +25,7 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
 
     @Override
     void render(File htmlReportFile, RichReportData data) {
-        super.render(htmlReportFile, data)
-        enrichReport(htmlReportFile, getAcceptedApiChangesFile(data))
+        super.render(htmlReportFile, enrichReport(htmlReportFile, data))
     }
 
     /**
@@ -42,12 +41,61 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
      * @param data the report data containing a description to parse
      * @return accepted api changes reported upon, as a file
      */
-    private File getAcceptedApiChangesFile(RichReportData data) {
+    private static File getAcceptedApiChangesFile(RichReportData data) {
         def matcher = data.description =~ acceptedChangesRegex
         return new File(matcher[0][1])
     }
 
-    private enrichReport(File reportFile, File acceptedApiChangesFile) {
-        reportFile.text = reportFile.text.replace("Binary compatibility", "AWESOME bin-compat for: " + acceptedApiChangesFile.path)
+    private static RichReportData enrichReport(File reportFile, RichReportData data) {
+        String currentApiChanges = getAcceptedApiChangesFile(data).text
+        String enrichedDesc = data.description + buildFixAllButton(currentApiChanges)
+        return new RichReportData(data.reportTitle, enrichedDesc, data.violations)
+    }
+
+    private static String buildFixAllButton(String currentApiChanges) {
+        return """
+            <script type="text/javascript">
+                function getAllErrorCorrections() {
+                    var changeElements = \$(".well pre")
+                    var result = []
+                    changeElements.each(function() {
+                        result.push(JSON.parse(this.textContent));
+                    })
+                    return result;
+                }
+
+                function appendErrorCorrections() {
+                    var result = $currentApiChanges;
+                    getAllErrorCorrections().forEach(function(correction) {
+                        result.acceptedApiChanges.push(correction);
+                    });
+                    return result;
+                }
+
+                function acceptAllErrorCorrections() {
+                    var textToWrite = JSON.stringify(appendErrorCorrections(), null, 4) + "\\n";
+                    var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
+                    var fileNameToSaveAs = 'accepted-public-api-changes.json';
+
+                    var downloadLink = document.createElement("a");
+                    downloadLink.download = fileNameToSaveAs;
+                    downloadLink.innerHTML = "Download File";
+
+                    if (window.webkitURL != null) {
+                        // Chrome allows the link to be clicked without actually adding it to the DOM
+                        downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
+                    } else {
+                        // Firefox requires the link to be added to the DOM before it can be clicked
+                        downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+                        downloadLink.onclick = destroyClickedElement;
+                        downloadLink.style.display = "none";
+                        document.body.appendChild(downloadLink);
+                    }
+
+                    downloadLink.click();
+                }
+            </script>
+            <a class="btn btn-info" role="button" onclick="acceptAllErrorCorrections()">Accept Changes for all Errors</a>
+        """
     }
 }
