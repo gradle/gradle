@@ -18,13 +18,11 @@ package org.gradle.smoketests
 
 import org.gradle.internal.reflect.validation.Severity
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
