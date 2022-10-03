@@ -25,7 +25,7 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
 
     @Override
     void render(File htmlReportFile, RichReportData data) {
-        super.render(htmlReportFile, enrichReport(htmlReportFile, data))
+        super.render(htmlReportFile, enrichReport(data))
     }
 
     /**
@@ -46,7 +46,7 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
         return new File(matcher[0][1])
     }
 
-    private static RichReportData enrichReport(File reportFile, RichReportData data) {
+    private static RichReportData enrichReport(RichReportData data) {
         String currentApiChanges = getAcceptedApiChangesFile(data).text
         String enrichedDesc = data.description + buildFixAllButton(currentApiChanges)
         return new RichReportData(data.reportTitle, enrichedDesc, data.violations)
@@ -68,6 +68,9 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
                     var result = $currentApiChanges;
                     getAllErrorCorrections().forEach(function(correction) {
                         result.acceptedApiChanges.push(correction);
+                    });
+                    result.acceptedApiChanges = result.acceptedApiChanges.sort(function(a, b) {
+                        return (a.type + a.member) - (b.type + b.member);
                     });
                     return result;
                 }
