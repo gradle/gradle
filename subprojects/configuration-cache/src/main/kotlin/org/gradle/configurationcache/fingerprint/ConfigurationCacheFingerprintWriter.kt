@@ -72,6 +72,7 @@ import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.util.Path
 import java.io.File
 import java.util.EnumSet
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.reflect.KProperty
 
 
@@ -148,7 +149,18 @@ class ConfigurationCacheFingerprintWriter(
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
     private
-    var inputTrackingDisabledForThread by ThreadLocal.withInitial { false }
+    var inputTrackingState by ThreadLocal.withInitial { AtomicLong(0) }
+
+    private fun inputTrackingDisabledForThread() : Boolean {
+        val state = inputTrackingState.get()
+
+        // state cannot be > 0; org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.LazilyObtainedValue.obtain
+        // wraps calls to beforeValueObtained() / afterValueObtained() in try/finally
+        check(state <= 0) { "Input tracking state corrupted; $state" }
+
+        // state < 0 is 'disabled'; 0 == 'enabled'
+        return state < 0
+    }
 
     init {
         val initScripts = host.allInitScripts
@@ -204,7 +216,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun fileObserved(file: File, consumer: String?) {
-        if (inputTrackingDisabledForThread) {
+        if (inputTrackingDisabledForThread()) {
             return
         }
         // Ignore consumer for now, only used by Gradle internals and so shouldn't appear in the report.
@@ -212,7 +224,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
-        if (inputTrackingDisabledForThread || isSystemPropertyMutated(key)) {
+        if (inputTrackingDisabledForThread() || isSystemPropertyMutated(key)) {
             return
         }
         sink().systemPropertyRead(key, value)
@@ -220,7 +232,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun envVariableRead(key: String, value: String?, consumer: String?) {
-        if (inputTrackingDisabledForThread) {
+        if (inputTrackingDisabledForThread()) {
             return
         }
         sink().envVariableRead(key, value)
@@ -228,7 +240,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun fileOpened(file: File, consumer: String?) {
-        if (inputTrackingDisabledForThread || taskExecutionTracker.currentTask.isPresent) {
+        if (inputTrackingDisabledForThread() || taskExecutionTracker.currentTask.isPresent) {
             // Ignore files that are read as part of the task actions. These should really be task
             // inputs. Otherwise, we risk fingerprinting temporary files that will be gone at the
             // end of the build.
@@ -239,14 +251,14 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun fileCollectionObserved(fileCollection: FileCollection, consumer: String) {
-        if (inputTrackingDisabledForThread) {
+        if (inputTrackingDisabledForThread()) {
             return
         }
         captureWorkInputs(consumer) { it(fileCollection as FileCollectionInternal) }
     }
 
     override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
-        if (inputTrackingDisabledForThread) {
+        if (inputTrackingDisabledForThread()) {
             return
         }
         val filteredSnapshot = snapshot.mapValues { e ->
@@ -260,18 +272,18 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
-        if (inputTrackingDisabledForThread) {
+        if (inputTrackingDisabledForThread()) {
             return
         }
         buildScopedSink.write(ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy(prefix, snapshot))
     }
 
     override fun beforeValueObtained() {
-        inputTrackingDisabledForThread = true
+        inputTrackingState.decrementAndGet()
     }
 
     override fun afterValueObtained() {
-        inputTrackingDisabledForThread = false
+        inputTrackingState.incrementAndGet()
     }
 
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
@@ -286,32 +298,40 @@ class ConfigurationCacheFingerprintWriter(
                     reportUniqueFileInput(file)
                 }
             }
+
             is GradlePropertyValueSource.Parameters -> {
                 // The set of Gradle properties is already an input
             }
+
             is GradlePropertiesPrefixedByValueSource.Parameters -> {
                 // The set of Gradle properties is already an input
             }
+
             is SystemPropertyValueSource.Parameters -> {
                 systemPropertyRead(parameters.propertyName.get(), obtainedValue.value.get(), null)
             }
+
             is SystemPropertiesPrefixedByValueSource.Parameters -> {
                 val prefix = parameters.prefix.get()
                 systemPropertiesPrefixedBy(prefix, obtainedValue.value.get().uncheckedCast())
                 reportUniqueSystemPropertiesPrefixedByInput(prefix)
             }
+
             is EnvironmentVariableValueSource.Parameters -> {
                 envVariableRead(parameters.variableName.get(), obtainedValue.value.get() as? String, null)
             }
+
             is EnvironmentVariablesPrefixedByValueSource.Parameters -> {
                 val prefix = parameters.prefix.get()
                 envVariablesPrefixedBy(prefix, obtainedValue.value.get().uncheckedCast())
                 reportUniqueEnvironmentVariablesPrefixedByInput(prefix)
             }
+
             is ProcessOutputValueSource.Parameters -> {
                 sink().write(ValueSource(obtainedValue.uncheckedCast()))
                 reportExternalProcessOutputRead(ProcessOutputValueSource.Parameters.getExecutable(parameters))
             }
+
             else -> {
                 sink().write(ValueSource(obtainedValue.uncheckedCast()))
                 reportUniqueValueSourceInput(
