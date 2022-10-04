@@ -67,6 +67,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
         "-Xjsr305=strict",
         "-XXLanguage:+DisableCompatibilityModeForNewInference",
         "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
+        "-P", "plugin:org.jetbrains.kotlin.assignment:annotation=org.gradle.api.SupportsKotlinAssignmentOverloading"
     ]
 )
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
