@@ -36,12 +36,10 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
             allprojects {
                 configurations {
                     implementation
-                    compile.deprecateForDeclaration("implementation")
-                    compile.deprecateForConsumption { builder ->
-                        builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
-                    }
-                    compile.deprecateForResolution("compileClasspath")
-                    compileOnly.deprecateForResolution("compileClasspath")
+                    compile.canBeDeclaredAgainst = false
+                    compile.canBeConsumed = false
+                    compile.canBeResolved = false
+                    compileOnly.canBeResolved = false
                     apiElements {
                         canBeConsumed = true
                         canBeResolved = false
@@ -61,7 +59,7 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
         """
     }
 
-    def "warn if a dependency is declared on a deprecated configuration"() {
+    def "fail if a dependency is declared on a configuration which can not be declared against"() {
         given:
         buildFile << """
             dependencies {
@@ -73,10 +71,10 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
         fails 'help'
 
         then:
-        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` configuration.")
+        failure.hasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
     }
 
-    def "warn if a dependency constraint is declared on a deprecated configuration"() {
+    def "fail if a dependency constraint is declared on a configuration which can not be declared against"() {
         given:
         buildFile << """
             dependencies {
@@ -90,10 +88,10 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
         fails 'help'
 
         then:
-        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` configuration.")
+        failure.hasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
     }
 
-    def "warn if an artifact is declared on a configuration that is fully deprecated"() {
+    def "fail if an artifact is declared on a configuration that can not be declared against"() {
         given:
         buildFile << """
             artifacts {
@@ -105,10 +103,10 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
         fails 'help'
 
         then:
-        failure.hasErrorOutput("Dependencies can no longer be declared using the `compile` configuration.")
+        failure.hasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
     }
 
-    def "warn if a deprecated configuration is resolved"() {
+    def "fail if a non-resolvable configuration is resolved"() {
         given:
         buildFile << """
             task resolve {
@@ -122,6 +120,6 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
         fails 'resolve'
 
         then:
-        failure.hasErrorOutput("Dependencies can no longer be resolved using the `compileOnly` configuration.")
+        failure.hasErrorOutput("Dependencies can not be resolved using the `compileOnly` configuration.")
     }
 }

@@ -63,7 +63,7 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
 
     private void assertConfigurationIsDeclarable(Configuration configuration) {
         if (!configuration.isCanBeDeclaredAgainst()) {
-            throw new GradleException("Dependencies not be declared using the `" + configuration.getName() + "` configuration.");
+            throw new GradleException("Dependencies can not be declared against the `" + configuration.getName() + "` configuration.");
         }
     }
 
