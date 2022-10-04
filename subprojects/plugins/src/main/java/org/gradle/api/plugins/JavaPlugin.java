@@ -48,7 +48,6 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.testing.base.TestingExtension;
 
@@ -357,7 +356,7 @@ public class JavaPlugin implements Plugin<Project> {
         Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
         Configuration runtimeOnlyConfiguration = configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME);
 
-        final DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(RUNTIME_ELEMENTS_CONFIGURATION_NAME,
+        final Configuration runtimeElementsConfiguration = jvmServices.createOutgoingElements(RUNTIME_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(mainSourceSet)
                 .providesRuntime()
                 .withDescription("Elements of runtime for main.")
@@ -374,7 +373,7 @@ public class JavaPlugin implements Plugin<Project> {
     }
 
     private Configuration createApiElements(SourceSet mainSourceSet, PublishArtifact jarArtifact) {
-        final DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(API_ELEMENTS_CONFIGURATION_NAME,
+        final Configuration apiElementsConfiguration = jvmServices.createOutgoingElements(API_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(mainSourceSet)
                 .providesApi()
                 .withDescription("API elements for main."));
