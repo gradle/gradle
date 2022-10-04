@@ -54,7 +54,7 @@ import java.util.zip.ZipFile;
 import static org.apache.commons.io.filefilter.FileFilterUtils.directoryFileFilter;
 import static org.gradle.util.internal.CollectionUtils.single;
 
-public class WrapperDistributionCleanupAction implements DirectoryCleanupAction {
+public class WrapperDistributionCleanupAction implements MonitoredCleanupAction {
 
     @VisibleForTesting static final String WRAPPER_DISTRIBUTION_FILE_PATH = "wrapper/dists";
     private static final Logger LOGGER = LoggerFactory.getLogger(WrapperDistributionCleanupAction.class);
