@@ -82,6 +82,9 @@ You should use `IdeaModule.getTestSources()` and `IdeaModule.getTestResources()`
 
 === Potential breaking changes
 
+=== Wrapper task configuration
+If `gradle-wrapper.properties` contains the `distributionSha256Sum` property, you must specify a sum. You can specify a sum in the wrapped task configuration or with the `--gradle-distribution-sha256-sum` task option.
+
 === Changes in the AbstractCodeQualityPlugin class
 
 The deprecated `AbstractCodeQualityPlugin.getJavaPluginConvention()` method was removed in Gradle 8.0. You should use `JavaPluginExtension` instead.

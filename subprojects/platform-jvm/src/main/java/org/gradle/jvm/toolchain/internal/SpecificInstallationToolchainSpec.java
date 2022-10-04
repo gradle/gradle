@@ -57,9 +57,7 @@ public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
         this.javaHome = javaHome;
 
         // disallow changing property values
-        getLanguageVersion().finalizeValue();
-        getVendor().finalizeValue();
-        getImplementation().finalizeValue();
+        finalizeProperties();
     }
 
     @Override

@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
+import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
@@ -178,6 +179,43 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
 
         then:
         result.task(':compileKotlin').outcome == UP_TO_DATE
+
+        where:
+        kotlinVersion << TestedVersions.kotlin.versions
+    }
+
+    /**
+     * This tests that the usage of deprecated methods in {@code org.gradle.api.tasks.testing.TestReport} task
+     * is okay, and ensures the methods are not removed until the versions of the kotlin plugin that uses them
+     * is no longer tested.
+     *
+     * See usage here: https://cs.android.com/android-studio/kotlin/+/master:libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/testing/internal/KotlinTestReport.kt;l=136?q=KotlinTestReport.kt:136&ss=android-studio
+     */
+    @Issue("https://github.com/gradle/gradle/issues/22246")
+    def 'ensure kotlin multiplatform allTests aggregation task can be created (kotlin=#kotlinVersion)'() {
+        given:
+        buildFile << """
+            plugins {
+                id 'org.jetbrains.kotlin.multiplatform' version '$kotlinVersion'
+            }
+
+            ${mavenCentralRepository()}
+
+            kotlin {
+                jvm()
+            }
+        """
+
+        when:
+        def versionNumber = VersionNumber.parse(kotlinVersion)
+        def result = runner(false, versionNumber, ':tasks')
+            .expectDeprecationWarning("The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the testResults method instead. See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.", '')
+            .expectDeprecationWarning("The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.", '')
+            .build()
+
+        then:
+        result.task(':tasks').outcome == SUCCESS
+        result.output.contains('allTests - Runs the tests for all targets and create aggregated report')
 
         where:
         kotlinVersion << TestedVersions.kotlin.versions

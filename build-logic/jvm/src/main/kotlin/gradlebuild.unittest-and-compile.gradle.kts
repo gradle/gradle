@@ -131,6 +131,7 @@ fun addDependencies() {
         testImplementation(libs.spock)
         testImplementation(libs.junit5Vintage)
         testImplementation(libs.spockJUnit4)
+        testImplementation(libs.gradleEnterpriseTestAnnotation)
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
 
@@ -294,6 +295,15 @@ fun configureTests() {
                 }
                 // No limit; use all available executors
                 distribution.maxRemoteExecutors.set(if (project.isPerformanceProject()) 0 else null)
+
+                // Test distribution annotation-class filters
+                // See: https://docs.gradle.com/enterprise/test-distribution/#gradle_executor_restrictions_class_matcher
+                localOnly {
+                    includeAnnotationClasses.addAll("com.gradle.enterprise.testing.annotations.LocalOnly")
+                }
+                remoteOnly {
+                    includeAnnotationClasses.addAll("com.gradle.enterprise.testing.annotations.RemoteOnly")
+                }
 
                 if (BuildEnvironment.isCiServer) {
                     when {

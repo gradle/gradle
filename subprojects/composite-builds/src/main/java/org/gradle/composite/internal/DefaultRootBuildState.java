@@ -39,10 +39,8 @@ import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
-import org.gradle.internal.buildtree.ExecutionPhaseNotifyingBuildTreeWorkExecutor;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.composite.IncludedRootBuild;
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
@@ -59,8 +57,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
     DefaultRootBuildState(
         BuildDefinition buildDefinition,
         BuildTreeState buildTree,
-        ListenerManager listenerManager,
-        GradleEnterprisePluginManager enterprisePluginManager
+        ListenerManager listenerManager
     ) {
         super(buildTree, buildDefinition, null);
         this.listenerManager = listenerManager;
@@ -71,9 +68,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
         BuildOperationExecutor buildOperationExecutor = buildScopeServices.get(BuildOperationExecutor.class);
         BuildStateRegistry buildStateRegistry = buildScopeServices.get(BuildStateRegistry.class);
         BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildScopeServices.get(BuildTreeLifecycleControllerFactory.class);
-        BuildTreeWorkExecutor workExecutor = new ExecutionPhaseNotifyingBuildTreeWorkExecutor(
-            new BuildOperationFiringBuildTreeWorkExecutor(new DefaultBuildTreeWorkExecutor(), buildOperationExecutor),
-            enterprisePluginManager);
+        BuildTreeWorkExecutor workExecutor = new BuildOperationFiringBuildTreeWorkExecutor(new DefaultBuildTreeWorkExecutor(), buildOperationExecutor);
         BuildTreeFinishExecutor finishExecutor = new DefaultBuildTreeFinishExecutor(buildStateRegistry, exceptionAnalyser, buildLifecycleController);
         this.buildTreeLifecycleController = buildTreeLifecycleControllerFactory.createRootBuildController(buildLifecycleController, workExecutor, finishExecutor);
     }
