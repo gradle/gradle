@@ -19,8 +19,10 @@ package org.gradle.integtests.resolve.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 /**
- * This used to be called {@code DeprecatedConfigurationsIntegrationTest}, but as of Gradle 8.0 these are no longer merely deprecated,
- * but fully invalid.  The name has changed to reflect this.
+ * This class tests that when configurations are used incorrectly - for instance, when a configuration where
+ * {@link org.gradle.api.artifacts.Configuration#isCanBeResolved()} returns {@code false} is resolved - now (as of Gradle 8.0) throw exceptions
+ * instead of merely warning.  We want to ensure that the {@code canBeResolved}, {@code canBeConsumed}, and {@code canBeDeclaredAgainst}
+ * flags are set appropriately and consistently on all configurations prior to their usage towards one of these goals.
  */
 class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationSpec {
 
