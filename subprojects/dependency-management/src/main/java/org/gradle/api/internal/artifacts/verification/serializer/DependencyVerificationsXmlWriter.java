@@ -308,6 +308,10 @@ public class DependencyVerificationsXmlWriter {
             if (origin != null) {
                 writeAttribute(ORIGIN, origin);
             }
+            String reason = checksum.getReason();
+            if (reason != null) {
+                writeAttribute(REASON, reason);
+            }
             Set<String> alternatives = checksum.getAlternatives();
             if (alternatives != null) {
                 for (String alternative : alternatives) {
