@@ -1,3 +1,7 @@
+import gradlebuild.basics.flakyTestStrategy
+import gradlebuild.basics.FlakyTestStrategy
+import gradlebuild.basics.PublicApi
+
 plugins {
     id("gradlebuild.internal.java")
     id("gradlebuild.binary-compatibility")
@@ -23,6 +27,12 @@ dependencies {
     testRuntimeOnly(project(":distributions-full"))
 }
 
+val verifyAcceptedApiChangesOrdering = tasks.register<gradlebuild.binarycompatibility.AlphabeticalAcceptedApiChangesTask>("verifyAcceptedApiChangesOrdering") {
+    group = "verification"
+    description = "Ensures the accepted api changes file is kept alphabetically ordered to make merging changes to it easier"
+    apiChangesFile.set(layout.projectDirectory.file("src/changes/accepted-public-api-changes.json"))
+}
+
 tasks.test {
     // Looks like loading all the classes requires more than the default 512M
     maxHeapSize = "900M"
@@ -30,12 +40,15 @@ tasks.test {
     // Only use one fork, so freezing doesn't have concurrency issues
     maxParallelForks = 1
 
-    systemProperty("org.gradle.public.api.includes", gradlebuild.basics.PublicApi.includes.joinToString(":"))
-    systemProperty("org.gradle.public.api.excludes", gradlebuild.basics.PublicApi.excludes.joinToString(":"))
+    systemProperty("org.gradle.public.api.includes", PublicApi.includes.joinToString(":"))
+    systemProperty("org.gradle.public.api.excludes", PublicApi.excludes.joinToString(":"))
     jvmArgumentProviders.add(ArchUnitFreezeConfiguration(
         project.file("src/changes/archunit_store"),
         providers.gradleProperty("archunitRefreeze").map { true })
     )
+
+    dependsOn(verifyAcceptedApiChangesOrdering)
+    enabled = flakyTestStrategy !=  FlakyTestStrategy.ONLY
 }
 
 class ArchUnitFreezeConfiguration(

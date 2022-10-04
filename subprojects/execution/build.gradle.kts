@@ -43,4 +43,8 @@ dependencies {
     testFixturesImplementation(project(":model-core"))
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
+
+    packageCycles {
+        excludePatterns.add("org/gradle/internal/execution/fingerprint/**")
+    }
 }

@@ -26,12 +26,12 @@ import javax.annotation.Nullable;
 public abstract class AbstractPublishArtifact implements PublishArtifactInternal {
     private final DefaultTaskDependency taskDependency;
 
-    public AbstractPublishArtifact(@Nullable TaskResolver resolver, Object... tasks) {
-        taskDependency = new DefaultTaskDependency(resolver, ImmutableSet.copyOf(tasks));
+    public AbstractPublishArtifact(@Nullable TaskResolver resolver, Object... dependencies) {
+        taskDependency = new DefaultTaskDependency(resolver, ImmutableSet.copyOf(dependencies));
     }
 
-    public AbstractPublishArtifact(Object... tasks) {
-        this(null, tasks);
+    public AbstractPublishArtifact(Object... dependencies) {
+        this(null, dependencies);
     }
 
     @Override

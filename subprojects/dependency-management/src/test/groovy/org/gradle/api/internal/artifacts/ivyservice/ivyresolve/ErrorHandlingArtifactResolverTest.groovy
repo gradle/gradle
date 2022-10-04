@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
@@ -34,6 +35,7 @@ class ErrorHandlingArtifactResolverTest extends Specification {
     def artifactResolver = new ErrorHandlingArtifactResolver(delegate)
 
     def "wraps resolveArtifact exception as failure"() {
+        def moduleVersionId = DefaultModuleVersionIdentifier.newId("org", "name", "1.0")
         def componentArtifactId = Stub(ComponentArtifactIdentifier) {
             getDisplayName() >> "<component-artifact>"
         }
@@ -45,10 +47,10 @@ class ErrorHandlingArtifactResolverTest extends Specification {
         def failure = new RuntimeException("foo")
 
         when:
-        delegate.resolveArtifact(componentArtifact, moduleSources, artifactResolveResult) >> { throw failure }
+        delegate.resolveArtifact(moduleVersionId, componentArtifact, moduleSources, artifactResolveResult) >> { throw failure }
 
         and:
-        artifactResolver.resolveArtifact(componentArtifact, moduleSources, artifactResolveResult)
+        artifactResolver.resolveArtifact(moduleVersionId, componentArtifact, moduleSources, artifactResolveResult)
 
         then:
         1 * artifactResolveResult.failed(_ as ArtifactResolveException) >> { ArtifactResolveException e ->

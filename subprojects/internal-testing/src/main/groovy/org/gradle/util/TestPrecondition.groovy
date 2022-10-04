@@ -134,6 +134,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK18_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_18
     }),
+    JDK19_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_19
+    }),
     JDK_ORACLE({
         System.getProperty('java.vm.vendor') == 'Oracle Corporation'
     }),
@@ -168,7 +171,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     HIGH_PERFORMANCE(NOT_MAC_OS_X),
     NOT_EC2_AGENT({
         !InetAddress.getLocalHost().getHostName().startsWith("ip-")
-    })
+    }),
+    STABLE_GROOVY({ !GroovySystem.version.endsWith("-SNAPSHOT") }),
+    NOT_STABLE_GROOVY({ !STABLE_GROOVY.fulfilled })
 
     /**
      * A predicate for testing whether the precondition is fulfilled.

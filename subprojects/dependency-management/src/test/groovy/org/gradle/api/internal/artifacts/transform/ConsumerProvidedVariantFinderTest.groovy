@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
+import org.gradle.internal.Deferrable
 import org.gradle.internal.Try
 import org.gradle.internal.component.model.AttributeMatcher
 import org.gradle.util.AttributeTestUtil
@@ -198,16 +199,21 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     TransformationSubject run(Transformation transformation, TransformationSubject initialSubject) {
-        def steps = []
+        def steps = [] as List<TransformationStep>
         transformation.visitTransformationSteps { step ->
             steps.add(step)
         }
         def first = steps.first()
         def invocation = first.createInvocation(initialSubject, Mock(TransformUpstreamDependencies), null)
         steps.drop(1).forEach { step ->
-            invocation = invocation.flatMap { subject -> step.createInvocation(subject, Mock(TransformUpstreamDependencies), null) }
+            invocation = invocation
+                .flatMap { result ->
+                    result
+                        .map(subject -> step.createInvocation(subject, Mock(TransformUpstreamDependencies), null))
+                        .getOrMapFailure(failure -> Deferrable.completed(Try.failure(failure)))
+                }
         }
-        return invocation.invoke().get()
+        return invocation.completeAndGet().get()
     }
 
     def "prefers direct transformation over indirect"() {
@@ -441,7 +447,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def transformationStep = Stub(TransformationStep)
         _ * transformationStep.visitTransformationSteps(_) >> { Action action -> action.execute(transformationStep) }
         _ * transformationStep.createInvocation(_ as TransformationSubject, _ as TransformUpstreamDependencies, null) >> { TransformationSubject subject, TransformUpstreamDependencies dependenciesResolver, services ->
-            return CacheableInvocation.cached(Try.successful(subject.createSubjectFromResult(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))))
+            return Deferrable.completed(Try.successful(subject.createSubjectFromResult(ImmutableList.copyOf(subject.files.collectMany { transformer.transform(it) }))))
         }
         _ * reg.transformationStep >> transformationStep
         reg

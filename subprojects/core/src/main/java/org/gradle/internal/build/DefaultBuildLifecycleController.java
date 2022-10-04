@@ -36,7 +36,6 @@ import org.gradle.internal.model.StateTransitionControllerFactory;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -115,6 +114,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     @Override
     public <T> T withProjectsConfigured(Function<? super GradleInternal, T> action) {
         return state.notInState(State.Finished, () -> action.apply(modelController.getConfiguredModel()));
+    }
+
+    @Override
+    public void resetState() {
+        state.restart(State.Configure, () -> gradle.resetState());
     }
 
     @Override
@@ -259,7 +263,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         @Override
         public void addEntryTasks(List<? extends Task> tasks) {
             for (Task task : tasks) {
-                plan.addEntryTasks(Collections.singletonList(task));
+                plan.addEntryTask(task);
             }
         }
 

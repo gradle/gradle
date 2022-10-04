@@ -31,7 +31,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
-import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService
+import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -169,7 +169,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(NoToolchainAvailableException)
-        e.message == "No compatible toolchains found for request filter: {languageVersion=12, vendor=any, implementation=vendor-specific} (auto-detect true, auto-download true)"
+        e.message == "No compatible toolchains found for request specification: {languageVersion=12, vendor=any, implementation=vendor-specific} (auto-detect true, auto-download true)."
     }
 
     def "returns no toolchain if filter is not configured"() {

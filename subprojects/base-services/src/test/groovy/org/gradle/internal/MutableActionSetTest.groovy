@@ -84,4 +84,15 @@ class MutableActionSetTest extends Specification {
         0 * _._
     }
 
+    def canDiscardActions() {
+        def action = Mock(Action)
+        broadcast.add(action)
+
+        when:
+        broadcast.clear()
+        broadcast.execute('value')
+
+        then:
+        0 * action._
+    }
 }

@@ -33,10 +33,9 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.gradle.composite.internal.BuildTreeWorkGraphController
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.file.Stat
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Path
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -49,17 +48,15 @@ import java.util.function.Consumer
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
 class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
-
-    FileSystem fs = NativeServicesTestFixture.instance.get(FileSystem)
-
     DefaultExecutionPlan executionPlan
     DefaultFinalizedExecutionPlan finalizedPlan
 
-    def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor())
+    def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
+    def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor(), accessHierarchies)
 
     def setup() {
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, fs), coordinator)
+        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator)
     }
 
     Node priorityNode(Map<String, ?> options = [:]) {
@@ -161,7 +158,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         executionPlan.tasks as List == [broken, finalizerDepDep, finalizerDep, finalizer, task]
         assertTaskReady(broken)
-        assertTaskReady(finalizerDepDep)
+        assertTaskReady(finalizerDepDep, true)
         assertTaskReady(finalizerDep)
         assertTaskReadyAndNoMoreToStart(finalizer)
         assertAllWorkComplete()
@@ -206,7 +203,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         executionPlan.tasks as List == [broken, finalizerDep1, finalizer1, unrelated, finalizerDep2, finalizer2]
         assertNextTaskReady(broken)
-        assertTaskReady(finalizerDep1)
+        assertTaskReady(finalizerDep1, true)
         assertTaskReadyAndNoMoreToStart(finalizer1)
         assertAllWorkComplete()
     }
@@ -356,7 +353,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         then:
         executionPlan.tasks as List == [broken, a, finalizerDepDep, finalizerDep1, finalizer1, b, finalizerDep2, finalizer2]
-        assertNextTaskReady(broken)
+        assertTaskReady(broken)
         assertAllWorkComplete(continueOnFailure)
 
         where:
@@ -583,7 +580,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         executionPlan.tasks as List == [finalizerDepDep, finalizerDep, broken, a, finalizer]
         assertTasksReady(finalizerDepDep, broken)
-        assertTaskReady(finalizerDep)
+        assertTaskReady(finalizerDep, true)
         assertAllWorkComplete(true)
     }
 
@@ -651,6 +648,43 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         where:
         continueOnFailure << [false, true]
+    }
+
+    def "finalizer and its dependencies do not run when finalized task fails and is a dependency of the finalizer"() {
+        given:
+        TaskInternal finalizerDepDep = task("finalizerDepDep", type: Async)
+        TaskInternal finalizerDep = task("finalizerDep", type: Async, dependsOn: [finalizerDepDep])
+        TaskInternal finalizer = createTask("finalizer")
+        TaskInternal entryPoint = task("entry", type: Async, finalizedBy: [finalizer], failure: new RuntimeException())
+        relationships(finalizer, dependsOn: [entryPoint, finalizerDep])
+
+        when:
+        addToGraphAndPopulate(entryPoint)
+
+        then:
+        executionPlan.tasks as List == [entryPoint, finalizerDepDep, finalizerDep, finalizer]
+        assertTaskReady(entryPoint)
+        assertAllWorkComplete()
+    }
+
+    def "finalizer does not run when finalized task fails and is a dependency of the finalizer and continue on failure"() {
+        given:
+        TaskInternal finalizerDepDep = task("finalizerDepDep", type: Async)
+        TaskInternal finalizerDep = task("finalizerDep", type: Async, dependsOn: [finalizerDepDep])
+        TaskInternal finalizer = createTask("finalizer")
+        TaskInternal entryPoint = task("entry", type: Async, finalizedBy: [finalizer], failure: new RuntimeException())
+        relationships(finalizer, dependsOn: [entryPoint, finalizerDep])
+
+        when:
+        executionPlan.continueOnFailure = true
+        addToGraphAndPopulate(entryPoint)
+
+        then:
+        executionPlan.tasks as List == [entryPoint, finalizerDepDep, finalizerDep, finalizer]
+        assertTaskReady(entryPoint)
+        assertTaskReady(finalizerDepDep, true)
+        assertTaskReadyAndNoMoreToStart(finalizerDep)
+        assertAllWorkComplete()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21000")
@@ -852,6 +886,24 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assertAllWorkComplete()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/21975")
+    def "handles task failure when a finalizer is a dependency of and finalized by another node"() {
+        Task finalizer1 = createTask("finalizer1")
+        Task finalizer2 = task("finalizer2", finalizedBy: [finalizer1])
+        Task dep = task("dep", failure: new RuntimeException("broken"))
+        Task entry = task("entry", finalizedBy: [finalizer2], dependsOn: [dep])
+        relationships(finalizer1, dependsOn: [finalizer2])
+
+        when:
+        addToGraphAndPopulate(entry)
+
+        then:
+        executionPlan.tasks as List == [dep, entry, finalizer2, finalizer1]
+        reachableFromEntryPoint == [true, true, false, false]
+        assertTaskReady(dep)
+        assertAllWorkComplete()
+    }
+
     def "assigns task to first ordinal group it is reachable from when task is entry task multiple times"() {
         given:
         Task finalizer1 = task("finalizer1", type: Async)
@@ -970,7 +1022,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def firstTaskNode = selectNextTaskNode()
         then:
         firstTaskNode.task == a
-        assertNoWorkReadyToStartAfterSelect()
+        assertNoWorkReadyToStart()
         lockedProjects.empty
 
         when:
@@ -1012,7 +1064,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def secondTaskNode = selectNextTaskNode()
         then:
         [firstTaskNode, secondTaskNode]*.task as Set == [a, b] as Set
-        assertNoWorkReadyToStartAfterSelect()
+        assertNoWorkReadyToStart()
 
         when:
         finishedExecuting(firstTaskNode)
@@ -1384,7 +1436,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         def dependencyNode = selectNextTaskNode()
         dependencyNode.task == dependency
-        assertNoWorkReadyToStartAfterSelect()
+        assertNoWorkReadyToStart()
 
         when:
         finishedExecuting(dependencyNode)
@@ -1415,7 +1467,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         // TODO - this is the wrong order (the order of this list does not take ordinal groups into account)
         executionPlan.tasks as List == [destroyer, producer]
         ordinalGroups == [1, 0]
-        assertLastTaskOfGroupReady(producer)
+        assertTaskReady(producer, true)
         assertTaskReadyAndNoMoreToStart(destroyer)
         assertAllWorkComplete()
     }
@@ -1434,7 +1486,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         // TODO - this is the wrong order (the order of this list does not take ordinal groups into account)
         executionPlan.tasks as List == [producer, destroyer]
         ordinalGroups == [1, 0]
-        assertLastTaskOfGroupReady(destroyer)
+        assertTaskReady(destroyer, true)
         assertTaskReadyAndNoMoreToStart(producer)
         assertAllWorkComplete()
     }
@@ -1476,7 +1528,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         then:
         assertIsResolveMutationsOf(node1, destroyer)
-        assertNoWorkReadyToStartAfterSelect()
+        assertNoWorkReadyToStart()
 
         when:
         node1.execute()
@@ -1487,7 +1539,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         node2.task == destroyer
         node3 instanceof OrdinalNode && node3.type == OrdinalNode.Type.DESTROYER
-        assertNoWorkReadyToStartAfterSelect()
+        assertNoWorkReadyToStart()
 
         when:
         finishedExecuting(node3)
@@ -1495,7 +1547,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         then:
         assertIsResolveMutationsOf(node4, producer)
-        assertNoWorkReadyToStartAfterSelect()
+        assertNoWorkReadyToStart()
 
         when:
         node4.execute()
@@ -1536,7 +1588,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         def dependencyNode = selectNextTaskNode()
         dependencyNode.task == dependency
-        assertNoWorkReadyToStartAfterSelect()
+        assertNoWorkReadyToStart()
 
         when:
         finishedExecuting(dependencyNode)
@@ -1573,21 +1625,21 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         finalizedNode.task == finalized
         dependencyOfDependencyNode.task == dependencyOfDependency
-        assertNoWorkReadyToStartAfterSelect()
+        assertNoWorkReadyToStart()
 
         when:
         finishedExecuting(dependencyOfDependencyNode)
         def dependencyNode = selectNextTaskNode()
         then:
         dependencyNode.task == dependency
-        assertNoWorkReadyToStartAfterSelect()
+        assertNoWorkReadyToStart()
 
         when:
         finishedExecuting(dependencyNode)
         def otherTaskWithDependencyNode = selectNextTaskNode()
         then:
         otherTaskWithDependencyNode.task == otherTaskWithDependency
-        assertNoWorkReadyToStartAfterSelect()
+        assertNoWorkReadyToStart()
 
         when:
         finishedExecuting(otherTaskWithDependencyNode)
@@ -1616,7 +1668,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def node1 = selectNextTaskNode()
 
         then:
-        assertNoWorkReadyToStartAfterSelect()
+        assertNoWorkReadyToStart()
         node1.task == dependency
 
         when:
@@ -1624,7 +1676,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def node2 = selectNextTaskNode()
 
         then:
-        assertNoWorkReadyToStartAfterSelect()
+        assertNoWorkReadyToStart()
         node2.task == finalized
 
         when:
@@ -1632,7 +1684,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         def node3 = selectNextTaskNode()
 
         then:
-        assertNoWorkReadyToStartAfterSelect()
+        assertNoWorkReadyToStart()
         node3.task == finalizer
 
         when:
@@ -1656,7 +1708,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
         then:
         finalizedNode.task == finalized
-        assertNoWorkReadyToStartAfterSelect()
+        assertNoWorkReadyToStart()
 
         when:
         finishedExecuting(finalizedNode)
@@ -1665,7 +1717,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finishedExecuting(node)
 
         then:
-        assertAllWorkComplete(true)
+        assertAllWorkComplete()
 
         when:
         def failures = []
@@ -1833,8 +1885,8 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     def "node can provide additional dependencies immediately before execution"() {
         def dep = node("dep")
-        def preNode1 = node("pre1")
-        def preNode2 = node("pre2")
+        def preNode1 = node("preA")
+        def preNode2 = node("preB")
         def target = node("target", dependsOn: dep, preNodes: [preNode1, preNode2])
         def entry = node("entry", dependsOn: target)
 
@@ -2015,7 +2067,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     private void addToGraph(Task... tasks) {
         for (final def task in tasks) {
-            executionPlan.addEntryTasks([task])
+            executionPlan.addEntryTask(task)
         }
     }
 
@@ -2085,6 +2137,9 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         }
     }
 
+    /**
+     * Asserts there is a task ready to run, and runs it.
+     */
     void assertNextTaskReady(Task task) {
         def node = selectNextTaskNode()
         assert node.task == task
@@ -2092,7 +2147,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finishedExecuting(node)
     }
 
-    void assertTaskReady(Task task, boolean needToSelect = true) {
+    void assertTaskReady(Task task, boolean needToSelect = false) {
         def node = selectNextTaskNode()
         assert node.task == task
         if (needToSelect) {
@@ -2103,7 +2158,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finishedExecuting(node)
     }
 
-    void assertNodeReady(Node expected, boolean needToSelect = true) {
+    void assertNodeReady(Node expected, boolean needToSelect = false) {
         def node = selectNextNode()
         assert node == expected
         if (needToSelect) {
@@ -2114,7 +2169,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finishedExecuting(node)
     }
 
-    void assertLastTaskOfGroupReady(Task task, boolean needToSelect = true) {
+    void assertLastTaskOfGroupReady(Task task, boolean needToSelect = false) {
         def node = selectNextTaskNode()
         assert node.task == task
         def ordinalNode = selectNextNode()
@@ -2143,7 +2198,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finishedExecuting(node)
     }
 
-    void assertTasksReady(Task task1, Task task2, boolean needToSelect = true) {
+    void assertTasksReady(Task task1, Task task2, boolean needToSelect = false) {
         def node1 = selectNextTaskNode()
         assert node1.task == task1
         def node2 = selectNextTaskNode()
@@ -2157,7 +2212,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         finishedExecuting(node1)
     }
 
-    void assertNodesReady(Node expected1, Node expected2, boolean needToSelect = true) {
+    void assertNodesReady(Node expected1, Node expected2, boolean needToSelect = false) {
         def node1 = selectNextNode()
         assert node1 == expected1
         def node2 = selectNextNode()
@@ -2205,12 +2260,11 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         assert node2.task == task2
         def node3 = selectNextTaskNode()
         assert node3.task == task3
-        assertNoWorkReadyToStartAfterSelect()
+        assertNoWorkReadyToStart()
         finishedExecuting(node3)
         finishedExecuting(node2)
         finishedExecuting(node1)
     }
-
 
     private void finishedExecuting(Node node) {
         coordinator.withStateLock {
@@ -2344,7 +2398,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         return result
     }
 
-    private static class TestNode extends Node implements SelfExecutingNode {
+    private static class TestNode extends CreationOrderedNode implements SelfExecutingNode {
         final Throwable failure
         final String name
         final List<Node> preExecuteNodes

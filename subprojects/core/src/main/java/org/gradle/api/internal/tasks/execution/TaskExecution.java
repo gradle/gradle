@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
@@ -169,12 +168,17 @@ public class TaskExecution implements UnitOfWork {
 
                 @Override
                 public Object getOutput() {
-                    throw new UnsupportedOperationException();
+                    return null;
                 }
             };
         } finally {
             outputs.setPreviousOutputFiles(null);
         }
+    }
+
+    @Override
+    public Object loadAlreadyProducedOutput(File workspace) {
+        return null;
     }
 
     private WorkResult executeWithPreviousOutputFiles(@Nullable InputChangesInternal inputChanges) {
@@ -299,31 +303,30 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public void visitRegularInputs(InputFingerprinter.InputVisitor visitor) {
+    public void visitRegularInputs(InputVisitor visitor) {
         TaskProperties taskProperties = context.getTaskProperties();
-        ImmutableSortedSet<InputPropertySpec> inputProperties = taskProperties.getInputProperties();
-        ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = taskProperties.getInputFileProperties();
-        for (InputPropertySpec inputProperty : inputProperties) {
-            visitor.visitInputProperty(inputProperty.getPropertyName(), () -> InputParameterUtils.prepareInputParameterValue(inputProperty, task));
+        for (InputPropertySpec inputProperty : taskProperties.getInputProperties()) {
+            visitor.visitInputProperty(
+                inputProperty.getPropertyName(),
+                () -> InputParameterUtils.prepareInputParameterValue(inputProperty, task));
         }
-        for (InputFilePropertySpec inputFileProperty : inputFileProperties) {
-            Object value = inputFileProperty.getValue();
+        for (InputFilePropertySpec inputFileProperty : taskProperties.getInputFileProperties()) {
             // SkipWhenEmpty implies incremental.
             // If this file property is empty, then we clean up the previously generated outputs.
             // That means that there is a very close relation between the file property and the output.
-            InputFingerprinter.InputPropertyType type = inputFileProperty.isSkipWhenEmpty()
-                ? InputFingerprinter.InputPropertyType.PRIMARY
-                : inputFileProperty.isIncremental()
-                ? InputFingerprinter.InputPropertyType.INCREMENTAL
-                : InputFingerprinter.InputPropertyType.NON_INCREMENTAL;
-            String propertyName = inputFileProperty.getPropertyName();
-            visitor.visitInputFileProperty(propertyName, type,
-                new InputFingerprinter.FileValueSupplier(
-                    value,
-                    inputFileProperty.getNormalizer(),
-                    inputFileProperty.getDirectorySensitivity(),
-                    inputFileProperty.getLineEndingNormalization(),
-                    inputFileProperty::getPropertyFiles));
+            try {
+                visitor.visitInputFileProperty(
+                    inputFileProperty.getPropertyName(),
+                    inputFileProperty.getBehavior(),
+                    new InputFileValueSupplier(
+                        inputFileProperty.getValue(),
+                        inputFileProperty.getNormalizer(),
+                        inputFileProperty.getDirectorySensitivity(),
+                        inputFileProperty.getLineEndingNormalization(),
+                        inputFileProperty::getPropertyFiles));
+            } catch (InputFingerprinter.InputFileFingerprintingException e) {
+                throw decorateSnapshottingException("input", inputFileProperty.getPropertyName(), e.getCause());
+            }
         }
     }
 
@@ -333,7 +336,15 @@ public class TaskExecution implements UnitOfWork {
         for (OutputFilePropertySpec property : taskProperties.getOutputFileProperties()) {
             File outputFile = property.getOutputFile();
             if (outputFile != null) {
-                visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), outputFile, property.getPropertyFiles());
+                try {
+                    visitor.visitOutputProperty(
+                        property.getPropertyName(),
+                        property.getOutputType(),
+                        new OutputFileValueSupplier(outputFile, property.getPropertyFiles())
+                    );
+                } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
+                    throw decorateSnapshottingException("output", property.getPropertyName(), e.getCause());
+                }
             }
         }
         for (File localStateRoot : taskProperties.getLocalStateFiles()) {
@@ -344,39 +355,28 @@ public class TaskExecution implements UnitOfWork {
         }
     }
 
-    @Override
-    public RuntimeException decorateInputFileFingerprintingException(InputFingerprinter.InputFileFingerprintingException ex) {
-        return decorateSnapshottingException("input", ex.getPropertyName(), ex.getCause());
-    }
-
-    @Override
-    public RuntimeException decorateOutputFileSnapshottingException(OutputSnapshotter.OutputFileSnapshottingException ex) {
-        return decorateSnapshottingException("output", ex.getPropertyName(), ex.getCause());
-    }
-
     private RuntimeException decorateSnapshottingException(String propertyType, String propertyName, Throwable cause) {
         if (!(cause instanceof UncheckedIOException || cause instanceof org.gradle.api.UncheckedIOException)) {
             return UncheckedException.throwAsUncheckedException(cause);
         }
-        LOGGER.info("Cannot access {} property '{}' of {}", propertyType, propertyName, getDisplayName(), cause);
         boolean isDestinationDir = propertyName.equals("destinationDir");
         DocumentedFailure.Builder builder = DocumentedFailure.builder();
         if (isDestinationDir && task instanceof Copy) {
-            builder.withSummary("Cannot access a file in the destination directory (see --info log for details).")
+            builder.withSummary("Cannot access a file in the destination directory.")
                 .withContext("Copying to a directory which contains unreadable content is not supported.")
                 .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
         } else if (isDestinationDir && task instanceof Sync) {
-            builder.withSummary("Cannot access a file in the destination directory (see --info log for details).")
+            builder.withSummary("Cannot access a file in the destination directory.")
                 .withContext("Syncing to a directory which contains unreadable content is not supported.")
                 .withAdvice("Use a Copy task with Task.doNotTrackState() instead.");
         } else {
-            builder.withSummary(String.format("Cannot access %s property '%s' of %s (see --info log for details).",
+            builder.withSummary(String.format("Cannot access %s property '%s' of %s.",
                     propertyType, propertyName, getDisplayName()))
                 .withContext("Accessing unreadable inputs or outputs is not supported.")
                 .withAdvice("Declare the task as untracked by using Task.doNotTrackState().");
         }
         return builder.withUserManual("more_about_tasks", "disable-state-tracking")
-            .build();
+            .build(cause);
     }
 
     @Override
@@ -385,8 +385,13 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
+    public boolean shouldCleanupStaleOutputs() {
+        return context.getTaskExecutionMode().isTaskHistoryMaintained();
+    }
+
+    @Override
     public boolean shouldCleanupOutputsOnNonIncrementalExecution() {
-        return getInputChangeTrackingStrategy() == InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS;
+        return getExecutionBehavior() == ExecutionBehavior.INCREMENTAL;
     }
 
     @Override
@@ -415,13 +420,13 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
-    public InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
+    public ExecutionBehavior getExecutionBehavior() {
         for (InputChangesAwareTaskAction taskAction : task.getTaskActions()) {
             if (taskAction instanceof IncrementalTaskAction) {
-                return InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS;
+                return ExecutionBehavior.INCREMENTAL;
             }
         }
-        return InputChangeTrackingStrategy.NONE;
+        return ExecutionBehavior.NON_INCREMENTAL;
     }
 
     @Override

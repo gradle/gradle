@@ -18,8 +18,13 @@ package org.gradle.scala.scaladoc
 
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.scala.ScalaCompilationFixture
+
+import static org.gradle.api.JavaVersion.VERSION_11
+import static org.gradle.api.JavaVersion.VERSION_1_8
 
 class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -171,5 +176,54 @@ scaladoc {
 
         then:
         file("build/docs/scaladoc/api/_empty_").assertHasDescendants("House.html", "Person.html")
+    }
+
+    def "scaladoc is out of date when changing the java launcher"() {
+        def jdk8 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getJdk(VERSION_1_8))
+        def jdk11 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getJdk(VERSION_11))
+
+        classes.baseline()
+        buildScript(classes.buildScript())
+
+        buildFile << """
+            tasks.withType(ScalaDoc) {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(
+                        !providers.gradleProperty("changed").isPresent()
+                            ? ${jdk8.languageVersion.majorVersion}
+                            : ${jdk11.languageVersion.majorVersion}
+                    )
+                }
+            }
+        """
+
+        when:
+        withInstallations(jdk8, jdk11).run scaladoc
+
+        then:
+        executedAndNotSkipped scaladoc
+
+        when:
+        withInstallations(jdk8, jdk11).run scaladoc
+        then:
+        skipped scaladoc
+
+        when:
+        withInstallations(jdk8, jdk11).run scaladoc, '-Pchanged', '--info'
+        then:
+        executedAndNotSkipped scaladoc
+        outputContains("Value of input property 'javaLauncher.metadata.taskInputs.languageVersion' has changed for task '${scaladoc}'")
+
+        when:
+        withInstallations(jdk8, jdk11).run scaladoc, '-Pchanged', '--info'
+        then:
+        skipped scaladoc
+    }
+
+    private withInstallations(JvmInstallationMetadata... jdkMetadata) {
+        def installationPaths = jdkMetadata.collect { it.javaHome.toAbsolutePath().toString() }.join(",")
+        executer
+            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
+        this
     }
 }

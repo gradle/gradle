@@ -46,14 +46,6 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
 
     def step = new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, delegate)
 
-    @Override
-    protected ValidationFinishedContext createContext() {
-        Stub(ValidationFinishedContext) {
-            getInputProperties() >> ImmutableSortedMap.of()
-            getInputFileProperties() >> ImmutableSortedMap.of()
-        }
-    }
-
     def setup() {
         _ * work.history >> Optional.of(executionHistoryStore)
         _ * work.inputFingerprinter >> inputFingerprinter
@@ -163,8 +155,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
 
         then:
         def ex = thrown RuntimeException
-        ex.cause == failure
-        ex.message == "Wrapper"
+        ex == failure
 
         _ * context.inputProperties >> ImmutableSortedMap.of()
         _ * context.inputFileProperties >> ImmutableSortedMap.of()
@@ -176,7 +167,6 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
             _
         ) >> { throw failure }
         interaction { snapshotState() }
-        _ * work.decorateInputFileFingerprintingException(_) >> { InputFingerprinter.InputFileFingerprintingException e -> throw new RuntimeException("Wrapper", e) }
         0 * _
 
         assertOperation(ex)
@@ -189,14 +179,12 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
 
         then:
         def ex = thrown RuntimeException
-        ex.cause == failure
-        ex.message == "Wrapper"
+        ex == failure
 
         _ * context.inputProperties >> ImmutableSortedMap.of()
         _ * context.inputFileProperties >> ImmutableSortedMap.of()
         1 * outputSnapshotter.snapshotOutputs(work, _) >> { throw failure }
         interaction { snapshotState() }
-        _ * work.decorateOutputFileSnapshottingException(_) >> { OutputSnapshotter.OutputFileSnapshottingException e -> throw new RuntimeException("Wrapper", e) }
         0 * _
 
         assertOperation(ex)
