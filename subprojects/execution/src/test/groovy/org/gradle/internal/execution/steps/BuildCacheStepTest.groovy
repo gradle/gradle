@@ -22,8 +22,6 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
-import org.gradle.internal.execution.ExecutionOutcome
-import org.gradle.internal.execution.ExecutionResult
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.caching.CachingDisabledReason
@@ -34,6 +32,9 @@ import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.file.Deleter
 
 import java.time.Duration
+
+import static org.gradle.internal.execution.ExecutionEngine.Execution
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.FROM_CACHE
 
 class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements SnapshotterFixture {
     def buildCacheController = Mock(BuildCacheController)
@@ -51,13 +52,9 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
     def step = new BuildCacheStep(buildCacheController, deleter, outputChangeListener, delegate)
     def delegateResult = Mock(AfterExecutionResult)
 
-    @Override
-    protected IncrementalChangesContext createContext() {
-        Stub(IncrementalChangesContext)
-    }
-
     def "loads from cache"() {
-        def cachedOriginMetadata = Mock(OriginMetadata)
+        def cachedOriginMetadata = Stub(OriginMetadata)
+        cachedOriginMetadata.executionTime >> Duration.ofSeconds(1)
         def outputsFromCache = snapshotsOf("test": [])
         def localStateFile = file("local-state.txt") << "local state"
 
@@ -65,7 +62,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
         def result = step.execute(work, context)
 
         then:
-        result.executionResult.get().outcome == ExecutionOutcome.FROM_CACHE
+        result.execution.get().outcome == FROM_CACHE
         result.afterExecutionState.get().reused
         result.afterExecutionState.get().originMetadata == cachedOriginMetadata
         result.afterExecutionState.get().outputFilesProducedByWork == outputsFromCache
@@ -108,7 +105,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
-        1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
+        1 * delegateResult.execution >> Try.successful(Mock(Execution))
 
         then:
         interaction { outputStored {} }
@@ -158,7 +155,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
-        1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
+        1 * delegateResult.execution >> Try.successful(Mock(Execution))
         1 * delegateResult.afterExecutionState >> Optional.empty()
 
         then:
@@ -181,7 +178,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
-        1 * delegateResult.executionResult >> Try.failure(new RuntimeException("failure"))
+        1 * delegateResult.execution >> Try.failure(new RuntimeException("failure"))
 
         then:
         0 * buildCacheController.store(_)
@@ -202,7 +199,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
-        1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
+        1 * delegateResult.execution >> Try.successful(Mock(Execution))
 
         then:
         interaction { outputStored {} }
@@ -227,7 +224,7 @@ class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements 
 
         then:
         1 * delegate.execute(work, context) >> delegateResult
-        1 * delegateResult.executionResult >> Try.successful(Mock(ExecutionResult))
+        1 * delegateResult.execution >> Try.successful(Mock(Execution))
 
         then:
         interaction { outputStored { throw failure } }

@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.internal.Factory;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 
 import javax.annotation.Nullable;
@@ -60,15 +59,11 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         if (compileOptions.isFork()) {
             return getForkingSpec();
         } else {
-            if (isCurrentVmOurToolchain()) {
+            if (toolchain.isCurrentJvm()) {
                 return getDefaultSpec();
             }
             return getForkingSpec();
         }
-    }
-
-    boolean isCurrentVmOurToolchain() {
-        return toolchain.getInstallationPath().getAsFile().equals(Jvm.current().getJavaHome());
     }
 
     abstract protected T getCommandLineSpec();

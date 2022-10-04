@@ -29,10 +29,6 @@ class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
     def inputFingerprinter = Mock(InputFingerprinter)
     def step = new IdentifyStep<>(delegate)
 
-    @Override
-    protected ExecutionRequestContext createContext() {
-        Stub(ExecutionRequestContext)
-    }
 
     def "delegates with assigned workspace"() {
         def inputSnapshot = Mock(ValueSnapshot)

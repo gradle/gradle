@@ -72,7 +72,7 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         debugOptions = Mock()
         debugOptions.isDebugMode() >> false
         testExecutionRequest.getDebugOptions() >> debugOptions
-        testExecutionRequest.getTestPatternSpecs() >> []
+        testExecutionRequest.getTaskSpecs() >> []
 
         setupProject()
         setupTestTask()
@@ -98,6 +98,7 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         then:
         0 * buildProjectRegistry.allProjects
         _ * executionPlan.addEntryTasks({ args -> assert args.size() == 0 })
+        _ * executionPlan.addEntryTask({ args -> assert args.size() == 0 })
     }
 
     def "sets test filter with information from #requestType"() {
@@ -116,6 +117,7 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         1 * testTask.setIgnoreFailures(true)
         1 * testFilter.setFailOnNoMatchingTests(false)
         1 * outputsInternal.upToDateWhen(Specs.SATISFIES_NONE)
+
         where:
         requestType        | descriptors        | internalJvmRequests                                 | expectedClassFilter | expectedMethodFilter | tasksAndTests
         "test descriptors" | [testDescriptor()] | []                                                  | TEST_CLASS_NAME     | TEST_METHOD_NAME     | [:]

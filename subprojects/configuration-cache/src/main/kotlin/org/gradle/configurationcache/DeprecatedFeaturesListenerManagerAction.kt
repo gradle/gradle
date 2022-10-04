@@ -36,6 +36,7 @@ import org.gradle.api.internal.BuildScopeListenerRegistrationListener
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
+import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction
@@ -43,18 +44,18 @@ import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction
 
 internal
 class DeprecatedFeaturesListenerManagerAction(
-    private val featurePreviews: FeaturePreviews
+    private val featureFlags: FeatureFlags
 ) : BuildScopeListenerManagerAction {
     override fun execute(manager: ListenerManager) {
-        manager.addListener(DeprecatedFeaturesListener(featurePreviews))
+        manager.addListener(DeprecatedFeaturesListener(featureFlags))
     }
 
     private
     class DeprecatedFeaturesListener(
-        private val featurePreviews: FeaturePreviews
+        private val featureFlags: FeatureFlags
     ) : BuildScopeListenerRegistrationListener, TaskExecutionAccessListener {
         override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
-            if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
+            if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
                 DeprecationLogger.deprecateAction("Listener registration using $invocationDescription()")
                     .willBecomeAnErrorInGradle8()
                     .withUpgradeGuideSection(7, "task_execution_events")
@@ -63,7 +64,7 @@ class DeprecatedFeaturesListenerManagerAction(
         }
 
         override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
-            if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
+            if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
                 DeprecationLogger.deprecateAction("Invocation of $invocationDescription at execution time")
                     .willBecomeAnErrorInGradle8()
                     .withUpgradeGuideSection(7, "task_project")
@@ -72,7 +73,7 @@ class DeprecatedFeaturesListenerManagerAction(
         }
 
         override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal) {
-            if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
+            if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
                 DeprecationLogger.deprecateAction("Invocation of $invocationDescription at execution time")
                     .willBecomeAnErrorInGradle8()
                     .withUpgradeGuideSection(7, "task_dependencies")

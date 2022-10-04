@@ -53,11 +53,6 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
 
         where:
         plugin       | configuration
-        'codenarc'   | 'codenarc'
-        'pmd'        | 'pmd'
-        'checkstyle' | 'checkstyle'
-        'jacoco'     | 'jacocoAgent'
-        'jacoco'     | 'jacocoAnt'
         'scala'      | 'zinc'
         'war'        | 'providedRuntime'
         'war'        | 'providedCompile'
@@ -83,11 +78,16 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
 
         then:
         fails("test")
-        result.hasErrorOutput("Selected configuration 'antlr' on 'project :producer' but it can't be used as a project dependency because it isn't intended for consumption by other components")
+        result.hasErrorOutput("Selected configuration '$configuration' on 'project :producer' but it can't be used as a project dependency because it isn't intended for consumption by other components")
 
         where:
         plugin       | configuration
         'antlr'      | 'antlr'
+        'codenarc'   | 'codenarc'
+        'jacoco'     | 'jacocoAgent'
+        'jacoco'     | 'jacocoAnt'
+        'pmd'        | 'pmd'
+        'checkstyle' | 'checkstyle'
     }
 
     def "plugin runtime configuration can be extended and consumed without deprecation"() {
@@ -116,6 +116,11 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
                     canBeResolved = true
                     attributes {
                         attribute(Attribute.of("test", String), "test")
+                        ${plugin == 'codenarc' ?
+                        """
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL)) // to avoid shadowRuntimeElements variant
+                        """ : ""
+                        }
                     }
                 }
             }

@@ -38,10 +38,19 @@ public interface ExecutionPlan extends Describable, Closeable {
 
     void setScheduledNodes(Collection<? extends Node> nodes);
 
+    /**
+     * Adds an entry task to the execution plan. If called multiple times then execution plan follows the method invocation order.
+     *
+     */
+    void addEntryTask(Task task);
+
+    /**
+     * Adds entry tasks to the execution plan. No ordering can be assumed between the elements of the target collection. If called multiple times then execution plan follows the method invocation order.
+     */
     void addEntryTasks(Collection<? extends Task> tasks);
 
     /**
-     * Returns the current contents of this plan. Note that this may change.
+     * Returns a snapshot of the current contents of this plan. Note that this plan is mutable, so the contents may later change.
      */
     QueryableExecutionPlan getContents();
 

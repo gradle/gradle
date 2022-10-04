@@ -16,8 +16,8 @@
 
 package org.gradle.internal.buildoption;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.util.internal.TextUtil;
 
 public abstract class Origin {
     protected String source;
@@ -41,7 +41,7 @@ public abstract class Origin {
     }
 
     String hintMessage(String hint) {
-        if (StringUtils.isBlank(hint)) {
+        if (TextUtil.isBlank(hint)) {
             return "";
         }
         return String.format(" (%s)", hint);

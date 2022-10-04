@@ -22,8 +22,8 @@ import org.gradle.util.internal.VersionNumber
 import javax.annotation.Nullable
 
 class GroovyCoverage {
-    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.11']
-    private static final String[] FUTURE = ['4.0.3']
+    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.13']
+    private static final String[] FUTURE = ['4.0.5']
 
     static final Set<String> SUPPORTED_BY_JDK
 
@@ -33,6 +33,11 @@ class GroovyCoverage {
     static final Set<String> SUPPORTS_PARAMETERS
     static final Set<String> SUPPORTS_DISABLING_AST_TRANSFORMATIONS
     static final Set<String> SINCE_3_0
+
+    /**
+     * The lowest working Groovy 3 version for the current JDK.
+     */
+    static final String MINIMAL_GROOVY_3
 
     /**
      * The current Groovy version if stable, otherwise the latest stable version before the current version.
@@ -51,6 +56,7 @@ class GroovyCoverage {
         CURRENT_STABLE = isCurrentGroovyVersionStable()
             ? GroovySystem.version
             : versionsBelow(SUPPORTED_BY_JDK, GroovySystem.version).last()
+        MINIMAL_GROOVY_3 = versionsBelow(SINCE_3_0, "4.0.0").first()
     }
 
     static boolean supportsJavaVersion(String groovyVersion, JavaVersion javaVersion) {

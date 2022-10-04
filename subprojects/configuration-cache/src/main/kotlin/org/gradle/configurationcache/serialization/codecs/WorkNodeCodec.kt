@@ -114,11 +114,13 @@ class WorkNodeCodec(
                     writeSmallInt(0)
                     writeSmallInt(group.ordinal)
                 }
+
                 is FinalizerGroup -> {
                     writeSmallInt(1)
                     writeSmallInt(nodesById.getValue(group.node))
                     writeNodeGroup(group.delegate, nodesById)
                 }
+
                 is CompositeNodeGroup -> {
                     writeSmallInt(2)
                     writeBoolean(group.isReachableFromEntryPoint)
@@ -127,9 +129,11 @@ class WorkNodeCodec(
                         writeNodeGroup(it, nodesById)
                     }
                 }
+
                 NodeGroup.DEFAULT_GROUP -> {
                     writeSmallInt(3)
                 }
+
                 else -> throw IllegalArgumentException()
             }
         }
@@ -143,17 +147,20 @@ class WorkNodeCodec(
                     val ordinal = readSmallInt()
                     ordinalGroups.group(ordinal)
                 }
+
                 1 -> {
                     val finalizerNode = nodesById.getValue(readSmallInt()) as TaskNode
                     val delegate = readNodeGroup(nodesById)
                     FinalizerGroup(finalizerNode, delegate)
                 }
+
                 2 -> {
                     val reachableFromCommandLine = readBoolean()
                     val ordinalGroup = readNodeGroup(nodesById)
                     val groups = readCollectionInto(::HashSet) { readNodeGroup(nodesById) as FinalizerGroup }
                     CompositeNodeGroup(reachableFromCommandLine, ordinalGroup, groups)
                 }
+
                 3 -> NodeGroup.DEFAULT_GROUP
                 else -> throw IllegalArgumentException()
             }.also {
@@ -222,8 +229,8 @@ class WorkNodeCodec(
         scheduledNodeIds: Map<Node, Int>
     ) {
         for (successor in successors) {
-            // Discard should/must run after relationships to nodes that are not scheduled to run
-            scheduledNodeIds[successor]?.let { successorId ->
+            if (successor.isRequired) {
+                val successorId = scheduledNodeIds.getValue(successor)
                 writeSmallInt(successorId)
             }
         }

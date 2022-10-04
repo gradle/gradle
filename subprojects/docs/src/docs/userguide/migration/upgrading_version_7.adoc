@@ -69,7 +69,25 @@ For more information, see <<old_artifact_transforms_api>>.
 
 The legacy `IncrementalTaskInputs` API has been removed. For more information, see <<incremental_task_inputs_deprecation>>. This change also affects Kotlin Gradle Plugin and Android Gradle Plugin. With Gradle 8.0 you should use Kotlin Gradle Plugin 1.6.10 or later and Android Gradle Plugin 7.3.0 with `android.experimental.legacyTransform.forceNonIncremental=true` property or later.
 
+==== Legacy AntlrSourceVirtualDirectory API
+
+The legacy `AntlrSourceVirtualDirectory` API has been removed.
+This change affects the `antlr` plugin.
+In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
+
+=== Legacy test sources configuration in `idea` plugin
+
+The deprecated `IdeaModule.getTestSourceDirs()` and `IdeaModule.getTestResourceDirs()` were removed in Gradle 8.0.
+You should use `IdeaModule.getTestSources()` and `IdeaModule.getTestResources()` instead.
+
 === Potential breaking changes
+
+=== Wrapper task configuration
+If `gradle-wrapper.properties` contains the `distributionSha256Sum` property, you must specify a sum. You can specify a sum in the wrapped task configuration or with the `--gradle-distribution-sha256-sum` task option.
+
+=== Changes in the AbstractCodeQualityPlugin class
+
+The deprecated `AbstractCodeQualityPlugin.getJavaPluginConvention()` method was removed in Gradle 8.0. You should use `JavaPluginExtension` instead.
 
 === Remove implicit `--add-opens` for Gradle workers
 Before Gradle 8.0, Gradle workers on JDK9+ automatically opened JDK modules `java.base/java.util` and `java.base/java.lang` by passing `--add-opens` CLI arguments. This enabled code executed in a Gradle worker to perform deep reflection on JDK internals without warning or failing. Workers no longer use these implicit arguments.
@@ -203,6 +221,29 @@ Invalid specifications are deprecated and will become build errors in Gradle 8.0
 
 See more details about toolchain configuration in the <<toolchains#sec:configuring_toolchain_specifications,user manual>>.
 
+[[org_gradle_util_reports_deprecations]]
+=== Deprecated members of the `org.gradle.util` package now report their deprecation
+
+These members will be removed in Gradle 9.0.
+
+* `ClosureBackedAction`
+* `CollectionUtils`
+* `ConfigureUtil`
+* `DistributionLocator`
+* `GFileUtils`
+* `GradleVersion.getBuildTime()`
+* `GradleVersion.getNextMajor()`
+* `GradleVersion.getRevision()`
+* `GradleVersion.isValid()`
+* `GUtil`
+* `NameMatcher`
+* `NameValidator`
+* `RelativePathUtil`
+* `TextUtil`
+* `SingleMessageLogger`
+* `VersionNumber`
+* `WrapUtil`
+
 === Potential breaking changes
 
 [[kotlin_1_7_10]]
@@ -244,6 +285,25 @@ tasks.withType<KotlinCompile>().configureEach {
     // ...
 }
 ```
+
+==== Upgrade to Groovy 3.0.13
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.13.html[Groovy 3.0.13].
+
+Since the previous version was 3.0.11, the https://groovy-lang.org/changelogs/changelog-3.0.12.html[3.0.12 changes] are also included.
+
+==== Upgrade to CodeNarc 3.1.0
+
+The default version of CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-310----jun-2022[3.1.0].
+
+==== Upgrade to PMD 6.48.0
+
+PMD has been updated to https://pmd.github.io/pmd-6.48.0/pmd_release_notes.html[PMD 6.48.0].
+
+==== Configuring a non-existing executable now fails
+
+When configuring an executable explicitly for link:{groovyDslPath}/org.gradle.api.tasks.compile.ForkOptions.html#org.gradle.api.tasks.compile.ForkOptions:executable[`JavaCompile`] or link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:executable[`Test`] tasks, Gradle will now emit an error if this executable does not exist.
+In the past, the task would be executed with the default toolchain or JVM running the build.
 
 === Deprecations
 

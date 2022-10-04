@@ -38,16 +38,22 @@ publishing {
 
 // tag::task-config[]
 tasks.withType<PublishToMavenRepository>().configureEach {
-    onlyIf("publishing binary to the external repository, or binary and sources to the internal one") {
+    val predicate = provider {
         (repository == publishing.repositories["external"] &&
             publication == publishing.publications["binary"]) ||
         (repository == publishing.repositories["internal"] &&
             publication == publishing.publications["binaryAndSources"])
     }
+    onlyIf("publishing binary to the external repository, or binary and sources to the internal one") {
+        predicate.get()
+    }
 }
 tasks.withType<PublishToMavenLocal>().configureEach {
-    onlyIf("publishing binary and sources") {
+    val predicate = provider {
         publication == publishing.publications["binaryAndSources"]
+    }
+    onlyIf("publishing binary and sources") {
+        predicate.get()
     }
 }
 // end::task-config[]
