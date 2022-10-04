@@ -17,7 +17,9 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.api.JavaVersion
+import spock.lang.Ignore
 
+@Ignore
 class ToolingApiClientMinJdkCompatibilityTest extends ToolingApiClientJdkCompatibilityTest {
     JavaVersion getClientJdkVersion() {
         return JavaVersion.VERSION_1_8
