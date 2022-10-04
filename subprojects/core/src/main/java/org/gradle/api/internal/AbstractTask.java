@@ -37,11 +37,13 @@ import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
+import org.gradle.api.internal.tasks.DefaultTaskRequiredServices;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
+import org.gradle.api.internal.tasks.TaskRequiredServices;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener;
@@ -53,7 +55,6 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
-import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
@@ -76,7 +77,6 @@ import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
 import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.resources.ResourceLock;
-import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scripts.ScriptOriginUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -91,8 +91,6 @@ import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -159,9 +157,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskOutputsInternal taskOutputs;
     private final TaskDestroyables taskDestroyables;
     private final TaskLocalStateInternal taskLocalState;
+    private final TaskRequiredServices taskRequiredServices;
     private LoggingManagerInternal loggingManager;
-
-    private Set<Provider<? extends BuildService<?>>> requiredServices;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -196,7 +193,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, fileCollectionFactory);
         taskDestroyables = new DefaultTaskDestroyables(taskMutator, fileCollectionFactory);
         taskLocalState = new DefaultTaskLocalState(taskMutator, fileCollectionFactory);
-
+        taskRequiredServices = new DefaultTaskRequiredServices(this, taskMutator, propertyWalker, getBuildServiceRegistry());
         this.dependencies = new DefaultTaskDependency(tasks, ImmutableSet.of(taskInputs, lifecycleDependencies));
 
         this.timeout = project.getObjects().property(Duration.class);
@@ -1031,32 +1028,21 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public void usesService(Provider<? extends BuildService<?>> service) {
-        taskMutator.mutate("Task.usesService(Provider)", () -> {
-            if (requiredServices == null) {
-                requiredServices = new HashSet<>();
-            }
-            // TODO:configuration-cache assert build service is from the same build as the task
-            requiredServices.add(service);
-        });
+        taskRequiredServices.registerServiceUsage(service);
     }
 
-    public Set<Provider<? extends BuildService<?>>> getRequiredServices() {
-        if (requiredServices == null) {
-            return Collections.emptySet();
-        }
-        return requiredServices;
+    public TaskRequiredServices getRequiredServices() {
+        return taskRequiredServices;
     }
-
     @Override
     public List<ResourceLock> getSharedResources() {
-        return getServices().get(BuildServiceRegistryInternal.class).getSharedResources(requiredServices);
+        return getBuildServiceRegistry().getSharedResources(taskRequiredServices.getRequiredServices());
     }
 
-    @Override
-    public boolean isResourceLocked(BuildServiceProvider toCheck) {
-        SharedResourceLeaseRegistry sharedResourceLeaseRegistry = getServices().get(SharedResourceLeaseRegistry.class);
-        return sharedResourceLeaseRegistry.holdsLock(ResourceLock.Kind.SHARED_BUILD_SERVICE, toCheck.getName());
+    private BuildServiceRegistryInternal getBuildServiceRegistry() {
+        return getServices().get(BuildServiceRegistryInternal.class);
     }
+
     private void notifyProjectAccess() {
         if (state.getExecuting()) {
             getTaskExecutionAccessBroadcaster().onProjectAccess("Task.project", this);

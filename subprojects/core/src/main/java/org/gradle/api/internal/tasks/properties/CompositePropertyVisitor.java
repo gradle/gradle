@@ -86,7 +86,7 @@ public class CompositePropertyVisitor implements PropertyVisitor {
     }
 
     @Override
-    public void visitServiceReference(Provider<BuildService<?>> value, String name) {
+    public void visitServiceReference(Provider<? extends BuildService<?>> value, String name) {
         for (PropertyVisitor visitor : visitors) {
             visitor.visitServiceReference(value, name);
         }

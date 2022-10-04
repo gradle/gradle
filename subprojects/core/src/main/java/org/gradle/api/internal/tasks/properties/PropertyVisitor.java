@@ -26,7 +26,7 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import javax.annotation.Nullable;
 
 /**
- * Visits properties of beans which are inputs, outputs, destroyables or local state.
+ * Visits properties of beans which are inputs, outputs, destroyables, local state or service references.
  */
 public interface PropertyVisitor {
     void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType);
@@ -39,7 +39,10 @@ public interface PropertyVisitor {
 
     void visitLocalStateProperty(Object value);
 
-    void visitServiceReference(Provider<BuildService<?>> value, String serviceName);
+    /**
+     * Visits a service reference. Service references may or may not be declared with a name.
+     */
+    void visitServiceReference(Provider<? extends BuildService<?>> value, @Nullable String serviceName);
 
     class Adapter implements PropertyVisitor {
         @Override
@@ -63,7 +66,7 @@ public interface PropertyVisitor {
         }
 
         @Override
-        public void visitServiceReference(Provider<BuildService<?>> value, String serviceName) {
+        public void visitServiceReference(Provider<? extends BuildService<?>> value, @Nullable String serviceName) {
         }
     }
 }

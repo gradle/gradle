@@ -34,7 +34,7 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
     @Override
     public void beforeGet(BuildServiceProvider<?, ?> provider) {
         currentTask().ifPresent(task -> {
-            if (provider.isLockRequired() && !task.isResourceLocked(provider)) {
+            if (!task.getRequiredServices().isServiceRequired(provider)) {
                 nagAboutUndeclaredUsageOf(provider, task);
             }
         });
@@ -42,10 +42,6 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
 
     private Optional<TaskInternal> currentTask() {
         return taskExecutionTracker.getCurrentTask();
-    }
-
-    private static boolean isServiceRequiredBy(TaskInternal task, BuildServiceProvider<?, ?> provider) {
-        return task.getRequiredServices().contains(provider);
     }
 
     private static void nagAboutUndeclaredUsageOf(BuildServiceProvider<?, ?> provider, TaskInternal task) {

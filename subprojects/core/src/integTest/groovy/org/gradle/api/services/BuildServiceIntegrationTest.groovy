@@ -145,6 +145,9 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
             task named(type: Consumer) {
                 // reference will be set by name
+                doLast {
+                    assert !requiredServices.requiredServices.isEmpty()
+                }
             }
         """
         enableStableConfigurationCache()

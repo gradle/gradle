@@ -16,39 +16,26 @@
 
 package org.gradle.execution.plan;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.services.BuildService;
-import org.gradle.api.services.BuildServiceRegistration;
-import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.internal.Cast;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * A {@link TaskNode} implementation for a task in the current build.
@@ -63,7 +50,6 @@ public class LocalTaskNode extends TaskNode {
     private boolean isolated;
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
-    private Collection<ServiceReferenceSpec> adHocServicesConsumed = Collections.emptySet();
 
     public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext, Function<LocalTaskNode, ResolveMutationsNode> resolveNodeFactory) {
         this.task = task;
@@ -103,13 +89,9 @@ public class LocalTaskNode extends TaskNode {
     @Override
     public List<? extends ResourceLock> getResourcesToLock() {
         if (resourceLocks == null) {
-            resourceLocks = findAllResourcesToLock();
+            resourceLocks = task.getSharedResources();
         }
         return resourceLocks;
-    }
-
-    private List<? extends ResourceLock> findAllResourcesToLock() {
-        return new ArrayList<>(Sets.union(Sets.newLinkedHashSet(task.getSharedResources()), Sets.newLinkedHashSet(findSharedResourcesUsed())));
     }
 
     @Override
@@ -140,7 +122,7 @@ public class LocalTaskNode extends TaskNode {
             addDependencySuccessor(targetNode);
         }
 
-        lifecycleSuccessors = getLifecycleDependencies(dependencyResolver);
+        lifecycleSuccessors = dependencyResolver.resolveDependenciesFor(task, task.getLifecycleDependencies());
 
         for (Node targetNode : getFinalizedBy(dependencyResolver)) {
             if (!(targetNode instanceof TaskNode)) {
@@ -154,10 +136,6 @@ public class LocalTaskNode extends TaskNode {
         for (Node targetNode : getShouldRunAfter(dependencyResolver)) {
             addShouldSuccessor(targetNode);
         }
-    }
-
-    private Set<Node> getLifecycleDependencies(TaskDependencyResolver dependencyResolver) {
-        return dependencyResolver.resolveDependenciesFor(task, task.getLifecycleDependencies());
     }
 
     private void addFinalizerNode(TaskNode finalizerNode) {
@@ -255,7 +233,7 @@ public class LocalTaskNode extends TaskNode {
             addOutputFilesToMutations(taskProperties.getOutputFileProperties());
             addLocalStateFilesToMutations(taskProperties.getLocalStateFiles());
             addDestroyablesToMutations(taskProperties.getDestroyableFiles());
-            addServiceReferences(taskProperties.getServiceReferences());
+
             mutations.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
@@ -270,43 +248,6 @@ public class LocalTaskNode extends TaskNode {
             }
             if (mutations.hasLocalState) {
                 throw new IllegalStateException("Task " + taskNode + " has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.");
-            }
-        }
-    }
-
-    private void addServiceReferences(Collection<ServiceReferenceSpec> servicesConsumed) {
-        adHocServicesConsumed = servicesConsumed;
-    }
-
-    /**
-     * Finds all resource locks required by this task, implicitly or explicitly.
-     *
-     * @return a set of all resource locks required
-     */
-    private List<ResourceLock> findSharedResourcesUsed() {
-        ProjectInternal project = (ProjectInternal) task.getProject();
-        ServiceRegistry serviceRegistry = project.getServices();
-        BuildServiceRegistryInternal buildServiceRegistry = serviceRegistry.get(BuildServiceRegistryInternal.class);
-        return buildServiceRegistry.getSharedResources(mapServiceSpecsToServices(adHocServicesConsumed, buildServiceRegistry));
-    }
-
-    private Set<Provider<? extends BuildService<?>>> mapServiceSpecsToServices(Collection<ServiceReferenceSpec> adHocServicesConsumed, BuildServiceRegistryInternal buildServiceRegistry) {
-        return adHocServicesConsumed.stream().map(it -> mapSpecToService(it, buildServiceRegistry)).filter(Objects::nonNull).collect(Collectors.toSet());
-    }
-
-    private Provider<? extends BuildService<?>> mapSpecToService(ServiceReferenceSpec spec, BuildServiceRegistryInternal buildServiceRegistry) {
-        DefaultProperty<? extends BuildService<?>> asProperty = Cast.uncheckedCast(spec.getValue());
-        assignServiceIfNeeded(buildServiceRegistry, asProperty, spec.getServiceName());
-        return asProperty.getProvider();
-    }
-
-    @SuppressWarnings("unchecked")
-    private void assignServiceIfNeeded(BuildServiceRegistryInternal buildServiceRegistry, DefaultProperty<?> asProperty, @Nullable String serviceName) {
-        if (serviceName != null && !asProperty.getProvider().isPresent()) {
-            BuildServiceRegistration<?, ?> found = buildServiceRegistry.getRegistrations().findByName(serviceName);
-            if (found != null) {
-                Provider resolved = found.getService();
-                asProperty.convention(resolved);
             }
         }
     }

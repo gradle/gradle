@@ -191,9 +191,9 @@ public class DefaultTaskProperties implements TaskProperties {
     private static class GetServiceReferenceVisitor extends PropertyVisitor.Adapter {
         private static class NamedServiceReference implements ServiceReferenceSpec {
             private final String name;
-            private final Provider<BuildService<?>> value;
+            private final Provider<? extends BuildService<?>> value;
 
-            NamedServiceReference(String name, Provider<BuildService<?>> value) {
+            NamedServiceReference(String name, Provider<? extends BuildService<?>> value) {
                 this.name = name;
                 this.value = value;
             }
@@ -202,7 +202,7 @@ public class DefaultTaskProperties implements TaskProperties {
             public String getServiceName() {
                 return name;
             }
-            public Provider<BuildService<?>> getValue() {
+            public Provider<? extends BuildService<?>> getValue() {
                 return value;
             }
         }
@@ -210,7 +210,7 @@ public class DefaultTaskProperties implements TaskProperties {
         private final List<ServiceReferenceSpec> services = new ArrayList<>();
 
         @Override
-        public void visitServiceReference(Provider<BuildService<?>> value, String serviceName) {
+        public void visitServiceReference(Provider<? extends BuildService<?>> value, String serviceName) {
             services.add(new NamedServiceReference(serviceName, value));
         }
         public Collection<ServiceReferenceSpec> getServiceReferences() {

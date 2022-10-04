@@ -67,7 +67,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         outputDoesNotContain onFinishMessage
     }
 
-    def "build service is not restored when using @ServiceReference"() {
+    def "build service is restored when using @ServiceReference"() {
         given:
         withCountingServicePlugin()
         file('settings.gradle') << """
@@ -80,7 +80,11 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         file('build.gradle') << """
             plugins { id 'counting-service-plugin' version '1.0' }
 
-            tasks.register('count', CountingTask) {}
+            tasks.register('count', CountingTask) {
+                doLast {
+                    assert countingService.get().increment() == 2
+                }
+            }
         """
         def configurationCache = newConfigurationCacheFixture()
 
@@ -103,7 +107,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         createDir('plugin') {
             file("src/main/java/CountingServicePlugin.java") << """
                 public abstract class CountingServicePlugin implements $Plugin.name<$Project.name> {
-
+                    private $Provider.name<?> counterProvider;
                     @Override
                     public void apply($Project.name project) {
                         project.getGradle().getSharedServices().registerIfAbsent(
