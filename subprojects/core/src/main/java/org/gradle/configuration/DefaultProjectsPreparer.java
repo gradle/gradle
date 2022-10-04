@@ -17,7 +17,6 @@ package org.gradle.configuration;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.ProjectConfigurer;
-import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.ProjectsEvaluatedNotifier;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildtree.BuildModelParameters;
@@ -27,19 +26,16 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
     private final BuildOperationExecutor buildOperationExecutor;
     private final ProjectConfigurer projectConfigurer;
     private final BuildModelParameters buildModelParameters;
-    private final ModelConfigurationListener modelConfigurationListener;
     private final BuildStateRegistry buildStateRegistry;
 
     public DefaultProjectsPreparer(
         ProjectConfigurer projectConfigurer,
         BuildModelParameters buildModelParameters,
-        ModelConfigurationListener modelConfigurationListener,
         BuildOperationExecutor buildOperationExecutor,
         BuildStateRegistry buildStateRegistry
     ) {
         this.projectConfigurer = projectConfigurer;
         this.buildModelParameters = buildModelParameters;
-        this.modelConfigurationListener = modelConfigurationListener;
         this.buildOperationExecutor = buildOperationExecutor;
         this.buildStateRegistry = buildStateRegistry;
     }
@@ -55,7 +51,5 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
             // Make root build substitutions available
             buildStateRegistry.afterConfigureRootBuild();
         }
-
-        modelConfigurationListener.onConfigure(gradle);
     }
 }

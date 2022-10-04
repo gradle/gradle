@@ -61,10 +61,6 @@ public class BuildSourceBuilder {
     }
 
     public ClassPath buildAndGetClassPath(GradleInternal gradle) {
-        return createBuildSourceClasspath();
-    }
-
-    private ClassPath createBuildSourceClasspath() {
         StandAloneNestedBuild buildSrcBuild = buildRegistry.getBuildSrcNestedBuild(currentBuild);
         if (buildSrcBuild == null) {
             return ClassPath.EMPTY;

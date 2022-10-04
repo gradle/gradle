@@ -25,6 +25,7 @@ import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.util.function.Function
@@ -52,20 +53,9 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
         getRootProject() >> project
     }
 
-    def "configures task names"() {
-        def listener = new BuildSrcBuildListenerFactory().create()
-        component.getBuildTasks() >> ['barBuild']
-
-        when:
-        listener.onConfigure(gradle)
-
-        then:
-        1 * startParameter.setTaskNames(['barBuild'])
-    }
-
     def "executes buildSrc configuration action after projects are loaded"() {
         def action = Mock(Action)
-        def listener = new BuildSrcBuildListenerFactory(action).create()
+        def listener = new BuildSrcBuildListenerFactory(action, TestUtil.objectInstantiator()).create()
 
         when:
         listener.projectsLoaded(gradle)

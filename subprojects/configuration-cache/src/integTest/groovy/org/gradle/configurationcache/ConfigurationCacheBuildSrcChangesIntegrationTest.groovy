@@ -103,7 +103,7 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
                         doLast { println("NOT CI") }
                     }
                 }
-                assemble {
+                jar {
                     dependsOn("run")
                 }
             }
