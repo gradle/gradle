@@ -295,6 +295,8 @@ class Intersections {
                 .filter(id -> groups.contains(id.getGroup()))
                 .collect(toSet());
             return moduleIdSet(filtered);
+        } else if (right instanceof  ModuleSetExclude) {
+            return factory.moduleIdSet(groups.stream().flatMap(group -> ((ModuleSetExclude) right).getModules().stream().map(module -> DefaultModuleIdentifier.newId(group, module))).collect(toSet()));
         }
         return null;
     }
@@ -332,6 +334,8 @@ class Intersections {
         } else if (right instanceof ModuleIdSetExclude) {
             Set<ModuleIdentifier> common = ((ModuleIdSetExclude) right).getModuleIds().stream().filter(id -> id.getName().equals(module)).collect(toSet());
             return moduleIdSet(common);
+        } else if (right instanceof GroupSetExclude) {
+            return factory.moduleIdSet(((GroupSetExclude) right).getGroups().stream().map(group -> DefaultModuleIdentifier.newId(group, module)).collect(toSet()));
         }
         return null;
     }
