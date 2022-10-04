@@ -24,14 +24,15 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-public class CleanupActionFactory {
+public class BuildOperationCleanupActionDecorator implements CleanupActionDecorator {
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public CleanupActionFactory(BuildOperationExecutor buildOperationExecutor) {
+    public BuildOperationCleanupActionDecorator(BuildOperationExecutor buildOperationExecutor) {
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
-    public CleanupAction create(CleanupAction action) {
+    @Override
+    public CleanupAction decorate(CleanupAction action) {
         return new BuildOperationCacheCleanupDecorator(action, buildOperationExecutor);
     }
 
