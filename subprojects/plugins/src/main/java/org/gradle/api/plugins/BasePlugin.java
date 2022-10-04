@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
@@ -26,7 +27,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.DefaultBasePluginConvention;
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
@@ -86,10 +86,10 @@ public class BasePlugin implements Plugin<Project> {
         ConfigurationContainer configurations = project.getConfigurations();
         ((ProjectInternal)project).getInternalStatus().convention("integration");
 
-        final DeprecatableConfiguration archivesConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
+        final Configuration archivesConfiguration = configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
             setDescription("Configuration for archive artifacts.");
 
-        final DeprecatableConfiguration defaultConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(Dependency.DEFAULT_CONFIGURATION).
+        final Configuration defaultConfiguration = configurations.maybeCreate(Dependency.DEFAULT_CONFIGURATION).
             setDescription("Configuration for default artifacts.");
 
         final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(

@@ -52,7 +52,6 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Cast;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
@@ -231,7 +230,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         implementationConfiguration.setCanBeConsumed(false);
         implementationConfiguration.setCanBeResolved(false);
 
-        DeprecatableConfiguration compileOnlyConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(compileOnlyConfigurationName);
+        Configuration compileOnlyConfiguration = configurations.maybeCreate(compileOnlyConfigurationName);
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.setCanBeConsumed(false);
         compileOnlyConfiguration.setCanBeResolved(false);

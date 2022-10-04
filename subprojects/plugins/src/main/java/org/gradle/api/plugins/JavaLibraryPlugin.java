@@ -23,7 +23,6 @@ import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import javax.inject.Inject;
 
@@ -70,10 +69,10 @@ public class JavaLibraryPlugin implements Plugin<Project> {
     private void deprecateConfigurationsForDeclaration(SourceSetContainer sourceSets, ConfigurationContainer configurations) {
         SourceSet sourceSet = sourceSets.getByName("main");
 
-        DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getApiElementsConfigurationName());
-        DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getRuntimeElementsConfigurationName());
-        DeprecatableConfiguration compileClasspathConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
-        DeprecatableConfiguration runtimeClasspathConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
+        Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
+        Configuration runtimeElementsConfiguration = configurations.getByName(sourceSet.getRuntimeElementsConfigurationName());
+        Configuration compileClasspathConfiguration = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
+        Configuration runtimeClasspathConfiguration = configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
 
         apiElementsConfiguration.setCanBeDeclaredAgainst(false);
         runtimeElementsConfiguration.setCanBeDeclaredAgainst(false);
