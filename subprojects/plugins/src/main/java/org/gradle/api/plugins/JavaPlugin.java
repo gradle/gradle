@@ -363,7 +363,7 @@ public class JavaPlugin implements Plugin<Project> {
                 .withDescription("Elements of runtime for main.")
                 .extendsFrom(implementationConfiguration, runtimeOnlyConfiguration));
         defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
-        runtimeElementsConfiguration.setCanBeDeclared(false);
+        runtimeElementsConfiguration.setCanBeDeclaredAgainst(false);
 
         // Configure variants
         addJarArtifactToConfiguration(runtimeElementsConfiguration, jarArtifact);
@@ -378,7 +378,7 @@ public class JavaPlugin implements Plugin<Project> {
             builder -> builder.fromSourceSet(mainSourceSet)
                 .providesApi()
                 .withDescription("API elements for main."));
-        apiElementsConfiguration.setCanBeDeclared(false);
+        apiElementsConfiguration.setCanBeDeclaredAgainst(false);
 
         // Configure variants
         addJarArtifactToConfiguration(apiElementsConfiguration, jarArtifact);

@@ -67,7 +67,7 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
     }
 
     private void assertConfigurationIsDeclarable() {
-        if (!clientConfiguration.isCanBeDeclared()) {
+        if (!clientConfiguration.isCanBeDeclaredAgainst()) {
             throw new GradleException("Dependencies not be declared using the `" + clientConfiguration.getName() + "` configuration.");
         }
     }

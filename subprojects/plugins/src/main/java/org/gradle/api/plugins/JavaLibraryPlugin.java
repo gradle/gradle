@@ -75,9 +75,9 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         DeprecatableConfiguration compileClasspathConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
         DeprecatableConfiguration runtimeClasspathConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
 
-        apiElementsConfiguration.setCanBeDeclared(false);
-        runtimeElementsConfiguration.setCanBeDeclared(false);
-        compileClasspathConfiguration.setCanBeDeclared(false);
-        runtimeClasspathConfiguration.setCanBeDeclared(false);
+        apiElementsConfiguration.setCanBeDeclaredAgainst(false);
+        runtimeElementsConfiguration.setCanBeDeclaredAgainst(false);
+        compileClasspathConfiguration.setCanBeDeclaredAgainst(false);
+        runtimeClasspathConfiguration.setCanBeDeclaredAgainst(false);
     }
 }

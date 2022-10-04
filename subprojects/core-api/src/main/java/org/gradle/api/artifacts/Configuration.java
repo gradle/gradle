@@ -547,7 +547,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @since 8.0
      */
     @Incubating
-    void setCanBeDeclared(boolean allowed);
+    void setCanBeDeclaredAgainst(boolean allowed);
 
     /**
      * Returns true if it is allowed to declare dependencies upon this configuration.
@@ -556,7 +556,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @since 8.0
      */
     @Incubating
-    boolean isCanBeDeclared();
+    boolean isCanBeDeclaredAgainst();
 
     /**
      * Tells that this configuration, when resolved, should resolve versions consistently
