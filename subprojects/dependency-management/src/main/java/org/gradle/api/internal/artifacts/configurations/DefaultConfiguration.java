@@ -1594,12 +1594,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public boolean isCanBeDeclared() {
+    public boolean isCanBeDeclaredAgainst() {
         return canBeDeclared;
     }
 
     @Override
-    public void setCanBeDeclared(boolean allowed) {
+    public void setCanBeDeclaredAgainst(boolean allowed) {
         validateMutation(MutationType.ROLE);
         canBeDeclared = allowed;
     }

@@ -271,8 +271,8 @@ public class JavaBasePlugin implements Plugin<Project> {
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
         sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
 
-        compileClasspathConfiguration.setCanBeDeclared(false);
-        runtimeClasspathConfiguration.setCanBeDeclared(false);
+        compileClasspathConfiguration.setCanBeDeclaredAgainst(false);
+        runtimeClasspathConfiguration.setCanBeDeclaredAgainst(false);
     }
 
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {

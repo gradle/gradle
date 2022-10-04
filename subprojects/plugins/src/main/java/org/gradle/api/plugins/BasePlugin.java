@@ -98,8 +98,8 @@ public class BasePlugin implements Plugin<Project> {
 
         archivesConfiguration.setCanBeResolved(false);
         defaultConfiguration.setCanBeResolved(false);
-        archivesConfiguration.setCanBeDeclared(false);
-        defaultConfiguration.setCanBeDeclared(false);
+        archivesConfiguration.setCanBeDeclaredAgainst(false);
+        defaultConfiguration.setCanBeDeclaredAgainst(false);
 
         configurations.all(configuration -> {
             if (!configuration.equals(archivesConfiguration)) {
