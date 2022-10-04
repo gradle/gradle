@@ -96,7 +96,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
 
     @Override
     public boolean isWorkerThread() {
-        return workerLeaseLockRegistry.holdsAnyLocks();
+        return workerLeaseLockRegistry.holdsLock();
     }
 
     @Override
@@ -417,7 +417,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
 
     private class DefaultWorkerLease extends DefaultLease implements WorkerLeaseCompletion, WorkerLease {
         public DefaultWorkerLease(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, LeaseHolder parent) {
-            super(displayName, coordinationService, owner, parent, Kind.UNSPECIFIC);
+            super(displayName, coordinationService, owner, parent);
         }
 
         @Override

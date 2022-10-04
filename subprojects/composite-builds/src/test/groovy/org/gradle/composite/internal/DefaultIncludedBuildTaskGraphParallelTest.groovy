@@ -34,7 +34,6 @@ import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.properties.PropertyWalker
-import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.execution.plan.BuildWorkPlan
 import org.gradle.execution.plan.DefaultExecutionPlan
@@ -287,7 +286,6 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def projectServices = new DefaultServiceRegistry(TestUtil.services())
         projectServices.add(Stub(PropertyWalker))
         projectServices.add(Stub(FileCollectionFactory))
-        projectServices.add(Stub(BuildServiceRegistryInternal))
         _ * project.services >> projectServices
         _ * project.pluginManager >> Stub(PluginManagerInternal)
         def lock = Stub(ResourceLock)

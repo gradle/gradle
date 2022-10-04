@@ -175,11 +175,6 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     private WorkerLease workerLease() {
         return new WorkerLease() {
             @Override
-            ResourceLock.Kind getKind() {
-                return Kind.UNCLASSIFIED
-            }
-
-            @Override
             boolean isLocked() {
                 return false
             }
@@ -201,11 +196,6 @@ class TestWorkerLeaseService implements WorkerLeaseService {
 
             @Override
             String getDisplayName() {
-                return null
-            }
-
-            @Override
-            String getName() {
                 return null
             }
         }

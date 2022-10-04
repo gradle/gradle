@@ -203,8 +203,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             instantiatorFactory.injectScheme(),
             isolatableFactory,
             services,
-            listener,
-            maxParallelUsages == null ? -1 : maxParallelUsages
+            listener
         );
 
         DefaultServiceRegistration<T, P> registration = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceRegistration.class, name, parameters, provider));

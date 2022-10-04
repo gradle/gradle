@@ -34,6 +34,7 @@ public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<St
     }
 
     public ResourceLock getResourceLock(final String sharedResource) {
-        return new DefaultLease(sharedResource, coordinationService, this, sharedResources.get(sharedResource), ResourceLock.Kind.SHARED_BUILD_SERVICE);
+        String displayName = "lease for " + sharedResource;
+        return new DefaultLease(displayName, coordinationService, this, sharedResources.get(sharedResource));
     }
 }

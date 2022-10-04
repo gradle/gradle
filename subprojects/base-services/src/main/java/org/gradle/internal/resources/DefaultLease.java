@@ -20,17 +20,9 @@ public class DefaultLease extends AbstractTrackedResourceLock {
     private final LeaseHolder parent;
     private Thread ownerThread;
 
-    private Kind kind;
-
-    public DefaultLease(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, LeaseHolder parent, Kind kind) {
+    public DefaultLease(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, LeaseHolder parent) {
         super(displayName, coordinationService, owner);
-        this.kind = kind;
         this.parent = parent;
-    }
-
-    @Override
-    public Kind getKind() {
-        return kind;
     }
 
     @Override

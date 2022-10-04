@@ -38,7 +38,6 @@ public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
 
     SharedResource forService(Provider<? extends BuildService<?>> service);
 
-
     /**
      * Discards all registered services.
      */
