@@ -36,12 +36,6 @@ Some plugins will break with this new version of Gradle, for example because the
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
-[[exported_key_deduplication]]
-=== Exported keys are now deduplicated
-
-link:dependency_verification.html#sec:local-keyring[Dependency verification's] way of key serialization was changed in 7.6: keys now are sorted and deduplicated.
-Forward compatibility was retained, but the following exports might cause a large VCS diff between the old, and the new keyfile.
-
 === Updates to Attribute Disambiguation Rules related methods
 
 The `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
