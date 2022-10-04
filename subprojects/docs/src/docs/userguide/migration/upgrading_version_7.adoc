@@ -387,9 +387,14 @@ Starting in Gradle 7.6, builds could enable this behavior with the `org.gradle.k
 
 TODO - init script specified using `--init-script` are now applied to `buildSrc` builds. This behaviour is now consistent for buildSrc and included builds
 
+==== No longer runs the `build` task for `buildSrc` builds
+
+TODO - only the `jar` task and its dependencies are run, same as for included builds. Can run `buildSrc` tasks from the command-line, if required. If `buildSrc` contains
+subprojects that are not dependencies of `buildSrc`, these are not automatically built.
+
 ==== `buildFinished { }` hook for `buildSrc` runs after task execution
 
-TODO - this is consistent with included builds
+TODO - hook runs at the same time as for included builds
 
 ==== Adding `jst.ejb` with the `eclipse wtp' plugin now removes the `jst.utility` facet
 

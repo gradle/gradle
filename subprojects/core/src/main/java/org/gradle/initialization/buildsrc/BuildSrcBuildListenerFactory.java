@@ -17,68 +17,89 @@
 package org.gradle.initialization.buildsrc;
 
 import org.gradle.api.Action;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Bundling;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.LibraryElements;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.component.BuildableJavaComponent;
-import org.gradle.api.internal.component.ComponentRegistry;
+import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
+import org.gradle.api.internal.initialization.ScriptClassPathResolver;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.initialization.ModelConfigurationListener;
-import org.gradle.internal.Actions;
+import org.gradle.execution.EntryTaskSelector;
+import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.InternalBuildAdapter;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.File;
-import java.util.Collection;
+import java.util.Collections;
 
+@ServiceScope(Scopes.Build.class)
 public class BuildSrcBuildListenerFactory {
 
     private final Action<ProjectInternal> buildSrcRootProjectConfiguration;
+    private final NamedObjectInstantiator instantiator;
 
-    public BuildSrcBuildListenerFactory() {
-        this(Actions.<ProjectInternal>doNothing());
-    }
-
-    public BuildSrcBuildListenerFactory(Action<ProjectInternal> buildSrcRootProjectConfiguration) {
+    public BuildSrcBuildListenerFactory(Action<ProjectInternal> buildSrcRootProjectConfiguration, NamedObjectInstantiator instantiator) {
         this.buildSrcRootProjectConfiguration = buildSrcRootProjectConfiguration;
+        this.instantiator = instantiator;
     }
 
     Listener create() {
-        return new Listener(buildSrcRootProjectConfiguration);
+        return new Listener(buildSrcRootProjectConfiguration, instantiator);
     }
 
     /**
      * Inspects the build when configured, and adds the appropriate task to build the "main" `buildSrc` component.
      * On build completion, makes the runtime classpath of the main `buildSrc` component available.
      */
-    public static class Listener extends InternalBuildAdapter implements ModelConfigurationListener {
-        private FileCollection classpath;
+    public static class Listener extends InternalBuildAdapter implements EntryTaskSelector {
+        private Configuration classpathConfiguration;
         private ProjectState rootProjectState;
         private final Action<ProjectInternal> rootProjectConfiguration;
+        private final NamedObjectInstantiator instantiator;
 
-        private Listener(Action<ProjectInternal> rootProjectConfiguration) {
+        private Listener(Action<ProjectInternal> rootProjectConfiguration, NamedObjectInstantiator instantiator) {
             this.rootProjectConfiguration = rootProjectConfiguration;
+            this.instantiator = instantiator;
         }
 
         @Override
         public void projectsLoaded(Gradle gradle) {
-            rootProjectConfiguration.execute((ProjectInternal) gradle.getRootProject());
+            GradleInternal gradleInternal = (GradleInternal) gradle;
+            // Run only those tasks scheduled by this selector and not the default tasks
+            gradleInternal.getStartParameter().setTaskRequests(Collections.emptyList());
+            ProjectInternal rootProject = gradleInternal.getRootProject();
+            rootProjectState = rootProject.getOwner();
+            rootProjectConfiguration.execute(rootProject);
         }
 
         @Override
-        public void onConfigure(GradleInternal gradle) {
-            final BuildableJavaComponent mainComponent = mainComponentOf(gradle);
-            gradle.getStartParameter().setTaskNames(mainComponent.getBuildTasks());
-            classpath = mainComponent.getRuntimeClasspath();
-            rootProjectState = gradle.getRootProject().getOwner();
+        public void applyTasksTo(Context context, ExecutionPlan plan) {
+            rootProjectState.applyToMutableState(rootProject -> {
+                classpathConfiguration = rootProject.getConfigurations().create("buildScriptClasspath");
+                // TODO - share this with DefaultScriptHandler
+                classpathConfiguration.setCanBeConsumed(false);
+                AttributeContainer attributes = classpathConfiguration.getAttributes();
+                attributes.attribute(Usage.USAGE_ATTRIBUTE, instantiator.named(Usage.class, Usage.JAVA_RUNTIME));
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, instantiator.named(Category.class, Category.LIBRARY));
+                attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, instantiator.named(LibraryElements.class, LibraryElements.JAR));
+                attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, instantiator.named(Bundling.class, Bundling.EXTERNAL));
+                classpathConfiguration.getDependencies().add(rootProject.getDependencies().create(rootProject));
+                plan.addEntryTasks(classpathConfiguration.getBuildDependencies().getDependencies(null));
+            });
         }
 
-        public Collection<File> getRuntimeClasspath() {
-            return rootProjectState.fromMutableState(p -> classpath.getFiles());
-        }
-
-        private BuildableJavaComponent mainComponentOf(GradleInternal gradle) {
-            return gradle.getRootProject().getServices().get(ComponentRegistry.class).getMainComponent();
+        public ClassPath getRuntimeClasspath() {
+            return rootProjectState.fromMutableState(project -> {
+                ScriptClassPathResolver resolver = new DefaultScriptClassPathResolver(Collections.emptyList());
+                return resolver.resolveClassPath(classpathConfiguration);
+            });
         }
     }
 }

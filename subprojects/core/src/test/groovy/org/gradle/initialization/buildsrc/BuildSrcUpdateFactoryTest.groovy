@@ -16,8 +16,9 @@
 
 package org.gradle.initialization.buildsrc
 
-import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
+import org.gradle.internal.classpath.CachedClasspathTransformer
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -34,10 +35,11 @@ class BuildSrcUpdateFactoryTest extends Specification {
     def factory = new BuildSrcUpdateFactory(launcher, listenerFactory, cachedClasspathTransformer)
 
     def "creates classpath"() {
-        listener.getRuntimeClasspath() >> [new File("dummy")]
+        def classpath = DefaultClassPath.of(new File("dummy"))
+        listener.getRuntimeClasspath() >> classpath
 
         when:
-        def classpath = factory.create()
+        def result = factory.create()
 
         then:
         1 * listenerFactory.create() >> listener
@@ -45,6 +47,6 @@ class BuildSrcUpdateFactoryTest extends Specification {
             arguments[0]
         }
 
-        classpath.asFiles == [new File("dummy")]
+        result == classpath
     }
 }

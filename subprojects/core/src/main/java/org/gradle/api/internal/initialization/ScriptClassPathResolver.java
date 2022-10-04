@@ -17,11 +17,14 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Resolves a build script classpath to a set of files in a composite build, ensuring that the
  * required tasks are executed to build artifacts in included builds.
  */
+@ServiceScope(Scopes.Build.class)
 public interface ScriptClassPathResolver {
     ClassPath resolveClassPath(Configuration classpath);
 }

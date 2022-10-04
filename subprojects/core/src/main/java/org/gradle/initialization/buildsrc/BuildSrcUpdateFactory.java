@@ -21,11 +21,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 
 import javax.annotation.Nonnull;
-import java.io.File;
-import java.util.Collection;
 
 import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
 
@@ -44,16 +41,16 @@ public class BuildSrcUpdateFactory {
 
     @Nonnull
     public ClassPath create() {
-        Collection<File> classpath = build();
+        ClassPath classpath = build();
         LOGGER.debug("Gradle source classpath is: {}", classpath);
-        return cachedClasspathTransformer.transform(DefaultClassPath.of(classpath), BuildLogic);
+        return cachedClasspathTransformer.transform(classpath, BuildLogic);
     }
 
-    private Collection<File> build() {
+    private ClassPath build() {
         BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create();
         buildController.beforeBuild(gradle -> gradle.addListener(listener));
 
-        buildController.scheduleAndRunTasks();
+        buildController.scheduleAndRunTasks(listener);
 
         return listener.getRuntimeClasspath();
     }

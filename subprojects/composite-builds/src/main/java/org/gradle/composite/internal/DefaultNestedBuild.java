@@ -23,7 +23,6 @@ import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.StandAloneNestedBuild;
-import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory;
@@ -60,7 +59,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
 
         BuildScopeServices buildScopeServices = getBuildServices();
         ExceptionAnalyser exceptionAnalyser = buildScopeServices.get(ExceptionAnalyser.class);
-        BuildModelParameters modelParameters = buildScopeServices.get(BuildModelParameters.class);
         BuildTreeWorkExecutor workExecutor = new DefaultBuildTreeWorkExecutor();
         BuildTreeLifecycleControllerFactory buildTreeLifecycleControllerFactory = buildScopeServices.get(BuildTreeLifecycleControllerFactory.class);
 

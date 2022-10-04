@@ -227,7 +227,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         """
         file("buildSrc/build.gradle") << """
             ${server.callFromBuild('buildsrc-build-script')}
-            assemble {
+            jar {
                 dependsOn {
                     // call during task graph calculation
                     ${server.callFromBuild('buildsrc-task-graph')}
