@@ -252,7 +252,7 @@ class DependencyVerificationFixture {
             builder.addIgnoredKey(new IgnoredKey(id, reason))
         }
 
-        void addChecksum(String id, String algo, String checksum, String type="jar", String ext="jar", String origin = null) {
+        void addChecksum(String id, String algo, String checksum, String type="jar", String ext="jar", String origin = null, String reason = null) {
             def parts = id.split(":")
             def group = parts[0]
             def name = parts[1]
@@ -269,7 +269,8 @@ class DependencyVerificationFixture {
                 ),
                 ChecksumKind.valueOf(algo),
                 checksum,
-                origin
+                origin,
+                reason
             )
         }
 

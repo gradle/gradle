@@ -45,13 +45,15 @@ public class Checksum {
     private final String value;
     private final Set<String> alternatives;
     private final String origin;
+    private final String reason;
     private final int hashCode;
 
-    public Checksum(ChecksumKind kind, String value, @Nullable Set<String> alternatives, @Nullable String origin) {
+    public Checksum(ChecksumKind kind, String value, @Nullable Set<String> alternatives, @Nullable String origin, @Nullable String reason) {
         this.kind = kind;
         this.value = value;
         this.alternatives = alternatives == null ? null : ImmutableSet.copyOf(alternatives);
         this.origin = origin;
+        this.reason = reason;
         this.hashCode = computeHashcode();
     }
 
@@ -60,6 +62,7 @@ public class Checksum {
         result = 31 * result + value.hashCode();
         result = 31 * result + (alternatives != null ? alternatives.hashCode() : 0);
         result = 31 * result + (origin != null ? origin.hashCode() : 0);
+        result = 31 * result + (reason != null ? reason.hashCode() : 0);
         return result;
     }
 
@@ -81,6 +84,11 @@ public class Checksum {
         return origin;
     }
 
+    @Nullable
+    public String getReason() {
+        return reason;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -99,6 +107,9 @@ public class Checksum {
             return false;
         }
         if (!Objects.equals(alternatives, checksum.alternatives)) {
+            return false;
+        }
+        if (!Objects.equals(origin, checksum.origin)) {
             return false;
         }
         return Objects.equals(origin, checksum.origin);

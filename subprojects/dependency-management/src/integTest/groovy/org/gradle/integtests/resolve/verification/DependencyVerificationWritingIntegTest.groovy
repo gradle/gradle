@@ -1348,4 +1348,44 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
     }
 
 
+    def "keeps checksum reasons"() {
+        given:
+        def expectedXmlContents = """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+   </configuration>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
+            <md5 value="abc" reason="test checksum"/>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
+"""
+
+        when:
+        createMetadataFile {
+            addChecksum("org:foo:1.0", "md5", "abc", "jar", "jar", null, "test checksum")
+        }
+
+        then:
+        assertXmlContents expectedXmlContents
+
+        and:
+        javaLibrary()
+        buildFile << """
+        """
+
+        when:
+        writeVerificationMetadata()
+        run ":help"
+
+        then:
+        assertXmlContents expectedXmlContents
+    }
+
+
 }

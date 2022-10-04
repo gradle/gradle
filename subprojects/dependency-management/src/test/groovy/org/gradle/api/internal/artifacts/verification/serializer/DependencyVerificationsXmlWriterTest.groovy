@@ -377,7 +377,7 @@ on two lines -->
         declareChecksumOfArtifact(group, name, version, "jar", "jar", null, algorithm, checksum, origin)
     }
 
-    private declareChecksumOfArtifact(String group, String name, version, String type, String ext, String classifier, String algorithm, String checksum, String origin = null) {
+    private declareChecksumOfArtifact(String group, String name, version, String type, String ext, String classifier, String algorithm, String checksum, String origin = null, String reason = null) {
         builder.addChecksum(
             new DefaultModuleComponentArtifactIdentifier(
                 DefaultModuleComponentIdentifier.newId(
@@ -391,7 +391,8 @@ on two lines -->
             ),
             ChecksumKind.valueOf(algorithm),
             checksum,
-            origin
+            origin,
+            reason
         )
     }
 
