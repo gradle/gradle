@@ -63,7 +63,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         !deprecated(alternatives)   || output.contains("The $configuration configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 8.0. Please use the $alternatives configuration instead.")
         !valid(alternatives)        || !output.contains("> Configure project :")
         !doesNotExist(alternatives) || errorOutput.contains("Could not find method $configuration() for arguments [some:module:1.0] on object of type org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler")
-        !forbidden(alternatives)    || failure.hasErrorOutput("Dependencies can no longer be declared using the `$configuration` configuration.")
+        !forbidden(alternatives)    || failure.hasErrorOutput("Dependencies can not be declared against the `$configuration` configuration.")
 
         where:
         plugin         | configuration                  | alternatives
