@@ -29,7 +29,7 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         """
     }
 
-    def "plugin runtime configuration is deprecated for consumption"() {
+    def "plugin runtime configuration can not be consumed"() {
         given:
         file("producer/build.gradle") << """
             plugins {
@@ -48,8 +48,7 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         """
 
         then:
-        executer.expectDocumentedDeprecationWarning("The $configuration configuration has been deprecated for consumption. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#plugin_configuration_consumption")
-        succeeds("test")
+        fails("Selected configuration 'zinc' on 'project :producer' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
 
         where:
         plugin       | configuration
