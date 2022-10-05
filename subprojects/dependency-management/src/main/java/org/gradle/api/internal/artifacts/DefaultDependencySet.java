@@ -62,7 +62,7 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
 
     @Override
     public boolean add(final Dependency o) {
-        assertConfigurationIsDeclarable();
+        assertConfigurationIsDeclarableAgainst();
         warnIfConfigurationIsDeprecated();
         if (o instanceof AbstractModuleDependency) {
             ((AbstractModuleDependency) o).addMutationValidator(mutationValidator);
@@ -81,7 +81,7 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
         }
     }
 
-    private void assertConfigurationIsDeclarable() {
+    private void assertConfigurationIsDeclarableAgainst() {
         if (!clientConfiguration.isCanBeDeclaredAgainst()) {
             throw new GradleException("Dependencies can not be declared against the `" + clientConfiguration.getName() + "` configuration.");
         }
