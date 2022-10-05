@@ -31,6 +31,7 @@ import org.gradle.tooling.model.idea.IdeaProject
 @TargetGradleVersion(">=5.0")
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
+
     def "provides source dir information"() {
 
         buildFile.text = "apply plugin: 'java'"

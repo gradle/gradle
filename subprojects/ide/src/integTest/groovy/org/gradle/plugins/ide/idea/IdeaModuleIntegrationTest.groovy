@@ -34,7 +34,9 @@ class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
         //given
         testResources.dir.create {
             additionalCustomSources {}
+            additionalCustomTestSources {}
             additionalCustomResources {}
+            additionalCustomTestResources {}
             additionalCustomGeneratedResources {}
             muchBetterOutputDir {}
             muchBetterTestOutputDir {}
@@ -45,6 +47,8 @@ class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
         }
 
         //when
+        executer.expectDeprecationWarning('The IdeaModule.testSourceDirs property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testSources property instead.')
+        executer.expectDeprecationWarning('The IdeaModule.testResourceDirs property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testResources property instead.')
         runTask 'idea', '''
 apply plugin: "java"
 apply plugin: "idea"
@@ -62,8 +66,10 @@ idea {
         contentRoot = file('customModuleContentRoot')
 
         sourceDirs += file('additionalCustomSources')
+        testSourceDirs += file('additionalCustomTestSources')
         resourceDirs += file('additionalCustomResources')
         resourceDirs += file('additionalCustomGeneratedResources')
+        testResourceDirs += file('additionalCustomTestResources')
         generatedSourceDirs += file('additionalCustomGeneratedResources')
         excludeDirs += file('excludeMePlease')
 
@@ -91,8 +97,8 @@ idea {
 
         //then
         def iml = parseImlFile('customImlFolder/foo')
-        ['additionalCustomSources',
-         'additionalCustomResources',
+        ['additionalCustomSources', 'additionalCustomTestSources',
+         'additionalCustomResources', 'additionalCustomTestResources',
          'additionalCustomGeneratedResources',
          'src/main/java'].each { expectedSrcFolder ->
             assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) }
@@ -100,6 +106,7 @@ idea {
         ['additionalCustomResources', 'additionalCustomGeneratedResources'].each { expectedSrcFolder ->
             assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) && it.@type.text() == 'java-resource'}
         }
+        assert iml.component.content.sourceFolder.find { it.@url.text().contains('additionalCustomTestResources') && it.@type == 'java-test-resource' }
         assert iml.component.content.sourceFolder.find { it.@url.text().contains('additionalCustomGeneratedResources') && it.@generated.text() == 'true'}
 
         ['customModuleContentRoot', 'CUSTOM_VARIABLE'].each {
@@ -864,4 +871,20 @@ dependencies {
         dependencies.assertHasLibrary('PROVIDED', 'foo-1.0.jar')
     }
 
+    @Test // TODO: remove in Gradle 8.0
+    @ToBeFixedForConfigurationCache(because = "All other tests in this class are not for CC, this new test is temporary, to be removed in Gradle 8.0")
+    void "using deprecated IdeaModule properties emits deprecation warnings"() {
+        executer.expectDocumentedDeprecationWarning('The IdeaModule.testSourceDirs property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testSources property instead. See https://docs.gradle.org/current/dsl/org.gradle.plugins.ide.idea.model.IdeaModule.html#org.gradle.plugins.ide.idea.model.IdeaModule:testSourceDirs for more details.')
+        executer.expectDocumentedDeprecationWarning('The IdeaModule.testResourceDirs property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testResources property instead. See https://docs.gradle.org/current/dsl/org.gradle.plugins.ide.idea.model.IdeaModule.html#org.gradle.plugins.ide.idea.model.IdeaModule:testResourceDirs for more details.')
+        runIdeaTask '''
+apply plugin: "idea"
+
+idea {
+    module {
+        testSourceDirs += file('additionalCustomTestSources')
+        testResourceDirs += file('additionalCustomTestResources')
+    }
+}
+'''
+    }
 }
