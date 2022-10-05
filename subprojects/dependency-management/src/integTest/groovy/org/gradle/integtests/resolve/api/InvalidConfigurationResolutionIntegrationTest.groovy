@@ -120,6 +120,7 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
         fails 'resolve'
 
         then:
-        failure.hasErrorOutput("Dependencies can not be resolved using the `compileOnly` configuration.")
+        failure.hasErrorOutput("Resolving dependency configuration 'compileOnly' is not allowed as it is defined as 'canBeResolved=false'.")
+        failure.hasErrorOutput("Instead, a resolvable ('canBeResolved=true') dependency configuration that extends 'compileOnly' should be resolved.")
     }
 }
