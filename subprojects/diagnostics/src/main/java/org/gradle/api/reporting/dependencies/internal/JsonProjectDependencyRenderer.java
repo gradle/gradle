@@ -149,7 +149,7 @@ public class JsonProjectDependencyRenderer {
     private List<Configuration> getNonDeprecatedConfigurations(Project project) {
         List<Configuration> filteredConfigurations = new ArrayList<>();
         for (Configuration configuration : project.getConfigurations()) {
-            if (!((DeprecatableConfiguration) configuration).isFullyDeprecated()) {
+            if (configuration.isCanBeDeclaredAgainst()) {
                 filteredConfigurations.add(configuration);
             }
         }

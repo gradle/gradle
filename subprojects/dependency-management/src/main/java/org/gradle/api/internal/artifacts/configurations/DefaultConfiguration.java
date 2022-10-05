@@ -1094,6 +1094,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             outgoing.preventFromFurtherMutation();
             canBeMutated = false;
 
+            assertIsProperConfiguration();
+
             // We will only check unique attributes if this configuration is consumable, not resolvable, and has attributes itself
             if (isCanBeConsumed() && !isCanBeResolved() && !getAttributes().isEmpty()) {
                 ensureUniqueAttributes();
@@ -1529,7 +1531,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void assertIsDeclarable() {
         if (!canBeDeclared) {
-            throw new IllegalStateException("Declaring dependencies for configuration '" + name + "' is not allowed as it is defined as 'canBeDeclared=false'.\n");
+            throw new IllegalStateException("Declaring dependencies for configuration '" + name + "' is not allowed as it is defined as 'canBeDeclared=false'.");
         }
     }
 
@@ -1626,13 +1628,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public List<String> getResolutionAlternatives() {
         return resolutionAlternatives;
-    }
-
-    @Override
-    public boolean isFullyDeprecated() { // TODO: Should this include canBeDeclared?
-        return declarationAlternatives != null &&
-            (!canBeConsumed || consumptionDeprecation != null) &&
-            (!canBeResolved || resolutionAlternatives != null);
     }
 
     @Override
