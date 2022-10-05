@@ -19,6 +19,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationFinder;
@@ -132,7 +133,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     private Set<Configuration> getNonDeprecatedTaskConfigurations() {
         Set<Configuration> filteredConfigurations = new HashSet<>();
         for (Configuration configuration : getTaskConfigurations()) {
-            if (configuration.isCanBeDeclaredAgainst()) {
+            if (((ConfigurationInternal)configuration).isDeclarableAgainstByExtension()) {
                 filteredConfigurations.add(configuration);
             }
         }

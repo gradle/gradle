@@ -117,6 +117,32 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      */
     ResolveException maybeAddContext(ResolveException e);
 
+    /**
+     * Test if this configuration can either be declared against or extends another
+     * configuration which can be declared against.
+     *
+     * @return {@code true} if so; {@code false} otherwise
+     */
+    default boolean isDeclarableAgainstByExtension() {
+        return isDeclarableAgainstByExtension(this);
+    }
+
+    /**
+     * Test if the given configuration can either be declared against or extends another
+     * configuration which can be declared against.
+     * This method should probably be made {@code private} when upgrading to Java 9.
+     *
+     * @param configuration the configuration to test
+     * @return {@code true} if so; {@code false} otherwise
+     */
+    default boolean isDeclarableAgainstByExtension(Configuration configuration) {
+        if (configuration.isCanBeDeclaredAgainst()) {
+            return true;
+        } else {
+            return configuration.getExtendsFrom().stream().anyMatch(this::isDeclarableAgainstByExtension);
+        }
+    }
+
     interface VariantVisitor {
         // The artifacts to use when this configuration is used as a configuration
         void visitArtifacts(Collection<? extends PublishArtifact> artifacts);
