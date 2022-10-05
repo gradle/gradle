@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
@@ -149,7 +150,7 @@ public class JsonProjectDependencyRenderer {
     private List<Configuration> getNonDeprecatedConfigurations(Project project) {
         List<Configuration> filteredConfigurations = new ArrayList<>();
         for (Configuration configuration : project.getConfigurations()) {
-            if (configuration.isCanBeDeclaredAgainst()) {
+            if (((ConfigurationInternal)configuration).isDeclarableAgainstByExtension()) {
                 filteredConfigurations.add(configuration);
             }
         }
