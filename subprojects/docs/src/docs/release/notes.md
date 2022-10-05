@@ -466,7 +466,7 @@ The following are the features that have been promoted in this Gradle release.
 The `testResourcesDirs` and `testSourcesDirs` fields, and their getters and setters are now `@Deprecated`.
 Any usages of these elements should be replaced by the now stable `getTestSources()` and `getTestResources()` methods and their respective setters.
 These new methods return and are backed by `ConfigurableFileCollection` instances for improved flexibility in how these collections of files can be used.
-Gradle now warns upon usage of these deprecated methods that they will be removed in Gradle 8.0.
+Gradle now warns upon usage of these deprecated methods that they will be removed in Gradle 9.0.
 
 ### Replacement methods in `org.gradle.api.tasks.testing.TestReport`
 
