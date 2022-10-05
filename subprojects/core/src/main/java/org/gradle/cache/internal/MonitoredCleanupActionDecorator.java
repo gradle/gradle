@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,12 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.Describable;
-import org.gradle.cache.CleanupProgressMonitor;
-
-public interface DirectoryCleanupAction extends Describable {
-    boolean execute(CleanupProgressMonitor progressMonitor);
+/**
+ * Allows {@link MonitoredCleanupAction} instances to be decorated with additional functionality, such as checking whether cleanup has been disabled or not.
+ */
+public interface MonitoredCleanupActionDecorator {
+    /**
+     * Decorates the provided {@link MonitoredCleanupAction}
+     */
+    MonitoredCleanupAction decorate(MonitoredCleanupAction cleanupAction);
 }

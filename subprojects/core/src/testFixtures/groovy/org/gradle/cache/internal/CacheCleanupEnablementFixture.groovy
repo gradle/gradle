@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.fingerprint;
+package org.gradle.cache.internal
 
-public interface FileCollectionFingerprinterRegistry {
-    FileCollectionFingerprinter getFingerprinter(FileNormalizationSpec spec);
+
+import org.gradle.test.fixtures.file.TestFile
+
+
+trait CacheCleanupEnablementFixture {
+
+    void disableCacheCleanup() {
+        gradleUserHomeDir.mkdirs()
+        new File(gradleUserHomeDir, 'gradle.properties') << """
+            ${GradleUserHomeCacheCleanupActionDecorator.CACHE_CLEANUP_PROPERTY}=false
+        """.stripIndent()
+    }
+
+    abstract TestFile getGradleUserHomeDir()
 }

@@ -42,7 +42,7 @@ enum JavaTestProjectGenerator {
     LARGE_JAVA_MULTI_PROJECT(new TestProjectGeneratorConfigurationBuilder("largeJavaMultiProject")
         .withSourceFiles(100)
         .withSubProjects(500)
-        .withDaemonMemory('1536m')
+        .withDaemonMemory('2g')
         .withCompilerMemory('512m')
         .assembleChangeFile()
         .testChangeFile(450, 2250, 45000).create()),

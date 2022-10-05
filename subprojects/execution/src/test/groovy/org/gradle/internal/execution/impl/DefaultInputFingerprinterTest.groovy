@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.fingerprint.impl
+package org.gradle.internal.execution.impl
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.FileNormalizer
+import org.gradle.internal.execution.FileCollectionFingerprinter
+import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.FileCollectionSnapshotter
+import org.gradle.internal.execution.FileNormalizationSpec
+import org.gradle.internal.execution.InputFingerprinter
+import org.gradle.internal.execution.InputFingerprinter.Result
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
-import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter
-import org.gradle.internal.execution.fingerprint.FileNormalizationSpec
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.Result
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FileCollectionFingerprint

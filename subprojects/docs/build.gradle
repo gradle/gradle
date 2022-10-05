@@ -632,6 +632,8 @@ tasks.named("docsTest") { task ->
         if (!javaVersion.java11Compatible) {
             // Android requires Java 11+
             excludeTestsMatching "org.gradle.docs.samples.*.building-android-*.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-kotlin-dsl-android-build_*.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-kotlin-dsl-android-single-build_*.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*android-app.sample"
             // Umbrella build project contains also Android projects so it requires Java 11+
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects_*_umbrella-build.sample"
@@ -717,8 +719,6 @@ tasks.named("docsTest") { task ->
             // These tests use third-party plugins at versions that may not support the configuration cache properly.
             // The tests should be removed from this list when the plugin is updated to the version that works with the configuration cache properly.
             def testsWithThirdPartyFailures = [
-                "snippet-kotlin-dsl-android-single-build_kotlin_sanityCheck.sample",
-                "snippet-kotlin-dsl-android-build_kotlin_sanityCheck.sample",
                 "structuring-software-projects_groovy_aggregate-reports.sample",
                 "structuring-software-projects_groovy_build-android-app.sample",
                 "structuring-software-projects_groovy_build-server-application.sample",
