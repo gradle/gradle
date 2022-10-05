@@ -147,10 +147,10 @@ public class JsonProjectDependencyRenderer {
         json.call(overall);
     }
 
-    private List<Configuration> getNonDeprecatedConfigurations(Project project) {
+    private List<Configuration> getUsableConfigurations(Project project) {
         List<Configuration> filteredConfigurations = new ArrayList<>();
         for (Configuration configuration : project.getConfigurations()) {
-            if (((ConfigurationInternal)configuration).isDeclarableAgainstByExtension()) {
+            if (((ConfigurationInternal)configuration).isConfigurationUsable()) {
                 filteredConfigurations.add(configuration);
             }
         }
@@ -163,7 +163,7 @@ public class JsonProjectDependencyRenderer {
     }
 
     private List<Map<String, Object>> createConfigurations(Project project) {
-        Iterable<Configuration> configurations = getNonDeprecatedConfigurations(project);
+        Iterable<Configuration> configurations = getUsableConfigurations(project);
         return CollectionUtils.collect(configurations, configuration -> {
             LinkedHashMap<String, Object> map = new LinkedHashMap<>(4);
             map.put("name", configuration.getName());
