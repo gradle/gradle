@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.internal.Actions;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
@@ -54,16 +55,16 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
     }
 
     private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
-        assertConfigurationIsDeclarable(configuration);
+        assertConfigurationIsUsable(configuration);
         ConfigurablePublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
         configuration.getArtifacts().add(publishArtifact);
         configureAction.execute(publishArtifact);
         return publishArtifact;
     }
 
-    private void assertConfigurationIsDeclarable(Configuration configuration) {
-        if (!configuration.isCanBeDeclaredAgainst()) {
-            throw new GradleException("Dependencies can not be declared against the `" + configuration.getName() + "` configuration.");
+    private void assertConfigurationIsUsable(Configuration configuration) {
+        if (!((ConfigurationInternal)configuration).isConfigurationUsable()) {
+            throw new GradleException("Archives can not be added to the `" + configuration.getName() + "` configuration.");
         }
     }
 
