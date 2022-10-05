@@ -1616,6 +1616,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return declarationAlternatives;
     }
 
+    @Override
+    public boolean isFullyDeprecated() {
+        return declarationAlternatives != null && consumptionDeprecation != null && resolutionAlternatives != null;
+    }
+
     @Nullable
     @Override
     public DeprecationMessageBuilder.WithDocumentation getConsumptionDeprecation() {
