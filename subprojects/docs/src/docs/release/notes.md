@@ -463,10 +463,9 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+`getTestSources` and `getTestResources` are stable/promoted now.
 
+`getDestinationDirectory` and `getTestResults` are stable/promoted now.
 ## Fixed issues
 
 ## Known issues
