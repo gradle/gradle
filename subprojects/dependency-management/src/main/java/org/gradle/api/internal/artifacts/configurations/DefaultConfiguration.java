@@ -1359,7 +1359,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void preventIllegalMutation(MutationType type) {
         // TODO: Deprecate and eventually prevent these mutations when already resolved
         if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
-            assertIsDeclarable();
+            assertIsDeclarableAgainst();
             return;
         }
 
@@ -1532,7 +1532,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private void assertIsDeclarable() {
+    private void assertIsDeclarableAgainst() {
         if (!canBeDeclaredAgainst) {
             throw new IllegalStateException("Declaring dependencies for configuration '" + name + "' is not allowed as it is defined as 'canBeDeclared=false'.");
         }
