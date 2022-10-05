@@ -91,7 +91,7 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
         failure.hasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
     }
 
-    def "fail if an artifact is declared on a configuration that can not be declared against"() {
+    def "fail if an artifact is added to an unusable configuration"() {
         given:
         buildFile << """
             artifacts {
@@ -103,7 +103,7 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
         fails 'help'
 
         then:
-        failure.hasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
+        failure.hasErrorOutput("Archives can not be added to the `compile` configuration.")
     }
 
     def "fail if a non-resolvable configuration is resolved"() {
