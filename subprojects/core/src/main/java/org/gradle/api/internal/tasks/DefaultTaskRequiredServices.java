@@ -25,12 +25,13 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceRegistry;
-import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 public class DefaultTaskRequiredServices implements TaskRequiredServices {
     private final TaskInternal task;
@@ -43,6 +44,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
         this.taskMutator = taskMutator;
         this.propertyWalker = propertyWalker;
         this.buildServiceRegistry = buildServiceRegistry;
+        visitAnnotatedProperties(this::assignServiceIfNeeded);
     }
 
     @Override
@@ -69,21 +71,28 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
      * Returns both services declared as referenced (via @ServiceReference) or explicitly as used (via Task#usesService()).
      */
     private Set<Provider<? extends BuildService<?>>> collectServicesRequired() {
-        final Set<Provider<? extends BuildService<?>>> servicesRequired = new LinkedHashSet<>();
+        Set<Provider<? extends BuildService<?>>> servicesRequired = new LinkedHashSet<>();
+        visitServiceReferences((provider, name) -> {
+            servicesRequired.add(assignServiceIfNeeded(provider, name));
+        });
+        return servicesRequired;
+    }
+
+    private void visitAnnotatedProperties(BiConsumer<Provider<? extends BuildService<?>>, String> visitor) {
+        TaskPropertyUtils.visitAnnotatedProperties(propertyWalker, task, TypeValidationContext.NOOP, new PropertyVisitor.Adapter() {
+            @Override
+            public void visitServiceReference(Provider<? extends BuildService<?>> referenceProvider, String serviceName) {
+            visitor.accept(referenceProvider, serviceName);
+            }
+        });
+    }
+    private void visitServiceReferences(BiConsumer<Provider<? extends BuildService<?>>, String> visitor) {
         TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
             @Override
             public void visitServiceReference(Provider<? extends BuildService<?>> referenceProvider, String serviceName) {
-                if (referenceProvider instanceof Property) {
-                    DefaultProperty referenceAsProperty = (DefaultProperty) referenceProvider;
-                    assignServiceIfNeeded(referenceAsProperty, serviceName);
-                    Provider<?> propertyAsProvider = referenceAsProperty.getProvider();
-                    servicesRequired.add(Cast.uncheckedCast(propertyAsProvider));
-                } else {
-                    servicesRequired.add(referenceProvider);
-                }
+                visitor.accept(referenceProvider, serviceName);
             }
         });
-        return servicesRequired;
     }
 
     @Override
@@ -98,13 +107,18 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
     }
 
     @SuppressWarnings("unchecked")
-    private void assignServiceIfNeeded(DefaultProperty<?> asProperty, @Nullable String serviceName) {
-        if (serviceName != null && !asProperty.getProvider().isPresent()) {
-            BuildServiceRegistration<?, ?> found = buildServiceRegistry.getRegistrations().findByName(serviceName);
-            if (found != null) {
-                Provider resolved = found.getService();
-                asProperty.set(resolved);
+    private Provider<? extends BuildService<?>> assignServiceIfNeeded(Provider<? extends BuildService<?>> referenceProvider, @Nullable String serviceName) {
+        if (referenceProvider instanceof Property) {
+            DefaultProperty asProperty = (DefaultProperty) referenceProvider;
+            if (serviceName != null) {
+                BuildServiceRegistration<?, ?> found = buildServiceRegistry.getRegistrations().findByName(serviceName);
+                if (found != null) {
+                    Provider resolved = found.getService();
+                    asProperty.convention(resolved);
+                }
             }
+            return asProperty.getProvider();
         }
+        return referenceProvider;
     }
 }

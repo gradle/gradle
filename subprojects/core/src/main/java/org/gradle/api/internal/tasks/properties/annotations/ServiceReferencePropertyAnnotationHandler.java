@@ -60,11 +60,10 @@ public class ServiceReferencePropertyAnnotationHandler implements PropertyAnnota
     @Override
     @SuppressWarnings("unchecked")
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        String serviceName = null;
         if (propertyMetadata.isAnnotationPresent(ServiceReference.class)) {
-            serviceName = ((ServiceReference) propertyMetadata.getAnnotationForCategory(AnnotationCategory.TYPE)).value();
+            String serviceName = ((ServiceReference) propertyMetadata.getAnnotationForCategory(AnnotationCategory.TYPE)).value();
+            visitor.visitServiceReference((Provider<BuildService<?>>) value.call(), serviceName);
         }
-        visitor.visitServiceReference((Provider<BuildService<?>>) value.call(), serviceName);
     }
 
     @Override

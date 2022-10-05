@@ -39,7 +39,6 @@ import org.gradle.process.ExecOperations
 import javax.inject.Inject
 
 import static org.hamcrest.CoreMatchers.containsString
-import static org.hamcrest.CoreMatchers.startsWith
 
 @ConfigurationCacheTest
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
@@ -179,8 +178,8 @@ service: closed with value 11
             }
 
             task named(type: Consumer) {
-                // override service with an explicit convention
-                counter.convention(counterProvider2)
+                // override service with an explicit assignment
+                counter.set(counterProvider2)
             }
         """
         enableStableConfigurationCache()
@@ -194,6 +193,38 @@ service: closed with value 11
 service: created with value = 10000
 service: value is 10001
 service: closed with value 10001
+        """
+    }
+
+    def "injection by name works at configuration time"() {
+        given:
+        serviceImplementation()
+        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}('counter')")
+        buildFile """
+            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+                maxParallelUsages = 1
+            }
+
+            task named(type: Consumer) {
+                counter.get().increment()
+            }
+        """
+        enableStableConfigurationCache()
+
+        when:
+        succeeds 'named'
+
+        then:
+        outputDoesNotContain "'Task#usesService'"
+        outputContains """
+> Configure project :
+service: created with value = 10
+service: value is 11
+
+> Task :named
+service: value is 12
+service: closed with value 12
         """
     }
 
@@ -219,31 +250,6 @@ service: closed with value 10001
         then:
         failure.assertHasDescription("Execution failed for task ':missingService'.")
         failure.assertHasCause("Cannot query the value of task ':missingService' property 'counter' because it has no value available.")
-    }
-
-    def "injection by name not available for configuration"() {
-        given:
-        serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}('counter')")
-        buildFile """
-            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
-                parameters.initial = 10
-                maxParallelUsages = 1
-            }
-
-            task invalidUse(type: Consumer) {
-                // attempts to use injected service during configuration (not supported)
-                counter.get()
-            }
-        """
-        enableStableConfigurationCache()
-
-        when:
-        fails 'invalidUse'
-
-        then:
-        failure.assertThatDescription(startsWith("A problem occurred evaluating root project"))
-        failure.assertHasCause("Cannot query the value of task ':invalidUse' property 'counter' because it has no value available.")
     }
 
     def "@ServiceReference property must implement BuildService"() {

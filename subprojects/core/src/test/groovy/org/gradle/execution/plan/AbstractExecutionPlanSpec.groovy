@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
+import org.gradle.api.internal.tasks.TaskRequiredServices
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
@@ -97,6 +98,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         task.destroyables >> emptyTaskDestroys()
         task.localState >> emptyTaskLocalState()
         task.inputs >> emptyTaskInputs()
+        task.requiredServices >> emptyTaskRequiredServices()
         task.taskIdentity >> TaskIdentity.create(name, DefaultTask, project)
         return task
     }
@@ -146,6 +148,10 @@ abstract class AbstractExecutionPlanSpec extends Specification {
 
     private TaskInputsInternal emptyTaskInputs() {
         Stub(TaskInputsInternal)
+    }
+
+    private TaskRequiredServices emptyTaskRequiredServices() {
+        Stub(TaskRequiredServices)
     }
 
     void failure(TaskInternal task, final RuntimeException failure) {

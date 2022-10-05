@@ -51,7 +51,7 @@ public class TaskPropertyUtils {
         task.getRequiredServices().visitRegisteredProperties(visitor);
     }
 
-    private static void visitAnnotatedProperties(PropertyWalker propertyWalker, TaskInternal task, TypeValidationContext validationContext, PropertyVisitor visitor) {
+    static void visitAnnotatedProperties(PropertyWalker propertyWalker, TaskInternal task, TypeValidationContext validationContext, PropertyVisitor visitor) {
         propertyWalker.visitProperties(task, validationContext, visitor);
     }
 
