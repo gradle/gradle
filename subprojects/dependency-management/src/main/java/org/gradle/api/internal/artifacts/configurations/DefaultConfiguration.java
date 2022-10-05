@@ -220,7 +220,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean dependenciesModified;
     private boolean canBeConsumed = true;
     private boolean canBeResolved = true;
-    private boolean canBeDeclared = true;
+    private boolean canBeDeclaredAgainst = true;
 
     private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
@@ -1198,7 +1198,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         copiedConfiguration.canBeConsumed = canBeConsumed;
         copiedConfiguration.canBeResolved = canBeResolved;
-        copiedConfiguration.canBeDeclared = canBeDeclared;
+        copiedConfiguration.canBeDeclaredAgainst = canBeDeclaredAgainst;
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
@@ -1533,7 +1533,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void assertIsDeclarable() {
-        if (!canBeDeclared) {
+        if (!canBeDeclaredAgainst) {
             throw new IllegalStateException("Declaring dependencies for configuration '" + name + "' is not allowed as it is defined as 'canBeDeclared=false'.");
         }
     }
@@ -1549,7 +1549,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             LOGGER.info("The configuration " + identityPath.toString() + " is both resolvable and consumable. This is considered a legacy configuration and it will eventually only be possible to be one of these.");
         }
 
-        if (canBeConsumed && canBeDeclared) {
+        if (canBeConsumed && canBeDeclaredAgainst) {
             LOGGER.info("The configuration " + identityPath.toString() + " is both consumable and declarable. This combination is incorrect, only one of these flags should be set.");
         }
 
@@ -1596,20 +1596,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public boolean isCanBeDeclaredAgainst() {
-        return canBeDeclared;
+        return canBeDeclaredAgainst;
     }
 
     @Override
     public void setCanBeDeclaredAgainst(boolean allowed) {
         validateMutation(MutationType.ROLE);
-        canBeDeclared = allowed;
+        canBeDeclaredAgainst = allowed;
     }
 
     @VisibleForTesting
     ListenerBroadcast<DependencyResolutionListener> getDependencyResolutionListeners() {
         return dependencyResolutionListeners;
     }
-
 
     @Override
     @Nullable
