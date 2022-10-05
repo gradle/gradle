@@ -505,6 +505,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         public void collectProvidersForClassHierarchy(ClassInspector inspector, Class<?> serviceType, ServiceProvider serviceProvider) {
             for (Class<?> type : inspector.getHierarchy(serviceType)) {
+                if (type.equals(Object.class)) {
+                    continue;
+                }
                 if (type.equals(ServiceRegistry.class)) {
                     // Disallow custom services of type ServiceRegistry, as these are automatically provided
                     throw new IllegalArgumentException("Cannot define a service of type ServiceRegistry: " + serviceProvider);
