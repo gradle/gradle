@@ -148,7 +148,7 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      * @return {@code true} if so; {@code false} otherwise
      */
     default boolean isConfigurationUsable() {
-        return !isCanBeDeclaredAgainst() && !isCanBeConsumed() && !isCanBeResolved();
+        return isCanBeDeclaredAgainst() || isCanBeConsumed() || isCanBeResolved();
     }
 
     interface VariantVisitor {
