@@ -326,6 +326,14 @@ Extended Configurations
 
             ${mavenCentralRepository()}
 
+            configurations {
+                archiveLegacy {
+                    description = 'Example legacy configuration.'
+                    canBeConsumed = true
+                    canBeResolved = true
+                }
+            }
+
             dependencies {
                 api 'org.apache.commons:commons-lang3:3.5'
                 implementation 'org.apache.commons:commons-compress:1.19'
@@ -350,9 +358,9 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration archives (l)
+Configuration archiveLegacy (l)
 --------------------------------------------------
-Configuration for archive artifacts.
+Example legacy configuration.
 
 --------------------------------------------------
 Configuration compileClasspath
@@ -369,14 +377,6 @@ Attributes
 Extended Configurations
     - compileOnly
     - implementation
-
---------------------------------------------------
-Configuration default (l)
---------------------------------------------------
-Configuration for default artifacts.
-
-Extended Configurations
-    - runtimeElements
 
 --------------------------------------------------
 Configuration runtimeClasspath
