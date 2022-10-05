@@ -225,7 +225,7 @@ assert repositories.size() == 1
 """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Referencing 'repositories' in this block is deprecated. Fully qualify your reference to this API or access it in another block. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#referencing_script_configure_method_from_container_configure_closure_deprecated")
+        executer.expectDocumentedDeprecationWarning("Referencing 'repositories' in this block is deprecated. Fully qualify your reference to this API or access it in another block. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#referencing_script_configure_method_from_container_configure_closure_deprecated")
         succeeds()
     }
 
@@ -259,7 +259,7 @@ assert configurations*.name.contains('conf')
 """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Referencing 'distributions' in this block is deprecated. Fully qualify your reference to this API or access it in another block. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#referencing_script_configure_method_from_container_configure_closure_deprecated")
+        executer.expectDocumentedDeprecationWarning("Referencing 'distributions' in this block is deprecated. Fully qualify your reference to this API or access it in another block. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#referencing_script_configure_method_from_container_configure_closure_deprecated")
         succeeds "resolve"
     }
 
