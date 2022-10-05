@@ -601,8 +601,9 @@ rootProject.name = 'root'
         apiConfiguration.dependencies[0].children.empty
     }
 
-    void "fails if attempting to use fully deprecated configurations"() {
-        given:
+    @ToBeFixedForConfigurationCache
+    void "excludes fully deprecated configurations"() {
+        executer.expectDeprecationWarning()
         mavenRepo.module("foo", "foo", '1.0').publish()
 
         file("build.gradle") << """
@@ -624,10 +625,12 @@ rootProject.name = 'root'
         """
 
         when:
-        fails "htmlDependencyReport"
+        run "htmlDependencyReport"
+        def json = readGeneratedJson("root")
+        def compileConfiguration = json.project.configurations.find { it.name == "compile" }
 
         then:
-        failure.hasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
+        !compileConfiguration
     }
 
     private def readGeneratedJson(fileNameWithoutExtension) {
