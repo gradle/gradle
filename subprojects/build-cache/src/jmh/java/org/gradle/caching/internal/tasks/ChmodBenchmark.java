@@ -87,7 +87,7 @@ public class ChmodBenchmark {
     public void setupIteration() throws IOException {
         this.tempDirPath = Files.createTempDirectory(tempRootDir, "iteration");
         this.tempDirFile = tempDirPath.toFile();
-        this.counter = new AtomicInteger(0);
+        this.counter = new AtomicInteger();
     }
 
     @TearDown(Level.Iteration)
