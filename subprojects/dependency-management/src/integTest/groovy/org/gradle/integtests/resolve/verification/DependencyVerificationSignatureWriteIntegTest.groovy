@@ -410,40 +410,6 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         outputContains("Exported 1 keys to")
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/20140")
-    def "export deduplicated PGP keys"() {
-        given:
-        testDirectory.file("gradle").mkdir()
-        testDirectory.file("gradle/verification-keyring.gpg").newOutputStream().withCloseable {
-            for (int i in 1..10) {
-                SigningFixtures.validPublicKey.encode(it, true)
-            }
-        }
-
-        def exportedKeyRing = file("gradle/verification-keyring.gpg")
-        def exportedKeyRingAscii = file("gradle/verification-keyring.keys")
-        // Check if pre-conditions are alright
-        def keyrings = SecuritySupport.loadKeyRingFile(exportedKeyRing)
-        assert keyrings.size() == 10
-
-        when:
-        // Export the keys...
-        writeVerificationMetadata()
-        succeeds ":help", "--export-keys"
-        keyrings = SecuritySupport.loadKeyRingFile(exportedKeyRing)
-
-        then:
-        // Only one key should exists, as keys are deduplicated
-        keyrings.size() == 1
-        // The expected public key should be the only entry
-        keyrings.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
-
-        // Check the same as above
-        def keyringsAscii = SecuritySupport.loadKeyRingFile(exportedKeyRingAscii)
-        keyringsAscii.size() == 1
-        keyringsAscii.find { it.publicKey.keyID == SigningFixtures.validPublicKey.keyID }
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/18567")
     def "--export-keys can export keys even with without --write-verification-metadata"() {
         def keyring = newKeyRing()
