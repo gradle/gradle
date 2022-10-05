@@ -18,9 +18,9 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.InputExecutionState;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;

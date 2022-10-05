@@ -25,8 +25,10 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.plugins.DslObject;
@@ -55,12 +57,15 @@ import org.gradle.internal.Cast;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
+import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.JavaToolchainSpecInternal;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
@@ -279,6 +284,8 @@ public class JavaBasePlugin implements Plugin<Project> {
             ConventionMapping conventionMapping = compile.getConventionMapping();
             conventionMapping.map("sourceCompatibility", determineCompatibility(compile, javaExtension, javaExtension::getSourceCompatibility, javaExtension::getRawSourceCompatibility));
             conventionMapping.map("targetCompatibility", determineCompatibility(compile, javaExtension, javaExtension::getTargetCompatibility, javaExtension::getRawTargetCompatibility));
+
+            compile.getDestinationDirectory().convention(project.getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention(compile)));
         });
     }
 
@@ -355,5 +362,58 @@ public class JavaBasePlugin implements Plugin<Project> {
         final JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
         final JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
         return toolMapper.apply(service, extension.getToolchain());
+    }
+
+    @Deprecated
+    @Inject
+    protected JavaToolchainQueryService getJavaToolchainQueryService() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Convention to fall back to the 'destinationDir' output for backwards compatibility with plugins that extend AbstractCompile
+     * and override the deprecated methods.
+     */
+    private static class BackwardCompatibilityOutputDirectoryConvention implements Callable<Directory> {
+        private final AbstractCompile compile;
+        private boolean recursiveCall;
+
+        public BackwardCompatibilityOutputDirectoryConvention(AbstractCompile compile) {
+            this.compile = compile;
+        }
+
+        @Override
+        @Nullable
+        public Directory call() throws Exception {
+            Method getter = GeneratedSubclasses.unpackType(compile).getMethod("getDestinationDir");
+            if (getter.getDeclaringClass() == AbstractCompile.class) {
+                // Subclass has not overridden the getter, so ignore
+                return null;
+            }
+
+            // Subclass has overridden the getter, so call it
+
+            if (recursiveCall) {
+                // Already querying AbstractCompile.getDestinationDirectory()
+                // In that case, this convention should not be used.
+                return null;
+            }
+            recursiveCall = true;
+            File legacyValue;
+            try {
+                // This will call a subclass implementation of getDestinationDir(), which possibly will not call the overridden getter
+                // In the Kotlin plugin, the subclass manages its own field which will be used here.
+                // This was to support tasks that extended AbstractCompile and had their own getDestinationDir().
+                // We actually need to keep this as compile.getDestinationDir to maintain compatibility.
+                legacyValue = compile.getDestinationDir();
+            } finally {
+                recursiveCall = false;
+            }
+            if (legacyValue == null) {
+                return null;
+            } else {
+                return compile.getProject().getLayout().getProjectDirectory().dir(legacyValue.getAbsolutePath());
+            }
+        }
     }
 }

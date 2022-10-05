@@ -289,7 +289,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         processResources.destinationDir == resourcesDir
 
         def compileJava = project.tasks['compileCustomJava']
-        compileJava.destinationDir == classesDir
+        compileJava.destinationDirectory.get().getAsFile() == classesDir
     }
 
     def "sourceSet reflect changes to tasks configuration"() {

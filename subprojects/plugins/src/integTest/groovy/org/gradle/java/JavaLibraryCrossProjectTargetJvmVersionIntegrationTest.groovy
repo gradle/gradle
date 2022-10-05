@@ -17,6 +17,7 @@
 package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractIntegrationSpec {
@@ -138,6 +139,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         expected = "apiElementsJdk$selected"
     }
 
+    @ToBeFixedForConfigurationCache(because = "serializes the incorrect artifact in ArtifactCollection used by resolve fixture")
     def "can disable automatic setting of target JVM attribute"() {
         file("producer/build.gradle") << """
             java {
