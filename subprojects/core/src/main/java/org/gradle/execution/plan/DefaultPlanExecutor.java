@@ -16,7 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.logging.Logger;
@@ -25,7 +24,10 @@ import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Cast;
 import org.gradle.internal.MutableReference;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.ExecutionResult;
+import org.gradle.internal.buildoption.InternalFlag;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -41,6 +43,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -56,7 +60,7 @@ import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY;
 
 @NonNullApi
 public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
-    public static final String STAT_PROPERTY_NAME = "org.gradle.internal.executor.stats";
+    public static final InternalFlag STATS = new InternalFlag("org.gradle.internal.executor.stats");
     private static final Logger LOGGER = Logging.getLogger(DefaultPlanExecutor.class);
     private final int executorCount;
     private final WorkerLeaseService workerLeaseService;
@@ -73,7 +77,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         WorkerLeaseService workerLeaseService,
         BuildCancellationToken cancellationToken,
         ResourceLockCoordinationService coordinationService,
-        StartParameter startParameter
+        InternalOptions internalOptions
     ) {
         this.cancellationToken = cancellationToken;
         this.coordinationService = coordinationService;
@@ -84,7 +88,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
         this.executorCount = numberOfParallelExecutors;
         this.workerLeaseService = workerLeaseService;
-        this.stats = startParameter.getSystemPropertiesArgs().getOrDefault(STAT_PROPERTY_NAME, "false").equalsIgnoreCase("true") ? new CollectingExecutorStats(state) : state;
+        this.stats = internalOptions.getOption(STATS).get() ? new CollectingExecutorStats(state) : state;
         this.queue = new MergedQueues(coordinationService, false);
         this.executor = executorFactory.create("Execution worker");
     }
@@ -118,7 +122,37 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
     @Override
     public void assertHealthy() {
-        coordinationService.withStateLock(() -> state.assertHealthy(queue));
+        // Wait until execution state is healthy.
+        // When all workers are waiting for work and work becomes available, there is a small period between signalling the workers and at least one worker waking up and starting work.
+        // If the health check is run during that period, it will fail because it appears that all workers are stuck.
+        //
+        // This situation can happen when the last task in an included build is executed by the thread that called process() and all other workers are waiting for work to be enabled in the
+        // other builds in the tree. The thread will signal the other threads and then stop running as a worker. At this point in time, work will be ready to start but all the (other) workers will
+        // still be waiting. A short time later, the workers will wake up and start running the work.
+        Instant expiry = Instant.now().plus(2, ChronoUnit.SECONDS);
+        ExecutorState.HealthState healthState;
+        do {
+            healthState = coordinationService.withStateLock(() -> state.healthCheck(queue));
+            if (healthState == null) {
+                // Health is ok
+                return;
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        } while (expiry.compareTo(Instant.now()) > 0);
+
+        // Health is not ok
+
+        // Log some diagnostic information to the console, in addition to aborting execution with an exception that will also be logged
+        // Given that the execution infrastructure is in an unhealthy state, it may not shut down cleanly and report the execution.
+        // So, log some details here just in case
+        System.out.println(healthState.detailMessage);
+
+        IllegalStateException failure = new IllegalStateException("Unable to make progress running work. There are items queued for execution but none of them can be started");
+        coordinationService.withStateLock(() -> queue.abortAllAndFail(failure));
     }
 
     /**
@@ -375,21 +409,24 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                     WorkSource.State state = queue.executionState();
                     if (state == WorkSource.State.NoMoreWorkToStart) {
                         return FINISHED;
-                    } else if (state == WorkSource.State.NoWorkReadyToStart) {
+                    }
+
+                    if (!workerLease.tryLock()) {
+                        // Cannot get a lease to run work
+                        // Do not call `startWaitingForNextItem()` as there may be work available but this worker cannot start it, and so should not be considered "waiting for work".
+                        // The health monitoring is currently only concerned with whether work can be started.
+                        // At some point it could be improved to track the health of all worker threads, not just the plan executor threads
+                        return RETRY;
+                    }
+
+                    if (state == WorkSource.State.NoWorkReadyToStart) {
                         stats.startWaitingForNextItem();
                         // Release worker lease while waiting
                         workerLease.unlock();
                         return RETRY;
                     }
 
-                    // Else there may be items ready, acquire a worker lease
-                    if (!workerLease.tryLock()) {
-                        // Cannot get a lease to run work
-                        // Do not call `startWaitingForNextItem()` as there is work available but this worker cannot start it
-                        // The health monitoring is currently only concerned with whether work can be started.
-                        // At some point it could be improved to track the health of all worker threads, not just the plan executor threads
-                        return RETRY;
-                    }
+                    // Have a worker lease and work may be available
 
                     WorkSource.Selection<WorkItem> workItem;
                     try {
@@ -513,19 +550,20 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         public void report() {
         }
 
-        public void assertHealthy(MergedQueues queues) {
+        @Nullable
+        public HealthState healthCheck(MergedQueues queues) {
             // Execution is healthy when:
             // - There is no work queued. There may be work still being run by workers, assume those workers are healthy (of course this isn't always true but for now assume it is)
             // - There is work queued, and some workers are running ("running" means "not stopped and not waiting for more work"). Assume the workers that are running are healthy
 
             if (queues.nothingQueued()) {
-                return;
+                return null;
             }
 
             List<WorkerState> workers = allWorkers.get();
             if (workers == null || workers.isEmpty()) {
                 // Workers have not been started yet, assume this is going to happen and that everything is healthy
-                return;
+                return null;
             }
 
             int waitingWorkers = 0;
@@ -533,7 +571,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
             for (WorkerState worker : workers) {
                 ExecutionState currentState = worker.state.get();
                 if (currentState == ExecutionState.Running) {
-                    return;
+                    return null;
                 } else if (currentState == ExecutionState.Waiting) {
                     waitingWorkers++;
                 } else if (currentState == ExecutionState.Stopped) {
@@ -543,10 +581,6 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
             // No workers doing anything
 
-            // Log some diagnostic information to the console, in addition to aborting execution with an exception that will also be logged
-            // Given that the execution infrastructure is in an unhealthy state, it may not shut down cleanly and report the execution.
-            // So, log some details here just in case
-
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Unable to make progress running work. The following items are queued for execution but none of them can be started:");
             formatter.startChildren();
@@ -554,14 +588,19 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
             formatter.node("Workers waiting for work: " + waitingWorkers);
             formatter.node("Stopped workers: " + stoppedWorkers);
             formatter.endChildren();
-            System.out.println(formatter);
-
-            IllegalStateException failure = new IllegalStateException("Unable to make progress running work. There are items queued for execution but none of them can be started");
-            queues.abortAllAndFail(failure);
+            return new HealthState(formatter);
         }
 
         enum ExecutionState {
             Running, Waiting, Stopped
+        }
+
+        private static class HealthState {
+            final TreeFormatter detailMessage;
+
+            public HealthState(TreeFormatter detailMessage) {
+                this.detailMessage = detailMessage;
+            }
         }
 
         private static class WorkerState implements WorkerStats {

@@ -47,10 +47,10 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.Describables;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
+import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.UnitOfWork.InputBehavior;
+import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
@@ -321,10 +321,9 @@ public class DefaultTransformer implements Transformer {
                 public void visitInputFileProperty(
                     String propertyName,
                     boolean optional,
-                    boolean skipWhenEmpty,
+                    InputBehavior behavior,
                     DirectorySensitivity directorySensitivity,
                     LineEndingSensitivity lineEndingNormalization,
-                    boolean incremental,
                     @Nullable Class<? extends FileNormalizer> fileNormalizer,
                     PropertyValue value,
                     InputFilePropertyType filePropertyType
@@ -332,8 +331,8 @@ public class DefaultTransformer implements Transformer {
                     validateInputFileNormalizer(propertyName, fileNormalizer, cacheable, validationContext);
                     visitor.visitInputFileProperty(
                         propertyName,
-                        incremental ? InputFingerprinter.InputPropertyType.INCREMENTAL : InputFingerprinter.InputPropertyType.NON_INCREMENTAL,
-                        new FileValueSupplier(
+                        behavior,
+                        new InputFileValueSupplier(
                             value,
                             fileNormalizer == null ? AbsolutePathInputNormalizer.class : fileNormalizer,
                             directorySensitivity,
@@ -425,15 +424,6 @@ public class DefaultTransformer implements Transformer {
         public TransformServiceLookup(Provider<FileSystemLocation> inputFileProvider, @Nullable ArtifactTransformDependencies artifactTransformDependencies, @Nullable InputChanges inputChanges, ServiceLookup delegate) {
             this.delegate = delegate;
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
-            builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, File.class, () -> {
-                DeprecationLogger
-                    .deprecate("Injecting the input artifact of a transform as a File")
-                    .withAdvice("Declare the input artifact as Provider<FileSystemLocation> instead.")
-                    .willBecomeAnErrorInGradle8()
-                    .withUserManual("artifact_transforms", "sec:implementing-artifact-transforms")
-                    .nagUser();
-                return inputFileProvider.get().getAsFile();
-            }));
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));
             if (artifactTransformDependencies != null) {
                 builder.add(InjectionPoint.injectedByAnnotation(InputArtifactDependencies.class, () -> artifactTransformDependencies.getFiles().orElseThrow(() -> new IllegalStateException("Transform does not use artifact dependencies."))));
@@ -559,16 +549,18 @@ public class DefaultTransformer implements Transformer {
         private final boolean cacheable;
         private final Class<?> implementationClass;
 
-        public IsolateTransformerParameters(@Nullable TransformParameters parameterObject,
-                                            Class<?> implementationClass,
-                                            boolean cacheable,
-                                            DomainObjectContext owner,
-                                            PropertyWalker parameterPropertyWalker,
-                                            IsolatableFactory isolatableFactory,
-                                            BuildOperationExecutor buildOperationExecutor,
-                                            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                            FileCollectionFactory fileCollectionFactory,
-                                            DocumentationRegistry documentationRegistry) {
+        public IsolateTransformerParameters(
+            @Nullable TransformParameters parameterObject,
+            Class<?> implementationClass,
+            boolean cacheable,
+            DomainObjectContext owner,
+            PropertyWalker parameterPropertyWalker,
+            IsolatableFactory isolatableFactory,
+            BuildOperationExecutor buildOperationExecutor,
+            ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            FileCollectionFactory fileCollectionFactory,
+            DocumentationRegistry documentationRegistry
+        ) {
             this.parameterObject = parameterObject;
             this.implementationClass = implementationClass;
             this.cacheable = cacheable;
@@ -613,10 +605,9 @@ public class DefaultTransformer implements Transformer {
                     public void visitInputFileProperty(
                         String propertyName,
                         boolean optional,
-                        boolean skipWhenEmpty,
+                        InputBehavior behavior,
                         DirectorySensitivity directorySensitivity,
                         LineEndingSensitivity lineEndingSensitivity,
-                        boolean incremental,
                         @Nullable Class<? extends FileNormalizer> fileNormalizer,
                         PropertyValue value,
                         InputFilePropertyType filePropertyType

@@ -6,7 +6,6 @@ description = "Provides plugins to configure quality checks (incubating report, 
 
 dependencies {
     implementation(project(":basics"))
-    implementation(project(":binary-compatibility"))
     implementation(project(":cleanup"))
     implementation(project(":documentation"))
     implementation(project(":integration-testing"))
@@ -15,6 +14,7 @@ dependencies {
 
     implementation("me.champeau.gradle:japicmp-gradle-plugin")
     implementation("org.codenarc:CodeNarc") {
+        exclude(group = "org.apache.groovy")
         exclude(group = "org.codehaus.groovy")
     }
     implementation("com.github.javaparser:javaparser-symbol-solver-core") {

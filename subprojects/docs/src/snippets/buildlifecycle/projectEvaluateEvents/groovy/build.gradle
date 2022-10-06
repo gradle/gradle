@@ -2,10 +2,11 @@
 allprojects {
     afterEvaluate { project ->
         if (project.hasTests) {
-            println "Adding test task to $project"
+            def projectString = project.toString()
+            println "Adding test task to $projectString"
             project.task('test') {
                 doLast {
-                    println "Running tests for $project"
+                    println "Running tests for $projectString"
                 }
             }
         }

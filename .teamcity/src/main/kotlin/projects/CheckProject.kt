@@ -41,6 +41,13 @@ class CheckProject(
             allowEmpty = true,
             description = "The extra gradle parameters you want to pass to all dependencies of this build, e.g. `-PrerunAllTests` or `--no-build-cache`"
         )
+        text(
+            "reverse.dep.*.skip.build",
+            "",
+            display = ParameterDisplay.NORMAL,
+            allowEmpty = true,
+            description = "Set to 'true' if you want to skip all dependency builds"
+        )
     }
 
     var prevStage: Stage? = null

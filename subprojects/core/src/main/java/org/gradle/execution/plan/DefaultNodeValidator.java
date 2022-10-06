@@ -66,7 +66,7 @@ public class DefaultNodeValidator implements NodeValidator {
                 String warning = convertToSingleLine(renderMinimalInformationAbout(problem, false, false));
                 DeprecationLogger.deprecateBehaviour(warning)
                     .withContext("Execution optimizations are disabled to ensure correctness.")
-                    .willBeRemovedInGradle8()
+                    .willBeRemovedInGradle9()
                     .withUserManual(userManualReference.getId(), userManualReference.getSection())
                     .nagUser();
             });

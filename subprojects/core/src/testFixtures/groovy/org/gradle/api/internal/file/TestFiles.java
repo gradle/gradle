@@ -56,7 +56,7 @@ import org.gradle.util.TestUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.List;
+import java.util.Collection;
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
@@ -77,7 +77,7 @@ public class TestFiles {
         return fileCollectionFactory().fixed(files);
     }
 
-    public static FileCollectionInternal fixed(List<File> files) {
+    public static FileCollectionInternal fixed(Collection<File> files) {
         return fileCollectionFactory().fixed(files);
     }
 

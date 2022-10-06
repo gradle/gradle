@@ -27,12 +27,14 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 
 import java.util.AbstractCollection;
-import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.Deque;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -56,7 +58,6 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     private final ResourceLockCoordinationService lockCoordinator;
     private Spec<? super Task> filter = Specs.satisfyAll();
     private int order = 0;
-    private boolean requiresScheduling;
     private boolean continueOnFailure;
 
     private final Set<Node> filteredNodes = newIdentityHashSet();
@@ -66,6 +67,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     };
 
     private DefaultFinalizedExecutionPlan finalizedPlan;
+    // An immutable copy of the final plan
+    private ImmutableList<Node> scheduledNodes;
 
     public DefaultExecutionPlan(
         String displayName,
@@ -102,11 +105,17 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
 
     @Override
     public void setScheduledNodes(Collection<? extends Node> nodes) {
-        if (requiresScheduling) {
+        if (scheduledNodes != null) {
             throw new IllegalStateException("This execution plan already has nodes scheduled.");
         }
         entryNodes.addAll(nodes);
+        scheduledNodes = ImmutableList.copyOf(nodes);
         nodeMapping.addAll(nodes);
+    }
+
+    @Override
+    public void addEntryTask(Task task) {
+        addEntryTasks(Collections.singletonList(task));
     }
 
     @Override
@@ -114,8 +123,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         addEntryTasks(tasks, order++);
     }
 
-    @Override
-    public void addEntryTasks(Collection<? extends Task> tasks, int ordinal) {
+    private void addEntryTasks(Collection<? extends Task> tasks, int ordinal) {
         SortedSet<Node> nodes = new TreeSet<>(NodeComparator.INSTANCE);
         for (Task task : tasks) {
             nodes.add(taskNodeFactory.getOrCreateNode(task));
@@ -134,9 +142,9 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     }
 
     private void doAddEntryNodes(SortedSet<? extends Node> nodes, int ordinal) {
-        requiresScheduling = true;
-        final Deque<Node> queue = new ArrayDeque<>();
-        final OrdinalGroup group = ordinalNodeAccess.group(ordinal);
+        scheduledNodes = null;
+        LinkedList<Node> queue = new LinkedList<>();
+        OrdinalGroup group = ordinalNodeAccess.group(ordinal);
 
         for (Node node : nodes) {
             node.maybeInheritOrdinalAsDependency(group);
@@ -148,10 +156,11 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         discoverNodeRelationships(queue);
     }
 
-    private void discoverNodeRelationships(Deque<Node> queue) {
+    private void discoverNodeRelationships(LinkedList<Node> queue) {
         Set<Node> visiting = new HashSet<>();
         while (!queue.isEmpty()) {
             Node node = queue.getFirst();
+            node.prepareForScheduling();
             if (node.getDependenciesProcessed() || node.isCannotRunInAnyPlan()) {
                 // Have already visited this node or have already executed it - skip it
                 queue.removeFirst();
@@ -176,9 +185,10 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
                 for (Node successor : node.getHardSuccessors()) {
                     successor.maybeInheritOrdinalAsDependency(node.getGroup());
                 }
-                for (Node successor : node.getDependencySuccessorsInReverseOrder()) {
+                ListIterator<Node> insertPoint = queue.listIterator();
+                for (Node successor : node.getDependencySuccessors()) {
                     if (!visiting.contains(successor)) {
-                        queue.addFirst(successor);
+                        insertPoint.add(successor);
                     }
                 }
             } else {
@@ -206,23 +216,26 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
 
     @Override
     public void determineExecutionPlan() {
-        if (requiresScheduling) {
-            new DetermineExecutionPlanAction(
+        if (scheduledNodes == null) {
+            scheduledNodes = new DetermineExecutionPlanAction(
                 nodeMapping,
                 ordinalNodeAccess,
                 entryNodes,
                 finalizers
             ).run();
-            requiresScheduling = true;
+            finalizers.clear();
         }
     }
 
     @Override
     public FinalizedExecutionPlan finalizePlan() {
+        if (scheduledNodes == null) {
+            throw new IllegalStateException("Nodes have node been scheduled yet.");
+        }
         if (finalizedPlan == null) {
             dependencyResolver.clear();
-            // TODO - make an immutable copy of the contents to pass to the finalized plan, and to return from
-            finalizedPlan = new DefaultFinalizedExecutionPlan(displayName, ordinalNodeAccess, outputHierarchy, destroyableHierarchy, lockCoordinator, nodeMapping, continueOnFailure, this, completionHandler);
+            // Should make an immutable copy of the contents to pass to the finalized plan and also to use in this instance
+            finalizedPlan = new DefaultFinalizedExecutionPlan(displayName, ordinalNodeAccess, outputHierarchy, destroyableHierarchy, lockCoordinator, scheduledNodes, continueOnFailure, this, completionHandler);
         }
         return finalizedPlan;
     }
@@ -244,6 +257,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         nodeMapping.clear();
         filteredNodes.clear();
         finalizers.clear();
+        scheduledNodes = null;
         ordinalNodeAccess.reset();
         dependencyResolver.clear();
     }
@@ -275,18 +289,26 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
 
     @Override
     public ScheduledNodes getScheduledNodes() {
-        // Take an immutable copy of the nodes, as the set of nodes for this plan can be mutated (e.g. if the result is used after execution has completed and clear() has been called).
-        ImmutableList.Builder<Node> builder = ImmutableList.builderWithExpectedSize(nodeMapping.nodes.size());
-        for (Node node : nodeMapping.nodes) {
-            // Do not include a task from another build when that task has already executed
-            // Most nodes that have already executed are filtered in `doAddNodes()` but these particular nodes are not
-            // It would be better to also remove these nodes in `doAddNodes()`
-            if (node instanceof TaskInAnotherBuild && ((TaskInAnotherBuild) node).getTask().getState().getExecuted()) {
-                continue;
-            }
-            builder.add(node);
+        if (scheduledNodes == null) {
+            throw new IllegalStateException("Nodes have node been scheduled yet.");
         }
-        return visitor -> lockCoordinator.withStateLock(() -> visitor.accept(builder.build()));
+        for (Node node : scheduledNodes) {
+            if (node instanceof TaskNode) {
+                // The task for a node can be attached lazily
+                // Ensure the task is available if the caller happens to need it.
+                // It would be better for callers to not touch nodes directly, but instead take some immutable snapshot here
+                ((TaskNode) node).getTask();
+            }
+        }
+        return new ScheduledNodes() {
+            // Hold a reference to the plan, as the field is discarded when the plan completes
+            final ImmutableList<Node> plan = scheduledNodes;
+
+            @Override
+            public void visitNodes(Consumer<List<Node>> visitor) {
+                visitor.accept(plan);
+            }
+        };
     }
 
     @Override
@@ -301,8 +323,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
     }
 
     @Override
-    public void useFilter(Spec<? super Task> filter) {
-        this.filter = filter;
+    public void addFilter(Spec<? super Task> filter) {
+        this.filter = Specs.intersect(this.filter, filter);
     }
 
     @Override
@@ -336,8 +358,8 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
             return true;
         }
 
-        public TaskNode get(Task task) {
-            TaskNode taskNode = taskMapping.get(task);
+        public LocalTaskNode get(Task task) {
+            LocalTaskNode taskNode = taskMapping.get(task);
             if (taskNode == null) {
                 throw new IllegalStateException("Task is not part of the execution plan, no dependency information is available.");
             }

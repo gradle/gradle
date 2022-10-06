@@ -39,17 +39,17 @@ import org.gradle.internal.Try
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.execution.WorkInputListeners
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
-import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
-import org.gradle.internal.execution.fingerprint.impl.FingerprinterRegistration
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
+import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
+import org.gradle.internal.execution.impl.FingerprinterRegistration
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.execution.timeout.TimeoutHandler
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
@@ -308,8 +308,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), inputFingerprinter)
         then:
         transformerInvocations == 1
-        1 * artifactTransformListener.beforeTransformerInvocation(_, _)
-        1 * artifactTransformListener.afterTransformerInvocation(_, _)
+        0 * _
     }
 
     def "re-runs transform when previous execution failed"() {
@@ -519,6 +518,6 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         TransformationSubject subject,
         InputFingerprinter inputFingerprinter
     ) {
-        return invoker.createInvocation(transformer, inputArtifact, dependencies, subject, inputFingerprinter).invoke()
+        return invoker.createInvocation(transformer, inputArtifact, dependencies, subject, inputFingerprinter).completeAndGet()
     }
 }

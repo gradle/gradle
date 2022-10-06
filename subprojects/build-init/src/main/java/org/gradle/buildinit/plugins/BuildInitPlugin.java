@@ -21,6 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.specs.Spec;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.tasks.InitBuild;
@@ -44,10 +45,11 @@ public class BuildInitPlugin implements Plugin<Project> {
                 initBuild.setGroup("Build Setup");
                 initBuild.setDescription("Initializes a new Gradle build.");
 
-                RelativeFilePathResolver resolver = ((ProjectInternal) project).getFileResolver();
+                ProjectInternal projectInternal = (ProjectInternal) project;
+                RelativeFilePathResolver resolver = projectInternal.getFileResolver();
                 File buildFile = project.getBuildFile();
                 FileDetails buildFileDetails = FileDetails.of(buildFile, resolver);
-                File settingsFile = ((ProjectInternal) project).getGradle().getSettings().getSettingsScript().getResource().getLocation().getFile();
+                File settingsFile = projectInternal.getGradle().getSettings().getSettingsScript().getResource().getLocation().getFile();
                 FileDetails settingsFileDetails = FileDetails.of(settingsFile, resolver);
 
                 initBuild.onlyIf(
@@ -56,8 +58,9 @@ public class BuildInitPlugin implements Plugin<Project> {
                 );
                 initBuild.dependsOn(new InitBuildDependsOnCallable(buildFileDetails, settingsFileDetails));
 
-                ProjectInternal.DetachedResolver detachedResolver = ((ProjectInternal) project).newDetachedResolver();
-                initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(detachedResolver, project.getObjects());
+                ProjectInternal.DetachedResolver detachedResolver = projectInternal.newDetachedResolver();
+                initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(
+                    detachedResolver, project.getObjects(), projectInternal.getServices().get(JvmEcosystemUtilities.class));
 
                 initBuild.getInsecureProtocol().convention(InsecureProtocolOption.WARN);
             });

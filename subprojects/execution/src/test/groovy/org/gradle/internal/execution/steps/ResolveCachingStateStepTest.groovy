@@ -20,15 +20,18 @@ import com.google.common.collect.ImmutableList
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
+import org.gradle.internal.reflect.validation.TypeValidationProblem
+
+import java.time.Duration
 
 class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
 
     def buildCache = Mock(BuildCacheController)
     def step = new ResolveCachingStateStep(buildCache, true, delegate)
+    def delegateResult = Stub(UpToDateResult)
 
-    @Override
-    protected ValidationFinishedContext createContext() {
-        Stub(ValidationFinishedContext)
+    def setup() {
+        delegateResult.duration >> Duration.ofSeconds(1)
     }
 
     def "build cache disabled reason is reported when build cache is disabled"() {
@@ -37,10 +40,11 @@ class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
         then:
         _ * buildCache.enabled >> false
         _ * context.beforeExecutionState >> Optional.empty()
+        _ * context.validationProblems >> ImmutableList.of()
         1 * delegate.execute(work, { CachingContext context ->
             context.cachingState.whenDisabled().map { it.disabledReasons*.category }.get() == [CachingDisabledReasonCategory.BUILD_CACHE_DISABLED]
             context.cachingState.whenDisabled().map { it.disabledReasons*.message }.get() == ["Build cache is disabled"]
-        })
+        }) >> delegateResult
     }
 
     def "disables caching when work is invalid"() {
@@ -49,11 +53,11 @@ class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
         then:
         _ * buildCache.enabled >> false
         _ * context.beforeExecutionState >> Optional.empty()
-        _ * context.validationProblems >> Optional.of({ ImmutableList.of("Validation problem") } as ValidationFinishedContext)
+        _ * context.validationProblems >> ImmutableList.of(Mock(TypeValidationProblem))
         1 * delegate.execute(work, { CachingContext context ->
             context.cachingState.whenDisabled().map { it.disabledReasons*.category }.get() == [CachingDisabledReasonCategory.VALIDATION_FAILURE]
             context.cachingState.whenDisabled().map { it.disabledReasons*.message }.get() == ["Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details."]
-        })
+        }) >> delegateResult
     }
 
     def "build cache disabled reason is determined without execution state"() {
@@ -64,9 +68,10 @@ class ResolveCachingStateStepTest extends StepSpec<ValidationFinishedContext> {
         then:
         _ * buildCache.enabled >> true
         _ * context.beforeExecutionState >> Optional.empty()
+        _ * context.validationProblems >> ImmutableList.of()
         _ * work.shouldDisableCaching(null) >> Optional.of(disabledReason)
         1 * delegate.execute(work, { CachingContext context ->
             context.cachingState.whenDisabled().map { it.disabledReasons }.get() as List == [disabledReason]
-        })
+        }) >> delegateResult
     }
 }

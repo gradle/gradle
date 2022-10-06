@@ -41,11 +41,4 @@ class BaseDeprecations {
             "Annotate the property ${propertyName} with @IgnoreEmptyDirectories or remove @SkipWhenEmpty. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#empty_directories_file_tree"
     }
-
-    protected static getIncrementalTaskInputsDeprecationWarning(String method) {
-        "IncrementalTaskInputs has been deprecated. " +
-            "This is scheduled to be removed in Gradle 8.0. " +
-            "On method '${method}' use 'org.gradle.work.InputChanges' instead. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"
-    }
 }

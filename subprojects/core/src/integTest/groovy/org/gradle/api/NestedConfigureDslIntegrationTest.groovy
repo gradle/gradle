@@ -225,7 +225,42 @@ assert repositories.size() == 1
 """
 
         expect:
+        executer.expectDocumentedDeprecationWarning("Referencing 'repositories' in this block is deprecated. Fully qualify your reference to this API or access it in another block. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#referencing_script_configure_method_from_container_configure_closure_deprecated")
         succeeds()
+    }
+
+    // NOTE: Documents actual behaviour, for backwards compatibility purposes, not desired behaviour
+    def "can reference script level configure method from async closure in named container configure closure when that closure would fail with MME if applied to a new element"() {
+        buildFile << """
+plugins {
+    id 'distribution'
+}
+${mavenCentralRepository()}
+
+configurations {
+    conf.incoming.afterResolve {
+        distributions {
+            myDist {
+                contents {}
+            }
+        }
+    }
+}
+
+task resolve {
+    dependsOn configurations.conf
+    doFirst {
+        configurations.conf.files() // Trigger `afterResolve`
+        assert distributions*.name.contains('myDist')
+    }
+}
+
+assert configurations*.name.contains('conf')
+"""
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Referencing 'distributions' in this block is deprecated. Fully qualify your reference to this API or access it in another block. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#referencing_script_configure_method_from_container_configure_closure_deprecated")
+        succeeds "resolve"
     }
 
     def "reports missing method from inside configure closure"() {

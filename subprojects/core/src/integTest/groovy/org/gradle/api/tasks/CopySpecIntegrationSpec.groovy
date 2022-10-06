@@ -221,7 +221,7 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec implements Unreada
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
     @Issue("https://github.com/gradle/gradle/issues/2552")
-    def "copying files to a directory with named pipes causes a deprecation warning"() {
+    def "copying files to a directory with named pipes fails"() {
         def input = file("input.txt").createFile()
 
         def outputDirectory = file("output").createDir()
@@ -235,18 +235,10 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec implements Unreada
         """
 
         when:
-        expectUnreadableCopyDestinationDeprecationWarning()
-        run "copy"
+        runAndFail "copy"
         then:
-        outputDirectory.list().contains input.name
-        executedAndNotSkipped(":copy")
-
-        when:
-        expectUnreadableCopyDestinationDeprecationWarning()
-        run "copy"
-        then:
-        outputDirectory.list().contains input.name
-        executedAndNotSkipped(":copy")
+        expectUnreadableCopyDestinationFailure()
+        failureHasCause("java.io.IOException: Cannot snapshot ${pipe}: not a regular file")
 
         cleanup:
         pipe.delete()

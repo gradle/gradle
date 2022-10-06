@@ -33,7 +33,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.internal.Try
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 
@@ -135,7 +135,7 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
             TransformationSubject.initial(artifact),
             inputFingerprinter
         )
-        invocation.invoke()
+        invocation.completeAndGet()
     }
 
     static abstract class IdentityTransform implements TransformAction<TransformParameters.None> {

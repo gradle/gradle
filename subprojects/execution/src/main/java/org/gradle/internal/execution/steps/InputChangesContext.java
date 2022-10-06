@@ -18,9 +18,27 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
-public interface InputChangesContext extends ValidationFinishedContext {
-    Optional<InputChangesInternal> getInputChanges();
-    boolean isIncrementalExecution();
+public class InputChangesContext extends ValidationFinishedContext {
+
+    private final InputChangesInternal inputChanges;
+
+    public InputChangesContext(ValidationFinishedContext parent, @Nullable InputChangesInternal inputChanges) {
+        super(parent);
+        this.inputChanges = inputChanges;
+    }
+
+    protected InputChangesContext(InputChangesContext parent) {
+        this(parent, parent.getInputChanges().orElse(null));
+    }
+
+    public Optional<InputChangesInternal> getInputChanges() {
+        return Optional.ofNullable(inputChanges);
+    }
+
+    public boolean isIncrementalExecution() {
+        return inputChanges != null && inputChanges.isIncremental();
+    }
 }

@@ -49,7 +49,17 @@ public interface ExecutionFailure extends ExecutionResult {
      *
      * <p>Error messages are normalized to use new-line char as line separator.
      */
-    ExecutionFailure assertHasCause(String description);
+    ExecutionFailure assertHasCause(String cause);
+
+    /**
+     * Asserts that there is a failure present with the given cause (ie the bit after the description).
+     *
+     * <p>Error messages are normalized to use new-line char as line separator.
+     * They are also required to contain a link to documentation.
+     */
+    default ExecutionFailure assertHasDocumentedCause(String cause) {
+        return assertHasCause(DocumentationUtils.normalizeDocumentationLink(cause));
+    }
 
     /**
      * Asserts that there is a failure present with the given cause (ie the bit after the description).
@@ -63,7 +73,7 @@ public interface ExecutionFailure extends ExecutionResult {
      *
      * <p>Error messages are normalized to use new-line char as line separator.
      */
-    ExecutionFailure assertHasDescription(String context);
+    ExecutionFailure assertHasDescription(String description);
 
     /**
      * Asserts that there is a failure present with the given description (ie the bit after '* What went wrong').
@@ -106,5 +116,10 @@ public interface ExecutionFailure extends ExecutionResult {
          * Asserts that this failure has the given cause
          */
         void assertHasCause(String message);
+
+        /**
+         * Asserts that this failure has the given first cause
+         */
+        void assertHasFirstCause(String message);
     }
 }

@@ -17,7 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.Flaky
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -165,6 +164,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21000")
+    @Ignore("https://github.com/gradle/gradle-private/issues/3574")
     def "finalizer task can depend on finalized tasks where one is an entry point task and one is not"() {
         given:
         buildFile '''
@@ -190,7 +190,10 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
         2.times {
             fails 'entryPoint', '-PentryPoint.broken'
-            // TODO - shouldn't run the finalizer dependencies, as the finalizer will never run
+            result.assertTasksExecuted ':entryPoint'
+        }
+        2.times {
+            fails 'entryPoint', '-PentryPoint.broken', '--continue'
             result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep'
         }
         2.times {
@@ -327,7 +330,6 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3566")
     @Issue("https://github.com/gradle/gradle/issues/21325")
     def "finalizer can have dependencies that are not reachable from first discovered finalized task and reachable from second discovered finalized task"() {
         buildFile '''
@@ -391,12 +393,10 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
             result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
         }
         2.times {
-            fails 'entry', '-PshadowJar.broken'
-            // TODO - should not run jar as finalizer will not run
-            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar'
+            fails 'entry', '-PshadowJar.broken', '--continue'
+            result.assertTasksExecuted ':classes', ':jar', ':shadowJar', ':jarOne'
             result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar'
         }
-
         2.times {
             succeeds 'jarOne', 'lifecycleTwo'
             result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'

@@ -32,6 +32,7 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
     void expectAndroidWorkerExecutionSubmitDeprecationWarning(String agpVersion) {
         runner.expectLegacyDeprecationWarningIf(androidPluginUsesOldWorkerApi(agpVersion), WORKER_SUBMIT_DEPRECATION)
     }
+<<<<<<< HEAD
 
     void expectAndroidIncrementalTaskInputsDeprecation(String agpVersion) {
         def agpVersionNumber = VersionNumber.parse(agpVersion)
@@ -51,4 +52,6 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
                 " Please use the generatedSourceOutputDirectory property instead." +
                 " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory for more details.")
     }
+=======
+>>>>>>> master
 }

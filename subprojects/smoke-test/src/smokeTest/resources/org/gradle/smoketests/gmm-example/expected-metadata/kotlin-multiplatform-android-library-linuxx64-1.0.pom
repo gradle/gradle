@@ -14,7 +14,11 @@
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-stdlib-common</artifactId>
+<<<<<<< HEAD
       <version>1.5.31</version>
+=======
+      <version>1.7.10</version>
+>>>>>>> master
       <scope>compile</scope>
     </dependency>
   </dependencies>

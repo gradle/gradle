@@ -18,17 +18,15 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.cache.Cache;
+import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.DeferredExecutionHandler;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
-import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nonnull;
-import java.util.Optional;
 
 public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> implements DeferredExecutionAwareStep<C, R> {
     private final DeferredExecutionAwareStep<? super IdentityContext, R> delegate;
@@ -45,8 +43,8 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
     }
 
     @Override
-    public <T, O> T executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<O>> cache, DeferredExecutionHandler<O, T> handler) {
-        return delegate.executeDeferred(work, createIdentityContext(work, context), cache, handler);
+    public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, Try<T>> cache) {
+        return delegate.executeDeferred(work, createIdentityContext(work, context), cache);
     }
 
     @Nonnull
@@ -58,35 +56,11 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
             ImmutableSortedMap.of(),
             work::visitIdentityInputs
         );
+
         ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = inputs.getValueSnapshots();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = inputs.getFileFingerprints();
-
         Identity identity = work.identify(identityInputProperties, identityInputFileProperties);
-        return new IdentityContext() {
-            @Override
-            public Optional<String> getNonIncrementalReason() {
-                return context.getNonIncrementalReason();
-            }
 
-            @Override
-            public WorkValidationContext getValidationContext() {
-                return context.getValidationContext();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                return identityInputProperties;
-            }
-
-            @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                return identityInputFileProperties;
-            }
-
-            @Override
-            public Identity getIdentity() {
-                return identity;
-            }
-        };
+        return new IdentityContext(context, identityInputProperties, identityInputFileProperties, identity);
     }
 }
