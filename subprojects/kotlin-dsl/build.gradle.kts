@@ -63,7 +63,7 @@ dependencies {
     implementation(libs.futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("assignment")) {
+    implementation(libs.futureKotlin("assignment-compiler-plugin-embeddable")) {
         isTransitive = false
     }
     implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0") {
