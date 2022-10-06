@@ -1100,7 +1100,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             logIfImproperConfiguration();
 
             // We will only check unique attributes if this configuration is consumable, not resolvable, and has attributes itself
-            if (isCanBeConsumed() && !isCanBeResolved() && !getAttributes().isEmpty()) {
+            if (mustHaveUniqueAttributes(this) && !this.getAttributes().isEmpty()) {
                 ensureUniqueAttributes();
             }
         }
@@ -1112,7 +1112,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             final Collection<? extends Capability> allCapabilities = allCapabilitiesIncludingDefault(this);
 
             final Consumer<ConfigurationInternal> warnIfDuplicate = otherConfiguration -> {
-                if (hasSameCapabilitiesAs(allCapabilities, otherConfiguration) && hasSameAttributesAs(otherConfiguration) && otherConfiguration.isCanBeConsumed()) {
+                if (mustHaveUniqueAttributes(otherConfiguration) && hasSameCapabilitiesAs(allCapabilities, otherConfiguration) && hasSameAttributesAs(otherConfiguration)) {
                     DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project must have unique attributes, but " + getDisplayName() + " and " + otherConfiguration.getDisplayName() + " contain identical attribute sets.")
                         .withAdvice("Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details.")
                         .willBecomeAnErrorInGradle8()
@@ -1129,6 +1129,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 .filter(c -> !c.getAttributes().isEmpty())
                 .forEach(warnIfDuplicate);
         }
+    }
+
+    private boolean mustHaveUniqueAttributes(Configuration configuration) {
+        return configuration.isCanBeConsumed() && !configuration.isCanBeResolved();
     }
 
     private Collection<? extends Capability> allCapabilitiesIncludingDefault(Configuration conf) {
