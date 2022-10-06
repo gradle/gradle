@@ -1112,8 +1112,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             final Collection<? extends Capability> allCapabilities = allCapabilitiesIncludingDefault(this);
 
             final Consumer<ConfigurationInternal> warnIfDuplicate = otherConfiguration -> {
-                if (mustHaveUniqueAttributes(otherConfiguration) && hasSameCapabilitiesAs(allCapabilities, otherConfiguration) && hasSameAttributesAs(otherConfiguration)) {
-                    DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project must have unique attributes, but " + getDisplayName() + " and " + otherConfiguration.getDisplayName() + " contain identical attribute sets.")
+                if (hasSameCapabilitiesAs(allCapabilities, otherConfiguration) && hasSameAttributesAs(otherConfiguration)) {
+                    DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but " + getDisplayName() + " and " + otherConfiguration.getDisplayName() + " contain identical attribute sets.")
                         .withAdvice("Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details.")
                         .willBecomeAnErrorInGradle8()
                         .withUpgradeGuideSection(7, "unique_attribute_sets")
@@ -1122,17 +1122,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             };
 
             all.stream()
-                .filter(Configuration::isCanBeConsumed)
-                .filter(c -> !c.isCanBeResolved())
-                .filter(c -> !c.isCanBeMutated())
                 .filter(c -> c != this)
-                .filter(c -> !c.getAttributes().isEmpty())
+                .filter(this::mustHaveUniqueAttributes)
+                .filter(c -> !c.isCanBeMutated())
                 .forEach(warnIfDuplicate);
         }
     }
 
+    /**
+     * The only configurations which must have unique attributes are those which are consumable (and not also resolvable, legacy configurations),
+     * excluding the default configuration.
+     *
+     * @param configuration the configuration to inspect
+     * @return {@code true} if the given configuration must have unique attributes; {@code false} otherwise
+     */
     private boolean mustHaveUniqueAttributes(Configuration configuration) {
-        return configuration.isCanBeConsumed() && !configuration.isCanBeResolved();
+        return configuration.isCanBeConsumed() && !configuration.isCanBeResolved() && !Dependency.DEFAULT_CONFIGURATION.equals(configuration.getName());
     }
 
     private Collection<? extends Capability> allCapabilitiesIncludingDefault(Configuration conf) {
