@@ -34,7 +34,6 @@ import japicmp.model.JApiChangeStatus
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.RegularFile
 
 class BinaryCompatibilityHelper {
     static setupJApiCmpRichReportRules(
@@ -42,8 +41,8 @@ class BinaryCompatibilityHelper {
         AcceptedApiChanges acceptedViolations,
         FileCollection sourceRoots,
         String currentVersion,
-        RegularFile apiChangesJsonFile = null,
-        Directory projectRootDir = null
+        File apiChangesJsonFile,
+        Directory projectRootDir
     ) {
         japicmpTask.tap {
             doNotTrackState("classloading issues with rules")
@@ -53,8 +52,8 @@ class BinaryCompatibilityHelper {
 
             def acceptedChangesMap = acceptedViolations.toAcceptedChangesMap()
 
-            def apiChangesJsonFilePath = apiChangesJsonFile ? apiChangesJsonFile.asFile.path : null
-            def projectRootDirPath = projectRootDir ? projectRootDir.asFile.path : null
+            def apiChangesJsonFilePath = apiChangesJsonFile.path
+            def projectRootDirPath = projectRootDir.asFile.path
 
             richReport.get().tap {
                 addRule(IncubatingInternalInterfaceAddedRule, [

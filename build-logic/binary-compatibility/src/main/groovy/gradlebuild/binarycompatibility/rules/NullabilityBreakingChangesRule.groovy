@@ -35,7 +35,7 @@ import java.lang.reflect.Proxy
 class NullabilityBreakingChangesRule extends AbstractGradleViolationRule {
 
     NullabilityBreakingChangesRule(Map<String, Object> params) {
-        super((Map<String, String>)params['acceptedApiChanges'], (String)params['apiChangesJsonFile'], (String)params['projectRootDir'])
+        super(params)
     }
 
     @Override

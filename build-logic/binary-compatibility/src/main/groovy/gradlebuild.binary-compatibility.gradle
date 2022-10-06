@@ -158,7 +158,7 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
         it.renderer.set(EnrichedReportRenderer.class)
     } as Action)
 
-    BinaryCompatibilityHelper.setupJApiCmpRichReportRules(delegate, acceptedViolations, apiSourceFolders, baseVersion.get(), apiChangesJsonFile, rootProject.layout.projectDirectory)
+    BinaryCompatibilityHelper.setupJApiCmpRichReportRules(delegate, acceptedViolations, apiSourceFolders, baseVersion.get(), apiChangesJsonFile.asFile, rootProject.layout.projectDirectory)
 }
 tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }
 
