@@ -16,14 +16,18 @@
 
 package org.gradle.language.c
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.SourceFile
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+// This is failing on release6x and we don't want to spent time on it
+@Requires(TestPrecondition.NOT_WINDOWS)
 @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
 class MixedLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 

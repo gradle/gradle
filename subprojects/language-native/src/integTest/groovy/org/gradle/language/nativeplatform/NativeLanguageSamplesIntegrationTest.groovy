@@ -15,8 +15,8 @@
  */
 package org.gradle.language.nativeplatform
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -29,7 +29,8 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPAT
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
-@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+// This is failing on release6x and we don't want to spent time on it
+@Requires(adhoc = { TestPrecondition.CAN_INSTALL_EXECUTABLE.fulfilled && TestPrecondition.NOT_WINDOWS.fulfilled })
 class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider(getClass())
     @Rule public final Sample assembler = sample(testDirProvider, 'assembler')

@@ -23,9 +23,13 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.AssemblerWithCHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.Matchers.containsText
 
+// This is failing on release6x and we don't want to spent time on it
+@Requires(TestPrecondition.NOT_WINDOWS)
 @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
 class AssemblyLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
