@@ -27,6 +27,8 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         System.out.println("TAPI client is using Java " + clientJdkVersion)
 
         def compilerJdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
+        // We don't maintain JDK 6 on Windows any more
+        Assume.assumeNotNull(compilerJdk)
         String compilerJavaHomePath = TextUtil.normaliseFileSeparators(compilerJdk.javaHome.absolutePath)
         executer.beforeExecute {
             withToolchainDetectionEnabled()
