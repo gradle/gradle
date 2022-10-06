@@ -65,7 +65,7 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
                 }
 
                 function appendErrorCorrections() {
-                    var result = $currentApiChanges;
+                    var result = JSON.parse("$currentApiChanges");
                     getAllErrorCorrections().forEach(function(correction) {
                         result.acceptedApiChanges.push(correction);
                     });
