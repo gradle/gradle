@@ -28,7 +28,7 @@ import org.gradle.jvm.toolchain.JavaInstallationRegistry
  */
 abstract class BuildJvms(javaInstallationRegistry: JavaInstallationRegistry, testJavaHome: Provider<Directory>) {
     private
-    val productionJdkName = "AdoptOpenJDK 11"
+    val productionJdkName = "Eclipse Adoptium JDK 11"
 
     val buildJvm = javaInstallationRegistry.installationForCurrentVirtualMachine
 
