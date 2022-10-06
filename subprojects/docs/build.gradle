@@ -736,10 +736,6 @@ tasks.named("docsTest") { task ->
                 "publishing-credentials_groovy_publishCommandLineCredentials.sample",
                 "publishing-credentials_kotlin_publishCommandLineCredentials.sample",
 
-                // TODO(https://github.com/gradle/gradle/issues/21027) The test expects the build to fail, but the failure looks slightly different when the configuration cache is enabled.
-                //  We need to improve the test harness to work with such tests.
-                "snippet-dependency-management-customizing-resolution-deactivate-global-substitution_kotlin_resolve.sample",
-
                 // TODO(https://github.com/gradle/gradle/issues/14880)
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_groovy_iterating-dependencies.sample",
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_kotlin_iterating-dependencies.sample",
