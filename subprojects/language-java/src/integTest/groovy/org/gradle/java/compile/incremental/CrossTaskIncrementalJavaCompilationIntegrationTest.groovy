@@ -17,6 +17,9 @@
 
 package org.gradle.java.compile.incremental
 
+import spock.lang.Ignore
+
+@Ignore("https://github.com/gradle/gradle-private/issues/3364")
 class CrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractCrossTaskIncrementalJavaCompilationIntegrationTest {
     boolean useJar = true
 }
