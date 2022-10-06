@@ -168,7 +168,6 @@ public class InitBuild extends DefaultTask {
      */
     @Input
     @Option(option = "insecure-protocol", description = "How to handle insecure URLs used for Maven Repositories.")
-    @Incubating
     public Property<InsecureProtocolOption> getInsecureProtocol() {
         return insecureProtocol;
     }
