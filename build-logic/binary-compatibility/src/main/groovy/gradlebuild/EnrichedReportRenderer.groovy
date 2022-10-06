@@ -65,7 +65,7 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
                 }
 
                 function appendErrorCorrections() {
-                    var result = JSON.parse("$currentApiChanges");
+                    var result = JSON.parse('${currentApiChanges.replace('\n', '')}'); // JSON string from report uses double quotes, contain it within single quotes
                     getAllErrorCorrections().forEach(function(correction) {
                         result.acceptedApiChanges.push(correction);
                     });
@@ -84,16 +84,10 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
                     downloadLink.download = fileNameToSaveAs;
                     downloadLink.innerHTML = "Download File";
 
-                    if (window.webkitURL != null) {
-                        // Chrome allows the link to be clicked without actually adding it to the DOM
-                        downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
-                    } else {
-                        // Firefox requires the link to be added to the DOM before it can be clicked
-                        downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
-                        downloadLink.onclick = destroyClickedElement;
-                        downloadLink.style.display = "none";
-                        document.body.appendChild(downloadLink);
-                    }
+                    // Add the link to the DOM so that it can be clicked
+                    downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+                    downloadLink.style.display = "none";
+                    document.body.appendChild(downloadLink);
 
                     downloadLink.click();
                 }
