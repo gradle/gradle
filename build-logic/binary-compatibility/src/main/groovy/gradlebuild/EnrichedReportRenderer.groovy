@@ -56,22 +56,16 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
         return """
             <script type="text/javascript">
                 function getAllErrorCorrections() {
-                    var changeElements = \$(".well pre")
-                    var result = []
-                    changeElements.each(function() {
-                        result.push(JSON.parse(this.textContent));
-                    })
+                    var changeElements = \$(".well pre");
+                    var result = [];
+                    changeElements.each((idx, val) => result.push(JSON.parse(val.textContent)));
                     return result;
                 }
 
                 function appendErrorCorrections() {
                     var result = JSON.parse('${currentApiChanges.replace('\n', '')}'); // JSON string from report uses double quotes, contain it within single quotes
-                    getAllErrorCorrections().forEach(function(correction) {
-                        result.acceptedApiChanges.push(correction);
-                    });
-                    result.acceptedApiChanges = result.acceptedApiChanges.sort(function(a, b) {
-                        return (a.type + a.member) - (b.type + b.member);
-                    });
+                    getAllErrorCorrections().forEach((correction) => result.acceptedApiChanges.push(correction));
+                    result.acceptedApiChanges = result.acceptedApiChanges.sort((a, b) => (a.type + a.member) - (b.type + b.member));
                     return result;
                 }
 
