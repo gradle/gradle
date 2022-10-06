@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -50,6 +51,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
         runner('build').build()
     }
 
+    @Ignore("Plugin incompatible with plugin-publish 1.0.0 and Gradle 8 - enable static check for this when removing ignore, see below - https://github.com/nebula-plugins/nebula-plugin-plugin/issues/71")
     @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
     @ToBeFixedForConfigurationCache(because = "Gradle.addBuildListener")
     def 'nebula plugin plugin'() {
