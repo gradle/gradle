@@ -106,6 +106,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     CrossVersionPerformanceResults run() {
+        Assume.assumeFalse("Disable all performance tests on release6x", true)
         assumeShouldRun()
 
         def results = new CrossVersionPerformanceResults(
