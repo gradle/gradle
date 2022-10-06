@@ -18,12 +18,13 @@ package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.base.Objects;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import java.util.function.Predicate;
 
-public class DefaultJvmVendorSpec extends JvmVendorSpec implements Predicate<JavaToolchain> {
+public class DefaultJvmVendorSpec extends JvmVendorSpec implements Predicate<JvmInstallationMetadata> {
 
     private static final JvmVendorSpec ANY = new DefaultJvmVendorSpec(v -> true, "any");
 
@@ -48,13 +49,18 @@ public class DefaultJvmVendorSpec extends JvmVendorSpec implements Predicate<Jav
     }
 
     @Override
-    public boolean test(JavaToolchain toolchain) {
-        final JvmVendor vendor = toolchain.getMetadata().getVendor();
+    public boolean test(JvmInstallationMetadata metadata) {
+        final JvmVendor vendor = metadata.getVendor();
         return test(vendor);
     }
 
     public boolean test(JvmVendor vendor) {
         return matcher.test(vendor);
+    }
+
+    @Override
+    public boolean matches(String vendor) {
+        return test(JvmVendor.fromString(vendor));
     }
 
     @Override

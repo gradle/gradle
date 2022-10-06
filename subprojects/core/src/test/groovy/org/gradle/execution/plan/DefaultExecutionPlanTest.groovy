@@ -42,7 +42,8 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultExecutionPlan executionPlan
     DefaultFinalizedExecutionPlan finalizedPlan
 
-    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor())
+    def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
+    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationExecutor(), accessHierarchies)
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
 
     def setup() {
@@ -51,7 +52,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
     private DefaultExecutionPlan newExecutionPlan() {
         executionPlan?.close()
-        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), new ExecutionNodeAccessHierarchy(CASE_SENSITIVE, Stub(Stat)), coordinator)
+        new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator)
     }
 
     def "schedules tasks in dependency order"() {
@@ -283,7 +284,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         }
 
         when:
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([finalized])
 
         then:
@@ -470,23 +471,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         addToGraphAndPopulate([entryPoint])
 
         then:
-        // TODO(mlopatkin) A potential execution order that was working in 7.4:
-        //   executionPlan.tasks as List == [entryPoint, finalizerDepA, finalizerDepB, finalizerB, finalizerA]
-        // It somewhat violates a finalizer constraint: "only run dependencies of a finalizer after completing a finalized task"
-        // To satisfy that, finalizerDepA should run after finalizerDepB, and finalizerDepB should run after finalizerDepA.
-        // Obviously, both constraints cannot be satisfied at once.
-        // There is an alternative reading though. The entryPoint is finalized by finalizerA, and we started to execute
-        // finalizerA's dependencies; finalizerDepA happen to be finalized by finalizerB, so we schedule it and its dependency after
-        // finalizerDepA. Then we complete everything with finalizerA. This reading is somewhat similar to the case where finalizerDepA
-        // is reachable from the entry point.
-        def e = thrown CircularReferenceException
-        e.message == TextUtil.toPlatformLineSeparators("""Circular dependency between the following tasks:
-:finalizerDepA
-\\--- :finalizerDepB
-     \\--- :finalizerDepA (*)
-
-(*) - details omitted (listed previously)
-""")
+        executes(entryPoint, finalizerDepA, finalizerDepB, finalizerB, finalizerA)
     }
 
     def "cannot add task with circular reference"() {
@@ -812,7 +797,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([a, b])
 
         then:
@@ -831,7 +816,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([c])
 
         then:
@@ -850,7 +835,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != a }
 
         when:
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([b, c])
 
         then:
@@ -871,7 +856,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         filter.isSatisfiedBy(_) >> { Task t -> t != b }
 
         when:
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([c])
 
         then:
@@ -918,7 +903,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task b = task("b", dependsOn: [a])
         Task c = task("c")
         def filter = { it != b } as Spec<Task>
-        executionPlan.useFilter(filter)
+        executionPlan.addFilter(filter)
         addToGraphAndPopulate([b, c])
         executes(c)
 

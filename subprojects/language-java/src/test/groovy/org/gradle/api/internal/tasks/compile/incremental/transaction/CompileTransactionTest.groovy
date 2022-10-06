@@ -52,6 +52,7 @@ class CompileTransactionTest extends Specification {
         spec.setTempDir(temporaryFolder)
         spec.setCompileOptions(new CompileOptions(TestUtil.objectFactory()))
         spec.setDestinationDir(createNewDirectory(file("classes")))
+        spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(true)
     }
 
     CompileTransaction newCompileTransaction() {
@@ -151,6 +152,24 @@ class CompileTransactionTest extends Specification {
 
         then:
         thrown(RuntimeException)
+        isEmptyDirectory(destinationDir)
+    }
+
+    def "files are stashed but not restored on a compile failure if incremental compilation after failure is not supported"() {
+        spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(false)
+        def destinationDir = spec.getDestinationDir()
+        new File(destinationDir, "file.txt").createNewFile()
+        def pattern = new PatternSet().include("**/*.txt")
+
+        when:
+        newCompileTransaction(pattern).execute {
+            assert isEmptyDirectory(destinationDir)
+            assert stashDir.list() as Set ==~ ["file.txt.uniqueId0"]
+            throw new CompilationFailedException()
+        }
+
+        then:
+        thrown(CompilationFailedException)
         isEmptyDirectory(destinationDir)
     }
 

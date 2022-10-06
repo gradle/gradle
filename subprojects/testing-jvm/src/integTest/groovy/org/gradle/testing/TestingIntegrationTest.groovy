@@ -16,6 +16,7 @@
 package org.gradle.testing
 
 import org.apache.commons.lang.RandomStringUtils
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -274,7 +275,9 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         // In a nutshell, this tests that we don't even try to load classes that are there, but that we shouldn't see.
 
         when:
-        executer.withToolchainDetectionEnabled().withToolchainDownloadEnabled()
+        executer
+                .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
+                .withToolchainDetectionEnabled()
         buildScript """
             plugins {
                 id("java")
@@ -446,9 +449,10 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/5305")
     def "test can install an irreplaceable SecurityManager"() {
         given:
-        executer.withStackTraceChecksDisabled()
-            .withToolchainDetectionEnabled()
-            .withToolchainDownloadEnabled()
+        executer
+                .withStackTraceChecksDisabled()
+                .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
+                .withToolchainDetectionEnabled()
         buildFile << """
             plugins {
                 id("java")

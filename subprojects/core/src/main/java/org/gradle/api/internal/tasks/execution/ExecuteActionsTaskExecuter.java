@@ -27,11 +27,11 @@ import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionEngine.Result;
-import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -40,6 +40,8 @@ import org.gradle.internal.work.AsyncWorkTracker;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_INCREMENTALLY;
 
 /**
  * A {@link TaskExecuter} which executes the actions of a task.
@@ -137,8 +139,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         context.getTaskExecutionMode().getRebuildReason().ifPresent(request::forceNonIncremental);
         request.withValidationContext(context.getValidationContext());
         Result result = request.execute();
-        result.getExecutionResult().ifSuccessfulOrElse(
-            executionResult -> state.setOutcome(TaskExecutionOutcome.valueOf(executionResult.getOutcome())),
+        result.getExecution().ifSuccessfulOrElse(
+            success -> state.setOutcome(convertOutcome(success.getOutcome())),
             failure -> state.setOutcome(new TaskExecutionException(task, failure))
         );
         return new TaskExecuterResult() {
@@ -149,8 +151,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
             @Override
             public boolean executedIncrementally() {
-                return result.getExecutionResult()
-                    .map(executionResult -> executionResult.getOutcome() == ExecutionOutcome.EXECUTED_INCREMENTALLY)
+                return result.getExecution()
+                    .map(executionResult -> executionResult.getOutcome() == EXECUTED_INCREMENTALLY)
                     .getOrMapFailure(throwable -> false);
             }
 
@@ -164,5 +166,21 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 return result.getCachingState();
             }
         };
+    }
+
+    private static TaskExecutionOutcome convertOutcome(ExecutionOutcome model) {
+        switch (model) {
+            case FROM_CACHE:
+                return TaskExecutionOutcome.FROM_CACHE;
+            case UP_TO_DATE:
+                return TaskExecutionOutcome.UP_TO_DATE;
+            case SHORT_CIRCUITED:
+                return TaskExecutionOutcome.NO_SOURCE;
+            case EXECUTED_INCREMENTALLY:
+            case EXECUTED_NON_INCREMENTALLY:
+                return TaskExecutionOutcome.EXECUTED;
+            default:
+                throw new AssertionError();
+        }
     }
 }

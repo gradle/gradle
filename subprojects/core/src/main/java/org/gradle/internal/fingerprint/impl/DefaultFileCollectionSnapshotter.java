@@ -22,8 +22,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
-import org.gradle.internal.file.FileType;
+import org.gradle.internal.execution.FileCollectionSnapshotter;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -68,7 +67,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         @Override
         public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
             for (File file : contents) {
-                fileSystemAccess.read(file.getAbsolutePath(), roots::add);
+                roots.add(fileSystemAccess.read(file.getAbsolutePath()));
             }
         }
 
@@ -76,18 +75,14 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
             fileSystemAccess.read(
                 root.getAbsolutePath(),
-                new PatternSetSnapshottingFilter(patterns, stat),
-                snapshot -> {
-                    if (snapshot.getType() != FileType.Missing) {
-                        roots.add(snapshot);
-                    }
-                }
-            );
+                new PatternSetSnapshottingFilter(patterns, stat)
+            )
+                .map(roots::add);
         }
 
         @Override
         public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-            fileSystemAccess.read(file.getAbsolutePath(), roots::add);
+            roots.add(fileSystemAccess.read(file.getAbsolutePath()));
             containsArchiveTrees = true;
         }
 

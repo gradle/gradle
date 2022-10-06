@@ -21,6 +21,14 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 public interface JavaToolchainSpecInternal extends JavaToolchainSpec {
 
     /**
+     * A key corresponding to the spec that is an immutable snapshot of the spec properties
+     * suitable for usage in collections.
+     */
+    interface Key {}
+
+    Key toKey();
+
+    /**
      * A spec is considered configured when at least {@link #getLanguageVersion() language version} is set.
      * <p>
      * A spec that is not configured always directly matches the toolchain of the current JVM.
@@ -34,5 +42,10 @@ public interface JavaToolchainSpecInternal extends JavaToolchainSpec {
      * A {@link #isConfigured() non-configured} spec is always valid.
      */
     boolean isValid();
+
+    /**
+     * Finalizes values of all spec properties, disallowing any further changes.
+     */
+    void finalizeProperties();
 
 }

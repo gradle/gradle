@@ -155,7 +155,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         classes.description == "Assembles custom classes."
         classes instanceof DefaultTask
         TaskDependencyMatchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
-        TaskDependencyMatchers.builtBy('customClasses').matches(project.sourceSets.custom.output)
+        TaskDependencyMatchers.builtBy('customClasses', 'compileCustomJava').matches(project.sourceSets.custom.output)
     }
 
     def "creates tasks and applies mappings for main source set"() {
@@ -289,7 +289,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         processResources.destinationDir == resourcesDir
 
         def compileJava = project.tasks['compileCustomJava']
-        compileJava.destinationDir == classesDir
+        compileJava.destinationDirectory.get().getAsFile() == classesDir
     }
 
     def "sourceSet reflect changes to tasks configuration"() {

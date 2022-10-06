@@ -37,11 +37,15 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
             dependencies {
                 testImplementation localGroovy()
                 testImplementation gradleTestKit()
-                testImplementation(platform("org.spockframework:spock-bom:2.1-groovy-3.0"))
-                testImplementation("org.spockframework:spock-core")
             }
 
-            test.useJUnitPlatform()
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                    }
+                }
+            }
 
             ${mavenCentralRepository()}
         """

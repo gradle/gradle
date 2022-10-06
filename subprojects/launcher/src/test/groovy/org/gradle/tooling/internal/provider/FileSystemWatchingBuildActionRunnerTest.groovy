@@ -20,6 +20,7 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics
 import org.gradle.deployment.internal.Deployment
 import org.gradle.deployment.internal.DeploymentRegistryInternal
+import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildtree.BuildActionRunner
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.file.StatStatistics
@@ -56,7 +57,8 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         Stub(FileHasherStatistics.Collector),
         Stub(DirectorySnapshotterStatistics.Collector),
         buildOperationRunner,
-        delegate)
+        delegate,
+        new DefaultInternalOptions([:]))
 
     def setup() {
         _ * startParameter.getSystemPropertiesArgs() >> [:]

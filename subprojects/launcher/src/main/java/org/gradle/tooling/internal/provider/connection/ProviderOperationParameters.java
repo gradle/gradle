@@ -171,4 +171,10 @@ public interface ProviderOperationParameters {
      * @since 2.8-rc-1
      */
     List<File> getInjectedPluginClasspath();
+
+    /**
+     * @return Additional system properties defined by the client to be available in the build.
+     * @since 7.6
+     */
+    Map<String, String> getSystemProperties(Map<String, String> defaultValue);
 }

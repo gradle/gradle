@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import groovy.transform.SelfType
-import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
 @SelfType(BaseDeprecations)
@@ -31,24 +30,5 @@ trait WithAndroidDeprecations implements WithReportDeprecations {
 
     void expectAndroidWorkerExecutionSubmitDeprecationWarning(String agpVersion) {
         runner.expectLegacyDeprecationWarningIf(androidPluginUsesOldWorkerApi(agpVersion), WORKER_SUBMIT_DEPRECATION)
-    }
-
-    void expectAndroidIncrementalTaskInputsDeprecation(String agpVersion) {
-        def agpVersionNumber = VersionNumber.parse(agpVersion)
-        def method = agpVersionNumber < VersionNumber.parse("4.2")
-            ? 'taskAction$gradle'
-            : 'taskAction$gradle_core'
-        // https://issuetracker.google.com/218478028
-        runner.expectLegacyDeprecationWarningIf(
-            agpVersionNumber < VersionNumber.parse("7.3.0-alpha08"),
-            getIncrementalTaskInputsDeprecationWarning("IncrementalTask.${method}"))
-    }
-
-    void expectCompileOptionsAnnotationProcessorGeneratedSourcesDirectoryDeprecation(String agpVersion) {
-        runner.expectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) <= VersionNumber.parse("4.2.2"),
-                "The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated." +
-                " This is scheduled to be removed in Gradle 9.0." +
-                " Please use the generatedSourceOutputDirectory property instead." +
-                " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory for more details.")
     }
 }

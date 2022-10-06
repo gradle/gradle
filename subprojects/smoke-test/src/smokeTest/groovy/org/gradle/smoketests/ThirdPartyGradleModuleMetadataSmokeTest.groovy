@@ -18,23 +18,27 @@ package org.gradle.smoketests
 
 import groovy.json.JsonSlurper
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
+/**
+ * JDK11 or later since AGP 7.x requires Java11
+ */
+@Requires(TestPrecondition.JDK11_OR_LATER)
 class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
     /**
      * Everything is done in one test to save execution time.
      * Running the producer build takes ~2min.
      */
-    @ToBeFixedForConfigurationCache
     def 'produces expected metadata and can be consumed'() {
         given:
         BuildResult result
         useSample("gmm-example")
-        def kotlinVersion = TestedVersions.kotlin.latestStartsWith("1.5.31")
-        def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("7.0")
+        def kotlinVersion = TestedVersions.kotlin.latestStartsWith("1.7.10")
+        def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("7.3")
         def arch = OperatingSystem.current().macOsX ? 'MacosX64' : 'LinuxX64'
 
         def expectedMetadata = new File(testProjectDir, 'expected-metadata')
@@ -48,12 +52,10 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         publish(kotlinVersion, androidPluginVersion)
 
         then:
-        def files = []
-        actualRepo.eachFileRecurse { files << it }
-        files.sort().each { actual ->
+        actualRepo.eachFileRecurse { actual ->
             def expected = new File(expectedMetadata, actual.name)
             if (expected.name.endsWith('.pom')) {
-                compareXml(expected, actual)
+                assert expected.text == actual.text: "content mismatch: ${actual.name}]"
             }
             if (expected.name.endsWith('.module')) {
                 compareJson(expected, actual)
@@ -132,11 +134,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         return setIllegalAccessPermitForJDK16KotlinCompilerDaemonOptions(runner('publish'))
             .withProjectDir(new File(testProjectDir, 'producer'))
             .forwardOutput()
-            .deprecations(KotlinMultiPlatformDeprecations) {
-                expectKotlinIncrementalTaskInputsDeprecation(kotlinVersion)
-                expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
-                expectKotlinCompileDestinationDirPropertyDeprecation(kotlinVersion)
-            }.build()
+            .build()
     }
 
     private BuildResult consumer(String runTask) {
@@ -157,45 +155,12 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         return runner.build()
     }
 
-    private static compareXml(File expected, File actual) {
-        String sortedExpected = sortDependenciesIfPresent(expected)
-        String sortedActual = sortDependenciesIfPresent(actual)
-
-        assert sortedExpected == sortedActual: "content mismatch: ${actual.name}]"
-    }
-
-    private static String sortDependenciesIfPresent(File pomFile) {
-        def root = new XmlParser().parseText(pomFile.text)
-        if (root.dependencies && root.dependencies[0].dependency && root.dependencies[0].dependency.size() > 1) {
-            def depsClone = root.dependencies[0].clone()
-            root.dependencies[0].value = depsClone.dependency.sort(true) { it.artifactId.text() }
-        }
-
-        StringWriter stringWriter = new StringWriter()
-        XmlNodePrinter nodePrinter = new XmlNodePrinter(new PrintWriter(stringWriter))
-        nodePrinter.setPreserveWhitespace(true)
-        nodePrinter.print(root)
-        return stringWriter.toString()
-    }
-
     private static compareJson(File expected, File actual) {
         def actualJson = removeChangingDetails(new JsonSlurper().parseText(actual.text), actual.name)
         def expectedJson = removeChangingDetails(new JsonSlurper().parseText(expected.text), actual.name)
-        assert actualJson.formatVersion == expectedJson.formatVersion: "version mismatch: ${actual.name}"
+        assert actualJson.formatVersion == expectedJson.formatVersion
         assert actualJson.component == expectedJson.component: "component content mismatch: ${actual.name}"
-
-        sortDependenciesIfPresent(actualJson)
-        sortDependenciesIfPresent(expectedJson)
-
         assert actualJson.variants as Set == expectedJson.variants as Set: "variants content mismatch: ${actual.name}"
-    }
-
-    private static sortDependenciesIfPresent(json) {
-        for (def v in json.variants) {
-            if (v.dependencies != null) {
-                v.dependencies = v.dependencies.sort()
-            }
-        }
     }
 
     private static removeChangingDetails(moduleRoot, String metadataFileName) {
@@ -205,19 +170,11 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
         moduleRoot.variants.each { it.files.each { it.sha1 = '' } }
         moduleRoot.variants.each { it.files.each { it.md5 = '' } }
 
-        if (metadataFileName.endsWith('-metadata-1.0.module')) {
-            // bug in Kotlin metadata module publishing - wrong coordinates (ignored by Gradle)
-            // https://youtrack.jetbrains.com/issue/KT-36494
-            moduleRoot.component.module = ''
-            moduleRoot.component.url = ''
+        if (metadataFileName.startsWith('kotlin-multiplatform') && !OperatingSystem.current().isMacOsX()) {
+            // MacOS lib cannot be built on other platforms, so kotlin plugin won't add `artifactType` there
+            moduleRoot.variants.findAll { it.attributes["org.jetbrains.kotlin.native.target"] == "macos_x64" }.each { it.attributes.remove("artifactType")}
         }
 
         moduleRoot
-    }
-
-    static class KotlinMultiPlatformDeprecations extends BaseDeprecations implements WithKotlinDeprecations, WithAndroidDeprecations {
-        KotlinMultiPlatformDeprecations(SmokeTestGradleRunner runner) {
-            super(runner)
-        }
     }
 }

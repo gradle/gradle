@@ -39,7 +39,8 @@ import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -124,14 +125,14 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             if (propertyType.equals(InputArtifact.class)) {
                 // Should ask the annotation handler to figure this out instead
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
-                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
+                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor, (propertyName, bean) -> {});
                 inputArtifactNormalizer = visitor.normalizer;
                 artifactDirectorySensitivity = visitor.directorySensitivity;
                 artifactLineEndingSensitivity = visitor.lineEndingSensitivity;
                 DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), inputArtifactNormalizer, cacheable, validationContext);
             } else if (propertyType.equals(InputArtifactDependencies.class)) {
                 NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
-                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), null, propertyMetadata, visitor, null);
+                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor, (propertyName, bean) -> {});
                 dependenciesNormalizer = visitor.normalizer;
                 dependenciesDirectorySensitivity = visitor.directorySensitivity;
                 dependenciesLineEndingSensitivity = visitor.lineEndingSensitivity;
@@ -216,15 +217,14 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
 
         @Override
         public void visitInputFileProperty(
-            String propertyName,
-            boolean optional,
-            boolean skipWhenEmpty,
-            DirectorySensitivity directorySensitivity,
-            LineEndingSensitivity lineEndingSensitivity,
-            boolean incremental,
-            @Nullable Class<? extends FileNormalizer> fileNormalizer,
-            PropertyValue value,
-            InputFilePropertyType filePropertyType
+                String propertyName,
+                boolean optional,
+                UnitOfWork.InputBehavior behavior,
+                DirectorySensitivity directorySensitivity,
+                LineEndingSensitivity lineEndingSensitivity,
+                @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                PropertyValue value,
+                InputFilePropertyType filePropertyType
         ) {
             this.normalizer = fileNormalizer;
             this.directorySensitivity = directorySensitivity;

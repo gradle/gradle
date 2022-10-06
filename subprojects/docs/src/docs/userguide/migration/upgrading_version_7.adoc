@@ -52,6 +52,12 @@ Creating a TAR tree from a resource with no backing file is no longer supported.
 Instead, convert the resource to a file and use `project.tarTree()` on the file.
 For more information, see <<tar_tree_no_backing_file>>.
 
+==== Using invalid Java toolchain specifications
+
+Usage of invalid Java toolchain specifications is no longer supported.
+Related build errors can be avoided by making sure that language version is set on all toolchain specifications.
+See <<toolchains#sec:configuring_toolchain_specifications,user manual>> for more information.
+
 === Removed APIs
 
 ==== Legacy ArtifactTransform API
@@ -59,7 +65,63 @@ For more information, see <<tar_tree_no_backing_file>>.
 The legacy `ArtifactTransform` API has been removed.
 For more information, see <<old_artifact_transforms_api>>.
 
+==== Legacy IncrementalTaskInputs API
+
+The legacy `IncrementalTaskInputs` API has been removed. For more information, see <<incremental_task_inputs_deprecation>>. This change also affects Kotlin Gradle Plugin and Android Gradle Plugin. With Gradle 8.0 you should use Kotlin Gradle Plugin 1.6.10 or later and Android Gradle Plugin 7.3.0 with `android.experimental.legacyTransform.forceNonIncremental=true` property or later.
+
+==== Legacy AntlrSourceVirtualDirectory API
+
+The legacy `AntlrSourceVirtualDirectory` API has been removed.
+This change affects the `antlr` plugin.
+In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
+
+=== Legacy test sources configuration in `idea` plugin
+
+The deprecated `IdeaModule.getTestSourceDirs()` and `IdeaModule.getTestResourceDirs()` were removed in Gradle 8.0.
+You should use `IdeaModule.getTestSources()` and `IdeaModule.getTestResources()` instead.
+
 === Potential breaking changes
+
+=== Wrapper task configuration
+If `gradle-wrapper.properties` contains the `distributionSha256Sum` property, you must specify a sum. You can specify a sum in the wrapped task configuration or with the `--gradle-distribution-sha256-sum` task option.
+
+=== Changes in the AbstractCodeQualityPlugin class
+
+The deprecated `AbstractCodeQualityPlugin.getJavaPluginConvention()` method was removed in Gradle 8.0. You should use `JavaPluginExtension` instead.
+
+=== Remove implicit `--add-opens` for Gradle workers
+Before Gradle 8.0, Gradle workers on JDK9+ automatically opened JDK modules `java.base/java.util` and `java.base/java.lang` by passing `--add-opens` CLI arguments. This enabled code executed in a Gradle worker to perform deep reflection on JDK internals without warning or failing. Workers no longer use these implicit arguments.
+
+This effects all internal Gradle workers, which are used for a variety of tasks:
+
+- code-quality plugins (Checkstyle, CodeNarc, Pmd)
+- ScalaDoc
+- AntlrTask
+- JVM compiler daemons
+- tasks executed using process isolation via the link:worker_api.html[Worker API]
+
+New warnings and errors may appear in any tools, extensions, or plugins that perform deep reflection into JDK internals with the worker API.
+
+These errors can be resolved by updating the violating code or dependency. Updates may include:
+
+- code-quality tools
+- annotation processors
+- any Gradle plugins which use the worker API
+
+For some examples of possible error or warning outputs which may arise due to this change, see <<remove_test_add_opens>>.
+
+==== Minimal supported Kotlin Gradle Plugin version changed
+Gradle 7.x supports Kotlin Gradle Plugin 1.3.72 and above. Kotlin Gradle Plugin versions above 1.6.21 are not tested with Gradle 7.x.
+Gradle 8.x supports Kotlin Gradle Plugin 1.6.10 and above.
+You can use a lower Kotlin language version by modifying the language version and api version setting in the Kotlin `compile` task.
+
+==== Minimal supported Android Gradle Plugin version changed
+Gradle 7.x supports Android Gradle Plugin (AGP) 4.1 and above. AGP versions above 7.3 are not tested with Gradle 7.x.
+Gradle 8.x supports AGP 8 and above.
+Gradle 8.x supports AGP 7.3 and above if you configure the following property:
+```
+android.experimental.legacyTransform.forceNonIncremental=true
+```
 
 ==== Change to `AntBuilder` parent class
 
@@ -75,15 +137,19 @@ If you need to serialize it, you can convert it into your own, serializable clas
 Gradle now does not try to use equals when comparing serialized values in up-to-date checks.
 For more information see <<equals_up_to_date_deprecation>>.
 
-==== Task validation warnings introduced in Gradle 7.x are now errors
+==== Task and transform validation warnings introduced in Gradle 7.x are now errors
 
-Gradle introduced additional task validation warnings in the Gradle 7.x series.
+Gradle introduced additional task and artifact transform validation warnings in the Gradle 7.x series.
 Those warnings are now errors in Gradle 8.0 and will fail the build.
 
-Warnings which became errors:
+Warnings that became errors:
 
-- An input file collection which can't be resolved.
+- An input file collection that can't be resolved.
+- An input or output file or directory that cannot be read. See <<#declare_unreadable_input_output,Declaring input or output directories which contain unreadable content>>.
+- Using a `java.io.File` as the `@InputArtifact` of an artifact transform.
 - Using an input with an unknown implementation. See <<validation_problems.adoc#implementation_unknown,Cannot use an input with an unknown implementation>>.
+- Missing dependencies between tasks. See <<validation_problems.adoc#implicit_dependency,Implicit dependencies between tasks>>.
+- Converting files to a classpath where paths contain file separator.
 
 ==== Gradle does not ignore empty directories for file-trees with `@SkipWhenEmpty`
 
@@ -91,14 +157,35 @@ Previously Gradle used to detect if an input file collection annotated with `@Sk
 To ignore directories in Gradle 8.0 and later, the input property needs to be explicitly annotated with `@IgnoreEmptyDirectories`.
 For more information see <<empty_directories_file_tree>>.
 
+[[strict-kotlin-dsl-precompiled-scripts-accessors-by-default]]
+=== Precompiled script plugins use strict Kotlin DSL accessor generation by default
+
+In precompiled script plugins, type safe Kotlin DSL accessor generation now fails the build if a plugin fails to apply.
+
+Starting in Gradle 7.6, builds could enable this behavior with the `org.gradle.kotlin.dsl.precompiled.accessors.strict` system property. This behavior is now default. The property has been deprecated and its usage should be removed. You can find more information about this property <<upgrading_version_7.adoc#strict-kotlin-dsl-precompiled-scripts-accessors, below>>.
+
+==== Adding `jst.ejb` with the `eclipse wtp' plugin now removes the `jst.utility` facet
+
+The `eclipse wtp` plugin adds the `jst.utility` facet to java projects.
+Now, adding the `jst.ejb` facet implicitly removes the `jst.utility` facet:
+
+```
+eclipse {
+    wtp {
+        facet {
+            facet name: 'jst.ejb', version: '3.2'
+        }
+    }
+}
+```
+
+==== Simplifying PMD custom rules configuration
+
+Previously, you had to explicitly configure PMD to ignore default rules with `ruleSets = []`.
+In the Gradle 8.0, setting `ruleSetConfig` or `ruleSetFiles` to a non-empty value implicitly ignores default rules.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
-
-[[exported_key_deduplication]]
-=== Exported keys are now deduplicated
-
-link:dependency_verification.html#sec:local-keyring[Dependency verification's] way of key serialization was changed in 7.6: keys now are sorted and deduplicated.
-Forward compatibility was retained, but the following exports might cause a large VCS diff between the old, and the new keyfile.
 
 === Updates to Attribute Disambiguation Rules related methods
 
@@ -123,15 +210,6 @@ This can be achieved persistently in the `gradle.properties` file in your build 
 ```properties
 systemProp.org.gradle.kotlin.dsl.precompiled.accessors.strict=true
 ```
-
-[[invalid_toolchain_specification_deprecation]]
-=== Usage of invalid Java toolchain specifications is now deprecated
-
-Along with the Java language version, the <<toolchains#toolchains, Java toolchain>> DSL allows configuring other criteria such as specific vendors or VM implementations.
-Starting with Gradle 7.6, toolchain specifications that configure other properties without specifying the language version are considered _invalid_.
-Invalid specifications are deprecated and will become build errors in Gradle 8.0.
-
-See more details about toolchain configuration in the <<toolchains#sec:configuring_toolchain_specifications,user manual>>.
 
 === Potential breaking changes
 
@@ -175,11 +253,141 @@ tasks.withType<KotlinCompile>().configureEach {
 }
 ```
 
+==== Upgrade to Groovy 3.0.13
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.13.html[Groovy 3.0.13].
+
+Since the previous version was 3.0.11, the https://groovy-lang.org/changelogs/changelog-3.0.12.html[3.0.12 changes] are also included.
+
+==== Upgrade to CodeNarc 3.1.0
+
+The default version of CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-310----jun-2022[3.1.0].
+
+==== Upgrade to PMD 6.48.0
+
+PMD has been updated to https://pmd.github.io/pmd-6.48.0/pmd_release_notes.html[PMD 6.48.0].
+
+==== Configuring a non-existing executable now fails
+
+When configuring an executable explicitly for link:{groovyDslPath}/org.gradle.api.tasks.compile.ForkOptions.html#org.gradle.api.tasks.compile.ForkOptions:executable[`JavaCompile`] or link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:executable[`Test`] tasks, Gradle will now emit an error if this executable does not exist.
+In the past, the task would be executed with the default toolchain or JVM running the build.
+
 === Deprecations
+
+[[invalid_toolchain_specification_deprecation]]
+==== Usage of invalid Java toolchain specifications is now deprecated
+
+Along with the Java language version, the <<toolchains#toolchains, Java toolchain>> DSL allows configuring other criteria such as specific vendors or VM implementations.
+Starting with Gradle 7.6, toolchain specifications that configure other properties without specifying the language version are considered _invalid_.
+Invalid specifications are deprecated and will become build errors in Gradle 8.0.
+
+See more details about toolchain configuration in the <<toolchains#sec:configuring_toolchain_specifications,user manual>>.
+
+[[org_gradle_util_reports_deprecations]]
+==== Deprecated members of the `org.gradle.util` package now report their deprecation
+
+These members will be removed in Gradle 9.0.
+
+* `ClosureBackedAction`
+* `CollectionUtils`
+* `ConfigureUtil`
+* `DistributionLocator`
+* `GFileUtils`
+* `GradleVersion.getBuildTime()`
+* `GradleVersion.getNextMajor()`
+* `GradleVersion.getRevision()`
+* `GradleVersion.isValid()`
+* `GUtil`
+* `NameMatcher`
+* `NameValidator`
+* `RelativePathUtil`
+* `TextUtil`
+* `SingleMessageLogger`
+* `VersionNumber`
+* `WrapUtil`
 
 [[dependency_factory_renamed]]
 ==== Internal DependencyFactory was renamed
 The internal `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory` type was renamed to `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal`. As an internal type, it should not be used, but for compatibility reasons the inner `ClassPathNotation` type is still available. This name for the type is deprecated and will be removed in Gradle 8.0. The public API for this is on `DependencyHandler`, with methods such as `localGroovy()` providing the same functionality.
+
+[[referencing_script_configure_method_from_container_configure_closure_deprecated]]
+==== Implicitly referencing outer scope methods in some configuration blocks in Groovy DSL is now deprecated
+
+Prior to Gradle 7.6, Groovy scripts would permit accessing root project-level configure methods from
+within named container configure methods, as long as that container configure method would otherwise
+fail with a `MissingMethodException`. Consider the following snippets for examples of this behavior:
+
+Accessing the top-level `repositories` block from within the `configurations` block is permitted
+as long as the provided closure is otherwise an invalid configure closure for a Configuration.
+In this case, the `repositories` closure is executed as if it were called at the script-level, _and_
+an unconfigured `repositories` Configuration is created.
+```groovy
+configurations {
+    repositories {
+        mavenCentral()
+    }
+    someConf {
+        canBeConsumed = false
+        canBeResolved = false
+    }
+}
+```
+
+The behavior also applies in closures which are not immediately executed. In this case, `afterResolve`
+is only executed when the `resolve` task runs. Regardless, the `distributions` closure is an otherwise
+invalid configure closure for a Configuration, though it is a valid top-level script closure. In this
+case, the `conf` Configuration is created immediately, and during the execution of the `resolve` task,
+the `distributions` block is executed as if it were declared at the script-level.
+
+```groovy
+configurations {
+    conf.incoming.afterResolve {
+        distributions {
+            myDist {
+                contents {}
+            }
+        }
+    }
+}
+
+task resolve {
+    dependsOn configurations.conf
+    doFirst {
+        configurations.conf.files() // Trigger `afterResolve`
+    }
+}
+```
+
+As of Gradle 7.6, this behavior is deprecated. Starting with Gradle 8.0, this behavior will be removed and instead
+the underlying `MissingMethodException` will be thrown. To mitigate this change, consider the following solutions:
+
+```groovy
+configurations {
+    conf.incoming.afterResolve {
+        // Fully qualify the reference.
+        project.distributions {
+            myDist {
+                contents {}
+            }
+        }
+    }
+}
+```
+
+```groovy
+configurations {
+    conf
+}
+
+// Extract the script-level closure to the script root scope.
+configurations.conf.incoming.afterResolve {
+    distributions {
+        myDist {
+            contents {}
+        }
+    }
+}
+```
 
 [[changes_7.5]]
 == Upgrading from 7.4 and earlier
@@ -302,6 +510,7 @@ It takes into account which methods are being used and which have changed, which
 Zinc version has been updated to the newest available one in order to benefit from all the recent bugfixes.
 Due to that, if you use `zincVersion` setting it's advised to remove it and only use the default version, because Gradle will only be able to compile Scala code with Zinc versions set to 1.6.x or higher.
 
+[[remove_test_add_opens]]
 ==== Removes implicit `--add-opens` for test workers
 
 Prior to Gradle 7.5, JDK modules `java.base/java.util` and `java.base/java.lang` were automatically opened in test workers on JDK9+ by passing `--add-opens` CLI arguments. This meant any tests were able to perform deep reflection on JDK internals without warning or failing. This caused tests to be unreliable by allowing code to pass when it would otherwise fail in a production environment.

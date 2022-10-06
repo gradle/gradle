@@ -19,25 +19,27 @@ package org.gradle.internal.component.local.model;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.AbstractComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantArtifactGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentMetadata> implements LocalComponentGraphResolveState {
-    private final ProjectArtifactSetResolver artifactSetResolver;
     private final ConcurrentMap<LocalConfigurationMetadata, DefaultLocalVariantArtifactResolveState> variants = new ConcurrentHashMap<>();
 
     @Override
@@ -50,9 +52,8 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         return getMetadata().copy(componentIdentifier, artifacts);
     }
 
-    public DefaultLocalComponentGraphResolveState(LocalComponentMetadata metadata, ProjectArtifactSetResolver artifactSetResolver) {
+    public DefaultLocalComponentGraphResolveState(LocalComponentMetadata metadata) {
         super(metadata);
-        this.artifactSetResolver = artifactSetResolver;
     }
 
     @Override
@@ -66,35 +67,50 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     private DefaultLocalVariantArtifactResolveState stateFor(LocalConfigurationMetadata configuration) {
-        return variants.computeIfAbsent(configuration, c -> new DefaultLocalVariantArtifactResolveState(getMetadata(), configuration, artifactSetResolver));
+        return variants.computeIfAbsent(configuration, c -> {
+            return new DefaultLocalVariantArtifactResolveState(getMetadata(), configuration);
+        });
     }
 
     private static class DefaultLocalVariantArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
         private final LocalComponentMetadata component;
-        private final LocalConfigurationMetadata configuration;
-        private final ProjectArtifactSetResolver artifactSetResolver;
-
-        public DefaultLocalVariantArtifactResolveState(LocalComponentMetadata component, LocalConfigurationMetadata configuration, ProjectArtifactSetResolver artifactSetResolver) {
+        private final LocalConfigurationMetadata graphSelectedVariant;
+        public DefaultLocalVariantArtifactResolveState(LocalComponentMetadata component, LocalConfigurationMetadata graphSelectedVariant) {
             this.component = component;
-            this.configuration = configuration;
-            this.artifactSetResolver = artifactSetResolver;
+            this.graphSelectedVariant = graphSelectedVariant;
         }
 
         @Override
         public List<? extends ComponentArtifactMetadata> getArtifacts() {
-            return configuration.getArtifacts();
+            return graphSelectedVariant.getArtifacts();
         }
 
         @Override
         public ComponentArtifactMetadata resolveArtifact(IvyArtifactName artifact) {
-            configuration.prepareToResolveArtifacts();
-            return configuration.artifact(artifact);
+            graphSelectedVariant.prepareToResolveArtifacts();
+            return graphSelectedVariant.artifact(artifact);
         }
 
         @Override
-        public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            configuration.prepareToResolveArtifacts();
-            return artifactSetResolver.resolveArtifacts(component.getId(), component.getModuleVersionId(), component.getSources(), exclusions, configuration.getVariants(), component.getAttributesSchema(), artifactTypeRegistry, overriddenAttributes);
+        public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+            graphSelectedVariant.prepareToResolveArtifacts();
+            // We do not currently cache ResolvedVariants beyond this invocation yet
+            return artifactSelector.resolveArtifacts(component, new HashMap<>(), () -> buildAllVariants(), graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
+        }
+
+        private Set<? extends VariantResolveMetadata> buildAllVariants() {
+            final Set<? extends VariantResolveMetadata> allVariants;
+            if (component.getVariantsForGraphTraversal().isPresent()) {
+                allVariants = component.getVariantsForGraphTraversal().get().stream().
+                        map(LocalConfigurationMetadata.class::cast).
+                        filter(ConfigurationMetadata::isCanBeConsumed).
+                        peek(LocalConfigurationMetadata::prepareToResolveArtifacts).
+                        flatMap(variant -> variant.getVariants().stream()).
+                        collect(Collectors.toSet());
+            } else {
+                allVariants = graphSelectedVariant.getVariants();
+            }
+            return allVariants;
         }
     }
 }

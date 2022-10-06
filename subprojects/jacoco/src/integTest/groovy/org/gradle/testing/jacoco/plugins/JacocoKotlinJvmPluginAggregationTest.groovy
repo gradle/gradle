@@ -31,6 +31,8 @@ import spock.lang.Issue
  */
 @Issue("https://github.com/gradle/gradle/issues/20532")
 class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
+    def kotlinVersion = "1.7.10" // Must remain >= 1.7, lower versions will produce deprecations warnings, on CI versions >= 1.7 will be used
+
     def setup() {
         multiProjectBuild("root", ["direct", "transitive"]) {
             buildFile.text = """
@@ -115,7 +117,7 @@ class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
             file("transitive/build.gradle") << """
                 plugins {
                     id 'java-library'
-                    id 'org.jetbrains.kotlin.jvm' version '1.5.30'
+                    id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
                 }
             """
             file("transitive/src/main/java/transitive/Powerize.java").java """
@@ -132,7 +134,6 @@ class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
 
     def "can aggregate jacoco execution data from a subproject with kotlin-dsl and no tests"() {
         when:
-        expectIncrementalTaskInputsDeprecationWarning('AbstractKotlinCompile', 'execute')
         succeeds(":testCodeCoverageReport")
 
         then:
@@ -144,10 +145,5 @@ class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
 
         def report = new JacocoReportXmlFixture(file("build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
         report.assertHasClassCoverage("direct.Multiplier")
-    }
-
-    void expectIncrementalTaskInputsDeprecationWarning(String className = 'BaseIncrementalTask', String methodName = 'execute') {
-        String source = "${className}.${methodName}"
-        executer.expectDocumentedDeprecationWarning """IncrementalTaskInputs has been deprecated. This is scheduled to be removed in Gradle 8.0. On method '$source' use 'org.gradle.work.InputChanges' instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#incremental_task_inputs_deprecation"""
     }
 }

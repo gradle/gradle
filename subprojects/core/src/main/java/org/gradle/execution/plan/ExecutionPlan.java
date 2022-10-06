@@ -32,18 +32,25 @@ import java.util.function.Consumer;
  */
 @NotThreadSafe
 public interface ExecutionPlan extends Describable, Closeable {
-    void useFilter(Spec<? super Task> filter);
+    void addFilter(Spec<? super Task> filter);
 
     void setContinueOnFailure(boolean continueOnFailure);
 
     void setScheduledNodes(Collection<? extends Node> nodes);
 
-    void addEntryTasks(Collection<? extends Task> tasks);
-
-    void addEntryTasks(Collection<? extends Task> tasks, int ordinal);
+    /**
+     * Adds an entry task to the execution plan. If called multiple times then execution plan follows the method invocation order.
+     *
+     */
+    void addEntryTask(Task task);
 
     /**
-     * Returns the current contents of this plan. Note that this may change.
+     * Adds entry tasks to the execution plan. No ordering can be assumed between the elements of the target collection. If called multiple times then execution plan follows the method invocation order.
+     */
+    void addEntryTasks(Collection<? extends Task> tasks);
+
+    /**
+     * Returns a snapshot of the current contents of this plan. Note that this plan is mutable, so the contents may later change.
      */
     QueryableExecutionPlan getContents();
 
