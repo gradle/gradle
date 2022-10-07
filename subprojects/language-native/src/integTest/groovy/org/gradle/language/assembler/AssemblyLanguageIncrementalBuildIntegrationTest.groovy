@@ -26,7 +26,6 @@ import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 // This is failing on release6x and we don't want to spent time on it
 @Requires(TestPrecondition.NOT_WINDOWS)
