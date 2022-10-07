@@ -16,7 +16,9 @@
 
 package org.gradle.integtests.resolve.api
 
+import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 /**
  * This class tests that when configurations are used incorrectly - for instance, when a configuration where
@@ -91,6 +93,8 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
         failure.hasErrorOutput("Dependency constraints can not be declared against the `compile` configuration.")
     }
 
+    @NotYetImplemented
+    @Issue("https://github.com/gradle/gradle/issues/22339")
     def "fail if an artifact is added to an unusable configuration"() {
         given:
         buildFile << """
