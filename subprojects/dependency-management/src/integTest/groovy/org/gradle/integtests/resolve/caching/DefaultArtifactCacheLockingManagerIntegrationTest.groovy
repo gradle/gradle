@@ -20,6 +20,7 @@ import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
+import org.gradle.cache.internal.CacheCleanupEnablementFixture
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -30,7 +31,7 @@ import org.gradle.test.fixtures.maven.MavenModule
 
 import static java.util.concurrent.TimeUnit.DAYS
 
-class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture {
+class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, CacheCleanupEnablementFixture {
     private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES
 
     def snapshotModule = mavenHttpRepo.module('org.example', 'example', '1.0-SNAPSHOT').publish().allowAll()
@@ -99,6 +100,41 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         and: // deletes empty parent directories
         findFiles(cacheDir, 'resources-*/*').isEmpty()
         findFiles(cacheDir, 'files-*/*').isEmpty()
+    }
+
+    def "does not clean up resources and files when cache cleanup is disabled"() {
+        given:
+        buildscriptWithDependency(snapshotModule)
+
+        when:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        disableCacheCleanup()
+        succeeds 'resolve'
+
+        then:
+        def resource = findFile(cacheDir, 'resources-*/**/maven-metadata.xml')
+        def files = findFiles(cacheDir, "files-*/**/*")
+        files.size() == 2
+        journal.assertExists()
+
+        when:
+        run '--stop' // ensure daemon does not cache file access times in memory
+        forceCleanup(gcFile)
+
+        and:
+        writeLastFileAccessTimeToJournal(resource.parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+        writeLastFileAccessTimeToJournal(files[0].parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+        writeLastFileAccessTimeToJournal(files[1].parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+
+        and:
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks('help').start().waitForFinish()
+
+        then:
+        resource.assertExists()
+        files[0].assertExists()
+        files[1].assertExists()
     }
 
     @ToBeFixedForConfigurationCache
@@ -316,5 +352,10 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
 
     void forceCleanup(File file) {
         file.lastModified = System.currentTimeMillis() - DAYS.toMillis(MAX_CACHE_AGE_IN_DAYS + 1)
+    }
+
+    @Override
+    TestFile getGradleUserHomeDir() {
+        return executer.gradleUserHomeDir
     }
 }

@@ -31,8 +31,8 @@ import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.ExecutionEngine
-import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.FileCollectionSnapshotter
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationExecutor

@@ -82,6 +82,9 @@ You should use `IdeaModule.getTestSources()` and `IdeaModule.getTestResources()`
 
 === Potential breaking changes
 
+=== Wrapper task configuration
+If `gradle-wrapper.properties` contains the `distributionSha256Sum` property, you must specify a sum. You can specify a sum in the wrapped task configuration or with the `--gradle-distribution-sha256-sum` task option.
+
 === Changes in the AbstractCodeQualityPlugin class
 
 The deprecated `AbstractCodeQualityPlugin.getJavaPluginConvention()` method was removed in Gradle 8.0. You should use `JavaPluginExtension` instead.
@@ -176,14 +179,13 @@ eclipse {
 }
 ```
 
+==== Simplifying PMD custom rules configuration
+
+Previously, you had to explicitly configure PMD to ignore default rules with `ruleSets = []`.
+In the Gradle 8.0, setting `ruleSetConfig` or `ruleSetFiles` to a non-empty value implicitly ignores default rules.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
-
-[[exported_key_deduplication]]
-=== Exported keys are now deduplicated
-
-link:dependency_verification.html#sec:local-keyring[Dependency verification's] way of key serialization was changed in 7.6: keys now are sorted and deduplicated.
-Forward compatibility was retained, but the following exports might cause a large VCS diff between the old, and the new keyfile.
 
 === Updates to Attribute Disambiguation Rules related methods
 
@@ -208,38 +210,6 @@ This can be achieved persistently in the `gradle.properties` file in your build 
 ```properties
 systemProp.org.gradle.kotlin.dsl.precompiled.accessors.strict=true
 ```
-
-[[invalid_toolchain_specification_deprecation]]
-=== Usage of invalid Java toolchain specifications is now deprecated
-
-Along with the Java language version, the <<toolchains#toolchains, Java toolchain>> DSL allows configuring other criteria such as specific vendors or VM implementations.
-Starting with Gradle 7.6, toolchain specifications that configure other properties without specifying the language version are considered _invalid_.
-Invalid specifications are deprecated and will become build errors in Gradle 8.0.
-
-See more details about toolchain configuration in the <<toolchains#sec:configuring_toolchain_specifications,user manual>>.
-
-[[org_gradle_util_reports_deprecations]]
-=== Deprecated members of the `org.gradle.util` package now report their deprecation
-
-These members will be removed in Gradle 9.0.
-
-* `ClosureBackedAction`
-* `CollectionUtils`
-* `ConfigureUtil`
-* `DistributionLocator`
-* `GFileUtils`
-* `GradleVersion.getBuildTime()`
-* `GradleVersion.getNextMajor()`
-* `GradleVersion.getRevision()`
-* `GradleVersion.isValid()`
-* `GUtil`
-* `NameMatcher`
-* `NameValidator`
-* `RelativePathUtil`
-* `TextUtil`
-* `SingleMessageLogger`
-* `VersionNumber`
-* `WrapUtil`
 
 === Potential breaking changes
 
@@ -304,9 +274,120 @@ In the past, the task would be executed with the default toolchain or JVM runnin
 
 === Deprecations
 
+[[invalid_toolchain_specification_deprecation]]
+==== Usage of invalid Java toolchain specifications is now deprecated
+
+Along with the Java language version, the <<toolchains#toolchains, Java toolchain>> DSL allows configuring other criteria such as specific vendors or VM implementations.
+Starting with Gradle 7.6, toolchain specifications that configure other properties without specifying the language version are considered _invalid_.
+Invalid specifications are deprecated and will become build errors in Gradle 8.0.
+
+See more details about toolchain configuration in the <<toolchains#sec:configuring_toolchain_specifications,user manual>>.
+
+[[org_gradle_util_reports_deprecations]]
+==== Deprecated members of the `org.gradle.util` package now report their deprecation
+
+These members will be removed in Gradle 9.0.
+
+* `ClosureBackedAction`
+* `CollectionUtils`
+* `ConfigureUtil`
+* `DistributionLocator`
+* `GFileUtils`
+* `GradleVersion.getBuildTime()`
+* `GradleVersion.getNextMajor()`
+* `GradleVersion.getRevision()`
+* `GradleVersion.isValid()`
+* `GUtil`
+* `NameMatcher`
+* `NameValidator`
+* `RelativePathUtil`
+* `TextUtil`
+* `SingleMessageLogger`
+* `VersionNumber`
+* `WrapUtil`
+
 [[dependency_factory_renamed]]
 ==== Internal DependencyFactory was renamed
 The internal `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory` type was renamed to `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal`. As an internal type, it should not be used, but for compatibility reasons the inner `ClassPathNotation` type is still available. This name for the type is deprecated and will be removed in Gradle 8.0. The public API for this is on `DependencyHandler`, with methods such as `localGroovy()` providing the same functionality.
+
+[[referencing_script_configure_method_from_container_configure_closure_deprecated]]
+==== Implicitly referencing outer scope methods in some configuration blocks in Groovy DSL is now deprecated
+
+Prior to Gradle 7.6, Groovy scripts would permit accessing root project-level configure methods from
+within named container configure methods, as long as that container configure method would otherwise
+fail with a `MissingMethodException`. Consider the following snippets for examples of this behavior:
+
+Accessing the top-level `repositories` block from within the `configurations` block is permitted
+as long as the provided closure is otherwise an invalid configure closure for a Configuration.
+In this case, the `repositories` closure is executed as if it were called at the script-level, _and_
+an unconfigured `repositories` Configuration is created.
+```groovy
+configurations {
+    repositories {
+        mavenCentral()
+    }
+    someConf {
+        canBeConsumed = false
+        canBeResolved = false
+    }
+}
+```
+
+The behavior also applies in closures which are not immediately executed. In this case, `afterResolve`
+is only executed when the `resolve` task runs. Regardless, the `distributions` closure is an otherwise
+invalid configure closure for a Configuration, though it is a valid top-level script closure. In this
+case, the `conf` Configuration is created immediately, and during the execution of the `resolve` task,
+the `distributions` block is executed as if it were declared at the script-level.
+
+```groovy
+configurations {
+    conf.incoming.afterResolve {
+        distributions {
+            myDist {
+                contents {}
+            }
+        }
+    }
+}
+
+task resolve {
+    dependsOn configurations.conf
+    doFirst {
+        configurations.conf.files() // Trigger `afterResolve`
+    }
+}
+```
+
+As of Gradle 7.6, this behavior is deprecated. Starting with Gradle 8.0, this behavior will be removed and instead
+the underlying `MissingMethodException` will be thrown. To mitigate this change, consider the following solutions:
+
+```groovy
+configurations {
+    conf.incoming.afterResolve {
+        // Fully qualify the reference.
+        project.distributions {
+            myDist {
+                contents {}
+            }
+        }
+    }
+}
+```
+
+```groovy
+configurations {
+    conf
+}
+
+// Extract the script-level closure to the script root scope.
+configurations.conf.incoming.afterResolve {
+    distributions {
+        myDist {
+            contents {}
+        }
+    }
+}
+```
 
 [[changes_7.5]]
 == Upgrading from 7.4 and earlier

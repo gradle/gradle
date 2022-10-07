@@ -29,9 +29,8 @@ import java.util.Map;
 
 public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
 
-    @SuppressWarnings("unchecked")
     public SinceAnnotationMissingRule(Map<String, Object> params) {
-        super((Map<String, String>)params.get("acceptedApiChanges"), (String)params.get("apiChangesJsonFile"), (String)params.get("projectRootDir"));
+        super(params);
     }
 
     @Override

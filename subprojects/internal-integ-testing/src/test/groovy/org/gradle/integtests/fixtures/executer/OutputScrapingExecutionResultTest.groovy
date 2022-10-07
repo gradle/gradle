@@ -161,11 +161,21 @@ post build
             '''))
 
         when:
-        result.assertOutputContains("message\n\n")
+        result.assertOutputContains("message 3")
 
         then:
         def e6 = thrown(AssertionError)
-        error(e6).startsWith(error('''
+        error(e6).trim().startsWith(error('''
+            Expected: "message 3"
+             but: was "message 2"
+            '''))
+
+        when:
+        result.assertOutputContains("message\n\n")
+
+        then:
+        def e7 = thrown(AssertionError)
+        error(e7).startsWith(error('''
             Did not find expected text in build output.
             Expected: message
 
