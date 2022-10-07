@@ -151,7 +151,7 @@ public class JsonProjectDependencyRenderer {
         List<Configuration> filteredConfigurations = new ArrayList<>();
         for (Configuration configuration : project.getConfigurations()) {
             ConfigurationInternal configurationInternal = (ConfigurationInternal)configuration;
-            if (configurationInternal.isConfigurationUsable() && !configurationInternal.isFullyDeprecated()) {
+            if (configurationInternal.isDeclarableAgainstByExtension()) {
                 filteredConfigurations.add(configuration);
             }
         }
