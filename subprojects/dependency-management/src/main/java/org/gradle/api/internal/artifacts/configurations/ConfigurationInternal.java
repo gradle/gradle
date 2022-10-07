@@ -139,7 +139,7 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
         if (configuration.isCanBeDeclaredAgainst()) {
             return true;
         } else {
-            return configuration.getExtendsFrom().stream().anyMatch(this::isDeclarableAgainstByExtension);
+            return configuration.getExtendsFrom().stream().anyMatch(ConfigurationInternal::isDeclarableAgainstByExtension);
         }
     }
 
