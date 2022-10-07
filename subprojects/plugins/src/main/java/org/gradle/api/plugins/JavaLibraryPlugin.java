@@ -57,26 +57,11 @@ public class JavaLibraryPlugin implements Plugin<Project> {
 
         Configuration apiElements = configurations.getByName(sourceSet.getApiElementsConfigurationName());
         jvmEcosystemUtilities.configureClassesDirectoryVariant(apiElements, sourceSet);
-        deprecateConfigurationsForDeclaration(sourceSets, configurations);
     }
 
     private void makeCompileOnlyApiVisibleToTests(ConfigurationContainer configurations) {
         Configuration testCompileOnly = configurations.getByName(TEST_COMPILE_ONLY_CONFIGURATION_NAME);
         Configuration compileOnlyApi = configurations.getByName(COMPILE_ONLY_API_CONFIGURATION_NAME);
         testCompileOnly.extendsFrom(compileOnlyApi);
-    }
-
-    private void deprecateConfigurationsForDeclaration(SourceSetContainer sourceSets, ConfigurationContainer configurations) {
-        SourceSet sourceSet = sourceSets.getByName("main");
-
-        Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
-        Configuration runtimeElementsConfiguration = configurations.getByName(sourceSet.getRuntimeElementsConfigurationName());
-        Configuration compileClasspathConfiguration = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
-        Configuration runtimeClasspathConfiguration = configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
-
-        apiElementsConfiguration.setCanBeDeclaredAgainst(false);
-        runtimeElementsConfiguration.setCanBeDeclaredAgainst(false);
-        compileClasspathConfiguration.setCanBeDeclaredAgainst(false);
-        runtimeClasspathConfiguration.setCanBeDeclaredAgainst(false);
     }
 }
