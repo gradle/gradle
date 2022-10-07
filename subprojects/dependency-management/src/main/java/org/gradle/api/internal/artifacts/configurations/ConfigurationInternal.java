@@ -135,7 +135,7 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      * @param configuration the configuration to test
      * @return {@code true} if so; {@code false} otherwise
      */
-    default boolean isDeclarableAgainstByExtension(Configuration configuration) {
+    static boolean isDeclarableAgainstByExtension(Configuration configuration) {
         if (configuration.isCanBeDeclaredAgainst()) {
             return true;
         } else {
