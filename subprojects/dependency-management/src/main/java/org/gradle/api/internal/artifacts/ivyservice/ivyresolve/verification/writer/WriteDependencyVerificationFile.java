@@ -322,7 +322,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                             reason = "A key couldn't be downloaded";
                         } else {
                             hasMissingSignatures = true;
-                            reason = "Artifact wasn't signed";
+                            reason = "Artifact is not signed";
                         }
                     }
                 }
