@@ -106,6 +106,15 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
                                 this.click();
                             }
                         });
+
+                        var divider = \$("<hr>");
+                        divider.css({ margin: "5px" });
+                        var tip = \$("<small>").text("Use the 'bin.cmp.report.severity.filter' property to set the default severity filter");
+                        tip.css({ padding: "20px" });
+                        var menu = \$("ul .dropdown-menu");
+                        menu.css({ width: "480px" });
+                        menu.append(divider);
+                        menu.append(tip);
                     });
                 });
             </script>
