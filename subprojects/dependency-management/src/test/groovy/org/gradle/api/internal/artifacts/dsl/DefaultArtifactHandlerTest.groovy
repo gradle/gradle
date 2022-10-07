@@ -39,7 +39,7 @@ class DefaultArtifactHandlerTest extends Specification {
     private DefaultArtifactHandler artifactHandler = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultArtifactHandler, configurationContainerStub, artifactFactoryStub)
 
     void setup() {
-        configurationMock.isConfigurationUsable() >> true
+        configurationMock.isDeclarableAgainstByExtension() >> true
         configurationContainerStub.findByName(TEST_CONF_NAME) >> configurationMock
         configurationContainerStub.getByName(TEST_CONF_NAME) >> configurationMock
         configurationMock.artifacts >> artifactsMock

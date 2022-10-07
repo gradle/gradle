@@ -18,14 +18,14 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.internal.Actions;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
@@ -55,17 +55,37 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
     }
 
     private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
-        assertConfigurationIsUsable(configuration);
+        assertConfigurationIsValidForArtifacts((DeprecatableConfiguration)configuration);
         ConfigurablePublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
         configuration.getArtifacts().add(publishArtifact);
         configureAction.execute(publishArtifact);
         return publishArtifact;
     }
 
-    private void assertConfigurationIsUsable(Configuration configuration) {
-        if (!((ConfigurationInternal)configuration).isConfigurationUsable()) {
-            throw new GradleException("Archives can not be added to the `" + configuration.getName() + "` configuration.");
+    private void assertConfigurationIsValidForArtifacts(DeprecatableConfiguration configuration) {
+        // In Gradle 8.0, we will be lenient with this and keep the CURRENT if deprecated warning only.
+        // This is kind of inconsistent with the method name, for now
+        if (configuration.getConsumptionDeprecation() != null){
+            DeprecationLogger.deprecateConfiguration(configuration.getName()).forArtifactDeclaration()
+                    .replaceWith(configuration.getDeclarationAlternatives())
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+                    .nagUser();
         }
+
+        // In Gradle 8.1, we'll update this method to check against to be the value of the consumable flag directly
+        // in order to print the same warning as above
+//        if (!configuration.isCanBeConsumed()) {
+            // This should become a warning in Gradle 8.1 per https://github.com/gradle/gradle/issues/22339
+//            DeprecationLogger.deprecateConfiguration(configuration.getName()).forArtifactDeclaration()
+//                .replaceWith(configuration.getDeclarationAlternatives())
+//                .willBecomeAnErrorInGradle9()
+//                .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+//                .nagUser();
+
+            // And then in Gradle 9.0, this can finally become an error
+//            throw new GradleException("Archives can not be added to the `" + configuration.getName() + "` configuration.");
+//        }
     }
 
     @Override
