@@ -204,7 +204,7 @@ public class DependencyVerificationConfiguration {
     }
 
     public static class TrustedArtifact extends TrustCoordinates implements Comparable<TrustedArtifact> {
-        TrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, String reason) {
+        TrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String reason) {
             super(group, name, version, fileName, regex, reason);
         }
 

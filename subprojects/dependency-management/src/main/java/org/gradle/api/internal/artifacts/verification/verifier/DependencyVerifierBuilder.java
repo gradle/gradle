@@ -112,7 +112,7 @@ public class DependencyVerifierBuilder {
         addTrustedArtifact(group, name, version, fileName, regex, null);
     }
 
-    public void addTrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, String reason) {
+    public void addTrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String reason) {
         validateUserInput(group, name, version, fileName);
         trustedArtifacts.add(new DependencyVerificationConfiguration.TrustedArtifact(group, name, version, fileName, regex, reason));
     }
@@ -260,7 +260,6 @@ public class DependencyVerifierBuilder {
                 this.reason = reason;
             }
         }
-
 
         void addChecksum(String checksum) {
             if (value == null) {
