@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,16 @@ package promotion
 import common.VersionedSettingsBranch
 import vcsroots.gradlePromotionBranches
 
-class PublishNightlySnapshotFromQuickFeedback(branch: VersionedSettingsBranch) : PublishGradleDistributionFullBuild(
+class PublishNightlySnapshotFromQuickFeedbackStepCheckReady(branch: VersionedSettingsBranch) : BasePublishGradleDistribution(
     promotedBranch = branch.branchName,
     prepTask = branch.prepNightlyTaskName(),
-    promoteTask = branch.promoteNightlyTaskName(),
     triggerName = "QuickFeedback",
-    vcsRootId = gradlePromotionBranches
+    vcsRootId = gradlePromotionBranches,
+    cleanCheckout = false
 ) {
     init {
-        id("Promotion_SnapshotFromQuickFeedback")
-        name = "Nightly Snapshot (from QuickFeedback)"
-        description = "Promotes the latest successful changes on '${branch.branchName}' from Quick Feedback as a new nightly snapshot"
+        id("Promotion_SnapshotFromQuickFeedbackStepCheckReady")
+        name = "Nightly Snapshot (from QuickFeedback) - Check Ready"
+        description = "Checks that a nightly snapshot can be published from QuickFeedback"
     }
 }

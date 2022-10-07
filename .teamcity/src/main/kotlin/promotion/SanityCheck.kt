@@ -1,6 +1,7 @@
 package promotion
 
 import common.Os
+import common.VersionedSettingsBranch
 import common.gradleWrapper
 import common.requiresOs
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
@@ -27,6 +28,7 @@ object SanityCheck : BuildType({
     triggers {
         vcs {
             branchFilter = ""
+            enabled = VersionedSettingsBranch.fromDslContext().enableTriggers
         }
     }
 

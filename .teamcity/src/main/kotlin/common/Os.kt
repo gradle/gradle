@@ -68,3 +68,10 @@ enum class Os(
 
     fun javaHome(jvmVersion: JvmVersion, vendor: JvmVendor) = "%${name.toLowerCase()}.$jvmVersion.$vendor.64bit%"
 }
+
+enum class Arch(val suffix: String, val nameOnLinuxWindows: String, val nameOnMac: String) {
+    AMD64("64bit", "amd64", "x86_64"),
+    AARCH64("aarch64", "aarch64", "aarch64");
+
+    fun asName() = name.lowercase().toCapitalized()
+}

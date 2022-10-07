@@ -1,6 +1,9 @@
 package promotion
 
+import common.BuildToolBuildJvm
+import common.Os
 import common.VersionedSettingsBranch
+import common.javaHome
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 
 class PromotionProject(branch: VersionedSettingsBranch) : Project({
@@ -10,10 +13,13 @@ class PromotionProject(branch: VersionedSettingsBranch) : Project({
     buildType(SanityCheck)
     buildType(PublishNightlySnapshot(branch))
     buildType(PublishNightlySnapshotFromQuickFeedback(branch))
+    buildType(PublishNightlySnapshotFromQuickFeedbackStepCheckReady(branch))
+    buildType(PublishNightlySnapshotFromQuickFeedbackStepUpload(branch))
+    buildType(PublishNightlySnapshotFromQuickFeedbackStepPromote(branch))
     buildType(PublishBranchSnapshotFromQuickFeedback)
     buildType(PublishMilestone(branch))
 
-    if (branch == VersionedSettingsBranch.MASTER) {
+    if (branch.isMaster) {
         buildType(StartReleaseCycle)
         buildType(StartReleaseCycleTest)
     } else {
@@ -28,10 +34,12 @@ class PromotionProject(branch: VersionedSettingsBranch) : Project({
         password("env.DOTCOM_DEV_DOCS_AWS_SECRET_KEY", "%dotcomDevDocsAwsSecretKey%")
         param("env.DOTCOM_DEV_DOCS_AWS_ACCESS_KEY", "AKIAX5VJCER2X7DPYFXF")
         password("env.ORG_GRADLE_PROJECT_sdkmanToken", "%sdkmanToken%")
-        param("env.JAVA_HOME", "%linux.java11.openjdk.64bit%")
+        param("env.JAVA_HOME", javaHome(BuildToolBuildJvm, Os.LINUX))
         param("env.ORG_GRADLE_PROJECT_artifactoryUserName", "%gradle.internal.repository.build-tool.publish.username%")
         password("env.ORG_GRADLE_PROJECT_infrastructureEmailPwd", "%infrastructureEmailPwd%")
         param("env.ORG_GRADLE_PROJECT_sdkmanKey", "8ed1a771bc236c287ad93c699bfdd2d7")
+        param("env.PGP_SIGNING_KEY", "%pgpSigningKey%")
+        param("env.PGP_SIGNING_KEY_PASSPHRASE", "%pgpSigningPassphrase%")
     }
 
     buildTypesOrder = arrayListOf(

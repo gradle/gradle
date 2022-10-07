@@ -3,7 +3,6 @@ package configurations
 import common.Os.LINUX
 import common.buildToolGradleParameters
 import common.customGradle
-import common.gradleWrapper
 import common.requiresNotEc2Agent
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep

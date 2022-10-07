@@ -4,7 +4,6 @@ import common.JvmCategory
 import common.Os.LINUX
 import common.cleanAndroidUserHome
 import common.requiresNotEc2Agent
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.parallelTests
 import model.CIBuildModel
 import model.Stage
 

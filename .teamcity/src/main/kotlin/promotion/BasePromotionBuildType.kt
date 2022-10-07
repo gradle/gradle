@@ -16,7 +16,9 @@
 
 package promotion
 
+import common.BuildToolBuildJvm
 import common.Os
+import common.paramsForBuildToolBuild
 import common.requiresNotEc2Agent
 import common.requiresOs
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
@@ -38,9 +40,21 @@ abstract class BasePromotionBuildType(vcsRootId: String, cleanCheckout: Boolean 
             requiresNotEc2Agent()
         }
 
+        paramsForBuildToolBuild(BuildToolBuildJvm, Os.LINUX)
+
         params {
-            param("env.GRADLE_INTERNAL_REPO_URL", "%gradle.internal.repository.url%")
-            param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%;%e.grdev.net.access.key%")
+            password("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%;%e.grdev.net.access.key%")
+            password("env.ORG_GRADLE_PROJECT_botGradleGitHubToken", "%github.bot-gradle.token%")
+        }
+
+        features {
+            // https://www.jetbrains.com/help/teamcity/shared-resources.html#Viewing+Shared+Resources+Usage
+            // https://blog.jetbrains.com/teamcity/2013/05/explaining-the-shared-resources-plugin/
+            // we only allow 1 promotion job running at the same time to avoid website xml conflicts
+            feature {
+                type = "JetBrains.SharedResources"
+                param("locks-param", "WebsiteReleasesXml writeLock")
+            }
         }
     }
 }
