@@ -147,7 +147,7 @@ public class JsonProjectDependencyRenderer {
         json.call(overall);
     }
 
-    private List<Configuration> getUsableConfigurations(Project project) {
+    private List<Configuration> getConfigurationsWhichCouldHaveDependencyInfo(Project project) {
         List<Configuration> filteredConfigurations = new ArrayList<>();
         for (Configuration configuration : project.getConfigurations()) {
             ConfigurationInternal configurationInternal = (ConfigurationInternal)configuration;
@@ -164,7 +164,7 @@ public class JsonProjectDependencyRenderer {
     }
 
     private List<Map<String, Object>> createConfigurations(Project project) {
-        Iterable<Configuration> configurations = getUsableConfigurations(project);
+        Iterable<Configuration> configurations = getConfigurationsWhichCouldHaveDependencyInfo(project);
         return CollectionUtils.collect(configurations, configuration -> {
             LinkedHashMap<String, Object> map = new LinkedHashMap<>(4);
             map.put("name", configuration.getName());
