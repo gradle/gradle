@@ -56,22 +56,16 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
         return """
             <script type="text/javascript">
                 function getAllErrorCorrections() {
-                    var changeElements = \$(".well pre")
-                    var result = []
-                    changeElements.each(function() {
-                        result.push(JSON.parse(this.textContent));
-                    })
+                    var changeElements = \$(".well pre");
+                    var result = [];
+                    changeElements.each((idx, val) => result.push(JSON.parse(val.textContent)));
                     return result;
                 }
 
                 function appendErrorCorrections() {
-                    var result = $currentApiChanges;
-                    getAllErrorCorrections().forEach(function(correction) {
-                        result.acceptedApiChanges.push(correction);
-                    });
-                    result.acceptedApiChanges = result.acceptedApiChanges.sort(function(a, b) {
-                        return (a.type + a.member) - (b.type + b.member);
-                    });
+                    var result = JSON.parse('${currentApiChanges.replace('\n', '')}'); // JSON string from report uses double quotes, contain it within single quotes
+                    getAllErrorCorrections().forEach((correction) => result.acceptedApiChanges.push(correction));
+                    result.acceptedApiChanges = result.acceptedApiChanges.sort((a, b) => (a.type + a.member) - (b.type + b.member));
                     return result;
                 }
 
@@ -84,16 +78,10 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
                     downloadLink.download = fileNameToSaveAs;
                     downloadLink.innerHTML = "Download File";
 
-                    if (window.webkitURL != null) {
-                        // Chrome allows the link to be clicked without actually adding it to the DOM
-                        downloadLink.href = window.webkitURL.createObjectURL(textFileAsBlob);
-                    } else {
-                        // Firefox requires the link to be added to the DOM before it can be clicked
-                        downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
-                        downloadLink.onclick = destroyClickedElement;
-                        downloadLink.style.display = "none";
-                        document.body.appendChild(downloadLink);
-                    }
+                    // Add the link to the DOM so that it can be clicked
+                    downloadLink.href = window.URL.createObjectURL(textFileAsBlob);
+                    downloadLink.style.display = "none";
+                    document.body.appendChild(downloadLink);
 
                     downloadLink.click();
                 }

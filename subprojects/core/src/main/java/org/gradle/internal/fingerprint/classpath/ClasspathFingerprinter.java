@@ -16,7 +16,7 @@
 
 package org.gradle.internal.fingerprint.classpath;
 
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
+import org.gradle.internal.execution.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.impl.RelativePathFileCollectionFingerprinter;
 import org.gradle.internal.service.scopes.Scopes;

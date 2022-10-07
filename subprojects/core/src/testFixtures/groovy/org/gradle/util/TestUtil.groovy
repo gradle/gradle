@@ -230,6 +230,7 @@ class TestUtil {
         return ProjectBuilder
             .builder()
             .withProjectDir(rootDir)
+            .withName("test-project")
             .build()
     }
 

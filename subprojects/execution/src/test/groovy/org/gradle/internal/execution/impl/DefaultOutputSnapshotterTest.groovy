@@ -17,9 +17,9 @@
 package org.gradle.internal.execution.impl
 
 import org.gradle.api.file.FileCollection
+import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

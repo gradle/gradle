@@ -23,9 +23,9 @@ import org.gradle.api.internal.changedetection.state.LineEndingNormalizingFileSy
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
-import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
-import org.gradle.internal.execution.fingerprint.impl.FingerprinterRegistration;
+import org.gradle.internal.execution.FileCollectionFingerprinter;
+import org.gradle.internal.execution.FileCollectionSnapshotter;
+import org.gradle.internal.execution.impl.FingerprinterRegistration;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Arrays.stream;
-import static org.gradle.internal.execution.fingerprint.impl.FingerprinterRegistration.registration;
+import static org.gradle.internal.execution.impl.FingerprinterRegistration.registration;
 
 public class FileCollectionFingerprinterRegistrations {
     private final Set<FingerprinterRegistration> registrants;

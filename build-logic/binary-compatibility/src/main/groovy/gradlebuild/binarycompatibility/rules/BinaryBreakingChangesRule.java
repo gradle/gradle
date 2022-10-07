@@ -36,9 +36,8 @@ public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
         JApiCompatibilityChange.INTERFACE_ADDED               // the added methods will be reported
     );
 
-    @SuppressWarnings("unchecked")
     public BinaryBreakingChangesRule(Map<String, Object> params) {
-        super((Map<String, String>)params.get("acceptedApiChanges"), (String)params.get("apiChangesJsonFile"), (String)params.get("projectRootDir"));
+        super(params);
     }
 
     @Override
