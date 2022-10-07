@@ -88,7 +88,7 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
         fails 'help'
 
         then:
-        failure.hasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
+        failure.hasErrorOutput("Dependency constraints can not be declared against the `compile` configuration.")
     }
 
     def "fail if an artifact is added to an unusable configuration"() {
@@ -110,6 +110,7 @@ class InvalidConfigurationResolutionIntegrationTest extends AbstractIntegrationS
         given:
         buildFile << """
             task resolve {
+                dependsOn configurations.compileOnly
                 doLast {
                     configurations.compileOnly.files
                 }
