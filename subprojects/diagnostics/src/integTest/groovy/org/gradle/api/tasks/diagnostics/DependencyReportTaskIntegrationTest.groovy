@@ -1029,7 +1029,7 @@ compileClasspath - Compile classpath for source set 'main'.
 """
     }
 
-    def "adding deprecations to invalid configurations for declaration will warn"() {
+    def "adding declarations to deprecated configurations for declaration will warn"() {
         given:
         file("settings.gradle") << "include 'a', 'b'"
 
@@ -1052,6 +1052,28 @@ compileClasspath - Compile classpath for source set 'main'.
         expect:
         succeeds ':a:dependencies'
     }
+
+    def "adding declarations to invalid configurations for declaration will fail"() {
+        given:
+        file("settings.gradle") << "include 'a', 'b'"
+
+        buildFile << """
+            subprojects {
+                configurations {
+                    compile.canBeDeclaredAgainst = false
+                    'default' { extendsFrom compile }
+                }
+                group = "group"
+                version = 1.0
+            }
+            project(":a") {
+                dependencies { compile project(":b") }
+            }
+        """
+        expect:
+        fails ':a:dependencies'
+    }
+
 
     void "treats a configuration that is deprecated for resolving as not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
