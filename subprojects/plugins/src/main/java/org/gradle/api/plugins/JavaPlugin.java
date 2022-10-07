@@ -362,7 +362,6 @@ public class JavaPlugin implements Plugin<Project> {
                 .withDescription("Elements of runtime for main.")
                 .extendsFrom(implementationConfiguration, runtimeOnlyConfiguration));
         defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
-        runtimeElementsConfiguration.setCanBeDeclaredAgainst(false);
 
         // Configure variants
         addJarArtifactToConfiguration(runtimeElementsConfiguration, jarArtifact);
