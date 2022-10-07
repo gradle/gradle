@@ -102,7 +102,7 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
                     \$(document).ready(function () {
                         const level = \$("#filter-preset")[0].value;
                         \$("a[role='menuitem']").each (function() {
-                            if (this.text == level) {
+                            if (this.text === level) {
                                 this.click();
                             }
                         });
