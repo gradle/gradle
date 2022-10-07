@@ -143,14 +143,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
         }
     }
 
-    /**
-     * Tests if this configuration can be directly declared against, consumed or resolved.
-     * @return {@code true} if so; {@code false} otherwise
-     */
-    default boolean isConfigurationUsable() {
-        return isCanBeDeclaredAgainst() || isCanBeConsumed() || isCanBeResolved();
-    }
-
     interface VariantVisitor {
         // The artifacts to use when this configuration is used as a configuration
         void visitArtifacts(Collection<? extends PublishArtifact> artifacts);
