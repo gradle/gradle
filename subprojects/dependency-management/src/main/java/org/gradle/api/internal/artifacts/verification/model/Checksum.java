@@ -112,7 +112,7 @@ public class Checksum {
         if (!Objects.equals(origin, checksum.origin)) {
             return false;
         }
-        return Objects.equals(origin, checksum.origin);
+        return Objects.equals(reason, checksum.reason);
     }
 
     @Override

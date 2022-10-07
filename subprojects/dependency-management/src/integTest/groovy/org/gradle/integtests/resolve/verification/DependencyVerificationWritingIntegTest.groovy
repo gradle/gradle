@@ -1347,7 +1347,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         assertXmlContents expectedXmlContents
     }
 
-
     def "keeps checksum reasons"() {
         given:
         def expectedXmlContents = """<?xml version="1.0" encoding="UTF-8"?>
@@ -1386,6 +1385,4 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         then:
         assertXmlContents expectedXmlContents
     }
-
-
 }
