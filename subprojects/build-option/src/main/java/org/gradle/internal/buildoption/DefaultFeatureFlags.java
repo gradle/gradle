@@ -43,4 +43,9 @@ public class DefaultFeatureFlags implements FeatureFlags {
     public void enable(FeatureFlag flag) {
         enabled.add(flag);
     }
+
+    @Override
+    public boolean isEnabledWithApi(FeatureFlag flag) {
+        return enabled.contains(flag);
+    }
 }
