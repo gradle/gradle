@@ -28,6 +28,7 @@ class DefaultFeatureFlagsTest extends Specification {
 
         expect:
         !flags.isEnabled(flag)
+        !flags.isEnabledWithApi(flag)
     }
 
     def "flag with associated system property is disabled by default"() {
@@ -36,6 +37,7 @@ class DefaultFeatureFlagsTest extends Specification {
 
         expect:
         !flags.isEnabled(flag)
+        !flags.isEnabledWithApi(flag)
     }
 
     def "can explicitly enable flag"() {
@@ -45,6 +47,7 @@ class DefaultFeatureFlagsTest extends Specification {
 
         expect:
         flags.isEnabled(flag)
+        flags.isEnabledWithApi(flag)
     }
 
     def "can explicitly enable flag with associated system property"() {
@@ -54,6 +57,7 @@ class DefaultFeatureFlagsTest extends Specification {
 
         expect:
         flags.isEnabled(flag)
+        flags.isEnabledWithApi(flag)
     }
 
     def "can use a system property to enable flag"() {
@@ -64,6 +68,7 @@ class DefaultFeatureFlagsTest extends Specification {
 
         expect:
         flags.isEnabled(flag)
+        !flags.isEnabledWithApi(flag)
     }
 
     def "can use a system property to disable a flag that has been enabled"() {
@@ -76,5 +81,6 @@ class DefaultFeatureFlagsTest extends Specification {
 
         expect:
         !flags.isEnabled(flag)
+        flags.isEnabledWithApi(flag)
     }
 }
