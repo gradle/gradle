@@ -48,7 +48,7 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
 
     private static RichReportData enrichReport(RichReportData data) {
         String currentApiChanges = getAcceptedApiChangesFile(data).text
-        String enrichedDesc = data.description + buildFixAllButton(currentApiChanges)
+        String enrichedDesc = data.description + buildFixAllButton(currentApiChanges) + buildAutoSelectSeverityFilter()
         return new RichReportData(data.reportTitle, enrichedDesc, data.violations)
     }
 
@@ -87,6 +87,37 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
                 }
             </script>
             <a class="btn btn-info" role="button" onclick="acceptAllErrorCorrections()">Accept Changes for all Errors</a>
+        """
+    }
+
+    /**
+     * Since jQuery isn't included until the bottom of this report, we need to delay until the DOM is ready using vanilla
+     * javascript before doing anything.  Then we need to add a function to run on ready, which will run after the report's
+     * own javascript based filtering logic is attached with jQuery.
+     */
+    private static String buildAutoSelectSeverityFilter() {
+        return """
+            <script type="text/javascript">
+                document.addEventListener("DOMContentLoaded", function(event) {
+                    \$(document).ready(function () {
+                        const level = \$("#filter-preset")[0].value;
+                        \$("a[role='menuitem']").each (function() {
+                            if (this.text === level) {
+                                this.click();
+                            }
+                        });
+
+                        var divider = \$("<hr>");
+                        divider.css({ margin: "5px" });
+                        var tip = \$("<small>").text("Use the 'bin.cmp.report.severity.filter' property to set the default severity filter");
+                        tip.css({ padding: "20px" });
+                        var menu = \$("ul .dropdown-menu");
+                        menu.css({ width: "480px" });
+                        menu.append(divider);
+                        menu.append(tip);
+                    });
+                });
+            </script>
         """
     }
 }

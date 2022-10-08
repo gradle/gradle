@@ -153,6 +153,7 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
             AND LOWER THAN CURRENT BASE VERSION (from `version.txt` on this branch).
             The difference must identically match <a href="${apiChangesJsonFile.asFile.path}">accepted-public-api-changes.json</a>, no more, no less - otherwise the task will fail.
             </p>
+            ${writeFilterPreset(project)}
 """.stripIndent()
 
         it.renderer.set(EnrichedReportRenderer.class)
@@ -175,4 +176,9 @@ static List<String> toPatterns(List<String> packages) {
             .replaceAll('/', '[.]')
             .replaceAll('###', '.*?')
     }
+}
+
+private String writeFilterPreset(Project project) {
+    def preset = project.hasProperty('bin.cmp.report.severity.filter') ? project.getProperty('bin.cmp.report.severity.filter') : 'All levels'
+    return """<input id="filter-preset" type="hidden" value="$preset" />"""
 }
