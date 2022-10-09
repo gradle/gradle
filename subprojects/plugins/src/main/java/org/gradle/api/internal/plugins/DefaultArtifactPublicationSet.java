@@ -30,7 +30,7 @@ import java.util.Set;
 /**
  * The policy for which artifacts should be published by default when none are explicitly declared.
  */
-public class DefaultArtifactPublicationSet {
+public abstract class DefaultArtifactPublicationSet {
     private final PublishArtifactSet artifactContainer;
     private DefaultArtifactProvider defaultArtifactProvider;
 

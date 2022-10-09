@@ -39,7 +39,7 @@ import java.util.concurrent.Callable;
  * When implementing a task that produces reports, the location of where to generate reports should be obtained
  * via the {@link #file(String)} method of this extension.
  */
-public class ReportingExtension {
+public abstract class ReportingExtension {
 
     /**
      * The name of this extension ("{@value}")
