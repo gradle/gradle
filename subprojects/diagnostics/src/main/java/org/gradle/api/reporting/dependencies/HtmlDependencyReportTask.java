@@ -66,7 +66,7 @@ import java.util.Set;
  * </pre>
  */
 @UntrackedTask(because = "We can't describe the dependency tree of all projects as input")
-public class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
+public abstract class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
     private Set<Project> projects;
     private final DirectoryProperty reportDir;
     private final DependencyReportContainer reports;

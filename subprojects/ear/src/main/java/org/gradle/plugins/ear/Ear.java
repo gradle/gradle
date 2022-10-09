@@ -59,7 +59,7 @@ import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
  * Assembles an EAR archive.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class Ear extends Jar {
+public abstract class Ear extends Jar {
     public static final String EAR_EXTENSION = "ear";
 
     private String libDirName;

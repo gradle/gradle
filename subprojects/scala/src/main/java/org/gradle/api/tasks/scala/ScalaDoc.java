@@ -52,7 +52,7 @@ import java.util.List;
  * Generates HTML API documentation for Scala source files.
  */
 @CacheableTask
-public class ScalaDoc extends SourceTask {
+public abstract class ScalaDoc extends SourceTask {
 
     private File destinationDir;
 
