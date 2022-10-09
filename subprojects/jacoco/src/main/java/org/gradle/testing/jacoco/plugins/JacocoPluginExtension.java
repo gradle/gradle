@@ -48,7 +48,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 /**
  * Extension including common properties and methods for Jacoco.
  */
-public class JacocoPluginExtension {
+public abstract class JacocoPluginExtension {
 
     public static final String TASK_EXTENSION_NAME = "jacoco";
 

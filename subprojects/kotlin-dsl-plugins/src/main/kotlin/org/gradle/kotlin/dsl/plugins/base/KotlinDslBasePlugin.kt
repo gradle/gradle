@@ -44,14 +44,13 @@ abstract class KotlinDslBasePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         apply<EmbeddedKotlinPlugin>()
-        createOptionsExtension()
+
+        val kotlinDslPluginOptions = extensions.create("kotlinDslPluginOptions", KotlinDslPluginOptions::class.java, objects)
+        kotlinDslPluginOptions.jvmTarget.convention("1.8")
+
         apply<KotlinDslCompilerPlugins>()
         addGradleKotlinDslDependencyTo(kotlinArtifactConfigurationNames)
     }
-
-    private
-    fun Project.createOptionsExtension() =
-        extensions.add("kotlinDslPluginOptions", KotlinDslPluginOptions(objects))
 
     private
     fun Project.addGradleKotlinDslDependencyTo(configurations: List<String>) =
