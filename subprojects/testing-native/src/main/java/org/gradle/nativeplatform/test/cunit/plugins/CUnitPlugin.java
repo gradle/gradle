@@ -48,7 +48,7 @@ import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNat
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
  */
 @Incubating
-public class CUnitPlugin implements Plugin<Project> {
+public abstract class CUnitPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
