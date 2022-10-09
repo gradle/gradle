@@ -28,7 +28,7 @@ import javax.inject.Inject;
  * Generates an IDEA workspace file *only* for root project. There's little you can configure about workspace generation at the moment.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> {
+public abstract class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> {
 
     private IdeaWorkspace workspace;
 
