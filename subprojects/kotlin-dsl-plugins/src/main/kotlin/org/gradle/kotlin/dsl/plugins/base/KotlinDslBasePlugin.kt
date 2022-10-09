@@ -40,7 +40,7 @@ import org.gradle.kotlin.dsl.*
  * @see org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin
  * @see <a href="https://docs.gradle.org/current/userguide/kotlin_dsl.html">Kotlin DSL reference</a>
  */
-class KotlinDslBasePlugin : Plugin<Project> {
+abstract class KotlinDslBasePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         apply<EmbeddedKotlinPlugin>()

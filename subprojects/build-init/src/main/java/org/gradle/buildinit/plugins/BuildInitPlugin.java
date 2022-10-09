@@ -36,7 +36,7 @@ import java.util.concurrent.Callable;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/build_init_plugin.html">Build Init plugin reference</a>
  */
-public class BuildInitPlugin implements Plugin<Project> {
+public abstract class BuildInitPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {

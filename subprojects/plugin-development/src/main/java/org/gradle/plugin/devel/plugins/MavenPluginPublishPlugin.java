@@ -33,7 +33,7 @@ import org.w3c.dom.Node;
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
-class MavenPluginPublishPlugin implements Plugin<Project> {
+abstract class MavenPluginPublishPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.afterEvaluate(new Action<Project>() {

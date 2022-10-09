@@ -37,7 +37,7 @@ import java.io.File;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/antlr_plugin.html">ANTLR plugin reference</a>
  */
-public class AntlrPlugin implements Plugin<Project> {
+public abstract class AntlrPlugin implements Plugin<Project> {
     public static final String ANTLR_CONFIGURATION_NAME = "antlr";
     private final ObjectFactory objectFactory;
 

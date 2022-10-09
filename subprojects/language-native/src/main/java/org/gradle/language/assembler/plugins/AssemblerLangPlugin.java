@@ -38,7 +38,7 @@ import java.util.Map;
  * Adds core Assembler language support.
  */
 @Incubating
-public class AssemblerLangPlugin implements Plugin<Project> {
+public abstract class AssemblerLangPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
