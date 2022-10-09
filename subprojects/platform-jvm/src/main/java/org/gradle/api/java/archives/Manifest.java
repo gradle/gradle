@@ -82,7 +82,7 @@ public interface Manifest {
 
     /**
      * Specifies other manifests to be merged into this manifest. A merge path can either be another instance of
-     * {@link org.gradle.api.java.archives.Manifest} or a file path as interpreted by {@link org.gradle.api.Project#files(Object...)}.
+     * {@link org.gradle.api.java.archives.Manifest} or a file path as interpreted by {@link org.gradle.api.Project#file(Object)}.
      *
      * The merge is not happening instantaneously. It happens either before writing or when {@link #getEffectiveManifest()}
      * is called.
