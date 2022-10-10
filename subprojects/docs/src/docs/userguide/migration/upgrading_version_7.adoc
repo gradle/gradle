@@ -160,7 +160,7 @@ The internal `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
 The `testResourcesDirs` and `testSourcesDirs` fields and their getters and setters have been deprecated.
 Replace usages with the now stable `getTestSources()` and `getTestResources()` methods and their respective setters.
 These new methods return and are backed by `ConfigurableFileCollection` instances for improved flexibility of use.
-Gradle now warns upon usage of these deprecated methods. They will be removed in Gradle 8.0.
+Gradle now warns upon usage of these deprecated methods. They will be removed in a future version of Gradle.
 
 ==== Replacement methods in `org.gradle.api.tasks.testing.TestReport`
 
