@@ -42,7 +42,7 @@ public class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
     }
 
     private static GroovySourceDirectorySet createGroovySourceDirectorySet(String name, String displayName, ObjectFactory objectFactory) {
-        GroovySourceDirectorySet groovySourceDirectorySet = new DefaultGroovySourceDirectorySet(objectFactory.sourceDirectorySet(name, displayName + " Groovy source"));
+        GroovySourceDirectorySet groovySourceDirectorySet = objectFactory.newInstance(DefaultGroovySourceDirectorySet.class, objectFactory.sourceDirectorySet(name, displayName + " Groovy source"));
         groovySourceDirectorySet.getFilter().include("**/*.java", "**/*.groovy");
         return groovySourceDirectorySet;
     }

@@ -39,7 +39,7 @@ public class DefaultScalaSourceSet implements org.gradle.api.tasks.ScalaSourceSe
     }
 
     private static ScalaSourceDirectorySet createScalaSourceDirectorySet(String name, String displayName, ObjectFactory objectFactory) {
-        ScalaSourceDirectorySet scalaSourceDirectorySet = new DefaultScalaSourceDirectorySet(objectFactory.sourceDirectorySet(name, displayName));
+        ScalaSourceDirectorySet scalaSourceDirectorySet = objectFactory.newInstance(DefaultScalaSourceDirectorySet.class, objectFactory.sourceDirectorySet(name, displayName));
         scalaSourceDirectorySet.getFilter().include("**/*.java", "**/*.scala");
         return scalaSourceDirectorySet;
     }

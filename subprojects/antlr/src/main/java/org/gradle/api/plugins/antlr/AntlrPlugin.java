@@ -111,7 +111,7 @@ public abstract class AntlrPlugin implements Plugin<Project> {
     private static AntlrSourceDirectorySet createAntlrSourceDirectorySet(String parentDisplayName, ObjectFactory objectFactory) {
         String name = parentDisplayName + ".antlr";
         String displayName = parentDisplayName + " Antlr source";
-        AntlrSourceDirectorySet antlrSourceSet = new DefaultAntlrSourceDirectorySet(objectFactory.sourceDirectorySet(name, displayName));
+        AntlrSourceDirectorySet antlrSourceSet = objectFactory.newInstance(DefaultAntlrSourceDirectorySet.class, objectFactory.sourceDirectorySet(name, displayName));
         antlrSourceSet.getFilter().include("**/*.g");
         antlrSourceSet.getFilter().include("**/*.g4");
         return antlrSourceSet;
