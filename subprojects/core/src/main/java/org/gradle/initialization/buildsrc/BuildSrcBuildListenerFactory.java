@@ -18,11 +18,6 @@ package org.gradle.initialization.buildsrc;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.Bundling;
-import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
@@ -33,6 +28,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.InternalBuildAdapter;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -41,17 +37,18 @@ import java.util.Collections;
 
 @ServiceScope(Scopes.Build.class)
 public class BuildSrcBuildListenerFactory {
-
     private final Action<ProjectInternal> buildSrcRootProjectConfiguration;
     private final NamedObjectInstantiator instantiator;
+    private final CachedClasspathTransformer classpathTransformer;
 
-    public BuildSrcBuildListenerFactory(Action<ProjectInternal> buildSrcRootProjectConfiguration, NamedObjectInstantiator instantiator) {
+    public BuildSrcBuildListenerFactory(Action<ProjectInternal> buildSrcRootProjectConfiguration, NamedObjectInstantiator instantiator, CachedClasspathTransformer classpathTransformer) {
         this.buildSrcRootProjectConfiguration = buildSrcRootProjectConfiguration;
         this.instantiator = instantiator;
+        this.classpathTransformer = classpathTransformer;
     }
 
     Listener create() {
-        return new Listener(buildSrcRootProjectConfiguration, instantiator);
+        return new Listener(buildSrcRootProjectConfiguration, instantiator, classpathTransformer);
     }
 
     /**
@@ -62,11 +59,11 @@ public class BuildSrcBuildListenerFactory {
         private Configuration classpathConfiguration;
         private ProjectState rootProjectState;
         private final Action<ProjectInternal> rootProjectConfiguration;
-        private final NamedObjectInstantiator instantiator;
+        private final ScriptClassPathResolver resolver;
 
-        private Listener(Action<ProjectInternal> rootProjectConfiguration, NamedObjectInstantiator instantiator) {
+        private Listener(Action<ProjectInternal> rootProjectConfiguration, NamedObjectInstantiator instantiator, CachedClasspathTransformer classpathTransformer) {
             this.rootProjectConfiguration = rootProjectConfiguration;
-            this.instantiator = instantiator;
+            this.resolver = new DefaultScriptClassPathResolver(Collections.emptyList(), instantiator, classpathTransformer);
         }
 
         @Override
@@ -83,23 +80,15 @@ public class BuildSrcBuildListenerFactory {
         public void applyTasksTo(Context context, ExecutionPlan plan) {
             rootProjectState.applyToMutableState(rootProject -> {
                 classpathConfiguration = rootProject.getConfigurations().create("buildScriptClasspath");
-                // TODO - share this with DefaultScriptHandler
                 classpathConfiguration.setCanBeConsumed(false);
-                AttributeContainer attributes = classpathConfiguration.getAttributes();
-                attributes.attribute(Usage.USAGE_ATTRIBUTE, instantiator.named(Usage.class, Usage.JAVA_RUNTIME));
-                attributes.attribute(Category.CATEGORY_ATTRIBUTE, instantiator.named(Category.class, Category.LIBRARY));
-                attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, instantiator.named(LibraryElements.class, LibraryElements.JAR));
-                attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, instantiator.named(Bundling.class, Bundling.EXTERNAL));
+                resolver.prepareClassPath(classpathConfiguration, rootProject.getDependencies());
                 classpathConfiguration.getDependencies().add(rootProject.getDependencies().create(rootProject));
                 plan.addEntryTasks(classpathConfiguration.getBuildDependencies().getDependencies(null));
             });
         }
 
         public ClassPath getRuntimeClasspath() {
-            return rootProjectState.fromMutableState(project -> {
-                ScriptClassPathResolver resolver = new DefaultScriptClassPathResolver(Collections.emptyList());
-                return resolver.resolveClassPath(classpathConfiguration);
-            });
+            return rootProjectState.fromMutableState(project -> resolver.resolveClassPath(classpathConfiguration));
         }
     }
 }
