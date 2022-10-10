@@ -37,13 +37,9 @@ class IntersectionsTest extends Specification implements ExcludeTestSupport {
     }
 
     def "intersection of #one with #other = #expected"() {
-        when:
-        def result = Intersections.tryIntersect(one, other, factory)
-        def reverseResult = Intersections.tryIntersect(other, one, factory)
-
-        then:
-        result == expected
-        reverseResult == expected
+        expect:
+        Intersections.tryIntersect(one, other, factory) == expected
+        Intersections.tryIntersect(other, one, factory) == expected
 
         where:
         one                                                                                                            | other                                                                                                                 | expected
