@@ -62,7 +62,7 @@ public interface ExcludeAnyOf extends CompositeExclude {
         }
     }
 
-    default ExcludeSpec intersect(ExcludeSpec right, ExcludeFactory factory) {
+    default ExcludeSpec doIntersect(ExcludeSpec right, ExcludeFactory factory) {
         Set<ExcludeSpec> leftComponents = this.getComponents();
         // Here, we will distribute A ∩ (B ∪ C) if, and only if, at
         // least one of the distribution operations (A ∩ B) can be simplified
@@ -97,9 +97,61 @@ public interface ExcludeAnyOf extends CompositeExclude {
         }
     }
 
-    /**
-     * Called if no more specific overload found and returns the default result: nothing.
-     */
+    @Override
+    default ExcludeSpec intersect(ExcludeSpec other, ExcludeFactory factory) {
+        return doIntersect(other, factory);
+    }
+
+    @Override
+    default ExcludeSpec intersect(ArtifactExclude other, ExcludeFactory factory) {
+        return doIntersect(other, factory);
+    }
+
+    @Override
+    default ExcludeSpec intersect(ExcludeAllOf other, ExcludeFactory factory) {
+        return doIntersect(other, factory);
+    }
+
+    @Override
+    default ExcludeSpec intersect(ExcludeEverything other, ExcludeFactory factory) {
+        return doIntersect(other, factory);
+    }
+
+    @Override
+    default ExcludeSpec intersect(ExcludeNothing other, ExcludeFactory factory) {
+        return doIntersect(other, factory);
+    }
+
+    @Override
+    default ExcludeSpec intersect(GroupExclude other, ExcludeFactory factory) {
+        return doIntersect(other, factory);
+    }
+
+    @Override
+    default ExcludeSpec intersect(GroupSetExclude other, ExcludeFactory factory) {
+        return doIntersect(other, factory);
+    }
+
+    @Override
+    default ExcludeSpec intersect(ModuleExclude other, ExcludeFactory factory) {
+        return doIntersect(other, factory);
+    }
+
+    @Override
+    default ExcludeSpec intersect(ModuleIdExclude other, ExcludeFactory factory) {
+        return doIntersect(other, factory);
+    }
+
+    @Override
+    default ExcludeSpec intersect(ModuleIdSetExclude other, ExcludeFactory factory) {
+        return doIntersect(other, factory);
+    }
+
+    @Override
+    default ExcludeSpec intersect(ModuleSetExclude other, ExcludeFactory factory) {
+        return doIntersect(other, factory);
+    }
+
     @Override
     default ExcludeSpec beginIntersect(ExcludeSpec other, ExcludeFactory factory) {
         return other.intersect(this, factory);

@@ -18,9 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.spec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
 
 public interface IvyPatternMatcherExcludeRuleSpec extends ArtifactExclude {
-    /**
-     * Called if no more specific overload found and returns the default result: nothing.
-     */
     @Override
     default ExcludeSpec beginIntersect(ExcludeSpec other, ExcludeFactory factory) {
         return other.intersect(this, factory);

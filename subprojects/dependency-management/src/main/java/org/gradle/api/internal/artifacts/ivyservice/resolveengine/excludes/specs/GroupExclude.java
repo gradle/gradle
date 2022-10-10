@@ -76,9 +76,6 @@ public interface GroupExclude extends ExcludeSpec {
         );
     }
 
-    /**
-     * Called if no more specific overload found and returns the default result: nothing.
-     */
     @Override
     default ExcludeSpec beginIntersect(ExcludeSpec other, ExcludeFactory factory) {
         return other.intersect(this, factory);

@@ -79,8 +79,14 @@ public interface ExcludeSpec {
         return null;
     }
 
+    default ExcludeSpec intersect(ExcludeSpec other, ExcludeFactory factory) {
+        return null;
+    }
+
     /**
-     * Called if no more specific overload found and returns the default result: nothing.
+     * Must be overloaded in every extension of this interface - it <strong>CAN NOT BE IMPLEMENTED HERE</strong>
+     * with a default implementation, because it needs to be called within a more specific interface type
+     * in order for the double-dispatch to work.
      */
     ExcludeSpec beginIntersect(ExcludeSpec other, ExcludeFactory factory);
 }
