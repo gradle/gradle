@@ -27,7 +27,6 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModule;
-import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -42,8 +41,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
-import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
-import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
@@ -229,6 +226,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registration.add(TaskDependencyResolver.class);
             registration.add(DefaultBuildWorkGraphController.class);
             registration.add(DefaultBuildIncluder.class);
+            registration.add(DefaultScriptClassPathResolver.class);
+            registration.add(DefaultScriptHandlerFactory.class);
             supplier.applyServicesTo(registration, this);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerBuildServices(registration);
@@ -467,12 +466,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             currentBuild,
             fileLockManager,
             buildOperationExecutor,
-            cachedClasspathTransformer,
             new BuildSrcBuildListenerFactory(
                 PluginsProjectConfigureActions.of(
                     BuildSrcProjectConfigurationAction.class,
                     cachingServiceLocator),
-                instantiator),
+                instantiator,
+                cachedClasspathTransformer),
             buildRegistry,
             publicBuildPath);
     }
@@ -523,20 +522,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             buildOperationExecutor,
             emitter,
             buildDefinition.getFromBuild());
-    }
-
-    protected ScriptClassPathResolver createScriptClassPathResolver(List<ScriptClassPathInitializer> initializers) {
-        return new DefaultScriptClassPathResolver(initializers);
-    }
-
-    protected ScriptHandlerFactory createScriptHandlerFactory(DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ScriptClassPathResolver classPathResolver, NamedObjectInstantiator instantiator) {
-        return new DefaultScriptHandlerFactory(
-            dependencyManagementServices,
-            fileResolver,
-            fileCollectionFactory,
-            dependencyMetaDataProvider,
-            classPathResolver,
-            instantiator);
     }
 
     protected ProjectsPreparer createBuildConfigurer(

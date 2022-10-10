@@ -24,6 +24,7 @@ import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -55,7 +56,7 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
 
     def "executes buildSrc configuration action after projects are loaded"() {
         def action = Mock(Action)
-        def listener = new BuildSrcBuildListenerFactory(action, TestUtil.objectInstantiator()).create()
+        def listener = new BuildSrcBuildListenerFactory(action, TestUtil.objectInstantiator(), Stub(CachedClasspathTransformer)).create()
 
         when:
         listener.projectsLoaded(gradle)
