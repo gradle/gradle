@@ -35,16 +35,46 @@ public interface ExcludeSpec {
      */
     boolean mayExcludeArtifacts();
 
+    /**
+     * This method <STRONG>MUST</STRONG> be overloaded in <strong>EVERY</strong></strong>> extension of this
+     * interface - it <strong>CAN NOT BE IMPLEMENTED HERE</strong> with a {@code default} implementation,
+     * because it needs to be called within a more specific interface type
+     * in order for the simulation of double-dispatch within this call heirarchy to work.
+     *
+     * All implementations should be identical to the following:
+     * <pre>
+     *     return other.intersect(this, factory);
+     * </pre>
+     *
+     * @param other the other {@link ExcludeSpec} to intersect with this one
+     * @return the result of the intersection
+     */
+    ExcludeSpec beginIntersect(ExcludeSpec other, ExcludeFactory factory);
+
+    /**
+     * Since {@link ExcludeAnyOf} contains the logic to handle intersection with any other {@link ExcludeSpec},
+     * we'll always want to call to {@link ExcludeAnyOf#intersect(ExcludeSpec, ExcludeFactory)} to handle this case.
+     *
+     * @param other the other {@link ExcludeSpec} to intersect with this one
+     * @return the result of the intersection
+     */
+    default ExcludeSpec intersect(ExcludeAnyOf other, ExcludeFactory factory) {
+        return other.intersect(this, factory);
+    }
+
+    // region default implementations of intersection
+    /*
+     * The default implementation of any intersection is to return {@code null} to indicate that the intersection
+     * is not supported.  This is the case for all {@link ExcludeSpec} implementations that are not {@link ExcludeAnyOf},
+     * subtypes will have to {@code @Override} whichever of these applies to them with the logic to figure out
+     * each case.
+     */
     default ExcludeSpec intersect(ArtifactExclude other, ExcludeFactory factory) {
         return null;
     }
 
     default ExcludeSpec intersect(ExcludeAllOf other, ExcludeFactory factory) {
         return null;
-    }
-
-    default ExcludeSpec intersect(ExcludeAnyOf other, ExcludeFactory factory) {
-        return other.intersect(this, factory);
     }
 
     default ExcludeSpec intersect(ExcludeEverything other, ExcludeFactory factory) {
@@ -82,12 +112,6 @@ public interface ExcludeSpec {
     default ExcludeSpec intersect(ExcludeSpec other, ExcludeFactory factory) {
         return null;
     }
-
-    /**
-     * Must be overloaded in every extension of this interface - it <strong>CAN NOT BE IMPLEMENTED HERE</strong>
-     * with a default implementation, because it needs to be called within a more specific interface type
-     * in order for the double-dispatch to work.
-     */
-    ExcludeSpec beginIntersect(ExcludeSpec other, ExcludeFactory factory);
+    // endregion default implementations of intersection
 }
 
