@@ -19,6 +19,7 @@ package org.gradle.api.tasks.testing
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class TestTest extends AbstractProjectBuilderSpec {
@@ -44,5 +45,33 @@ class TestTest extends AbstractProjectBuilderSpec {
         def e = thrown(InvalidUserDataException)
         e.message.contains("The configured executable does not exist")
         e.message.contains(invalidJava)
+    }
+
+    def "fails if custom executable is a directory"() {
+        def testTask = project.tasks.create("test", Test)
+        def executableDir = temporaryFolder.createDir("javac")
+
+        when:
+        testTask.executable = executableDir.absolutePath
+        testTask.javaVersion
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("The configured executable is a directory")
+        e.message.contains(executableDir.name)
+    }
+
+    def "fails if custom executable is not from a valid JVM"() {
+        def testTask = project.tasks.create("test", Test)
+        def invalidJavac = temporaryFolder.createFile("invalidJavac")
+
+        when:
+        testTask.executable = invalidJavac.absolutePath
+        testTask.javaVersion
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("Specific installation toolchain")
+        e.message.contains(invalidJavac.parentFile.parentFile.absolutePath)
     }
 }

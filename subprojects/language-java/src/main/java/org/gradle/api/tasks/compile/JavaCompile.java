@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -254,18 +253,11 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private JavaToolchainSpec determineExplicitToolchain() {
         final File customJavaHome = getOptions().getForkOptions().getJavaHome();
         if (customJavaHome != null) {
-            return new SpecificInstallationToolchainSpec(objectFactory, customJavaHome);
+            return SpecificInstallationToolchainSpec.fromJavaHome(objectFactory, customJavaHome);
         } else {
             final String customExecutable = getOptions().getForkOptions().getExecutable();
             if (customExecutable != null) {
-                final File executable = new File(customExecutable);
-                if (executable.exists()) {
-                    // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
-                    File parentJavaHome = executable.getParentFile().getParentFile();
-                    return new SpecificInstallationToolchainSpec(objectFactory, parentJavaHome);
-                } else {
-                    throw new InvalidUserDataException("The configured executable does not exist (" + executable.getAbsolutePath() + ")");
-                }
+                return SpecificInstallationToolchainSpec.fromJavaExecutable(objectFactory, customExecutable);
             }
         }
         return null;
