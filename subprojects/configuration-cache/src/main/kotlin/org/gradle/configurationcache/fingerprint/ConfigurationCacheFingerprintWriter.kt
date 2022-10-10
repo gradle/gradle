@@ -59,6 +59,8 @@ import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.configurationcache.services.EnvironmentChangeTracker
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.buildoption.FeatureFlag
+import org.gradle.internal.buildoption.FeatureFlagListener
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.execution.UnitOfWork
@@ -93,6 +95,7 @@ class ConfigurationCacheFingerprintWriter(
     ProjectDependencyObservedListener,
     CoupledProjectsListener,
     FileResourceListener,
+    FeatureFlagListener,
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
@@ -405,6 +408,12 @@ class ConfigurationCacheFingerprintWriter(
             if (projectDependencies.add(dependency)) {
                 projectScopedWriter.write(dependency)
             }
+        }
+    }
+
+    override fun flagRead(flag: FeatureFlag) {
+        flag.systemPropertyName?.let { propertyName ->
+            sink().systemPropertyRead(propertyName, System.getProperty(propertyName))
         }
     }
 
