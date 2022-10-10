@@ -461,11 +461,11 @@ ADD RELEASE FEATURES ABOVE
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
-The following are the features that have been promoted in this Gradle release.
+This Gradle release promotes the following features to stable:
 
-`getTestSources` and `getTestResources` are stable/promoted now.
+- `getTestSources` and `getTestResources`
+- `getDestinationDirectory` and `getTestResults`
 
-`getDestinationDirectory` and `getTestResults` are stable/promoted now.
 ## Fixed issues
 
 ## Known issues
