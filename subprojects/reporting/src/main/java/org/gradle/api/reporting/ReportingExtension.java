@@ -23,6 +23,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 
@@ -55,6 +56,7 @@ public abstract class ReportingExtension {
     private final DirectoryProperty baseDirectory;
     private final ExtensiblePolymorphicDomainObjectContainer<ReportSpec> reports;
 
+    @Inject
     public ReportingExtension(Project project) {
         this.project = (ProjectInternal)project;
         this.baseDirectory = project.getObjects().directoryProperty();
