@@ -57,7 +57,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
 
     public NormalizingExcludeFactory(ExcludeFactory delegate) {
         super(delegate);
-        this.intersections = new Intersections(this);
+        this.intersections = new Intersections();
         this.unions = new Unions(this);
     }
 
@@ -333,7 +333,7 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
                     for (int j = 0; j < asArray.length; j++) {
                         ExcludeSpec right = asArray[j];
                         if (right != null && i != j) {
-                            ExcludeSpec merged = intersections.tryIntersect(left, right);
+                            ExcludeSpec merged = Intersections.tryIntersect(left, right, this);
                             if (merged != null) {
                                 if (merged instanceof ExcludeNothing) {
                                     return merged;

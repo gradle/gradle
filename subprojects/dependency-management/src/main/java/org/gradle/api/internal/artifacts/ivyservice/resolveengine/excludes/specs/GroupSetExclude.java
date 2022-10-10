@@ -15,8 +15,55 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs;
 
+import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.Intersections;
+
 import java.util.Set;
+
+import static java.util.stream.Collectors.toSet;
 
 public interface GroupSetExclude extends ExcludeSpec {
     Set<String> getGroups();
+
+    @Override
+    default ExcludeSpec intersect(GroupSetExclude right, ExcludeFactory factory) {
+        Set<String> groups = this.getGroups();
+        Set<String> common = Sets.newHashSet(right.getGroups());
+        common.retainAll(groups);
+        return Intersections.groupSet(common, factory);
+    }
+
+    @Override
+    default ExcludeSpec intersect(ModuleIdExclude right, ExcludeFactory factory) {
+        Set<String> groups = this.getGroups();
+        if (groups.contains(right.getModuleId().getGroup())) {
+            return right;
+        }
+        return factory.nothing();
+    }
+
+    @Override
+    default ExcludeSpec intersect(ModuleIdSetExclude right, ExcludeFactory factory) {
+        Set<String> groups = this.getGroups();
+        Set<ModuleIdentifier> filtered = right.getModuleIds()
+                .stream()
+                .filter(id -> groups.contains(id.getGroup()))
+                .collect(toSet());
+        return Intersections.moduleIdSet(filtered, factory);
+    }
+
+    @Override
+    default ExcludeSpec intersect(GroupExclude other, ExcludeFactory factory) {
+        return other.intersect(this, factory); // Reverse call - implemented on other side
+    }
+
+    /**
+     * Called if no more specific overload found and returns the default result: nothing.
+     */
+    @Override
+    default ExcludeSpec beginIntersect(ExcludeSpec other, ExcludeFactory factory) {
+        return other.intersect(this, factory);
+    }
 }

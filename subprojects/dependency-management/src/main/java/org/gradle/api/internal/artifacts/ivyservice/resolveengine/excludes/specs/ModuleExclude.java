@@ -15,6 +15,63 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.Intersections;
+
+import java.util.Set;
+
+import static java.util.stream.Collectors.toSet;
+
 public interface ModuleExclude extends ExcludeSpec {
     String getModule();
+
+    @Override
+    default ExcludeSpec intersect(ModuleExclude right, ExcludeFactory factory) {
+        String module = this.getModule();
+        if (right.getModule().equals(module)) {
+            return this;
+        } else {
+            return factory.nothing();
+        }
+    }
+
+    @Override
+    default ExcludeSpec intersect(ModuleIdExclude right, ExcludeFactory factory) {
+        String module = this.getModule();
+        if (right.getModuleId().getName().equals(module)) {
+            return right;
+        } else {
+            return factory.nothing();
+        }
+    }
+
+    @Override
+    default ExcludeSpec intersect(ModuleSetExclude right, ExcludeFactory factory) {
+        String module = this.getModule();
+        if (right.getModules().stream().anyMatch(g -> g.equals(module))) {
+            return this;
+        }
+        return factory.nothing();
+    }
+
+    @Override
+    default ExcludeSpec intersect(ModuleIdSetExclude right, ExcludeFactory factory) {
+        String module = this.getModule();
+        Set<ModuleIdentifier> common = right.getModuleIds().stream().filter(id -> id.getName().equals(module)).collect(toSet());
+        return Intersections.moduleIdSet(common, factory);
+    }
+
+    @Override
+    default ExcludeSpec intersect(GroupExclude other, ExcludeFactory factory) {
+        return other.intersect(this, factory); // Reverse call - implemented on other side
+    }
+
+    /**
+     * Called if no more specific overload found and returns the default result: nothing.
+     */
+    @Override
+    default ExcludeSpec beginIntersect(ExcludeSpec other, ExcludeFactory factory) {
+        return other.intersect(this, factory);
+    }
 }

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 public interface ExcludeSpec {
@@ -34,4 +35,53 @@ public interface ExcludeSpec {
      */
     boolean mayExcludeArtifacts();
 
+    default ExcludeSpec intersect(ArtifactExclude other, ExcludeFactory factory) {
+        return null;
+    }
+
+    default ExcludeSpec intersect(ExcludeAllOf other, ExcludeFactory factory) {
+        return null;
+    }
+
+    default ExcludeSpec intersect(ExcludeAnyOf other, ExcludeFactory factory) {
+        return other.intersect(this, factory);
+    }
+
+    default ExcludeSpec intersect(ExcludeEverything other, ExcludeFactory factory) {
+        return null;
+    }
+
+    default ExcludeSpec intersect(ExcludeNothing other, ExcludeFactory factory) {
+        return null;
+    }
+
+    default ExcludeSpec intersect(GroupExclude other, ExcludeFactory factory) {
+        return null;
+    }
+
+    default ExcludeSpec intersect(GroupSetExclude other, ExcludeFactory factory) {
+        return null;
+    }
+
+    default ExcludeSpec intersect(ModuleExclude other, ExcludeFactory factory) {
+        return null;
+    }
+
+    default ExcludeSpec intersect(ModuleIdExclude other, ExcludeFactory factory) {
+        return null;
+    }
+
+    default ExcludeSpec intersect(ModuleIdSetExclude other, ExcludeFactory factory) {
+        return null;
+    }
+
+    default ExcludeSpec intersect(ModuleSetExclude other, ExcludeFactory factory) {
+        return null;
+    }
+
+    /**
+     * Called if no more specific overload found and returns the default result: nothing.
+     */
+    ExcludeSpec beginIntersect(ExcludeSpec other, ExcludeFactory factory);
 }
+

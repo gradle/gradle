@@ -15,6 +15,72 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.Intersections;
+
+import java.util.Set;
+
+import static java.util.stream.Collectors.toSet;
+
 public interface GroupExclude extends ExcludeSpec {
     String getGroup();
+
+    @Override
+    default ExcludeSpec intersect(GroupExclude right, ExcludeFactory factory) {
+        String group = this.getGroup();
+        // equality has been tested before so we know groups are different
+        return factory.nothing();
+    }
+
+    @Override
+    default ExcludeSpec intersect(ModuleIdExclude right, ExcludeFactory factory) {
+        String group = this.getGroup();
+        if (right.getModuleId().getGroup().equals(group)) {
+            return right;
+        } else {
+            return factory.nothing();
+        }
+    }
+
+    @Override
+    default ExcludeSpec intersect(GroupSetExclude right, ExcludeFactory factory) {
+        String group = this.getGroup();
+        if (right.getGroups().stream().anyMatch(g -> g.equals(group))) {
+            return this;
+        }
+        return factory.nothing();
+    }
+
+    @Override
+    default ExcludeSpec intersect(ModuleIdSetExclude right, ExcludeFactory factory) {
+        String group = this.getGroup();
+        Set<ModuleIdentifier> moduleIds = right.getModuleIds().stream().filter(id -> id.getGroup().equals(group)).collect(toSet());
+        return Intersections.moduleIdSet(moduleIds, factory);
+    }
+
+    @Override
+    default ExcludeSpec intersect(ModuleExclude right, ExcludeFactory factory) {
+        String group = this.getGroup();
+        return factory.moduleId(DefaultModuleIdentifier.newId(this.getGroup(), right.getModule()));
+    }
+
+    @Override
+    default ExcludeSpec intersect(ModuleSetExclude right, ExcludeFactory factory) {
+        String group = this.getGroup();
+        return factory.moduleIdSet(right.getModules()
+                .stream()
+                .map(module -> DefaultModuleIdentifier.newId(this.getGroup(), module))
+                .collect(toSet())
+        );
+    }
+
+    /**
+     * Called if no more specific overload found and returns the default result: nothing.
+     */
+    @Override
+    default ExcludeSpec beginIntersect(ExcludeSpec other, ExcludeFactory factory) {
+        return other.intersect(this, factory);
+    }
 }
