@@ -19,6 +19,8 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.util.Set;
+
 public interface ExcludeSpec {
     /**
      * Determines if this exclude rule excludes the supplied module.

@@ -59,7 +59,7 @@ public interface ModuleExclude extends ExcludeSpec {
     default ExcludeSpec intersect(ModuleIdSetExclude right, ExcludeFactory factory) {
         String module = this.getModule();
         Set<ModuleIdentifier> common = right.getModuleIds().stream().filter(id -> id.getName().equals(module)).collect(toSet());
-        return Intersections.moduleIdSet(common, factory);
+        return factory.fromModuleIds(common);
     }
 
     @Override

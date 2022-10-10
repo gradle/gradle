@@ -32,7 +32,7 @@ public interface ModuleIdSetExclude extends ExcludeSpec {
         Set<ModuleIdentifier> moduleIds = this.getModuleIds();
         Set<ModuleIdentifier> common = Sets.newHashSet(right.getModuleIds());
         common.retainAll(moduleIds);
-        return Intersections.moduleIds(common, factory);
+        return factory.fromModuleIds(common);
     }
 
     @Override

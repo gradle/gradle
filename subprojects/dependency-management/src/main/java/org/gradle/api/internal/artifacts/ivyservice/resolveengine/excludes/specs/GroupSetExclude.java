@@ -32,7 +32,7 @@ public interface GroupSetExclude extends ExcludeSpec {
         Set<String> groups = this.getGroups();
         Set<String> common = Sets.newHashSet(right.getGroups());
         common.retainAll(groups);
-        return Intersections.groupSet(common, factory);
+        return factory.fromGroups(common);
     }
 
     @Override
@@ -51,7 +51,7 @@ public interface GroupSetExclude extends ExcludeSpec {
                 .stream()
                 .filter(id -> groups.contains(id.getGroup()))
                 .collect(toSet());
-        return Intersections.moduleIdSet(filtered, factory);
+        return factory.fromModuleIds(filtered);
     }
 
     @Override

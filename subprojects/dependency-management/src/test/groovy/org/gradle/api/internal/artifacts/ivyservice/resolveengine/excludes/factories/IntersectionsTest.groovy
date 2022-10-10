@@ -18,12 +18,16 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.fact
 
 
 import spock.lang.Specification
+import spock.lang.Subject
 
 class IntersectionsTest extends Specification implements ExcludeTestSupport {
 
+    @Subject
+    private Intersections ops = new Intersections(factory)
+
     def "intersects identical specs"() {
         expect:
-        Intersections.tryIntersect(spec, spec, factory) == spec
+        ops.tryIntersect(spec, spec) == spec
 
         where:
         spec << [
@@ -38,8 +42,8 @@ class IntersectionsTest extends Specification implements ExcludeTestSupport {
 
     def "intersection of #one with #other = #expected"() {
         expect:
-        Intersections.tryIntersect(one, other, factory) == expected
-        Intersections.tryIntersect(other, one, factory) == expected
+        ops.tryIntersect(one, other) == expected
+        ops.tryIntersect(other, one) == expected
 
         where:
         one                                                                                                            | other                                                                                                                 | expected
