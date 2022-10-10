@@ -18,13 +18,14 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.AbstractSpockTaskTest
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent
+import org.gradle.util.TestUtil
 
 class GenerateEclipseWtpComponentTest extends AbstractSpockTaskTest {
     private eclipseComponent
 
     def setup() {
         eclipseComponent = createTask(GenerateEclipseWtpComponent)
-        eclipseComponent.component = new EclipseWtpComponent(project, null)
+        eclipseComponent.component = TestUtil.objectFactory().newInstance(EclipseWtpComponent, project, null)
     }
 
     ConventionTask getTask() { eclipseComponent }

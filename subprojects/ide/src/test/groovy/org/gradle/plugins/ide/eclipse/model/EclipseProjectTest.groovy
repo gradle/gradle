@@ -17,11 +17,12 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class EclipseProjectTest extends Specification {
 
-    def eclipseProject = new EclipseProject()
+    def eclipseProject = TestUtil.objectFactory().newInstance(EclipseProject)
 
     def "allows adding linked resources"() {
         when:

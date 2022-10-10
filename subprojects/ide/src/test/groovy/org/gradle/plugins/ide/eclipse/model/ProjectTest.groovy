@@ -20,6 +20,7 @@ import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilter
 import org.gradle.plugins.ide.eclipse.model.internal.DefaultResourceFilterMatcher
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -51,7 +52,7 @@ public class ProjectTest extends Specification {
     }
 
     def configureMergesValues() {
-        EclipseProject eclipseProject = new EclipseProject()
+        EclipseProject eclipseProject = TestUtil.objectFactory().newInstance(EclipseProject)
         eclipseProject.name = 'constructorName'
         eclipseProject.comment = 'constructorComment'
         eclipseProject.referencedProjects = ['constructorRefProject'] as LinkedHashSet
@@ -91,7 +92,7 @@ public class ProjectTest extends Specification {
     }
 
     def toXml_shouldContainCustomValues() {
-        EclipseProject eclipseProject = new EclipseProject()
+        EclipseProject eclipseProject = TestUtil.objectFactory().newInstance(EclipseProject)
         eclipseProject.name = 'constructorName'
         eclipseProject.comment = 'constructorComment'
         eclipseProject.referencedProjects = ['constructorRefProject'] as LinkedHashSet
