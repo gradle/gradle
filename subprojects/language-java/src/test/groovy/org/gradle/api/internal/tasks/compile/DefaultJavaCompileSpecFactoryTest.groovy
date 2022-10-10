@@ -22,12 +22,13 @@ import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.internal.JavaToolchain
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultJavaCompileSpecFactoryTest extends Specification {
 
     def "produces correct spec with fork=#fork, executable=#executable, toolchain=#toolchainHome"() {
-        CompileOptions options = new CompileOptions(Mock(ObjectFactory))
+        CompileOptions options = TestUtil.objectFactory().newInstance(CompileOptions, Mock(ObjectFactory))
         options.fork = fork
         options.forkOptions.executable = executable
         def toolchain = null
