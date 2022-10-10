@@ -38,6 +38,29 @@ public interface TestClassExecutionResult {
     int getTestCount();
 
     /**
+     * Asserts that the given tests have the given outcome for the given test class.
+     */
+    @SuppressWarnings("unchecked")
+    default TestClassExecutionResult assertTestOutcomes(TestOutcome status, String... testNames) {
+        for (String testName : testNames) {
+            switch (status) {
+                case PASSED:
+                    assertTestPassed(testName);
+                    break;
+                case FAILED:
+                    assertTestFailed(testName);
+                    break;
+                case SKIPPED:
+                    assertTestSkipped(testName);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown test outcome: " + status);
+            }
+        }
+        return this;
+    }
+
+    /**
      * Asserts that the given tests (and only the given tests) were skipped for the given test class.
      */
     TestClassExecutionResult assertTestsSkipped(String... testNames);

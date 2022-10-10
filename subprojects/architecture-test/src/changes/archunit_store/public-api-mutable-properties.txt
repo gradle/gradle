@@ -296,6 +296,7 @@ Method <org.gradle.api.tasks.testing.JUnitXmlReport.isOutputPerTestCase()> does 
 Method <org.gradle.api.tasks.testing.TestFilter.getExcludePatterns()> does not have raw return type assignable to org.gradle.api.provider.Property in (TestFilter.java:0)
 Method <org.gradle.api.tasks.testing.TestFilter.getIncludePatterns()> does not have raw return type assignable to org.gradle.api.provider.Property in (TestFilter.java:0)
 Method <org.gradle.api.tasks.testing.TestFilter.isFailOnNoMatchingTests()> does not have raw return type assignable to org.gradle.api.provider.Property in (TestFilter.java:0)
+Method <org.gradle.api.tasks.testing.TestFrameworkOptions.isDryRun()> does not have raw return type assignable to org.gradle.api.provider.Property in (TestFrameworkOptions.java:29)
 Method <org.gradle.api.tasks.testing.junit.JUnitOptions.getExcludeCategories()> does not have raw return type assignable to org.gradle.api.provider.Property in (JUnitOptions.java:0)
 Method <org.gradle.api.tasks.testing.junit.JUnitOptions.getIncludeCategories()> does not have raw return type assignable to org.gradle.api.provider.Property in (JUnitOptions.java:0)
 Method <org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions.getExcludeEngines()> does not have raw return type assignable to org.gradle.api.provider.Property in (JUnitPlatformOptions.java:0)

@@ -16,10 +16,27 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.TestOutcome
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
 abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
+
+    TestOutcome getTestOutcome() {
+        return TestOutcome.PASSED
+    }
+
+    List<String> getTestTaskArguments() {
+        return []
+    }
+
+    def succeedsWithTestTaskArguments(String... args) {
+        succeeds(args + testTaskArguments)
+    }
+
+    def failsWithTestTaskArguments(String... args) {
+        fails(args + testTaskArguments)
+    }
 
     def setup() {
         buildFile << """
@@ -64,26 +81,26 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         """.stripIndent()
 
         when:
-        succeeds("test", "--tests=Ok2*")
+        succeedsWithTestTaskArguments("test", "--tests=Ok2*")
 
         then:
         def testResult = new DefaultTestExecutionResult(testDirectory)
         testResult.assertTestClassesExecuted('Ok2')
 
         when:
-        succeeds("cleanTest", "test", "--tests=Ok*")
+        succeedsWithTestTaskArguments("cleanTest", "test", "--tests=Ok*")
 
         then:
         testResult.assertTestClassesExecuted('Ok', 'Ok2')
 
         when:
-        fails("test", "--tests=DoesNotMatchAClass*")
+        failsWithTestTaskArguments("test", "--tests=DoesNotMatchAClass*")
 
         then:
         result.assertHasCause('No tests found for given includes: [DoesNotMatchAClass*](--tests filter)')
 
         when:
-        fails("test", "--tests=NotATest*")
+        failsWithTestTaskArguments("test", "--tests=NotATest*")
         then:
         result.assertHasCause('No tests found for given includes: [NotATest*](--tests filter)')
     }
@@ -114,12 +131,12 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         """
 
         when:
-        run("test")
+        succeedsWithTestTaskArguments("test")
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("org.gradle.FooTest")
-        result.testClass("org.gradle.FooTest").assertTestsExecuted("pass")
+        result.testClass("org.gradle.FooTest").assertTestOutcomes(testOutcome, "pass")
 
         where:
         pattern << ['FooTest.pass', 'org.gradle.FooTest.pass']
@@ -153,7 +170,7 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         """
 
         when:
-        run("test")
+        succeedsWithTestTaskArguments("test")
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
@@ -196,13 +213,13 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         """
 
         when:
-        run("test")
+        succeedsWithTestTaskArguments("test")
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("Foo1Test", "Foo2Test")
-        result.testClass("Foo1Test").assertTestsExecuted("pass1")
-        result.testClass("Foo2Test").assertTestsExecuted("pass2")
+        result.testClass("Foo1Test").assertTestOutcomes(testOutcome, "pass1")
+        result.testClass("Foo2Test").assertTestOutcomes(testOutcome, "pass2")
     }
 
     def "reports when no matching methods found"() {
@@ -215,13 +232,13 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         """
 
         //by command line
-        when: fails("test", "--tests", pattern)
+        when: failsWithTestTaskArguments("test", "--tests", pattern)
         then: failure.assertHasCause("No tests found for given includes: [${pattern}](--tests filter)")
 
         //by build script
         when:
         buildFile << "test.filter.includeTestsMatching '${pattern}'"
-        fails("test")
+        failsWithTestTaskArguments("test")
         then: failure.assertHasCause("No tests found for given includes: [${pattern}](filter.includeTestsMatching)")
 
         where:
@@ -243,7 +260,7 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
                 exclude 'NotImportant*'
             }
         """
-        fails("test", "--tests", 'FooTest.missingMethod')
+        failsWithTestTaskArguments("test", "--tests", 'FooTest.missingMethod')
         then: failure.assertHasCause("No tests found for given includes: [FooTest*](include rules) [NotImportant*](exclude rules) [FooTest.missingMethod](--tests filter)")
     }
 
@@ -258,7 +275,7 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         when:
         buildFile << "test.include 'FooTest.missingMethod'"
         then:
-        succeeds("test", "--tests", 'FooTest.missingMethod')
+        succeedsWithTestTaskArguments("test", "--tests", 'FooTest.missingMethod')
     }
 
     def "task is out of date when --tests argument changes"() {
@@ -270,18 +287,18 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
             }
         """
 
-        when: run("test", "--tests", "FooTest.pass")
-        then: new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestsExecuted("pass")
+        when: succeedsWithTestTaskArguments("test", "--tests", "FooTest.pass")
+        then: new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestOutcomes(testOutcome, "pass")
 
-        when: run("test", "--tests", "FooTest.pass")
+        when: succeedsWithTestTaskArguments("test", "--tests", "FooTest.pass")
         then: skipped(":test") //up-to-date
 
         when:
-        run("test", "--tests", "FooTest.pass*")
+        succeedsWithTestTaskArguments("test", "--tests", "FooTest.pass*")
 
         then:
         executedAndNotSkipped(":test")
-        new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestsExecuted("pass", "pass2")
+        new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestOutcome(testOutcome, "pass", "pass2")
     }
 
     def "can select multiple tests from commandline #scenario"() {
@@ -315,23 +332,23 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         """
 
         when:
-        run(stringArrayOf(command))
+        succeedsWithTestTaskArguments(stringArrayOf(command))
 
         then:
 
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted(stringArrayOf(classesExecuted))
         if (!foo1TestsExecuted.isEmpty()) {
-            result.testClass("Foo1Test").assertTestsExecuted(stringArrayOf(foo1TestsExecuted))
+            result.testClass("Foo1Test").assertTestOutcomes(testOutcome, stringArrayOf(foo1TestsExecuted))
         }
         if (!foo2TestsExecuted.isEmpty()) {
-            result.testClass("Foo2Test").assertTestsExecuted(stringArrayOf(foo2TestsExecuted))
+            result.testClass("Foo2Test").assertTestOutcomes(testOutcome, stringArrayOf(foo2TestsExecuted))
         }
         if (!barTestsExecuted.isEmpty()) {
-            result.testClass("BarTest").assertTestsExecuted(stringArrayOf(barTestsExecuted))
+            result.testClass("BarTest").assertTestOutcomes(testOutcome, stringArrayOf(barTestsExecuted))
         }
         if (!otherTestsExecuted.isEmpty()) {
-            result.testClass("OtherTest").assertTestsExecuted(stringArrayOf(otherTestsExecuted))
+            result.testClass("OtherTest").assertTestOutcomes(testOutcome, stringArrayOf(otherTestsExecuted))
         }
 
         where:
@@ -353,12 +370,13 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         when:
         createTestABC()
 
-        then:
-        succeeds('test', '--tests', '*ATest*', '--tests', '*BTest*', '--info')
+        and:
+        succeedsWithTestTaskArguments('test', '--tests', '*ATest*', '--tests', '*BTest*', '--info')
 
-        output.contains('ATest!')
-        !output.contains('BTest!')
-        !output.contains('CTest!')
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted("ATest")
+        result.assertTestClassesNotExecuted("BTest", "CTest")
 
         where:
         includeType                   | includeConfig
@@ -379,12 +397,13 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         when:
         createTestABC()
 
-        then:
-        succeeds('test', '--info')
+        and:
+        succeedsWithTestTaskArguments('test', '--info')
 
-        !output.contains('ATest!')
-        output.contains('BTest!')
-        !output.contains('CTest!')
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted("BTest")
+        result.assertTestClassesNotExecuted("ATest", "CTest")
     }
 
     def "invoking filter.includePatterns not disable include/exclude filter"() {
@@ -399,12 +418,13 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         when:
         createTestABC()
 
-        then:
-        succeeds('test', '--info')
+        and:
+        succeedsWithTestTaskArguments('test', '--info')
 
-        !output.contains('ATest!')
-        output.contains('BTest!')
-        !output.contains('CTest!')
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted("BTest")
+        result.assertTestClassesNotExecuted("ATest", "CTest")
     }
 
     def "can exclude tests"() {
@@ -418,21 +438,16 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         createTestABC()
 
         when:
-        succeeds('test', '--info')
+        succeedsWithTestTaskArguments('test', '--info')
 
         then:
         executedAndNotSkipped(":test")
 
         and:
         def executionResult = new DefaultTestExecutionResult(testDirectory)
-        executionResult.testClass("ATest").assertTestsExecuted("test")
+        executionResult.testClass("ATest").assertTestOutcomes(testOutcome, "test")
         !executionResult.testClassExists("BTest")
-        executionResult.testClass("CTest").assertTestsExecuted("test")
-
-        and:
-        output.contains('ATest!')
-        !output.contains('BTest!')
-        output.contains('CTest!')
+        executionResult.testClass("CTest").assertTestOutcomes(testOutcome, "test")
     }
 
     private createTestABC(){

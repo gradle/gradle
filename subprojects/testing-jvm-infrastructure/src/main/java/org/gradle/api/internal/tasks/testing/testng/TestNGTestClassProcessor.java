@@ -131,10 +131,13 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             }
         }
 
-        TestFilterSpec filter = spec.getFilter();
-        if (!filter.getIncludedTests().isEmpty() || !filter.getIncludedTestsCommandLine().isEmpty() || !filter.getExcludedTests().isEmpty()) {
-            testNg.addListener(new SelectedTestsFilter(filter));
+        IMethodInterceptor filter = new MatchesAllFilter();
+        TestFilterSpec filterSpec = spec.getFilter();
+        if (!filterSpec.getIncludedTests().isEmpty() || !filterSpec.getIncludedTestsCommandLine().isEmpty() || !filterSpec.getExcludedTests().isEmpty()) {
+            filter = new SelectedTestsFilter(filterSpec);
         }
+
+        testNg.addListener(filter);
 
         if (!suiteFiles.isEmpty()) {
             testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
