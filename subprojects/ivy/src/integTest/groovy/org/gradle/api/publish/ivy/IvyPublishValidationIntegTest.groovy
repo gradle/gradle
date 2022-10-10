@@ -16,21 +16,16 @@
 
 package org.gradle.api.publish.ivy
 
-
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.encoding.Identifier
-import org.gradle.util.TestPrecondition
 
 import javax.xml.namespace.QName
-
-import static org.junit.Assume.assumeTrue
 
 class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
     @ToBeFixedForConfigurationCache
     def "can publish with metadata containing #identifier characters"() {
         given:
-        assumeTrue(TestPrecondition.SUPPORTS_UTF8_STDOUT.fulfilled)
         file("content-file") << "some content"
         def organisation = identifier.safeForFileName().decorate("org")
         def moduleName = identifier.safeForGradleDomainObjectName().decorate("module")
