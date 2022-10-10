@@ -145,10 +145,11 @@ public abstract class IdeaPlugin extends IdePlugin {
     }
 
     private void configureIdeaWorkspace(final Project project) {
+        final IdeaWorkspace workspace = project.getObjects().newInstance(IdeaWorkspace.class);
+        ideaModel.setWorkspace(workspace);
+
         if (isRoot()) {
-            final IdeaWorkspace workspace = project.getObjects().newInstance(IdeaWorkspace.class);
             workspace.setIws(new XmlFileContentMerger(new XmlTransformer()));
-            ideaModel.setWorkspace(workspace);
 
             final TaskProvider<GenerateIdeaWorkspace> task = project.getTasks().register(IDEA_WORKSPACE_TASK_NAME, GenerateIdeaWorkspace.class, workspace);
             task.configure(new Action<GenerateIdeaWorkspace>() {

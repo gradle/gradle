@@ -116,7 +116,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * }
  * </pre>
  */
-public class IdeaProject implements IdeWorkspace {
+public abstract class IdeaProject implements IdeWorkspace {
     private final org.gradle.api.Project project;
     private final XmlFileContentMerger ipr;
     private final ProjectStateRegistry projectPathRegistry;
