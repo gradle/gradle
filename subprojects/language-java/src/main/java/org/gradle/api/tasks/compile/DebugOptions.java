@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  * Debug options for Java compilation. Only take effect if {@link CompileOptions#debug}
  * is set to {@code true}.
  */
-public abstract class DebugOptions extends AbstractOptions {
+public class DebugOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
     private String debugLevel;
