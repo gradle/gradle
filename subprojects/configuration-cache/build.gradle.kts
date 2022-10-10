@@ -88,7 +88,6 @@ dependencies {
     implementation(libs.guava)
 
     implementation(libs.futureKotlin("stdlib-jdk8"))
-    implementation(libs.futureKotlin("reflect"))
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.mockitoKotlin2)
