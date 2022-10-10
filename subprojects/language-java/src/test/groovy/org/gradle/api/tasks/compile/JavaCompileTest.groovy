@@ -61,6 +61,48 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         e.message == "Must not use `executable` property on `ForkOptions` together with `javaCompiler` property"
     }
 
+    def "fails if custom Java home does not exist"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        def invalidJavaHome = "invalidJavaHome"
+
+        when:
+        javaCompile.options.forkOptions.javaHome = new File("invalidJavaHome")
+        javaCompile.createSpec()
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("The configured Java home does not exist")
+        e.message.contains(invalidJavaHome)
+    }
+
+    def "fails if custom Java home is not a directory"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        def javaHomeFile = temporaryFolder.createFile("javaHome")
+
+        when:
+        javaCompile.options.forkOptions.javaHome = javaHomeFile
+        javaCompile.createSpec()
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("The configured Java home is not a directory")
+        e.message.contains(javaHomeFile.absolutePath)
+    }
+
+    def "fails if custom Java home is not a valid JVM"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        def javaHomeDir = temporaryFolder.createDir("javaHome")
+
+        when:
+        javaCompile.options.forkOptions.javaHome = javaHomeDir
+        javaCompile.createSpec()
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("Specific installation toolchain")
+        e.message.contains(javaHomeDir.absolutePath)
+    }
+
     def "fails if custom executable does not exist"() {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
         def invalidjavac = "invalidjavac"
@@ -73,6 +115,34 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def e = thrown(InvalidUserDataException)
         e.message.contains("The configured executable does not exist")
         e.message.contains(invalidjavac)
+    }
+
+    def "fails if custom executable is a directory"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        def executableDir = temporaryFolder.createDir("javac")
+
+        when:
+        javaCompile.options.forkOptions.executable = executableDir.absolutePath
+        javaCompile.createSpec()
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("The configured executable is a directory")
+        e.message.contains(executableDir.absolutePath)
+    }
+
+    def "fails if custom executable is not from a valid JVM"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        def invalidJavac = temporaryFolder.createFile("invalidJavac")
+
+        when:
+        javaCompile.options.forkOptions.executable = invalidJavac.absolutePath
+        javaCompile.createSpec()
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.contains("Specific installation toolchain")
+        e.message.contains(invalidJavac.parentFile.parentFile.absolutePath)
     }
 
     def 'uses release property combined with toolchain compiler'() {

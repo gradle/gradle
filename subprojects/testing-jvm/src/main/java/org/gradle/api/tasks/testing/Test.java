@@ -22,7 +22,6 @@ import groovy.lang.DelegatesTo;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -1274,16 +1273,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Nullable
     private JavaToolchainSpec determineExplicitToolchain() {
-        String customExecutable = forkOptions.getExecutable();
+        final String customExecutable = forkOptions.getExecutable();
         if (customExecutable != null) {
-            File executable = new File(customExecutable);
-            if (executable.exists()) {
-                // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
-                File parentJavaHome = executable.getParentFile().getParentFile();
-                return new SpecificInstallationToolchainSpec(getObjectFactory(), parentJavaHome);
-            } else {
-                throw new InvalidUserDataException("The configured executable does not exist (" + executable.getAbsolutePath() + ")");
-            }
+            return SpecificInstallationToolchainSpec.fromJavaExecutable(getObjectFactory(), customExecutable);
         }
 
         return null;
