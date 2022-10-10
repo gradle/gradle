@@ -51,4 +51,40 @@ class ConfigurationCacheFeatureFlagsIntegrationTest extends AbstractConfiguratio
             withProblem("Build file 'build.gradle': external process started")
         }
     }
+
+    def "feature flag state is restored when running from cache"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            plugins {
+                id("groovy")
+            }
+
+            dependencies {
+                implementation localGroovy()
+            }
+        """)
+
+        settingsFile("""
+            enableFeaturePreview("${FeaturePreviews.Feature.GROOVY_COMPILATION_AVOIDANCE.name()}")
+        """)
+
+        file("src/main/groovy/Main.groovy") << """
+            class Main {}
+        """
+
+        when:
+        configurationCacheRun("compileGroovy")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Groovy compilation avoidance is an incubating feature")
+
+        when:
+        configurationCacheRun("compileGroovy", "--rerun-tasks")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Groovy compilation avoidance is an incubating feature")
+    }
 }
