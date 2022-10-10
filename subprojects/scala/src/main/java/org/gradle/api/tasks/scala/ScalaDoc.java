@@ -58,7 +58,7 @@ public abstract class ScalaDoc extends SourceTask {
 
     private FileCollection classpath;
     private FileCollection scalaClasspath;
-    private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
+    private ScalaDocOptions scalaDocOptions;
     private String title;
     private final Property<String> maxMemory;
     private final Property<JavaLauncher> javaLauncher;
@@ -69,6 +69,7 @@ public abstract class ScalaDoc extends SourceTask {
         this.maxMemory = objectFactory.property(String.class);
         this.javaLauncher = objectFactory.property(JavaLauncher.class);
         this.compilationOutputs = objectFactory.fileCollection();
+        this.scalaDocOptions = objectFactory.newInstance(ScalaDocOptions.class);
     }
 
     @Inject

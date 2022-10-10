@@ -35,7 +35,7 @@ public abstract class IdeaModel {
 
     private IdeaModule module;
     private IdeaProject project;
-    private IdeaWorkspace workspace = new IdeaWorkspace();
+    private IdeaWorkspace workspace;
     private String targetVersion;
 
     /**
