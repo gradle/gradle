@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.spec
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.Intersections;
 
 import java.util.Set;
 
@@ -64,7 +63,7 @@ public interface ModuleExclude extends ExcludeSpec {
 
     @Override
     default ExcludeSpec intersect(GroupExclude other, ExcludeFactory factory) {
-        return other.intersect(this, factory); // Reverse call - implemented on other side
+        return other.intersect(this, factory); // We implemented the equivalent reverse of this call, forward to that
     }
 
     @Override

@@ -54,22 +54,22 @@ public interface ModuleIdSetExclude extends ExcludeSpec {
 
     @Override
     default ExcludeSpec intersect(GroupExclude other, ExcludeFactory factory) {
-        return other.intersect(this, factory); // Reverse call - implemented on other side
+        return other.intersect(this, factory); // We implemented the equivalent reverse of this call, forward to that
     }
 
     @Override
     default ExcludeSpec intersect(ModuleExclude other, ExcludeFactory factory) {
-        return other.intersect(this, factory); // Reverse call - implemented on other side
+        return other.intersect(this, factory); // We implemented the equivalent reverse of this call, forward to that
     }
 
     @Override
     default ExcludeSpec intersect(GroupSetExclude other, ExcludeFactory factory) {
-        return other.intersect(this, factory); // Reverse call - implemented on other side
+        return other.intersect(this, factory); // We implemented the equivalent reverse of this call, forward to that
     }
 
     @Override
     default ExcludeSpec intersect(ModuleIdExclude other, ExcludeFactory factory) {
-        return other.intersect(this, factory); // Reverse call - implemented on other side
+        return other.intersect(this, factory); // We implemented the equivalent reverse of this call, forward to that
     }
 
     @Override

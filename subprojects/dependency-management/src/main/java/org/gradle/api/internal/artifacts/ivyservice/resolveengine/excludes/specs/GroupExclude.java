@@ -15,9 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.Intersections;
+
+import java.util.Set;
 
 import static java.util.stream.Collectors.toSet;
 
@@ -52,7 +54,9 @@ public interface GroupExclude extends ExcludeSpec {
 
     @Override
     default ExcludeSpec intersect(ModuleIdSetExclude right, ExcludeFactory factory) {
-        return Intersections.doIntersect(this, right, factory);
+        String group = this.getGroup();
+        Set<ModuleIdentifier> moduleIds = right.getModuleIds().stream().filter(id -> id.getGroup().equals(group)).collect(toSet());
+        return factory.fromModuleIds(moduleIds);
     }
 
     @Override
