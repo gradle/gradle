@@ -45,7 +45,7 @@ abstract class KotlinDslBasePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         apply<EmbeddedKotlinPlugin>()
 
-        val kotlinDslPluginOptions = extensions.create("kotlinDslPluginOptions", KotlinDslPluginOptions::class.java, objects)
+        val kotlinDslPluginOptions = extensions.create("kotlinDslPluginOptions", KotlinDslPluginOptions::class.java)
         kotlinDslPluginOptions.jvmTarget.convention("1.8")
 
         apply<KotlinDslCompilerPlugins>()
