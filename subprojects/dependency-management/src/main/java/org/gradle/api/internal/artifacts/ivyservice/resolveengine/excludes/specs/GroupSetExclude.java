@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.spec
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.Intersections;
 
 import java.util.Set;
 
