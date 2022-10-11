@@ -100,6 +100,10 @@ public class TestFile extends File {
         return setText(src);
     }
 
+    public TestFile groovy(@Language("groovy") String src) {
+        Assert.assertTrue(getName() + " doesn't look like a Groovy file.", getName().endsWith(".groovy"));
+        return setText(src);
+    }
     Object writeReplace() throws ObjectStreamException {
         return new File(getAbsolutePath());
     }
