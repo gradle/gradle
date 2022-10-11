@@ -45,9 +45,15 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
         extensions.configure(SamWithReceiverExtension::class.java) { samWithReceiver ->
             samWithReceiver.annotation(HasImplicitReceiver::class.qualifiedName!!)
         }
-        plugins.apply(AssignmentSubplugin::class.java)
-        extensions.configure(AssignmentExtension::class.java) { assignment ->
-            assignment.annotation(SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
+
+        val assignmentOverloading = providers
+            .systemProperty("org.gradle.experimental.kotlin.assignment")
+            .map { it.trim() == "true" }
+        if (assignmentOverloading.getOrElse(false)) {
+            plugins.apply(AssignmentSubplugin::class.java)
+            extensions.configure(AssignmentExtension::class.java) { assignment ->
+                assignment.annotation(SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
+            }
         }
 
         afterEvaluate {
