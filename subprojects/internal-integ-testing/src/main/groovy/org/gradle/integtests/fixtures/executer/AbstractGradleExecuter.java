@@ -169,7 +169,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean useOwnUserHomeServices;
     private ConsoleOutput consoleType;
     protected WarningMode warningMode = WarningMode.All;
-    private boolean showStacktrace = true;
+    private boolean showStacktrace = false;
     private boolean renderWelcomeMessage;
     private boolean disableToolchainDownload = true;
     private boolean disableToolchainDetection = true;
