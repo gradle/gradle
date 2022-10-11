@@ -108,7 +108,6 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             .collect(toCollection(ArrayList::new));
         filteredFlags.add(getAvailableJdksFlag());
         GradleExecuter executer = gradle.inDirectory(workingDir).ignoreMissingSettingsFile()
-            .withStacktraceDisabled()
             .noDeprecationChecks()
             .withWarningMode(warningMode)
             .withToolchainDetectionEnabled()
