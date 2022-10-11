@@ -39,6 +39,7 @@ import org.gradle.kotlin.dsl.support.delegates.GradleDelegate
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
+import org.gradle.kotlin.dsl.template.KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider
 
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
@@ -66,9 +67,9 @@ import kotlin.script.templates.ScriptTemplateDefinition
         "-jvm-target", "1.8",
         "-Xjvm-default=all",
         "-Xjsr305=strict",
-        "-XXLanguage:+DisableCompatibilityModeForNewInference",
-        "-P", "plugin:org.jetbrains.kotlin.assignment:annotation=org.gradle.api.SupportsKotlinAssignmentOverloading"
-    ]
+        "-XXLanguage:+DisableCompatibilityModeForNewInference"
+    ],
+    provider = KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider::class
 )
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinInitScript(
