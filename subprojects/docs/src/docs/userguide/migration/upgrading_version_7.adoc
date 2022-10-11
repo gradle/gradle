@@ -58,6 +58,34 @@ Usage of invalid Java toolchain specifications is no longer supported.
 Related build errors can be avoided by making sure that language version is set on all toolchain specifications.
 See <<toolchains#sec:configuring_toolchain_specifications,user manual>> for more information.
 
+==== Changing test framework after setting test framework options is now an error
+
+When configuring the built-in test task for Java, Groovy, and Scala projects, Gradle no longer allows you to
+change the test framework used by the `Test` task after configuring options. This was deprecated since it silently
+discarded configuration in some cases.
+
+The following code example now produces an error:
+```
+test {
+   options {
+   }
+
+   useJUnitPlatform()
+}
+```
+Instead, you can:
+
+- set the test framework before configuring options
+- migrate to the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>>
+```
+test {
+   // select test framework before configuring options
+   useJUnitPlatform()
+   options {
+   }
+}
+```
+
 === Removed APIs
 
 ==== Legacy ArtifactTransform API
