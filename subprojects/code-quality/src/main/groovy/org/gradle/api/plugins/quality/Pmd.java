@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.PmdAction;
 import org.gradle.api.plugins.quality.internal.PmdActionParameters;
@@ -108,12 +107,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
 
     @Inject
     protected JavaToolchainService getToolchainService() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Deprecated
-    @Inject
-    public IsolatedAntBuilder getAntBuilder() {
         throw new UnsupportedOperationException();
     }
 
