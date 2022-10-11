@@ -22,6 +22,7 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Namer;
+import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.Actions;
@@ -43,6 +44,10 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
 
     protected AbstractNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(type, instantiator, Named.Namer.forType(type), callbackActionDecorator);
+    }
+
+    protected AbstractNamedDomainObjectContainer(DefaultNamedDomainObjectSet<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
+        super(collection, filter, instantiator, namer);
     }
 
     /**

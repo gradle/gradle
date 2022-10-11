@@ -17,9 +17,9 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
@@ -36,7 +36,7 @@ import java.util.Map;
  * {@code tasks} property in your build script.</p>
  */
 @HasInternalProtocol
-public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainObjectContainer<Task> {
+public interface TaskContainer extends TaskCollection<Task>, ExtensiblePolymorphicDomainObjectContainer<Task> {
     /**
      * <p>Locates a task by path. You can supply a task name, a relative path, or an absolute path. Relative paths are
      * interpreted relative to the project for this container. This method returns null if no task with the given path

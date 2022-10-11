@@ -17,10 +17,11 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Namer;
+import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
@@ -40,6 +41,10 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
     protected AbstractPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
         super(type, instantiator, namer, callbackDecorator);
+    }
+
+    protected AbstractPolymorphicDomainObjectContainer(DefaultNamedDomainObjectSet<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Namer<? super T> namer) {
+        super(collection, filter, instantiator, namer);
     }
 
     protected abstract <U extends T> U doCreate(String name, Class<U> type);

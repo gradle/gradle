@@ -157,7 +157,7 @@ import java.util.Set;
  * Parallel execution can be enabled by the <code>--parallel</code> flag when the build is initiated.
  * In parallel mode, the tasks of different projects (i.e. in a multi project build) are able to be executed in parallel.
  */
-public interface Task extends Comparable<Task>, ExtensionAware {
+public interface Task extends Comparable<Task>, ExtensionAware, Named {
     String TASK_NAME = "name";
 
     String TASK_DESCRIPTION = "description";

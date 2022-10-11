@@ -284,7 +284,7 @@ tasks.configure {
 
         expect:
         fails()
-        failure.assertHasCause("Could not set unknown property 'unknown' for task set of type $DefaultTaskContainer.name.")
+        failure.assertHasCause("Could not set unknown property 'unknown' for task container of type $DefaultTaskContainer.name.")
     }
 
     def "reports invoke unknown method from polymorphic container configure closure"() {
@@ -297,7 +297,7 @@ tasks.configure {
 
         expect:
         fails()
-        failure.assertHasCause("Could not find method unknown() for arguments [12] on task set of type ${DefaultTaskContainer.name}.")
+        failure.assertHasCause("Could not find method unknown() for arguments [12] on task container of type ${DefaultTaskContainer.name}.")
     }
 
     def "can read property from polymorphic container configure closure outer scope"() {

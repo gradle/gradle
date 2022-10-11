@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Namer;
+import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
@@ -44,6 +45,12 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
 
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Instantiator elementInstantiator, CollectionCallbackActionDecorator callbackDecorator) {
         this(type, instantiator, elementInstantiator, Named.Namer.forType(type), callbackDecorator);
+    }
+
+    protected DefaultPolymorphicDomainObjectContainer(DefaultNamedDomainObjectSet<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, Instantiator elementInstantiator) {
+        super(collection, filter, instantiator, Named.Namer.forType(filter.getType()));
+        this.namedEntityInstantiator = new DefaultPolymorphicNamedEntityInstantiator<>(filter.getType(), "this container");
+        this.elementInstantiator = elementInstantiator;
     }
 
     private DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Instantiator elementInstantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {

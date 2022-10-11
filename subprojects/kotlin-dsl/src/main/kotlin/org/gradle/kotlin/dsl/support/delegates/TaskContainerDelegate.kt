@@ -22,6 +22,7 @@ import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
 import org.gradle.api.NamedDomainObjectCollectionSchema
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.Namer
 import org.gradle.api.Rule
 import org.gradle.api.Task
@@ -242,4 +243,16 @@ abstract class TaskContainerDelegate : TaskContainer {
 
     override fun remove(element: Task): Boolean =
         delegate.remove(element)
+
+    override fun <U : Task?> registerFactory(type: Class<U>, factory: NamedDomainObjectFactory<out U>) {
+        delegate.registerFactory(type, factory)
+    }
+
+    override fun <U : Task?> registerFactory(type: Class<U>, factory: Closure<out U>) {
+        delegate.registerFactory(type, factory)
+    }
+
+    override fun <U : Task?> registerBinding(type: Class<U>, implementationType: Class<out U>) {
+        delegate.registerBinding(type, implementationType)
+    }
 }

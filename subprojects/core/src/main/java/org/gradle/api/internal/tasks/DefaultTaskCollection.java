@@ -24,7 +24,7 @@ import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.plugins.DslObject;
@@ -43,21 +43,20 @@ import java.util.Map;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 
-public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObjectSet<T> implements TaskCollection<T> {
-    private static final Task.Namer NAMER = new Task.Namer();
-
+public class DefaultTaskCollection<T extends Task> extends DefaultPolymorphicDomainObjectContainer<T> implements TaskCollection<T> {
     protected final ProjectInternal project;
 
     private final MutationGuard parentMutationGuard;
 
     public DefaultTaskCollection(Class<T> type, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard, CollectionCallbackActionDecorator decorator) {
-        super(type, instantiator, NAMER, decorator);
+        super(type, instantiator, instantiator, decorator);
         this.project = project;
         this.parentMutationGuard = parentMutationGuard;
     }
 
+    @SuppressWarnings("unused") // See #filtered(CollectionFilter)
     public DefaultTaskCollection(DefaultTaskCollection<? super T> collection, CollectionFilter<T> filter, Instantiator instantiator, ProjectInternal project, MutationGuard parentMutationGuard) {
-        super(collection, filter, instantiator, NAMER);
+        super(collection, filter, instantiator, instantiator);
         this.project = project;
         this.parentMutationGuard = parentMutationGuard;
     }
