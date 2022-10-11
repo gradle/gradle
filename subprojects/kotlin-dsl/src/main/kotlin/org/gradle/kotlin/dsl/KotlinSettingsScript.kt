@@ -45,6 +45,7 @@ import org.gradle.kotlin.dsl.support.get
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
+import org.gradle.kotlin.dsl.template.KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider
 import org.gradle.plugin.management.PluginManagementSpec
 import org.gradle.plugin.use.PluginDependenciesSpec
 
@@ -73,8 +74,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
         "-Xjsr305=strict",
         "-XXLanguage:+DisableCompatibilityModeForNewInference",
         "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
-        "-P", "plugin:org.jetbrains.kotlin.assignment:annotation=org.gradle.api.SupportsKotlinAssignmentOverloading"
-    ]
+    ],
+    provider = KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider::class
 )
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
