@@ -34,7 +34,7 @@ public class DefaultTestLogging implements TestLogging {
     private int displayGranularity = 2;
     private boolean showExceptions = true;
     private boolean showCauses = true;
-    private boolean showStackTraces = true;
+    private boolean showStackTraces = false;
     private TestExceptionFormat exceptionFormat = TestExceptionFormat.FULL;
     private Set<TestStackTraceFilter> stackTraceFilters = EnumSet.of(TestStackTraceFilter.TRUNCATE);
 
