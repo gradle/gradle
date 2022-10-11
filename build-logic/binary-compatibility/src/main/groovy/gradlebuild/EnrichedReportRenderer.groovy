@@ -69,7 +69,8 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
                     // Sort the array in place by type, then member
                     result.acceptedApiChanges = result.acceptedApiChanges.sort((a, b) => (a.type + a.member) > (b.type + b.member));
                     // Remove duplicates (equal adjacent elements) - a new, un@Incubating type will be here twice, as 2 errors are reported; use stringified JSON to compare
-                    result.acceptedApiChanges.filter((item, pos, ary) => (!pos || (JSON.stringify(item) != JSON.stringify(ary[pos - 1]))));
+                    // Filtering an array is NOT in place
+                    result.acceptedApiChanges = result.acceptedApiChanges.filter((item, pos, ary) => (!pos || (JSON.stringify(item) != JSON.stringify(ary[pos - 1]))));
                     return result;
                 }
 
@@ -100,6 +101,7 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
      * own javascript based filtering logic is attached with jQuery.
      */
     private static String buildAutoSelectSeverityFilter() {
+        // language=javascript
         return """
             <script type="text/javascript">
                 document.addEventListener("DOMContentLoaded", function(event) {
