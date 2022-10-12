@@ -45,7 +45,7 @@ public abstract class BasePlugin implements Plugin<Project> {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
         BasePluginExtension baseExtension = project.getExtensions().create(BasePluginExtension.class, "base", DefaultBasePluginExtension.class, project);
-        BasePluginConvention convention = new DefaultBasePluginConvention(baseExtension);
+        BasePluginConvention convention = project.getObjects().newInstance(DefaultBasePluginConvention.class, baseExtension);
 
         project.getConvention().getPlugins().put("base", convention);
 

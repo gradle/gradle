@@ -35,13 +35,15 @@ class GroovyCompileOptionsTest {
 
     GroovyCompileOptions compileOptions
 
-    @Before public void setUp()  {
+    @Before
+    void setUp()  {
         ServiceLookup services = new DefaultServiceRegistry().add(ObjectFactory, TestUtil.objectFactory()).add(InstantiatorFactory, TestUtil.instantiatorFactory())
         compileOptions = TestUtil.instantiatorFactory().decorateLenient(services).newInstance(GroovyCompileOptions.class)
         compileOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as GroovyForkOptions
     }
 
-    @Test public void testCompileOptions() {
+    @Test
+    void testCompileOptions() {
         assertTrue(compileOptions.failOnError)
         assertFalse(compileOptions.listFiles)
         assertFalse(compileOptions.verbose)
@@ -54,7 +56,8 @@ class GroovyCompileOptionsTest {
         assertFalse(compileOptions.parameters)
     }
 
-    @Test public void testFork() {
+    @Test
+    void testFork() {
         compileOptions.fork = false
         boolean forkUseCalled = false
         compileOptions.forkOptions = [define: {Map args ->
@@ -66,7 +69,8 @@ class GroovyCompileOptionsTest {
         assertTrue(forkUseCalled)
     }
 
-    @Test public void testDefine() {
+    @Test
+    void testDefine() {
         compileOptions.verbose = false
         compileOptions.encoding = 'xxxx'
         compileOptions.fork = false

@@ -130,7 +130,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
     }
 
     private ApplicationPluginConvention addConvention(Project project) {
-        ApplicationPluginConvention pluginConvention = new DefaultApplicationPluginConvention(project);
+        ApplicationPluginConvention pluginConvention = project.getObjects().newInstance(DefaultApplicationPluginConvention.class, project);
         pluginConvention.setApplicationName(project.getName());
         project.getConvention().getPlugins().put("application", pluginConvention);
         return pluginConvention;

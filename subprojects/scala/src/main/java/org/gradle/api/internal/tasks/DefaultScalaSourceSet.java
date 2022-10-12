@@ -23,14 +23,17 @@ import org.gradle.api.tasks.ScalaSourceDirectorySet;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 
+import javax.inject.Inject;
+
 import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
 @Deprecated
-public class DefaultScalaSourceSet implements org.gradle.api.tasks.ScalaSourceSet, HasPublicType {
+public abstract class DefaultScalaSourceSet implements org.gradle.api.tasks.ScalaSourceSet, HasPublicType {
     private final ScalaSourceDirectorySet scala;
     private final SourceDirectorySet allScala;
 
+    @Inject
     public DefaultScalaSourceSet(String displayName, ObjectFactory objectFactory) {
         scala = createScalaSourceDirectorySet("scala", displayName + " Scala source", objectFactory);
         allScala = objectFactory.sourceDirectorySet("allscala", displayName + " Scala source");
