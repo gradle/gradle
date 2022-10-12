@@ -234,7 +234,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final Lazy<List<DependencyConstraint>> consistentResolutionConstraints = Lazy.unsafe().of(this::consistentResolutionConstraints);
 
-    private final AtomicInteger copyCount = new AtomicInteger(0);
+    private final AtomicInteger copyCount = new AtomicInteger();
 
     private Action<? super ConfigurationInternal> beforeLocking;
 
