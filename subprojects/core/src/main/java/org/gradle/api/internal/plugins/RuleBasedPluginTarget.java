@@ -66,9 +66,9 @@ public class RuleBasedPluginTarget implements PluginTarget {
     }
 
     @Override
-    public void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin, Class<?> clazz) {
+    public void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin, Class<?> declaringClass) {
         applyImperative(pluginId, plugin);
-        applyRules(pluginId, clazz);
+        applyRules(pluginId, declaringClass);
     }
 
     @Override
