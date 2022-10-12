@@ -40,6 +40,8 @@ class IdeaModelTest extends Specification {
         def xmlTransformer = Mock(XmlTransformer)
         def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
         def xmlAction = {} as Action<XmlProvider>
+        model.workspace = TestUtil.objectFactory().newInstance(IdeaWorkspace)
+
         model.workspace.iws = xmlMerger
 
         when: "configure workspace"
