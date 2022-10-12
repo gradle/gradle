@@ -51,6 +51,35 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0-sources.jar.asc").text
     }
 
+    @ToBeFixedForConfigurationCache
+    def "signing configurations is idempotent"() {
+        given:
+        buildFile << """
+            configurations {
+                meta
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign configurations.archives, configurations.meta, configurations.archives, configurations.meta
+            }
+
+            ${keyInfo.addAsPropertiesScript()}
+            ${getJavadocAndSourceJarsScript("meta")}
+        """
+
+        when:
+        run "buildSignatures"
+
+        then:
+        executedAndNotSkipped ":signArchives", ":signMeta"
+
+        and:
+        file("build", "libs", "sign-1.0.jar.asc").text
+        file("build", "libs", "sign-1.0-javadoc.jar.asc").text
+        file("build", "libs", "sign-1.0-sources.jar.asc").text
+    }
+
     @Issue("gradle/gradle#4980")
     @ToBeFixedForConfigurationCache
     def "removing signature file causes sign task to re-execute"() {

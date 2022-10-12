@@ -112,6 +112,7 @@ public class SigningExtension {
 
     /**
      * Whether or not this task should fail if no signatory or signature type are configured at generation time.
+     *
      * @since 4.0
      */
     public void setRequired(boolean required) {
@@ -227,6 +228,7 @@ public class SigningExtension {
 
     /**
      * Use GnuPG agent to perform signing work.
+     *
      * @since 4.5
      */
     public void useGpgCmd() {
@@ -450,7 +452,14 @@ public class SigningExtension {
     }
 
     private Sign createSignTaskFor(CharSequence name, Action<Sign> taskConfiguration) {
-        Sign signTask = project.getTasks().create("sign" + capitalize(name), Sign.class, taskConfiguration);
+        final String signTaskName = "sign" + capitalize(name);
+
+        final Task existingSignTask = project.getTasks().findByName(signTaskName);
+        if (existingSignTask != null) {
+            return (Sign) existingSignTask;
+        }
+
+        final Sign signTask = project.getTasks().create(signTaskName, Sign.class, taskConfiguration);
         addSignaturesToConfiguration(signTask, getConfiguration());
         return signTask;
     }
@@ -548,7 +557,6 @@ public class SigningExtension {
      *
      * @param setup The configuration action of the {@link SignOperation sign operation}.
      * @return The executed {@link SignOperation sign operation}.
-     *
      * @since 7.5
      */
     @Incubating
