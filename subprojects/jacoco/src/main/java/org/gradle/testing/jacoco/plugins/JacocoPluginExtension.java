@@ -40,6 +40,7 @@ import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 
@@ -69,6 +70,7 @@ public abstract class JacocoPluginExtension {
      * @param project the project the extension is attached to
      * @param agent the agent JAR to be used by Jacoco
      */
+    @Inject
     public JacocoPluginExtension(Project project, JacocoAgentJar agent) {
         this.agent = agent;
         this.providers = project.getProviders();
