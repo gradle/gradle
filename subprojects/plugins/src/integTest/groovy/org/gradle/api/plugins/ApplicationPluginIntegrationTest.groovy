@@ -452,6 +452,54 @@ dependencies {
         outputContains('utils.jar,core.jar,foo.jar,implementation-1.0.jar,bar.jar')
     }
 
+    def "artifact name conflicts get resolved properly"() {
+        mavenRepo.module('org.gradle.test.a', 'implementation', '1.0').publish()
+        mavenRepo.module('org.gradle.test.b', 'implementation', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'sample', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'api', '1.0').publish()
+
+        given:
+        buildFile << """
+            version = '1.0'
+
+            allprojects {
+                repositories {
+                    maven { url '$mavenRepo.uri' }
+                }
+            }
+
+            apply plugin: 'java'
+            apply plugin: 'application'
+
+            dependencies {
+               implementation 'org.gradle.test.a:implementation:1.0'
+               implementation 'org.gradle.test.b:implementation:1.0'
+               implementation 'org.gradle.test:sample:1.0'
+               implementation 'org.gradle.test:api:1.0'
+            }
+        """
+        file('build/install/sample/gradle.properties') << '''
+            rootProject
+        '''
+        when:
+        run "installDist"
+
+        def expectedClasspath = [
+            'sample-1.0.jar',
+            '1-sample-1.0.jar',
+            'implementation-1.0.jar',
+            '0-implementation-1.0.jar',
+            'api-1.0.jar'
+        ] as Set
+
+        then:
+        file('build/install/sample/lib').allDescendants() == expectedClasspath
+
+        and: // FIXME This is still unfixed
+        unixClasspath('sample') == expectedClasspath
+        windowsClasspath('sample') == expectedClasspath
+    }
+
     private Set<String> unixClasspath(String baseName) {
         String[] lines = file("build/install/$baseName/bin/$baseName")
         (lines.find { it.startsWith 'CLASSPATH='} - 'CLASSPATH=').split(':').collect([] as Set) { it - '$APP_HOME/lib/'}

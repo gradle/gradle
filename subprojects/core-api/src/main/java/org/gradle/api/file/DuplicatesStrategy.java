@@ -58,5 +58,10 @@ public enum DuplicatesStrategy {
      *
      * @since 5.0
      */
-    INHERIT
+    INHERIT,
+
+    /**
+     * Add a counter-based prefix to filenames when a duplication is detected.
+     */
+    DEDUPLICATE
 }

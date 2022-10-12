@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DuplicateHandlingCopyActionDecorator implements CopyAction {
 
@@ -43,6 +44,7 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
     @Override
     public WorkResult execute(final CopyActionProcessingStream stream) {
         final Set<RelativePath> visitedFiles = new HashSet<>();
+        final AtomicInteger duplicateCount = new AtomicInteger(0);
 
         return delegate.execute(action -> stream.process(details -> {
             if (!details.isDirectory()) {
@@ -58,6 +60,8 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
                         throw new DuplicateFileCopyingException(String.format("Encountered duplicate path \"%s\" during copy operation configured with DuplicatesStrategy.FAIL", details.getRelativePath()));
                     } else if (strategy == DuplicatesStrategy.WARN) {
                         LOGGER.warn("Encountered duplicate path \"{}\" during copy operation configured with DuplicatesStrategy.WARN", details.getRelativePath());
+                    } else if (strategy == DuplicatesStrategy.DEDUPLICATE) {
+                        details.setName(duplicateCount.getAndIncrement() + "-" + details.getName());
                     }
                 }
             }

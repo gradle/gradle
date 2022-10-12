@@ -26,6 +26,7 @@ import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.internal.DefaultApplicationPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaApplication;
@@ -211,6 +212,7 @@ public class ApplicationPlugin implements Plugin<Project> {
         libChildSpec.into("lib");
         libChildSpec.from(jar);
         libChildSpec.from(project.getConfigurations().named(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        libChildSpec.setDuplicatesStrategy(DuplicatesStrategy.DEDUPLICATE);
 
         CopySpec binChildSpec = project.copySpec();
 
