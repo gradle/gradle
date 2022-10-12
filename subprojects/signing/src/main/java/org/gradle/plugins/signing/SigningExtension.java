@@ -412,7 +412,14 @@ public class SigningExtension {
     }
 
     private <T extends PublicationArtifact> Sign createSignTaskFor(final PublicationInternal<T> publicationToSign) {
-        final Sign signTask = project.getTasks().create(determineSignTaskNameForPublication(publicationToSign), Sign.class, new Action<Sign>() {
+        final String signTaskName = determineSignTaskNameForPublication(publicationToSign);
+
+        final Task existingSignTask = project.getTasks().findByName(signTaskName);
+        if (existingSignTask != null) {
+            return (Sign) existingSignTask;
+        }
+
+        final Sign signTask = project.getTasks().create(signTaskName, Sign.class, new Action<Sign>() {
             @Override
             public void execute(Sign task) {
                 task.setDescription("Signs all artifacts in the '" + publicationToSign.getName() + "' publication.");
