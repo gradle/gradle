@@ -18,7 +18,7 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
+import org.gradle.api.internal.tasks.compile.ForkingJavaCompileSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaCompiler
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
@@ -97,7 +97,8 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         spec.release == 9
         spec.getSourceCompatibility() == null
         spec.getTargetCompatibility() == null
-        spec.compileOptions.forkOptions.javaHome == javaHome
+        spec.compileOptions.forkOptions.javaHome == null
+        (spec as ForkingJavaCompileSpec).javaHome == javaHome
     }
 
     def 'uses custom source and target compatibility combined with toolchain compiler'() {
@@ -122,7 +123,8 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         then:
         spec.getSourceCompatibility() == '11'
         spec.getTargetCompatibility() == '14'
-        spec.compileOptions.forkOptions.javaHome == javaHome
+        spec.compileOptions.forkOptions.javaHome == null
+        (spec as ForkingJavaCompileSpec).javaHome == javaHome
     }
 
     def "spec is configured using the toolchain compiler in-process using the current jvm as toolchain and sets release"() {
@@ -141,11 +143,11 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def spec = javaCompile.createSpec()
 
         then:
-        spec instanceof DefaultJavaCompileSpec
-        spec.compileOptions.forkOptions.javaHome == javaHome
         spec.getSourceCompatibility() == null
         spec.getTargetCompatibility() == null
         spec.release == 12
+        spec.compileOptions.forkOptions.javaHome == null
+        (spec as ForkingJavaCompileSpec).javaHome == javaHome
     }
 
     @Issue('https://bugs.openjdk.java.net/browse/JDK-8139607')
@@ -165,11 +167,11 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def spec = javaCompile.createSpec()
 
         then:
-        spec instanceof DefaultJavaCompileSpec
-        spec.compileOptions.forkOptions.javaHome == javaHome
         spec.getSourceCompatibility() == '9'
         spec.getTargetCompatibility() == '9'
         spec.release == null
+        spec.compileOptions.forkOptions.javaHome == null
+        (spec as ForkingJavaCompileSpec).javaHome == javaHome
     }
 
     def "spec is configured using the toolchain compiler in-process using the current jvm as toolchain and set source and target compatibility"() {
@@ -188,11 +190,11 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def spec = javaCompile.createSpec()
 
         then:
-        spec instanceof DefaultJavaCompileSpec
-        spec.compileOptions.forkOptions.javaHome == javaHome
         spec.getSourceCompatibility() == '8'
         spec.getTargetCompatibility() == '8'
         spec.release == null
+        spec.compileOptions.forkOptions.javaHome == null
+        (spec as ForkingJavaCompileSpec).javaHome == javaHome
     }
 
     def "incremental compilation is enabled by default"() {

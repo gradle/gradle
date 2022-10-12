@@ -298,7 +298,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         boolean toolchainCompatibleWithJava8 = isToolchainCompatibleWithJava8();
         boolean isSourcepathUserDefined = compileOptions.getSourcepath() != null && !compileOptions.getSourcepath().isEmpty();
 
-        final DefaultJavaCompileSpec spec = createBaseSpec();
+        DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions, getToolchain()).create();
 
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
@@ -325,19 +325,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     @Input
     JavaVersion getJavaVersion() {
         return JavaVersion.toVersion(getCompilerTool().get().getMetadata().getLanguageVersion().asInt());
-    }
-
-    private DefaultJavaCompileSpec createBaseSpec() {
-        final ForkOptions forkOptions = compileOptions.getForkOptions();
-        if (javaCompiler.isPresent()) {
-            applyToolchain(forkOptions);
-        }
-        return new DefaultJavaCompileSpecFactory(compileOptions, getToolchain()).create();
-    }
-
-    private void applyToolchain(ForkOptions forkOptions) {
-        final JavaInstallationMetadata metadata = getToolchain();
-        forkOptions.setJavaHome(metadata.getInstallationPath().getAsFile());
     }
 
     @Nullable

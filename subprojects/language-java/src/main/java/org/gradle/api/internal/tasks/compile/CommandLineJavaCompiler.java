@@ -27,6 +27,8 @@ import org.gradle.process.internal.ExecHandleFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+import java.io.File;
 import java.io.Serializable;
 
 /**
@@ -44,14 +46,28 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
 
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
-        final MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
-        String executable = forkOptions.getJavaHome() != null ? Jvm.forHome(forkOptions.getJavaHome()).getJavacExecutable().getAbsolutePath() : forkOptions.getExecutable();
+        String executable = findSuitableExecutable(spec);
         LOGGER.info("Compiling with Java command line compiler '{}'.", executable);
 
         ExecHandle handle = createCompilerHandle(executable, spec);
         executeCompiler(handle);
 
         return WorkResults.didWork(true);
+    }
+
+    @Nullable
+    private static String findSuitableExecutable(JavaCompileSpec spec) {
+        if (spec instanceof CommandLineJavaCompileSpec) {
+            return ((CommandLineJavaCompileSpec) spec).getExecutable().toString();
+        }
+
+        MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+        File forkJavaHome = forkOptions.getJavaHome();
+        if (forkJavaHome != null) {
+            return Jvm.forHome(forkJavaHome).getJavacExecutable().getAbsolutePath();
+        } else {
+            return forkOptions.getExecutable();
+        }
     }
 
     private ExecHandle createCompilerHandle(String executable, JavaCompileSpec spec) {
