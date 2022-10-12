@@ -261,7 +261,7 @@ When you configure a toolchain repository, Gradle no longer uses the built-in de
 Consider two toolchain resolver plugins:
 
 * One contains a resolver named `AzulResolver`, which downloads toolchains from Azul.
-* The other contains a resolver named `AdoptResolver`, which duplicates the built-in AdoptiumJDK toolchain repository by downloading toolchains from AdoptiumJDK.
+* The other contains a resolver named `AdoptiumResolver`, which duplicates the built-in AdoptiumJDK toolchain repository by downloading toolchains from AdoptiumJDK.
 
 The following example uses these toolchain resolvers in a build via the `toolchainManagement` block in the settings file:
 
