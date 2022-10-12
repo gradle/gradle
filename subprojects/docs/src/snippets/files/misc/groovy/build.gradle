@@ -8,9 +8,12 @@ tasks.register('ensureDirectory') {
 
 // tag::move-example[]
 tasks.register('moveReports') {
+    // Store the build directory into a variable to avoid project reference in the configuration cache
+    def dir = buildDir
+
     doLast {
-        ant.move file: "${buildDir}/reports",
-                 todir: "${buildDir}/toArchive"
+        ant.move file: "${dir}/reports",
+                 todir: "${dir}/toArchive"
     }
 }
 // end::move-example[]
