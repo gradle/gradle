@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.AbstractSpockTaskTest
+import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent
 import org.gradle.util.TestUtil
 
@@ -25,7 +26,7 @@ class GenerateEclipseWtpComponentTest extends AbstractSpockTaskTest {
 
     def setup() {
         eclipseComponent = createTask(GenerateEclipseWtpComponent)
-        eclipseComponent.component = TestUtil.objectFactory().newInstance(EclipseWtpComponent, project, null)
+        eclipseComponent.component = TestUtil.objectFactory().newInstance(EclipseWtpComponent, project, Mock(XmlFileContentMerger))
     }
 
     ConventionTask getTask() { eclipseComponent }

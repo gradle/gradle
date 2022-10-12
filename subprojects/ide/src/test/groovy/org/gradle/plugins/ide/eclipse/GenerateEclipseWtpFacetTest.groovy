@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.tasks.AbstractSpockTaskTest
+import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
@@ -26,7 +27,7 @@ class GenerateEclipseWtpFacetTest extends AbstractSpockTaskTest {
 
     def setup() {
         eclipseFacet = createTask(GenerateEclipseWtpFacet)
-        eclipseFacet.facet = TestUtil.objectFactory().newInstance(EclipseWtpFacet)
+        eclipseFacet.facet = TestUtil.objectFactory().newInstance(EclipseWtpFacet, Mock(XmlFileContentMerger))
     }
 
     GenerateEclipseWtpFacet getTask() {
