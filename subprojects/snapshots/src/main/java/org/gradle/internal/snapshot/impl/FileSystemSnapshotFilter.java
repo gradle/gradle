@@ -43,7 +43,7 @@ public class FileSystemSnapshotFilter {
 
     public static FileSystemSnapshot filterSnapshot(SnapshottingFilter.FileSystemSnapshotPredicate predicate, FileSystemSnapshot unfiltered) {
         DirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
-        AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
+        AtomicBoolean hasBeenFiltered = new AtomicBoolean();
         unfiltered.accept(new RelativePathTracker(), new FilteringVisitor(predicate, builder, hasBeenFiltered));
         if (builder.getResult() == null) {
             return FileSystemSnapshot.EMPTY;

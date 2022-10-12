@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.attributes;
+package org.gradle;
 
-import org.gradle.api.Action;
+import org.junit.Test;
 
-/**
- * A rule that selects the best value out of a set of candidates.
- *
- * @since 4.0
- * @param <T> The attribute value type.
- */
-public interface AttributeDisambiguationRule<T> extends Action<MultipleCandidatesDetails<T>> {
+public class SomeTestClass {
+    @Test
+    public void ok1() {
+    }
+
+    @Test
+    public void ok2() {
+    }
 }

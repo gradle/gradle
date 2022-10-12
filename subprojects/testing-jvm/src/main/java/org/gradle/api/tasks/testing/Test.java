@@ -70,7 +70,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
@@ -174,9 +173,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private FileCollection classpath;
     private final ConfigurableFileCollection stableClasspath;
     private final Property<TestFramework> testFramework;
-    private boolean userHasConfiguredTestFramework;
-    private boolean optionsAccessed;
-
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
@@ -199,6 +195,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
         javaLauncher = getObjectFactory().property(JavaLauncher.class);
         testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
+        testFramework.finalizeValueOnRead();
     }
 
     @Inject
@@ -902,7 +899,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Returns the chosen {@link TestFramework}.
+     * Returns the configured {@link TestFramework}.
      *
      * @since 7.3
      */
@@ -914,40 +911,14 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Internal
     public TestFramework getTestFramework() {
-        return testFramework(null);
+        // TODO: Deprecate and remove this method
+        return testFramework.get();
     }
 
     public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
-        if (!testFramework.isPresent()) {
-            useJUnit(testFrameworkConfigure);
-        }
-
-        // To maintain backwards compatibility with builds that may configure the test framework
-        // multiple times for a single task--either switching between frameworks or overwriting
-        // the existing configuration for a test framework--we need to keep track if the user has
-        // explicitly set a test framework
-        // With test suites, users should never need to call the useXXX methods, so we can warn if
-        // them from doing something like this (for now, in order to preserve existing builds).
-        // This behavior should be restored to fail fast once again with the next major version.
-        //
-        // testTask.configure {
-        //      options {
-        //          /* configure JUnit Platform */
-        //      }
-        // }
-        // testTask.configure {
-        //      useJUnit()
-        //      options {
-        //          /* configure JUnit */
-        //      }
-        // }
-
-        // TODO: Test Framework Selection - Restore this to re-enable fail-fast behavior for Gradle 8
-//        if (!userHasConfiguredTestFramework) {
-//            testFramework.finalizeValue();
-//        }
-
-        return testFramework.get();
+        // TODO: Deprecate and remove this method
+        options(testFrameworkConfigure);
+        return getTestFramework();
     }
 
     /**
@@ -957,15 +928,14 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Nested
     public TestFrameworkOptions getOptions() {
-        optionsAccessed = true;
         return getTestFramework().getOptions();
     }
 
     /**
-     * Configures test framework specific options. Make sure to call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
+     * Configures test framework specific options.
      * <p>
-     * Any previous option configuration will be <strong>DISCARDED</strong> upon changing the test framework.  Accessing options prior to setting the test framework will be
-     * deprecated in Gradle 8.
+     * When a {@code Test} task is created outside of Test Suites, you should call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
+     * If no test framework has been set, the task will assume JUnit4.
      *
      * @return The test framework options.
      */
@@ -974,42 +944,16 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Configures test framework specific options. Make sure to call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
+     * Configures test framework specific options.
+     * <p>
+     * When a {@code Test} task is created outside of Test Suites, you should call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
+     * If no test framework has been set, the task will assume JUnit4.
      *
      * @return The test framework options.
      * @since 3.5
      */
     public TestFrameworkOptions options(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
-        TestFrameworkOptions options = getOptions();
-        testFrameworkConfigure.execute(options);
-        return options;
-    }
-
-    TestFramework useTestFramework(TestFramework testFramework) {
-        return useTestFramework(testFramework, null);
-    }
-
-    private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, @Nullable Action<? super T> testFrameworkConfigure) {
-        if (optionsAccessed) {
-            DeprecationLogger.deprecateAction("Accessing test options prior to setting test framework")
-                .withContext("\nTest options have already been accessed for task: '" + getProject().getName() + ":" + getName() + "' prior to setting the test framework to: '" + testFramework.getClass().getSimpleName() + "'. Any previous configuration will be discarded.\n")
-                .willBeRemovedInGradle8()
-                .withDslReference(Test.class, "options")
-                .nagUser();
-
-            if (!this.testFramework.get().getClass().equals(testFramework.getClass())) {
-                getLogger().warn("Test framework is changing from '{}', previous option configuration would not be applicable.", this.testFramework.get().getClass().getSimpleName());
-            }
-        }
-
-        userHasConfiguredTestFramework = true;
-        this.testFramework.set(testFramework);
-
-        if (testFrameworkConfigure != null) {
-            testFrameworkConfigure.execute(Cast.<T>uncheckedNonnullCast(this.testFramework.get().getOptions()));
-        }
-
-        return this.testFramework.get();
+        return Actions.with(getOptions(), testFrameworkConfigure);
     }
 
     /**
@@ -1018,7 +962,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @see #useJUnit(org.gradle.api.Action) Configure JUnit4 specific options.
      */
     public void useJUnit() {
-        useJUnit(Actions.<JUnitOptions>doNothing());
+        useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
     }
 
     /**
@@ -1041,7 +985,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 3.5
      */
     public void useJUnit(Action<? super JUnitOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true), testFrameworkConfigure);
+        useJUnit();
+        applyOptions(JUnitOptions.class, testFrameworkConfigure);
     }
 
     /**
@@ -1056,7 +1001,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 4.6
      */
     public void useJUnitPlatform() {
-        useJUnitPlatform(Actions.<JUnitPlatformOptions>doNothing());
+        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), true));
     }
 
     /**
@@ -1073,7 +1018,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 4.6
      */
     public void useJUnitPlatform(Action<? super JUnitPlatformOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), true), testFrameworkConfigure);
+        useJUnitPlatform();
+        applyOptions(JUnitPlatformOptions.class, testFrameworkConfigure);
     }
 
     /**
@@ -1082,7 +1028,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @see #useTestNG(org.gradle.api.Action) Configure TestNG specific options.
      */
     public void useTestNG() {
-        useTestNG(Actions.<TestFrameworkOptions>doNothing());
+        useTestFramework(new TestNGTestFramework(this, stableClasspath, (DefaultTestFilter) getFilter(), getObjectFactory()));
+
     }
 
     /**
@@ -1105,7 +1052,16 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 3.5
      */
     public void useTestNG(Action<? super TestNGOptions> testFrameworkConfigure) {
-        useTestFramework(new TestNGTestFramework(this, stableClasspath, (DefaultTestFilter) getFilter(), getObjectFactory()), testFrameworkConfigure);
+        useTestNG();
+        applyOptions(TestNGOptions.class, testFrameworkConfigure);
+    }
+
+    void useTestFramework(TestFramework testFramework) {
+        this.testFramework.set(testFramework);
+    }
+
+    private <T extends TestFrameworkOptions> void applyOptions(Class<T> optionsClass, Action<? super T> configuration) {
+        Actions.with(Cast.cast(optionsClass, getOptions()), configuration);
     }
 
     /**
