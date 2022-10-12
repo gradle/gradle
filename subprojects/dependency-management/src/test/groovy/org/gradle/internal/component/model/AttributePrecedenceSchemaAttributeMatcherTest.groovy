@@ -59,7 +59,9 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         @Override
         void execute(MultipleCandidatesDetails<String> details) {
             if (details.consumerValue == null) {
-                details.closestMatch("best")
+                if (details.candidateValues.contains("best")) {
+                    details.closestMatch("best")
+                }
             } else {
                 if (details.candidateValues.contains("best")) {
                     details.closestMatch("best")
