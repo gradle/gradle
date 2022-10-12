@@ -592,6 +592,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private ResolveState resolveToStateOrLater(final InternalState requestedState) {
         assertIsResolvable();
+        warnIfConfigurationIsDeprecatedForResolving();
         logIfImproperConfiguration();
 
         ResolveState currentState = currentResolveState.get();
@@ -612,6 +613,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
         }
         return resolveExclusively(requestedState);
+    }
+
+    private void warnIfConfigurationIsDeprecatedForResolving() {
+        if (resolutionAlternatives != null) {
+            DeprecationLogger.deprecateConfiguration(this.name).forResolution().replaceWith(resolutionAlternatives)
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+                    .nagUser();
+        }
     }
 
     private ResolveState resolveExclusively(InternalState requestedState) {
