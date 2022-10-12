@@ -51,12 +51,6 @@ public class DefaultPluginContainer extends DefaultPluginCollection<Plugin> impl
     }
 
     @Override
-    @Deprecated
-    public boolean add(Plugin toAdd) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     @SuppressWarnings("rawtypes")
     public Plugin apply(String id) {
         PluginImplementation<?> plugin = pluginRegistry.lookup(DefaultPluginId.unvalidated(id));
