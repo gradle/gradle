@@ -1072,6 +1072,7 @@ compileClasspath - Compile classpath for source set 'main'.
         """
         expect:
         fails ':a:dependencies'
+        result.assertHasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
     }
 
 
