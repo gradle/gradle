@@ -88,6 +88,7 @@ public abstract class EclipseModel {
      *
      * @since 5.4
      */
+    @Inject
     public EclipseModel(Project project) {
         this.synchronizationTasks = new DefaultTaskDependency(((ProjectInternal) project).getTasks());
         this.autoBuildTasks = new DefaultTaskDependency(((ProjectInternal) project).getTasks());

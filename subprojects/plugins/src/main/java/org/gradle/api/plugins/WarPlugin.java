@@ -63,7 +63,7 @@ public abstract class WarPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
-        final WarPluginConvention pluginConvention = new DefaultWarPluginConvention(project);
+        final WarPluginConvention pluginConvention = objectFactory.newInstance(DefaultWarPluginConvention.class, project);
         project.getConvention().getPlugins().put("war", pluginConvention);
 
         project.getTasks().withType(War.class).configureEach(task -> {

@@ -26,14 +26,17 @@ import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.util.TestUtil
 import spock.lang.Specification
+import spock.lang.Subject
 
 class EclipseModelTest extends Specification {
 
-    EclipseModel model = TestUtil.objectFactory().newInstance(EclipseModel, Mock(ProjectInternal))
+    @Subject
+    EclipseModel model
+    def project = Mock(ProjectInternal)
 
     def setup() {
-        def project = Mock(org.gradle.api.Project)
         project.getObjects() >> TestUtil.objectFactory()
+        model = TestUtil.objectFactory().newInstance(EclipseModel, project)
         model.classpath = TestUtil.objectFactory().newInstance(EclipseClasspath, project)
     }
 
@@ -65,7 +68,7 @@ class EclipseModelTest extends Specification {
     def "enables setting path variables"() {
         given:
         model.wtp = TestUtil.objectFactory().newInstance(EclipseWtp)
-        model.wtp.component = TestUtil.objectFactory().newInstance(EclipseWtpComponent, null, null)
+        model.wtp.component = TestUtil.objectFactory().newInstance(EclipseWtpComponent, project, Mock(XmlFileContentMerger))
 
         when:
         model.pathVariables(one: new File('.'))
@@ -159,7 +162,7 @@ class EclipseModelTest extends Specification {
         def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
         def xmlAction = {} as Action<XmlProvider>
         def facet = TestUtil.objectFactory().newInstance(EclipseWtpFacet, xmlMerger)
-        def component = TestUtil.objectFactory().newInstance(EclipseWtpComponent, null, xmlMerger)
+        def component = TestUtil.objectFactory().newInstance(EclipseWtpComponent, project, xmlMerger)
         model.wtp = TestUtil.objectFactory().newInstance(EclipseWtp)
 
         when: "configure wtp"

@@ -140,7 +140,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         DefaultToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
         DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec, jvmPluginServices);
-        project.getConvention().getPlugins().put("java", new DefaultJavaPluginConvention(project, javaPluginExtension));
+        project.getConvention().getPlugins().put("java", project.getObjects().newInstance(DefaultJavaPluginConvention.class, project, javaPluginExtension));
         return javaPluginExtension;
     }
 

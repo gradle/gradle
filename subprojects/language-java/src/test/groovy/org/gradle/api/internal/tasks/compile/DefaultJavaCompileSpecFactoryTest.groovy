@@ -28,7 +28,7 @@ import spock.lang.Specification
 class DefaultJavaCompileSpecFactoryTest extends Specification {
 
     def "produces correct spec with fork=#fork, executable=#executable, toolchain=#toolchainHome"() {
-        CompileOptions options = TestUtil.objectFactory().newInstance(CompileOptions, Mock(ObjectFactory))
+        CompileOptions options = TestUtil.objectFactory().newInstance(CompileOptions, TestUtil.objectFactory())
         options.fork = fork
         options.forkOptions.executable = executable
         def toolchain = null

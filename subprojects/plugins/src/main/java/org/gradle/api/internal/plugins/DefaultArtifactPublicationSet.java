@@ -25,6 +25,7 @@ import org.gradle.api.internal.provider.ChangingValueHandler;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.Set;
 
 /**
@@ -34,6 +35,7 @@ public abstract class DefaultArtifactPublicationSet {
     private final PublishArtifactSet artifactContainer;
     private DefaultArtifactProvider defaultArtifactProvider;
 
+    @Inject
     public DefaultArtifactPublicationSet(PublishArtifactSet artifactContainer) {
         this.artifactContainer = artifactContainer;
     }
@@ -44,6 +46,10 @@ public abstract class DefaultArtifactPublicationSet {
             artifactContainer.addAllLater(defaultArtifactProvider);
         }
         defaultArtifactProvider.addArtifact(artifact);
+    }
+
+    DefaultArtifactProvider getDefaultArtifactProvider() {
+        return defaultArtifactProvider;
     }
 
     private static class DefaultArtifactProvider extends AbstractMinimalProvider<Set<PublishArtifact>> implements CollectionProviderInternal<PublishArtifact, Set<PublishArtifact>>, ChangingValue<Set<PublishArtifact>> {
