@@ -71,6 +71,10 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
     }
 
     private File findSuitableExecutable(JavaCompileSpec spec) {
+        if (spec instanceof ForkingJavaCompileSpec) {
+            return Jvm.forHome(((ForkingJavaCompileSpec) spec).getJavaHome()).getJavaExecutable();
+        }
+
         final MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         if (forkOptions.getExecutable() != null) {
             return new File(forkOptions.getExecutable());
