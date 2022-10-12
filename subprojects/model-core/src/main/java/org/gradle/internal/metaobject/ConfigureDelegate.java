@@ -18,8 +18,6 @@ package org.gradle.internal.metaobject;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
-import groovy.lang.MissingMethodException;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -59,16 +57,9 @@ public class ConfigureDelegate extends GroovyObjectSupport {
                 return result.getValue();
             }
 
-            MissingMethodException failure = null;
             if (!isAlreadyConfiguring) {
                 // Try to configure element
-                try {
-                    result = _configure(name, params);
-                } catch (MissingMethodException e) {
-                    // Workaround for backwards compatibility. Previously, this case would unintentionally cause the method to be invoked on the owner
-                    // continue below
-                    failure = e;
-                }
+                result = _configure(name, params);
                 if (result.isFound()) {
                     return result.getValue();
                 }
@@ -77,17 +68,7 @@ public class ConfigureDelegate extends GroovyObjectSupport {
             // try the owner
             result = _owner.tryInvokeMethod(name, params);
             if (result.isFound()) {
-                if (failure != null) {
-                    DeprecationLogger.deprecateBehaviour("Referencing '" + name + "' in this block is deprecated. Fully qualify your reference to this API or access it in another block.")
-                        .willBeRemovedInGradle8()
-                        .withUpgradeGuideSection(7, "referencing_script_configure_method_from_container_configure_closure_deprecated")
-                        .nagUser();
-                }
                 return result.getValue();
-            }
-
-            if (failure != null) {
-                throw failure;
             }
 
             throw _delegate.methodMissingException(name, params);
