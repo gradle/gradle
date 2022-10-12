@@ -376,7 +376,6 @@ public class JavaPlugin implements Plugin<Project> {
             builder -> builder.fromSourceSet(mainSourceSet)
                 .providesApi()
                 .withDescription("API elements for main."));
-        apiElementsConfiguration.setCanBeDeclaredAgainst(false);
 
         // Configure variants
         addJarArtifactToConfiguration(apiElementsConfiguration, jarArtifact);
