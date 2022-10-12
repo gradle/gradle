@@ -18,7 +18,6 @@ package org.gradle.integtests.samples.files
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.junit.Rule
@@ -30,7 +29,6 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
     Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample("files/misc")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl.*")
     def "can create a directory with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
