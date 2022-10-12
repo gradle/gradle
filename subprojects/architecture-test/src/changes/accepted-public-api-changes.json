@@ -97,6 +97,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.result.ResolvedComponentResult",
+            "member": "Method org.gradle.api.artifacts.result.ResolvedComponentResult.getVariant()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.transform.ArtifactTransform",
             "member": "Class org.gradle.api.artifacts.transform.ArtifactTransform",
             "acceptation": "Legacy ArtifactTransform API has been removed",
