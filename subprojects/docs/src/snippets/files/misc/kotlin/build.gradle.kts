@@ -1,7 +1,12 @@
+import java.nio.file.Files
+
 // tag::mkdir-example[]
 tasks.register("ensureDirectory") {
+    // Store target directory into a variable to avoid project reference in the configuration cache
+    val directory = file("images")
+
     doLast {
-        mkdir("images")
+        Files.createDirectories(directory.toPath())
     }
 }
 // end::mkdir-example[]
