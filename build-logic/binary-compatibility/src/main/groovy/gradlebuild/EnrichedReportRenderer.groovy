@@ -67,7 +67,7 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
                     var result = JSON.parse('${currentApiChanges.replace('\n', '')}'); // JSON string from report uses double quotes, contain it within single quotes
                     getAllErrorCorrections().forEach((correction) => result.acceptedApiChanges.push(correction));
                     // Sort the array in place by type, then member
-                    result.acceptedApiChanges = result.acceptedApiChanges.sort((a, b) => (a.type + a.member) > (b.type + b.member));
+                    result.acceptedApiChanges = result.acceptedApiChanges.sort((a, b) => (a.type +'#' + a.member) > (b.type + '#' + b.member));
                     // Remove duplicates (equal adjacent elements) - a new, un@Incubating type will be here twice, as 2 errors are reported; use stringified JSON to compare
                     // Filtering an array is NOT in place
                     result.acceptedApiChanges = result.acceptedApiChanges.filter((item, pos, ary) => (!pos || (JSON.stringify(item) != JSON.stringify(ary[pos - 1]))));
