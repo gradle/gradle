@@ -38,7 +38,7 @@ Several major IDEs provide interaction with Gradle builds, including Android Stu
 Gradle can also generate the solution files required to load a project into Visual Studio.
 Insight::
 https://scans.gradle.com/[Build Scan™] provides extensive information about a build that you can use to identify issues.
-You can use build scans to identify problems with a build's performance, and even share them for debugging help.
+You can use Build Scans to identify problems with a build's performance and even share them for debugging help.
 
 == Concepts
 
