@@ -169,7 +169,7 @@ Replace usages with the now stable `getDestinationDirectory()` and `getTestResul
 These deprecated elements will be removed in a future version of Gradle.
 
 [[referencing_script_configure_method_from_container_configure_closure_deprecated]]
-==== Implicitly referencing outer scope methods in some configuration blocks in Groovy DSL is now deprecated
+==== Deprecated implicit references to outer scope methods in some configuration blocks
 
 Prior to Gradle 7.6, Groovy scripts permitted access to root project configure methods
 within named container configure methods that handle failures with a `MissingMethodException`.
