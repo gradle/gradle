@@ -30,11 +30,9 @@ import spock.lang.Specification
 
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.CoreMatchers.instanceOf
 import static org.hamcrest.CoreMatchers.nullValue
 import static org.hamcrest.MatcherAssert.assertThat
-import static org.hamcrest.Matchers.hasItems
 
 class DefaultSourceSetTest extends Specification {
     public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

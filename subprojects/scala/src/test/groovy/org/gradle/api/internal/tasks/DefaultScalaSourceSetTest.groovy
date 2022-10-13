@@ -27,7 +27,6 @@ import org.junit.Test
 import static org.gradle.api.reflect.TypeOf.typeOf
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.CoreMatchers.instanceOf
 import static org.hamcrest.MatcherAssert.assertThat
 

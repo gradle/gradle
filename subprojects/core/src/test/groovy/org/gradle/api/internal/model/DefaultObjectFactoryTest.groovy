@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
