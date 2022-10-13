@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,16 @@
 
 package org.gradle.api.internal.component;
 
-import org.gradle.api.component.SoftwareComponent;
+public abstract class FinalizableSoftwareComponentInternal implements SoftwareComponentInternal {
 
-import java.util.Set;
+    private boolean finalized = false;
 
-/**
- * This will be replaced by {@link org.gradle.api.component.ComponentWithVariants} and other public APIs.
- */
-public interface SoftwareComponentInternal extends SoftwareComponent {
-    Set<? extends UsageContext> getUsages();
+    protected void checkNotFinalized() {
+        if (finalized) throw new IllegalStateException("Cannot change the state of a finalized component");
+    }
 
-    default void finalizeValue() {}
+    @Override
+    public void finalizeValue() {
+        finalized = true;
+    }
 }
