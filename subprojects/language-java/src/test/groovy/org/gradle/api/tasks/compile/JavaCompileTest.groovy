@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec
 import org.gradle.api.internal.tasks.compile.ForkingJavaCompileSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaCompiler
@@ -203,5 +204,53 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         expect:
         javaCompile.options.incremental
         javaCompile.options.incrementalAfterFailure.get() == true
+    }
+
+    def "command line compiler spec is selected when forking and executable is set"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.destinationDirectory = new File("tmp")
+        def executable = Jvm.current().javacExecutable.absolutePath
+
+        when:
+        javaCompile.options.fork = true
+        javaCompile.options.forkOptions.executable = executable
+        def spec = javaCompile.createSpec()
+
+        then:
+        spec instanceof CommandLineJavaCompileSpec
+        spec.executable.absolutePath == executable
+    }
+
+    def "command line compiler spec is selected when forking and java home is set"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.destinationDirectory = new File("tmp")
+        def jvm = Jvm.current()
+        def javaHome = jvm.javaHome
+
+        when:
+        javaCompile.options.fork = true
+        javaCompile.options.forkOptions.javaHome = javaHome
+        def spec = javaCompile.createSpec()
+
+        then:
+        spec instanceof CommandLineJavaCompileSpec
+        spec.executable.absolutePath == jvm.javacExecutable.absolutePath
+    }
+
+    def "java home takes precedence over executable when forking"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.destinationDirectory = new File("tmp")
+        def jvm = Jvm.current()
+        def javaHome = jvm.javaHome
+
+        when:
+        javaCompile.options.fork = true
+        javaCompile.options.forkOptions.executable = "/custom/executable/path"
+        javaCompile.options.forkOptions.javaHome = javaHome
+        def spec = javaCompile.createSpec()
+
+        then:
+        spec instanceof CommandLineJavaCompileSpec
+        spec.executable.absolutePath == jvm.javacExecutable.absolutePath
     }
 }
