@@ -58,6 +58,7 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
 public class InitBuild extends DefaultTask {
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
+    private final Property<Boolean> allowFileOverwrite = getProject().getObjects().property(Boolean.class);
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
     private String dsl;
     private final Property<Boolean> useIncubatingAPIs = getProject().getObjects().property(Boolean.class);
