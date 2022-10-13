@@ -47,6 +47,7 @@ import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.internal.snapshot.impl.ImplementationValue
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TestUtil
 import org.gradle.work.InputChanges
 
 import java.util.concurrent.Callable
@@ -927,9 +928,13 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         T task = AbstractTask.injectIntoNewInstance(project, TaskIdentity.create(name, type, project), new Callable<T>() {
             T call() throws Exception {
                 if (params.length > 0) {
+                    // TODO: This should be using objectFactory too because it more closely matches
+                    // what the production code does. The production code is more lenient with types
+                    // and this just assumes the first constructor is the correct one.
+                    //  return TestUtil.objectFactory().newInstance(type, params)
                     return type.cast(type.constructors[0].newInstance(params))
                 } else {
-                    return JavaReflectionUtil.newInstance(type)
+                    return TestUtil.objectFactory().newInstance(type)
                 }
             }
         })
