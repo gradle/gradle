@@ -171,14 +171,15 @@ These deprecated elements will be removed in a future version of Gradle.
 [[referencing_script_configure_method_from_container_configure_closure_deprecated]]
 ==== Implicitly referencing outer scope methods in some configuration blocks in Groovy DSL is now deprecated
 
-Prior to Gradle 7.6, Groovy scripts would permit accessing root project-level configure methods from
-within named container configure methods, as long as that container configure method would otherwise
-fail with a `MissingMethodException`. Consider the following snippets for examples of this behavior:
+Prior to Gradle 7.6, Groovy scripts permitted access to root project configure methods
+within named container configure methods that handle failures with a `MissingMethodException`.
+Consider the following snippets for examples of this behavior:
 
-Accessing the top-level `repositories` block from within the `configurations` block is permitted
-as long as the provided closure is otherwise an invalid configure closure for a Configuration.
-In this case, the `repositories` closure is executed as if it were called at the script-level, _and_
-an unconfigured `repositories` Configuration is created.
+Gradle permits access to the top-level `repositories` block from within the `configurations` block
+when the provided closure is otherwise an invalid configure closure for a Configuration.
+In this case, the `repositories` closure executes as if it were called at the script-level, and
+creates an unconfigured `repositories` Configuration:
+
 ```groovy
 configurations {
     repositories {
@@ -191,11 +192,12 @@ configurations {
 }
 ```
 
-The behavior also applies in closures which are not immediately executed. In this case, `afterResolve`
-is only executed when the `resolve` task runs. Regardless, the `distributions` closure is an otherwise
-invalid configure closure for a Configuration, though it is a valid top-level script closure. In this
-case, the `conf` Configuration is created immediately, and during the execution of the `resolve` task,
-the `distributions` block is executed as if it were declared at the script-level.
+The behavior also applies to closures which do not immediately execute.
+In this case, `afterResolve` only executes when the `resolve` task runs.
+The `distributions` closure is a valid top-level script closure.
+But it is an invalid configure closure for a Configuration.
+This example creates the `conf` Configuration immediately.
+During `resolve` task execution, the `distributions` block executed as if it were declared at the script-level:
 
 ```groovy
 configurations {
@@ -216,8 +218,10 @@ task resolve {
 }
 ```
 
-As of Gradle 7.6, this behavior is deprecated. Starting with Gradle 8.0, this behavior will be removed and instead
-the underlying `MissingMethodException` will be thrown. To mitigate this change, consider the following solutions:
+As of Gradle 7.6, this behavior is deprecated.
+Starting with Gradle 8.0, this behavior will be removed.
+Instead, Gradle will throw the underlying `MissingMethodException`.
+To mitigate this change, consider the following solutions:
 
 ```groovy
 configurations {
