@@ -17,7 +17,8 @@
 = What is Gradle?
 
 Gradle is an open-source https://en.wikipedia.org/wiki/Build_automation[build automation] tool
-flexible enough to build almost any type of software. Gradle bases its design on the following fundamentals:
+flexible enough to build almost any type of software.
+Gradle bases its design on the following fundamentals:
 
 High performance::
 Gradle avoids unnecessary work by only running tasks that need to run because inputs or outputs changed.
