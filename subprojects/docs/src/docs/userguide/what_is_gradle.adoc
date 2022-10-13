@@ -34,7 +34,7 @@ Extensibility::
 You can readily extend Gradle to provide your own build logic with custom tasks and plugins.
 See Android builds for an example: they add many new build concepts such as flavors and build types.
 IDE support::
-Several major IDEs enable imports and interaction with Gradle builds, including Android Studio, IntelliJ IDEA, Eclipse, and NetBeans.
+Several major IDEs provide interaction with Gradle builds, including Android Studio, IntelliJ IDEA, Eclipse, VSCode, and NetBeans.
 Gradle can also generate the solution files required to load a project into Visual Studio.
 Insight::
 https://scans.gradle.com/[Build scans] provide extensive information about a build that you can use to identify issues.
