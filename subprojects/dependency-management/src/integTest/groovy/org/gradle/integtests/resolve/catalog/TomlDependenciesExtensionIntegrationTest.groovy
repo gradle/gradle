@@ -816,6 +816,7 @@ dependencyResolutionManagement {
 """
 
         when:
+        executer.withStacktraceEnabled()
         fails 'help'
 
         then:
