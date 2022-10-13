@@ -117,8 +117,8 @@ However, the build cache requires annotated inputs and outputs on tasks.
 
 Well-designed build scripts consist mostly of
 <<authoring_maintainable_build_scripts#sec:avoid_imperative_logic_in_scripts,declarative configuration, rather than imperative logic>>.
-That configuration runs during the configuration phase. Many builds also have task actions
-— for example via `doLast {}` and `doFirst {}` blocks — which run during the execution phase.
+That configuration runs during the configuration phase.
+Many builds also register instances of custom task types providing additional actions that run during the execution phase.
 
 It's easy to view Gradle's build scripts as executable code, because that's what they are.
 But that's an implementation detail: well-designed build scripts describe _what_ steps build the software,
