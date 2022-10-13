@@ -22,7 +22,8 @@ Gradle bases its design on the following fundamentals:
 
 High performance::
 Gradle avoids unnecessary work by only running tasks that need to run because inputs or outputs changed.
-Gradle uses various caches to reuse outputs from previous runs. With a shared build cache, you can even reuse outputs across multiple machines.
+Gradle uses various caches to reuse outputs from previous runs.
+With a shared build cache, you can even reuse outputs across multiple machines.
 JVM foundation::
 Gradle runs on the JVM. This is a bonus for users familiar with Java, since build logic can use the standard Java APIs.
 It also makes it easy to run Gradle on different platforms.
