@@ -113,25 +113,19 @@ public abstract class JavaEcosystemSupport {
 
     @VisibleForTesting
     public static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
-        final Usage javaApi;
-        final Usage javaRuntime;
-        final Usage javaApiJars;
-        final Usage javaRuntimeJars;
+        private final Usage javaApi;
+        private final Usage javaRuntime;
 
-        final ImmutableSet<Usage> apiVariants;
-        final ImmutableSet<Usage> runtimeVariants;
+        private final Set<Usage> apiVariants;
+        private final Set<Usage> runtimeVariants;
 
         @Inject
         UsageDisambiguationRules(Usage javaApi,
-                                 Usage javaApiJars,
-                                 Usage javaRuntime,
-                                 Usage javaRuntimeJars) {
+                                 Usage javaRuntime) {
             this.javaApi = javaApi;
-            this.javaApiJars = javaApiJars;
-            this.apiVariants = ImmutableSet.of(javaApi, javaApiJars);
+            this.apiVariants = Collections.singleton(javaApi);
             this.javaRuntime = javaRuntime;
-            this.javaRuntimeJars = javaRuntimeJars;
-            this.runtimeVariants = ImmutableSet.of(javaRuntime, javaRuntimeJars);
+            this.runtimeVariants = Collections.singleton(javaRuntime);
         }
 
         @Override
@@ -139,29 +133,18 @@ public abstract class JavaEcosystemSupport {
             Set<Usage> candidateValues = details.getCandidateValues();
             Usage consumerValue = details.getConsumerValue();
             if (consumerValue == null) {
-                if (candidateValues.contains(javaRuntimeJars)) {
-                    // Use the Jars when nothing has been requested
-                    details.closestMatch(javaRuntimeJars);
-                } else if (candidateValues.contains(javaRuntime)) {
+                if (candidateValues.contains(javaRuntime)) {
                     // Use the runtime when nothing has been requested
                     details.closestMatch(javaRuntime);
                 }
             } else {
                 if (javaRuntime.equals(consumerValue)) {
-                    // we're asking for a runtime variant, prefer -jars first
-                    if (candidateValues.contains(javaRuntimeJars)) {
-                        details.closestMatch(javaRuntimeJars);
-                    } else if (candidateValues.contains(javaRuntime)) {
+                    if (candidateValues.contains(javaRuntime)) {
                         details.closestMatch(javaRuntime);
                     }
                 } else if (javaApi.equals(consumerValue)) {
-                    // we're asking for an API variant, prefer -jars first for runtime
-                    if (candidateValues.contains(javaApiJars)) {
-                        details.closestMatch(javaApiJars);
-                    } else if (candidateValues.contains(javaApi)) {
+                    if (candidateValues.contains(javaApi)) {
                         details.closestMatch(javaApi);
-                    } else if (candidateValues.contains(javaRuntimeJars)) {
-                        details.closestMatch(javaRuntimeJars);
                     } else if (candidateValues.contains(javaRuntime)) {
                         details.closestMatch(javaRuntime);
                     }
