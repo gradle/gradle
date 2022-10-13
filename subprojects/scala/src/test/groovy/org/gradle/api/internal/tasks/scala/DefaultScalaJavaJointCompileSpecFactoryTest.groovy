@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.compile.ForkingJavaCompileSpec
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -39,8 +40,8 @@ class DefaultScalaJavaJointCompileSpecFactoryTest extends Specification {
         // Make sure other Java home is valid from Jvm.forHome point of view and compiler executable exists
         def otherJavaHome = tmpDir.createDir("other-java-home")
         otherJavaHome.createDir("bin")
-        otherJavaHome.file("bin/java").touch()
-        otherJavaHome.file("bin/javac").touch()
+        otherJavaHome.file(OperatingSystem.current().getExecutableName("bin/java")).touch()
+        otherJavaHome.file(OperatingSystem.current().getExecutableName("bin/javac")).touch()
 
         def version = currentVM == 'current' ? Jvm.current().javaVersion.majorVersion : currentVM
         def javaHome = currentVM == 'current' ? Jvm.current().javaHome : otherJavaHome.absoluteFile
