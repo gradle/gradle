@@ -1065,10 +1065,10 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
             whenVerbose """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
-      - in repository 'maven': artifact wasn't signed
+      - in repository 'maven': artifact is not signed
       - in repository 'maven': expected a 'sha256' checksum of 'nope' but was '20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc'
   - On artifact foo-1.0.pom (org:foo:1.0) multiple problems reported:
-      - in repository 'maven': artifact wasn't signed
+      - in repository 'maven': artifact is not signed
       - in repository 'maven': expected a 'sha256' checksum of 'nope' but was 'f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481'
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
@@ -1310,10 +1310,10 @@ This can indicate that a dependency has been compromised. Please carefully verif
         if (enableVerifySignatures) {
             failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
-      - in repository 'maven': artifact wasn't signed
+      - in repository 'maven': artifact is not signed
       - in repository 'maven': checksum is missing from verification metadata.
   - On artifact foo-1.0.pom (org:foo:1.0) multiple problems reported:
-      - in repository 'maven': artifact wasn't signed
+      - in repository 'maven': artifact is not signed
       - in repository 'maven': checksum is missing from verification metadata.""")
         } else {
             failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
