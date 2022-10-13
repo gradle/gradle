@@ -81,6 +81,7 @@ public class InitBuild extends DefaultTask {
      */
     @Input
     @Optional
+    @Incubating
     @Option(option = "overwrite", description = "Allow any existing files in the current directory to be overwritten?")
     public Property<Boolean> getAllowFileOverwrite() {
         return allowFileOverwrite;
