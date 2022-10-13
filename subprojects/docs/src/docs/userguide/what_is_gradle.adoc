@@ -21,9 +21,9 @@ This flexibility is the result of Gradle making few assumptions about what you'r
 Gradle bases its design on the following fundamentals:
 
 High performance::
-Gradle avoids unnecessary work by only running tasks that need to run because inputs or outputs changed.
-Gradle uses various caches to reuse outputs from previous runs.
-With a shared build cache, you can even reuse outputs across multiple machines.
+Gradle avoids unnecessary work by only running tasks that need to do work because inputs or outputs have changed.
+Gradle uses various caches to reuse outputs from previous builds.
+With a shared build cache, you can even reuse outputs from other machines.
 JVM foundation::
 Gradle runs on the JVM. This is a bonus for users familiar with Java, since build logic can use the standard Java APIs.
 It also makes it easy to run Gradle on different platforms.
