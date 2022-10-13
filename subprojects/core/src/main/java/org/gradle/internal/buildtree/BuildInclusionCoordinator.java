@@ -18,12 +18,14 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -38,6 +40,7 @@ public class BuildInclusionCoordinator {
     private final List<IncludedBuildState> libraryBuilds = new CopyOnWriteArrayList<>();
     private final BuildStateRegistry buildStateRegistry;
     private boolean registerRootSubstitutions;
+    private final Set<BuildState> registering = new HashSet<>();
 
     public BuildInclusionCoordinator(BuildStateRegistry buildStateRegistry) {
         this.buildStateRegistry = buildStateRegistry;
@@ -54,13 +57,13 @@ public class BuildInclusionCoordinator {
         }
     }
 
-    public void prepareForInclusion(RootBuildState build) {
+    public void prepareRootBuildForInclusion() {
         registerRootSubstitutions = true;
     }
 
-    public void registerGlobalLibrarySubstitutions() {
+    private void registerGlobalLibrarySubstitutions() {
         for (IncludedBuildState includedBuild : libraryBuilds) {
-            buildStateRegistry.registerSubstitutionsFor(includedBuild);
+            doRegisterSubstitutions(includedBuild);
         }
     }
 
@@ -68,19 +71,56 @@ public class BuildInclusionCoordinator {
         if (build instanceof RootBuildState) {
             registerGlobalLibrarySubstitutions();
         } else {
-            for (IncludedBuildInternal reference : build.getMutableModel().includedBuilds()) {
-                BuildState target = reference.getTarget();
-                if (target instanceof IncludedBuildState) {
-                    buildStateRegistry.registerSubstitutionsFor((IncludedBuildState) target);
-                }
-            }
+            makeSubstitutionsAvailableFor(build, new HashSet<>());
         }
     }
 
     public void registerSubstitutionsProvidedBy(BuildState build) {
         if (build instanceof RootBuildState && registerRootSubstitutions) {
             // Make root build substitutions available
-            buildStateRegistry.registerSubstitutionsFor((RootBuildState) build);
+            doRegisterSubstitutions((RootBuildState) build);
+        }
+    }
+
+    public void prepareForPluginResolution(IncludedBuildState build) {
+        if (!registering.add(build)) {
+            return;
+        }
+        try {
+            build.ensureProjectsConfigured();
+            makeSubstitutionsAvailableFor(build, new HashSet<>());
+        } finally {
+            registering.remove(build);
+        }
+    }
+
+    private void makeSubstitutionsAvailableFor(BuildState build, Set<BuildState> seen) {
+        // A build can see all the builds that it includes
+        if (!seen.add(build)) {
+            return;
+        }
+        boolean added = registering.add(build);
+        try {
+            for (IncludedBuildInternal reference : build.getMutableModel().includedBuilds()) {
+                BuildState target = reference.getTarget();
+                if (!registering.contains(target) && target instanceof IncludedBuildState) {
+                    doRegisterSubstitutions((IncludedBuildState) target);
+                    makeSubstitutionsAvailableFor(target, seen);
+                }
+            }
+        } finally {
+            if (added) {
+                registering.remove(build);
+            }
+        }
+    }
+
+    private void doRegisterSubstitutions(CompositeBuildParticipantBuildState build) {
+        registering.add(build);
+        try {
+            buildStateRegistry.registerSubstitutionsFor(build);
+        } finally {
+            registering.remove(build);
         }
     }
 }

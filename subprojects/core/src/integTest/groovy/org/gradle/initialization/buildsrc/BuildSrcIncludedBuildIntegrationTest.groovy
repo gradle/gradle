@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
-    def "buildSrc can use a library from a build that it includes"() {
+    def "buildSrc can use a library contributed by a build that it includes"() {
         file("buildSrc/settings.gradle") << """
             includeBuild("../included")
         """
@@ -42,7 +42,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         result.assertTaskExecuted(":buildSrc:jar")
     }
 
-    def "buildSrc can use a library from a build included by the root build"() {
+    def "buildSrc can use a library contributed by a build included by the root build"() {
         file("buildSrc/build.gradle") << """
             dependencies {
                 implementation("test.lib:lib:1.0")
@@ -61,6 +61,49 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         then:
         result.assertTaskExecuted(":included:jar")
         result.assertTaskExecuted(":buildSrc:jar")
+    }
+
+    // buildSrc acts like an implicit pluginManagement { } included build
+    def "library contributed by buildSrc is not visible to the root build"() {
+        writeLibraryTo(file("buildSrc"))
+
+        file("build.gradle") << """
+            plugins { id("java-library") }
+            dependencies {
+                implementation("test.lib:lib:1.0")
+            }
+        """
+        useLibraryFrom(testDirectory)
+
+        when:
+        fails("build")
+
+        then:
+        failure.assertTaskExecuted(":buildSrc:jar")
+        failure.assertHasCause("Cannot resolve external dependency test.lib:lib:1.0 because no repositories are defined.")
+    }
+
+    // buildSrc acts like an implicit pluginManagement { } included build
+    def "library contributed by buildSrc is not visible to a build included by the root build"() {
+        writeLibraryTo(file("buildSrc"))
+
+        settingsFile << """
+            includeBuild("included")
+        """
+        file("included/build.gradle") << """
+            plugins { id("java-library") }
+            dependencies {
+                implementation("test.lib:lib:1.0")
+            }
+        """
+        useLibraryFrom(file("included"))
+
+        when:
+        fails(":included:build")
+
+        then:
+        failure.assertTaskExecuted(":buildSrc:jar")
+        failure.assertHasCause("Cannot resolve external dependency test.lib:lib:1.0 because no repositories are defined.")
     }
 
     def "buildSrc can apply plugins contributed by a build that it includes"() {
@@ -96,6 +139,24 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
         then:
         outputContains("test-plugin applied to :buildSrc")
+    }
+
+    def "plugin contributes by buildSrc are not visible to a build included by the root build"() {
+        writePluginTo(file("buildSrc"))
+
+        settingsFile << """
+            includeBuild("included")
+        """
+        file("included/build.gradle") << """
+            plugins {
+                id "test-plugin"
+            }
+
+        """
+        when:
+        fails("help")
+        then:
+        failure.assertHasDescription("Plugin [id: 'test-plugin'] was not found in any of the following sources")
     }
 
     def "buildSrc can apply plugins contributed by a build included from CLI"() {

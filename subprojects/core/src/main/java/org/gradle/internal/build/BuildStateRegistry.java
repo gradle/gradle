@@ -102,11 +102,6 @@ public interface BuildStateRegistry {
     void registerSubstitutionsFor(CompositeBuildParticipantBuildState build);
 
     /**
-     * Ensures that the given build and any builds it includes are configured and their publications are registered.
-     */
-    void ensureConfigured(IncludedBuildState buildState);
-
-    /**
      * Restarts each build in the tree.
      */
     void resetStateForAllBuilds();
