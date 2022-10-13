@@ -53,9 +53,9 @@ A single build can contain one or more projects and each project can contain the
 
 === Tasks
 
-Tasks contain the logic that implements builds.
-In most use cases, you'll use or extend existing tasks, like the built-in Java `test` task.
-Gradle provides tasks that implement many common build system goals, like running tests and creating archives.
+Tasks contain the logic for executing some work--compiling code, running tests or deploying software.
+In most use cases, you'll use existing tasks.
+Gradle provides tasks that implement many common build system needs, like the built-in Java `Test` task that can run tests.
 Plugins provide even more types of tasks.
 
 Tasks themselves consist of:
