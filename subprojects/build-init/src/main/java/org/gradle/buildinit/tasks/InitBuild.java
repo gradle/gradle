@@ -18,7 +18,6 @@ package org.gradle.buildinit.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
@@ -117,7 +116,6 @@ public class InitBuild extends DefaultTask {
      */
     @Input
     @Optional
-    @Incubating
     @Option(option = "incubating", description = "Allow the generated build to use new features and APIs")
     public Property<Boolean> getUseIncubating() {
         return useIncubatingAPIs;
@@ -168,7 +166,6 @@ public class InitBuild extends DefaultTask {
      */
     @Input
     @Option(option = "insecure-protocol", description = "How to handle insecure URLs used for Maven Repositories.")
-    @Incubating
     public Property<InsecureProtocolOption> getInsecureProtocol() {
         return insecureProtocol;
     }
