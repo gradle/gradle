@@ -31,15 +31,12 @@ import static org.junit.Assert.assertNull
 import static org.junit.Assert.assertTrue
 
 class GroovyCompileOptionsTest {
-    static final Map TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
-
     GroovyCompileOptions compileOptions
 
     @Before
     void setUp()  {
         ServiceLookup services = new DefaultServiceRegistry().add(ObjectFactory, TestUtil.objectFactory()).add(InstantiatorFactory, TestUtil.instantiatorFactory())
         compileOptions = TestUtil.instantiatorFactory().decorateLenient(services).newInstance(GroovyCompileOptions.class)
-        compileOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as GroovyForkOptions
     }
 
     @Test
@@ -59,14 +56,11 @@ class GroovyCompileOptionsTest {
     @Test
     void testFork() {
         compileOptions.fork = false
-        boolean forkUseCalled = false
-        compileOptions.forkOptions = [define: {Map args ->
-            forkUseCalled = true
-            assertEquals(TEST_FORK_OPTION_MAP, args)
-        }] as GroovyForkOptions
-        assert compileOptions.fork(TEST_FORK_OPTION_MAP).is(compileOptions)
+        assertNull(compileOptions.forkOptions.memoryMaximumSize)
+
+        compileOptions.fork([memoryMaximumSize: '1g'])
         assertTrue(compileOptions.fork)
-        assertTrue(forkUseCalled)
+        assertEquals(compileOptions.forkOptions.memoryMaximumSize, '1g')
     }
 
     @Test
