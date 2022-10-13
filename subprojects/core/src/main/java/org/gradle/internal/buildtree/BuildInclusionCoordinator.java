@@ -16,8 +16,11 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -34,6 +37,7 @@ public class BuildInclusionCoordinator {
     private final Set<IncludedBuildState> loadedBuilds = new CopyOnWriteArraySet<>();
     private final List<IncludedBuildState> libraryBuilds = new CopyOnWriteArrayList<>();
     private final BuildStateRegistry buildStateRegistry;
+    private boolean registerRootSubstitutions;
 
     public BuildInclusionCoordinator(BuildStateRegistry buildStateRegistry) {
         this.buildStateRegistry = buildStateRegistry;
@@ -50,9 +54,33 @@ public class BuildInclusionCoordinator {
         }
     }
 
+    public void prepareForInclusion(RootBuildState build) {
+        registerRootSubstitutions = true;
+    }
+
     public void registerGlobalLibrarySubstitutions() {
         for (IncludedBuildState includedBuild : libraryBuilds) {
             buildStateRegistry.registerSubstitutionsFor(includedBuild);
+        }
+    }
+
+    public void registerSubstitutionsAvailableFor(BuildState build) {
+        if (build instanceof RootBuildState) {
+            registerGlobalLibrarySubstitutions();
+        } else {
+            for (IncludedBuildInternal reference : build.getMutableModel().includedBuilds()) {
+                BuildState target = reference.getTarget();
+                if (target instanceof IncludedBuildState) {
+                    buildStateRegistry.registerSubstitutionsFor((IncludedBuildState) target);
+                }
+            }
+        }
+    }
+
+    public void registerSubstitutionsProvidedBy(BuildState build) {
+        if (build instanceof RootBuildState && registerRootSubstitutions) {
+            // Make root build substitutions available
+            buildStateRegistry.registerSubstitutionsFor((RootBuildState) build);
         }
     }
 }

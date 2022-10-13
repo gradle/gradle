@@ -66,7 +66,6 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
                         new CommandLineIncludedBuildSettingsLoader(
                             defaultSettingsLoader()
                         ),
-                        buildRegistry,
                         buildIncluder),
                     buildRegistry),
                 initScriptHandler),
@@ -81,7 +80,6 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
             new InitScriptHandlingSettingsLoader(
                 new ChildBuildRegisteringSettingsLoader(
                     defaultSettingsLoader(),
-                    buildRegistry,
                     buildIncluder),
                 initScriptHandler),
             buildLayoutFactory,

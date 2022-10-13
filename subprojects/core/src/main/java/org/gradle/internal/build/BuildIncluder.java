@@ -27,7 +27,7 @@ import java.util.Collection;
  */
 @ServiceScope(Scopes.Build.class)
 public interface BuildIncluder {
-    IncludedBuildState includeBuild(IncludedBuildSpec includedBuildSpec);
+    CompositeBuildParticipantBuildState includeBuild(IncludedBuildSpec includedBuildSpec);
 
     void registerPluginBuild(IncludedBuildSpec includedBuildSpec);
 

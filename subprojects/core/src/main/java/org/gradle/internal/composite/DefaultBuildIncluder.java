@@ -21,8 +21,10 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.PublicBuildPath;
+import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -49,11 +51,17 @@ public class DefaultBuildIncluder implements BuildIncluder {
     }
 
     @Override
-    public IncludedBuildState includeBuild(IncludedBuildSpec includedBuildSpec) {
-        BuildDefinition buildDefinition = toBuildDefinition(includedBuildSpec, gradle);
-        IncludedBuildState build = buildRegistry.addIncludedBuild(buildDefinition);
-        coordinator.prepareForInclusion(build, buildDefinition.isPluginBuild());
-        return build;
+    public CompositeBuildParticipantBuildState includeBuild(IncludedBuildSpec includedBuildSpec) {
+        RootBuildState rootBuild = buildRegistry.getRootBuild();
+        if (includedBuildSpec.rootDir.equals(rootBuild.getBuildRootDir())) {
+            coordinator.prepareForInclusion(buildRegistry.getRootBuild());
+            return rootBuild;
+        } else {
+            BuildDefinition buildDefinition = toBuildDefinition(includedBuildSpec, gradle);
+            IncludedBuildState build = buildRegistry.addIncludedBuild(buildDefinition);
+            coordinator.prepareForInclusion(build, buildDefinition.isPluginBuild());
+            return build;
+        }
     }
 
     @Override

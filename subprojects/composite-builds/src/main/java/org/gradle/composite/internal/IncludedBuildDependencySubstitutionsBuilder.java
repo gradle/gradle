@@ -27,15 +27,11 @@ import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class IncludedBuildDependencySubstitutionsBuilder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(IncludedBuildDependencySubstitutionsBuilder.class);
-
     private final CompositeBuildContext context;
     private final Instantiator instantiator;
     private final ObjectFactory objectFactory;
