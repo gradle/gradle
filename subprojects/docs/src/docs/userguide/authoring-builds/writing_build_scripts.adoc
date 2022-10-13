@@ -313,6 +313,9 @@ Groovy has two types of script variables:
 - Variables declared with a type modifier or `def` are visible within closures but not visible within methods.
 - Variables declared without a modifier are visible anywhere in the script.
 
+Prefer declaring variables with `def` to make their scope explicit.
+
+
 [source,groovy]
 .scope.groovy
 ----
