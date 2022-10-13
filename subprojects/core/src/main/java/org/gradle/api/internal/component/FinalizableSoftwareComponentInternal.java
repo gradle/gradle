@@ -21,7 +21,9 @@ public abstract class FinalizableSoftwareComponentInternal implements SoftwareCo
     private boolean finalized = false;
 
     protected void checkNotFinalized() {
-        if (finalized) throw new IllegalStateException("Cannot change the state of a finalized component");
+        if (finalized) {
+            throw new IllegalStateException("Cannot change the state of a finalized component");
+        }
     }
 
     @Override
