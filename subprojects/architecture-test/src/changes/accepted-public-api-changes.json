@@ -257,54 +257,6 @@
             ]
         },
         {
-            "type": "org.gradle.api.plugins.PluginCollection",
-            "member": "Method org.gradle.api.plugins.PluginCollection.add(java.lang.Object)",
-            "acceptation": "Deprecated method removed in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.PluginCollection",
-            "member": "Method org.gradle.api.plugins.PluginCollection.add(org.gradle.api.Plugin)",
-            "acceptation": "Deprecated method removed in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.PluginCollection",
-            "member": "Method org.gradle.api.plugins.PluginCollection.addAll(java.util.Collection)",
-            "acceptation": "Deprecated method removed in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.PluginCollection",
-            "member": "Method org.gradle.api.plugins.PluginCollection.clear()",
-            "acceptation": "Deprecated method removed in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.PluginCollection",
-            "member": "Method org.gradle.api.plugins.PluginCollection.remove(java.lang.Object)",
-            "acceptation": "Deprecated method removed in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.PluginCollection",
-            "member": "Method org.gradle.api.plugins.PluginCollection.removeAll(java.util.Collection)",
-            "acceptation": "Deprecated method removed in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
             "type": "org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory",
             "member": "Class org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory",
             "acceptation": "Removed deprecated class in Gradle 8.0",

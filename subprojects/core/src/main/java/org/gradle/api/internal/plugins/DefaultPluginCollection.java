@@ -25,8 +25,7 @@ import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
-import java.util.Collection;
-
+@SuppressWarnings("deprecation")
 class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectSet<T> implements PluginCollection<T> {
     DefaultPluginCollection(Class<T> type, CollectionCallbackActionDecorator decorator) {
         super(type, decorator);
@@ -39,26 +38,6 @@ class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectSet<T
     @Override
     protected <S extends T> DefaultPluginCollection<S> filtered(CollectionFilter<S> filter) {
         return new DefaultPluginCollection<S>(this, filter);
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends T> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean remove(Object o) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void clear() {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -85,5 +64,4 @@ class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectSet<T
     public void whenPluginAdded(Closure closure) {
         whenObjectAdded(closure);
     }
-
 }

@@ -21,6 +21,8 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.specs.Spec;
 
+import java.util.Collection;
+
 /**
  * <p>A {@code PluginCollection} represents a collection of {@link org.gradle.api.Plugin} instances.</p>
  *
@@ -62,4 +64,54 @@ public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
      */
     @SuppressWarnings("UnusedDeclaration")
     void whenPluginAdded(Closure closure);
+
+    /**
+     * Unsupported.
+     * @deprecated Use {@link PluginManager#apply(Class)} instead.
+     */
+    @Override
+    @Deprecated
+    default boolean add(T plugin) {
+        throw new UnsupportedOperationException("Use PluginManager.apply(Class) instead.");
+    }
+
+    /**
+     * Unsupported.
+     * @deprecated Use {@link PluginManager#apply(Class)} instead.
+     */
+    @Deprecated
+    @Override
+    default boolean addAll(Collection<? extends T> c) {
+        throw new UnsupportedOperationException("Use PluginManager.apply(Class) instead.");
+    }
+
+    /**
+     * Unsupported.
+     * @deprecated plugins cannot be removed.
+     */
+    @Override
+    @Deprecated
+    default boolean remove(Object o) {
+        throw new UnsupportedOperationException("Plugins cannot be removed.");
+    }
+
+    /**
+     * Unsupported.
+     * @deprecated plugins cannot be removed.
+     */
+    @Override
+    @Deprecated
+    default boolean removeAll(Collection<?> c) {
+        throw new UnsupportedOperationException("Plugins cannot be removed.");
+    }
+
+    /**
+     * Unsupported.
+     * @deprecated plugins cannot be removed.
+     */
+    @Override
+    @Deprecated
+    default void clear() {
+        throw new UnsupportedOperationException("Plugins cannot be removed.");
+    }
 }
