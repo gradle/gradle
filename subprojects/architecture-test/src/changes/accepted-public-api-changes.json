@@ -99,7 +99,7 @@
         {
             "type": "org.gradle.api.artifacts.result.ResolvedComponentResult",
             "member": "Method org.gradle.api.artifacts.result.ResolvedComponentResult.getVariant()",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
