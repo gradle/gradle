@@ -172,7 +172,7 @@ These deprecated elements will be removed in a future version of Gradle.
 ==== Deprecated implicit references to outer scope methods in some configuration blocks
 
 Prior to Gradle 7.6, Groovy scripts permitted access to root project configure methods
-within named container configure methods that handle failures with a `MissingMethodException`.
+within named container configure methods that throw `MissingMethodException`s.
 Consider the following snippets for examples of this behavior:
 
 Gradle permits access to the top-level `repositories` block from within the `configurations` block
