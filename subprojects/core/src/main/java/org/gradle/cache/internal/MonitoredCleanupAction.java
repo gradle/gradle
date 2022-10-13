@@ -13,7 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@NonNullApi
-package org.gradle.internal.execution.fingerprint;
 
-import org.gradle.api.NonNullApi;
+package org.gradle.cache.internal;
+
+import org.gradle.api.Describable;
+import org.gradle.cache.CleanupProgressMonitor;
+
+/**
+ * An action that cleans up some resource and reports to a {@link CleanupProgressMonitor}.
+ */
+public interface MonitoredCleanupAction extends Describable {
+    /**
+     * Perform the cleanup action, returning true if any resources were actually cleaned up.
+     *
+     * @param progressMonitor
+     * @return true if resources were cleaned
+     */
+    boolean execute(CleanupProgressMonitor progressMonitor);
+}

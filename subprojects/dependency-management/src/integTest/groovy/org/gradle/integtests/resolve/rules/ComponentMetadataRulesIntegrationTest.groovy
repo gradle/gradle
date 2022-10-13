@@ -665,7 +665,7 @@ class LoggingRule implements ComponentMetadataRule {
 configurations {
     ruleDownloader.incoming.afterResolve {
         println "Adding rules"
-        dependencies {
+        project.dependencies {
             components {
                 all(LoggingRule)
             }

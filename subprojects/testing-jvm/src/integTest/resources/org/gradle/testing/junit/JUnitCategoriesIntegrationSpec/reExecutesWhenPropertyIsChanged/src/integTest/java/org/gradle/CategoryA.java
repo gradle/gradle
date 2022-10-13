@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.fingerprint;
+package org.gradle;
 
-import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.LineEndingSensitivity;
-
-/**
- * Specifies criteria for selecting a {@link FileCollectionFingerprinter}.
- */
-public interface FileNormalizationSpec {
-    Class<? extends FileNormalizer> getNormalizer();
-
-    DirectorySensitivity getDirectorySensitivity();
-
-    LineEndingSensitivity getLineEndingNormalization();
+public interface CategoryA {
 }
