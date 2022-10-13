@@ -273,18 +273,4 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
         e.leftValue == "bar1"
         e.rightValue == "bar2"
     }
-
-    def "translates deprecated usage values"() {
-        def result = factory.concat(factory.of(FOO, "foo"), Usage.USAGE_ATTRIBUTE, instantiator.named(Usage, Usage.JAVA_API_JARS))
-
-        expect:
-        result.findEntry(Usage.USAGE_ATTRIBUTE).get().name == "java-api"
-    }
-
-    def "translates deprecated usage values as Isolatable"() {
-        def result = factory.concat(factory.of(FOO, "foo"), Usage.USAGE_ATTRIBUTE, new CoercingStringValueSnapshot("java-runtime-jars", instantiator))
-
-        expect:
-        result.findEntry(Usage.USAGE_ATTRIBUTE).get().toString() == "java-runtime"
-    }
 }
