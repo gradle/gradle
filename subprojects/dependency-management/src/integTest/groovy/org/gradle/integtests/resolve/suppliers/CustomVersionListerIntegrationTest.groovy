@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.suppliers
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 // we only need to check without Gradle metadata, it doesn't matter
@@ -124,7 +123,6 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         succeeds 'checkDeps'
     }
 
-    @ToBeFixedForConfigurationCache
     void "caches version listing using #lister lister"() {
         ListerInteractions listerInteractions
         switch (lister) {

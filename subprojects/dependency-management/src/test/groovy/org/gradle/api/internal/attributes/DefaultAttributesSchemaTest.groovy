@@ -234,7 +234,7 @@ class DefaultAttributesSchemaTest extends Specification {
         best == ["bar"] as Set
     }
 
-    def "selects all candidates when no disambiguation rules and requested is not one of the candidate values"() {
+    def "returns null when no disambiguation rules and requested is not one of the candidate values"() {
         def attr = Attribute.of(String)
 
         given:
@@ -245,10 +245,10 @@ class DefaultAttributesSchemaTest extends Specification {
         def best = schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "other", candidates)
 
         then:
-        best == candidates
+        best == null
     }
 
-    def "selects all candidates when no rule expresses an opinion and requested is not one of the candidate values"() {
+    def "returns null when no rule expresses an opinion and requested is not one of the candidate values"() {
         def attr = Attribute.of(String)
 
         given:
@@ -259,7 +259,7 @@ class DefaultAttributesSchemaTest extends Specification {
         def best = schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "other", candidates)
 
         then:
-        best == candidates
+        best == null
     }
 
     def "custom rule can select best match"() {

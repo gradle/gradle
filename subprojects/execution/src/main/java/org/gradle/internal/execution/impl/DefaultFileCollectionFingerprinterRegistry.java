@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.fingerprint.impl;
+package org.gradle.internal.execution.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinter;
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.execution.fingerprint.FileNormalizationSpec;
+import org.gradle.internal.execution.FileCollectionFingerprinter;
+import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.execution.FileNormalizationSpec;
 
 import java.util.Collection;
 import java.util.List;

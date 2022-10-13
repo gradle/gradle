@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.problems
-
+package org.gradle.cache.internal;
 
 /**
- * Disable configuration cache field type check for the annotated field.
- *
- * This is a temporary measure, internal, in order to avoid losing too much coverage.
- *
- * TODO:configuration-cache This annotation should be removed.
+ * Allows {@link MonitoredCleanupAction} instances to be decorated with additional functionality, such as checking whether cleanup has been disabled or not.
  */
-@Target(AnnotationTarget.FIELD)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class DisableConfigurationCacheFieldTypeCheck
+public interface MonitoredCleanupActionDecorator {
+    /**
+     * Decorates the provided {@link MonitoredCleanupAction}
+     */
+    MonitoredCleanupAction decorate(MonitoredCleanupAction cleanupAction);
+}

@@ -24,6 +24,9 @@ import org.gradle.test.fixtures.file.TestFile
 class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
         expectReindentedValidationMessage()
+        executer.beforeExecute {
+            withStacktraceEnabled()
+        }
     }
 
     def reportsTaskActionExecutionFailsWithError() {

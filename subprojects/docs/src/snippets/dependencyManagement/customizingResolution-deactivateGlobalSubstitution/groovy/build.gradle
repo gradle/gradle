@@ -21,9 +21,10 @@ dependencies {
 }
 
 tasks.register('resolve') {
+    FileCollection runtimeClasspath = configurations.runtimeClasspath
+    FileCollection publishedRuntimeClasspath = configurations.publishedRuntimeClasspath
     doLast {
-        configurations.runtimeClasspath.files.each { println(it.name) }
-        configurations.publishedRuntimeClasspath.files.each { println(it.name) }
+        runtimeClasspath.files.each { println(it.name) }
+        publishedRuntimeClasspath.files.each { println(it.name) }
     }
 }
-

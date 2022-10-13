@@ -22,21 +22,15 @@ import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.internal.tooling.RunBuildDependenciesTaskBuilder
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.tooling.model.eclipse.EclipseRuntime
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject
-import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
 
-@UsesNativeServices
-@CleanupTestDirectory
 class RunBuildDependenciesTaskBuilderTest extends AbstractProjectBuilderSpec {
     Project child1
     Project child2
 
     def setup() {
-        project = TestUtil.builder(temporaryFolder.testDirectory).withName("project").build()
         child1 = ProjectBuilder.builder().withName("child1").withParent(project).build()
         child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
 

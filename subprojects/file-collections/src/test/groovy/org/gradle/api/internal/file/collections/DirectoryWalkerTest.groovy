@@ -42,7 +42,7 @@ class DirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectoryWalker> {
     def "both DirectoryWalker implementations return same set of files and attributes"() {
         given:
         def rootDir = tmpDir.createDir("root")
-        generateFilesAndSubDirectories(rootDir, 10, 5, 3, 1, new AtomicInteger(0))
+        generateFilesAndSubDirectories(rootDir, 10, 5, 3, 1, new AtomicInteger())
 
         when:
         def visitedWithReproducibleWalker = walkFiles(rootDir, true)

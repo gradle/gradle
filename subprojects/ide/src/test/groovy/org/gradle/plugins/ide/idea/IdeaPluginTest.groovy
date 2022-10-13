@@ -47,8 +47,8 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         then:
         project.idea instanceof IdeaModel
         project.idea.project != null
-        project.idea.project.location.get().asFile == project.file("test.ipr")
-        project.idea.module.outputFile == project.file("test.iml")
+        project.idea.project.location.get().asFile == project.file("test-project.ipr")
+        project.idea.module.outputFile == project.file("test-project.iml")
     }
 
     def "adds extension to child project"() {

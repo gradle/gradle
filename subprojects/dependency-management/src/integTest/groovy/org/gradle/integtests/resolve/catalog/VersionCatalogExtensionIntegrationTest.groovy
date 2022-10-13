@@ -1846,6 +1846,7 @@ Second: 1.1"""
         """
 
         when:
+        executer.withStacktraceEnabled()
         fails "help"
 
         then:
@@ -1878,6 +1879,7 @@ Second: 1.1"""
         """
 
         when:
+        executer.withStacktraceEnabled()
         fails "help"
 
         then:
