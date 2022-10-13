@@ -64,7 +64,7 @@ public class DefaultInMemoryCacheDecoratorFactory implements InMemoryCacheDecora
     private CacheDetails getCache(final String cacheId, final int maxSize) {
         CacheDetails cacheDetails = caches.get(cacheId, () -> {
             Cache<Object, Object> entries = createInMemoryCache(cacheId, maxSize);
-            CacheDetails details = new CacheDetails(cacheId, maxSize, entries, new AtomicReference<>(null));
+            CacheDetails details = new CacheDetails(cacheId, maxSize, entries, new AtomicReference<>());
             LOG.debug("Creating in-memory store for cache {} (max size: {})", cacheId, maxSize);
             return details;
         });

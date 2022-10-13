@@ -29,14 +29,16 @@ public class GradleUserHomeCleanupServices {
         GlobalScopedCache globalScopedCache,
         Deleter deleter,
         GradleUserHomeDirProvider gradleUserHomeDirProvider,
-        ProgressLoggerFactory progressLoggerFactory
+        ProgressLoggerFactory progressLoggerFactory,
+        MonitoredCleanupActionDecorator monitoredCleanupActionDecorator
     ) {
         UsedGradleVersions usedGradleVersions = new UsedGradleVersionsFromGradleUserHomeCaches(globalScopedCache);
         registration.add(UsedGradleVersions.class, usedGradleVersions);
+
         // register eagerly so stop() is triggered when services are being stopped
         registration.add(
             GradleUserHomeCleanupService.class,
-            new GradleUserHomeCleanupService(deleter, gradleUserHomeDirProvider, globalScopedCache, usedGradleVersions, progressLoggerFactory)
+            new GradleUserHomeCleanupService(deleter, gradleUserHomeDirProvider, globalScopedCache, usedGradleVersions, progressLoggerFactory, monitoredCleanupActionDecorator)
         );
     }
 

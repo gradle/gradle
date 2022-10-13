@@ -31,7 +31,7 @@ import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionEngine.Result;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;

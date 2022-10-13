@@ -17,7 +17,6 @@
 package org.gradle.plugin.management;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
 import org.gradle.internal.HasInternalProtocol;
@@ -70,7 +69,6 @@ public interface PluginManagementSpec {
      *
      * @since 7.0
      */
-    @Incubating
     void includeBuild(String rootProject);
 
     /**
@@ -81,7 +79,6 @@ public interface PluginManagementSpec {
      *
      * @since 7.0
      */
-    @Incubating
     void includeBuild(String rootProject, Action<ConfigurableIncludedPluginBuild> configuration);
 
 }

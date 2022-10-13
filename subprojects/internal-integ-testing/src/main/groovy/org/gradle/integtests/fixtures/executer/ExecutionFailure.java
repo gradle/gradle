@@ -116,5 +116,10 @@ public interface ExecutionFailure extends ExecutionResult {
          * Asserts that this failure has the given cause
          */
         void assertHasCause(String message);
+
+        /**
+         * Asserts that this failure has the given first cause
+         */
+        void assertHasFirstCause(String message);
     }
 }

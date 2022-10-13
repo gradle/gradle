@@ -165,4 +165,9 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     // A separate property, as the public getter does not use a wildcard type and cannot be overridden
     List<? extends IncludedBuildInternal> includedBuilds();
+
+    /**
+     * Resets the lifecycle for this Gradle object.
+     */
+    void resetState();
 }

@@ -20,7 +20,6 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import org.junit.Assume
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -35,8 +34,6 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
     }
 
     def "resolve large dependency graph from file repo"() {
-        Assume.assumeTrue(false)
-
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.args = ["-PnoExcludes"]
@@ -49,7 +46,6 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
     }
 
     def "resolve large dependency graph (parallel = #parallel, locking = #locking)"() {
-        Assume.assumeTrue(false)
         startServer()
 
         given:

@@ -35,7 +35,7 @@ class ConfigurationCacheClassLoaderCachingIntegrationTest extends PersistentBuil
 
                 public class StaticData extends DefaultTask {
 
-                    private static final AtomicInteger value = new AtomicInteger(0);
+                    private static final AtomicInteger value = new AtomicInteger();
 
                     private final String projectName = getProject().getName();
 

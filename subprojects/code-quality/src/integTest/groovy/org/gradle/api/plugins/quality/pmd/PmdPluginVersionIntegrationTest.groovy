@@ -187,7 +187,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         buildFile << """
             pmd {
-                ruleSets = []
                 ruleSetFiles = files("customRuleSet.xml")
             }
         """
@@ -208,7 +207,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         buildFile << """
             pmd {
-                ruleSets = []
                 ruleSetFiles = files()
                 ruleSetFiles "customRuleSet.xml"
             }
@@ -227,7 +225,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         buildFile << """
             pmd {
-                ruleSets = []
                 ruleSetConfig = resources.text.fromString('''${customRuleSetText()}''')
             }
         """

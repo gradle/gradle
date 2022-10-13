@@ -28,10 +28,6 @@ class ResolveInputChangesStepTest extends StepSpec<IncrementalChangesContext> {
     def inputChanges = Mock(InputChangesInternal)
     def result = Mock(Result)
 
-    @Override
-    protected IncrementalChangesContext createContext() {
-        Stub(IncrementalChangesContext)
-    }
 
     def "resolves input changes when required"() {
         when:

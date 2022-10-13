@@ -29,7 +29,6 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeState
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -42,7 +41,6 @@ class DefaultRootBuildStateTest extends Specification {
     def controller = Mock(BuildLifecycleController)
     def gradle = Mock(GradleInternal)
     def listenerManager = Mock(ListenerManager)
-    def enterprisePluginManager = Mock(GradleEnterprisePluginManager)
     def lifecycleListener = Mock(RootBuildLifecycleListener)
     def action = Mock(Function)
     def buildTree = Mock(BuildTreeState)
@@ -71,7 +69,7 @@ class DefaultRootBuildStateTest extends Specification {
         _ * gradle.services >> services
         _ * buildTree.services >> services
 
-        build = new DefaultRootBuildState(buildDefinition, buildTree, listenerManager, enterprisePluginManager)
+        build = new DefaultRootBuildState(buildDefinition, buildTree, listenerManager)
     }
 
     def "has identifier"() {

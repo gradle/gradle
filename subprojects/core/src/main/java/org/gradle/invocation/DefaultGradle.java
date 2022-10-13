@@ -85,7 +85,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private final CrossProjectConfigurator crossProjectConfigurator;
     private List<IncludedBuildInternal> includedBuilds;
-    private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
+    private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<>();
     private boolean projectsLoaded;
     private Path identityPath;
     private Supplier<? extends ClassLoaderScope> classLoaderScope;
@@ -182,6 +182,16 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     public StartParameterInternal getStartParameter() {
         return (StartParameterInternal) startParameter;
+    }
+
+    @Override
+    public void resetState() {
+        classLoaderScope = null;
+        baseProjectClassLoaderScope = null;
+        rootProject = null;
+        rootProjectActions.clear();
+        projectsLoaded = false;
+        includedBuilds = null;
     }
 
     @Override

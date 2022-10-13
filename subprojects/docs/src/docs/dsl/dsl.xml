@@ -503,6 +503,9 @@
                 <td>org.gradle.api.plugins.quality.Pmd</td>
             </tr>
             <tr>
+                <td>org.gradle.language.jvm.tasks.ProcessResources</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.publish.ivy.tasks.PublishToIvyRepository</td>
             </tr>
             <tr>

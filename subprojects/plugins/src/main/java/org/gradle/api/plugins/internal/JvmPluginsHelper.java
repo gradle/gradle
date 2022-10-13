@@ -31,7 +31,6 @@ import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -65,7 +64,6 @@ import java.io.File;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.function.Function;
 
 import static org.gradle.util.internal.TextUtil.camelToKebabCase;
 
@@ -137,21 +135,17 @@ public class JvmPluginsHelper {
     @SuppressWarnings("unused")
     public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, Provider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
         TaskProvider<? extends AbstractCompile> taskProvider = Cast.uncheckedCast(compileTask);
-        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, taskProvider, options, AbstractCompile::getDestinationDirectory);
+        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, taskProvider, options);
     }
 
     public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, TaskProvider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
-        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, compileTask, options, AbstractCompile::getDestinationDirectory);
-    }
-
-    public static <T extends Task> void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, TaskProvider<T> compileTask, Provider<CompileOptions> options, Function<T, DirectoryProperty> classesDirectoryExtractor) {
         final String sourceSetChildPath = "classes/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
         sourceDirectorySet.getDestinationDirectory().convention(target.getLayout().getBuildDirectory().dir(sourceSetChildPath));
 
         DefaultSourceSetOutput sourceSetOutput = Cast.cast(DefaultSourceSetOutput.class, sourceSet.getOutput());
-        sourceSetOutput.addClassesDir(sourceDirectorySet.getDestinationDirectory(), compileTask);
+        sourceSetOutput.getClassesDirs().from(sourceDirectorySet.getDestinationDirectory()).builtBy(compileTask);
         sourceSetOutput.getGeneratedSourcesDirs().from(options.flatMap(CompileOptions::getGeneratedSourceOutputDirectory));
-        sourceDirectorySet.compiledBy(compileTask, classesDirectoryExtractor);
+        sourceDirectorySet.compiledBy(compileTask, AbstractCompile::getDestinationDirectory);
     }
 
     public static void configureJavaDocTask(@Nullable String featureName, SourceSet sourceSet, TaskContainer tasks, @Nullable JavaPluginExtension javaPluginExtension) {
@@ -257,11 +251,11 @@ public class JvmPluginsHelper {
      * A custom artifact type which allows the getFile call to be done lazily only when the
      * artifact is actually needed.
      */
-    public abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
+    private abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
         private final String type;
 
-        public IntermediateJavaArtifact(String type, Object task) {
-            super(task);
+        public IntermediateJavaArtifact(String type, Object dependency) {
+            super(dependency);
             this.type = type;
         }
 
@@ -298,6 +292,24 @@ public class JvmPluginsHelper {
     }
 
     /**
+     * An {@link IntermediateJavaArtifact} with a non-lazy File.
+     */
+    public static class ImmediateIntermediateJavaArtifact extends IntermediateJavaArtifact {
+
+        private final File file;
+
+        public ImmediateIntermediateJavaArtifact(String type, Object dependency, File file) {
+            super(type, dependency);
+            this.file = file;
+        }
+
+        @Override
+        public File getFile() {
+            return file;
+        }
+    }
+
+    /**
      * An {@link IntermediateJavaArtifact} which achieves lazy file access via a {@link Provider} instead
      * of inheritance.
      */
@@ -305,8 +317,8 @@ public class JvmPluginsHelper {
 
         private final Provider<File> fileProvider;
 
-        public ProviderBasedIntermediateJavaArtifact(String type, Object task, Provider<File> fileProvider) {
-            super(type, task);
+        public ProviderBasedIntermediateJavaArtifact(String type, Object dependency, Provider<File> fileProvider) {
+            super(type, dependency);
             this.fileProvider = fileProvider;
         }
 

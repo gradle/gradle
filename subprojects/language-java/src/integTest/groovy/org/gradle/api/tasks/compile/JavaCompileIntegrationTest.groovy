@@ -901,7 +901,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "clean", "compileJava"
 
-        executer.withStacktraceDisabled()
         fails "-Pjava7", "clean", "compileJava"
         failure.assertHasErrorOutput "Main.java:8: error: cannot find symbol"
 

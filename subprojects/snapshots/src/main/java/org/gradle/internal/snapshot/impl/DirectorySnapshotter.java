@@ -328,7 +328,7 @@ public class DirectorySnapshotter {
                 if (attrs.isSymbolicLink()) {
                     BasicFileAttributes targetAttributes = readAttributesOfSymlinkTarget(file, attrs);
                     if (targetAttributes.isDirectory()) {
-                        AtomicBoolean symlinkHasBeenFiltered = new AtomicBoolean(false);
+                        AtomicBoolean symlinkHasBeenFiltered = new AtomicBoolean();
                         DirectorySnapshot targetSnapshot = followSymlink(file, internedFileName, symlinkHasBeenFiltered);
                         if (targetSnapshot != null) {
                             DirectorySnapshot directorySnapshotAccessedViaSymlink = new DirectorySnapshot(

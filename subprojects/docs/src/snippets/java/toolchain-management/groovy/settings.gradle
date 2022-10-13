@@ -63,14 +63,14 @@ abstract class DummyPlugin implements Plugin<Settings> {
 
 abstract class AzulResolver implements JavaToolchainResolver {
     @Override
-    Optional<URI> resolve(JavaToolchainRequest request) {
+    Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
         return Optional.empty();
     }
 }
 
 abstract class AdoptiumResolver implements JavaToolchainResolver {
     @Override
-    Optional<URI> resolve(JavaToolchainRequest request) {
+    Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
         return Optional.empty();
     }
 }

@@ -78,7 +78,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
             testSourceSet.java.destinationDirectory.get().asFile,
         ]
         testTask.source as List == testSourceSet.scala as List
-        testTask dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME)
+        testTask dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME, 'compileScala')
     }
 
     def "compile dependency to java compilation can be turned off by changing the compile task classpath"() {
@@ -106,7 +106,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
             mainSourceSet.output.resourcesDir
         ]
         testTask.source as List == testSourceSet.scala as List
-        testTask dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+        testTask dependsOn(JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME, 'compileScala')
         testTask not(dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME))
     }
 
@@ -116,10 +116,10 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def task = project.tasks[JavaPlugin.CLASSES_TASK_NAME]
-        task dependsOn(hasItem('compileScala'))
+        task dependsOn('compileScala', JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaPlugin.PROCESS_RESOURCES_TASK_NAME)
 
         def testTask = project.tasks[JavaPlugin.TEST_CLASSES_TASK_NAME]
-        testTask dependsOn(hasItem('compileTestScala'))
+        testTask dependsOn('compileTestScala', JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, 'processTestResources')
     }
 
     def addsScalaDocTasksToTheProject() {
@@ -129,7 +129,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
         task instanceof ScalaDoc
-        task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+        task dependsOn(JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME, 'compileScala')
         task.destinationDir == project.file("$project.docsDir/scaladoc")
         task.source as List == project.sourceSets.main.scala as List // We take sources of main
         assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
@@ -142,7 +142,7 @@ class ScalaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def task = project.task('otherScaladoc', type: ScalaDoc)
-        task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+        task dependsOn(JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME, 'compileScala')
         assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
     }
 }

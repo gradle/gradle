@@ -21,7 +21,7 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * The build level object/service provided by Gradle which Java Toolchain Provisioning SPI plugins can access
- * and register their <code>JavaToolchainResolver</code> implementations/build services into.
+ * to register their <code>JavaToolchainResolver</code> implementations/build services into.
  *
  * @since 7.6
  */

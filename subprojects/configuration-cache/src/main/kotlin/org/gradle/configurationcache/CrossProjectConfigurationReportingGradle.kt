@@ -136,6 +136,11 @@ class CrossProjectConfigurationReportingGradle private constructor(
 
     override fun toString(): String = "CrossProjectConfigurationReportingGradle($delegate)"
 
+    override fun resetState() {
+        // Should not be called
+        throw UnsupportedOperationException()
+    }
+
     internal
     companion object {
         fun from(gradle: GradleInternal, referrerProject: ProjectInternal): CrossProjectConfigurationReportingGradle {

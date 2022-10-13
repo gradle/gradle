@@ -22,7 +22,6 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
-import org.gradle.test.fixtures.archive.JarTestFixture
 
 class ConfigurationCacheConventionMappingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -38,13 +37,13 @@ class ConfigurationCacheConventionMappingIntegrationTest extends AbstractConfigu
 
                 @TaskAction
                 void doIt() {
-                    assert archiveFileName.get() == 'something'
+                    assert archiveFileName.get() == "something"
                 }
             }
 
             task myTask(type: MyTask) {
                 conventionMapping('archiveName') { 'not something' }
-                archiveFileName.convention('something')
+                archiveFileName.convention("something")
             }
         """
 
@@ -53,35 +52,6 @@ class ConfigurationCacheConventionMappingIntegrationTest extends AbstractConfigu
 
         and: 'convention mapping is ignored just the same'
         configurationCacheRun 'myTask'
-    }
-
-    def "doesn't restore Jar archiveName convention value to incompatible field type"() {
-        given:
-        settingsFile << """
-            rootProject.name = 'test'
-        """
-
-        buildFile << """
-            plugins {
-                id 'java-library'
-            }
-            tasks.withType(Jar.class).named('jar') { javaJar ->
-                // The Jar.archiveName field is of type Property<String>
-                javaJar.conventionMapping('archiveName') { 'some_name' }
-            }
-        """
-
-        when:
-        configurationCacheRun 'jar'
-
-        then: 'convention mapping is ignored'
-        new JarTestFixture(file('build/libs/test.jar'))
-
-        when:
-        configurationCacheRun 'jar'
-
-        then: 'convention mapping is ignored just the same'
-        new JarTestFixture(file('build/libs/test.jar'))
     }
 
     def "restores convention mapped task input property explicitly set to null"() {

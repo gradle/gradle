@@ -212,13 +212,13 @@ public class DependencyVerificationsXmlReader {
                     break;
                 default:
                     if (currentChecksum != null && ALSO_TRUST.equals(qName)) {
-                        builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null);
+                        builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null, null);
                     } else if (currentArtifact != null) {
                         if (PGP.equals(qName)) {
                             builder.addTrustedKey(currentArtifact, getAttribute(attributes, VALUE));
                         } else {
                             currentChecksum = ChecksumKind.valueOf(qName);
-                            builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), getNullableAttribute(attributes, ORIGIN));
+                            builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), getNullableAttribute(attributes, ORIGIN), getNullableAttribute(attributes, REASON));
                         }
                     }
             }
@@ -251,7 +251,8 @@ public class DependencyVerificationsXmlReader {
                 getNullableAttribute(attributes, NAME),
                 getNullableAttribute(attributes, VERSION),
                 getNullableAttribute(attributes, FILE),
-                regex
+                regex,
+                getNullableAttribute(attributes, REASON)
             );
         }
 

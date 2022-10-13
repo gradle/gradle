@@ -107,7 +107,7 @@ public interface SourceSetOutput extends FileCollection {
      * <p>
      * See example at {@link SourceSetOutput}
      *
-     * @param resourcesDir the classes dir. Should not be null.
+     * @param resourcesDir the resources dir. Should not be null.
      * @since 4.0
      */
     void setResourcesDir(File resourcesDir);
@@ -117,7 +117,7 @@ public interface SourceSetOutput extends FileCollection {
      * <p>
      * See example at {@link SourceSetOutput}
      *
-     * @param resourcesDir the classes dir. Should not be null.
+     * @param resourcesDir the resources dir. Should not be null.
      */
     void setResourcesDir(Object resourcesDir);
 

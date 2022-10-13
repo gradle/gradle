@@ -129,14 +129,14 @@ gradlePlugin {
 [source.multi-language-sample,kotlin]
 ----
 gradlePlugin {
-    website = "https://github.com/ysb33r/gradleTest"
-    vcsUrl = "https://github.com/ysb33r/gradleTest.git"
+    website.set("https://github.com/ysb33r/gradleTest")
+    vcsUrl.set("https://github.com/ysb33r/gradleTest.git")
     plugins {
         create("gradletestPlugin") {
             id = "org.ysb33r.gradletest"
             displayName = "Plugin for compatibility testing of Gradle plugins"
             description = "A plugin that helps you test your plugin against a variety of Gradle versions"
-            tags = listOf("testing", "integrationTesting", "compatibility")
+            tags.set(listOf("testing", "integrationTesting", "compatibility"))
             implementationClass = "org.ysb33r.gradle.gradletest.GradleTestPlugin"
         }
     }

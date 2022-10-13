@@ -34,4 +34,9 @@ public interface BuildEventListenerRegistryInternal extends BuildEventsListenerR
     void subscribe(Provider<?> provider);
 
     List<Provider<?>> getSubscriptions();
+
+    /**
+     * Discards all subscriptions.
+     */
+    void unsubscribeAll();
 }

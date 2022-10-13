@@ -27,9 +27,7 @@ public class CurrentJvmToolchainSpec extends DefaultToolchainSpec {
         getLanguageVersion().set(JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion()));
 
         // disallow changing property values
-        getLanguageVersion().finalizeValue();
-        getVendor().finalizeValue();
-        getImplementation().finalizeValue();
+        finalizeProperties();
     }
 
     @Override

@@ -37,7 +37,7 @@ class JUnitAbortedTestClassIntegrationTest extends JUnitMultiVersionIntegrationS
         executer.noExtraLogging()
         buildFile << """
 dependencies {
-    testImplementation '$dependencyNotation'
+    ${dependencyNotation.collect { "testImplementation '$it'" }.join('\n')}
 }
 """
 

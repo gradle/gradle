@@ -147,7 +147,7 @@ public class FileParameterUtils {
             }
         } else {
             FileCollectionInternal outputFileCollection = fileCollectionFactory.resolving(unpackedValue);
-            AtomicInteger index = new AtomicInteger(0);
+            AtomicInteger index = new AtomicInteger();
             outputFileCollection.visitStructure(new FileCollectionStructureVisitor() {
                 @Override
                 public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {

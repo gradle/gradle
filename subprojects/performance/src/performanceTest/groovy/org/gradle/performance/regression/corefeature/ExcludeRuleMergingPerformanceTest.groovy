@@ -20,7 +20,6 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import org.junit.Assume
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -35,8 +34,6 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
     }
 
     def "merge exclude rules"() {
-        Assume.assumeTrue(false)
-
         startServer()
 
         given:
@@ -54,8 +51,6 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
     }
 
     def "merge exclude rules (parallel)"() {
-        Assume.assumeTrue(false)
-
         startServer()
 
         given:

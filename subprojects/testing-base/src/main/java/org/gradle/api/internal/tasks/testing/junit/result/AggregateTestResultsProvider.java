@@ -44,7 +44,7 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
     public void visitClasses(final Action<? super TestClassResult> visitor) {
         final Map<String, OverlaidIdProxyingTestClassResult> aggregatedTestResults = new LinkedHashMap<String, OverlaidIdProxyingTestClassResult>();
         classOutputProviders = ArrayListMultimap.create();
-        final AtomicLong newIdCounter = new AtomicLong(0L);
+        final AtomicLong newIdCounter = new AtomicLong();
         for (final TestResultsProvider provider : providers) {
             provider.visitClasses(new Action<TestClassResult>() {
                 @Override

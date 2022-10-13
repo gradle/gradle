@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.platforms
 import org.gradle.api.JavaVersion
 import org.gradle.api.attributes.Category
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -324,6 +325,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
     }
 
+    @ToBeFixedForConfigurationCache(because = "serializes the incorrect artifact in ArtifactCollection used by resolve fixture")
     @Issue("gradle/gradle#8312")
     def "can resolve a platform with a constraint to determine the platform version via a transitive constraint"() {
         def platform = mavenHttpRepo.module("org", "platform", "1.0")

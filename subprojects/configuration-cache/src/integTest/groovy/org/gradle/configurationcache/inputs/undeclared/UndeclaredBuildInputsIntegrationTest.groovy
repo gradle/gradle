@@ -786,6 +786,53 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         }
     }
 
+    def "build logic can read Gradle properties with prefix"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            def ciVars = providers.gradlePropertiesPrefixedBy("some.property.")
+            ciVars.get().forEach((k, v) -> {
+                println("Configuration: \$k = \$v")
+            })
+
+            tasks.register("print") {
+                doLast {
+                    ciVars.get().forEach((k, v) -> {
+                        println("Execution: \$k = \$v")
+                    })
+                }
+            }
+        """)
+
+        when:
+        configurationCacheRun("-Psome.property.1=1", "-Dsome.property.2=2", "print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: some.property.1 = 1")
+        outputDoesNotContain("Configuration: some.property.2 = 2")
+        problems.assertResultHasProblems(result) {
+            withNoInputs()
+        }
+
+        when:
+        configurationCacheRun("-Psome.property.1=1", "print")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Execution: some.property.1 = 1")
+
+        when:
+        configurationCacheRun("-Psome.property.1=1", "-Psome.property.2=2", "print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: some.property.1 = 1")
+        outputContains("Configuration: some.property.2 = 2")
+        problems.assertResultHasProblems(result) {
+            withNoInputs()
+        }
+    }
+
     def "system properties overwritten in build logic are not inputs to prefixed system properties"() {
         def configurationCache = newConfigurationCacheFixture()
         buildFile("""

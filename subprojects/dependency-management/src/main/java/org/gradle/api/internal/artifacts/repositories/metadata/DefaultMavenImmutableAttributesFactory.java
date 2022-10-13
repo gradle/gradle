@@ -50,8 +50,13 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
     }
 
     @Override
-    public AttributeContainerInternal mutable(AttributeContainerInternal parent) {
-        return delegate.mutable(parent);
+    public AttributeContainerInternal mutable(AttributeContainerInternal fallback) {
+        return delegate.mutable(fallback);
+    }
+
+    @Override
+    public AttributeContainerInternal join(AttributeContainerInternal fallback, AttributeContainerInternal primary) {
+        return delegate.join(fallback, primary);
     }
 
     @Override
@@ -70,8 +75,8 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
     }
 
     @Override
-    public ImmutableAttributes concat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) {
-        return delegate.concat(attributes1, attributes2);
+    public ImmutableAttributes concat(ImmutableAttributes fallback, ImmutableAttributes primary) {
+        return delegate.concat(fallback, primary);
     }
 
     @Override

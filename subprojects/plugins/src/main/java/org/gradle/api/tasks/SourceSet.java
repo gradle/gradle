@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.ExtensionAware;
@@ -395,7 +394,6 @@ public interface SourceSet extends ExtensionAware {
      *
      * @since 6.7
      */
-    @Incubating
     static boolean isMain(SourceSet sourceSet) {
         return MAIN_SOURCE_SET_NAME.equals(sourceSet.getName());
     }

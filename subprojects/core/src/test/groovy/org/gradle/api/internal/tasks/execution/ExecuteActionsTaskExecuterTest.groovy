@@ -43,8 +43,8 @@ import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.WorkValidationContext
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
-import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
+import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputsCleaner
 import org.gradle.internal.execution.history.OverlappingOutputDetector

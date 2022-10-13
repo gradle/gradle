@@ -47,8 +47,9 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
                 doFirst { println("not up-to-date") }
             }
             task upToDate {
-                outputs.file("thing.txt")
-                doFirst { file("thing.txt").text = "thing" }
+                def file = file("thing.txt")
+                outputs.file(file)
+                doFirst { file.text = "thing" }
             }
             task broken {
                 dependsOn notUpToDate, upToDate

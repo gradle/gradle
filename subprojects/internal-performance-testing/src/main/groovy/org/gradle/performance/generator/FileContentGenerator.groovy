@@ -53,15 +53,17 @@ abstract class FileContentGenerator {
             return ""
         }
         return """
-        import org.gradle.util.GradleVersion
+        plugins {
+            ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ")}
+        }
 
-        ${noJavaLibraryPluginFlag()}
-
-        ${config.plugins.collect { decideOnJavaPlugin(it, dependencyTree.hasParentProject(subProjectNumber)) }.join("\n        ")}
+        group = "org.gradle.test.performance"
+        version = "2.0"
 
         repositories {
             ${config.repositories.join("\n            ")}
         }
+
         ${dependenciesBlock('api', 'implementation', 'testImplementation', subProjectNumber, dependencyTree)}
 
         dependencies{
@@ -72,9 +74,6 @@ abstract class FileContentGenerator {
 
 
         ${tasksConfiguration()}
-
-        group = "org.gradle.test.performance"
-        version = "2.0"
         """
     }
 
@@ -405,17 +404,13 @@ abstract class FileContentGenerator {
         if (plugin.contains('java')) {
             if (projectHasParents) {
                 return """
-                    if (noJavaLibraryPlugin) {
-                        ${imperativelyApplyPlugin("java")}
-                    } else {
-                        ${imperativelyApplyPlugin("java-library")}
-                    }
+                    ${pluginBlockApply("java-library")}
                 """
             } else {
-                return imperativelyApplyPlugin("java")
+                return pluginBlockApply("java")
             }
         }
-        return imperativelyApplyPlugin(plugin)
+        return pluginBlockApply(plugin)
     }
 
     private dependenciesBlock(String api, String implementation, String testImplementation, Integer subProjectNumber, DependencyTree dependencyTree) {
@@ -436,7 +431,6 @@ abstract class FileContentGenerator {
                     $subProjectDependencies
         """
         return """
-            ${addJavaLibraryConfigurationsIfNecessary(hasParent)}
             dependencies {
                 $block
             }
@@ -457,15 +451,13 @@ abstract class FileContentGenerator {
                 </dependency>"""
     }
 
-    protected abstract String noJavaLibraryPluginFlag()
 
     protected abstract String tasksConfiguration()
 
-    protected abstract String imperativelyApplyPlugin(String plugin)
+    protected abstract String pluginBlockApply(String plugin)
 
     protected abstract String createTaskThatDependsOnAllIncludedBuildsTaskWithSameName(String taskName)
 
-    protected abstract String addJavaLibraryConfigurationsIfNecessary(boolean hasParent)
 
     protected abstract String directDependencyDeclaration(String configuration, String notation)
 

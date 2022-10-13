@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Incubating
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -63,7 +62,6 @@ infix fun PluginDependencySpec.version(version: String?): PluginDependencySpec =
  *
  * @since 7.2
  */
-@Incubating
 infix fun PluginDependencySpec.version(version: Provider<String>): PluginDependencySpec = version(version)
 
 

@@ -18,9 +18,23 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.execution.caching.CachingState;
 
-public interface CachingContext extends ValidationFinishedContext {
+public class CachingContext extends ValidationFinishedContext {
+
+    private final CachingState cachingState;
+
+    public CachingContext(ValidationFinishedContext parent, CachingState cachingState) {
+        super(parent);
+        this.cachingState = cachingState;
+    }
+
+    protected CachingContext(CachingContext parent) {
+        this(parent, parent.getCachingState());
+    }
+
     /**
      * The resolved state of caching for the work.
      */
-    CachingState getCachingState();
+    public CachingState getCachingState() {
+        return cachingState;
+    }
 }

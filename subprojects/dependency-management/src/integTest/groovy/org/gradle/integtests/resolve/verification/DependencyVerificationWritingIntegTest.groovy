@@ -1305,4 +1305,84 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         artifact << ['jar', 'pom']
     }
 
+    def "keeps trust reasons"() {
+        given:
+        def expectedXmlContents = """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+      <trusted-artifacts>
+         <trust group="dummy" name="artifact"/>
+         <trust group="other" name="artifact" reason="sample trust reason"/>
+         <trust group="fourth" name="artifact" version="with" file="file.jar" regex="true" reason="another sample reason"/>
+         <trust group="third" name="artifact" version="with" file="file.jar" regex="true"/>
+      </trusted-artifacts>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+
+        when:
+        createMetadataFile {
+            trust("dummy", "artifact")
+            trust("other", "artifact", null, null, false, "sample trust reason")
+            trust("third", "artifact", "with", "file.jar", true)
+            trust("fourth", "artifact", "with", "file.jar", true, "another sample reason")
+        }
+
+        then:
+        assertXmlContents expectedXmlContents
+
+        and:
+        javaLibrary()
+        buildFile << """
+        """
+
+        when:
+        writeVerificationMetadata()
+        run ":help"
+
+        then:
+        assertXmlContents expectedXmlContents
+    }
+
+    def "keeps checksum reasons"() {
+        given:
+        def expectedXmlContents = """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+   </configuration>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
+            <md5 value="abc" reason="test checksum"/>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
+"""
+
+        when:
+        createMetadataFile {
+            addChecksum("org:foo:1.0", "md5", "abc", "jar", "jar", null, "test checksum")
+        }
+
+        then:
+        assertXmlContents expectedXmlContents
+
+        and:
+        javaLibrary()
+        buildFile << """
+        """
+
+        when:
+        writeVerificationMetadata()
+        run ":help"
+
+        then:
+        assertXmlContents expectedXmlContents
+    }
 }

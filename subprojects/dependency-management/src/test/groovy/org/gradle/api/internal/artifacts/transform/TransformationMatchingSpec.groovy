@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.transform
 
 import org.gradle.api.internal.DomainObjectContext
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.InputFingerprinter
 import spock.lang.Specification
 
 class TransformationMatchingSpec extends Specification {

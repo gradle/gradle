@@ -139,6 +139,6 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
 
         then:
         GradleException e = thrown()
-        e.message.startsWith("Cannot infer Scala class path because no Scala library Jar was found. Does root project 'test' declare dependency to scala-library? Searched classpath:")
+        e.message.startsWith("Cannot infer Scala class path because no Scala library Jar was found. Does root project 'test-project' declare dependency to scala-library? Searched classpath:")
     }
 }

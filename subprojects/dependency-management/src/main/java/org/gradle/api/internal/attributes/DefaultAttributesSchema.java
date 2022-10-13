@@ -240,7 +240,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
                 return Collections.singleton(requested);
             }
 
-            return candidates;
+            return null;
         }
 
         @Override

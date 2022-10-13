@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 
-import java.net.URI;
 import java.util.Optional;
 
 /**
@@ -33,15 +32,14 @@ import java.util.Optional;
 public interface JavaToolchainResolver extends BuildService<BuildServiceParameters.None> {
 
     /**
-     * Returns the URI from which a Java Toolchain matching the provided specification
-     * can be downloaded. The URI must point to either a ZIP or a TAR archive file and
-     * has to be secure (so simple HTTP is not allowed, only HTTPS).
+     * Returns a {@link JavaToolchainDownload} if a Java toolchain matching the provided
+     * specification can be provided.
      *
      * @param request   information about the toolchain needed and the environment it's
      *                  needed in
      * @return          empty Optional if and only if the provided specification can't be
      *                  matched
      */
-    Optional<URI> resolve(JavaToolchainRequest request);
+    Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request);
 
 }

@@ -19,7 +19,6 @@ package org.gradle.buildinit.tasks;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
@@ -58,7 +57,6 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
 @DisableCachingByDefault(because = "Not worth caching")
 public class InitBuild extends DefaultTask {
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
-    private final Property<Boolean> allowFileOverwrite = getProject().getObjects().property(Boolean.class);
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
     private String dsl;
@@ -135,7 +133,6 @@ public class InitBuild extends DefaultTask {
      */
     @Input
     @Optional
-    @Incubating
     @Option(option = "incubating", description = "Allow the generated build to use new features and APIs")
     public Property<Boolean> getUseIncubating() {
         return useIncubatingAPIs;
@@ -186,7 +183,6 @@ public class InitBuild extends DefaultTask {
      */
     @Input
     @Option(option = "insecure-protocol", description = "How to handle insecure URLs used for Maven Repositories.")
-    @Incubating
     public Property<InsecureProtocolOption> getInsecureProtocol() {
         return insecureProtocol;
     }

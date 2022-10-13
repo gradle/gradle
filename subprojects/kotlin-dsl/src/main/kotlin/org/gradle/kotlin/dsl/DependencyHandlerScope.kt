@@ -248,7 +248,6 @@ private constructor(
      * @see [DependencyHandler.addProvider]
      * @since 7.0
      */
-    @Incubating
     operator fun <T : Any> Configuration.invoke(dependency: Provider<T>) =
         addProvider(name, dependency)
 
@@ -273,7 +272,6 @@ private constructor(
      * @see [DependencyHandler.addProviderConvertible]
      * @since 7.4
      */
-    @Incubating
     operator fun <T : Any> Configuration.invoke(dependency: ProviderConvertible<T>) =
         addProviderConvertible(name, dependency)
 
@@ -298,7 +296,6 @@ private constructor(
      * @see [DependencyHandler.addProvider]
      * @since 7.0
      */
-    @Incubating
     operator fun <T : Any> String.invoke(dependency: Provider<T>) =
         addProvider(this, dependency)
 
@@ -323,7 +320,6 @@ private constructor(
      * @see [DependencyHandler.addProviderConvertible]
      * @since 7.4
      */
-    @Incubating
     operator fun <T : Any> String.invoke(dependency: ProviderConvertible<T>) =
         addProviderConvertible(this, dependency)
 

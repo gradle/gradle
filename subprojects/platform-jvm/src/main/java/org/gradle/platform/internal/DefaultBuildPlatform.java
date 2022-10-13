@@ -52,9 +52,9 @@ public class DefaultBuildPlatform implements BuildPlatform {
         SystemInfo.Architecture architecture = systemInfo.getArchitecture();
         switch (architecture) {
             case i386:
-                return Architecture.I386;
+                return Architecture.X86;
             case amd64:
-                return Architecture.AMD64;
+                return Architecture.X86_64;
             case aarch64:
                 return Architecture.AARCH64;
         }

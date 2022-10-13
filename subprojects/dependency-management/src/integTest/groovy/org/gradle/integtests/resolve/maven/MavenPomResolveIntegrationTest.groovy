@@ -106,4 +106,107 @@ task retrieve(type: Sync) {
         succeeds ":libs"
         succeeds ":libs"
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/22279")
+    def "can resolve POM as an artifact after a relocation"() {
+        given:
+        def original = mavenHttpRepo.module('groupA', 'artifactA', '1.0').publishPom()
+        original.pomFile.text = """
+<project>
+    <groupId>groupA</groupId>
+    <artifactId>artifactA</artifactId>
+    <version>1.0</version>
+    <distributionManagement>
+        <relocation>
+            <groupId>groupA</groupId>
+            <artifactId>artifactA</artifactId>
+            <version>2.0</version>
+        </relocation>
+    </distributionManagement>
+</project>
+"""
+
+        def newModule = mavenHttpRepo.module('groupA', 'artifactA', '2.0').publish()
+
+        and:
+        buildFile << """
+repositories { maven { url '${mavenHttpRepo.uri}' } }
+configurations { 
+    first
+    second
+}
+dependencies { 
+    first 'groupA:artifactA:1.0' 
+    second 'groupA:artifactA:2.0@pom' 
+}
+
+task retrieve {
+    doLast {
+        // populates cache for POM artifact in memory
+        configurations.first.resolve()
+        
+        def resolvedArtifacts = configurations.second.resolvedConfiguration.resolvedArtifacts
+        assert resolvedArtifacts.size() == 1
+        
+        def resolvedArtifact = resolvedArtifacts[0]
+        assert resolvedArtifact.moduleVersion.id.group == "groupA"
+        assert resolvedArtifact.moduleVersion.id.name == "artifactA"
+        assert resolvedArtifact.moduleVersion.id.version == "2.0"       
+    }
+}
+
+"""
+
+        and:
+        original.pom.expectGet()
+        newModule.pom.expectGet()
+
+        expect:
+        succeeds "retrieve"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22279")
+    def "can resolve POM as an artifact after it was resolved via ARQ"() {
+        given:
+        def original = mavenHttpRepo.module('groupA', 'artifactA', '1.0').publishPom()
+
+        and:
+        buildFile << """
+repositories { maven { url '${mavenHttpRepo.uri}' } }
+configurations { 
+    conf
+}
+dependencies { 
+    conf 'groupA:artifactA:1.0@pom' 
+}
+
+task retrieve {
+    doLast {
+        // populates cache for POM artifact in memory
+        def result = dependencies.createArtifactResolutionQuery()
+                                    .forModule("groupA", "artifactA", "1.0")
+                                    .withArtifacts(MavenModule, MavenPomArtifact)
+                                    .execute()
+        for (component in result.resolvedComponents) {
+            component.getArtifacts(MavenPomArtifact).each { println "POM for " + component }
+        }
+
+        def resolvedArtifacts = configurations.conf.resolvedConfiguration.resolvedArtifacts
+        assert resolvedArtifacts.size() == 1
+        
+        def resolvedArtifact = resolvedArtifacts[0]
+        assert resolvedArtifact.moduleVersion.id.group == "groupA"
+        assert resolvedArtifact.moduleVersion.id.name == "artifactA"
+        assert resolvedArtifact.moduleVersion.id.version == "1.0"       
+    }
+}
+
+"""
+
+        and:
+        original.pom.expectGet()
+
+        expect:
+        succeeds "retrieve"
+    }
 }

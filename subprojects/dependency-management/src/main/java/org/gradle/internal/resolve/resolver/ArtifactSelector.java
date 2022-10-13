@@ -25,6 +25,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -34,7 +35,7 @@ public interface ArtifactSelector {
     /**
      * Creates a set that will resolve the artifacts of the given configuration, minus those artifacts that are excluded.
      */
-    ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Map<VariantResolveMetadata.Identifier, ResolvedVariant> resolvedVariantCache, Supplier<Set<? extends VariantResolveMetadata>> allVariants, Set<? extends VariantResolveMetadata> legacyVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
+    ArtifactSet resolveArtifacts(ComponentResolveMetadata component, @Nullable Map<VariantResolveMetadata.Identifier, ResolvedVariant> resolvedVariantCache, Supplier<Set<? extends VariantResolveMetadata>> allVariants, Set<? extends VariantResolveMetadata> legacyVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes);
 
     /**
      * Creates a set that will resolve the given artifacts of the given component.

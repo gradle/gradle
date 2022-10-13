@@ -19,18 +19,32 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
-public interface IncrementalChangesContext extends CachingContext {
+public class IncrementalChangesContext extends CachingContext {
+
+    private final ImmutableList<String> rebuildReasons;
+    private final ExecutionStateChanges executionStateChanges;
+
+    public IncrementalChangesContext(CachingContext parent, ImmutableList<String> rebuildReasons, @Nullable ExecutionStateChanges executionStateChanges) {
+        super(parent);
+        this.rebuildReasons = rebuildReasons;
+        this.executionStateChanges = executionStateChanges;
+    }
 
     /**
      * Returns the reasons to re-execute the work, empty if there's no reason to re-execute.
      */
-    ImmutableList<String> getRebuildReasons();
+    public ImmutableList<String> getRebuildReasons() {
+        return rebuildReasons;
+    }
 
     /**
      * Returns changes detected between the execution state after the last execution and before the current execution.
      * Empty if changes couldn't be detected (e.g. because history was unavailable).
      */
-    Optional<ExecutionStateChanges> getChanges();
+    public Optional<ExecutionStateChanges> getChanges() {
+        return Optional.ofNullable(executionStateChanges);
+    }
 }

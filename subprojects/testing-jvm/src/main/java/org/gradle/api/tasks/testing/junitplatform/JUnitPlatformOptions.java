@@ -39,6 +39,22 @@ public class JUnitPlatformOptions extends TestFrameworkOptions {
     private Set<String> excludeTags = new LinkedHashSet<String>();
 
     /**
+     * Copies the options from the source options into the current one.
+     * @since 8.0
+     */
+    public void copyFrom(JUnitPlatformOptions other) {
+        replace(this.includeEngines, other.includeEngines);
+        replace(this.excludeEngines, other.excludeEngines);
+        replace(this.includeTags, other.includeTags);
+        replace(this.excludeTags, other.excludeTags);
+    }
+
+    private static void replace(Set<String> target, Set<String> source) {
+        target.clear();
+        target.addAll(source);
+    }
+
+    /**
      * The set of engines to run with.
      *
      * @see <a href="https://junit.org/junit5/docs/current/user-guide/#launcher-api-engines-custom">Test Engine</a>

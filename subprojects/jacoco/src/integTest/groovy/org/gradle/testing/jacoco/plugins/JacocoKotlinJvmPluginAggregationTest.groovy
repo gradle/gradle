@@ -31,6 +31,8 @@ import spock.lang.Issue
  */
 @Issue("https://github.com/gradle/gradle/issues/20532")
 class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
+    def kotlinVersion = "1.7.10" // Must remain >= 1.7, lower versions will produce deprecations warnings, on CI versions >= 1.7 will be used
+
     def setup() {
         multiProjectBuild("root", ["direct", "transitive"]) {
             buildFile.text = """
@@ -115,7 +117,7 @@ class JacocoKotlinJvmPluginAggregationTest extends AbstractIntegrationSpec {
             file("transitive/build.gradle") << """
                 plugins {
                     id 'java-library'
-                    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
+                    id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
                 }
             """
             file("transitive/src/main/java/transitive/Powerize.java").java """

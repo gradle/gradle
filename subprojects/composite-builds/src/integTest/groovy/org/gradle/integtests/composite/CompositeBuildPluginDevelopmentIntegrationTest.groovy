@@ -460,9 +460,10 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 Circular dependency between the following tasks:
 :pluginDependencyA:compileJava
 \\--- :pluginDependencyB:jar
-     \\--- :pluginDependencyB:classes
-          \\--- :pluginDependencyB:compileJava
-               \\--- :pluginDependencyA:compileJava (*)
+     +--- :pluginDependencyB:classes
+     |    \\--- :pluginDependencyB:compileJava
+     |         \\--- :pluginDependencyA:compileJava (*)
+     \\--- :pluginDependencyB:compileJava (*)
 
 (*) - details omitted (listed previously)
 """.trim())

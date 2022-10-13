@@ -128,6 +128,22 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         }
     }
 
+    @Override
+    public void unsubscribeAll() {
+        try {
+            for (Object listener : listeners) {
+                listenerManager.removeListener(listener);
+                if (listener instanceof BuildOperationListener) {
+                    buildOperationListenerManager.removeListener((BuildOperationListener) listener);
+                }
+            }
+            CompositeStoppable.stoppable(subscriptions.values()).stop();
+        } finally {
+            listeners.clear();
+            subscriptions.clear();
+        }
+    }
+
     private static abstract class AbstractListener<T> implements Closeable {
         private static final Object END = new Object();
         private final ManagedExecutor executor;
@@ -245,18 +261,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
                 // Stop only when the root build completes
                 return;
             }
-            try {
-                for (Object listener : listeners) {
-                    listenerManager.removeListener(listener);
-                    if (listener instanceof BuildOperationListener) {
-                        buildOperationListenerManager.removeListener((BuildOperationListener) listener);
-                    }
-                }
-                CompositeStoppable.stoppable(subscriptions.values()).stop();
-            } finally {
-                listeners.clear();
-                subscriptions.clear();
-            }
+            unsubscribeAll();
         }
     }
 }

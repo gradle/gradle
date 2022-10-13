@@ -193,6 +193,20 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         return provider;
     }
 
+    @Override
+    public void discardAll() {
+        withRegistrations(registrations -> {
+            try {
+                for (BuildServiceRegistration<?, ?> registration : registrations) {
+                    ((DefaultServiceRegistration<?, ?>) registration).provider.maybeStop();
+                }
+            } finally {
+                registrations.clear();
+            }
+            return null;
+        });
+    }
+
     private static class ServiceBackedSharedResource implements SharedResource {
         private final String name;
         private final int maxUsages;

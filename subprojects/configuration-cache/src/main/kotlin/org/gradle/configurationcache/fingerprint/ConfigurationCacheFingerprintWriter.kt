@@ -39,6 +39,7 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
 import org.gradle.api.internal.provider.sources.EnvironmentVariablesPrefixedByValueSource
 import org.gradle.api.internal.provider.sources.FileContentValueSource
+import org.gradle.api.internal.provider.sources.GradlePropertiesPrefixedByValueSource
 import org.gradle.api.internal.provider.sources.GradlePropertyValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertiesPrefixedByValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
@@ -286,6 +287,9 @@ class ConfigurationCacheFingerprintWriter(
                 }
             }
             is GradlePropertyValueSource.Parameters -> {
+                // The set of Gradle properties is already an input
+            }
+            is GradlePropertiesPrefixedByValueSource.Parameters -> {
                 // The set of Gradle properties is already an input
             }
             is SystemPropertyValueSource.Parameters -> {

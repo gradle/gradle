@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.result;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -32,11 +31,10 @@ import java.util.Optional;
 public interface ResolvedVariantResult {
     /**
      * The component which owns this variant.
-     * @return the component identifier of this variant
      *
+     * @return the component identifier of this variant
      * @since 6.8
      */
-    @Incubating
     ComponentIdentifier getOwner();
 
     /**
@@ -63,10 +61,8 @@ public interface ResolvedVariantResult {
      * found in another module. This corresponds to variants which are marked
      * as "available-at" in Gradle Module Metadata.
      *
-     * @return an optional variant, which if present means it's available externally
-     *
+     * @return the external variant, if any
      * @since 6.8
      */
-    @Incubating
     Optional<ResolvedVariantResult> getExternalVariant();
 }

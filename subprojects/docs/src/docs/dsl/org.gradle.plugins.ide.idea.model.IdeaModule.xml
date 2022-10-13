@@ -52,9 +52,19 @@
                 <td/>
             </tr>
             <tr>
+                <td>testSourceDirs</td>
+                <td><literal>[]</literal></td>
+                <td>project.sourceSets.test.allJava</td>
+            </tr>
+            <tr>
                 <td>resourceDirs</td>
                 <td><literal>[]</literal></td>
                 <td>resource dirs from <literal>project.sourceSets.main.resources</literal></td>
+            </tr>
+            <tr>
+                <td>testResourceDirs</td>
+                <td><literal>[]</literal></td>
+                <td>resource dirs from <literal>project.sourceSets.test.resources</literal></td>
             </tr>
             <tr>
                 <td>testSources</td>

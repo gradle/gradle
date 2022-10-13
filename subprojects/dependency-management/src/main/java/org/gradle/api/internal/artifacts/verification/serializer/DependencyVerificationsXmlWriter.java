@@ -95,7 +95,7 @@ public class DependencyVerificationsXmlWriter {
         writer.startElement(VERIFICATION_METADATA);
         writeAttribute("xmlns", "https://schema.gradle.org/dependency-verification");
         writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-        writeAttribute("xsi:schemaLocation", "https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.1.xsd");
+        writeAttribute("xsi:schemaLocation", "https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd");
         writeConfiguration(verifier.getConfiguration());
         writeVerifications(verifier.getVerificationMetadata());
         writer.endElement();
@@ -202,6 +202,7 @@ public class DependencyVerificationsXmlWriter {
         if (trustedArtifact.isRegex()) {
             writeAttribute(REGEX, "true");
         }
+        writeNullableAttribute(REASON, trustedArtifact.getReason());
     }
 
     private void writeSignatureCheck(DependencyVerificationConfiguration configuration) throws IOException {
@@ -306,6 +307,10 @@ public class DependencyVerificationsXmlWriter {
             String origin = checksum.getOrigin();
             if (origin != null) {
                 writeAttribute(ORIGIN, origin);
+            }
+            String reason = checksum.getReason();
+            if (reason != null) {
+                writeAttribute(REASON, reason);
             }
             Set<String> alternatives = checksum.getAlternatives();
             if (alternatives != null) {

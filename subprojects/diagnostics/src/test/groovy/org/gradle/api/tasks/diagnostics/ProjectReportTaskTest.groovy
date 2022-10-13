@@ -16,17 +16,16 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.api.Project
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class ProjectReportTaskTest extends AbstractProjectBuilderSpec {
-    ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
-    final ProjectReportTask task = TestUtil.createTask(ProjectReportTask, project)
+    ProjectReportTask task
     final TestStyledTextOutput output = new TestStyledTextOutput().ignoreStyle()
 
     def setup() {
+        task = TestUtil.createTask(ProjectReportTask, project)
         task.renderer.output = output
     }
 
@@ -42,7 +41,7 @@ class ProjectReportTaskTest extends AbstractProjectBuilderSpec {
         task.generateReportFor(model.project, model)
 
         then:
-        output.value == '''Root project 'test' - this is the root project
+        output.value == '''Root project 'test-project' - this is the root project
 +--- Project ':child1' - this is a subproject
 |    \\--- Project ':child1:child1'
 \\--- Project ':child2'
@@ -60,7 +59,7 @@ For example, try running gradle :child1:tasks
         task.generateReportFor(model.project, model)
 
         then:
-        output.value == '''Root project 'test' - this is the root project
+        output.value == '''Root project 'test-project' - this is the root project
 No sub-projects
 
 To see a list of the tasks of a project, run gradle <project-path>:tasks

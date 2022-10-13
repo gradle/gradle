@@ -59,7 +59,7 @@ public class GeneratedSingletonFileTreeTest {
 
     @Test
     public void containsWontCreateFiles() {
-        final AtomicInteger callCounter = new AtomicInteger(0);
+        final AtomicInteger callCounter = new AtomicInteger();
         Action<OutputStream> fileAction = new Action<OutputStream>() {
             @Override
             public void execute(OutputStream outputStream) {

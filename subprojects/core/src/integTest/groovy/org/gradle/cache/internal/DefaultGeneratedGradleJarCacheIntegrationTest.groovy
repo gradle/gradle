@@ -106,7 +106,7 @@ class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
     def "only generates single JAR in cache when invoked by concurrent threads"() {
         given:
         def jarGenerationInvocations = 10
-        def triggeredJarFileGeneration = new AtomicInteger(0)
+        def triggeredJarFileGeneration = new AtomicInteger()
         def jarFiles = Collections.synchronizedList(new ArrayList<File>())
 
         when:

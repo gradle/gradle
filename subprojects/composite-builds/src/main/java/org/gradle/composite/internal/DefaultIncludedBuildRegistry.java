@@ -65,7 +65,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final Map<File, IncludedBuildState> includedBuildsByRootDir = new LinkedHashMap<>();
     private final Map<Path, File> includedBuildDirectoriesByPath = new LinkedHashMap<>();
     private final Deque<IncludedBuildState> pendingIncludedBuilds = new ArrayDeque<>();
-    private boolean registerSubstitutionsForRootBuild = false;
+    private boolean registerSubstitutionsForRootBuild;
     private final Set<IncludedBuildState> currentlyConfiguring = new HashSet<>();
 
     public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, ListenerManager listenerManager, BuildStateFactory buildStateFactory) {
@@ -291,6 +291,13 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
 
         return requestedPath;
+    }
+
+    @Override
+    public void resetStateForAllBuilds() {
+        for (BuildState build : buildsByIdentifier.values()) {
+            build.resetState();
+        }
     }
 
     @Override

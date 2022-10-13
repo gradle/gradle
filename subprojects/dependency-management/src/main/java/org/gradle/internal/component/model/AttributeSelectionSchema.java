@@ -28,6 +28,18 @@ import java.util.Set;
 public interface AttributeSelectionSchema {
     boolean hasAttribute(Attribute<?> attribute);
 
+    /**
+     * Given a set of {@code candidate} attribute values for a given {@code attribute}, produce
+     * a set of matching values from within the candidate set based on the provided {@code requested} value.
+     *
+     * @param attribute The attribute being disambiguated.
+     * @param requested The requested attribute. If null, {@code attribute} is an extra attribute.
+     * @param candidates All candidate values. If a remaining candidates does not include a value
+     *      for {@code attribute}, null is not included in this set.
+     *
+     * @return A subset of {@code candidates} which contain matched attribute values. Or, null if no matches were found.
+     */
+    @Nullable
     Set<Object> disambiguate(Attribute<?> attribute, @Nullable Object requested, Set<Object> candidates);
 
     boolean matchValue(Attribute<?> attribute, Object requested, Object candidate);

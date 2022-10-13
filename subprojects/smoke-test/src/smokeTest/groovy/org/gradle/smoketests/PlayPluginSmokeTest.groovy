@@ -55,6 +55,7 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         def result = runner('build')
             .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("VersionNumber"))
             .expectLegacyDeprecationWarning(orgGradleUtilTypeDeprecation("CollectionUtils"))
+            .expectLegacyDeprecationWarning(abstractArchiveTaskArchivePathDeprecation())
             .build()
 
         then:
@@ -65,6 +66,13 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         return "The org.gradle.util.$type type has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
+    }
+
+    private String abstractArchiveTaskArchivePathDeprecation() {
+        return "The AbstractArchiveTask.archivePath property has been deprecated." +
+                " This is scheduled to be removed in Gradle 9.0." +
+                " Please use the archiveFile property instead." +
+                " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archivePath for more details.";
     }
 
     @Override

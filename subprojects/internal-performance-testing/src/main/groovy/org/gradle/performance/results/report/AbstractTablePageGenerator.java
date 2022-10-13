@@ -49,7 +49,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
     }
 
     protected abstract class TableHtml extends MetricsHtml {
-        AtomicInteger counter = new AtomicInteger(0);
+        AtomicInteger counter = new AtomicInteger();
 
         public TableHtml(Writer writer) {
             super(writer);

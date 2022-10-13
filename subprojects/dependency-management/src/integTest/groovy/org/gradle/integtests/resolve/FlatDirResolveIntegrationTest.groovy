@@ -35,8 +35,9 @@ dependencies {
 }
 
 task check {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['a-1.4.jar', 'b.jar', 'c.jar']
+        assert files.collect { it.name } == ['a-1.4.jar', 'b.jar', 'c.jar']
     }
 }
 """
@@ -44,7 +45,7 @@ task check {
         expect:
         succeeds "check"
     }
-    
+
     def "can resolve dynamic versions from a flat dir repository"() {
         given:
         file("repo/a.jar").createFile()
@@ -65,8 +66,9 @@ dependencies {
 }
 
 task check {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['a-1.5.jar', 'b-1.5-classifier.jar']
+        assert files.collect { it.name } == ['a-1.5.jar', 'b-1.5-classifier.jar']
     }
 }
 """
@@ -89,8 +91,9 @@ dependencies {
 }
 
 task check {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['a-1.4-classifier.jar']
+        assert files.collect { it.name } == ['a-1.4-classifier.jar']
     }
 }
 """
@@ -112,8 +115,9 @@ dependencies {
 }
 
 task check {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['a-1.4.zip']
+        assert files.collect { it.name } == ['a-1.4.zip']
     }
 }
 """

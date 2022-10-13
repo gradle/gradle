@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
@@ -42,9 +43,12 @@ class DefaultArtifactCacheLockingManagerTest extends Specification {
     }
     def fileAccessTimeJournal = new ModificationTimeFileAccessTimeJournal()
     def usedGradleVersions = Stub(UsedGradleVersions)
+    def cleanupActionFactory = Stub(CleanupActionDecorator) {
+        decorate(_) >> { args -> args[0] }
+    }
 
     @Subject @AutoCleanup
-    def cacheLockingManager = new WritableArtifactCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, usedGradleVersions)
+    def cacheLockingManager = new WritableArtifactCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, usedGradleVersions, cleanupActionFactory)
 
     def "cleans up resources"() {
         given:

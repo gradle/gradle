@@ -365,7 +365,7 @@ Gradle offers multiple ways to skip the execution of a task.
 [[sec:using_a_predicate]]
 === Using a predicate
 
-You can use the `onlyIf()` method to attach a predicate to a task. The task's actions are only executed if the predicate evaluates to true. You implement the predicate as a closure. The closure is passed the task as a parameter, and should return true if the task should execute and false if the task should be skipped. The predicate is evaluated just before the task is due to be executed.
+You can use link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(org.gradle.api.specs.Spec)[`Task.onlyIf`] to attach a predicate to a task. The task's actions are only executed if the predicate evaluates to true. The predicate is passed the task as a parameter, and should return true if the task should execute and false if the task should be skipped. The predicate is evaluated just before the task is executed.
 Passing an optional reason string to `onlyIf()` is useful for explaining why the task is skipped.
 
 .Skipping a task using a predicate

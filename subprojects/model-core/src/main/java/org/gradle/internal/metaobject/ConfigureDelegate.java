@@ -18,7 +18,6 @@ package org.gradle.internal.metaobject;
 
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
-import groovy.lang.MissingMethodException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -58,16 +57,9 @@ public class ConfigureDelegate extends GroovyObjectSupport {
                 return result.getValue();
             }
 
-            MissingMethodException failure = null;
             if (!isAlreadyConfiguring) {
                 // Try to configure element
-                try {
-                    result = _configure(name, params);
-                } catch (MissingMethodException e) {
-                    // Workaround for backwards compatibility. Previously, this case would unintentionally cause the method to be invoked on the owner
-                    // continue below
-                    failure = e;
-                }
+                result = _configure(name, params);
                 if (result.isFound()) {
                     return result.getValue();
                 }
@@ -77,10 +69,6 @@ public class ConfigureDelegate extends GroovyObjectSupport {
             result = _owner.tryInvokeMethod(name, params);
             if (result.isFound()) {
                 return result.getValue();
-            }
-
-            if (failure != null) {
-                throw failure;
             }
 
             throw _delegate.methodMissingException(name, params);

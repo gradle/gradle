@@ -17,10 +17,6 @@
                 <td><literal>ZipEntryCompression.DEFLATED</literal></td>
             </tr>
             <tr>
-                <td>extension</td>
-                <td><literal>zip</literal></td>
-            </tr>
-            <tr>
                 <td>metadataCharset</td>
                 <td>Platform default encoding</td>
             </tr>

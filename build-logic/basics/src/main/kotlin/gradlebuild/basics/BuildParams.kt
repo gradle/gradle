@@ -134,7 +134,11 @@ object BuildParams {
     const val RUN_BROKEN_CONFIGURATION_CACHE_DOCS_TESTS = "runBrokenConfigurationCacheDocsTests"
 
     internal
-    val VENDOR_MAPPING = mapOf("oracle" to JvmVendorSpec.ORACLE, "openjdk" to JvmVendorSpec.ADOPTIUM)
+    val VENDOR_MAPPING = mapOf(
+        "oracle" to JvmVendorSpec.ORACLE,
+        "openjdk" to JvmVendorSpec.ADOPTIUM,
+        "zulu" to JvmVendorSpec.AZUL
+    )
 }
 
 
@@ -313,7 +317,7 @@ val Project.rerunAllTests: Provider<Boolean>
 
 
 val Project.testJavaVendor: Provider<JvmVendorSpec>
-    get() = propertyFromAnySource(TEST_JAVA_VENDOR).map { VENDOR_MAPPING.getValue(it) }
+    get() = propertyFromAnySource(TEST_JAVA_VENDOR).map { vendorName -> VENDOR_MAPPING.getOrElse(vendorName) { -> JvmVendorSpec.matching(vendorName) } }
 
 
 val Project.testJavaVersion: String

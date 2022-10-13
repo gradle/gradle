@@ -106,9 +106,15 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         when:
         buildFile << applyGroovyPlugin()
         buildFile << mavenCentralRepository()
-        buildFile << spockDependency()
-        buildFile << junitDependency()
         buildFile << """
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                    }
+                }
+            }
+
             repositories {
                 maven { url '${buildContext.localRepository.toURI().toURL()}' }
             }
@@ -128,16 +134,15 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         file('src/test/groovy/BuildLogicFunctionalTest.groovy') << """
             import org.gradle.testkit.runner.GradleRunner
             import static org.gradle.testkit.runner.TaskOutcome.*
-            import org.junit.Rule
-            import org.junit.rules.TemporaryFolder
             import spock.lang.Specification
+            import spock.lang.TempDir
 
             class BuildLogicFunctionalTest extends Specification {
-                @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
+                @TempDir File testProjectDir
                 File buildFile
 
                 def setup() {
-                    buildFile = testProjectDir.newFile('build.gradle')
+                    buildFile = new File(testProjectDir, 'build.gradle')
                 }
 
                 def "hello world task prints hello world"() {
@@ -152,7 +157,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
 
                     when:
                     def result = GradleRunner.create()
-                        .withProjectDir(testProjectDir.root)
+                        .withProjectDir(testProjectDir)
                         .withArguments('helloWorld')
                         .withTestKitDir(new java.io.File("${TextUtil.normaliseFileSeparators(executer.gradleUserHomeDir.absolutePath)}"))
                         .build()

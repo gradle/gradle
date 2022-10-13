@@ -16,6 +16,7 @@
 package org.gradle.api.internal.catalog;
 
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCache;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
@@ -33,7 +34,8 @@ public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner,
-        ClassLoaderHierarchyHasher classLoaderHasher
+        ClassLoaderHierarchyHasher classLoaderHasher,
+        CleanupActionDecorator cleanupActionDecorator
     ) {
         this.delegate = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
             scopedCache
@@ -42,7 +44,8 @@ public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider
             fileAccessTimeJournal,
             inMemoryCacheDecoratorFactory,
             stringInterner,
-            classLoaderHasher
+            classLoaderHasher,
+            cleanupActionDecorator
         );
     }
 

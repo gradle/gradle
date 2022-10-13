@@ -17,7 +17,6 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.internal.Describables;
 import org.gradle.internal.build.BuildLifecycleController;
@@ -25,7 +24,6 @@ import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 
-import javax.annotation.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -36,27 +34,21 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     }
 
     private final BuildLifecycleController buildLifecycleController;
-    private final BuildTreeWorkGraphController taskGraph;
-    private final BuildTreeWorkPreparer workPreparer;
-    private final BuildTreeWorkExecutor workExecutor;
+    private final BuildTreeWorkController workController;
     private final BuildTreeModelCreator modelCreator;
     private final BuildTreeFinishExecutor finishExecutor;
     private final StateTransitionController<State> state;
 
     public DefaultBuildTreeLifecycleController(
         BuildLifecycleController buildLifecycleController,
-        BuildTreeWorkGraphController taskGraph,
-        BuildTreeWorkPreparer workPreparer,
-        BuildTreeWorkExecutor workExecutor,
+        BuildTreeWorkController workController,
         BuildTreeModelCreator modelCreator,
         BuildTreeFinishExecutor finishExecutor,
         StateTransitionControllerFactory controllerFactory
     ) {
         this.buildLifecycleController = buildLifecycleController;
-        this.taskGraph = taskGraph;
-        this.workPreparer = workPreparer;
+        this.workController = workController;
         this.modelCreator = modelCreator;
-        this.workExecutor = workExecutor;
         this.finishExecutor = finishExecutor;
         this.state = controllerFactory.newController(Describables.of("build tree state"), State.NotStarted);
     }
@@ -73,7 +65,7 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
     @Override
     public void scheduleAndRunTasks(EntryTaskSelector selector) {
-        runBuild(() -> doScheduleAndRunTasks(selector));
+        runBuild(() -> workController.scheduleAndRunRequestedTasks(selector));
     }
 
     @Override
@@ -81,20 +73,13 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
         return runBuild(() -> {
             modelCreator.beforeTasks(action);
             if (runTasks) {
-                ExecutionResult<Void> result = doScheduleAndRunTasks(null);
+                ExecutionResult<Void> result = workController.scheduleAndRunRequestedTasks(null);
                 if (!result.getFailures().isEmpty()) {
                     return result.asFailure();
                 }
             }
             T model = modelCreator.fromBuildModel(action);
             return ExecutionResult.succeeded(model);
-        });
-    }
-
-    private ExecutionResult<Void> doScheduleAndRunTasks(@Nullable EntryTaskSelector taskSelector) {
-        return taskGraph.withNewWorkGraph(graph -> {
-            BuildTreeWorkGraph.FinalizedGraph finalizedGraph = workPreparer.scheduleRequestedTasks(graph, taskSelector);
-            return workExecutor.execute(finalizedGraph);
         });
     }
 

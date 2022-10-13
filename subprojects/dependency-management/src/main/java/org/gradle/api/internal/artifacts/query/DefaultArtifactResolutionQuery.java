@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.query;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -180,18 +181,18 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
         ComponentArtifactResolveState componentState = moduleResolveResult.getState().prepareForArtifactResolution();
         DefaultComponentArtifactsResult componentResult = new DefaultComponentArtifactsResult(componentState.getId());
         for (Class<? extends Artifact> artifactType : artifactTypes) {
-            addArtifacts(componentResult, artifactType, componentState, artifactResolver);
+            addArtifacts(componentResult, artifactType, componentState, moduleResolveResult.getModuleVersionId(), artifactResolver);
         }
         return componentResult;
     }
 
-    private <T extends Artifact> void addArtifacts(DefaultComponentArtifactsResult artifacts, Class<T> type, ComponentArtifactResolveState componentState, ArtifactResolver artifactResolver) {
+    private <T extends Artifact> void addArtifacts(DefaultComponentArtifactsResult artifacts, Class<T> type, ComponentArtifactResolveState componentState, ModuleVersionIdentifier owner, ArtifactResolver artifactResolver) {
         BuildableArtifactSetResolveResult artifactSetResolveResult = new DefaultBuildableArtifactSetResolveResult();
         componentState.resolveArtifactsWithType(artifactResolver, convertType(type), artifactSetResolveResult);
 
         for (ComponentArtifactMetadata artifactMetaData : artifactSetResolveResult.getResult()) {
             BuildableArtifactResolveResult resolveResult = new DefaultBuildableArtifactResolveResult();
-            artifactResolver.resolveArtifact(null, artifactMetaData, componentState.getSources(), resolveResult);
+            artifactResolver.resolveArtifact(owner, artifactMetaData, componentState.getSources(), resolveResult);
             try {
                 artifacts.addArtifact(ivyFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, Collections.emptyList(), Describables.of(componentState.getId().getDisplayName()), type, resolveResult.getResult().getFile())));
             } catch (Exception e) {

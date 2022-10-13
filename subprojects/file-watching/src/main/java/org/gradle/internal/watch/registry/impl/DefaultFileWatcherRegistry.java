@@ -182,7 +182,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     public FileWatchingStatistics getAndResetStatistics() {
         MutableFileWatchingStatistics currentStatistics = fileWatchingStatistics;
         fileWatchingStatistics = new MutableFileWatchingStatistics();
-        AtomicInteger numberOfWatchedHierarchies = new AtomicInteger(0);
+        AtomicInteger numberOfWatchedHierarchies = new AtomicInteger();
         fileWatcherUpdater.getWatchedFiles().visitRoots(root -> numberOfWatchedHierarchies.incrementAndGet());
         return new FileWatchingStatistics() {
             @Override

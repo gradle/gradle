@@ -16,6 +16,7 @@
 
 package org.gradle.architecture.test;
 
+import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -27,8 +28,12 @@ import org.junit.jupiter.api.Test;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -115,10 +120,10 @@ public class ArchUnitFixtureTest {
         ArchCondition<JavaMethod> archCondition = haveOnlyArgumentsOrReturnTypesThatAre(resideInAnyPackage("java.lang").or(primitive).or(resideInAnyPackage("java.util")).as("allowed"));
         JavaClass javaClass = new ClassFileImporter().importClass(AllowedMethodTypesClass.class);
         JavaMethod validMethod = javaClass.getMethod(methodName, arguments);
-        ConditionEvents events = new ConditionEvents();
+        CollectingConditionEvents events = new CollectingConditionEvents();
         archCondition.check(validMethod, events);
-        assertThat(events).hasSize(1);
-        return events.iterator().next();
+        assertThat(events.getAllEvents()).hasSize(1);
+        return events.getAllEvents().iterator().next();
     }
 
     private void assertNoViolation(ConditionEvent event) {
@@ -129,5 +134,39 @@ public class ArchUnitFixtureTest {
         assertThat(event.isViolation()).isTrue();
         String description = event.getDescriptionLines().get(0);
         assertThat(description).matches(String.format(".* has arguments/return type %s that is not allowed in .*", Pattern.quote(violatedType.getName())));
+    }
+
+    private static class CollectingConditionEvents implements ConditionEvents {
+        private final List<ConditionEvent> events = new ArrayList<>();
+        private Optional<String> informationAboutNumberOfViolations = Optional.empty();
+
+        @Override
+        public void add(ConditionEvent event) {
+            events.add(event);
+        }
+
+        @Override
+        public Optional<String> getInformationAboutNumberOfViolations() {
+            return informationAboutNumberOfViolations;
+        }
+
+        @Override
+        public void setInformationAboutNumberOfViolations(String informationAboutNumberOfViolations) {
+            this.informationAboutNumberOfViolations = Optional.of(informationAboutNumberOfViolations);
+        }
+
+        @Override
+        public Collection<ConditionEvent> getViolating() {
+            return events.stream().filter(ConditionEvent::isViolation).collect(Collectors.toList());
+        }
+
+        @Override
+        public boolean containViolation() {
+            return events.stream().anyMatch(ConditionEvent::isViolation);
+        }
+
+        public Collection<ConditionEvent> getAllEvents() {
+            return ImmutableList.copyOf(events);
+        }
     }
 }

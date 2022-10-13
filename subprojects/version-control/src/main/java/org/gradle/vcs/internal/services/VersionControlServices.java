@@ -30,7 +30,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.cache.internal.CleanupActionFactory;
+import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.scopes.BuildTreeScopedCache;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
@@ -112,8 +112,8 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
                 .toComposite();
         }
 
-        VersionControlRepositoryConnectionFactory createVersionControlSystemFactory(CleanupActionFactory cleanupActionFactory, BuildTreeScopedCache scopedCache) {
-            return new DefaultVersionControlRepositoryFactory(scopedCache, cleanupActionFactory);
+        VersionControlRepositoryConnectionFactory createVersionControlSystemFactory(CleanupActionDecorator cleanupActionDecorator, BuildTreeScopedCache scopedCache) {
+            return new DefaultVersionControlRepositoryFactory(scopedCache, cleanupActionDecorator);
         }
 
         VcsDirectoryLayout createVcsWorkingDirectoryRoot(BuildTreeScopedCache scopedCache) {

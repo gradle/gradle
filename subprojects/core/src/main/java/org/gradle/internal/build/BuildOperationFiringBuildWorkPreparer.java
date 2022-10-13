@@ -97,6 +97,8 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             QueryableExecutionPlan.ScheduledNodes scheduledWork = contents.getScheduledNodes();
 
             buildOperationContext.setResult(new CalculateTaskGraphBuildOperationType.Result() {
+                private final List<CalculateTaskGraphBuildOperationType.PlannedTask> taskPlan = toPlannedTasks(scheduledWork);
+
                 @Override
                 public List<String> getRequestedTaskPaths() {
                     return toTaskPaths(requestedTasks);
@@ -109,30 +111,7 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
 
                 @Override
                 public List<CalculateTaskGraphBuildOperationType.PlannedTask> getTaskPlan() {
-                    return toPlannedTasks(scheduledWork);
-                }
-
-                private List<CalculateTaskGraphBuildOperationType.PlannedTask> toPlannedTasks(QueryableExecutionPlan.ScheduledNodes scheduledWork) {
-                    List<CalculateTaskGraphBuildOperationType.PlannedTask> tasks = new ArrayList<>();
-                    scheduledWork.visitNodes(nodes -> {
-                        for (Node node : nodes) {
-                            if (node instanceof LocalTaskNode) {
-                                tasks.add(toPlannedTask((LocalTaskNode) node));
-                            }
-                        }
-                    });
-                    return tasks;
-                }
-
-                private CalculateTaskGraphBuildOperationType.PlannedTask toPlannedTask(LocalTaskNode taskNode) {
-                    TaskIdentity<?> taskIdentity = taskNode.getTask().getTaskIdentity();
-                    return new DefaultPlannedTask(
-                        new PlannedTaskIdentity(taskIdentity),
-                        taskIdentifiesOf(taskNode.getDependencySuccessors(), Node::getDependencySuccessors),
-                        taskIdentifiesOf(taskNode.getMustSuccessors()),
-                        taskIdentifiesOf(taskNode.getShouldSuccessors()),
-                        taskIdentifiesOf(taskNode.getFinalizers())
-                    );
+                    return taskPlan;
                 }
             });
         }
@@ -152,6 +131,29 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
                     }
                 });
         }
+    }
+
+    private static List<CalculateTaskGraphBuildOperationType.PlannedTask> toPlannedTasks(QueryableExecutionPlan.ScheduledNodes scheduledWork) {
+        List<CalculateTaskGraphBuildOperationType.PlannedTask> tasks = new ArrayList<>();
+        scheduledWork.visitNodes(nodes -> {
+            for (Node node : nodes) {
+                if (node instanceof LocalTaskNode) {
+                    tasks.add(toPlannedTask((LocalTaskNode) node));
+                }
+            }
+        });
+        return tasks;
+    }
+
+    private static CalculateTaskGraphBuildOperationType.PlannedTask toPlannedTask(LocalTaskNode taskNode) {
+        TaskIdentity<?> taskIdentity = taskNode.getTask().getTaskIdentity();
+        return new DefaultPlannedTask(
+            new PlannedTaskIdentity(taskIdentity),
+            taskIdentifiesOf(taskNode.getDependencySuccessors(), Node::getDependencySuccessors),
+            taskIdentifiesOf(taskNode.getMustSuccessors()),
+            taskIdentifiesOf(taskNode.getShouldSuccessors()),
+            taskIdentifiesOf(taskNode.getFinalizers())
+        );
     }
 
     private static List<CalculateTaskGraphBuildOperationType.TaskIdentity> taskIdentifiesOf(Collection<Node> nodes, Function<? super Node, ? extends Collection<Node>> traverser) {

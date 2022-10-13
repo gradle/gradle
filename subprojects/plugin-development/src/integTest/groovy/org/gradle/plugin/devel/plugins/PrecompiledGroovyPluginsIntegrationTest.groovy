@@ -823,9 +823,15 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id 'groovy-gradle-plugin'
             }
+
             ${mavenCentralRepository()}
-            dependencies {
-                testImplementation 'org.spockframework:spock-core:2.1-groovy-3.0'
+
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                    }
+                }
             }
         """
 

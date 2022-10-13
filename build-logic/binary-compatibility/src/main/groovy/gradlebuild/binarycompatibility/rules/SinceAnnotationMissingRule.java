@@ -27,11 +27,10 @@ import me.champeau.gradle.japicmp.report.Violation;
 
 import java.util.Map;
 
-
 public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
 
-    public SinceAnnotationMissingRule(Map<String, String> acceptedViolations) {
-        super(acceptedViolations);
+    public SinceAnnotationMissingRule(Map<String, Object> params) {
+        super(params);
     }
 
     @Override

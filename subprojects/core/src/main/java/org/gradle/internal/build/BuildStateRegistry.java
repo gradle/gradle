@@ -115,4 +115,9 @@ public interface BuildStateRegistry {
      * Ensures that this project and any builds it includes are configured and their publications are registered.
      */
     void ensureConfigured(IncludedBuildState buildState);
+
+    /**
+     * Restarts each build in the tree.
+     */
+    void resetStateForAllBuilds();
 }

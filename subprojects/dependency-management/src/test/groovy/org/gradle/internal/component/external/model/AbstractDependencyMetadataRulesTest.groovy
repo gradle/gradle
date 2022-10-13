@@ -31,8 +31,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyM
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
-import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
@@ -40,7 +38,6 @@ import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import org.gradle.internal.component.model.ComponentAttributeMatcher
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
-import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -64,8 +61,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     @Shared defaultVariant
 
     protected static <T> VariantMetadataRules.VariantAction<T> variantAction(String variantName, Action<? super T> action) {
-        Spec<VariantResolveMetadata> spec = variantName ? { it.name == variantName } as Spec<VariantResolveMetadata> : Specs.satisfyAll()
-        new VariantMetadataRules.VariantAction<T>(spec, action)
+        new VariantMetadataRules.VariantAction<T>(variantName, action)
     }
 
     private DefaultAttributesSchema createSchema() {

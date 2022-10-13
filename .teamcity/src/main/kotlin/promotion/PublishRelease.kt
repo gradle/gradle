@@ -97,11 +97,11 @@ class PublishReleaseCandidate(branch: VersionedSettingsBranch) : PublishRelease(
 class PublishMilestone(branch: VersionedSettingsBranch) : PublishRelease(
     promotedBranch = branch.branchName,
     prepTask = "prepMilestone",
-    promoteTask = "promoteMilestone",
+    promoteTask = branch.promoteMilestoneTaskName(),
     requiredConfirmationCode = "milestone",
     init = {
         id("Promotion_Milestone")
         name = "Release - Milestone"
-        description = "Promotes the latest successful change on 'release' as a new milestone"
+        description = "Promotes the latest successful change on '${branch.branchName}' as a new milestone"
     }
 )

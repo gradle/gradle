@@ -340,6 +340,10 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
+        void resetState() {
+        }
+
+        @Override
         BuildWorkPlan newWorkGraph() {
             return workPlan
         }
