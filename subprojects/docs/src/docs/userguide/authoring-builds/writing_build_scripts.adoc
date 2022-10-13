@@ -297,7 +297,7 @@ To make build scripts more concise, Gradle automatically adds a set of import st
 As a result, instead of writing `throw new org.gradle.api.tasks.StopExecutionException()`,
 you can write `throw new StopExecutionException()` instead.
 
-The following list shows the imports Gradle adds to each script:
+Gradle implicitly adds the following imports to each script:
 
 .Gradle default imports
 [source,groovy]
