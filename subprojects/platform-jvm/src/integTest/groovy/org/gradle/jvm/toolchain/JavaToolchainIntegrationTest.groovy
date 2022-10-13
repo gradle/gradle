@@ -144,7 +144,7 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec {
 
             apply plugin: "java"
 
-            def toolchainSpecRef = new AtomicReference<JavaToolchainSpec>(null)
+            def toolchainSpecRef = new AtomicReference<JavaToolchainSpec>()
 
             javaToolchains.launcherFor {
                 toolchainSpecRef.set(delegate)
