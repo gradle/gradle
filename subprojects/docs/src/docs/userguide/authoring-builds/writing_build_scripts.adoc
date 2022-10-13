@@ -34,7 +34,7 @@ Gradle uses other scripts as well:
 
 == Properties
 
-Almost all top-level properties and blocks in a build script are part of the `Project` API.
+Many top-level properties and blocks in a build script are part of the link:{javadocPath}org/gradle/api/Project.html[`Project`] API.
 The following build script uses the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:name[Project.name]
 property to print the name of the project:
 
