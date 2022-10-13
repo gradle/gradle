@@ -299,7 +299,7 @@
         {
             "type": "org.gradle.api.plugins.quality.Checkstyle",
             "member": "Method org.gradle.api.plugins.quality.Checkstyle.getAntBuilder()",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
@@ -315,7 +315,7 @@
         {
             "type": "org.gradle.api.plugins.quality.CodeNarc",
             "member": "Method org.gradle.api.plugins.quality.CodeNarc.getAntBuilder()",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
@@ -331,7 +331,7 @@
         {
             "type": "org.gradle.api.plugins.quality.Pmd",
             "member": "Method org.gradle.api.plugins.quality.Pmd.getAntBuilder()",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
             "changes": [
                 "Method has been removed"
             ]
