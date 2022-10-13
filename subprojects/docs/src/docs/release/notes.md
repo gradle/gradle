@@ -47,7 +47,7 @@ We would like to thank the following community members for their contributions t
 [teawithbrownsugar](https://github.com/teawithbrownsugar),
 [Thomas Broadley](https://github.com/tbroadley),
 [urdak](https://github.com/urdak),
-[Xin Wang](https://github.com/scaventz),
+[Xin Wang](https://github.com/scaventz)
 
 
 
@@ -90,6 +90,112 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ## New features and usability improvements
+
+<a name="jvm"></a>
+### JVM
+
+<a name="java19"></a>
+#### Added Support for Java 19
+
+Gradle 7.6 supports compiling, testing and running on Java 19.
+
+<a name="named-kotlin-dsl-dependency-arguments"></a>
+#### Introduced named dependency arguments in the Kotlin DSL for external dependencies
+
+
+In the [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block,
+the Kotlin DSL now supports named arguments for external dependencies:
+
+```kotlin
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnitJupiter()
+            dependencies {
+                implementation(module(group = "com.google.guava",
+                               name = "guava",
+                               version = "31.1-jre"))
+            }
+        }
+    }
+}
+```
+
+<a name="strongly-typed-dependencies"></a>
+#### Introduced strongly-typed `dependencies` block for JVM test suites
+
+The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block
+now uses a [strongly-typed API](dsl/org.gradle.api.plugins.jvm.JvmComponentDependencies.html).
+
+Previously, the JVM test suite `dependencies` block only accepted dependencies of type `Object`.
+
+```kotlin
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnitJupiter()
+            dependencies {
+                implementation(project(":foo")) {
+                    // Receiver (this) is of type Dependency
+                    // To access ProjectDependency
+                    // methods, smart-cast:
+                    this as ProjectDependency
+                    // Now available as a ProjectDependency
+                    println(dependencyProject)
+                }
+            }
+        }
+    }
+}
+```
+
+Now, each notation provides its `Dependency` subtype:
+
+```kotlin
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnitJupiter()
+            dependencies {
+                implementation(project(":foo")) {
+                    // `this` already of type ProjectDependency
+                    println(dependencyProject)
+                }
+            }
+        }
+    }
+}
+```
+
+For example, using a `String` provides an `ExternalModuleDependency`.
+Using a `FileCollection` provides a `FileCollectionDependency`.
+This allows Java and Kotlin to properly configure all types of dependencies
+and improves IDE support for the Groovy DSL.
+
+For more information about the test suite `dependencies` block, see
+[Differences Between Test Suite and Top-Level Dependencies](userguide/jvm_test_suite_plugin.html#differences_between_the_test_suite_dependencies_and_the_top_level_dependencies_blocks).
+
+#### Introduced support for Java 9+ network debugging
+
+You can run a Java test or application child process with
+[debugging options](userguide/java_testing.html#sec:debugging_java_tests)
+to accept debugger client connections over the network.
+If the debugging options only specify a port, but not a host address,
+the set of accepted connections depends on your version of Java:
+
+- Before Java 9, the debugger client accepts connections from any machine.
+- Starting in Java 9, the debugger client accepts connections originating from the host machine *only*.
+
+This release adds a new property to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html): `host`.
+This allows you to specify the debugger host address along with the port.
+
+Similarly, the new Gradle property `org.gradle.debug.host` now enables
+[running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic)
+accepting connections via network on Java 9 and above.
+
+On Java 9 and above, use the special host address value `*` to make the debugger server listen on all network interfaces.
+Otherwise, use the address of one of the machine's network interfaces.
+
 
 <a name="developer-productivity"></a>
 ### Developer Productivity
@@ -170,9 +276,8 @@ You can now provide a reason message when conditionally disabling a task using t
 
 ```groovy
 tasks.register("slowBenchmark") {
-    def slowBenchmarksEnabled = providers.gradleProperty("my.build.benchmark.slow").map { it.toBoolean() }.orElse(false)
-    onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") {
-        slowBenchmarksEnabled.get()
+    onlyIf("slow benchmarks not enabled") {
+        false
     }
 }
 ```
@@ -198,7 +303,7 @@ The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are no
 #### Added configuration cache support to the Maven Publish Plugin
 
 The [Maven Publish Plugin](userguide/publishing_maven.html) is now compatible with the configuration cache.
-Note that when using credentials, the configuration cache requires [safe (empty) credential containers](userguide/configuration_cache.html#config_cache:requirements:safe_credentials).
+Note that when using credentials, the configuration cache requires [safe credential containers](userguide/configuration_cache.html#config_cache:requirements:safe_credentials).
 
 #### Clarified the ordering of disambiguation rule checks in `resolvableConfigurations` reports
 
@@ -255,7 +360,7 @@ You can now pass integer task options declared as `Property<Integer>` from the c
 For example, the following task option:
 
 ```java
-@Option(option = "integer-option", description = "Your description")
+@Option(option = "integer-option", description = "description")
 public abstract Property<Integer> getIntegerOption();
 ```
 
@@ -297,110 +402,6 @@ toolchainManagement {
 
 For more information about using custom toolchain resolvers, see the [Toolchain Download Repositories documentation](userguide/toolchains.html#sub:download_repositories).
 For more information about writing custom toolchain resolvers, see the [Toolchain Resolver Plugins documentation](userguide/toolchain_plugins.html).
-
-<a name="jvm"></a>
-### JVM
-
-<a name="java19"></a>
-#### Added Support for Java 19
-
-Gradle 7.6 supports compiling, testing and running on Java 19.
-
-<a name="named-kotlin-dsl-dependency-arguments"></a>
-#### Introduced named dependency arguments in the Kotlin DSL for external dependencies
-
-
-In the [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block,
-the Kotlin DSL now supports named arguments for external dependencies:
-
-```kotlin
-testing {
-    suites {
-        val test by getting(JvmTestSuite::class) {
-            useJUnitJupiter()
-            dependencies {
-                implementation(module(group = "com.google.guava",
-                               name = "guava",
-                               version = "31.1-jre"))
-            }
-        }
-    }
-}
-```
-
-<a name="strongly-typed-dependencies"></a>
-#### Introduced strongly-typed `dependencies` block for JVM test suites
-
-The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block
-now uses a [strongly-typed API](dsl/org.gradle.api.plugins.jvm.JvmComponentDependencies.html).
-
-Previously, the JVM test suite `dependencies` block only accepted dependencies of type `Object`.
-
-```kotlin
-testing {
-    suites {
-        val test by getting(JvmTestSuite::class) {
-            useJUnitJupiter()
-            dependencies {
-                implementation(project(":foo")) {
-                    // Receiver (`this`) is of type Dependency
-                    // To access ProjectDependency methods, smart-cast:
-                    this as ProjectDependency
-                    // Now it can be used as a ProjectDependency
-                    println(dependencyProject)
-                }
-            }
-        }
-    }
-}
-```
-
-Now, each notation provides its `Dependency` subtype:
-
-```kotlin
-testing {
-    suites {
-        val test by getting(JvmTestSuite::class) {
-            useJUnitJupiter()
-            dependencies {
-                implementation(project(":foo")) {
-                    // `this` already of type ProjectDependency
-                    println(dependencyProject)
-                }
-            }
-        }
-    }
-}
-```
-
-For example, using a `String` provides an `ExternalModuleDependency`.
-Using a `FileCollection` provides a `FileCollectionDependency`.
-This allows Java and Kotlin to properly configure all types of dependencies
-and improves IDE support for the Groovy DSL.
-
-For more information about the test suite `dependencies` block, see
-[Differences Between Test Suite and Top-Level Dependencies](userguide/jvm_test_suite_plugin.html#differences_between_the_test_suite_dependencies_and_the_top_level_dependencies_blocks).
-
-#### Introduced support for Java 9+ network debugging
-
-You can run a Java test or application child process with
-[debugging options](userguide/java_testing.html#sec:debugging_java_tests)
-to accept debugger client connections over the network.
-If the debugging options only specify a port, but not a host address,
-the set of accepted connections depends on your version of Java:
-
-- Before Java 9, the debugger client accepts connections from any machine.
-- Starting in Java 9, the debugger client accepts connections originating from the host machine *only*.
-
-This release adds a new property to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html): `host`.
-This allows you to specify the debugger host address along with the port.
-
-Similarly, the new Gradle property `org.gradle.debug.host` now enables
-[running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic)
-accepting connections via network on Java 9 and above.
-
-On Java 9 and above, use the special host address value `*` to make the debugger server listen on all network interfaces.
-Otherwise, use the address of one of the machine's network interfaces.
 
 <a name="ide"></a>
 ### IDE
@@ -456,27 +457,14 @@ ADD RELEASE FEATURES ABOVE
 -->
 
 ## Promoted features
+
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
-The following are the features that have been promoted in this Gradle release.
+This Gradle release promotes the following features to stable:
 
-### Replacement collections in `org.gradle.plugins.ide.idea.model.IdeaModule`
-
-The `testResourcesDirs` and `testSourcesDirs` fields, and their getters and setters are now `@Deprecated`.
-Any usages of these elements should be replaced by the now stable `getTestSources()` and `getTestResources()` methods and their respective setters.
-These new methods return and are backed by `ConfigurableFileCollection` instances for improved flexibility in how these collections of files can be used.
-Gradle now warns upon usage of these deprecated methods that they will be removed in Gradle 8.0.
-
-### Replacement methods in `org.gradle.api.tasks.testing.TestReport`
-
-The `getDestinationDir()`, `setDestinationDir(File)`, and `getTestResultsDirs()` and `setTestResultsDirs(Iterable)` methods are now `@Deprecated`.
-Any usages of them should be replaced by the now stable `getDestinationDirectory()` and `getTestResults()` methods and their associated setters.
-These deprecated elements will be removed in Gradle 8.0.
-
-<!--
-### Example promoted
--->
+- `getTestSources` and `getTestResources`
+- `getDestinationDirectory` and `getTestResults`
 
 ## Fixed issues
 

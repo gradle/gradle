@@ -590,7 +590,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             buildJvmOpts.add("-Xms256m");
             buildJvmOpts.add("-Xmx512m");
         }
-        if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_8) < 0) {
+        if (getJavaVersionFromJavaHome().compareTo(JavaVersion.VERSION_1_8) < 0) {
             // Although Gradle isn't supported on earlier versions, some tests do run it using Java 6 and 7 to verify it behaves well in this case
             buildJvmOpts.add("-XX:MaxPermSize=320m");
         } else {
@@ -624,6 +624,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     public GradleExecuter withJavaHome(File javaHome) {
         this.javaHome = javaHome;
         return this;
+    }
+
+    private JavaVersion getJavaVersionFromJavaHome() {
+        return JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome()));
     }
 
     @Override
@@ -1130,6 +1134,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         properties.put("file.encoding", getDefaultCharacterEncoding());
+        if (getJavaVersionFromJavaHome() == JavaVersion.VERSION_18) {
+            properties.put("sun.stdout.encoding", getDefaultCharacterEncoding());
+            properties.put("sun.stderr.encoding", getDefaultCharacterEncoding());
+        } else if (getJavaVersionFromJavaHome().isCompatibleWith(JavaVersion.VERSION_19)) {
+            properties.put("stdout.encoding", getDefaultCharacterEncoding());
+            properties.put("stderr.encoding", getDefaultCharacterEncoding());
+        }
         Locale locale = getDefaultLocale();
         if (locale != null) {
             properties.put("user.language", locale.getLanguage());

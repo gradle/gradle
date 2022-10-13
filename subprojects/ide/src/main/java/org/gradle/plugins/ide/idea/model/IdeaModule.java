@@ -344,10 +344,6 @@ public class IdeaModule {
      */
     @Deprecated
     public Set<File> getTestSourceDirs() {
-        DeprecationLogger.deprecateProperty(IdeaModule.class, "testSourceDirs").replaceWith("testSources")
-                .willBeRemovedInGradle8()
-                .withDslReference()
-                .nagUser();
         return testSourceDirs;
     }
 
@@ -356,10 +352,6 @@ public class IdeaModule {
      */
     @Deprecated
     public void setTestSourceDirs(Set<File> testSourceDirs) {
-        DeprecationLogger.deprecateProperty(IdeaModule.class, "testSourceDirs").replaceWith("testSources")
-                .willBeRemovedInGradle8()
-                .withDslReference()
-                .nagUser();
         this.testSourceDirs = testSourceDirs;
     }
 
@@ -402,10 +394,6 @@ public class IdeaModule {
      */
     @Deprecated
     public Set<File> getTestResourceDirs() {
-        DeprecationLogger.deprecateProperty(IdeaModule.class, "testResourceDirs").replaceWith("testResources")
-                .willBeRemovedInGradle8()
-                .withDslReference()
-                .nagUser();
         return testResourceDirs;
     }
 
@@ -418,10 +406,6 @@ public class IdeaModule {
      */
     @Deprecated
     public void setTestResourceDirs(Set<File> testResourceDirs) {
-        DeprecationLogger.deprecateProperty(IdeaModule.class, "testResourceDirs").replaceWith("testResources")
-                .willBeRemovedInGradle8()
-                .withDslReference()
-                .nagUser();
         this.testResourceDirs = testResourceDirs;
     }
 
