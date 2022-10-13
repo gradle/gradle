@@ -209,6 +209,46 @@
             ]
         },
         {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field JAVA_API_CLASSES",
+            "acceptation": "Deprecated constant removed in Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field JAVA_API_JARS",
+            "acceptation": "Deprecated constant removed in Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field JAVA_RUNTIME_CLASSES",
+            "acceptation": "Deprecated constant removed in Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field JAVA_RUNTIME_JARS",
+            "acceptation": "Deprecated constant removed in Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field JAVA_RUNTIME_RESOURCES",
+            "acceptation": "Deprecated constant removed in Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.file.SourceDirectorySet",
             "member": "Method org.gradle.api.file.SourceDirectorySet.getOutputDir()",
             "acceptation": "Deprecated method removed",
