@@ -242,18 +242,13 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         }
     }
 
-    @SuppressWarnings("deprecation")
     private static void describeUsage(Object usage, StringBuilder sb) {
         String str = toName(usage);
         switch (str) {
             case Usage.JAVA_API:
-            case Usage.JAVA_API_CLASSES:
-            case Usage.JAVA_API_JARS:
                 sb.append("an API");
                 break;
             case Usage.JAVA_RUNTIME:
-            case Usage.JAVA_RUNTIME_CLASSES:
-            case Usage.JAVA_RUNTIME_JARS:
                 sb.append("a runtime");
                 break;
             default:
