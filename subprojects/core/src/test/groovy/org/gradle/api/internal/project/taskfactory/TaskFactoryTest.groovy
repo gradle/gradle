@@ -26,7 +26,6 @@ import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.instantiation.DeserializationInstantiator
 import org.gradle.internal.instantiation.InstanceGenerator
 import org.gradle.internal.instantiation.InstantiationScheme
-import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Path
 import org.gradle.util.TestUtil

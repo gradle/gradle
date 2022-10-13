@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.util.TestUtil
-import org.junit.Test
 import spock.lang.Specification
 
 import static org.junit.Assert.assertEquals
@@ -57,7 +56,7 @@ class CompileOptionsTest extends Specification {
     def testFork() {
         compileOptions.fork = false
         assertNull(compileOptions.forkOptions.memoryMaximumSize)
-        
+
         expect:
         compileOptions.fork([memoryMaximumSize: '1g'])
         assertTrue(compileOptions.fork)

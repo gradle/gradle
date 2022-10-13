@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaLanguageVersion
