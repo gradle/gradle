@@ -75,6 +75,10 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return !(isNoDaemon() || isEmbedded());
     }
 
+    public static boolean isForceRealize() {
+        return Boolean.getBoolean("org.gradle.integtest.force.realize.metadata");
+    }
+
     public static boolean isLongLivingProcess() {
         return !isNoDaemon();
     }
