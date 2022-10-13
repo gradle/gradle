@@ -21,9 +21,7 @@ import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.SettingsLoader;
 import org.gradle.initialization.SettingsState;
 import org.gradle.internal.build.BuildIncluder;
-import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -33,13 +31,11 @@ import java.util.Set;
 public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
 
     private final SettingsLoader delegate;
-    private final BuildStateRegistry buildRegistry;
 
     private final BuildIncluder buildIncluder;
 
-    public ChildBuildRegisteringSettingsLoader(SettingsLoader delegate, BuildStateRegistry buildRegistry, BuildIncluder buildIncluder) {
+    public ChildBuildRegisteringSettingsLoader(SettingsLoader delegate, BuildIncluder buildIncluder) {
         this.delegate = delegate;
-        this.buildRegistry = buildRegistry;
         this.buildIncluder = buildIncluder;
     }
 
@@ -51,15 +47,9 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
         List<IncludedBuildSpec> includedBuilds = state.getSettings().getIncludedBuilds();
         if (!includedBuilds.isEmpty()) {
             Set<IncludedBuildInternal> children = new LinkedHashSet<>(includedBuilds.size());
-            RootBuildState rootBuild = buildRegistry.getRootBuild();
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
-                if (!includedBuildSpec.rootDir.equals(rootBuild.getBuildRootDir())) {
-                    IncludedBuildState includedBuild = buildIncluder.includeBuild(includedBuildSpec);
-                    children.add(includedBuild.getModel());
-                } else {
-                    buildRegistry.registerSubstitutionsForRootBuild();
-                    children.add(rootBuild.getModel());
-                }
+                CompositeBuildParticipantBuildState includedBuild = buildIncluder.includeBuild(includedBuildSpec);
+                children.add(includedBuild.getModel());
             }
 
             // Set the visible included builds

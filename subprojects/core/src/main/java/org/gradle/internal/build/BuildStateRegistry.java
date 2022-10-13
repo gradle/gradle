@@ -71,11 +71,6 @@ public interface BuildStateRegistry {
     void finalizeIncludedBuilds();
 
     /**
-     * Notification that the root build has just finished configuration.
-     */
-    void afterConfigureRootBuild();
-
-    /**
      * Creates an included build. An included build is-a nested build whose projects and outputs are treated as part of the composite build.
      */
     IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition);
@@ -104,15 +99,10 @@ public interface BuildStateRegistry {
     /**
      * Register dependency substitutions for the given build.
      */
-    void registerSubstitutionsFor(IncludedBuildState build);
+    void registerSubstitutionsFor(CompositeBuildParticipantBuildState build);
 
     /**
-     * Register dependency substitutions for the root build itself. This way, the projects of the root build can be addressed by coordinates as the projects of all other builds.
-     */
-    void registerSubstitutionsForRootBuild();
-
-    /**
-     * Ensures that this project and any builds it includes are configured and their publications are registered.
+     * Ensures that the given build and any builds it includes are configured and their publications are registered.
      */
     void ensureConfigured(IncludedBuildState buildState);
 

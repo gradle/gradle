@@ -27,6 +27,7 @@ import org.gradle.initialization.buildsrc.BuildSrcDetector;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.RootBuildState;
@@ -65,8 +66,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final Map<File, IncludedBuildState> includedBuildsByRootDir = new LinkedHashMap<>();
     private final Map<Path, File> includedBuildDirectoriesByPath = new LinkedHashMap<>();
     private final Deque<IncludedBuildState> pendingIncludedBuilds = new ArrayDeque<>();
-    private boolean registerSubstitutionsForRootBuild;
-    private final Set<IncludedBuildState> currentlyConfiguring = new HashSet<>();
+    private final Set<CompositeBuildParticipantBuildState> currentlyConfiguring = new HashSet<>();
 
     public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, ListenerManager listenerManager, BuildStateFactory buildStateFactory) {
         this.includedBuildFactory = includedBuildFactory;
@@ -150,13 +150,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public void afterConfigureRootBuild() {
-        if (registerSubstitutionsForRootBuild) {
-            dependencySubstitutionsBuilder.build(rootBuild);
-        }
-    }
-
-    @Override
     public void finalizeIncludedBuilds() {
         while (!pendingIncludedBuilds.isEmpty()) {
             IncludedBuildState build = pendingIncludedBuilds.removeFirst();
@@ -165,7 +158,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public void registerSubstitutionsFor(IncludedBuildState build) {
+    public void registerSubstitutionsFor(CompositeBuildParticipantBuildState build) {
         currentlyConfiguring.add(build);
         dependencySubstitutionsBuilder.build(build);
         currentlyConfiguring.remove(build);
@@ -201,11 +194,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         Path identityPath = assignPath(owner, name, dir);
         BuildIdentifier buildIdentifier = idFor(name);
         return buildStateFactory.createNestedTree(buildDefinition, buildIdentifier, identityPath, owner);
-    }
-
-    @Override
-    public void registerSubstitutionsForRootBuild() {
-        registerSubstitutionsForRootBuild = true;
     }
 
     @Override

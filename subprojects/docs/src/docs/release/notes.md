@@ -254,7 +254,10 @@ In Java projects, these tools will use the same version of Java required by the 
 #### Run `buildSrc` tasks
 TODO - Can now run the tasks of `buildSrc` from the command-line, using the same syntax as tasks of included builds, eg `gradle buildSrc:build`.
 
-### Init scripts are applied to `buildSrc`
+#### `buildSrc` can include other builds
+TODO - can include builds in `buildSrc` - via `pluginsManagement { includeBuild() }` or `includeBuild()`
+
+#### Init scripts are applied to `buildSrc`
 TODO - init scripts are applied to `buildSrc`, which is the same for included builds.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

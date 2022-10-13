@@ -22,20 +22,65 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
-    def "buildSrc cannot (yet) define any included builds"() {
+    def "buildSrc can use a library from a build that it includes"() {
         file("buildSrc/settings.gradle") << """
-            includeBuild "child"
+            includeBuild("../included")
         """
-        file("buildSrc/child/settings.gradle").createFile()
+        file("buildSrc/build.gradle") << """
+            dependencies {
+                implementation("test.lib:lib:1.0")
+            }
+        """
+        writeLibraryTo(file("included"))
+        useLibraryFrom(file("buildSrc"))
 
         when:
-        fails()
+        run()
 
         then:
-        failure.assertHasDescription("Cannot include build 'child' in build 'buildSrc'. This is not supported yet.")
+        result.assertTaskExecuted(":included:jar")
+        result.assertTaskExecuted(":buildSrc:jar")
     }
 
-    def "buildSrc can apply plugins contributed by other included builds"() {
+    def "buildSrc can use a library from a build included by the root build"() {
+        file("buildSrc/build.gradle") << """
+            dependencies {
+                implementation("test.lib:lib:1.0")
+            }
+        """
+        writeLibraryTo(file("included"))
+        useLibraryFrom(file("buildSrc"))
+
+        settingsFile << """
+            includeBuild("included")
+        """
+
+        when:
+        run()
+
+        then:
+        result.assertTaskExecuted(":included:jar")
+        result.assertTaskExecuted(":buildSrc:jar")
+    }
+
+    def "buildSrc can apply plugins contributed by a build that it includes"() {
+        file("buildSrc/settings.gradle") << """
+            includeBuild("../included")
+        """
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "test-plugin"
+            }
+        """
+        writePluginTo(file("included"))
+
+        when:
+        succeeds("help")
+        then:
+        outputContains("test-plugin applied to :buildSrc")
+    }
+
+    def "buildSrc can apply plugins contributed by a build included by the root build"() {
         file("buildSrc/build.gradle") << """
             plugins {
                 id "test-plugin"
@@ -53,7 +98,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("test-plugin applied to :buildSrc")
     }
 
-    def "buildSrc can apply plugins contributed by other included builds from CLI"() {
+    def "buildSrc can apply plugins contributed by a build included from CLI"() {
         file("buildSrc/build.gradle") << """
             plugins {
                 id "test-plugin"
@@ -67,7 +112,46 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("test-plugin applied to :buildSrc")
     }
 
-    def "buildSrc can apply settings plugins contributed by other included builds"() {
+    def "buildSrc can apply plugins contributed by a build that it includes via pluginManagement"() {
+        file("buildSrc/settings.gradle") << """
+            pluginManagement {
+                includeBuild("../included")
+            }
+        """
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "test-plugin"
+            }
+        """
+        writePluginTo(file("included"))
+
+        when:
+        succeeds("help")
+        then:
+        outputContains("test-plugin applied to :buildSrc")
+    }
+
+    def "buildSrc can apply settings plugins contributed by a build it includes via pluginManagement"() {
+        file("buildSrc/settings.gradle") << """
+            pluginManagement {
+                includeBuild("../included")
+            }
+            plugins {
+                id "test-settings-plugin"
+            }
+        """
+
+        def pluginBuilder = new PluginBuilder(file("included"))
+        pluginBuilder.addSettingsPlugin("println 'test-settings-plugin applied to ' + settings.gradle.publicBuildPath.buildPath")
+        pluginBuilder.prepareToExecute()
+
+        when:
+        succeeds("help")
+        then:
+        outputContains("test-settings-plugin applied to :buildSrc")
+    }
+
+    def "buildSrc can apply settings plugins contributed by a build included by the root build"() {
         file("buildSrc/settings.gradle") << """
             plugins {
                 id "test-settings-plugin"
@@ -108,7 +192,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("test-plugin applied to :buildSrc")
     }
 
-    def "buildSrc can depend on dependencies contributed by other included builds"() {
+    def "buildSrc can depend on plugins contributed by a build included by the root build"() {
         file("buildSrc/build.gradle") << """
             plugins {
                 id "groovy-gradle-plugin"
@@ -176,7 +260,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Compilation failed; see the compiler error output for details.")
     }
 
-    def "buildSrc can apply plugins contributed by other included builds and use them in plugins for the root build"() {
+    def "buildSrc can apply plugins contributed by a build included by the root build and use them in plugins for the root build"() {
         file("buildSrc/build.gradle") << """
             plugins {
                 id "test-plugin"
@@ -217,4 +301,27 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         pluginBuilder.prepareToExecute()
     }
 
+    private void writeLibraryTo(TestFile projectDir) {
+        projectDir.file("settings.gradle") << """
+            rootProject.name = "lib"
+        """
+        projectDir.file("build.gradle") << """
+            plugins { id("java-library") }
+
+            group = "test.lib"
+        """
+        projectDir.file("src/main/java/lib/Lib.java") << """
+            package lib;
+            public class Lib { }
+        """
+    }
+
+    private void useLibraryFrom(TestFile projectDir) {
+        projectDir.file("src/main/java/Consumer.java") << """
+            import lib.Lib;
+            class Consumer {
+                Lib lib = new Lib();
+            }
+        """
+    }
 }
