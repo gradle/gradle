@@ -54,7 +54,7 @@ A single project can contain many subprojects, which can each contain their own 
 Tasks contain the logic that implements builds.
 In most use cases, you'll use or extend existing tasks, like the built-in Java `test` task.
 Gradle provides task implementations for many common build sytem goals, like running tests and creating archives.
-Plugins provide even more task implementations.
+Plugins provide even more types of tasks.
 
 Tasks themselves consist of:
 
