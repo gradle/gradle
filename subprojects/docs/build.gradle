@@ -618,15 +618,9 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.incubating-java-modules-*.sample"
             excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-library-module*.sample'
         }
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
-            // Disable tests that use JaCoCo under JDK 18 until JaCoCo 0.8.8 is released.
-            excludeTestsMatching "org.gradle.docs.samples.SamplesTest.structuring-software-projects_*_aggregate-reports.sample"
-            excludeTestsMatching "org.gradle.docs.samples.SamplesTest.structuring-software-projects_*_umbrella-build.sample"
-            excludeTestsMatching "org.gradle.docs.samples.SamplesTest.jvm-multi-project-with-code-coverage-*.sample"
-            excludeTestsMatching "org.gradle.docs.samples.*.snippet-testing-jacoco-application*.sample"
-
+        if (OperatingSystem.current().windows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
             // Disable tests that suffer from charset issues under JDK 18 for now
-            excludeTestsMatching "org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv-model.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-model-rules-basic-rule-source-plugin_*_basicRuleSourcePlugin-model-task.sample"
         }
         if (!javaVersion.java11Compatible) {
@@ -769,10 +763,6 @@ tasks.named("docsTest") { task ->
                 // TODO(https://github.com/gradle/gradle/issues/21640)
                 "snippet-maven-publish-conditional-publishing_groovy_publishingMavenConditionally.sample",
                 "snippet-maven-publish-conditional-publishing_kotlin_publishingMavenConditionally.sample",
-
-                // TODO(https://github.com/gradle/gradle/issues/19252)
-                "snippet-providers-implicit-task-input-dependency_groovy_implicitTaskInputDependency.sample",
-                "snippet-providers-implicit-task-input-dependency_kotlin_implicitTaskInputDependency.sample",
 
                 // TODO(https://github.com/gradle/gradle/issues/13470) Signing plugin support
                 "snippet-signing-configurations_groovy_signingArchivesOutput.sample",

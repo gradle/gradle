@@ -697,38 +697,6 @@
             ]
         },
         {
-            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
-            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getTestResourceDirs()",
-            "acceptation": "Removed deprecated method in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
-            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.getTestSourceDirs()",
-            "acceptation": "Removed deprecated method in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
-            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.setTestResourceDirs(java.util.Set)",
-            "acceptation": "Removed deprecated method in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.plugins.ide.idea.model.IdeaModule",
-            "member": "Method org.gradle.plugins.ide.idea.model.IdeaModule.setTestSourceDirs(java.util.Set)",
-            "acceptation": "Removed deprecated method in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
             "type": "org.gradle.process.JavaExecSpec",
             "member": "Method org.gradle.process.JavaExecSpec.getMain()",
             "acceptation": "Removed for Gradle 8.0",

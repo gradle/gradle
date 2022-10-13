@@ -58,6 +58,34 @@ Usage of invalid Java toolchain specifications is no longer supported.
 Related build errors can be avoided by making sure that language version is set on all toolchain specifications.
 See <<toolchains#sec:configuring_toolchain_specifications,user manual>> for more information.
 
+==== Changing test framework after setting test framework options is now an error
+
+When configuring the built-in test task for Java, Groovy, and Scala projects, Gradle no longer allows you to
+change the test framework used by the `Test` task after configuring options. This was deprecated since it silently
+discarded configuration in some cases.
+
+The following code example now produces an error:
+```
+test {
+   options {
+   }
+
+   useJUnitPlatform()
+}
+```
+Instead, you can:
+
+- set the test framework before configuring options
+- migrate to the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>>
+```
+test {
+   // select test framework before configuring options
+   useJUnitPlatform()
+   options {
+   }
+}
+```
+
 === Removed APIs
 
 ==== Legacy ArtifactTransform API
@@ -74,11 +102,6 @@ The legacy `IncrementalTaskInputs` API has been removed. For more information, s
 The legacy `AntlrSourceVirtualDirectory` API has been removed.
 This change affects the `antlr` plugin.
 In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
-
-=== Legacy test sources configuration in `idea` plugin
-
-The deprecated `IdeaModule.getTestSourceDirs()` and `IdeaModule.getTestResourceDirs()` were removed in Gradle 8.0.
-You should use `IdeaModule.getTestSources()` and `IdeaModule.getTestResources()` instead.
 
 === Potential breaking changes
 
@@ -309,6 +332,19 @@ These members will be removed in Gradle 9.0.
 [[dependency_factory_renamed]]
 ==== Internal DependencyFactory was renamed
 The internal `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory` type was renamed to `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal`. As an internal type, it should not be used, but for compatibility reasons the inner `ClassPathNotation` type is still available. This name for the type is deprecated and will be removed in Gradle 8.0. The public API for this is on `DependencyHandler`, with methods such as `localGroovy()` providing the same functionality.
+
+==== Replacement collections in `org.gradle.plugins.ide.idea.model.IdeaModule`
+
+The `testResourcesDirs` and `testSourcesDirs` fields and their getters and setters have been deprecated.
+Replace usages with the now stable `getTestSources()` and `getTestResources()` methods and their respective setters.
+These new methods return and are backed by `ConfigurableFileCollection` instances for improved flexibility of use.
+Gradle now warns upon usage of these deprecated methods. They will be removed in a future version of Gradle.
+
+==== Replacement methods in `org.gradle.api.tasks.testing.TestReport`
+
+The `getDestinationDir()`, `setDestinationDir(File)`, and `getTestResultsDirs()` and `setTestResultsDirs(Iterable)` methods have been deprecated.
+Replace usages with the now stable `getDestinationDirectory()` and `getTestResults()` methods and their associated setters.
+These deprecated elements will be removed in a future version of Gradle.
 
 [[referencing_script_configure_method_from_container_configure_closure_deprecated]]
 ==== Implicitly referencing outer scope methods in some configuration blocks in Groovy DSL is now deprecated
