@@ -86,9 +86,7 @@ Runs the tasks selected at the end of the configuration phase.
 
 === Builds
 
-A build is an execution of a collection of tasks in a Gradle project. You instantiate a build with a Gradle command
-via the CLI or an IDE. In the command, you specify a task or tasks. Gradle determines the complete set of tasks to run based
-on inter-task dependencies, and runs the smallest set of tasks required to complete the specified task and its dependencies.
+A build is an execution of a collection of tasks in a Gradle project. You run a build via the CLI or an IDE by specifying task selectors. Gradle configures the build and selects the tasks to run. Gradle runs the smallest complete set of tasks required from the requested tasks and their dependencies.
 
 == Optimizations
 
