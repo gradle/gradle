@@ -499,9 +499,9 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withWarningMode(WarningMode warningMode);
 
     /**
-     * Execute the builds without adding the {@code "--stacktrace"} argument.
+     * Execute the builds with adding the {@code "--stacktrace"} argument.
      */
-    GradleExecuter withStacktraceDisabled();
+    GradleExecuter withStacktraceEnabled();
 
     /**
      * Renders the welcome message users see upon first invocation of a Gradle distribution with a given Gradle user home directory.
