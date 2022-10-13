@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Requires
 import org.gradle.util.internal.TextUtil
 import spock.lang.IgnoreIf
@@ -59,7 +60,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
         where:
         what         | configure                                       | appendPath
         "java home"  | 'options.forkOptions.javaHome = file("<path>")' | ''
-        "executable" | 'options.forkOptions.executable = "<path>"'     | '/bin/javac'
+        "executable" | 'options.forkOptions.executable = "<path>"'     | OperatingSystem.current().getExecutableName('/bin/javac')
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
