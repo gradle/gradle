@@ -213,7 +213,7 @@ include::{snippetsPath}/tutorial/configureObjectUsingScript/tests/configureObjec
 [[groovy-dsl-basics]]
 == Helpful Groovy Syntax
 
-Groovy provides many features to help create DSLs. These features can help you write better build scripts, plugins, and tasks.
+Groovy provides many features to help create DSLs. These features can help you write more idiomatic build scripts, plugins, and tasks.
 
 [TIP]
 Looking for helpful Kotlin syntax? Check out the link:https://kotlinlang.org/docs/reference/[Kotlin reference documentation] and link:https://kotlinlang.org/docs/tutorials/koans.html[Kotlin Koans].
