@@ -19,6 +19,7 @@ package org.gradle.buildinit.tasks;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
@@ -79,6 +80,7 @@ public class InitBuild extends DefaultTask {
      */
     @Input
     @Optional
+    @Incubating
     @Option(option = "overwrite", description = "Allow any existing files in the current directory to be overwritten?")
     public Property<Boolean> getAllowFileOverwrite() {
         return allowFileOverwrite;
