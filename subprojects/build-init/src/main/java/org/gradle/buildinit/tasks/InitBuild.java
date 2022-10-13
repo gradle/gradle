@@ -77,7 +77,7 @@ public class InitBuild extends DefaultTask {
      *
      * This property can be set via command-line option '--overwrite'. Defaults to true.
      *
-     * @since TODO
+     * @since 8.0
      */
     @Input
     @Optional
