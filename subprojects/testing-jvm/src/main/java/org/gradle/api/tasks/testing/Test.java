@@ -21,7 +21,6 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
@@ -903,7 +902,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @since 7.3
      */
-    @Incubating
     @Nested
     public Property<TestFramework> getTestFrameworkProperty() {
         return testFramework;
