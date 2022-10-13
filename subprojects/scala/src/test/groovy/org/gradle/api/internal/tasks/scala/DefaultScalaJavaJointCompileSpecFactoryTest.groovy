@@ -24,15 +24,26 @@ import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
 @Subject(DefaultScalaJavaJointCompileSpecFactory)
 class DefaultScalaJavaJointCompileSpecFactoryTest extends Specification {
 
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+
     def 'produces correct spec type for toolchains'() {
+        // Make sure other Java home is valid from Jvm.forHome point of view and compiler executable exists
+        def otherJavaHome = tmpDir.createDir("other-java-home")
+        otherJavaHome.createDir("bin")
+        otherJavaHome.file("bin/java").touch()
+        otherJavaHome.file("bin/javac").touch()
+
         def version = currentVM == 'current' ? Jvm.current().javaVersion.majorVersion : currentVM
-        def javaHome = currentVM == 'current' ? Jvm.current().javaHome : new File('other').absoluteFile
+        def javaHome = currentVM == 'current' ? Jvm.current().javaHome : otherJavaHome.absoluteFile
 
         JavaInstallationMetadata metadata = Mock(JavaInstallationMetadata)
         metadata.languageVersion >> JavaLanguageVersion.of(version)
@@ -52,13 +63,13 @@ class DefaultScalaJavaJointCompileSpecFactoryTest extends Specification {
         CommandLineJavaCompileSpec.isAssignableFrom(spec.getClass()) == implementsCommandLine
 
         where:
-        currentVM   | fork  | implementsForking | implementsCommandLine
-        'current'   | false | false             | false
-        'current'   | true  | true              | false
-        '7'         | false | false             | true
-        '7'         | true  | false             | true
-        '14'        | false | true              | false
-        '14'        | true  | true              | false
+        currentVM | fork  | implementsForking | implementsCommandLine
+        'current' | false | false             | false
+        'current' | true  | true              | false
+        '7'       | false | false             | true
+        '7'       | true  | false             | true
+        '14'      | false | true              | false
+        '14'      | true  | true              | false
     }
 
 }
