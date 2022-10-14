@@ -43,7 +43,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
     Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def task = Mock(Task)
     def dependencies = ImmutableSet.of(task)
-    def taskDependency = new DefaultTaskDependency(null, dependencies)
+    def taskDependency = TestFiles.taskDependencyFactory().configurableDependency(dependencies)
     def fileNotationParser = Mock(NotationParser)
     def publishArtifact = Stub(PublishArtifact) {
         getExtension() >> 'extension'

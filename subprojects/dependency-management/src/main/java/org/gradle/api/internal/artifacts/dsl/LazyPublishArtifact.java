@@ -143,12 +143,9 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                context.add(provider);
-            }
-        };
+        return taskDependencyFactory.visitingDependencies(context -> {
+            context.add(provider);
+        });
     }
 
     @Override

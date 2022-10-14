@@ -24,9 +24,7 @@ import org.gradle.api.internal.DelegatingDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Describables;
 
@@ -56,6 +54,11 @@ public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<Publish
     ) {
         super(backingSet);
         this.displayName = displayName;
+        this.builtBy = taskDependencyFactory.visitingDependencies(context -> {
+            for (PublishArtifact publishArtifact : DefaultPublishArtifactSet.this) {
+                context.add(publishArtifact);
+            }
+        });
         this.files = fileCollectionFactory.create(builtBy, new ArtifactsFileCollection());
     }
 
@@ -87,15 +90,6 @@ public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<Publish
                 files.add(artifact.getFile());
             }
             return files;
-        }
-    }
-
-    private class ArtifactsTaskDependency extends AbstractTaskDependency {
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            for (PublishArtifact publishArtifact : DefaultPublishArtifactSet.this) {
-                context.add(publishArtifact);
-            }
         }
     }
 }

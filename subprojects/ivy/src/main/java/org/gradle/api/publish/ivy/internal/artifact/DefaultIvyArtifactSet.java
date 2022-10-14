@@ -47,7 +47,13 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
         super(IvyArtifact.class, collectionCallbackActionDecorator);
         this.publicationName = publicationName;
         this.ivyArtifactParser = ivyArtifactParser;
-        this.files = fileCollectionFactory.create(new ArtifactsTaskDependency(), new ArtifactsFileCollection());
+        this.files = fileCollectionFactory.create(
+            taskDependencyFactory.visitingDependencies(context -> {
+                for (IvyArtifact ivyArtifact : this) {
+                    context.add(ivyArtifact);
+                }
+            }), new ArtifactsFileCollection()
+        );
     }
 
     @Override
@@ -82,15 +88,6 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
                 files.add(artifact.getFile());
             }
             return files;
-        }
-    }
-
-    private class ArtifactsTaskDependency extends AbstractTaskDependency {
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            for (IvyArtifact ivyArtifact : DefaultIvyArtifactSet.this) {
-                context.add(ivyArtifact);
-            }
         }
     }
 }
