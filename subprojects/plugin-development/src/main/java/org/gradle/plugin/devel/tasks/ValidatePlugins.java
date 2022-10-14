@@ -59,7 +59,7 @@ import java.util.List;
 public abstract class ValidatePlugins extends DefaultTask {
 
     public ValidatePlugins() {
-        getEnableStricterValidation().convention(false);
+        getEnableStricterValidation().convention(true);
         getIgnoreFailures().convention(false);
         getFailOnWarning().convention(true);
     }
