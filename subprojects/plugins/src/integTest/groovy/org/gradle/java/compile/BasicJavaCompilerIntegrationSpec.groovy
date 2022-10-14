@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
@@ -128,6 +129,7 @@ compileJava.options.debug = false
         !noDebug.debugIncludesLocalVariables
     }
 
+    @Ignore
     // JavaFx was removed in JDK 10
     // We don't have Oracle Java 8 on Windows any more
     @Requires([TestPrecondition.JDK9_OR_EARLIER, TestPrecondition.NOT_WINDOWS])
