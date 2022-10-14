@@ -95,6 +95,7 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
@@ -104,9 +105,11 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildState;
@@ -139,6 +142,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.util.internal.SimpleMapInterner;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
@@ -198,7 +202,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         void configure(ServiceRegistration registration) {
             registration.add(DefaultTransformedVariantFactory.class);
-            registration.add(DefaultConfigurationFactory.class);
             registration.add(DefaultRootComponentMetadataBuilder.Factory.class);
             registration.add(ProjectDependencyResolver.class);
         }
@@ -328,6 +331,30 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory, CollectionCallbackActionDecorator callbackDecorator) {
             return instantiator.newInstance(DefaultRepositoryHandler.class, baseRepositoryFactory, instantiator, callbackDecorator);
+        }
+
+        DefaultConfigurationFactory createDefaultConfigurationFactory(
+            Instantiator instantiator,
+            ConfigurationResolver resolver,
+            ListenerManager listenerManager,
+            DependencyMetaDataProvider metaDataProvider,
+            DomainObjectContext domainObjectContext,
+            FileCollectionFactory fileCollectionFactory,
+            BuildOperationExecutor buildOperationExecutor,
+            PublishArtifactNotationParserFactory artifactNotationParserFactory,
+            ImmutableAttributesFactory attributesFactory,
+            DocumentationRegistry documentationRegistry,
+            UserCodeApplicationContext userCodeApplicationContext,
+            ProjectStateRegistry projectStateRegistry,
+            WorkerThreadRegistry workerThreadRegistry,
+            DomainObjectCollectionFactory domainObjectCollectionFactory,
+            CalculatedValueContainerFactory calculatedValueContainerFactory,
+            TaskDependencyFactory taskDependencyFactory
+        ) {
+            return new DefaultConfigurationFactory(instantiator, resolver, listenerManager, metaDataProvider, domainObjectContext, fileCollectionFactory,
+                buildOperationExecutor, artifactNotationParserFactory, attributesFactory, documentationRegistry, userCodeApplicationContext, projectStateRegistry, workerThreadRegistry,
+                domainObjectCollectionFactory, calculatedValueContainerFactory, taskDependencyFactory
+            );
         }
 
         ConfigurationContainerInternal createConfigurationContainer(
