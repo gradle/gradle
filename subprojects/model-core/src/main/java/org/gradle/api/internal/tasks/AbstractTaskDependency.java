@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.transform.TransformationDependency;
 
 import javax.annotation.Nullable;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static java.util.Arrays.asList;
 import static org.gradle.api.internal.tasks.WorkDependencyResolver.TASK_AS_TASK;
@@ -44,6 +45,17 @@ public abstract class AbstractTaskDependency implements TaskDependencyContainerI
             return node instanceof TransformationDependency || node instanceof WorkNodeAction;
         }
     };
+
+    private Supplier<String> toStringProvider = null;
+
+    public void setToStringProvider(Supplier<String> toStringProvider) {
+        this.toStringProvider = toStringProvider;
+    }
+
+    @Override
+    public String toString() {
+        return toStringProvider != null ? toStringProvider.get() : super.toString();
+    }
 
     @Override
     public Set<? extends Task> getDependencies(@Nullable Task task) {

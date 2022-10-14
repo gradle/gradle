@@ -17,9 +17,7 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 
@@ -36,7 +34,7 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
         this.generator = generator;
         this.extension = extension;
         this.classifier = classifier;
-        this.buildDependencies = new GeneratorTaskDependency();
+        this.buildDependencies = taskDependencyFactory.visitingDependencies(context -> context.add(getGenerator()));
     }
 
     @Override
@@ -65,13 +63,6 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
 
     public boolean isEnabled() {
         return getGenerator().getEnabled();
-    }
-
-    private class GeneratorTaskDependency extends AbstractTaskDependency {
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(getGenerator());
-        }
     }
 
     @Override

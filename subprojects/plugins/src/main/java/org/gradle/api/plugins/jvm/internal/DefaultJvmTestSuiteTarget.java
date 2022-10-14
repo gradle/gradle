@@ -17,8 +17,6 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Buildable;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -58,11 +56,6 @@ public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, B
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                context.add(getTestTask());
-            }
-        };
+        return taskDependencyFactory.visitingDependencies(context -> context.add(getTestTask()));
     }
 }

@@ -296,7 +296,7 @@ public class GenerateModuleMetadata extends DefaultTask {
         @Override
         @Nonnull
         public TaskDependency getBuildDependencies() {
-            DefaultTaskDependency dependency = new DefaultTaskDependency();
+            DefaultTaskDependency dependency = taskDependencyFactory.configurableDependency();
             SoftwareComponentInternal component = component();
             if (component != null) {
                 forEachArtifactOf(component, dependency::add);

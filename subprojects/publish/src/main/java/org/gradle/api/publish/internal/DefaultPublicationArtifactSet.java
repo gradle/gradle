@@ -21,8 +21,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 
@@ -44,14 +42,12 @@ public class DefaultPublicationArtifactSet<T extends PublicationArtifact> extend
     ) {
         super(type, collectionCallbackActionDecorator);
         this.name = name;
-        files = fileCollectionFactory.create(new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
+        files = fileCollectionFactory.create(taskDependencyFactory.visitingDependencies(context -> {
                 for (PublicationArtifact artifact : DefaultPublicationArtifactSet.this) {
                     context.add(artifact.getBuildDependencies());
                 }
             }
-        }, new MinimalFileSet() {
+        ), new MinimalFileSet() {
             @Override
             public String getDisplayName() {
                 return DefaultPublicationArtifactSet.this.name;
