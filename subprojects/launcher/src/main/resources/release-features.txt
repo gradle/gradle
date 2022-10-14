@@ -1,3 +1,4 @@
  - Added support for Java 19.
  - Introduced `--rerun` flag for individual task rerun.
  - Added support for incremental compilation following a compilation failure.
+ - Added Service Provider Interface (SPI) for Java Toolchains
