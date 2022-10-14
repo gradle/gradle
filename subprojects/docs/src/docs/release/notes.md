@@ -376,7 +376,7 @@ This change supports builds and plugins that need to behave differently during c
 For more information, see [the `--offline` CLI option](userguide/command_line_interface.html#sec:command_line_execution_options).
 
 <a name="plugin"></a>
-### Plugin
+### Plugin Development
 
 #### Introduced support for task options of type `Integer`
 
