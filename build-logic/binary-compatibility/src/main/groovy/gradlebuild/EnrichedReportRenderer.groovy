@@ -53,6 +53,7 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
     }
 
     private static String buildFixAllButton(String currentApiChanges) {
+        // language=javascript
         return """
             <script type="text/javascript">
                 function getAllErrorCorrections() {
@@ -62,15 +63,28 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
                     return result;
                 }
 
-                function appendErrorCorrections() {
+                function appendErrorCorrections(reason) {
                     var result = JSON.parse('${currentApiChanges.replace('\n', '')}'); // JSON string from report uses double quotes, contain it within single quotes
-                    getAllErrorCorrections().forEach((correction) => result.acceptedApiChanges.push(correction));
-                    result.acceptedApiChanges = result.acceptedApiChanges.sort((a, b) => (a.type + a.member) - (b.type + b.member));
+                    getAllErrorCorrections().forEach((correction) => {
+                        correction.acceptation = reason;
+                        result.acceptedApiChanges.push(correction);
+                    });
+                    // Sort the array in place by type, then member
+                    result.acceptedApiChanges = result.acceptedApiChanges.sort((a, b) => (a.type +'#' + a.member) > (b.type + '#' + b.member));
+                    // Remove duplicates (equal adjacent elements) - a new, un@Incubating type will be here twice, as 2 errors are reported; use stringified JSON to compare
+                    // Filtering an array is NOT in place
+                    result.acceptedApiChanges = result.acceptedApiChanges.filter((item, pos, ary) => (!pos || (JSON.stringify(item) != JSON.stringify(ary[pos - 1]))));
                     return result;
                 }
 
                 function acceptAllErrorCorrections() {
-                    var textToWrite = JSON.stringify(appendErrorCorrections(), null, 4) + "\\n";
+                    var reason = prompt("Enter a reason for accepting these changes:");
+                    if (!reason) {
+                        alert("You must enter a reason to accept all changes.");
+                        return;
+                    }
+
+                    var textToWrite = JSON.stringify(appendErrorCorrections(reason), null, 4) + "\\n";
                     var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
                     var fileNameToSaveAs = 'accepted-public-api-changes.json';
 
@@ -96,6 +110,7 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
      * own javascript based filtering logic is attached with jQuery.
      */
     private static String buildAutoSelectSeverityFilter() {
+        // language=javascript
         return """
             <script type="text/javascript">
                 document.addEventListener("DOMContentLoaded", function(event) {

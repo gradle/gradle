@@ -16,7 +16,6 @@
 
 package org.gradle.api.attributes;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -74,7 +73,6 @@ public interface AttributeContainer extends HasAttributes {
      * @return this container
      * @since 7.4
      */
-    @Incubating
     <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider);
 
     /**
