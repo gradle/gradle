@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.javadoc
+package org.gradle.api.tasks.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
