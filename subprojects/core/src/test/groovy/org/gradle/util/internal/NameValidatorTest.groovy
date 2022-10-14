@@ -52,7 +52,7 @@ class NameValidatorTest extends Specification {
         ["artifact types", new DefaultArtifactTypeContainer(TestUtil.instantiatorFactory().decorateLenient(), AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP)],
         ["configurations", new DefaultConfigurationContainer(TestUtil.instantiatorFactory().decorateLenient(), null, null, null, AttributeTestUtil.attributesFactory(), null, null, null, CollectionCallbackActionDecorator.NOOP, null, TestUtil.objectFactory(), rootComponentMetaDataBuilderFactory, null)],
         ["flavors", new DefaultFlavorContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)],
-        ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), null, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.objectFactory(), CollectionCallbackActionDecorator.NOOP)]
+        ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), TestFiles.taskDependencyFactory(), null, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.objectFactory(), CollectionCallbackActionDecorator.NOOP)]
     ]
 
     def cleanup() {

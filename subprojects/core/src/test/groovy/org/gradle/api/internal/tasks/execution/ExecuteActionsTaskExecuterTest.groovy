@@ -24,6 +24,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -40,17 +41,17 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.WorkValidationContext
-import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
-import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputsCleaner
 import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
@@ -199,6 +200,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         listenerManager,
         reservedFileSystemLocationRegistry,
         fileCollectionFactory,
+        TestFiles.taskDependencyFactory(),
         fileOperations
     )
 

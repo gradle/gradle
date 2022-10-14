@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
@@ -34,15 +35,25 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<PublishArtifact> implements PublishArtifactSet {
-    private final TaskDependencyInternal builtBy = new ArtifactsTaskDependency();
+    private final TaskDependencyInternal builtBy;
     private final FileCollection files;
     private final Describable displayName;
 
-    public DefaultPublishArtifactSet(String displayName, DomainObjectSet<PublishArtifact> backingSet, FileCollectionFactory fileCollectionFactory) {
-        this(Describables.of(displayName), backingSet, fileCollectionFactory);
+    public DefaultPublishArtifactSet(
+        String displayName,
+        DomainObjectSet<PublishArtifact> backingSet,
+        FileCollectionFactory fileCollectionFactory,
+        TaskDependencyFactory taskDependencyFactory
+    ) {
+        this(Describables.of(displayName), backingSet, fileCollectionFactory, taskDependencyFactory);
     }
 
-    public DefaultPublishArtifactSet(Describable displayName, DomainObjectSet<PublishArtifact> backingSet, FileCollectionFactory fileCollectionFactory) {
+    public DefaultPublishArtifactSet(
+        Describable displayName,
+        DomainObjectSet<PublishArtifact> backingSet,
+        FileCollectionFactory fileCollectionFactory,
+        TaskDependencyFactory taskDependencyFactory
+    ) {
         super(backingSet);
         this.displayName = displayName;
         this.files = fileCollectionFactory.create(builtBy, new ArtifactsFileCollection());

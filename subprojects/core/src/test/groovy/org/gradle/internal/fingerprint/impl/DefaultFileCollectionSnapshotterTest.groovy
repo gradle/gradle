@@ -45,7 +45,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
         file.text = "content"
 
         when:
-        def tree = new FileTreeAdapter(TestFiles.directoryFileTreeFactory().create(file), TestFiles.patternSetFactory)
+        def tree = new FileTreeAdapter(TestFiles.directoryFileTreeFactory().create(file), TestFiles.taskDependencyFactory(), TestFiles.patternSetFactory)
 
         then:
         assertSingleFileTree(tree)

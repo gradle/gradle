@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -27,7 +28,8 @@ public class PublishArtifactBasedIvyArtifact extends AbstractIvyArtifact {
     private final PublishArtifact artifact;
     private final IvyPublicationIdentity identity;
 
-    public PublishArtifactBasedIvyArtifact(PublishArtifact artifact, IvyPublicationIdentity identity) {
+    public PublishArtifactBasedIvyArtifact(PublishArtifact artifact, IvyPublicationIdentity identity, TaskDependencyFactory taskDependencyFactory) {
+        super(taskDependencyFactory);
         this.artifact = artifact;
         this.identity = identity;
     }

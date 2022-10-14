@@ -69,7 +69,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private ValueCollector value = EMPTY_COLLECTOR;
 
     public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, TaskDependencyFactory dependencyFactory, Factory<PatternSet> patternSetFactory, PropertyHost host) {
-        super(patternSetFactory);
+        super(dependencyFactory, patternSetFactory);
         this.displayName = displayName;
         this.resolver = fileResolver;
         this.dependencyFactory = dependencyFactory;
@@ -243,7 +243,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             public void visitCollection(Source source, Iterable<File> contents) {
                 ImmutableSet<File> files = ImmutableSet.copyOf(contents);
                 if (!files.isEmpty()) {
-                    builder.add(new FileCollectionAdapter(new ListBackedFileSet(files), patternSetFactory));
+                    builder.add(new FileCollectionAdapter(new ListBackedFileSet(files), taskDependencyFactory, patternSetFactory));
                 }
             }
 
@@ -323,7 +323,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         @Override
         public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object[] paths) {
-            return new UnresolvedItemsCollector(resolver, patternSetFactory, paths);
+            return new UnresolvedItemsCollector(resolver, taskDependencyFactory, patternSetFactory, paths);
         }
 
         @Override
@@ -341,16 +341,19 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private static class UnresolvedItemsCollector implements ValueCollector {
         private final PathToFileResolver resolver;
         private final Factory<PatternSet> patternSetFactory;
+        private final TaskDependencyFactory taskDependencyFactory;
         private final Set<Object> items = new LinkedHashSet<>();
 
         public UnresolvedItemsCollector(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Iterable<?> item) {
             this.resolver = resolver;
             this.patternSetFactory = patternSetFactory;
+            this.taskDependencyFactory = taskDependencyFactory;
             setFrom(owner, resolver, patternSetFactory, taskDependencyFactory, propertyHost, item);
         }
 
-        public UnresolvedItemsCollector(PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, Object[] item) {
+        public UnresolvedItemsCollector(PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, Object[] item) {
             this.resolver = resolver;
+            this.taskDependencyFactory = taskDependencyFactory;
             this.patternSetFactory = patternSetFactory;
             Collections.addAll(items, item);
         }
@@ -362,7 +365,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         @Override
         public void visitContents(Consumer<FileCollectionInternal> visitor) {
-            UnpackingVisitor nested = new UnpackingVisitor(visitor, resolver, patternSetFactory);
+            UnpackingVisitor nested = new UnpackingVisitor(visitor, resolver, taskDependencyFactory, patternSetFactory);
             for (Object item : items) {
                 nested.add(item);
             }

@@ -18,11 +18,12 @@ package org.gradle.api.plugins.antlr.internal;
 
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.plugins.antlr.AntlrSourceDirectorySet;
 
 public class DefaultAntlrSourceDirectorySet extends DefaultSourceDirectorySet implements AntlrSourceDirectorySet {
 
-    public DefaultAntlrSourceDirectorySet(SourceDirectorySet sourceDirectorySet) {
-        super(sourceDirectorySet);
+    public DefaultAntlrSourceDirectorySet(SourceDirectorySet sourceDirectorySet, TaskDependencyFactory taskDependencyFactory) {
+        super(sourceDirectorySet, taskDependencyFactory);
     }
 }

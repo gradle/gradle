@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSet
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.tasks.DefaultTaskDependency
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity
 import org.gradle.api.tasks.bundling.Jar
@@ -33,7 +33,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
     Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def fileNotationParser = Mock(NotationParser)
     def task = Mock(Task)
-    def taskDependency = new DefaultTaskDependency(null, ImmutableSet.of(task))
+    def taskDependency = TestFiles.taskDependencyFactory().configurableDependency(ImmutableSet.of(task))
     def publishArtifact = Stub(PublishArtifact) {
         getName() >> 'name'
         getExtension() >> 'extension'
@@ -52,7 +52,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
         def identity = Stub(IvyPublicationIdentity) {
             getModule() >> 'pub-name'
         }
-        parser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, identity).create()
+        parser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, identity, TestFiles.taskDependencyFactory()).create()
     }
 
     def "directly returns IvyArtifact input"() {

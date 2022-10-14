@@ -24,6 +24,7 @@ import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheSer
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
 import org.gradle.api.internal.tasks.execution.DefaultTaskCacheabilityResolver;
@@ -93,6 +94,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
+        TaskDependencyFactory taskDependencyFactory,
         FileOperations fileOperations,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
@@ -123,6 +125,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             listenerManager,
             reservedFileSystemLocationRegistry,
             fileCollectionFactory,
+            taskDependencyFactory,
             fileOperations
         );
         executer = new FinalizePropertiesTaskExecuter(executer);

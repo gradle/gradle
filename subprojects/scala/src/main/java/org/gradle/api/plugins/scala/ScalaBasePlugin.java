@@ -36,6 +36,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.scala.DefaultScalaPluginExtension;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
@@ -97,11 +98,13 @@ public class ScalaBasePlugin implements Plugin<Project> {
 
     private final ObjectFactory objectFactory;
     private final JvmEcosystemUtilities jvmEcosystemUtilities;
+    private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
-    public ScalaBasePlugin(ObjectFactory objectFactory, JvmEcosystemUtilities jvmEcosystemUtilities) {
+    public ScalaBasePlugin(ObjectFactory objectFactory, JvmEcosystemUtilities jvmEcosystemUtilities, TaskDependencyFactory taskDependencyFactory) {
         this.objectFactory = objectFactory;
         this.jvmEcosystemUtilities = jvmEcosystemUtilities;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
@@ -183,7 +186,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
             public void execute(final SourceSet sourceSet) {
                 String displayName = (String) InvokerHelper.invokeMethod(sourceSet, "getDisplayName", null);
                 Convention sourceSetConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
-                org.gradle.api.internal.tasks.DefaultScalaSourceSet scalaSourceSet = new  org.gradle.api.internal.tasks.DefaultScalaSourceSet(displayName, objectFactory);
+                org.gradle.api.internal.tasks.DefaultScalaSourceSet scalaSourceSet = new  org.gradle.api.internal.tasks.DefaultScalaSourceSet(displayName, objectFactory, taskDependencyFactory);
                 sourceSetConvention.getPlugins().put("scala", scalaSourceSet);
                 sourceSet.getExtensions().add(ScalaSourceDirectorySet.class, "scala", scalaSourceSet.getScala());
 

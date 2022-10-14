@@ -56,6 +56,7 @@ class DefaultTaskOutputsTest extends Specification {
         }
     }
     private final fileCollectionFactory = TestFiles.fileCollectionFactory(temporaryFolder.testDirectory)
+    private final taskDependencyFactory = TestFiles.taskDependencyFactory()
 
     def task = Mock(TaskInternal) {
         getName() >> "task"
@@ -79,7 +80,7 @@ class DefaultTaskOutputsTest extends Specification {
         cacheFactory
     )
     def walker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, cacheFactory))
-    def outputs = new DefaultTaskOutputs(task, taskStatusNagger, walker, fileCollectionFactory)
+    def outputs = new DefaultTaskOutputs(task, taskStatusNagger, walker, taskDependencyFactory, fileCollectionFactory)
 
     void hasNoOutputsByDefault() {
         setup:

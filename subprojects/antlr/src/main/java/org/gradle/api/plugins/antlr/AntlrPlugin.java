@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPlugin;
@@ -40,10 +41,12 @@ import java.io.File;
 public class AntlrPlugin implements Plugin<Project> {
     public static final String ANTLR_CONFIGURATION_NAME = "antlr";
     private final ObjectFactory objectFactory;
+    private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
-    public AntlrPlugin(ObjectFactory objectFactory) {
+    public AntlrPlugin(ObjectFactory objectFactory, TaskDependencyFactory taskDependencyFactory) {
         this.objectFactory = objectFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @SuppressWarnings("deprecation")
@@ -72,7 +75,7 @@ public class AntlrPlugin implements Plugin<Project> {
                 public void execute(final SourceSet sourceSet) {
                     // for each source set we will:
                     // 1) Add a new 'antlr' virtual directory mapping
-                    AntlrSourceDirectorySet antlrSourceSet = createAntlrSourceDirectorySet(((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
+                    AntlrSourceDirectorySet antlrSourceSet = createAntlrSourceDirectorySet(((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory, taskDependencyFactory);
                     sourceSet.getExtensions().add(AntlrSourceDirectorySet.class, AntlrSourceDirectorySet.NAME, antlrSourceSet);
                     final String srcDir = "src/" + sourceSet.getName() + "/antlr";
                     antlrSourceSet.srcDir(srcDir);
@@ -108,10 +111,10 @@ public class AntlrPlugin implements Plugin<Project> {
             });
     }
 
-    private static AntlrSourceDirectorySet createAntlrSourceDirectorySet(String parentDisplayName, ObjectFactory objectFactory) {
+    private static AntlrSourceDirectorySet createAntlrSourceDirectorySet(String parentDisplayName, ObjectFactory objectFactory, TaskDependencyFactory taskDependencyFactory) {
         String name = parentDisplayName + ".antlr";
         String displayName = parentDisplayName + " Antlr source";
-        AntlrSourceDirectorySet antlrSourceSet = new DefaultAntlrSourceDirectorySet(objectFactory.sourceDirectorySet(name, displayName));
+        AntlrSourceDirectorySet antlrSourceSet = new DefaultAntlrSourceDirectorySet(objectFactory.sourceDirectorySet(name, displayName), taskDependencyFactory);
         antlrSourceSet.getFilter().include("**/*.g");
         antlrSourceSet.getFilter().include("**/*.g4");
         return antlrSourceSet;

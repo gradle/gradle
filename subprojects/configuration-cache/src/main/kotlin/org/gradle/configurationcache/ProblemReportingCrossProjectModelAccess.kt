@@ -58,6 +58,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.model.ObjectFactory
@@ -911,6 +912,10 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getFileResolver(): FileResolver {
+            shouldNotBeUsed()
+        }
+
+        override fun getTaskDependencyFactory(): TaskDependencyFactory {
             shouldNotBeUsed()
         }
 

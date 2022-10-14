@@ -17,14 +17,17 @@
 package org.gradle.api.internal.file
 
 import org.gradle.api.internal.file.collections.MinimalFileSet
+import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue
 import spock.lang.Specification
 
 
 class CalculatedTaskInputFileCollectionTest extends Specification {
+    private TaskDependencyFactory taskDependencyFactory = TestFiles.taskDependencyFactory()
+
     def "cannot query value before task has started executing"() {
         def calculated = Stub(MinimalFileSet)
-        def fileCollection = new CalculatedTaskInputFileCollection(":task", calculated)
+        def fileCollection = new CalculatedTaskInputFileCollection(taskDependencyFactory, ":task", calculated)
 
         calculated.displayName >> "<files>"
 
@@ -38,7 +41,7 @@ class CalculatedTaskInputFileCollectionTest extends Specification {
 
     def "cannot query value after task has completed executing"() {
         def calculated = Stub(MinimalFileSet)
-        def fileCollection = new CalculatedTaskInputFileCollection(":task", calculated)
+        def fileCollection = new CalculatedTaskInputFileCollection(taskDependencyFactory, ":task", calculated)
 
         calculated.displayName >> "<files>"
 
@@ -58,7 +61,7 @@ class CalculatedTaskInputFileCollectionTest extends Specification {
     def "caches the result during task execution"() {
         def calculated = Mock(MinimalFileSet)
         def files = [new File("f1")] as Set
-        def fileCollection = new CalculatedTaskInputFileCollection(":task", calculated)
+        def fileCollection = new CalculatedTaskInputFileCollection(taskDependencyFactory, ":task", calculated)
 
         when:
         fileCollection.prepareValue()
@@ -89,7 +92,7 @@ class CalculatedTaskInputFileCollectionTest extends Specification {
         def input1 = Mock(LifecycleAwareValue)
         def input2 = "other"
         def input3 = Mock(LifecycleAwareValue)
-        def fileCollection = new CalculatedTaskInputFileCollection(":task", Stub(MinimalFileSet), input1, input2, input3)
+        def fileCollection = new CalculatedTaskInputFileCollection(taskDependencyFactory, ":task", Stub(MinimalFileSet), input1, input2, input3)
 
         when:
         fileCollection.prepareValue()
@@ -108,7 +111,7 @@ class CalculatedTaskInputFileCollectionTest extends Specification {
 
     def "notifies calculated files of task start and complete"() {
         def calculated = Mock(TestCollection)
-        def fileCollection = new CalculatedTaskInputFileCollection(":task", calculated)
+        def fileCollection = new CalculatedTaskInputFileCollection(taskDependencyFactory, ":task", calculated)
 
         when:
         fileCollection.prepareValue()

@@ -61,10 +61,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
-    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
+    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory) {
         this.task = task;
         this.taskMutator = taskMutator;
-        this.allOutputFiles = new TaskOutputUnionFileCollection(task);
+        this.allOutputFiles = new TaskOutputUnionFileCollection(taskDependencyFactory, task);
         this.propertyWalker = propertyWalker;
         this.fileCollectionFactory = fileCollectionFactory;
     }
@@ -221,7 +221,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private class TaskOutputUnionFileCollection extends CompositeFileCollection implements Describable {
         private final TaskInternal buildDependencies;
 
-        public TaskOutputUnionFileCollection(TaskInternal buildDependencies) {
+        public TaskOutputUnionFileCollection(TaskDependencyFactory taskDependencyFactory, TaskInternal buildDependencies) {
+            super(taskDependencyFactory);
             this.buildDependencies = buildDependencies;
         }
 

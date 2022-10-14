@@ -50,6 +50,7 @@ class DefaultTaskInputsTest extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     private final fileCollectionFactory = TestFiles.fileCollectionFactory(temporaryFolder.testDirectory)
+    private final taskDependencyFactory = TestFiles.taskDependencyFactory()
 
     private def taskStatusNagger = Stub(TaskMutator) {
         mutate(_ as String, _ as Runnable) >> { String method, Runnable action ->
@@ -80,7 +81,7 @@ class DefaultTaskInputsTest extends Specification {
         cacheFactory
     )
     def walker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, cacheFactory))
-    private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, fileCollectionFactory)
+    private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, taskDependencyFactory, fileCollectionFactory)
 
     def "default values"() {
         expect:

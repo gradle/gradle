@@ -204,7 +204,7 @@ class ValidatingIvyPublisherTest extends Specification {
         given:
         def identity = new DefaultIvyPublicationIdentity("the-group", "the-artifact", "the-version")
         IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(identity, marker, null)
-        def artifact = new FileBasedIvyArtifact(new File("foo.txt"), identity)
+        def artifact = new FileBasedIvyArtifact(new File("foo.txt"), identity, TestFiles.taskDependencyFactory())
         artifact.setConf("unknown")
         ivyFileGenerator.addArtifact(artifact)
         def ivyFile = ivyFile(ivyFileGenerator)

@@ -370,13 +370,15 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             Instantiator instantiator,
             DependencyMetaDataProvider metaDataProvider,
             DomainObjectContext domainObjectContext,
-            FileResolver fileResolver
+            FileResolver fileResolver,
+            TaskDependencyFactory taskDependencyFactory
         ) {
             return new PublishArtifactNotationParserFactory(
                 instantiator,
                 metaDataProvider,
                 taskResolverFor(domainObjectContext),
-                fileResolver
+                fileResolver,
+                taskDependencyFactory
             );
         }
 

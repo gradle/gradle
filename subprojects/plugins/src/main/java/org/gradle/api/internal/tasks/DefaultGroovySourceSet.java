@@ -34,15 +34,15 @@ public class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
     private final GroovySourceDirectorySet groovy;
     private final SourceDirectorySet allGroovy;
 
-    public DefaultGroovySourceSet(String name, String displayName, ObjectFactory objectFactory) {
-        this.groovy = createGroovySourceDirectorySet(name, displayName, objectFactory);
+    public DefaultGroovySourceSet(String name, String displayName, ObjectFactory objectFactory, TaskDependencyFactory taskDependencyFactory) {
+        this.groovy = createGroovySourceDirectorySet(name, displayName, objectFactory, taskDependencyFactory);
         allGroovy = objectFactory.sourceDirectorySet("all" + name, displayName + " Groovy source");
         allGroovy.source(groovy);
         allGroovy.getFilter().include("**/*.groovy");
     }
 
-    private static GroovySourceDirectorySet createGroovySourceDirectorySet(String name, String displayName, ObjectFactory objectFactory) {
-        GroovySourceDirectorySet groovySourceDirectorySet = new DefaultGroovySourceDirectorySet(objectFactory.sourceDirectorySet(name, displayName + " Groovy source"));
+    private static GroovySourceDirectorySet createGroovySourceDirectorySet(String name, String displayName, ObjectFactory objectFactory, TaskDependencyFactory taskDependencyFactory) {
+        GroovySourceDirectorySet groovySourceDirectorySet = new DefaultGroovySourceDirectorySet(objectFactory.sourceDirectorySet(name, displayName + " Groovy source"), taskDependencyFactory);
         groovySourceDirectorySet.getFilter().include("**/*.java", "**/*.groovy");
         return groovySourceDirectorySet;
     }

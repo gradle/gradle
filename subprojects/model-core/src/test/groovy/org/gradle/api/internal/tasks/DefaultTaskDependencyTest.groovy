@@ -31,7 +31,7 @@ import static org.gradle.util.internal.WrapUtil.toSet
 
 class DefaultTaskDependencyTest extends Specification {
     private final TaskResolver resolver = Mock(TaskResolver.class)
-    private final DefaultTaskDependency dependency = new DefaultTaskDependency(resolver)
+    private final DefaultTaskDependency dependency = new DefaultTaskDependency(resolver, null)
     private Task task
     private Task otherTask
 
