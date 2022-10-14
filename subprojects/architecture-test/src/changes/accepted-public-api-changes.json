@@ -641,6 +641,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getExecActionFactory()",
+            "acceptation": "Removed unused injected property with 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.testing.AbstractTestTask",
             "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBinResultsDir()",
             "acceptation": "Deprecated method removed",
