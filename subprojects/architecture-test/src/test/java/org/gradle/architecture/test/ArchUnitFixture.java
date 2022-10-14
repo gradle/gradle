@@ -96,6 +96,19 @@ public interface ArchUnitFixture {
         };
     }
 
+    static ArchCondition<JavaClass> beAbstract() {
+        return new ArchCondition<JavaClass>("be abstract") {
+            @Override
+            public void check(JavaClass input, ConditionEvents events) {
+                if (input.isInterface() || input.getModifiers().contains(JavaModifier.ABSTRACT)) {
+                    events.add(new SimpleConditionEvent(input, true, input.getFullName() + " is abstract"));
+                } else {
+                    events.add(new SimpleConditionEvent(input, false, input.getFullName() + " is not abstract"));
+                }
+            }
+        };
+    }
+
     static ArchCondition<JavaClass> haveDirectSuperclassOrInterfaceThatAre(DescribedPredicate<JavaClass> types) {
         return new HaveDirectSuperclassOrInterfaceThatAre(types);
     }
