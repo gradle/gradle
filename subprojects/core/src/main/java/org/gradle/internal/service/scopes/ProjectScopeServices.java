@@ -325,7 +325,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected TaskDependencyFactory createTaskDependencyFactory() {
-        return DefaultTaskDependencyFactory.forProject(project.getTasks());
+        @Nullable TaskDependencyUsageTracker tracker = project.getServices().get(CrossProjectModelAccess.class).taskDependencyUsageTracker(project);
+        return DefaultTaskDependencyFactory.forProject(project.getTasks(), tracker);
     }
 
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier() {

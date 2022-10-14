@@ -22,16 +22,23 @@ public class DefaultTaskDependencyFactory implements TaskDependencyFactory {
     @Nullable
     private final TaskResolver taskResolver;
 
+    @Nullable
+    private final TaskDependencyUsageTracker taskDependencyUsageTracker;
+
     public static TaskDependencyFactory withNoAssociatedProject() {
-        return new DefaultTaskDependencyFactory(null);
+        return new DefaultTaskDependencyFactory(null, null);
     }
 
-    public static TaskDependencyFactory forProject(TaskResolver taskResolver) {
-        return new DefaultTaskDependencyFactory(taskResolver);
+    public static TaskDependencyFactory forProject(
+        TaskResolver taskResolver,
+        @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker
+    ) {
+        return new DefaultTaskDependencyFactory(taskResolver, taskDependencyUsageTracker);
     }
 
     private DefaultTaskDependencyFactory(@Nullable TaskResolver taskResolver) {
         this.taskResolver = taskResolver;
+        this.taskDependencyUsageTracker = taskDependencyUsageTracker;
     }
 
     @Override
