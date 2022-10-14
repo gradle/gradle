@@ -16,8 +16,8 @@
 
 package org.gradle.api.tasks.compile;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -33,6 +33,7 @@ import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
+import org.gradle.api.internal.tasks.compile.JavaCompileExecutableUtils;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilationSpecProvider;
@@ -65,7 +66,6 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaCompiler;
-import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.work.Incremental;
@@ -101,10 +101,9 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private final ModularitySpec modularity;
     private File previousCompilationDataFile;
     private final Property<JavaCompiler> javaCompiler;
-    private final ObjectFactory objectFactory;
 
     public JavaCompile() {
-        objectFactory = getProject().getObjects();
+        ObjectFactory objectFactory = getObjectFactory();
         compileOptions = objectFactory.newInstance(CompileOptions.class);
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         javaCompiler = objectFactory.property(JavaCompiler.class);
@@ -200,31 +199,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         performCompilation(spec, compiler);
     }
 
-    @Inject
-    protected IncrementalCompilerFactory getIncrementalCompilerFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected JavaModuleDetector getJavaModuleDetector() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
-
-    @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected JavaToolchainService getJavaToolchainService() {
-        throw new UnsupportedOperationException();
-    }
-
     CleaningJavaCompiler<JavaCompileSpec> createCompiler() {
         Compiler<JavaCompileSpec> javaCompiler = createToolchainCompiler();
         return new CleaningJavaCompiler<>(javaCompiler, getOutputs(), getDeleter());
@@ -232,43 +206,21 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
     private <T extends CompileSpec> Compiler<T> createToolchainCompiler() {
         return spec -> {
-            final Provider<JavaCompiler> compilerProvider = getCompilerTool();
-            final DefaultToolchainJavaCompiler compiler = (DefaultToolchainJavaCompiler) compilerProvider.get();
+            DefaultToolchainJavaCompiler compiler = (DefaultToolchainJavaCompiler) getCompilerTool().get();
             return compiler.execute(spec);
         };
     }
 
     private Provider<JavaCompiler> getCompilerTool() {
-        JavaToolchainSpec explicitToolchain = determineExplicitToolchain();
+        JavaToolchainSpec explicitToolchain = JavaCompileExecutableUtils.getExecutableOverrideToolchainSpec(this, getObjectFactory());
         if (explicitToolchain == null) {
             if (javaCompiler.isPresent()) {
                 return this.javaCompiler;
             } else {
-                explicitToolchain = new CurrentJvmToolchainSpec(objectFactory);
+                explicitToolchain = new CurrentJvmToolchainSpec(getObjectFactory());
             }
         }
         return getJavaToolchainService().compilerFor(explicitToolchain);
-    }
-
-    @Nullable
-    private JavaToolchainSpec determineExplicitToolchain() {
-        final File customJavaHome = getOptions().getForkOptions().getJavaHome();
-        if (customJavaHome != null) {
-            return new SpecificInstallationToolchainSpec(objectFactory, customJavaHome);
-        } else {
-            final String customExecutable = getOptions().getForkOptions().getExecutable();
-            if (customExecutable != null) {
-                final File executable = new File(customExecutable);
-                if (executable.exists()) {
-                    // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
-                    File parentJavaHome = executable.getParentFile().getParentFile();
-                    return new SpecificInstallationToolchainSpec(objectFactory, parentJavaHome);
-                } else {
-                    throw new InvalidUserDataException("The configured executable does not exist (" + executable.getAbsolutePath() + ")");
-                }
-            }
-        }
-        return null;
     }
 
     /**
@@ -290,6 +242,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         return result;
     }
 
+    @VisibleForTesting
     DefaultJavaCompileSpec createSpec() {
         validateConfiguration();
         List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree());
@@ -411,5 +364,35 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     @InputFiles
     protected FileCollection getStableSources() {
         return stableSources;
+    }
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaToolchainService getJavaToolchainService() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected IncrementalCompilerFactory getIncrementalCompilerFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaModuleDetector getJavaModuleDetector() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
+    }
+
+    @Inject
+    protected ProjectLayout getProjectLayout() {
+        throw new UnsupportedOperationException();
     }
 }
