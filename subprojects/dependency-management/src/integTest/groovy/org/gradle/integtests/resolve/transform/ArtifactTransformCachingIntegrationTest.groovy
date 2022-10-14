@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.cache.internal.CacheCleanupEnablementFixture
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -40,7 +41,7 @@ import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServi
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 import static org.hamcrest.Matchers.containsString
 
-class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, ValidationMessageChecker {
+class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, ValidationMessageChecker, CacheCleanupEnablementFixture {
     private final static long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
 
     @Rule
@@ -1664,6 +1665,39 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         transformingBuild.waitForFinish()
     }
 
+    def "does not clean up cache when cache cleanup is disabled"() {
+        given:
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
+        ["lib1", "lib2"].each { name ->
+            buildFile << withExternalLibDependency(name)
+        }
+
+        when:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        disableCacheCleanup()
+        succeeds ":app:resolve"
+
+        then:
+        def outputDir1 = outputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
+        def outputDir2 = outputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        journal.assertExists()
+
+        when:
+        run '--stop' // ensure daemon does not cache file access times in memory
+        def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
+        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+        gcFile.lastModified = daysAgo(2)
+
+        and:
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks("help").start().waitForFinish()
+
+        then:
+        outputDir1.assertExists()
+        outputDir2.assertExists()
+    }
+
     String getResolveTask() {
         """
             class Resolve extends DefaultTask {
@@ -1924,5 +1958,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
     void writeLastTransformationAccessTimeToJournal(TestFile workspaceDir, long millis) {
         writeLastFileAccessTimeToJournal(workspaceDir, millis)
+    }
+
+    @Override
+    TestFile getGradleUserHomeDir() {
+        return executer.gradleUserHomeDir
     }
 }

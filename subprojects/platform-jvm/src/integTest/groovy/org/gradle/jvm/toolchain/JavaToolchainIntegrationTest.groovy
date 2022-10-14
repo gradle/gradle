@@ -28,14 +28,18 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             apply plugin: "java"
 
-            javaToolchains.launcherFor {
-                $configureInvalid
+            task unpackLauncher {
+                doFirst {
+                    javaToolchains.launcherFor {
+                        $configureInvalid
+                    }.getOrNull()
+                }
             }
         """
 
         when:
-        runAndFail ':help'
-
+        // build error is lazy
+        runAndFail ':unpackLauncher'
         then:
         failure.assertHasDocumentedCause("Using toolchain specifications without setting a language version is not supported. Consider configuring the language version. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#invalid_toolchain_specification_deprecation")
 
@@ -47,25 +51,28 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "do not nag user when toolchain spec is valid (#description)"() {
+        def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
+
         buildScript """
             apply plugin: "java"
 
             javaToolchains.launcherFor {
-                $configure
-            }
+                ${languageVersion ? "languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})" : ""}
+                ${vendor ? "vendor = JvmVendorSpec.matching('${jdkMetadata.vendor.rawVendor}')" : ""}
+            }.getOrNull()
         """
 
         when:
-        run ':help'
+        withInstallations(jdkMetadata).run ':help'
 
         then:
         executedAndNotSkipped ':help'
 
         where:
-        description                                 | configure
-        "configured with language version"          | 'languageVersion = JavaLanguageVersion.of(9)'
-        "configured not only with language version" | 'languageVersion = JavaLanguageVersion.of(9); vendor = JvmVendorSpec.AZUL'
-        "unconfigured"                              | ''
+        description                                 | languageVersion | vendor
+        "configured with language version"          | true            | false
+        "configured not only with language version" | true            | true
+        "unconfigured"                              | false           | false
     }
 
     def "identify whether #tool toolchain corresponds to the #current JVM"() {
@@ -99,6 +106,59 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec {
         and:
         toolMethod = "${tool}For"
         current = (isCurrentJvm ? "current" : "non-current")
+    }
+
+    def "fails when trying to change java extension toolchain spec property after it has been used to resolve a toolchain"() {
+        def jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
+        def jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
+
+        buildScript """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdkMetadata1.languageVersion.majorVersion})
+                }
+            }
+
+            project.getExtensions().getByType(JavaToolchainService.class)
+                .launcherFor(java.toolchain)
+                .get()
+
+            java.toolchain.languageVersion.set(JavaLanguageVersion.of(${jdkMetadata2.languageVersion.majorVersion}))
+        """
+
+        when:
+        withInstallations(jdkMetadata1, jdkMetadata2).runAndFail ':customTask'
+
+        then:
+        failure.assertHasCause("The value for property 'languageVersion' is final and cannot be changed any further")
+    }
+
+    def "fails when trying to change captured toolchain spec property after it has been used to resolve a toolchain"() {
+        def jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
+        def jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
+        buildScript """
+            import java.util.concurrent.atomic.AtomicReference
+            import org.gradle.jvm.toolchain.JavaToolchainSpec
+
+            apply plugin: "java"
+
+            def toolchainSpecRef = new AtomicReference<JavaToolchainSpec>()
+
+            javaToolchains.launcherFor {
+                toolchainSpecRef.set(delegate)
+                languageVersion = JavaLanguageVersion.of(${jdkMetadata1.languageVersion.majorVersion})
+            }.get()
+
+            toolchainSpecRef.get().languageVersion.set(JavaLanguageVersion.of(${jdkMetadata2.languageVersion.majorVersion}))
+        """
+
+        when:
+        withInstallations(jdkMetadata1, jdkMetadata2).runAndFail ':help'
+
+        then:
+        failure.assertHasCause("The value for property 'languageVersion' is final and cannot be changed any further")
     }
 
     private withInstallations(JvmInstallationMetadata... jdkMetadata) {

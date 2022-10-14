@@ -40,6 +40,7 @@ class GradleEnterprisePluginRequiredServicesIntegrationTest extends AbstractInte
 
                     assert requiredServices.userInputHandler.is(services.get(${UserInputHandler.name}))
                     assert requiredServices.styledTextOutputFactory.is(services.get(${StyledTextOutputFactory.name}))
+                    assert requiredServices.backgroundJobExecutors.is(services.get(${GradleEnterprisePluginBackgroundJobExecutors.name}))
                 }
             }
         """

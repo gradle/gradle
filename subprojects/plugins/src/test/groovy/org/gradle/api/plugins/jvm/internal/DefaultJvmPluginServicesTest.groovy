@@ -28,9 +28,9 @@ import org.gradle.api.attributes.HasConfigurableAttributes
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.java.TargetJvmEnvironment
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
@@ -153,8 +153,12 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         def variant = Mock(ConfigurationVariantInternal)
         def attrs = AttributeTestUtil.attributesFactory().mutable()
         def output = Mock(DefaultSourceSetOutput)
-        def classesDir = Stub(File) {
-            getName() >> 'toto'
+        def classes = Stub(ConfigurableFileCollection) {
+            getFiles() >> [
+                Stub(File) {
+                    getName() >> 'toto'
+                }
+            ]
         }
 
         when:
@@ -173,7 +177,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         }
         1 * variant.setDescription(_)
         _ * sourceSet.getOutput() >> output
-        1 * output.getClassesContributors() >> Collections.singletonList(new DefaultSourceSetOutput.DirectoryContribution(Providers.of(classesDir), Stub(TaskProvider)))
+        1 * output.getClassesDirs() >> classes
         1 * sourceSet.getName()
         0 * _
     }

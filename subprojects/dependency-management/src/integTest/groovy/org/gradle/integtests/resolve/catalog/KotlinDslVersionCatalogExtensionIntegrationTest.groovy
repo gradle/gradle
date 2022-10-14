@@ -392,4 +392,47 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             }
         """
     }
+
+    def "no name conflicting accessors of different catalogs"() {
+        def libA = mavenHttpRepo.module("com.company","libs-a").publish()
+        def libB = mavenHttpRepo.module("com.companylibs","libs-b").publish()
+        settingsKotlinFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create("libs") {
+                        library("com-company-libs-a", "com.company:libs-a:1.0")
+                    }
+
+                    create("moreLibs") {
+                        library("com-companylibs-b", "com.companylibs:libs-b:1.0")
+                    }
+                }
+            }
+        """
+        withCheckDeps()
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+            }
+
+            dependencies {
+                implementation(libs.com.company.libs.a)
+                implementation(moreLibs.com.companylibs.b)
+            }
+
+            tasks.register<CheckDeps>("checkDeps") {
+                files.from(configurations.compileClasspath)
+                expected.set(listOf("libs-a-1.0.jar", "libs-b-1.0.jar"))
+            }
+        """
+
+        when:
+        libA.pom.expectGet()
+        libA.artifact.expectGet()
+        libB.pom.expectGet()
+        libB.artifact.expectGet()
+
+        then:
+        succeeds ':checkDeps'
+    }
 }

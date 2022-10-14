@@ -46,6 +46,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -312,6 +313,8 @@ public class DefaultGradleRunner extends GradleRunner {
         GradleProvider effectiveDistribution = gradleProvider == null ? findGradleInstallFromGradleRunner() : gradleProvider;
 
         List<String> effectiveArguments = new ArrayList<>();
+        Map<String, String> effectiveEnvironment = new HashMap<>();
+
         if (OperatingSystem.current().isWindows()) {
             // When using file system watching in Windows tests it becomes harder to delete the project directory,
             // since file system watching on Windows adds a lock on the watched directory, which is currently the project directory.
@@ -319,8 +322,19 @@ public class DefaultGradleRunner extends GradleRunner {
             // That may require a retry to delete the watched directory.
             // To avoid those problems for TestKit tests on Windows, we disable file system watching there.
             effectiveArguments.add("-D" + StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY + "=false");
+            // Without the SystemRoot environment variable been defined, Gradle Runner doesn't work on Windows when requiring network
+            // connections.
+            effectiveEnvironment.put("SystemRoot", System.getenv("SystemRoot"));
         }
+
         effectiveArguments.addAll(arguments);
+        if (environment != null) {
+            effectiveEnvironment.putAll(environment);
+        } else {
+            // environment can be null, which means that all the existing defined environment variables are used instead
+            effectiveEnvironment = null;
+        }
+
         GradleExecutionResult execResult = gradleExecutor.run(new GradleExecutionParameters(
             effectiveDistribution,
             testKitDir,
@@ -332,7 +346,7 @@ public class DefaultGradleRunner extends GradleRunner {
             standardOutput,
             standardError,
             standardInput,
-            environment
+            effectiveEnvironment
         ));
 
         resultVerification.execute(execResult);
