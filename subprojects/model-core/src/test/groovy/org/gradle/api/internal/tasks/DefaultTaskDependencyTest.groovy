@@ -309,6 +309,22 @@ The following types/formats are supported:
         dependency.getDependencies(task) == toSet(otherTask)
     }
 
+    def "reports usages of getDependencies if provided a tracker"() {
+        given:
+        def tracker = Mock(TaskDependencyUsageTracker)
+        def dependency = DefaultTaskDependencyFactory.forProject(resolver, tracker).configurableDependency()
+
+        when:
+        dependency.getDependenciesForInternalUse(null)
+        then:
+        0 * tracker.onTaskDependencyUsage(_)
+
+        when:
+        dependency.getDependencies(null)
+        then:
+        1 * tracker.onTaskDependencyUsage(_)
+    }
+
     static emptySet() {
         return [] as Set
     }
