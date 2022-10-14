@@ -1,8 +1,13 @@
 This is a backport release, Gradle @version@.
 
-This is the second patch release for Gradle 6.9.
+This is the third patch release for Gradle 6.9.
 
 It fixes the following issues:
+* [#19523](https://github.com/gradle/gradle/issues/19523) Fix buffer overflow error in KryoBackedDecoder [Backport 6.x]
+* [#20189](https://github.com/gradle/gradle/issues/20189) Support constraints without version in GMM [Backport 6.9.x]
+* [#22358](https://github.com/gradle/gradle/issues/22358) Missing exclude rule merging optimizations
+
+Issues fixed in the second patch release:
 * [#18163](https://github.com/gradle/gradle/issues/18163) Fix excludes for substituted dependencies
 * [#18164](https://github.com/gradle/gradle/issues/18164) POSIX shell scripts improvements
 * [#18697](https://github.com/gradle/gradle/issues/18697) Fix corrupted resolution result from replacement / capability conflict
