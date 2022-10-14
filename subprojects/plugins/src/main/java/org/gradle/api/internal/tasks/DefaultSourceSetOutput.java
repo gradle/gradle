@@ -49,7 +49,8 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
 
     private DirectoryContribution resourcesContributor;
 
-    public DefaultSourceSetOutput(String sourceSetDisplayName, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+    public DefaultSourceSetOutput(String sourceSetDisplayName, TaskDependencyFactory taskDependencyFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+        super(taskDependencyFactory);
         this.fileResolver = fileResolver;
         this.fileCollectionFactory = fileCollectionFactory;
 

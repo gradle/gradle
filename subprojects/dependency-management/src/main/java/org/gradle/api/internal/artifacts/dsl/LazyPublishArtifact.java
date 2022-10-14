@@ -25,8 +25,7 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -38,14 +37,15 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
     private final ProviderInternal<?> provider;
     private final String version;
     private final FileResolver fileResolver;
+    private final TaskDependencyFactory taskDependencyFactory;
     private PublishArtifactInternal delegate;
 
     /**
      * @deprecated Provide a {@link FileResolver} instead using {@link LazyPublishArtifact#LazyPublishArtifact(Provider, FileResolver)}.
      */
     @Deprecated
-    public LazyPublishArtifact(Provider<?> provider) {
-        this(provider, null);
+    public LazyPublishArtifact(Provider<?> provider, TaskDependencyFactory taskDependencyFactory) {
+        this(provider, null, taskDependencyFactory);
         // TODO after Spring Boot resolves their usage of this constructor, uncomment this nag
         // https://github.com/spring-projects/spring-boot/issues/29074
         //        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>)")
@@ -55,11 +55,11 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
         //            .nagUser();
     }
 
-    public LazyPublishArtifact(Provider<?> provider, FileResolver fileResolver) {
-        this(provider, null, fileResolver);
+    public LazyPublishArtifact(Provider<?> provider, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
+        this(provider, null, fileResolver, taskDependencyFactory);
     }
 
-    public LazyPublishArtifact(Provider<?> provider, String version, FileResolver fileResolver) {
+    public LazyPublishArtifact(Provider<?> provider, String version, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
         // TODO after Spring Boot resolves their usage of this constructor, uncomment this nag
         // https://github.com/spring-projects/spring-boot/issues/29074
         //        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>, FileResolver) or constructor LazyPublishArtifact(Provider<?>, String, FileResolver)"
@@ -71,6 +71,7 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
         this.provider = Providers.internal(provider);
         this.version = version;
         this.fileResolver = fileResolver;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
@@ -108,15 +109,15 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
             Object value = provider.get();
             if (value instanceof FileSystemLocation) {
                 FileSystemLocation location = (FileSystemLocation) value;
-                delegate = fromFile(location.getAsFile());
+                delegate = fromFile(taskDependencyFactory, location.getAsFile());
             } else if (value instanceof File) {
-                delegate = fromFile((File) value);
+                delegate = fromFile(taskDependencyFactory, (File) value);
             } else if (value instanceof AbstractArchiveTask) {
-                delegate = new ArchivePublishArtifact((AbstractArchiveTask) value);
+                delegate = new ArchivePublishArtifact(taskDependencyFactory, (AbstractArchiveTask) value);
             } else if (value instanceof Task) {
-                delegate = fromFile(((Task) value).getOutputs().getFiles().getSingleFile());
+                delegate = fromFile(taskDependencyFactory, ((Task) value).getOutputs().getFiles().getSingleFile());
             } else if (fileResolver != null) {
-                delegate = fromFile(fileResolver.resolve(value));
+                delegate = fromFile(taskDependencyFactory, fileResolver.resolve(value));
             } else {
                 throw new InvalidUserDataException(String.format("Cannot convert provided value (%s) to a file.", value));
             }
@@ -124,9 +125,9 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
         return delegate;
     }
 
-    private DefaultPublishArtifact fromFile(File file) {
+    private DefaultPublishArtifact fromFile(TaskDependencyFactory taskDependencyFactory, File file) {
         ArtifactFile artifactFile = new ArtifactFile(file, version);
-        return new DefaultPublishArtifact(artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier(), null, file);
+        return new DefaultPublishArtifact(taskDependencyFactory, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier(), null, file);
     }
 
     @Override

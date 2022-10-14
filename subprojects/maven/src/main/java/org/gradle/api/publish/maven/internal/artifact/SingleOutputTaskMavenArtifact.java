@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 
 import java.io.File;
 
@@ -30,7 +31,8 @@ public class SingleOutputTaskMavenArtifact extends AbstractMavenArtifact {
     private final String classifier;
     private final TaskDependencyInternal buildDependencies;
 
-    public SingleOutputTaskMavenArtifact(TaskProvider<? extends Task> generator, String extension, String classifier) {
+    public SingleOutputTaskMavenArtifact(TaskProvider<? extends Task> generator, String extension, String classifier, TaskDependencyFactory taskDependencyFactory) {
+        super(taskDependencyFactory);
         this.generator = generator;
         this.extension = extension;
         this.classifier = classifier;

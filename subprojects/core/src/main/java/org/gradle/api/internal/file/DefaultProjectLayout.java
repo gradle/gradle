@@ -74,7 +74,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public FileCollection newCalculatedInputFileCollection(Task consumer, MinimalFileSet calculatedFiles, FileCollection... inputs) {
-        return new CalculatedTaskInputFileCollection(consumer.getPath(), calculatedFiles, inputs);
+        return new CalculatedTaskInputFileCollection(taskDependencyFactory, consumer.getPath(), calculatedFiles, inputs);
     }
 
     @Override

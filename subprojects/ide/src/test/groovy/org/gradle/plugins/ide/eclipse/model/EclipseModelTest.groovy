@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.XmlProvider
 import org.gradle.api.internal.PropertiesTransformer
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger
@@ -29,7 +30,9 @@ import spock.lang.Specification
 
 class EclipseModelTest extends Specification {
 
-    EclipseModel model = new EclipseModel(Mock(ProjectInternal))
+    EclipseModel model = new EclipseModel(Mock(ProjectInternal) {
+        getTaskDependencyFactory() >> TestFiles.taskDependencyFactory()
+    })
 
     def setup() {
         def project = Mock(org.gradle.api.Project)

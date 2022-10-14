@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -70,6 +71,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final FileCollectionFactory fileCollectionFactory;
+    private final TaskDependencyFactory taskDependencyFactory;
     private final FileOperations fileOperations;
 
     public ExecuteActionsTaskExecuter(
@@ -87,6 +89,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         FileCollectionFactory fileCollectionFactory,
+        TaskDependencyFactory taskDependencyFactory,
         FileOperations fileOperations
     ) {
         this.buildCacheState = buildCacheState;
@@ -103,6 +106,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
         this.fileOperations = fileOperations;
     }
 
@@ -124,7 +128,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             inputFingerprinter,
             listenerManager,
             reservedFileSystemLocationRegistry,
-            taskCacheabilityResolver
+            taskCacheabilityResolver,
+            taskDependencyFactory
         );
         try {
             return executeIfValid(task, state, context, work);

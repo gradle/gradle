@@ -22,7 +22,7 @@ import org.gradle.api.tasks.GroovySourceDirectorySet;
 
 public class DefaultGroovySourceDirectorySet extends DefaultSourceDirectorySet implements GroovySourceDirectorySet {
 
-    public DefaultGroovySourceDirectorySet(SourceDirectorySet sourceDirectorySet) {
-        super(sourceDirectorySet);
+    public DefaultGroovySourceDirectorySet(SourceDirectorySet sourceDirectorySet, TaskDependencyFactory taskDependencyFactory) {
+        super(sourceDirectorySet, taskDependencyFactory);
     }
 }

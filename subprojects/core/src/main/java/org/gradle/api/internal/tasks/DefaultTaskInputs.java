@@ -61,14 +61,14 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final FilePropertyContainer<TaskInputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInputs deprecatedThis;
 
-    public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
+    public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.propertyWalker = propertyWalker;
         this.fileCollectionFactory = fileCollectionFactory;
         String taskDisplayName = task.toString();
-        this.allInputFiles = new TaskInputUnionFileCollection(taskDisplayName, "input", false, task, propertyWalker, fileCollectionFactory);
-        this.allSourceFiles = new TaskInputUnionFileCollection(taskDisplayName, "source", true, task, propertyWalker, fileCollectionFactory);
+        this.allInputFiles = new TaskInputUnionFileCollection(taskDisplayName, "input", false, task, propertyWalker, taskDependencyFactory, fileCollectionFactory);
+        this.allSourceFiles = new TaskInputUnionFileCollection(taskDisplayName, "source", true, task, propertyWalker, taskDependencyFactory, fileCollectionFactory);
         this.deprecatedThis = new TaskInputsDeprecationSupport();
     }
 
@@ -222,7 +222,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         private final PropertyWalker propertyWalker;
         private final FileCollectionFactory fileCollectionFactory;
 
-        TaskInputUnionFileCollection(String taskDisplayName, String type, boolean skipWhenEmptyOnly, TaskInternal task, PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
+        TaskInputUnionFileCollection(String taskDisplayName, String type, boolean skipWhenEmptyOnly, TaskInternal task, PropertyWalker propertyWalker, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory) {
+            super(taskDependencyFactory);
             this.taskDisplayName = taskDisplayName;
             this.type = type;
             this.skipWhenEmptyOnly = skipWhenEmptyOnly;

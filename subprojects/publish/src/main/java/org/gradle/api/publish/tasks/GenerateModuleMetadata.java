@@ -30,7 +30,9 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
@@ -96,7 +98,7 @@ public class GenerateModuleMetadata extends DefaultTask {
 
         outputFile = objectFactory.fileProperty();
 
-        variantFiles = getFileCollectionFactory().create(new VariantFiles());
+        variantFiles = getFileCollectionFactory().create(new VariantFiles(((ProjectInternal) getProject()).getTaskDependencyFactory()));
 
         suppressedValidationErrors = objectFactory.setProperty(String.class).convention(Collections.emptySet());
 
@@ -279,6 +281,12 @@ public class GenerateModuleMetadata extends DefaultTask {
     }
 
     private class VariantFiles implements MinimalFileSet, Buildable {
+        private final TaskDependencyFactory taskDependencyFactory;
+
+        private VariantFiles(TaskDependencyFactory taskDependencyFactory) {
+            this.taskDependencyFactory = taskDependencyFactory;
+        }
+
         @Override
         @Nonnull
         public String getDisplayName() {

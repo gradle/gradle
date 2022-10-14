@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.internal.PublicationArtifactInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -32,7 +33,7 @@ public abstract class AbstractMavenArtifact implements MavenArtifact, Publicatio
     private String extension;
     private String classifier;
 
-    protected AbstractMavenArtifact() {
+    protected AbstractMavenArtifact(TaskDependencyFactory taskDependencyFactory) {
         this.additionalBuildDependencies = new DefaultTaskDependency();
         this.allBuildDependencies = new CompositeTaskDependency();
     }

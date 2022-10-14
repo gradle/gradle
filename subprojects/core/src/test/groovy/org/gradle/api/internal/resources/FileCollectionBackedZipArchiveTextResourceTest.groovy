@@ -19,6 +19,7 @@ package org.gradle.api.internal.resources
 import com.google.common.base.Charsets
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.api.internal.tasks.TaskDependencyFactory
 
 class FileCollectionBackedZipArchiveTextResourceTest extends AbstractTextResourceTest {
     def setup() {
@@ -27,7 +28,7 @@ class FileCollectionBackedZipArchiveTextResourceTest extends AbstractTextResourc
         archiveEntry.parentFile.mkdirs()
         archiveEntry.text = "contents"
         project.ant.zip(basedir: project.file("archive"), destfile: archive)
-        resource = new FileCollectionBackedArchiveTextResource(project.services.get(FileOperations),
+        resource = new FileCollectionBackedArchiveTextResource(project.services.get(FileOperations), project.services.get(TaskDependencyFactory),
                 project.services.get(TemporaryFileProvider), project.layout.files(archive), "path/to/text", Charsets.UTF_8)
     }
 }

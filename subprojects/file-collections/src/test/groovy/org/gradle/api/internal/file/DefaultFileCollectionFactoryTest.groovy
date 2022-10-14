@@ -28,9 +28,8 @@ import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.internal.provider.MissingValueException
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
-import org.gradle.api.internal.tasks.TaskDependencyFactory
+import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
@@ -46,7 +45,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
     @ClassRule
     @Shared
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    def factory = new DefaultFileCollectionFactory(TestFiles.pathToFileResolver(tmpDir.testDirectory), Stub(TaskDependencyFactory), TestFiles.directoryFileTreeFactory(), Stub(Factory), Stub(PropertyHost), TestFiles.fileSystem())
+    def factory = new DefaultFileCollectionFactory(TestFiles.pathToFileResolver(tmpDir.testDirectory), TestFiles.taskDependencyFactory(), TestFiles.directoryFileTreeFactory(), Stub(Factory), Stub(PropertyHost), TestFiles.fileSystem())
 
     def "lazily queries contents of collection created from MinimalFileSet"() {
         def contents = Mock(MinimalFileSet)

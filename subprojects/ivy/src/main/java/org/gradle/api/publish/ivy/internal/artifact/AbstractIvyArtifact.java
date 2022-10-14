@@ -19,7 +19,7 @@ package org.gradle.api.publish.ivy.internal.artifact;
 import com.google.common.base.Strings;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.tasks.TaskDependency;
@@ -36,7 +36,7 @@ public abstract class AbstractIvyArtifact implements IvyArtifact, PublicationArt
     private String classifier;
     private String conf;
 
-    protected AbstractIvyArtifact() {
+    protected AbstractIvyArtifact(TaskDependencyFactory taskDependencyFactory) {
         this.additionalBuildDependencies = new DefaultTaskDependency();
         this.allBuildDependencies = new CompositeTaskDependency();
     }

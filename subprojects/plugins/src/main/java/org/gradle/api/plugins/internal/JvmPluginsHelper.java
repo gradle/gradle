@@ -41,6 +41,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
@@ -175,8 +176,9 @@ public class JvmPluginsHelper {
         ConfigurationContainer configurations,
         TaskContainer tasks,
         ObjectFactory objectFactory,
-        FileResolver fileResolver
-    ) {
+        FileResolver fileResolver,
+        TaskDependencyFactory taskDependencyFactory
+        ) {
         Configuration variant = maybeCreateInvisibleConfig(
             configurations,
             variantName,
@@ -202,7 +204,7 @@ public class JvmPluginsHelper {
             }
         }
         TaskProvider<Task> jar = tasks.named(jarTaskName);
-        variant.getOutgoing().artifact(new LazyPublishArtifact(jar, fileResolver));
+        variant.getOutgoing().artifact(new LazyPublishArtifact(jar, fileResolver, taskDependencyFactory));
         if (component != null) {
             component.addVariantsFromConfiguration(variant, new JavaConfigurationVariantMapping("runtime", true));
         }
@@ -254,8 +256,8 @@ public class JvmPluginsHelper {
     private abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
         private final String type;
 
-        public IntermediateJavaArtifact(String type, Object dependency) {
-            super(dependency);
+        public IntermediateJavaArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency) {
+            super(taskDependencyFactory, dependency);
             this.type = type;
         }
 
@@ -298,8 +300,8 @@ public class JvmPluginsHelper {
 
         private final File file;
 
-        public ImmediateIntermediateJavaArtifact(String type, Object dependency, File file) {
-            super(type, dependency);
+        public ImmediateIntermediateJavaArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency, File file) {
+            super(taskDependencyFactory, type, dependency);
             this.file = file;
         }
 
@@ -317,8 +319,8 @@ public class JvmPluginsHelper {
 
         private final Provider<File> fileProvider;
 
-        public ProviderBasedIntermediateJavaArtifact(String type, Object dependency, Provider<File> fileProvider) {
-            super(type, dependency);
+        public ProviderBasedIntermediateJavaArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency, Provider<File> fileProvider) {
+            super(taskDependencyFactory, type, dependency);
             this.fileProvider = fileProvider;
         }
 

@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.Action
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.ScalaSourceSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -34,7 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 class DefaultScalaSourceSetTest {
     public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    private final DefaultScalaSourceSet sourceSet = new DefaultScalaSourceSet("<set-display-name>", TestUtil.objectFactory(tmpDir.testDirectory))
+    private final DefaultScalaSourceSet sourceSet = new DefaultScalaSourceSet("<set-display-name>", TestUtil.objectFactory(tmpDir.testDirectory), TestFiles.taskDependencyFactory())
 
     @Test
     public void defaultValues() {

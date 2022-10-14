@@ -22,7 +22,7 @@ import org.gradle.api.tasks.ScalaSourceDirectorySet;
 
 public class DefaultScalaSourceDirectorySet extends DefaultSourceDirectorySet implements ScalaSourceDirectorySet {
 
-    public DefaultScalaSourceDirectorySet(SourceDirectorySet sourceDirectorySet) {
-        super(sourceDirectorySet);
+    public DefaultScalaSourceDirectorySet(SourceDirectorySet sourceDirectorySet, TaskDependencyFactory taskDependencyFactory) {
+        super(sourceDirectorySet, taskDependencyFactory);
     }
 }
