@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
@@ -116,12 +115,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     @Inject
     protected JavaToolchainService getToolchainService() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    @Deprecated
-    public IsolatedAntBuilder getAntBuilder() {
         throw new UnsupportedOperationException();
     }
 

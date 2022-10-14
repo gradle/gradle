@@ -57,7 +57,7 @@ class MonotonicClock implements Clock {
 
     private final AtomicLong syncMillisRef;
     private final AtomicLong syncNanosRef;
-    private final AtomicLong currentTime = new AtomicLong(0);
+    private final AtomicLong currentTime = new AtomicLong();
 
     MonotonicClock() {
         this(TimeSource.SYSTEM, SYNC_INTERVAL_MILLIS);

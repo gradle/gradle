@@ -58,6 +58,34 @@ Usage of invalid Java toolchain specifications is no longer supported.
 Related build errors can be avoided by making sure that language version is set on all toolchain specifications.
 See <<toolchains#sec:configuring_toolchain_specifications,user manual>> for more information.
 
+==== Changing test framework after setting test framework options is now an error
+
+When configuring the built-in test task for Java, Groovy, and Scala projects, Gradle no longer allows you to
+change the test framework used by the `Test` task after configuring options. This was deprecated since it silently
+discarded configuration in some cases.
+
+The following code example now produces an error:
+```
+test {
+   options {
+   }
+
+   useJUnitPlatform()
+}
+```
+Instead, you can:
+
+- set the test framework before configuring options
+- migrate to the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>>
+```
+test {
+   // select test framework before configuring options
+   useJUnitPlatform()
+   options {
+   }
+}
+```
+
 === Removed APIs
 
 ==== Legacy ArtifactTransform API
@@ -74,11 +102,6 @@ The legacy `IncrementalTaskInputs` API has been removed. For more information, s
 The legacy `AntlrSourceVirtualDirectory` API has been removed.
 This change affects the `antlr` plugin.
 In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
-
-=== Legacy test sources configuration in `idea` plugin
-
-The deprecated `IdeaModule.getTestSourceDirs()` and `IdeaModule.getTestResourceDirs()` were removed in Gradle 8.0.
-You should use `IdeaModule.getTestSources()` and `IdeaModule.getTestResources()` instead.
 
 === Potential breaking changes
 
@@ -310,17 +333,31 @@ These members will be removed in Gradle 9.0.
 ==== Internal DependencyFactory was renamed
 The internal `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory` type was renamed to `org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal`. As an internal type, it should not be used, but for compatibility reasons the inner `ClassPathNotation` type is still available. This name for the type is deprecated and will be removed in Gradle 8.0. The public API for this is on `DependencyHandler`, with methods such as `localGroovy()` providing the same functionality.
 
+==== Replacement collections in `org.gradle.plugins.ide.idea.model.IdeaModule`
+
+The `testResourcesDirs` and `testSourcesDirs` fields and their getters and setters have been deprecated.
+Replace usages with the now stable `getTestSources()` and `getTestResources()` methods and their respective setters.
+These new methods return and are backed by `ConfigurableFileCollection` instances for improved flexibility of use.
+Gradle now warns upon usage of these deprecated methods. They will be removed in a future version of Gradle.
+
+==== Replacement methods in `org.gradle.api.tasks.testing.TestReport`
+
+The `getDestinationDir()`, `setDestinationDir(File)`, and `getTestResultsDirs()` and `setTestResultsDirs(Iterable)` methods have been deprecated.
+Replace usages with the now stable `getDestinationDirectory()` and `getTestResults()` methods and their associated setters.
+These deprecated elements will be removed in a future version of Gradle.
+
 [[referencing_script_configure_method_from_container_configure_closure_deprecated]]
-==== Implicitly referencing outer scope methods in some configuration blocks in Groovy DSL is now deprecated
+==== Deprecated implicit references to outer scope methods in some configuration blocks
 
-Prior to Gradle 7.6, Groovy scripts would permit accessing root project-level configure methods from
-within named container configure methods, as long as that container configure method would otherwise
-fail with a `MissingMethodException`. Consider the following snippets for examples of this behavior:
+Prior to Gradle 7.6, Groovy scripts permitted access to root project configure methods
+within named container configure methods that throw `MissingMethodException`s.
+Consider the following snippets for examples of this behavior:
 
-Accessing the top-level `repositories` block from within the `configurations` block is permitted
-as long as the provided closure is otherwise an invalid configure closure for a Configuration.
-In this case, the `repositories` closure is executed as if it were called at the script-level, _and_
-an unconfigured `repositories` Configuration is created.
+Gradle permits access to the top-level `repositories` block from within the `configurations` block
+when the provided closure is otherwise an invalid configure closure for a Configuration.
+In this case, the `repositories` closure executes as if it were called at the script-level, and
+creates an unconfigured `repositories` Configuration:
+
 ```groovy
 configurations {
     repositories {
@@ -333,11 +370,12 @@ configurations {
 }
 ```
 
-The behavior also applies in closures which are not immediately executed. In this case, `afterResolve`
-is only executed when the `resolve` task runs. Regardless, the `distributions` closure is an otherwise
-invalid configure closure for a Configuration, though it is a valid top-level script closure. In this
-case, the `conf` Configuration is created immediately, and during the execution of the `resolve` task,
-the `distributions` block is executed as if it were declared at the script-level.
+The behavior also applies to closures which do not immediately execute.
+In this case, `afterResolve` only executes when the `resolve` task runs.
+The `distributions` closure is a valid top-level script closure.
+But it is an invalid configure closure for a Configuration.
+This example creates the `conf` Configuration immediately.
+During `resolve` task execution, the `distributions` block executed as if it were declared at the script-level:
 
 ```groovy
 configurations {
@@ -358,8 +396,10 @@ task resolve {
 }
 ```
 
-As of Gradle 7.6, this behavior is deprecated. Starting with Gradle 8.0, this behavior will be removed and instead
-the underlying `MissingMethodException` will be thrown. To mitigate this change, consider the following solutions:
+As of Gradle 7.6, this behavior is deprecated.
+Starting with Gradle 8.0, this behavior will be removed.
+Instead, Gradle will throw the underlying `MissingMethodException`.
+To mitigate this change, consider the following solutions:
 
 ```groovy
 configurations {

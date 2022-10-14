@@ -82,7 +82,7 @@ on two lines -->
     }
 
     private boolean hasNamespaceDeclaration() {
-        rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.1.xsd"')
+        rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd"')
     }
 
     def "can declare key servers"() {
@@ -377,7 +377,7 @@ on two lines -->
         declareChecksumOfArtifact(group, name, version, "jar", "jar", null, algorithm, checksum, origin)
     }
 
-    private declareChecksumOfArtifact(String group, String name, version, String type, String ext, String classifier, String algorithm, String checksum, String origin = null) {
+    private declareChecksumOfArtifact(String group, String name, version, String type, String ext, String classifier, String algorithm, String checksum, String origin = null, String reason = null) {
         builder.addChecksum(
             new DefaultModuleComponentArtifactIdentifier(
                 DefaultModuleComponentIdentifier.newId(
@@ -391,7 +391,8 @@ on two lines -->
             ),
             ChecksumKind.valueOf(algorithm),
             checksum,
-            origin
+            origin,
+            reason
         )
     }
 
