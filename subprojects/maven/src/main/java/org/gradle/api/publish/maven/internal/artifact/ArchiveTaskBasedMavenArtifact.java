@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -31,7 +30,7 @@ public class ArchiveTaskBasedMavenArtifact extends AbstractMavenArtifact {
     public ArchiveTaskBasedMavenArtifact(AbstractArchiveTask archiveTask, TaskDependencyFactory taskDependencyFactory) {
         super(taskDependencyFactory);
         this.archiveTask = archiveTask;
-        this.buildDependencies = new DefaultTaskDependency(null, ImmutableSet.<Object>of(archiveTask));
+        this.buildDependencies = taskDependencyFactory.configurableDependency(ImmutableSet.of(archiveTask));
     }
 
     @Override

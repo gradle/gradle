@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import com.google.common.base.Strings;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.publish.internal.PublicationArtifactInternal;
@@ -38,7 +37,10 @@ public abstract class AbstractIvyArtifact implements IvyArtifact, PublicationArt
 
     protected AbstractIvyArtifact(TaskDependencyFactory taskDependencyFactory) {
         this.additionalBuildDependencies = new DefaultTaskDependency();
-        this.allBuildDependencies = new CompositeTaskDependency();
+        this.allBuildDependencies = taskDependencyFactory.visitingDependencies(context -> {
+            context.add(getDefaultBuildDependencies());
+            additionalBuildDependencies.visitDependencies(context);
+        });
     }
 
     @Override
@@ -118,13 +120,5 @@ public abstract class AbstractIvyArtifact implements IvyArtifact, PublicationArt
     @Override
     public String toString() {
         return String.format("%s %s:%s:%s:%s", getClass().getSimpleName(), getName(), getType(), getExtension(), getClassifier());
-    }
-
-    private class CompositeTaskDependency extends AbstractTaskDependency {
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(getDefaultBuildDependencies());
-            additionalBuildDependencies.visitDependencies(context);
-        }
     }
 }

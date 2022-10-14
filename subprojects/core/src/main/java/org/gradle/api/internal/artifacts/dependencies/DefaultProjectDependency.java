@@ -26,9 +26,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -134,7 +132,15 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public TaskDependencyInternal getBuildDependencies() {
-        return new TaskDependencyImpl();
+        return taskDependencyFactory.visitingDependencies(context -> {
+            if (!buildProjectDependencies) {
+                return;
+            }
+
+            Configuration configuration = findProjectConfiguration();
+            context.add(configuration);
+            context.add(configuration.getAllArtifacts());
+        });
     }
 
     @Override
@@ -193,18 +199,4 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         return "DefaultProjectDependency{" + "dependencyProject='" + dependencyProject + '\'' + ", configuration='"
             + (getTargetConfiguration() == null ? Dependency.DEFAULT_CONFIGURATION : getTargetConfiguration()) + '\'' + '}';
     }
-
-    private class TaskDependencyImpl extends AbstractTaskDependency {
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            if (!buildProjectDependencies) {
-                return;
-            }
-
-            Configuration configuration = findProjectConfiguration();
-            context.add(configuration);
-            context.add(configuration.getAllArtifacts());
-        }
-    }
-
 }

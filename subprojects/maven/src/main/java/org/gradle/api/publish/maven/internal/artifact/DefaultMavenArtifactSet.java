@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
@@ -48,7 +47,12 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
         super(MavenArtifact.class, collectionCallbackActionDecorator);
         this.publicationName = publicationName;
         this.mavenArtifactParser = mavenArtifactParser;
-        this.files = fileCollectionFactory.create(new ArtifactsTaskDependency(), new ArtifactsFileCollection());
+        AbstractTaskDependency taskDependency = taskDependencyFactory.visitingDependencies(context -> {
+            for (MavenArtifact mavenArtifact : DefaultMavenArtifactSet.this) {
+                context.add(mavenArtifact);
+            }
+        });
+        this.files = fileCollectionFactory.create(taskDependency, new ArtifactsFileCollection());
     }
 
     @Override
@@ -83,15 +87,6 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
                 files.add(artifact.getFile());
             }
             return files;
-        }
-    }
-
-    private class ArtifactsTaskDependency extends AbstractTaskDependency {
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            for (MavenArtifact mavenArtifact : DefaultMavenArtifactSet.this) {
-                context.add(mavenArtifact);
-            }
         }
     }
 }

@@ -28,6 +28,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Cast;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
@@ -41,6 +42,7 @@ import java.util.Map;
 import java.util.RandomAccess;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 
 import static com.google.common.collect.Iterables.toArray;
 import static org.gradle.util.internal.GUtil.uncheckedCall;
@@ -145,6 +147,8 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 }
             } else if (resolver != null && dependency instanceof CharSequence) {
                 context.add(resolver.resolveTask(dependency.toString()));
+            } else if (dependency instanceof VisitBehavior) {
+                ((VisitBehavior) dependency).onVisit.accept(context);
             } else {
                 List<String> formats = new ArrayList<String>();
                 if (resolver != null) {
@@ -196,6 +200,15 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
             throw new InvalidUserDataException("A dependency must not be empty");
         }
         getMutableValues().add(dependency);
+    }
+
+    static class VisitBehavior {
+        @Nonnull
+        public final Consumer<? super TaskDependencyResolveContext> onVisit;
+
+        public VisitBehavior(Consumer<? super TaskDependencyResolveContext> onVisit) {
+            this.onVisit = onVisit;
+        }
     }
 
     private static class TaskDependencySet implements Set<Object> {
