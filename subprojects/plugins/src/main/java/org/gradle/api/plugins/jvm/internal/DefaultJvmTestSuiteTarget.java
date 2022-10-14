@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuiteTarget;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
@@ -32,9 +33,10 @@ import javax.inject.Inject;
 public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, Buildable {
     private final String name;
     private final TaskProvider<Test> testTask;
+    private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
-    public DefaultJvmTestSuiteTarget(String name, TaskContainer tasks) {
+    public DefaultJvmTestSuiteTarget(String name, TaskContainer tasks, TaskDependencyFactory taskDependencyFactory) {
         this.name = name;
 
         // Might not always want Test type here?
@@ -42,6 +44,7 @@ public abstract class DefaultJvmTestSuiteTarget implements JvmTestSuiteTarget, B
             t.setDescription("Runs the " + GUtil.toWords(name) + " suite.");
             t.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
         });
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override

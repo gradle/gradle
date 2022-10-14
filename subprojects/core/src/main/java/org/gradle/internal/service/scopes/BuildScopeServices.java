@@ -69,6 +69,7 @@ import org.gradle.api.internal.provider.sources.process.ExecSpecFactory;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputProviderFactory;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.userinput.BuildScanUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.DefaultBuildScanUserInputHandler;
@@ -278,9 +279,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(buildDefinition.getStartParameter()));
     }
 
-    protected DefaultResourceHandler.Factory createResourceHandlerFactory(FileResolver fileResolver, FileSystem fileSystem, TemporaryFileProvider temporaryFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory) {
+    protected DefaultResourceHandler.Factory createResourceHandlerFactory(FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, FileSystem fileSystem, TemporaryFileProvider temporaryFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory) {
         return DefaultResourceHandler.Factory.from(
             fileResolver,
+            taskDependencyFactory,
             fileSystem,
             temporaryFileProvider,
             textResourceAdapterFactory

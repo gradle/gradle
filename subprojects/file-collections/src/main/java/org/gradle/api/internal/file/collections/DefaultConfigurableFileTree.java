@@ -41,6 +41,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
     public DefaultConfigurableFileTree(PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        super(taskDependencyFactory);
         this.resolver = resolver;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         patternSet = patternSetFactory.create();
@@ -150,7 +151,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     @Override
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         File dir = getDir();
-        visitor.accept(new FileTreeAdapter(directoryFileTreeFactory.create(dir, patternSet), patternSetFactory));
+        visitor.accept(new FileTreeAdapter(directoryFileTreeFactory.create(dir, patternSet), taskDependencyFactory, patternSetFactory));
     }
 
     @Override

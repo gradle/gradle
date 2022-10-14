@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
@@ -143,11 +144,13 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final SourceSet sourceSet;
     private final String name;
     private final JvmComponentDependencies dependencies;
+    private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
-    public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations) {
+    public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations, TaskDependencyFactory taskDependencyFactory) {
         this.name = name;
         this.sourceSet = sourceSets.create(getName());
+        this.taskDependencyFactory = taskDependencyFactory;
 
         Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());

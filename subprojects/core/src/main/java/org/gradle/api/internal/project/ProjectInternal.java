@@ -34,6 +34,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -148,6 +149,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     void prepareForRuleBasedPlugins();
 
     FileResolver getFileResolver();
+
+    TaskDependencyFactory getTaskDependencyFactory();
 
     @UsedByScanPlugin("scan, test-retry")
     ServiceRegistry getServices();

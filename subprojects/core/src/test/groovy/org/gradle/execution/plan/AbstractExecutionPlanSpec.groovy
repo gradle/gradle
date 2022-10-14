@@ -25,7 +25,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.api.internal.tasks.TaskDependencyInternal
+import org.gradle.api.internal.tasks.TaskDependencyContainerInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
@@ -127,7 +127,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
     }
 
     protected TaskDependency taskDependencyResolvingTo(TaskInternal task, List<Task> tasks) {
-        Mock(TaskDependencyInternal) {
+        Mock(TaskDependencyContainerInternal) {
             visitDependencies(_) >> { TaskDependencyResolveContext context -> tasks.forEach { context.add(it) } }
         }
     }

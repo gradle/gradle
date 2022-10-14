@@ -20,6 +20,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
@@ -110,7 +111,8 @@ public class Signature extends AbstractPublishArtifact {
     }
 
     Signature(Buildable source, Callable<File> toSign, Callable<String> classifier, Callable<String> name, SignatureSpec signatureSpec, Object... tasks) {
-        super(tasks);
+        // TODO: find a way to inject a proper task dependency factory without breaking the public API
+        super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
         init(toSign, classifier, name, signatureSpec);
         this.source = source;
     }
@@ -123,7 +125,8 @@ public class Signature extends AbstractPublishArtifact {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
     public Signature(final File toSign, SignatureSpec signatureSpec, Object... tasks) {
-        super(tasks);
+        // TODO: find a way to inject a proper task dependency factory without breaking the public API
+        super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
         init(returning(toSign), null, null, signatureSpec);
     }
 
@@ -136,7 +139,8 @@ public class Signature extends AbstractPublishArtifact {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
     public Signature(final File toSign, final String classifier, SignatureSpec signatureSpec, Object... tasks) {
-        super(tasks);
+        // TODO: find a way to inject a proper task dependency factory without breaking the public API
+        super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
         init(returning(toSign), returning(classifier), null, signatureSpec);
     }
 
@@ -151,7 +155,8 @@ public class Signature extends AbstractPublishArtifact {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
     public Signature(Closure<File> toSign, Closure<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
-        super(tasks);
+        // TODO: find a way to inject a proper task dependency factory without breaking the public API
+        super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
         this.toSignGenerator = toSign;
         this.classifierGenerator = classifier;
         this.signatureSpec = signatureSpec;
@@ -168,7 +173,8 @@ public class Signature extends AbstractPublishArtifact {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
     public Signature(Callable<File> toSign, Callable<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
-        super(tasks);
+        // TODO: find a way to inject a proper task dependency factory without breaking the public API
+        super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
         this.toSignGenerator = toSign;
         this.classifierGenerator = classifier;
         this.signatureSpec = signatureSpec;

@@ -70,6 +70,7 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -190,6 +191,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private final ProjectStateInternal state;
 
     private FileResolver fileResolver;
+
+    private TaskDependencyFactory taskDependencyFactory;
 
     private Factory<AntBuilder> antBuilderFactory;
 
@@ -536,6 +539,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             fileResolver = services.get(FileResolver.class);
         }
         return fileResolver;
+    }
+
+    @Override
+    public TaskDependencyFactory getTaskDependencyFactory() {
+        if (taskDependencyFactory == null) {
+            taskDependencyFactory = services.get(TaskDependencyFactory.class);
+        }
+        return taskDependencyFactory;
     }
 
     public void setFileResolver(FileResolver fileResolver) {

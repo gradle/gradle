@@ -20,7 +20,7 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import spock.lang.Specification
 
 class UnionFileTreeTest extends Specification {
-    private final UnionFileTree set = new UnionFileTree("<display name>")
+    private final UnionFileTree set = new UnionFileTree(TestFiles.taskDependencyFactory(), "<display name>")
 
     def setup() {
         NativeServicesTestFixture.initialize()
