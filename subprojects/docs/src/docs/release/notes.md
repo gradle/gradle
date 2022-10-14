@@ -10,8 +10,6 @@ There are also enhancements to the [configuration cache](#configuration) and
 
 This release introduces a [Service Provider Interface (SPI) for Java Toolchains](#toolchain-spi).
 
-The Kotlin DSL now supports [named dependency arguments](#named-kotlin-dsl-dependency-arguments) for external dependencies.
-
 <!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -99,28 +97,6 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 Gradle 7.6 supports compiling, testing and running on Java 19.
 
-<a name="named-kotlin-dsl-dependency-arguments"></a>
-#### Introduced named dependency arguments in the Kotlin DSL for external dependencies
-
-
-In the [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block,
-the Kotlin DSL now supports named arguments for external dependencies:
-
-```kotlin
-testing {
-    suites {
-        val test by getting(JvmTestSuite::class) {
-            useJUnitJupiter()
-            dependencies {
-                implementation(module(group = "com.google.guava",
-                               name = "guava",
-                               version = "31.1-jre"))
-            }
-        }
-    }
-}
-```
-
 <a name="strongly-typed-dependencies"></a>
 #### Introduced strongly-typed `dependencies` block for JVM test suites
 
@@ -172,8 +148,26 @@ Using a `FileCollection` provides a `FileCollectionDependency`.
 This allows Java and Kotlin to properly configure all types of dependencies
 and improves IDE support for the Groovy DSL.
 
+In addition, the Kotlin DSL now supports named arguments for external dependencies:
+
+```kotlin
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnitJupiter()
+            dependencies {
+                implementation(module(group = "com.google.guava",
+                               name = "guava",
+                               version = "31.1-jre"))
+            }
+        }
+    }
+}
+```
+
 For more information about the test suite `dependencies` block, see
 [Differences Between Test Suite and Top-Level Dependencies](userguide/jvm_test_suite_plugin.html#differences_between_the_test_suite_dependencies_and_the_top_level_dependencies_blocks).
+
 
 #### Introduced support for Java 9+ network debugging
 
