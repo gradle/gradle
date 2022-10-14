@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.process.ShellScript
+
 class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "value source without parameters can be used as task input"() {
@@ -291,5 +293,38 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
             withInput("Build file 'build.gradle': system property 'some.property'")
             ignoringUnexpectedInputs()
         }
+    }
+
+    def "value source can use standard process API"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        ShellScript testScript = ShellScript.builder().printText("Hello, world").writeTo(testDirectory, "script")
+
+        settingsFile("""
+            enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
+        """)
+        buildFile.text = """
+            import ${ByteArrayOutputStream.name}
+            import org.gradle.api.provider.*
+
+            abstract class ProcessSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Override String obtain() {
+                    def baos = new ByteArrayOutputStream()
+                    def process = ${ShellScript.cmdToStringLiteral(testScript.getRelativeCommandLine(testDirectory))}.execute()
+                    process.waitForProcessOutput(baos, System.err)
+                    return baos.toString().trim()
+                }
+            }
+
+            def vsResult = providers.of(ProcessSource) {}
+            println("ValueSource result = \${vsResult.get()}")
+        """
+
+        when:
+        configurationCacheRun()
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("ValueSource result = Hello, world")
     }
 }

@@ -46,6 +46,7 @@ import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.configurationcache.CoupledProjectsListener
+import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.UndeclaredBuildInputListener
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFile
@@ -70,7 +71,6 @@ import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.util.Path
 import java.io.File
 import java.util.EnumSet
-import kotlin.reflect.KProperty
 
 
 internal
@@ -82,6 +82,7 @@ class ConfigurationCacheFingerprintWriter(
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val taskExecutionTracker: TaskExecutionTracker,
     private val environmentChangeTracker: EnvironmentChangeTracker,
+    private val inputTrackingState: InputTrackingState,
 ) : ValueSourceProviderFactory.ValueListener,
     ValueSourceProviderFactory.ComputationListener,
     WorkInputListener,
@@ -145,9 +146,6 @@ class ConfigurationCacheFingerprintWriter(
     private
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
-    private
-    var inputTrackingDisabledForThread by ThreadLocal.withInitial { false }
-
     init {
         val initScripts = host.allInitScripts
         buildScopedSink.initScripts(initScripts)
@@ -197,12 +195,18 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
+    private
+    fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
+
+    private
+    fun isExecutingTask() = taskExecutionTracker.currentTask.isPresent
+
     override fun fileObserved(file: File) {
         fileObserved(file, null)
     }
 
     override fun fileObserved(file: File, consumer: String?) {
-        if (inputTrackingDisabledForThread) {
+        if (isInputTrackingDisabled()) {
             return
         }
         // Ignore consumer for now, only used by Gradle internals and so shouldn't appear in the report.
@@ -210,7 +214,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
-        if (inputTrackingDisabledForThread || isSystemPropertyMutated(key)) {
+        if (isInputTrackingDisabled() || isSystemPropertyMutated(key)) {
             return
         }
         sink().systemPropertyRead(key, value)
@@ -218,7 +222,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun envVariableRead(key: String, value: String?, consumer: String?) {
-        if (inputTrackingDisabledForThread) {
+        if (isInputTrackingDisabled()) {
             return
         }
         sink().envVariableRead(key, value)
@@ -226,7 +230,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun fileOpened(file: File, consumer: String?) {
-        if (inputTrackingDisabledForThread || taskExecutionTracker.currentTask.isPresent) {
+        if (isInputTrackingDisabled() || isExecutingTask()) {
             // Ignore files that are read as part of the task actions. These should really be task
             // inputs. Otherwise, we risk fingerprinting temporary files that will be gone at the
             // end of the build.
@@ -237,14 +241,14 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun fileCollectionObserved(fileCollection: FileCollection, consumer: String) {
-        if (inputTrackingDisabledForThread) {
+        if (isInputTrackingDisabled()) {
             return
         }
         captureWorkInputs(consumer) { it(fileCollection as FileCollectionInternal) }
     }
 
     override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
-        if (inputTrackingDisabledForThread) {
+        if (isInputTrackingDisabled()) {
             return
         }
         val filteredSnapshot = snapshot.mapValues { e ->
@@ -258,18 +262,19 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
-        if (inputTrackingDisabledForThread) {
+        if (isInputTrackingDisabled()) {
             return
         }
         buildScopedSink.write(ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy(prefix, snapshot))
     }
 
     override fun beforeValueObtained() {
-        inputTrackingDisabledForThread = true
+        // Do not track additional inputs while computing a value of the value source.
+        inputTrackingState.disableForCurrentThread()
     }
 
     override fun afterValueObtained() {
-        inputTrackingDisabledForThread = false
+        inputTrackingState.enableForCurrentThread()
     }
 
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
@@ -652,11 +657,3 @@ fun jvmFingerprint() = String.format(
     System.getProperty("java.vm.vendor"),
     System.getProperty("java.vm.version")
 )
-
-
-private
-operator fun <T> ThreadLocal<T>.getValue(thisRef: Any?, property: KProperty<*>) = get()
-
-
-private
-operator fun <T> ThreadLocal<T>.setValue(thisRef: Any?, property: KProperty<*>, value: T) = set(value)
