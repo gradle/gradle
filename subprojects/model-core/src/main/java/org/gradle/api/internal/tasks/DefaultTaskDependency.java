@@ -49,7 +49,7 @@ import static org.gradle.util.internal.GUtil.uncheckedCall;
  * A task dependency which can have both mutable and immutable dependency values.
  *
  * If dependencies are known up-front, it is much more efficient to pass
- * them as immutable values to the {@link DefaultTaskDependency#DefaultTaskDependency(TaskResolver, ImmutableSet)}
+ * them as immutable values to the {@link DefaultTaskDependency#DefaultTaskDependency(TaskResolver, ImmutableSet, TaskDependencyUsageTracker)}
  * constructor than to use the {@link #add(Object...)} method, as the former will
  * require less memory to store them.
  */
@@ -59,14 +59,22 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
     private final TaskResolver resolver;
 
     public DefaultTaskDependency() {
-        this(null);
+        this(null, null);
     }
 
-    public DefaultTaskDependency(@Nullable TaskResolver resolver) {
-        this(resolver, ImmutableSet.of());
+    public DefaultTaskDependency(
+        @Nullable TaskResolver resolver,
+        @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker
+    ) {
+        this(resolver, ImmutableSet.of(), taskDependencyUsageTracker);
     }
 
-    public DefaultTaskDependency(@Nullable TaskResolver resolver, ImmutableSet<Object> immutableValues) {
+    public DefaultTaskDependency(
+        @Nullable TaskResolver resolver,
+        ImmutableSet<Object> immutableValues,
+        @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker
+    ) {
+        super(taskDependencyUsageTracker);
         this.resolver = resolver;
         this.immutableValues = immutableValues;
     }
