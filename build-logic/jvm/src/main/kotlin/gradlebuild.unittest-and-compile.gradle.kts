@@ -339,7 +339,13 @@ fun removeTeamcityTempProperty() {
 
 fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
 
-fun Project.supportsPredictiveTestSelection() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name)
+/**
+ * Whether the project supports running with predictive test selection.
+ *
+ * Our performance tests don't work with PTS, yet.
+ * Smoke and soak tests are hard to grasp for PTS, that is why we run them without.
+ */
+fun Project.supportsPredictiveTestSelection() = !isPerformanceProject() && !setOf("smoke-test", "soak").contains(name)
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
