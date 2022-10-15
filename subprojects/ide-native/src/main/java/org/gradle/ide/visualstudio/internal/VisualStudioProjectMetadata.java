@@ -18,6 +18,7 @@ package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.plugins.ide.internal.IdeProjectMetadata;
@@ -50,7 +51,7 @@ public class VisualStudioProjectMetadata implements IdeProjectMetadata {
 
     @Override
     public Set<? extends Task> getGeneratorTasks() {
-        return project.getBuildDependencies().getDependencies(null);
+        return TaskDependencyUtil.getDependenciesForInternalUse(project.getBuildDependencies(), null);
     }
 
     public List<VisualStudioProjectConfigurationMetadata> getConfigurations() {

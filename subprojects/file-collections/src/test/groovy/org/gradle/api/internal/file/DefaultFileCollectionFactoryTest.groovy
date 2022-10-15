@@ -69,7 +69,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
     def "lazily queries dependencies of collection created from MinimalFileSet"() {
         def contents = Mock(MinimalFileSet)
-        def builtBy = Mock(TaskDependency)
+        def builtBy = Mock(TaskDependencyInternal)
         def task = Stub(Task)
 
         when:
@@ -83,7 +83,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
         then:
         tasks == [task] as Set
-        1 * builtBy.getDependencies(_) >> [task]
+        1 * builtBy.getDependenciesForInternalUse(_) >> [task]
         0 * _
     }
 
