@@ -25,6 +25,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -227,7 +228,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             eclipseProject.setSourceDirectories(classpathElements.getSourceDirectories());
             eclipseProject.setClasspathContainers(classpathElements.getClasspathContainers());
             eclipseProject.setOutputLocation(classpathElements.getEclipseOutputLocation() != null ? classpathElements.getEclipseOutputLocation() : new DefaultEclipseOutputLocation("bin"));
-            eclipseProject.setAutoBuildTasks(!eclipseModel.getAutoBuildTasks().getDependencies(null).isEmpty());
+            eclipseProject.setAutoBuildTasks(!TaskDependencyUtil.getDependenciesForInternalUse(eclipseModel.getAutoBuildTasks(), null).isEmpty());
 
             org.gradle.plugins.ide.eclipse.model.Project xmlProject = new org.gradle.plugins.ide.eclipse.model.Project(new XmlTransformer());
 
