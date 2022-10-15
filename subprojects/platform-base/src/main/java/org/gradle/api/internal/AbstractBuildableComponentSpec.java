@@ -73,7 +73,7 @@ public abstract class AbstractBuildableComponentSpec extends AbstractComponentSp
 
     @Override
     public boolean hasBuildDependencies() {
-        return buildTaskDependencies.getDependencies(buildTask).size() > 0;
+        return buildTaskDependencies.getDependenciesForInternalUse(buildTask).size() > 0;
     }
 
     @Nullable
