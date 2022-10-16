@@ -93,7 +93,6 @@ data class ProgramSourceFragment(
     val source: ProgramSource,
     val section: ScriptSection
 ) {
-
     val lineNumber: Int
         get() = source.contents.lineNumberOf(section.identifier.first)
 
@@ -102,6 +101,10 @@ data class ProgramSourceFragment(
 
     override fun toString(): String =
         "ProgramSourceFragment(\"${source.text.subSequence(range)}\")"
+
+    internal
+    val blockString: String
+        get() = source.text.substring(section.block)
 }
 
 
