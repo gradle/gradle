@@ -50,6 +50,7 @@ import org.gradle.kotlin.dsl.support.bytecode.INVOKEVIRTUAL
 import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.NEW
+import org.gradle.kotlin.dsl.support.bytecode.POP
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
 import org.gradle.kotlin.dsl.support.bytecode.TRY_CATCH
 import org.gradle.kotlin.dsl.support.bytecode.internalName
@@ -190,9 +191,9 @@ class ResidualProgramCompiler(
         is Instruction.Eval -> emitEval(instruction.script)
         is Instruction.ApplyBasePlugins -> emitApplyBasePluginsTo()
         is Instruction.ApplyDefaultPluginRequests -> emitApplyEmptyPluginRequestsTo()
+        is Instruction.ApplyPluginRequests -> emitApplyPluginRequests(instruction.requests, instruction.source)
         is Instruction.ApplyPluginRequestsOf -> {
-            val program = instruction.program
-            when (program) {
+            when (val program = instruction.program) {
                 is Program.Plugins -> emitPrecompiledPluginsBlock(program)
                 is Program.PluginManagement -> emitStage1Sequence(program)
                 is Program.Stage1Sequence -> emitStage1Sequence(program.pluginManagement, program.buildscript, program.plugins)
@@ -263,6 +264,32 @@ class ResidualProgramCompiler(
 
             emitApplyPluginsTo()
         }
+    }
+
+    private
+    fun MethodVisitor.emitApplyPluginRequests(
+        pluginRequestSpecs: List<ResidualProgram.PluginRequestSpec>,
+        source: Program.Plugins?
+    ) {
+        emitPluginRequestCollectorInstantiation()
+        emitPluginRequestCollectorCreateSpecFor(source)
+        emitPluginRequests(pluginRequestSpecs)
+        emitApplyPluginsTo()
+    }
+
+    private
+    fun MethodVisitor.emitPluginRequests(specs: List<ResidualProgram.PluginRequestSpec>) {
+        specs.forEach { spec ->
+            DUP()
+            LDC(spec.id)
+            INVOKEINTERFACE(
+                InternalName("org/gradle/plugin/use/PluginDependenciesSpec"),
+                "id",
+                "(Ljava/lang/String;)Lorg/gradle/plugin/use/PluginDependencySpec;"
+            )
+            POP()
+        }
+        POP()
     }
 
     /**

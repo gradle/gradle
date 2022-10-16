@@ -221,6 +221,12 @@ fun MethodVisitor.DUP() {
 
 
 internal
+fun MethodVisitor.POP() {
+    visitInsn(Opcodes.POP)
+}
+
+
+internal
 fun MethodVisitor.ARETURN() {
     visitInsn(Opcodes.ARETURN)
 }
