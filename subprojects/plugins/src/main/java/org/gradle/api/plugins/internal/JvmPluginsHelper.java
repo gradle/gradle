@@ -41,6 +41,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.model.ObjectFactory;
@@ -318,6 +319,18 @@ public class JvmPluginsHelper {
     public static class ProviderBasedIntermediateJavaArtifact extends IntermediateJavaArtifact {
 
         private final Provider<File> fileProvider;
+
+        // Used in the Gradle build;
+        // TODO: remove once the usage in gradlebuild.test-fixtures.gradle.kts is no longer there
+        /**
+         * @deprecated Use the overload accepting a TaskDependencyFactory
+         */
+        @Deprecated
+        public ProviderBasedIntermediateJavaArtifact(
+            String type, Object dependency, Provider<File> fileProvider
+        ) {
+            this(DefaultTaskDependencyFactory.withNoAssociatedProject(), type, dependency, fileProvider);
+        }
 
         public ProviderBasedIntermediateJavaArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency, Provider<File> fileProvider) {
             super(taskDependencyFactory, type, dependency);
