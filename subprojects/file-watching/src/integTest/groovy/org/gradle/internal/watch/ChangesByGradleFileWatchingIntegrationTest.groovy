@@ -16,8 +16,10 @@
 
 package org.gradle.internal.watch
 
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 
+@LocalOnly
 class ChangesByGradleFileWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest implements DirectoryBuildCacheFixture {
 
     def "detects when outputs are removed for tasks without sources"() {

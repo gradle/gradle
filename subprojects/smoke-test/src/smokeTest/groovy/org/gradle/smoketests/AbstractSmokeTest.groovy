@@ -22,6 +22,7 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMa
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheQuietOption
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.BuildOperationTreeFixture
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
@@ -78,7 +79,7 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaResolutionRules = "9.0.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("4.0.4", "6.0.0", "6.1.0", "7.0.0", "7.1.2")
+        static shadow = Versions.of("6.0.0", "6.1.0", "7.0.0", "7.1.2")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
         static asciidoctor = Versions.of("3.3.2")
@@ -93,7 +94,7 @@ abstract class AbstractSmokeTest extends Specification {
         static tomcat = "2.7.0"
 
         // https://plugins.gradle.org/plugin/io.spring.dependency-management
-        static springDependencyManagement = "1.0.13.RELEASE"
+        static springDependencyManagement = "1.0.14.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
         static springBoot = "2.7.3"
@@ -111,7 +112,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = [
-            [version: "3.0.8", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
+            [version: "3.0.9", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
             [version: "4.0.3", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
         ]
 
@@ -214,22 +215,6 @@ abstract class AbstractSmokeTest extends Specification {
             }
         }
 
-        /**
-         * Since Android 7.3.0 is not yet stable we have to use that.
-         * One stable version is released we should remove this.
-         */
-        String latestStableOrRc() {
-            def stableVersion = latestStable()
-            if (stableVersion != null) {
-                return stableVersion
-            }
-            return versions.reverse().find { version ->
-                    !version.containsIgnoreCase("beta") &&
-                    !version.containsIgnoreCase("alpha") &&
-                    !version.containsIgnoreCase("milestone")
-            }
-        }
-
         String latestStartsWith(String prefix) {
             return versions.reverse().find { it.startsWith(prefix) }
         }
@@ -280,7 +265,7 @@ abstract class AbstractSmokeTest extends Specification {
             .withProjectDir(testProjectDir)
             .forwardOutput()
             .withArguments(
-                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters()
+                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters() + toolchainParameters()
             ) as DefaultGradleRunner
         gradleRunner.withJvmArguments(["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"])
         return new SmokeTestGradleRunner(gradleRunner)
@@ -316,6 +301,14 @@ abstract class AbstractSmokeTest extends Specification {
             '--init-script', mirrorInitScriptPath,
             "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
             "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
+        ]
+    }
+
+    private static List<String> toolchainParameters() {
+        return [
+            "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}" as String,
+            '-Porg.gradle.java.installations.auto-detect=false',
+            '-Porg.gradle.java.installations.auto-download=false',
         ]
     }
 

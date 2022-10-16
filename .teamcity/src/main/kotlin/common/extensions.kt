@@ -16,6 +16,7 @@
 
 package common
 
+import configurations.CompileAll
 import configurations.branchesFilterExcluding
 import configurations.buildScanCustomValue
 import configurations.buildScanTag
@@ -44,7 +45,6 @@ fun BuildSteps.customGradle(init: GradleBuildStep.() -> Unit, custom: GradleBuil
         .apply(custom)
         .also {
             step(it)
-            it.skipConditionally()
         }
 
 /**
@@ -53,12 +53,13 @@ fun BuildSteps.customGradle(init: GradleBuildStep.() -> Unit, custom: GradleBuil
  *
  * @see GradleBuildStep
  */
-fun BuildSteps.gradleWrapper(init: GradleBuildStep.() -> Unit): GradleBuildStep =
+fun BuildSteps.gradleWrapper(buildType: BuildType? = null, init: GradleBuildStep.() -> Unit): GradleBuildStep =
     customGradle(init) {
         useGradleWrapper = true
         if (buildFile == null) {
             buildFile = "" // Let Gradle detect the build script
         }
+        skipConditionally(buildType)
     }
 
 fun Requirements.requiresOs(os: Os) {
@@ -73,10 +74,19 @@ fun Requirements.requiresArch(os: Os, arch: Arch) {
     }
 }
 
-fun Requirements.requiresNoEc2Agent() {
+fun Requirements.requiresNotEc2Agent() {
     doesNotContain("teamcity.agent.name", "ec2")
     // US region agents have name "EC2-XXX"
     doesNotContain("teamcity.agent.name", "EC2")
+}
+
+/**
+ * We have some "shared" host where a Linux build agent and a Windows build agent
+ * both run on the same bare metal. Some builds require exclusive access to the
+ * hardware resources (e.g. performance test).
+ */
+fun Requirements.requiresNotSharedHost() {
+    doesNotContain("agent.host.type", "shared")
 }
 
 /**
@@ -158,7 +168,7 @@ fun BuildType.paramsForBuildToolBuild(buildJvm: Jvm = BuildToolBuildJvm, os: Os,
     }
 }
 
-fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX) {
+fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX, buildType: BuildType? = null) {
     script {
         name = "CHECK_CLEAN_M2_ANDROID_USER_HOME"
         executionMode = BuildStep.ExecutionMode.ALWAYS
@@ -167,13 +177,16 @@ fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX) {
         } else {
             checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.android", false)
         }
-        skipConditionally()
+        skipConditionally(buildType)
     }
 }
 
-fun BuildStep.skipConditionally() {
-    conditions {
-        doesNotEqual("skip.build", "true")
+fun BuildStep.skipConditionally(buildType: BuildType? = null) {
+    // we need to run CompileALl unconditionally because of artifact dependency
+    if (buildType !is CompileAll) {
+        conditions {
+            doesNotEqual("skip.build", "true")
+        }
     }
 }
 
@@ -243,7 +256,7 @@ fun BuildType.killProcessStep(stepName: String, os: Os, arch: Arch = Arch.AMD64)
             name = stepName
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = "\"${javaHome(BuildToolBuildJvm, os, arch)}/bin/java\" build-logic/cleanup/src/main/java/gradlebuild/cleanup/services/KillLeakingJavaProcesses.java $stepName"
-            skipConditionally()
+            skipConditionally(this@killProcessStep)
         }
     }
 }

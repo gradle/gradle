@@ -22,8 +22,32 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class DeferrableTest extends Specification {
 
+    def "mapping #description invocations only creates the second invocation once"() {
+        def mappingCount = new AtomicInteger()
+
+        def mapped = deferred.map { Integer input ->
+            mappingCount.incrementAndGet()
+            return input + 25
+        }
+
+        expect:
+        mapped.getCompleted().present == expectCompleted
+        mappingCount.get() == (callMapperEagerly ? 1 : 0)
+
+        when:
+        def result = mapped.completeAndGet()
+        then:
+        result == 30
+        mappingCount.get() == (callMapperEagerly ? 2 : 1)
+
+        where:
+        description | deferred                  | expectCompleted | callMapperEagerly
+        "completed" | Deferrable.completed(5)   | true            | true
+        "deferred"  | Deferrable.deferred { 5 } | false           | false
+    }
+
     def "composing #description invocations only creates the second invocation once"() {
-        def creationCount = new AtomicInteger(0)
+        def creationCount = new AtomicInteger()
 
         def composed = first.flatMap { Integer input ->
             creationCount.incrementAndGet()
@@ -46,5 +70,39 @@ class DeferrableTest extends Specification {
         "deferred -> completed"  | Deferrable.deferred { 5 } | { input -> Deferrable.completed(input + 25) }   | false           | false
         "completed -> deferred"  | Deferrable.completed(5)   | { input -> Deferrable.deferred { input + 25 } } | false           | true
         "completed -> completed" | Deferrable.completed(5)   | { input -> Deferrable.completed(input + 25) }   | true            | true
+    }
+
+    def "mapping already completed to null fails early"() {
+        when:
+        def deferrable = Deferrable.completed("value").map(result -> null)
+        then:
+        noExceptionThrown()
+
+        when:
+        deferrable.getCompleted()
+        then:
+        thrown NullPointerException
+
+        when:
+        deferrable.completeAndGet()
+        then:
+        thrown NullPointerException
+    }
+
+    def "mapping deferred to null fails late"() {
+        when:
+        def deferrable = Deferrable.deferred(() -> "value").map(result -> null)
+        then:
+        noExceptionThrown()
+
+        when:
+        def result = deferrable.getCompleted()
+        then:
+        !result.present
+
+        when:
+        deferrable.completeAndGet()
+        then:
+        thrown NullPointerException
     }
 }

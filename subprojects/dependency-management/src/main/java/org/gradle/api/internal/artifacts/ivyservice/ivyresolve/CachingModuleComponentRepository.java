@@ -49,7 +49,7 @@ import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
+import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
@@ -271,7 +271,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
+        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
             // First try to determine the artifacts in-memory (e.g using the metadata): don't use the cache in this case
             delegate.getLocalAccess().resolveArtifact(artifact, moduleSources, result);
             if (result.hasResult()) {
@@ -310,7 +310,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             return delegate.getRemoteAccess().estimateMetadataFetchingCost(moduleComponentIdentifier);
         }
 
-        private void resolveArtifactFromCache(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
+        private void resolveArtifactFromCache(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
             CachedArtifact cached = moduleArtifactCache.lookup(artifactCacheKey(artifact.getId()));
             if (cached != null) {
                 ModuleDescriptorHashModuleSource moduleSource = findCachingModuleSource(moduleSources);
@@ -434,7 +434,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
+        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
 
             delegate.getRemoteAccess().resolveArtifact(artifact, moduleSources, result);
             LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact, delegate.getName());

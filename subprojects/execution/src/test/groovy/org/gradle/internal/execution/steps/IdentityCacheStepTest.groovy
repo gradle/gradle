@@ -19,23 +19,21 @@ package org.gradle.internal.execution.steps
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.internal.Try
-import org.gradle.internal.execution.ExecutionResult
 import org.gradle.internal.execution.UnitOfWork
+
+import static org.gradle.internal.execution.ExecutionEngine.Execution
 
 class IdentityCacheStepTest extends StepSpec<IdentityContext> {
     Cache<UnitOfWork.Identity, Try<Object>> cache = new ManualEvictionInMemoryCache<>()
 
     def step = new IdentityCacheStep<>(delegate)
 
-    @Override
-    protected IdentityContext createContext() {
-        Stub(IdentityContext)
-    }
 
     def "executes when no cached output exists"() {
         def delegateOutput = Mock(Object)
         def delegateResult = Stub(CachingResult) {
-            getExecutionResult() >> Try.successful(Stub(ExecutionResult) {
+
+            getExecution() >> Try.successful(Stub(Execution) {
                 getOutput() >> delegateOutput
             })
         }

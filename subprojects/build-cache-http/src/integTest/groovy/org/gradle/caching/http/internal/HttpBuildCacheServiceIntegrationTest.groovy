@@ -330,6 +330,7 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         """
 
         when:
+        executer.withStacktraceEnabled()
         executer.withStackTraceChecksDisabled()
         withBuildCache().run "jar"
 
@@ -418,6 +419,7 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         }
 
         when:
+        executer.withStacktraceEnabled()
         executer.withStackTraceChecksDisabled()
         withBuildCache().run "jar"
         then:
@@ -439,6 +441,7 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         }
 
         when:
+        executer.withStacktraceEnabled()
         executer.withStackTraceChecksDisabled()
         withBuildCache().run "jar"
         then:

@@ -33,44 +33,25 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
-class DefaultMutableAttributeContainer implements AttributeContainerInternal {
+class DefaultMutableAttributeContainer extends AbstractAttributeContainer implements AttributeContainerInternal {
     private final ImmutableAttributesFactory immutableAttributesFactory;
-    private final AttributeContainerInternal parent;
     private ImmutableAttributes state = ImmutableAttributes.EMPTY;
     private Map<Attribute<?>, Provider<?>> lazyAttributes = Cast.uncheckedCast(Collections.EMPTY_MAP);
 
     public DefaultMutableAttributeContainer(ImmutableAttributesFactory immutableAttributesFactory) {
-        this(immutableAttributesFactory, null);
-    }
-
-    public DefaultMutableAttributeContainer(ImmutableAttributesFactory immutableAttributesFactory, @Nullable AttributeContainerInternal parent) {
         this.immutableAttributesFactory = immutableAttributesFactory;
-        this.parent = parent;
     }
 
     @Override
     public String toString() {
         final Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
-
-        state.keySet().forEach(key -> sorted.put(key, state.getAttribute(key)));
-        if (null != parent) {
-            parent.keySet().forEach(key -> sorted.put(key, parent.getAttribute(key)));
-        }
         lazyAttributes.keySet().forEach(key -> sorted.put(key, lazyAttributes.get(key).toString()));
-
+        state.keySet().forEach(key -> sorted.put(key, state.getAttribute(key)));
         return sorted.toString();
     }
 
     @Override
     public Set<Attribute<?>> keySet() {
-        if (parent == null) {
-            return nonParentKeys();
-        } else {
-            return Sets.union(parent.keySet(), nonParentKeys());
-        }
-    }
-
-    private Set<Attribute<?>> nonParentKeys() {
         return Sets.union(state.keySet(), lazyAttributes.keySet());
     }
 
@@ -112,8 +93,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
     }
 
     private <T> void checkInsertionAllowed(Attribute<T> key) {
-        // Don't just use keySet() method instead, since we should be allowed to override attributes already in the parent
-        for (Attribute<?> attribute : nonParentKeys()) {
+        for (Attribute<?> attribute : keySet()) {
             String name = key.getName();
             if (attribute.getName().equals(name) && attribute.getType() != key.getType()) {
                 throw new IllegalArgumentException("Cannot have two attributes with the same name but different types. "
@@ -147,46 +127,15 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
         if (attribute == null && lazyAttributes.containsKey(key)) {
             attribute = realizeLazyAttribute(key);
         }
-        if (attribute == null && parent != null) {
-            attribute = parent.getAttribute(key);
-        }
         return attribute;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return keySet().isEmpty();
-    }
-
-    @Override
-    public boolean contains(Attribute<?> key) {
-        return keySet().contains(key);
     }
 
     @Override
     public ImmutableAttributes asImmutable() {
         realizeAllLazyAttributes();
-
-        if (parent == null) {
-            return state;
-        } else {
-            ImmutableAttributes attributes = parent.asImmutable();
-            if (!state.isEmpty()) {
-                attributes = immutableAttributesFactory.concat(attributes, state);
-            }
-            return attributes;
-        }
+        return state;
     }
 
-    @Override
-    public Map<Attribute<?>, ?> asMap() {
-        return asImmutable().asMap();
-    }
-
-    @Override
-    public AttributeContainer getAttributes() {
-        return this;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -199,22 +148,12 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
         DefaultMutableAttributeContainer that = (DefaultMutableAttributeContainer) o;
 
-        if (!Objects.equals(parent, that.parent)) {
-            return false;
-        }
-        if (!Objects.equals(asImmutable(), that.asImmutable())) {
-            return false;
-        }
-
-        return state.equals(that.state);
+        return Objects.equals(asImmutable(), that.asImmutable());
     }
 
     @Override
     public int hashCode() {
-        int result = parent != null ? parent.hashCode() : 0;
-        result = 31 * result + state.hashCode();
-        result = 31 * result + asImmutable().hashCode();
-        return result;
+        return asImmutable().hashCode();
     }
 
     private <T> void doInsertionLazy(Attribute<T> key, Provider<? extends T> provider) {
@@ -227,7 +166,7 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
 
     private <T> void removeAttributeIfPresent(Attribute<T> key) {
         if (state.contains(key)) {
-            DefaultMutableAttributeContainer newState = new DefaultMutableAttributeContainer(immutableAttributesFactory, parent);
+            DefaultMutableAttributeContainer newState = new DefaultMutableAttributeContainer(immutableAttributesFactory);
             state.keySet().stream()
                     .filter(k -> !k.equals(key))
                     .forEach(k -> {

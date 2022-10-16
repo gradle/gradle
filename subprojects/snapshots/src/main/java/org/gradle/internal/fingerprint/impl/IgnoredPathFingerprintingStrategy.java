@@ -17,18 +17,14 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMap;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot.FileSystemLocationSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.MissingFileSnapshot;
-import org.gradle.internal.snapshot.RegularFileSnapshot;
-import org.gradle.internal.snapshot.SnapshotVisitResult;
 
-import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -55,30 +51,16 @@ public class IgnoredPathFingerprintingStrategy extends AbstractFingerprintingStr
     @Override
     public Map<String, FileSystemLocationFingerprint> collectFingerprints(FileSystemSnapshot roots) {
         ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder = ImmutableMap.builder();
-        HashSet<String> processedEntries = new HashSet<>();
-        roots.accept(snapshot -> {
-            snapshot.accept(new FileSystemLocationSnapshotVisitor() {
-                @Override
-                public void visitRegularFile(RegularFileSnapshot fileSnapshot) {
-                    visitNonDirectoryEntry(snapshot);
-                }
-
-                @Override
-                public void visitMissing(MissingFileSnapshot missingSnapshot) {
-                    visitNonDirectoryEntry(snapshot);
-                }
-
-                private void visitNonDirectoryEntry(FileSystemLocationSnapshot snapshot) {
-                    String absolutePath = snapshot.getAbsolutePath();
-                    if (processedEntries.add(absolutePath)) {
-                        HashCode normalizedContentHash = getNormalizedContentHash(snapshot, normalizedContentHasher);
-                        if (normalizedContentHash != null) {
-                            builder.put(absolutePath, IgnoredPathFileSystemLocationFingerprint.create(snapshot.getType(), normalizedContentHash));
-                        }
+        roots.accept(new MissingRootAndDuplicateIgnoringFileSystemSnapshotVisitor() {
+            @Override
+            public void visitAcceptedEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
+                if (snapshot.getType() != FileType.Directory) {
+                    HashCode normalizedContentHash = getNormalizedContentHash(snapshot, normalizedContentHasher);
+                    if (normalizedContentHash != null) {
+                        builder.put(snapshot.getAbsolutePath(), IgnoredPathFileSystemLocationFingerprint.create(snapshot.getType(), normalizedContentHash));
                     }
                 }
-            });
-            return SnapshotVisitResult.CONTINUE;
+            }
         });
         return builder.build();
     }

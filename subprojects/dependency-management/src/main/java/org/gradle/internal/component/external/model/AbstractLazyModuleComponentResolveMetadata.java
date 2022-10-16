@@ -138,7 +138,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
                 }
             }
             if (baseName == null || base instanceof ModuleConfigurationMetadata) {
-                ConfigurationMetadata configurationMetadata = new LazyRuleAwareWithBaseConfigurationMetadata(additionalVariant.getName(), (ModuleConfigurationMetadata) base, getId(), getAttributes(), variantMetadataRules, constructVariantExcludes(base), false);
+                ConfigurationMetadata configurationMetadata = new LazyRuleAwareWithBaseConfigurationMetadata(additionalVariant.getName(), (ModuleConfigurationMetadata) base, getId(), getAttributesFactory(), getAttributes(), variantMetadataRules, constructVariantExcludes(base), false);
                 builder.add(configurationMetadata);
             }
         }

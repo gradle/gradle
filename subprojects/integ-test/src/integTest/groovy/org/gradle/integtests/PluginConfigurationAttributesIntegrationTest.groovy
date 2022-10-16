@@ -53,8 +53,6 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
 
         where:
         plugin       | configuration
-        'jacoco'     | 'jacocoAgent'
-        'jacoco'     | 'jacocoAnt'
         'scala'      | 'zinc'
         'war'        | 'providedRuntime'
         'war'        | 'providedCompile'
@@ -86,6 +84,8 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         plugin       | configuration
         'antlr'      | 'antlr'
         'codenarc'   | 'codenarc'
+        'jacoco'     | 'jacocoAgent'
+        'jacoco'     | 'jacocoAnt'
         'pmd'        | 'pmd'
         'checkstyle' | 'checkstyle'
     }

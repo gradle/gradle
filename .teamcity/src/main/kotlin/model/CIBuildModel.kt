@@ -13,7 +13,7 @@ import common.toCapitalized
 import configurations.BaseGradleBuildType
 import configurations.BuildDistributions
 import configurations.CheckLinks
-import configurations.CompileAllProduction
+import configurations.CompileAll
 import configurations.ConfigCacheDocsTest
 import configurations.FlakyTestQuarantine
 import configurations.FunctionalTest
@@ -74,6 +74,7 @@ data class CIBuildModel(
             specificBuilds = listOf(
                 SpecificBuild.BuildDistributions,
                 SpecificBuild.Gradleception,
+                SpecificBuild.GradleceptionWithGroovy4,
                 SpecificBuild.CheckLinks,
                 SpecificBuild.SmokeTestsMaxJavaVersion,
                 SpecificBuild.SantaTrackerSmokeTests,
@@ -85,7 +86,7 @@ data class CIBuildModel(
             ),
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
-                TestCoverage(4, TestType.platform, Os.WINDOWS, JvmCategory.MAX_LTS_VERSION),
+                TestCoverage(4, TestType.platform, Os.WINDOWS, JvmCategory.MAX_VERSION),
                 TestCoverage(20, TestType.configCache, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
             )
         ),
@@ -334,7 +335,7 @@ const val GRADLE_BUILD_SMOKE_TEST_NAME = "gradleBuildSmokeTest"
 enum class SpecificBuild {
     CompileAll {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return CompileAllProduction(model, stage)
+            return CompileAll(model, stage)
         }
     },
     SanityCheck {
@@ -350,6 +351,11 @@ enum class SpecificBuild {
     Gradleception {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return Gradleception(model, stage)
+        }
+    },
+    GradleceptionWithGroovy4 {
+        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
+            return Gradleception(model, stage, true)
         }
     },
     CheckLinks {

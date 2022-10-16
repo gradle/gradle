@@ -75,8 +75,16 @@ class ConfigurationCacheProblems(
     private
     lateinit var cacheAction: ConfigurationCacheAction
 
-    private
-    var invalidateStoredState: (() -> Unit)? = null
+    val shouldDiscardEntry: Boolean
+        get() {
+            if (cacheAction == LOAD) {
+                return false
+            }
+            val summary = summarizer.get()
+            val discardStateDueToProblems = discardStateDueToProblems(summary)
+            val hasTooManyProblems = hasTooManyProblems(summary)
+            return discardStateDueToProblems || hasTooManyProblems
+        }
 
     init {
         listenerManager.addListener(postBuildHandler)
@@ -86,9 +94,8 @@ class ConfigurationCacheProblems(
         listenerManager.removeListener(postBuildHandler)
     }
 
-    fun action(action: ConfigurationCacheAction, invalidateState: () -> Unit) {
+    fun action(action: ConfigurationCacheAction) {
         cacheAction = action
-        invalidateStoredState = invalidateState
     }
 
     fun failingBuildDueToSerializationError() {
@@ -136,14 +143,7 @@ class ConfigurationCacheProblems(
     override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
         val summary = summarizer.get()
         val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
-        val discardStateDueToProblems = discardStateDueToProblems(summary)
         val hasTooManyProblems = hasTooManyProblems(summary)
-        val discardState = discardStateDueToProblems || hasTooManyProblems
-        if (cacheAction != LOAD && discardState) {
-            // Invalidate stored state if problems fail the build
-            requireNotNull(invalidateStoredState).invoke()
-        }
-
         val outputDirectory = outputDirectoryFor(reportDir)
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
@@ -164,6 +164,7 @@ class ConfigurationCacheProblems(
                     }
                 )
             }
+
             hasTooManyProblems -> {
                 validationFailures.accept(
                     TooManyConfigurationCacheProblemsException(summary.causes) {
@@ -171,6 +172,7 @@ class ConfigurationCacheProblems(
                     }
                 )
             }
+
             else -> {
                 logger.warn(summary.textForConsole(cacheActionText, htmlReportFile))
             }
