@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
@@ -40,6 +41,16 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
     private final TaskDependencyFactory taskDependencyFactory;
     private PublishArtifactInternal delegate;
 
+
+    // Used in a third-party plugin: used in a third-party plugin: https://github.com/gradle/playframework/blob/0d20d4550/src/main/java/org/gradle/playframework/plugins/PlayApplicationPlugin.java#L134
+    // TODO Remove once the third-party usage is considered obsolete.
+    /**
+     * @deprecated Use the overload with TaskDependencyFactory
+     */
+    @Deprecated
+    public LazyPublishArtifact(Provider<?> provider) {
+        this(provider, DefaultTaskDependencyFactory.withNoAssociatedProject());
+    }
     /**
      * @deprecated Provide a {@link FileResolver} instead using {@link LazyPublishArtifact#LazyPublishArtifact(Provider, FileResolver)}.
      */
