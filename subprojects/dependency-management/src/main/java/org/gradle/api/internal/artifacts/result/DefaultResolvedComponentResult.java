@@ -26,10 +26,6 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VariantNameBuilder;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -37,7 +33,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class DefaultResolvedComponentResult implements ResolvedComponentResultInternal {
     private final ModuleVersionIdentifier moduleVersion;
@@ -102,21 +97,6 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     @Nullable
     public ModuleVersionIdentifier getModuleVersion() {
         return moduleVersion;
-    }
-
-    @Override
-    @Deprecated
-    public ResolvedVariantResult getVariant() {
-        if (selectedVariants.isEmpty()) {
-            return new DefaultResolvedVariantResult(componentId, Describables.of("<empty>"), ImmutableAttributes.EMPTY, Collections.emptyList(), null);
-        }
-        // Returns an approximation of a composite variant
-        List<String> parts = selectedVariants.stream()
-            .map(ResolvedVariantResult::getDisplayName)
-            .collect(Collectors.toList());
-        DisplayName variantName = new VariantNameBuilder().getVariantName(parts);
-        ResolvedVariantResult firstVariant = selectedVariants.get(0);
-        return new DefaultResolvedVariantResult(componentId, variantName, firstVariant.getAttributes(), firstVariant.getCapabilities(), null);
     }
 
     @Override

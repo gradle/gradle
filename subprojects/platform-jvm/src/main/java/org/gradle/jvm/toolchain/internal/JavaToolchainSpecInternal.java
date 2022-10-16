@@ -43,4 +43,9 @@ public interface JavaToolchainSpecInternal extends JavaToolchainSpec {
      */
     boolean isValid();
 
+    /**
+     * Finalizes values of all spec properties, disallowing any further changes.
+     */
+    void finalizeProperties();
+
 }

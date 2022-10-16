@@ -25,8 +25,8 @@ import me.champeau.gradle.japicmp.report.Violation
 @CompileStatic
 class KotlinModifiersBreakingChangeRule extends AbstractGradleViolationRule {
 
-    KotlinModifiersBreakingChangeRule(Map<String, String> acceptedApiChanges) {
-        super(acceptedApiChanges)
+    KotlinModifiersBreakingChangeRule(Map<String, Object> params) {
+        super(params)
     }
 
     @Override

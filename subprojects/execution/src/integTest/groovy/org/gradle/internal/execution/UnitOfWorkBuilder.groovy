@@ -20,10 +20,7 @@ import com.google.common.collect.Maps
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.execution.caching.CachingDisabledReason
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.history.ExecutionHistoryStore
-import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
@@ -35,8 +32,6 @@ import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.test.fixtures.file.TestFile
 
-import javax.annotation.Nullable
-import java.time.Duration
 import java.util.function.Consumer
 import java.util.function.Supplier
 
@@ -151,8 +146,8 @@ class UnitOfWorkBuilder {
     }
 
     UnitOfWork build() {
-        Map<String, OutputPropertySpec> outputFileSpecs = Maps.transformEntries(outputFiles, { key, value -> outputFileSpec(value) })
-        Map<String, OutputPropertySpec> outputDirSpecs = Maps.transformEntries(outputDirs, { key, value -> outputDirectorySpec(value) })
+        Map<String, OutputPropertySpec> outputFileSpecs = Maps.transformEntries(outputFiles, { key, value -> outputFileSpec(value) }) as Map<String, OutputPropertySpec> // FIXME remove cast after https://issues.apache.org/jira/browse/GROOVY-10765 is fixed
+        Map<String, OutputPropertySpec> outputDirSpecs = Maps.transformEntries(outputDirs, { key, value -> outputDirectorySpec(value) }) as Map<String, OutputPropertySpec> // FIXME remove cast after https://issues.apache.org/jira/browse/GROOVY-10765 is fixed
         Map<String, OutputPropertySpec> outputs = outputFileSpecs + outputDirSpecs
 
         return new UnitOfWork() {
@@ -190,19 +185,14 @@ class UnitOfWorkBuilder {
 
                     @Override
                     Object getOutput() {
-                        return "output"
+                        return loadAlreadyProducedOutput(executionRequest.workspace)
                     }
                 }
             }
 
             @Override
-            Optional<Duration> getTimeout() {
-                throw new UnsupportedOperationException()
-            }
-
-            @Override
-            UnitOfWork.InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
-                return UnitOfWork.InputChangeTrackingStrategy.NONE
+            Object loadAlreadyProducedOutput(File workspace) {
+                return "output"
             }
 
             @Override
@@ -246,16 +236,6 @@ class UnitOfWorkBuilder {
             @Override
             boolean shouldCleanupOutputsOnNonIncrementalExecution() {
                 return false
-            }
-
-            @Override
-            Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
-                throw new UnsupportedOperationException()
-            }
-
-            @Override
-            boolean isAllowedToLoadFromCache() {
-                throw new UnsupportedOperationException()
             }
 
             @Override

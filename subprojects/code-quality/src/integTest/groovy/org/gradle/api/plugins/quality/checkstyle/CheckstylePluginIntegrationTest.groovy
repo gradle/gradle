@@ -29,7 +29,13 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
 
     def setup() {
         buildFile << """
-            apply plugin: 'groovy'
+            apply plugin: 'java'
+
+            // Necessary to make CC tests pass, though it appears unused here
+            ${mavenCentralRepository()}
+
+            dependencies { implementation localGroovy() }
+
         """
     }
 
@@ -39,13 +45,11 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         buildFile """
             apply plugin: 'checkstyle'
 
-            dependencies { implementation localGroovy() }
-            ${mavenCentralRepository()}
-
             checkstyle {
                 configProperties["some"] = new URL("https://gradle.org/")
             }
         """
+
         file('src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()
         file('config/checkstyle/checkstyle.xml') << simpleCheckStyleConfig()
 

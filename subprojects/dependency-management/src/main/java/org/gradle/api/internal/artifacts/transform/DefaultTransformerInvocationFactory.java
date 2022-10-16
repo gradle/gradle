@@ -29,10 +29,10 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
@@ -317,7 +317,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public Object loadRestoredOutput(File workspace) {
+        public Object loadAlreadyProducedOutput(File workspace) {
             TransformationResultSerializer resultSerializer = new TransformationResultSerializer(getOutputDir(workspace));
             return resultSerializer.readResultsFile(getResultsFile(workspace));
         }
@@ -346,8 +346,10 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
-            return transformer.requiresInputChanges() ? InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS : InputChangeTrackingStrategy.NONE;
+        public ExecutionBehavior getExecutionBehavior() {
+            return transformer.requiresInputChanges()
+                ? ExecutionBehavior.INCREMENTAL
+                : ExecutionBehavior.NON_INCREMENTAL;
         }
 
         @Override

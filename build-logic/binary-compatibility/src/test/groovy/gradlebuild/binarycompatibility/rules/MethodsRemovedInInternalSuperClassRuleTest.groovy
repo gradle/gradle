@@ -22,7 +22,7 @@ import javassist.CtClass
 import me.champeau.gradle.japicmp.report.Violation
 
 class MethodsRemovedInInternalSuperClassRuleTest extends AbstractContextAwareRuleSpecification {
-    MethodsRemovedInInternalSuperClassRule rule = new MethodsRemovedInInternalSuperClassRule(getInitializationParams())
+    MethodsRemovedInInternalSuperClassRule rule
 
     static class OldSuperInternal {
         void publicMethod() {}
@@ -45,6 +45,7 @@ class MethodsRemovedInInternalSuperClassRuleTest extends AbstractContextAwareRul
     Map classes = [:]
 
     def setup() {
+        rule = new MethodsRemovedInInternalSuperClassRule(getInitializationParams())
         rule.context = context
         [OldSuperInternal, NewSuperInternal].each {
             CtClass c = instanceScopedPool.get(it.name)

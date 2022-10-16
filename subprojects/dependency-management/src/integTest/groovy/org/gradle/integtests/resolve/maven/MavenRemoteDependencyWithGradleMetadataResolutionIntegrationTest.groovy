@@ -34,7 +34,6 @@ class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends A
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "downloads and caches the module metadata when present"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
 
@@ -93,7 +92,6 @@ dependencies {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "skips module metadata when not present and caches result"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").publish()
 

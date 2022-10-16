@@ -37,10 +37,10 @@ import org.gradle.configurationcache.services.EnvironmentChangeTracker
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.execution.WorkInputListeners
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
-import org.gradle.internal.execution.fingerprint.impl.DefaultFileNormalizationSpec
+import org.gradle.internal.execution.impl.DefaultFileNormalizationSpec
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity

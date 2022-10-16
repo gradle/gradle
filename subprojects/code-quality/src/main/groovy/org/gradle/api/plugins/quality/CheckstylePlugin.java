@@ -105,6 +105,7 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         taskMapping.map("maxErrors", (Callable<Integer>) () -> extension.getMaxErrors());
         taskMapping.map("maxWarnings", (Callable<Integer>) () -> extension.getMaxWarnings());
         task.getConfigDirectory().convention(extension.getConfigDirectory());
+        task.getEnableExternalDtdLoad().convention(extension.getEnableExternalDtdLoad());
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {

@@ -31,7 +31,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
-import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService
+import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
@@ -121,7 +121,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.1.j9")
     }
 
-    def "prefer vendor-specific over other implementation if not requested"() {
+    def "no preferred implementation if vendor-specific is requested"() {
         given:
         def registry = createInstallationRegistry(["8.0.2.j9", "8.0.1.hs"])
         def toolchainFactory = newToolchainFactory()
@@ -134,7 +134,36 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         toolchain.languageVersion == JavaLanguageVersion.of(8)
-        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.1.hs")
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath("/path/8.0.2.j9")
+    }
+
+    def "matches J9 toolchain via vendor"() {
+        given:
+        def registry = createInstallationRegistry(["8.hs-amazon", "8.j9-international business machines corporation"])
+        def compilerFactory = Mock(JavaCompilerFactory)
+        def toolFactory = Mock(ToolchainToolFactory)
+        def eventEmitter = Stub(BuildOperationProgressEventEmitter)
+        def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory(), eventEmitter) {
+            @Override
+            Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input) {
+                String locationName = javaHome.location.name
+                def vendor = locationName.substring(5)
+                def metadata = newMetadata(new InstallationLocation(new File("/path/" + locationName), javaHome.source), vendor)
+                return Optional.of(new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input, eventEmitter))
+            }
+        }
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
+
+        when:
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        filter.languageVersion.set(JavaLanguageVersion.of(8))
+        filter.vendor.set(JvmVendorSpec.IBM_SEMERU)
+        def toolchain = queryService.findMatchingToolchain(filter)
+
+        then:
+        toolchain.isPresent()
+        toolchain.get().metadata.vendor.knownVendor == JvmVendor.KnownJvmVendor.IBM_SEMERU
+        toolchain.get().vendor == "IBM Semeru Runtimes"
     }
 
     def "ignores invalid toolchains when finding a matching one"() {
@@ -169,7 +198,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(NoToolchainAvailableException)
-        e.message == "No compatible toolchains found for request filter: {languageVersion=12, vendor=any, implementation=vendor-specific} (auto-detect true, auto-download true)"
+        e.message == "No compatible toolchains found for request specification: {languageVersion=12, vendor=any, implementation=vendor-specific} (auto-detect true, auto-download true)."
     }
 
     def "returns no toolchain if filter is not configured"() {
@@ -188,15 +217,14 @@ class JavaToolchainQueryServiceTest extends Specification {
 
     def "returns toolchain matching vendor"() {
         given:
-        def registry = createInstallationRegistry(["8-0", "8-1", "8-2", "8-3"])
-        def vendors = ["amazon", "bellsoft", "ibm", "zulu"]
+        def registry = createInstallationRegistry(["8-amazon", "8-bellsoft", "8-ibm", "8-zulu"])
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
         def eventEmitter = Stub(BuildOperationProgressEventEmitter)
         def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory(), eventEmitter) {
             @Override
             Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input) {
-                def vendor = vendors[Integer.parseInt(javaHome.location.name.substring(2))]
+                def vendor = javaHome.location.name.substring(2)
                 def metadata = newMetadata(new InstallationLocation(new File("/path/8"), javaHome.source), vendor)
                 return Optional.of(new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input, eventEmitter))
             }
@@ -343,7 +371,8 @@ class JavaToolchainQueryServiceTest extends Specification {
             getVendor() >> JvmVendor.fromString(vendor)
             hasCapability(_ as JvmInstallationMetadata.JavaInstallationCapability) >> { capability ->
                 if (capability[0] == J9_VIRTUAL_MACHINE) {
-                    return javaHome.location.name.contains("j9")
+                    String name = javaHome.location.name
+                    return name.contains("j9")
                 }
                 return false
             }

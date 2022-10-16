@@ -200,7 +200,7 @@ public class IdeaModule {
         this.testSources = project.getObjects().fileCollection();
         this.testResources = project.getObjects().fileCollection();
 
-        // TODO: remove this whileDisabled wrapping for Gradle 8
+        // TODO: remove this whileDisabled wrapping for Gradle 8.1
         testSources.from(project.provider(() -> DeprecationLogger.whileDisabled(() -> getTestSourceDirs())));
         testResources.from(project.provider(() -> DeprecationLogger.whileDisabled(() -> getTestResourceDirs())));
     }
@@ -344,10 +344,6 @@ public class IdeaModule {
      */
     @Deprecated
     public Set<File> getTestSourceDirs() {
-        DeprecationLogger.deprecateProperty(IdeaModule.class, "testSourceDirs").replaceWith("testSources")
-                .willBeRemovedInGradle8()
-                .withDslReference()
-                .nagUser();
         return testSourceDirs;
     }
 
@@ -356,10 +352,6 @@ public class IdeaModule {
      */
     @Deprecated
     public void setTestSourceDirs(Set<File> testSourceDirs) {
-        DeprecationLogger.deprecateProperty(IdeaModule.class, "testSourceDirs").replaceWith("testSources")
-                .willBeRemovedInGradle8()
-                .withDslReference()
-                .nagUser();
         this.testSourceDirs = testSourceDirs;
     }
 
@@ -402,10 +394,6 @@ public class IdeaModule {
      */
     @Deprecated
     public Set<File> getTestResourceDirs() {
-        DeprecationLogger.deprecateProperty(IdeaModule.class, "testResourceDirs").replaceWith("testResources")
-                .willBeRemovedInGradle8()
-                .withDslReference()
-                .nagUser();
         return testResourceDirs;
     }
 
@@ -418,10 +406,6 @@ public class IdeaModule {
      */
     @Deprecated
     public void setTestResourceDirs(Set<File> testResourceDirs) {
-        DeprecationLogger.deprecateProperty(IdeaModule.class, "testResourceDirs").replaceWith("testResources")
-                .willBeRemovedInGradle8()
-                .withDslReference()
-                .nagUser();
         this.testResourceDirs = testResourceDirs;
     }
 

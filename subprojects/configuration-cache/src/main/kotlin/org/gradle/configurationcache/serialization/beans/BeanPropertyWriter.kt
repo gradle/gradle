@@ -19,13 +19,11 @@ package org.gradle.configurationcache.serialization.beans
 import com.google.common.primitives.Primitives.wrap
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
-import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.withDebugFrame
-import java.io.IOException
 import java.lang.reflect.Field
 
 
@@ -98,10 +96,6 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
     withPropertyTrace(kind, name) {
         try {
             write(value)
-        } catch (passThrough: IOException) {
-            throw passThrough
-        } catch (passThrough: ConfigurationCacheProblemsException) {
-            throw passThrough
         } catch (error: Exception) {
             onError(error) {
                 when {

@@ -18,10 +18,12 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/17812")
 class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
+    @Ignore("https://github.com/gradle/gradle/issues/22088")
     def "fails when configuring tasks which do dependency resolution from non-project context in constructor"() {
         buildFile << """
             abstract class BadTask extends DefaultTask {

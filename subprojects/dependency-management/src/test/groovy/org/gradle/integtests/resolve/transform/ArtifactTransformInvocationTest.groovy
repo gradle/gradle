@@ -33,14 +33,14 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.internal.Try
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 
 import java.util.concurrent.atomic.AtomicInteger
 
 class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
-    public static final AtomicInteger INVOCATION_COUNT = new AtomicInteger(0)
+    public static final AtomicInteger INVOCATION_COUNT = new AtomicInteger()
     public static final String SELECTED_PATH = "selected.txt"
 
     def artifactType = Attribute.of('artifactType', String)

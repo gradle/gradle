@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.resolve.resolver;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -31,5 +32,6 @@ public interface ArtifactResolver {
     /**
      * Resolves the given artifact. Any failures are packaged up in the result.
      */
-    void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result);
+    void resolveArtifact(ModuleVersionIdentifier ownerId, ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result);
+
 }
