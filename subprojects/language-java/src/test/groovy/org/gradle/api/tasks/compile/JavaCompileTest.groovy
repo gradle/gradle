@@ -24,17 +24,11 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaCompiler
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
 
 @SuppressWarnings('GrDeprecatedAPIUsage')
 class JavaCompileTest extends AbstractProjectBuilderSpec {
-
-    def setup() {
-        def toolchainService = Mock(JavaToolchainService)
-        project.extensions.add("javaToolchains", toolchainService)
-    }
 
     def "disallow using custom java_home with compiler present"() {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
@@ -64,16 +58,18 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
 
     def "fails if custom executable does not exist"() {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
-        def invalidjavac = "invalidjavac"
+        javaCompile.destinationDirectory.fileValue(new File('somewhere'))
+        def invalidExecutable = "invalidExecutable"
 
         when:
-        javaCompile.options.forkOptions.executable = invalidjavac
+        javaCompile.options.fork = true
+        javaCompile.options.forkOptions.executable = invalidExecutable
         javaCompile.createSpec()
 
         then:
         def e = thrown(InvalidUserDataException)
         e.message.contains("The configured executable does not exist")
-        e.message.contains(invalidjavac)
+        e.message.contains(invalidExecutable)
     }
 
     def 'uses release property combined with toolchain compiler'() {
