@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment.ASSIGNMENT_SYSTEM_PROPERTY
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
@@ -229,6 +230,6 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     private fun withAssignmentOverloadEnabled(enabled: Boolean = true) {
-        withFile("gradle.properties", "systemProp.org.gradle.experimental.kotlin.assignment=$enabled")
+        withFile("gradle.properties", "systemProp.$ASSIGNMENT_SYSTEM_PROPERTY=$enabled")
     }
 }

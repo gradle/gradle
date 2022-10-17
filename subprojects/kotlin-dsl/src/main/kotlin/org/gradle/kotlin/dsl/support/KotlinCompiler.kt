@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
+import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment
 
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
@@ -206,7 +207,7 @@ object KotlinAssignmentCompilerPlugin {
 
     @OptIn(InternalNonStableExtensionPoints::class)
     fun apply(project: Project) {
-        if (System.getProperty("org.gradle.experimental.kotlin.assignment")?.trim() == "true") {
+        if (KotlinDslAssignment.isAssignmentOverloadEnabled()) {
             val annotations = listOf(SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
             AssignResolutionAltererExtension.Companion.registerExtension(project, CliAssignPluginResolutionAltererExtension(annotations))
             StorageComponentContainerContributor.registerExtension(project, AssignmentComponentContainerContributor(annotations))

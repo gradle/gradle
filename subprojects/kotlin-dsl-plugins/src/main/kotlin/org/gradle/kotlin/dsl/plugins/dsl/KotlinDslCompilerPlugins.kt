@@ -22,6 +22,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment
 import org.gradle.kotlin.dsl.provider.KotlinDslPluginSupport
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.assignment.plugin.gradle.AssignmentSubplugin
@@ -43,10 +44,7 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
             samWithReceiver.annotation(HasImplicitReceiver::class.qualifiedName!!)
         }
 
-        val assignmentOverloading = providers
-            .systemProperty("org.gradle.experimental.kotlin.assignment")
-            .map { it.trim() == "true" }
-        if (assignmentOverloading.getOrElse(false)) {
+        if (KotlinDslAssignment.isAssignmentOverloadEnabled()) {
             plugins.apply(AssignmentSubplugin::class.java)
             extensions.configure(AssignmentExtension::class.java) { assignment ->
                 assignment.annotation(SupportsKotlinAssignmentOverloading::class.qualifiedName!!)

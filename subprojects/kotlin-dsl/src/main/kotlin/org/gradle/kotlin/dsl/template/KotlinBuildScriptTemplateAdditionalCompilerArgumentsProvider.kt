@@ -46,6 +46,7 @@ class KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider(additionalArg
             val properties = Properties().apply {
                 load(it)
             }
+            // This class is loaded from the IDE, so we have to hardcode system property
             properties.getProperty("systemProp.org.gradle.experimental.kotlin.assignment")?.trim() == "true"
         }
     }
