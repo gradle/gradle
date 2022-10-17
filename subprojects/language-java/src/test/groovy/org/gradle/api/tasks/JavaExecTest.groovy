@@ -17,16 +17,10 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class JavaExecTest extends AbstractProjectBuilderSpec {
-
-    def setup() {
-        def toolchainService = Mock(JavaToolchainService)
-        project.extensions.add("javaToolchains", toolchainService)
-    }
 
     def 'fails if custom executable does not exist'() {
         def task = project.tasks.create("run", JavaExec)
