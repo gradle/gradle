@@ -357,6 +357,8 @@ For more information, see [Attribute Disambiguation Rules](userguide/variant_att
 <a name="configuration"></a>
 ### Configuration Cache
 
+The [configuration cache](https://docs.gradle.org/7.5/userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds.
+
 #### Improved configuration cache failure recovery
 
 In previous Gradle versions, it was possible to leave a configuration cache entry in a
