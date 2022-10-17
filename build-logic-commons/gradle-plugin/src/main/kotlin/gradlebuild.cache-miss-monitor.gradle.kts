@@ -97,7 +97,8 @@ fun Project.isExpectedCompileCacheMiss() =
         "Check_CompileAllBuild",
         "Component_GradlePlugin_Performance_PerformanceLatestMaster",
         "Component_GradlePlugin_Performance_PerformanceLatestReleased",
-        "Check_Gradleception"
+        "Check_Gradleception",
+        "Gradle_Master_Check_GradleceptionWithGroovy4"
     ) || isBuildCommitDistribution
 
 val Project.isBuildCommitDistribution: Boolean
