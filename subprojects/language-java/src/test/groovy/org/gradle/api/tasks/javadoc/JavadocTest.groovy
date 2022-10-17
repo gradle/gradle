@@ -24,7 +24,6 @@ import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
@@ -39,9 +38,6 @@ class JavadocTest extends AbstractProjectBuilderSpec {
     Javadoc task
 
     def setup() {
-        def toolchainService = Mock(JavaToolchainService)
-        project.extensions.add("javaToolchains", toolchainService)
-
         task = TestUtil.createTask(Javadoc, project, "javadoc")
         task.setClasspath(configurationMock)
         task.setDestinationDir(destDir)

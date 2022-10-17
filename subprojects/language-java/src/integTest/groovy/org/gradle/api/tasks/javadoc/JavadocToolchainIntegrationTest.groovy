@@ -48,26 +48,26 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/java/Lib.java') << testLib()
 
         when:
-        withInstallations(jdkMetadata1, jdkMetadata2).run(":javadoc", "--info")
+        withInstallations(jdkMetadata1, jdkMetadata2).run(":javadoc")
         then:
         executedAndNotSkipped(":javadoc")
         file("build/docs/javadoc/Lib.html").text.contains("Some API documentation.")
 
         when:
-        withInstallations(jdkMetadata1, jdkMetadata2).run(":javadoc", "--info")
+        withInstallations(jdkMetadata1, jdkMetadata2).run(":javadoc")
         then:
         skipped(":javadoc")
 
         when:
         executer.withArgument("-Ptest.javadoc.version=${jdkMetadata2.languageVersion.majorVersion}")
-        withInstallations(jdkMetadata1, jdkMetadata2).run(":javadoc", "--info")
+        withInstallations(jdkMetadata1, jdkMetadata2).run(":javadoc")
         then:
         executedAndNotSkipped(":javadoc")
         file("build/docs/javadoc/Lib.html").text.contains("Some API documentation.")
 
         when:
         executer.withArgument("-Ptest.javadoc.version=${jdkMetadata2.languageVersion.majorVersion}")
-        withInstallations(jdkMetadata1, jdkMetadata2).run(":javadoc", "--info")
+        withInstallations(jdkMetadata1, jdkMetadata2).run(":javadoc")
         then:
         skipped(":javadoc")
     }
