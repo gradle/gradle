@@ -30,6 +30,10 @@ public class JavaCompileExecutableUtils {
 
     @Nullable
     public static JavaToolchainSpec getExecutableOverrideToolchainSpec(JavaCompile task, ObjectFactory objectFactory) {
+        if (!task.getOptions().isFork()) {
+            return null;
+        }
+
         ForkOptions forkOptions = task.getOptions().getForkOptions();
         File customJavaHome = forkOptions.getJavaHome();
         if (customJavaHome != null) {

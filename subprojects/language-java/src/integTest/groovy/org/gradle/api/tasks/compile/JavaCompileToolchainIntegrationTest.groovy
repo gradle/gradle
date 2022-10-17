@@ -33,6 +33,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/22398")
     def "ignore #what in fork options if not forking"() {
+        def curJvm = Jvm.current()
         def otherJvm = AvailableJavaHomes.differentVersion
         def path = TextUtil.normaliseFileSeparators(otherJvm.javaHome.absolutePath + appendPath)
 
@@ -51,8 +52,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":compileJava")
-        // TODO: this line needs to be changed to the current JVM toolchain when the issue is fixed
-        outputContains("Compiling with toolchain '${otherJvm.javaHome.absolutePath}'")
+        outputContains("Compiling with toolchain '${curJvm.javaHome.absolutePath}'")
         outputContains("Compiling with JDK Java compiler API")
         outputDoesNotContain("Compiling with Java command line compiler")
         outputDoesNotContain("Started Gradle worker daemon")
