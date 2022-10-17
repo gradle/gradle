@@ -215,7 +215,7 @@ object KotlinAssignmentCompilerPlugin {
 
     @OptIn(InternalNonStableExtensionPoints::class)
     fun apply(project: Project) {
-        if (System.getProperty("org.gradle.experimental.kotlin.assignment", "false").trim() == "true") {
+        if (System.getProperty("org.gradle.experimental.kotlin.assignment")?.trim() == "true") {
             val annotations = listOf(SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
             AssignResolutionAltererExtension.Companion.registerExtension(project, CliAssignPluginResolutionAltererExtension(annotations))
             StorageComponentContainerContributor.registerExtension(project, AssignmentComponentContainerContributor(annotations))
