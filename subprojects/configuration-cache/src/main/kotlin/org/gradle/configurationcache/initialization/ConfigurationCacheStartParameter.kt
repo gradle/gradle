@@ -21,6 +21,8 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
+import org.gradle.internal.buildoption.InternalFlag
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
@@ -29,11 +31,10 @@ import java.io.File
 @ServiceScope(Scopes.BuildTree::class)
 class ConfigurationCacheStartParameter(
     private val buildLayout: BuildLayout,
-    startParameter: StartParameter
+    private val startParameter: StartParameterInternal,
+    options: InternalOptions
 ) {
-
-    private
-    val startParameter = startParameter as StartParameterInternal
+    val loadAfterStore = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.load-after-store")).get()
 
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
@@ -71,6 +72,9 @@ class ConfigurationCacheStartParameter(
 
     val rootDirectory: File
         get() = buildLayout.rootDirectory
+
+    val isOffline
+        get() = startParameter.isOffline
 
     val isRefreshDependencies
         get() = startParameter.isRefreshDependencies

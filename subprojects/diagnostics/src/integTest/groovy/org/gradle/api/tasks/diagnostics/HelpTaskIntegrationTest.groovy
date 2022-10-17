@@ -25,6 +25,9 @@ class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
     def version = GradleVersion.current().version
+    def builtInOptions = """
+     --rerun     Causes the task to be re-run even if up-to-date.
+""".readLines().tail().join("\n")
 
     def "shows help message when tasks #tasks run in a directory with no build definition present"() {
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
@@ -224,6 +227,8 @@ Type
 Options
      --configuration     The configuration to generate the report for.
 
+${builtInOptions}
+
 Description
      Displays all dependencies declared in root project '${testDirectory.getName()}'.
 
@@ -247,6 +252,8 @@ Type
 
 Options
      --task     The task to show help for.
+
+${builtInOptions}
 
 Description
      Displays a help message.
@@ -283,6 +290,9 @@ Paths
 
 Type
      Task (org.gradle.api.Task)
+
+Options
+${builtInOptions}
 
 Descriptions
      (:hello) hello task from root
@@ -328,6 +338,9 @@ Paths
 Type
      Task (org.gradle.api.Task)
 
+Options
+${builtInOptions}
+
 Description
      -
 
@@ -354,6 +367,9 @@ Path
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
 
+Options
+${builtInOptions}
+
 Description
      Assembles a jar archive containing the main classes.
 
@@ -373,6 +389,9 @@ Paths
 
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
+
+Options
+${builtInOptions}
 
 Description
      Assembles a jar archive containing the main classes.
@@ -408,6 +427,9 @@ Path
 Type
      Copy (org.gradle.api.tasks.Copy)
 
+Options
+${builtInOptions}
+
 Description
      a copy operation
 
@@ -421,6 +443,9 @@ Path
 
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
+
+Options
+${builtInOptions}
 
 Description
      an archiving operation
@@ -436,11 +461,29 @@ BUILD SUCCESSFUL"""
     def "error message contains possible candidates"() {
         buildFile.text = """
         task aTask
-"""
+        """
         when:
         fails "help", "--task", "bTask"
         then:
         failure.assertHasCause("Task 'bTask' not found in root project '${testDirectory.getName()}'. Some candidates are: 'aTask', 'tasks'")
+
+        when:
+        run "help", "--task", "aTask"
+        then:
+        output.contains "Detailed task information for aTask"
+
+        when:
+        fails "help", "--task", "bTask"
+        then:
+        failure.assertHasCause("Task 'bTask' not found in root project '${testDirectory.getName()}'. Some candidates are: 'aTask', 'tasks'")
+
+        when:
+        buildFile << """
+        task bTask
+        """
+        run "help", "--task", "bTask"
+        then:
+        output.contains "Detailed task information for bTask"
     }
 
     def "tasks can be defined by camelCase matching"() {
@@ -458,6 +501,9 @@ Path
 
 Type
      Task (org.gradle.api.Task)
+
+Options
+${builtInOptions}
 
 Description
      a description
@@ -478,6 +524,7 @@ BUILD SUCCESSFUL"""
         failure.assertHasCause("Unknown command-line option '--tasssk'.")
         failure.assertHasResolutions(
             "Run gradle help --task :help to get task usage details.",
+            "Run with --stacktrace option to get the stack trace.",
             "Run with --info or --debug option to get more log output.",
             "Run with --scan to get full insights.",
         )
@@ -505,6 +552,8 @@ Options
                           ABC
                           DEF
                           GHIJKL
+
+${builtInOptions}
 
 Description
      -
@@ -534,6 +583,8 @@ Options
                             optionA
                             optionB
                             optionC
+
+${builtInOptions}
 
 Description
      -

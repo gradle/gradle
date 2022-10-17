@@ -33,7 +33,7 @@ class SnapshotSerializerTest extends Specification {
     def encoder = new OutputStreamBackedEncoder(output)
 
     @Subject
-        serializer = new SnapshotSerializer(Mock(ClassLoaderHierarchyHasher))
+    def serializer = new SnapshotSerializer(Mock(ClassLoaderHierarchyHasher))
 
     def "serializes serialized properties"() {
         def original = snapshot("x".bytes)
@@ -190,8 +190,17 @@ class SnapshotSerializerTest extends Specification {
         original == written
     }
 
-    def "serializes implementation properties"() {
+    def "serializes class implementation properties"() {
         def original = ImplementationSnapshot.of("someClassName", HashCode.fromString("0123456789"))
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes lambda implementation properties"() {
+        def lambda = TestLambdas.createTrackableLambda()
+        def original = ImplementationSnapshot.of(lambda.getClass().name, lambda, TestHashCodes.hashCodeFrom(1234))
         write(original)
 
         expect:
@@ -203,23 +212,21 @@ class SnapshotSerializerTest extends Specification {
         write(original)
 
         expect:
-        ImplementationSnapshot copy = written
-        copy.typeName == original.typeName
+        ImplementationSnapshot copy = written as ImplementationSnapshot
+        copy.classIdentifier == original.classIdentifier
         copy.classLoaderHash == null
-        copy.unknown
-        copy.unknownReason == ImplementationSnapshot.UnknownReason.UNKNOWN_CLASSLOADER
+        copy.unknownReason == UnknownImplementationSnapshot.UnknownReason.UNKNOWN_CLASSLOADER
     }
 
-    def "serializes implementation properties with lambda"() {
+    def "serializes implementation properties with untracked lambda"() {
         def original = ImplementationSnapshot.of('someClassName$$Lambda$12/312454364', TestHashCodes.hashCodeFrom(1234))
         write(original)
 
         expect:
-        ImplementationSnapshot copy = written
-        copy.typeName == original.typeName
+        ImplementationSnapshot copy = written as ImplementationSnapshot
+        copy.classIdentifier == original.classIdentifier
         copy.classLoaderHash == null
-        copy.isUnknown()
-        copy.unknownReason == ImplementationSnapshot.UnknownReason.LAMBDA
+        copy.unknownReason == UnknownImplementationSnapshot.UnknownReason.UNTRACKED_LAMBDA
     }
 
     private ArrayValueSnapshot array(ValueSnapshot... elements) {

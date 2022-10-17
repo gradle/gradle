@@ -1,5 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.api-kotlin")
 }
 
 dependencies {
@@ -14,6 +15,7 @@ dependencies {
     implementation(project(":file-collections"))
     implementation(project(":jvm-services"))
     implementation(project(":logging"))
+    implementation(project(":messaging"))
     implementation(project(":model-core"))
     implementation(project(":native"))
     implementation(project(":normalization-java"))
@@ -21,6 +23,7 @@ dependencies {
     implementation(project(":platform-base"))
     implementation(project(":process-services"))
     implementation(project(":resources"))
+    implementation(project(":enterprise-operations"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
@@ -28,6 +31,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.inject)
     implementation(libs.nativePlatform)
+    implementation(libs.futureKotlin("stdlib-jdk8"))
 
     testImplementation(project(":snapshots"))
     testImplementation(libs.ant)
@@ -49,7 +53,7 @@ strictCompile {
     ignoreDeprecations() // most of this project has been deprecated
 }
 
-classycle {
+packageCycles {
     // Needed for the factory methods in the interface
     excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
     excludePatterns.add("org/gradle/jvm/toolchain/internal/**")

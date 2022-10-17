@@ -33,7 +33,6 @@ import org.gradle.api.internal.artifacts.ConfigurationVariantInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.util.AttributeTestUtil
@@ -163,11 +162,9 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         }
 
         when:
-        services.configureClassesDirectoryVariant("apiElements", sourceSet)
+        services.configureClassesDirectoryVariant(apiElements, sourceSet)
 
         then:
-        1 * configurations.all(_) >> { args -> args[0].execute(apiElements) }
-        1 * apiElements.getName() >> 'apiElements'
         1 * apiElements.getOutgoing() >> outgoing
         1 * outgoing.getVariants() >> variants
         1 * variants.maybeCreate('classes') >> variant
@@ -181,7 +178,6 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         1 * variant.setDescription(_)
         _ * sourceSet.getOutput() >> output
         1 * output.getClassesDirs() >> classes
-        1 * output.getClassesContributors() >> Stub(TaskDependency)
         1 * sourceSet.getName()
         0 * _
     }

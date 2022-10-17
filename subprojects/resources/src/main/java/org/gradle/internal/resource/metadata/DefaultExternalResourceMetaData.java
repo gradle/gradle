@@ -30,21 +30,24 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
     private final HashCode sha1;
     private final String contentType;
 
+    private final String fileName;
+
     public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength) {
-        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, null, null, null);
+        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, null, null, null, null);
     }
 
     public DefaultExternalResourceMetaData(URI location, long lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashCode sha1) {
-        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, contentType, etag, sha1);
+        this(location, lastModified > 0 ? new Date(lastModified) : null, contentLength, contentType, etag, sha1, null);
     }
 
-    public DefaultExternalResourceMetaData(URI location, @Nullable Date lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashCode sha1) {
+    public DefaultExternalResourceMetaData(URI location, @Nullable Date lastModified, long contentLength, @Nullable String contentType, @Nullable String etag, @Nullable HashCode sha1, @Nullable String fileName) {
         this.location = location;
         this.lastModified = lastModified;
         this.contentLength = contentLength;
         this.contentType = contentType;
         this.etag = etag;
         this.sha1 = sha1;
+        this.fileName = fileName;
     }
 
     @Override
@@ -79,5 +82,11 @@ public class DefaultExternalResourceMetaData implements ExternalResourceMetaData
     @Override
     public HashCode getSha1() {
         return sha1;
+    }
+
+    @Nullable
+    @Override
+    public String getFilename() {
+        return fileName;
     }
 }

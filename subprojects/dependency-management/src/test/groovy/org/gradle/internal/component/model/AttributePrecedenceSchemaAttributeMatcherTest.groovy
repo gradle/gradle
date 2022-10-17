@@ -59,7 +59,9 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         @Override
         void execute(MultipleCandidatesDetails<String> details) {
             if (details.consumerValue == null) {
-                details.closestMatch("best")
+                if (details.candidateValues.contains("best")) {
+                    details.closestMatch("best")
+                }
             } else {
                 if (details.candidateValues.contains("best")) {
                     details.closestMatch("best")
@@ -107,6 +109,19 @@ class AttributePrecedenceSchemaAttributeMatcherTest extends Specification {
         matcher.match(selectionSchema, [candidate4, candidate5, candidate6], requested, null, explanationBuilder) == [candidate4]
         matcher.match(selectionSchema, [candidate5, candidate6], requested, null, explanationBuilder) == [candidate5]
         matcher.match(selectionSchema, [candidate6], requested, null, explanationBuilder) == [candidate6]
+    }
+
+    def "disambiguates extra attributes in precedence order"() {
+        def candidate1 = candidate("best", "compatible", "compatible")
+        def candidate2 = candidate("compatible", "best", "compatible")
+        def candidate3 = candidate("compatible", "compatible", "best")
+        def candidate4 = candidate("compatible", "compatible", "compatible")
+        def requested = AttributeTestUtil.attributes("unknown": "unknown")
+
+        expect:
+        matcher.match(selectionSchema, [candidate1, candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate1]
+        matcher.match(selectionSchema, [candidate2, candidate3, candidate4], requested, null, explanationBuilder) == [candidate2]
+        matcher.match(selectionSchema, [candidate3, candidate4], requested, null, explanationBuilder) == [candidate3]
     }
 
     private static AttributeContainerInternal requested(String highestValue, String middleValue, String lowestValue) {

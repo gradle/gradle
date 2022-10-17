@@ -38,7 +38,6 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
 
     def "allow query and mutating methods from create using #methods.key"() {
         setupContainerDefaults()
-        String methodUnderTest = methods.key
         Closure method = bind(methods.value)
 
         when:
@@ -68,7 +67,6 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
 
     def "allow query methods from register using #queryMethods.key"() {
         setupContainerDefaults()
-        String methodUnderTest = queryMethods.key
         Closure method = bind(queryMethods.value)
 
         when:

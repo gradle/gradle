@@ -55,7 +55,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         def task = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
         task instanceof JavaExec
         task.classpath.from.files == [project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].runtimeClasspath.files]
-        task TaskDependencyMatchers.dependsOn('classes')
+        task TaskDependencyMatchers.dependsOn('classes', JavaPlugin.COMPILE_JAVA_TASK_NAME)
     }
 
     void "adds startScripts task to project"() {
@@ -115,16 +115,6 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         then:
         def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
         startScripts.executableDir == "custom_bin"
-    }
-
-    void "mainClassName in project delegates to main in run task"() {
-        when:
-        plugin.apply(project)
-        project.mainClassName = "Acme";
-
-        then:
-        def run = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
-        run.main == "Acme"
     }
 
     void "mainClassName in project delegates to mainClassName in startScripts task"() {

@@ -28,7 +28,7 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeInt
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
-        buildFile << testablePluginProject(applyJavaPlugin())
+        buildFile << testablePluginProject(['java-gradle-plugin'])
     }
 
     def "gradle api jar is generated only when requested"() {

@@ -116,7 +116,7 @@ include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/kotlin",files
 include::{snippetsPath}/buildlifecycle/projectEvaluateEvents/tests/projectEvaluateEvents.out[]
 ----
 
-This example uses method `Project.afterEvaluate()` to add a closure which is executed after the project is evaluated.
+This example uses method `Project.afterEvaluate()` to add a closure which is executed after the project is evaluated (ie. the end of the configuration phase).
 
 It is also possible to receive notifications when any project is evaluated. This example performs some custom logging of project evaluation. Notice that the `afterProject` notification is received regardless of whether the project evaluates successfully or fails with an exception.
 

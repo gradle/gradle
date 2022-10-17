@@ -17,6 +17,7 @@
 package org.gradle.scala.compile.internal
 
 import org.gradle.api.file.Directory
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.tasks.ScalaRuntime
 import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer
@@ -30,6 +31,7 @@ import spock.lang.Subject
 class ScalaCompileOptionsConfigurerTest extends Specification {
 
     private final ScalaRuntime scalaRuntime = Mock(ScalaRuntime)
+    private final VersionParser versionParser = new VersionParser()
 
     def 'configuring target jvm for JVM #javaVersion and Scala #scalaLibraryVersion results in #expectedTarget'() {
         given:
@@ -38,7 +40,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(javaVersion), classpath)
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(javaVersion), classpath, versionParser)
 
         then:
         !scalaCompileOptions.additionalParameters.empty
@@ -73,7 +75,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, null, classpath)
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, null, classpath, getVersionParser())
 
         then:
         !scalaCompileOptions.additionalParameters
@@ -86,7 +88,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8), classpath)
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8), classpath, getVersionParser())
 
         then:
         !scalaCompileOptions.additionalParameters
@@ -105,7 +107,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         Set<File> classpath = [new File("scala-library-2.13.1.jar")]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8), classpath)
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8), classpath, getVersionParser())
 
         then:
         scalaCompileOptions.additionalParameters
@@ -131,6 +133,9 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
             @Override
             Directory getInstallationPath() { return null }
+
+            @Override
+            boolean isCurrentJvm() { return false }
         }
     }
 }

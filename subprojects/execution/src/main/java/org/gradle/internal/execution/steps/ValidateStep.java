@@ -16,48 +16,38 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblem;
+import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.reflect.validation.ValidationProblemBuilder;
-import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
+import org.gradle.internal.snapshot.impl.UnknownImplementationSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.problems.BaseProblem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
 
 public class ValidateStep<C extends BeforeExecutionContext, R extends Result> implements Step<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ValidateStep.class);
-    private static final String MAX_NB_OF_ERRORS = "org.gradle.internal.max.validation.errors";
 
     private final VirtualFileSystem virtualFileSystem;
     private final ValidationWarningRecorder warningReporter;
@@ -84,27 +74,16 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             .stream()
             .collect(
                 groupingBy(BaseProblem::getSeverity,
-                mapping(Function.identity(), toList())));
-        ImmutableCollection<TypeValidationProblem> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
-        ImmutableCollection<TypeValidationProblem> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
+                    mapping(Function.identity(), toList())));
+        ImmutableList<TypeValidationProblem> warnings = ImmutableList.copyOf(problems.getOrDefault(Severity.WARNING, ImmutableList.of()));
+        ImmutableList<TypeValidationProblem> errors = ImmutableList.copyOf(problems.getOrDefault(Severity.ERROR, ImmutableList.of()));
 
         if (!warnings.isEmpty()) {
             warningReporter.recordValidationWarnings(work, warnings);
         }
 
         if (!errors.isEmpty()) {
-            int maxErrCount = Integer.getInteger(MAX_NB_OF_ERRORS, 5);
-            ImmutableSet<String> uniqueErrors = errors.stream().map(ValidateStep::renderedErrorMessage).collect(ImmutableSet.toImmutableSet());
-            throw WorkValidationException.forProblems(uniqueErrors)
-                .limitTo(maxErrCount)
-                .withSummary(helper ->
-                    String.format("%s found with the configuration of %s (%s).",
-                        helper.size() == 1
-                            ? "A problem was"
-                            : "Some problems were",
-                        work.getDisplayName(),
-                        describeTypesChecked(validationContext.getValidatedTypes()))
-                ).get();
+            throwValidationException(work, validationContext, errors);
         }
 
         if (!warnings.isEmpty()) {
@@ -112,59 +91,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             virtualFileSystem.invalidateAll();
         }
 
-        return delegate.execute(work, new ValidationFinishedContext() {
-            @Override
-            public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                return context.getBeforeExecutionState();
-            }
-
-            @Override
-            public Optional<ValidationResult> getValidationProblems() {
-                return warnings.isEmpty()
-                    ? Optional.empty()
-                    : Optional.of(() -> warnings);
-            }
-
-            @Override
-            public Optional<PreviousExecutionState> getPreviousExecutionState() {
-                return context.getPreviousExecutionState();
-            }
-
-            @Override
-            public File getWorkspace() {
-                return context.getWorkspace();
-            }
-
-            @Override
-            public Optional<ExecutionHistoryStore> getHistory() {
-                return context.getHistory();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                return context.getInputProperties();
-            }
-
-            @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                return context.getInputFileProperties();
-            }
-
-            @Override
-            public UnitOfWork.Identity getIdentity() {
-                return context.getIdentity();
-            }
-
-            @Override
-            public Optional<String> getNonIncrementalReason() {
-                return context.getNonIncrementalReason();
-            }
-
-            @Override
-            public WorkValidationContext getValidationContext() {
-                return context.getValidationContext();
-            }
-        });
+        return delegate.execute(work, new ValidationFinishedContext(context, warnings));
     }
 
     private void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
@@ -182,8 +109,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         // It doesn't matter whether we use cacheable true or false, since none of the warnings depends on the cacheability of the task.
         Class<?> workType = workClass.get();
         TypeValidationContext workValidationContext = validationContext.forType(workType, true);
-        validateImplementation(workValidationContext, beforeExecutionState.getImplementation(), "Implementation of ", work
-        );
+        validateImplementation(workValidationContext, beforeExecutionState.getImplementation(), "Implementation of ", work);
         beforeExecutionState.getAdditionalImplementations()
             .forEach(additionalImplementation -> validateImplementation(workValidationContext, additionalImplementation, "Additional action of ", work));
         beforeExecutionState.getInputProperties().forEach((propertyName, valueSnapshot) -> {
@@ -194,28 +120,28 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         });
     }
 
-    private void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementationSnapshot) {
-        if (implementationSnapshot.isUnknown()) {
-            workValidationContext.visitPropertyProblem(problem -> {
-                ImplementationSnapshot.UnknownReason unknownReason = implementationSnapshot.getUnknownReason();
+    private void validateNestedInput(TypeValidationContext workValidationContext, String propertyName, ImplementationSnapshot implementation) {
+        if (implementation instanceof UnknownImplementationSnapshot) {
+            UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
+            workValidationContext.visitPropertyProblem(problem ->
                 configureImplementationValidationProblem(problem)
                     .forProperty(propertyName)
-                    .withDescription(() -> unknownReason.descriptionFor(implementationSnapshot))
-                    .happensBecause(unknownReason.getReason())
-                    .addPossibleSolution(unknownReason.getSolution());
-            });
+                    .withDescription(unknownImplSnapshot.getProblemDescription())
+                    .happensBecause(unknownImplSnapshot.getReasonDescription())
+                    .addPossibleSolution(unknownImplSnapshot.getSolutionDescription())
+            );
         }
     }
 
     private void validateImplementation(TypeValidationContext workValidationContext, ImplementationSnapshot implementation, String descriptionPrefix, UnitOfWork work) {
-        if (implementation.isUnknown()) {
-            workValidationContext.visitPropertyProblem(problem -> {
-                ImplementationSnapshot.UnknownReason unknownReason = implementation.getUnknownReason();
+        if (implementation instanceof UnknownImplementationSnapshot) {
+            UnknownImplementationSnapshot unknownImplSnapshot = (UnknownImplementationSnapshot) implementation;
+            workValidationContext.visitPropertyProblem(problem ->
                 configureImplementationValidationProblem(problem)
-                    .withDescription(() -> descriptionPrefix + work + " " + unknownReason.descriptionFor(implementation))
-                    .happensBecause(unknownReason.getReason())
-                    .addPossibleSolution(unknownReason.getSolution());
-            });
+                    .withDescription(descriptionPrefix + work + " " + unknownImplSnapshot.getProblemDescription())
+                    .happensBecause(unknownImplSnapshot.getReasonDescription())
+                    .addPossibleSolution(unknownImplSnapshot.getSolutionDescription())
+            );
         }
     }
 
@@ -223,22 +149,17 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         return problem
             .typeIsIrrelevantInErrorMessage()
             .withId(ValidationProblemId.UNKNOWN_IMPLEMENTATION)
-            .reportAs(Severity.WARNING)
+            .reportAs(Severity.ERROR)
             .documentedAt("validation_problems", "implementation_unknown");
     }
 
-    private static String renderedErrorMessage(TypeValidationProblem p) {
-        return renderMinimalInformationAbout(p);
-    }
-
-    private static String describeTypesChecked(ImmutableCollection<Class<?>> types) {
-        return types.size() == 1
-            ? "type '" + getTypeDisplayName(types.iterator().next()) + "'"
-            : "types '" + types.stream().map(ValidateStep::getTypeDisplayName).collect(Collectors.joining("', '")) + "'";
-    }
-
-    private static String getTypeDisplayName(Class<?> type) {
-        return ModelType.of(type).getDisplayName();
+    protected void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<TypeValidationProblem> validationErrors) {
+        ImmutableSet<String> uniqueErrors = validationErrors.stream()
+                .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
+                .collect(ImmutableSet.toImmutableSet());
+        throw WorkValidationException.forProblems(uniqueErrors)
+                .withSummaryForContext(work.getDisplayName(), validationContext)
+                .get();
     }
 
     public interface ValidationWarningRecorder {

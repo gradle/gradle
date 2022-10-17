@@ -649,6 +649,51 @@ Root project 'webinar-parent'
         dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators(mavenLocalRepoBlock))
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20981")
+    def "escapeSingleQuotes"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
+        def descriptionPropertyAssignment = (isGroovy ? 'description = \'That\\\'s it\'' : 'description = "That\'s it"')
+        dsl.getBuildFile().text.readLines().contains(descriptionPropertyAssignment)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20981")
+    def "escapeDoubleQuotes"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
+        def descriptionPropertyAssignment = (isGroovy ? 'description = \'"Quoted description"\'' : 'description = "\\"Quoted description\\""')
+        dsl.getBuildFile().text.readLines().contains(descriptionPropertyAssignment)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20981")
+    def "escapeBackslashes"() {
+        def dsl = dslFixtureFor(scriptDsl)
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        dsl.assertGradleFilesGenerated()
+
+        def isGroovy = scriptDsl == BuildInitDsl.GROOVY
+        def descriptionPropertyAssignment = (isGroovy ? "description = 'A description \\\\ with a backslash'" : 'description = "A description \\\\ with a backslash"')
+        dsl.getBuildFile().text.readLines().contains(descriptionPropertyAssignment)
+    }
+
     static libRequest(MavenHttpRepository repo, String group, String name, Object version) {
         MavenHttpModule module = repo.module(group, name, version as String)
         module.allowAll()

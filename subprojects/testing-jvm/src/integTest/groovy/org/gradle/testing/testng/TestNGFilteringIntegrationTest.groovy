@@ -25,7 +25,7 @@ import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec.*
 
-@TargetCoverage({TestNGCoverage.STANDARD_COVERAGE})
+@TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
 class TestNGFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
 
     String imports = "org.testng.annotations.*"

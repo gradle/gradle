@@ -92,12 +92,12 @@ fun <T> codec(
 
 
 internal
-inline fun <reified T> ReadContext.ownerService() =
+inline fun <reified T> IsolateContext.ownerService() =
     ownerService(T::class.java)
 
 
 internal
-fun <T> ReadContext.ownerService(serviceType: Class<T>) =
+fun <T> IsolateContext.ownerService(serviceType: Class<T>) =
     isolate.owner.service(serviceType)
 
 

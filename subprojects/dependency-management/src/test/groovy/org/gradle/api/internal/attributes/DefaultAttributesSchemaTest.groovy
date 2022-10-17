@@ -234,7 +234,7 @@ class DefaultAttributesSchemaTest extends Specification {
         best == ["bar"] as Set
     }
 
-    def "selects all candidates when no disambiguation rules and requested is not one of the candidate values"() {
+    def "returns null when no disambiguation rules and requested is not one of the candidate values"() {
         def attr = Attribute.of(String)
 
         given:
@@ -245,10 +245,10 @@ class DefaultAttributesSchemaTest extends Specification {
         def best = schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "other", candidates)
 
         then:
-        best == candidates
+        best == null
     }
 
-    def "selects all candidates when no rule expresses an opinion and requested is not one of the candidate values"() {
+    def "returns null when no rule expresses an opinion and requested is not one of the candidate values"() {
         def attr = Attribute.of(String)
 
         given:
@@ -259,7 +259,7 @@ class DefaultAttributesSchemaTest extends Specification {
         def best = schema.mergeWith(EmptySchema.INSTANCE).disambiguate(attr, "other", candidates)
 
         then:
-        best == candidates
+        best == null
     }
 
     def "custom rule can select best match"() {
@@ -361,7 +361,7 @@ class DefaultAttributesSchemaTest extends Specification {
         def e = thrown(IllegalArgumentException)
         e.message == "Attribute 'a' precedence has already been set."
     }
-    
+
     def "precedence order is honored with merged schema"() {
         def producer = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         when:
@@ -385,7 +385,7 @@ class DefaultAttributesSchemaTest extends Specification {
         )
 
         then:
-        def result = schema.mergeWith(producer).orderByPrecedence(requested)
+        def result = schema.mergeWith(producer).orderByPrecedence(requested.keySet())
         result.sortedOrder == [2, 1, 0]
         result.unsortedOrder as List == [3]
     }
@@ -414,7 +414,7 @@ class DefaultAttributesSchemaTest extends Specification {
         )
 
         then:
-        def result = schema.mergeWith(producer).orderByPrecedence(requested)
+        def result = schema.mergeWith(producer).orderByPrecedence(requested.keySet())
         result.sortedOrder == [1, 0, 2]
         result.unsortedOrder as List == [3]
     }
@@ -437,7 +437,7 @@ class DefaultAttributesSchemaTest extends Specification {
                 (Attribute.of("z", String)): "z"
         )
         expect:
-        def result = schema.mergeWith(EmptySchema.INSTANCE).orderByPrecedence(requested)
+        def result = schema.mergeWith(EmptySchema.INSTANCE).orderByPrecedence(requested.keySet())
         result.sortedOrder == [2, 1]
         result.unsortedOrder as List == [0, 3]
     }
@@ -454,7 +454,7 @@ class DefaultAttributesSchemaTest extends Specification {
                 (Attribute.of("z", String)): "z"
         )
         expect:
-        def result = schema.mergeWith(EmptySchema.INSTANCE).orderByPrecedence(requested)
+        def result = schema.mergeWith(EmptySchema.INSTANCE).orderByPrecedence(requested.keySet())
         result.sortedOrder == []
         result.unsortedOrder as List == [0, 1, 2, 3]
     }
@@ -473,7 +473,7 @@ class DefaultAttributesSchemaTest extends Specification {
                 (Attribute.of("z", String)): "z"
         )
         expect:
-        def result = schema.mergeWith(EmptySchema.INSTANCE).orderByPrecedence(requested)
+        def result = schema.mergeWith(EmptySchema.INSTANCE).orderByPrecedence(requested.keySet())
         result.sortedOrder == []
         result.unsortedOrder as List == [0, 1, 2, 3]
     }

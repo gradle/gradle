@@ -114,7 +114,6 @@ class AbstractGradleExecuterTest extends Specification {
         def allArgs = executer.getAllArgs()
 
         then:
-        !allArgs.toString().contains("-Porg.gradle.java.installations.auto-detect")
         !allArgs.toString().contains("-Porg.gradle.java.installations.auto-download")
     }
 

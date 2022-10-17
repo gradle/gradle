@@ -259,10 +259,10 @@ $errorLines
 """
     }
 
-    JvmInstallationMetadata metadata(String implVersion, String build) {
-        def runtimeVersion = implVersion + build
+    JvmInstallationMetadata metadata(String javaVersion, String build) {
+        def runtimeVersion = javaVersion + build
         def jvmVersion = runtimeVersion + "-vm"
-        return JvmInstallationMetadata.from(new File("path"), implVersion, runtimeVersion, jvmVersion, "adoptopenjdk", "", "archName")
+        return JvmInstallationMetadata.from(new File("path"), javaVersion, "adoptopenjdk", "runtimeName", runtimeVersion, "", jvmVersion, "jvmVendor", "archName")
     }
 
     JvmInstallationMetadata newInvalidMetadata() {

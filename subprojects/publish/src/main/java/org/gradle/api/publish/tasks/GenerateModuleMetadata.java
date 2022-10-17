@@ -102,7 +102,7 @@ public class GenerateModuleMetadata extends DefaultTask {
 
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.satisfyNone());
-        setOnlyIf(spec(task -> hasAttachedComponent()));
+        setOnlyIf("The publication is attached to a component", spec(task -> hasAttachedComponent()));
     }
 
     // TODO - this should be an input

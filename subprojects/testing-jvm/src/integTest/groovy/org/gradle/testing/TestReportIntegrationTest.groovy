@@ -229,19 +229,17 @@ public class SubClassTests extends SuperClassTests {
         new HtmlTestExecutionResult(testDirectory, "build/reports/tr").assertTestClassesExecuted("Thing")
     }
 
-    @Issue("https://issues.gradle.org//browse/GRADLE-2821")
+
+    // TODO: remove in Gradle 9.0
     def "nag with deprecation warnings when using legacy TestReport APIs"() {
         given:
         buildScript """
             apply plugin: 'java'
-
              $junitSetup
-
             tasks.register('otherTests', Test) {
                 binaryResultsDirectory = file("bin")
                 testClassesDirs = files("blah")
             }
-
             tasks.register('testReport', TestReport) {
                 reportOn test, otherTests
                 destinationDir reporting.file("tr")
@@ -252,8 +250,8 @@ public class SubClassTests extends SuperClassTests {
         testClass("Thing")
 
         when:
-        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testResults method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.')
-        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.')
+        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the testResults method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.')
+        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.')
         succeeds "testReport"
 
         then:
@@ -583,7 +581,30 @@ public class SubClassTests extends SuperClassTests {
             .assertStderr(containsString("System.err from ThrowingListener"))
     }
 
-    String getJunitSetup() {
+    // TODO: remove in Gradle 9.0
+    def "using deprecated testReport elements emits deprecation warnings"() {
+        when:
+        buildScript """
+            apply plugin: 'java'
+            $junitSetup
+            // Need a second test task to reportOn
+            tasks.register('otherTests', Test) {
+                binaryResultsDirectory = file('otherBin')
+                testClassesDirs = files('otherClasses')
+            }
+            tasks.register('testReport', TestReport) {
+                reportOn test, otherTests
+                destinationDir reporting.file("myTestReports")
+            }
+        """
+
+        then:
+        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the testResults method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.')
+        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.')
+        succeeds "testReport"
+    }
+
+    private String getJunitSetup() {
         """
         apply plugin: 'java'
         ${mavenCentralRepository()}
@@ -591,7 +612,7 @@ public class SubClassTests extends SuperClassTests {
         """
     }
 
-    String getTestFilePrelude() {
+    private String getTestFilePrelude() {
         """
 package org.gradle.testing;
 
@@ -601,11 +622,11 @@ import org.junit.experimental.categories.Category;
 """
     }
 
-    void failingTestClass(String name) {
+    private void failingTestClass(String name) {
         testClass(name, true)
     }
 
-    void testClass(String name, boolean failing = false) {
+    private void testClass(String name, boolean failing = false) {
         file("src/test/java/${name}.java") << """
             public class $name {
                 @org.junit.Test
@@ -615,5 +636,4 @@ import org.junit.experimental.categories.Category;
             }
         """
     }
-
 }

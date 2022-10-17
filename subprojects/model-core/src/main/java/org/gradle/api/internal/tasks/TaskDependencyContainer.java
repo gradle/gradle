@@ -24,7 +24,7 @@ public interface TaskDependencyContainer {
     };
 
     /**
-     * Adds the dependencies from this container to the given context. Failures to calculate the build dependencies are supplied to the context.
+     * Adds the dependencies from this container to the given context. Failures to calculate the build dependencies should be supplied to the context rather than thrown.
      */
     void visitDependencies(TaskDependencyResolveContext context);
 }

@@ -80,20 +80,16 @@ public enum JavaVersion {
 
     /**
      * Java 18 major version.
-     * Not officially supported by Gradle. Use at your own risk.
      *
      * @since 7.0
      */
-    @Incubating
     VERSION_18,
 
     /**
      * Java 19 major version.
-     * Not officially supported by Gradle. Use at your own risk.
      *
      * @since 7.0
      */
-    @Incubating
     VERSION_19,
 
     /**

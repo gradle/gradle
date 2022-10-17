@@ -79,7 +79,7 @@ Artifacts
                         testType = TestSuiteType.INTEGRATION_TEST
 
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -124,7 +124,7 @@ Artifacts
                     test {
                         useJUnit()
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -186,7 +186,7 @@ Artifacts
                     test {
                         useJUnit()
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -215,7 +215,7 @@ Artifacts
                     test {
                         useJUnit()
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -297,7 +297,7 @@ Artifacts
                     test {
                         useJUnit()
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -325,7 +325,7 @@ Artifacts
                     test {
                         useJUnit()
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -383,6 +383,7 @@ Artifacts
     }
 
     def "Only one suite with a given test type allowed per project"() {
+        file("src/primaryIntTest/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
         settingsFile << """rootProject.name = 'Test'"""
         buildFile << """plugins {
                 id 'java'
@@ -407,6 +408,8 @@ Artifacts
     }
 
     def "Only one suite with a given test type allowed per project (including the built-in test suite)"() {
+        file("src/test/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
+
         settingsFile << """rootProject.name = 'Test'"""
         buildFile << """plugins {
                 id 'java'
@@ -427,6 +430,7 @@ Artifacts
     }
 
     def "Only one suite with a given test type allowed per project (using the default type of one suite and explicitly setting the other)"() {
+        file("src/integrationTest/java/com/example/FooTest.java") << "package com.example; class FooTest {}"
         settingsFile << """rootProject.name = 'Test'"""
         buildFile << """plugins {
                 id 'java'

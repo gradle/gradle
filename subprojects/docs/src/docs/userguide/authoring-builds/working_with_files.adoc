@@ -313,7 +313,7 @@ Relative paths are resolved relative to the project directory, while absolute pa
 
 [CAUTION]
 ====
-Never use `new File(relative path)` because this creates a path relative to the current working directory (CWD). Gradle can make no guarantees about the location of the CWD, which means builds that rely on it may break at any time.
+Never use `new File(relative path)` unless passed to `file()` or `files()` or `from()` or other methods being defined in terms of `file()` or `files()`. Otherwise this creates a path relative to the current working directory (CWD). Gradle can make no guarantees about the location of the CWD, which means builds that rely on it may break at any time.
 ====
 
 Here are some examples of using the `file()` method with different types of argument:
@@ -352,7 +352,7 @@ Learn about all the supported argument types in the reference guide.
 
 [CAUTION]
 ====
-Although the `files()` method accepts `File` instances, never use `new File(relative path)` with it because this creates a path relative to the current working directory (CWD). Gradle can make no guarantees about the location of the CWD, which means builds that rely on it may break at any time.
+`files()` properly handle relative paths and `File(relative path)` instances, resolving them relative to the project directory.
 ====
 
 As with the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method covered in the <<#sec:single_file_paths,previous section>>, all relative paths are evaluated relative to the current project directory. The following example demonstrates some of the variety of argument types you can use — strings, `File` instances, a list and a `{javaApi}/java/nio/file/Path.html[Path]`:

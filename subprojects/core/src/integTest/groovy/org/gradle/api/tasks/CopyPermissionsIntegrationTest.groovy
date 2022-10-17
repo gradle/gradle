@@ -263,7 +263,7 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
     @Issue('https://github.com/gradle/gradle/issues/9576')
-    def "unreadable #type not produced by task causes a deprecation warning"() {
+    def "unreadable #type not produced by task fails"() {
         given:
         def input = file("readableFile.txt").createFile()
 
@@ -280,19 +280,17 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec implements 
 
         when:
         executer.withStackTraceChecksDisabled()
-        expectUnreadableCopyDestinationDeprecationWarning()
-        succeeds "copy", "--info"
+        runAndFail "copy"
         then:
-        outputDirectory.list().contains input.name
-        outputContains("Cannot access output property 'destinationDir' of task ':copy'")
-        outputContains(expectedError(unreadableOutput))
+        expectUnreadableCopyDestinationFailure()
+        failureHasCause(expectedError(unreadableOutput))
 
         cleanup:
         unreadableOutput.makeReadable()
 
         where:
         type        | create              | expectedError
-        'file'      | { it.createFile() } | { "java.io.UncheckedIOException: Failed to create MD5 hash for file '${it.absolutePath}' as it does not exist." }
+        'file'      | { it.createFile() } | { "Failed to create MD5 hash for file '${it.absolutePath}' as it does not exist." }
         'directory' | { it.createDir() }  | { "java.nio.file.AccessDeniedException: ${it.absolutePath}" }
     }
 

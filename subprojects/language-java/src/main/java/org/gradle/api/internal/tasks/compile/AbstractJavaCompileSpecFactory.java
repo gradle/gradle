@@ -22,6 +22,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 
 import javax.annotation.Nullable;
+import java.io.File;
 
 public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> implements Factory<T> {
     private final CompileOptions compileOptions;
@@ -33,47 +34,42 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         this.toolchain = toolchain;
     }
 
-    public AbstractJavaCompileSpecFactory(CompileOptions compileOptions) {
-        this(compileOptions, null);
-    }
-
     @Override
     public T create() {
         if (toolchain != null) {
             return chooseSpecForToolchain();
         }
         if (compileOptions.isFork()) {
-            if (compileOptions.getForkOptions().getExecutable() != null || compileOptions.getForkOptions().getJavaHome() != null) {
-                return getCommandLineSpec();
-            } else {
-                return getForkingSpec();
+            File customJavaHome = compileOptions.getForkOptions().getJavaHome();
+            if (customJavaHome != null) {
+                return getCommandLineSpec(Jvm.forHome(customJavaHome).getJavacExecutable());
             }
+
+            String customExecutable = compileOptions.getForkOptions().getExecutable();
+            if (customExecutable != null) {
+                return getCommandLineSpec(new File(customExecutable));
+            }
+
+            return getForkingSpec(Jvm.current().getJavaHome());
         } else {
             return getDefaultSpec();
         }
     }
 
     private T chooseSpecForToolchain() {
+        File toolchainJavaHome = toolchain.getInstallationPath().getAsFile();
         if (!toolchain.getLanguageVersion().canCompileOrRun(8)) {
-            return getCommandLineSpec();
+            return getCommandLineSpec(Jvm.forHome(toolchainJavaHome).getJavacExecutable());
         }
-        if (compileOptions.isFork()) {
-            return getForkingSpec();
-        } else {
-            if (isCurrentVmOurToolchain()) {
-                return getDefaultSpec();
-            }
-            return getForkingSpec();
+        if (!compileOptions.isFork() && toolchain.isCurrentJvm()) {
+            return getDefaultSpec();
         }
+        return getForkingSpec(toolchainJavaHome);
     }
 
-    boolean isCurrentVmOurToolchain() {
-        return toolchain.getInstallationPath().getAsFile().equals(Jvm.current().getJavaHome());
-    }
+    abstract protected T getCommandLineSpec(File executable);
 
-    abstract protected T getCommandLineSpec();
-
-    abstract protected T getForkingSpec();
+    abstract protected T getForkingSpec(File javaHome);
 
     abstract protected T getDefaultSpec();
 }

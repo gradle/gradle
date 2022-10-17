@@ -2,20 +2,37 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
- THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+ THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+ The list is rendered as is, so use commas after each contributor's name, and a period at the end. 
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
-[altrisi](https://github.com/altrisi),
-[aSemy](https://github.com/aSemy),
-[Ashwin Pankaj](https://github.com/ashwinpankaj),
-[Frosty-J](https://github.com/Frosty-J),
-[Gabriel Feo](https://github.com/gabrielfeo),
-[Sam Snyder](https://github.com/sambsnyd),
-[teawithbrownsugar](https://github.com/teawithbrownsugar)
+
+[Andrei Nevedomskii](https://github.com/monosoul),
+[Björn Kautler](https://github.com/Vampire),
+[Clara Guerrero](https://github.com/cguerreros),
+[David Marin](https://github.com/dmarin),
+[Denis Buzmakov](https://github.com/bacecek),
+[Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy),
+[Dzmitry Neviadomski](https://github.com/nevack),
+[Eliezer Graber](https://github.com/eygraber),
+[Fedor Ihnatkevich](https://github.com/Jeffset),
+[Gabriel Rodriguez](https://github.com/gabrielrodriguez2746),
+[Guruprasad Bagade](https://github.com/prasad-333),
+[Herbert von Broeuschmeul](https://github.com/HvB),
+[Matthew Haughton](https://github.com/3flex),
+[Michael Torres](https://github.com/torresmi),
+[Pankaj Kumar](https://github.com/p1729),
+[Ricardo Jiang](https://github.com/RicardoJiang),
+[Siddardha Bezawada](https://github.com/SidB3),
+[Stephen Topley](https://github.com/stopley),
+[Victor Maldonado](https://github.com/vmmaldonadoz),
+[Vinay Potluri](https://github.com/vinaypotluri),
+[Jeff Gaston](https://github.com/mathjeff),
+[David Morris](https://github.com/codefish1).
 
 ## Upgrade instructions
 
@@ -23,13 +40,15 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
+See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
+## New features and usability improvements
 
-<!-- 
+<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
+
+<!--
 
 ================== TEMPLATE ==============================
 
@@ -46,7 +65,7 @@ Example:
 > HIGHLIGHT the usecase or existing problem the feature solves
 > EXPLAIN how the new release addresses that problem or use case
 > PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details 
+> LINK to the full documentation for more details
 
 ================== END TEMPLATE ==========================
 
@@ -55,58 +74,10 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-### Improvements for IDE integrators
+#### PMD and CodeNarc tasks execute in parallel by default
+The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/pmd_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process and therefore their tasks may now run in parallel within one project.
 
-#### Tooling API progress events expose difference between test assertion failures and test framework failures
-
-Gradle 7.6 introduces new failure types for the `Failure` interface returned by [FailureResult.getFailures()](javadoc/org/gradle/tooling/events/FailureResult.html#getFailures--): TestAssertionFailure and TestFrameworkFailure. 
-IDEs can now easily distinguish between different failures using standard progress event listeners. 
-Moreover, `TestAssertionFailure` exposes the expected and actual values if the used test framework supply such information.
-
-#### Task execution with TestLauncher
-
-The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients to execute any tasks along with the selected tasks.
-
-```
-ProjectConnection connection = ...
-connection.newTestLauncher()
-          .withTaskAndTestClasses("integTest", ["org.MyTest"])
-          .forTasks("startDB")
-          .run()
-```
-
-Note, that the task execution only works if the target Gradle version is >=7.6.
-
-#### Fine-grained test selection with TestLauncher
-
-The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients to select test classes, methods, packages and patterns with a new API.
-
-```
-TestLauncher testLauncher = projectConnection.newTestLauncher();
-testLauncher.withTestsFor(spec -> {
-    spec.forTaskPath(":test")
-        .includePackage("org.pkg")
-        .includeClass("com.TestClass")
-        .includeMethod("com.TestClass")
-        .includePattern("io.*")
-}).run();
-```
-
-Note, that the new test selection interface only works if the target Gradle version is >=7.6.
-
-### Improved Maven Conversion
-
-The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration when converting a Maven project. This sharply reduces the number of compilation errors resulting from the automatic conversion utility. See the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion) for more information.
-
-<a name="configuration-cache-improvements"></a>
-### Configuration cache improvements
-
-The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds.
-
-#### New compatible tasks
-
-The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are now compatible with the configuration cache.
-
+In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -120,9 +91,35 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### Promoted features in the Tooling API
+
+- The `GradleConnector.disconnect()` method is now considered stable.
+
+### Promoted features in the antlr plugin
+
+- The `AntlrSourceDirectorySet` interface is now considered stable.
+
+### Promoted features in the ear plugin
+
+- The `Ear.getAppDirectory()` method is now considered stable.
+
+### Promoted features in the eclipse plugin
+
+- The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
+
+### Promoted features in the groovy plugin
+
+The following type and method are now considered stable:
+- `GroovySourceDirectorySet`
+- `GroovyCompileOptions.getDisabledGlobalASTTransformations()`
+
+### Promoted features in the scala plugin
+
+- The `ScalaSourceDirectorySet` interface is now considered stable.
+
+### Promoted features in the war plugin
+
+- The `War.getWebAppDirectory()` method is now considered stable.
 
 ## Fixed issues
 
@@ -136,7 +133,7 @@ We love getting contributions from the Gradle community. For information on cont
 
 ## Reporting problems
 
-If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
+If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines.
 If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).

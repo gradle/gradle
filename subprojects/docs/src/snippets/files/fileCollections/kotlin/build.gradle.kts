@@ -18,27 +18,29 @@ file("src2/dir2").mkdirs()
 
 // tag::closure[]
 tasks.register("list") {
+    val projectDirectory = layout.projectDirectory
     doLast {
         var srcDir: File? = null
 
-        val collection = layout.files({
+        val collection = projectDirectory.files({
             srcDir?.listFiles()
         })
 
-        srcDir = file("src")
+        srcDir = projectDirectory.file("src").asFile
         println("Contents of ${srcDir.name}")
-        collection.map { relativePath(it) }.sorted().forEach { println(it) }
+        collection.map { it.relativeTo(projectDirectory.asFile) }.sorted().forEach { println(it) }
 
-        srcDir = file("src2")
+        srcDir = projectDirectory.file("src2").asFile
         println("Contents of ${srcDir.name}")
-        collection.map { relativePath(it) }.sorted().forEach { println(it) }
+        collection.map { it.relativeTo(projectDirectory.asFile) }.sorted().forEach { println(it) }
     }
 }
 // end::closure[]
 
 tasks.register("usage") {
+    val projectLayout = layout
     doLast {
-        val collection = layout.files("src/file1.txt")
+        val collection = projectLayout.files("src/file1.txt")
 
         // tag::usage[]
         // Iterate over the files in the collection
@@ -53,14 +55,17 @@ tasks.register("usage") {
         val file: File = collection.singleFile
 
         // Add and subtract collections
-        val union = collection + layout.files("src/file2.txt")
-        val difference = collection - layout.files("src/file2.txt")
+        val union = collection + projectLayout.files("src/file2.txt")
+        val difference = collection - projectLayout.files("src/file2.txt")
 
         // end::usage[]
     }
 }
 
 tasks.register("filterTextFiles") {
+    // Copy collection property to a local variable for configuration cache support.
+    val collection: FileCollection = collection
+    val projectDirectory = layout.projectDirectory
     doLast {
         // tag::filtering-file-collections[]
         val textFiles: FileCollection = collection.filter { f: File ->
@@ -68,10 +73,10 @@ tasks.register("filterTextFiles") {
         }
         // end::filtering-file-collections[]
 
-        textFiles.map { relativePath(it) }.sorted().forEach { path: String ->
+        textFiles.map { it.relativeTo(projectDirectory.asFile).path }.sorted().forEach { path: String ->
             println(path)
         }
 
-        require(textFiles.files.map {it.name }.sorted() == listOf("file1.txt", "file2.txt", "file5.txt"))
+        require(textFiles.files.map { it.name }.sorted() == listOf("file1.txt", "file2.txt", "file5.txt"))
     }
 }

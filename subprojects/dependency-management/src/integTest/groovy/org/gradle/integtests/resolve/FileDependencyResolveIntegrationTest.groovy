@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
@@ -115,6 +116,7 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
         }
     }
 
+    @ToBeFixedForConfigurationCache(because = "serializes multiple copies of file collection for task")
     def "files are requested once only when dependency is resolved"() {
         buildFile << '''
             def jarFile = file("jar-1.jar")
@@ -130,8 +132,9 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
             }
 
             task checkFiles {
+                def files = configurations.compile
                 doLast {
-                    assert configurations.compile.files == [jarFile] as Set
+                    assert files.files == [jarFile] as Set
                 }
             }
 '''

@@ -17,7 +17,6 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Console;
@@ -300,7 +299,6 @@ public class GroovyCompileOptions extends AbstractOptions {
      * @see <a href="https://docs.groovy-lang.org/latest/html/api/org/codehaus/groovy/control/CompilerConfiguration.html#setDisabledGlobalASTTransformations(java.util.Set)">CompilerConfiguration</a>
      * @since 7.4
      */
-    @Incubating
     @Input
     public SetProperty<String> getDisabledGlobalASTTransformations() {
         return disabledGlobalASTTransformations;

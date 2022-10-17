@@ -1,0 +1,20 @@
+plugins {
+    id 'idea'
+    id 'java-library'
+}
+
+// tag::mark-additional-sourcesets-as-test[]
+sourceSets {
+    intTest {
+        java {
+            srcDirs = ['src/integration']
+        }
+    }
+}
+
+idea {
+    module {
+        testSources.from(sourceSets.intTest.java.srcDirs)
+    }
+}
+// end::mark-additional-sourcesets-as-test[]

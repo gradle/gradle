@@ -6,6 +6,7 @@ description = "Adds support for building Groovy projects"
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":build-option"))
     implementation(project(":logging"))
     implementation(project(":process-services"))
     implementation(project(":worker-processes"))
@@ -49,7 +50,7 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/compile/**")
     excludePatterns.add("org/gradle/api/tasks/javadoc/**")
 }

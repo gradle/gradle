@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
-public class VersionSpecificCacheCleanupAction implements DirectoryCleanupAction {
+public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction {
     private final static String FILE_HASHES_CACHE_KEY =  CrossBuildFileHashCache.Kind.FILE_HASHES.getCacheId();
 
     @VisibleForTesting static final String MARKER_FILE_PATH = FILE_HASHES_CACHE_KEY + "/" + FILE_HASHES_CACHE_KEY + ".lock";

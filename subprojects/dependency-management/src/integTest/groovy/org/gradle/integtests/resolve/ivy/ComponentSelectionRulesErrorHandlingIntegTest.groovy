@@ -16,14 +16,15 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
 
 class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
-    def "produces sensible error when bad code is supplied in component selection rule"() {
+    def "produces sensible error when bad code is supplied in component selection rule with Groovy 3"() {
+        assumeGroovy3()
+        def lines = buildFile.readLines().size()
         buildFile << """
             dependencies {
                 conf "org.utils:api:1.2"
@@ -49,14 +50,49 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
 
         then:
         fails ':checkDeps'
-        failure.assertHasDescription("Execution failed for task ':checkDeps'.")
+        GradleContextualExecuter.configCache || failure.assertHasDescription("Execution failed for task ':checkDeps'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(40)
+        failure.assertHasLineNumber(lines + 10)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
         failure.assertHasCause("Could not find method foo()")
     }
 
+    def "produces sensible error when bad code is supplied in component selection rule with Groovy 4"() {
+        assumeGroovy4()
+        buildFile << """
+            dependencies {
+                conf "org.utils:api:1.2"
+            }
+
+            configurations.all {
+                resolutionStrategy {
+                    componentSelection {
+                        all { ComponentSelection selection ->
+                            foo()
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org.utils:api:1.2' {
+                allowAll()
+            }
+        }
+
+        then:
+        fails ':checkDeps'
+        GradleContextualExecuter.configCache || failure.assertHasDescription("Execution failed for task ':checkDeps'.")
+        failure.assertHasFileName("Build file '$buildFile.path'")
+        failure.assertHasLineNumber(40)
+        failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
+        failure.assertHasCause('No signature of method: org.gradle.api.internal.artifacts.DefaultComponentSelection.foo() is applicable for argument types: () values: []')
+    }
+
     def "produces sensible error for invalid component selection rule"() {
+        def lines = buildFile.readLines().size()
         buildFile << """
             dependencies {
                 conf "org.utils:api:1.2"
@@ -82,7 +118,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         fails ':checkDeps'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(39)
+        failure.assertHasLineNumber(lines + 9)
         failureHasCause("The closure provided is not valid as a rule for 'ComponentSelectionRules'.")
         failureHasCause(message)
 
@@ -92,8 +128,8 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         "ComponentSelection vs, String s ->" | "Rule may not have an input parameter of type: java.lang.String."
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     def "produces sensible error when closure rule throws an exception"() {
+        def lines = buildFile.readLines().size()
         buildFile << """
             dependencies {
                 conf "org.utils:api:1.2"
@@ -117,14 +153,15 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
 
         then:
         fails ':checkDeps'
-        failure.assertHasDescription("Execution failed for task ':checkDeps'.")
+        GradleContextualExecuter.configCache || failure.assertHasDescription("Execution failed for task ':checkDeps'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(39)
+        failure.assertHasLineNumber(lines + 9)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
         failure.assertHasCause("From test")
     }
 
     def "produces sensible error for invalid module target id"() {
+        def lines = buildFile.readLines().size()
         buildFile << """
             dependencies {
                 conf "org.utils:api:1.2"
@@ -150,12 +187,13 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         fails ':checkDeps'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(39)
+        failure.assertHasLineNumber(lines + 9)
         failureHasCause("Could not add a component selection rule for module 'org.utils'.")
         failureHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org.utils")
     }
 
     def "produces sensible error when @Mutate method doesn't provide ComponentSelection as the first parameter"() {
+        def lines = buildFile.readLines().size()
         buildFile << """
             configurations.all {
                 resolutionStrategy {
@@ -177,13 +215,13 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         fails ':checkDeps'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(35)
+        failure.assertHasLineNumber(lines + 5)
         failureHasCause("""Type BadRuleSource is not a valid rule source:
 - Method select(java.lang.String) is not a valid rule method: First parameter of a rule method must be of type org.gradle.api.artifacts.ComponentSelection""")
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     def "produces sensible error when rule source throws an exception"() {
+        def lines = buildFile.readLines().size()
         buildFile << """
             dependencies {
                 conf "org.utils:api:1.2"
@@ -218,14 +256,13 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
 
         then:
         fails ':checkDeps'
-        failure.assertHasDescription("Execution failed for task ':checkDeps'.")
+        GradleContextualExecuter.configCache || failure.assertHasDescription("Execution failed for task ':checkDeps'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
-        failure.assertHasLineNumber(51)
+        failure.assertHasLineNumber(lines + 21)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
         failure.assertHasCause("java.lang.Exception: thrown from rule")
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports missing module when component selection rule requires meta-data"() {
         buildFile << """
 configurations {
@@ -277,7 +314,6 @@ Required by:
         succeeds ":checkDeps"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports broken module when component selection rule requires meta-data"() {
         buildFile << """
 configurations {

@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  */
 public final class OutgoingVariantsSpec extends AbstractConfigurationReportSpec {
     public OutgoingVariantsSpec(@Nullable String searchTarget, boolean showLegacy) {
-        super(searchTarget, showLegacy);
+        super(searchTarget, showLegacy, false);
     }
 
     @Override

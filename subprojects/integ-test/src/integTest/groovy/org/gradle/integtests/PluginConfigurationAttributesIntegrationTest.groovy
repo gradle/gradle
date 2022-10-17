@@ -53,15 +53,41 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
 
         where:
         plugin       | configuration
-        'codenarc'   | 'codenarc'
-        'pmd'        | 'pmd'
-        'checkstyle' | 'checkstyle'
-        'antlr'      | 'antlr'
-        'jacoco'     | 'jacocoAgent'
-        'jacoco'     | 'jacocoAnt'
         'scala'      | 'zinc'
         'war'        | 'providedRuntime'
         'war'        | 'providedCompile'
+    }
+
+    def "plugin runtime configuration is not consumable"() {
+        given:
+        file("producer/build.gradle") << """
+            plugins {
+                id("$plugin")
+            }
+        """
+
+        when:
+        file("consumer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation(project(path: ":producer", configuration: "$configuration"))
+            }
+        """
+
+        then:
+        fails("test")
+        result.hasErrorOutput("Selected configuration '$configuration' on 'project :producer' but it can't be used as a project dependency because it isn't intended for consumption by other components")
+
+        where:
+        plugin       | configuration
+        'antlr'      | 'antlr'
+        'codenarc'   | 'codenarc'
+        'jacoco'     | 'jacocoAgent'
+        'jacoco'     | 'jacocoAnt'
+        'pmd'        | 'pmd'
+        'checkstyle' | 'checkstyle'
     }
 
     def "plugin runtime configuration can be extended and consumed without deprecation"() {
@@ -90,6 +116,11 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
                     canBeResolved = true
                     attributes {
                         attribute(Attribute.of("test", String), "test")
+                        ${plugin == 'codenarc' ?
+                        """
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL)) // to avoid shadowRuntimeElements variant
+                        """ : ""
+                        }
                     }
                 }
             }

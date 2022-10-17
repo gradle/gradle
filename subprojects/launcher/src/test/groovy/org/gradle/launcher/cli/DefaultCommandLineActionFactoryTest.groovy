@@ -185,6 +185,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         commandLineExecution.execute(executionListener)
 
         then:
+        outputs.stdOut.contains('To see help contextual to the project, use gradle help')
         outputs.stdOut.contains('USAGE: gradle [option...] [task...]')
         outputs.stdOut.contains('--help')
         outputs.stdOut.contains('--some-option')
@@ -205,6 +206,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         commandLineExecution.execute(executionListener)
 
         then:
+        outputs.stdOut.contains('To see help contextual to the project, use gradle-app help')
         outputs.stdOut.contains('USAGE: gradle-app [option...] [task...]')
     }
 

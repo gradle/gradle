@@ -11,6 +11,7 @@ description = """This project contains most of the dependency management logic o
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":build-option"))
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
     implementation(project(":messaging"))
@@ -61,7 +62,6 @@ dependencies {
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":execution")))
-    testImplementation(testFixtures(project(":security")))
 
     integTestImplementation(project(":build-option"))
     integTestImplementation(libs.jansi)
@@ -115,7 +115,7 @@ dependencies {
     crossVersionTestImplementation(libs.jettyWebApp)
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 

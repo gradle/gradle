@@ -27,7 +27,6 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaBasePlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.plugins.quality.CodeQualityExtension;
@@ -35,7 +34,6 @@ import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Cast;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -98,8 +96,9 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         configuration.setVisible(false);
         configuration.setTransitive(true);
         configuration.setDescription("The " + getToolName() + " libraries to be used for this project.");
-        ((DeprecatableConfiguration) configuration).deprecateForConsumption(deprecation -> deprecation.willBecomeAnErrorInGradle8()
-            .withUpgradeGuideSection(7, "plugin_configuration_consumption"));
+        configuration.setCanBeResolved(true);
+        configuration.setCanBeConsumed(false);
+
         // Don't need these things, they're provided by the runtime
         configuration.exclude(excludeProperties("ant", "ant"));
         configuration.exclude(excludeProperties("org.apache.ant", "ant"));
@@ -225,17 +224,6 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     @SuppressWarnings("rawtypes")
     protected void withBasePlugin(Action<Plugin> action) {
         project.getPlugins().withType(getBasePlugin(), action);
-    }
-
-    /**
-     * Returns the java convention object.
-     *
-     * @return the convention object.
-     * @deprecated use {@link #getJavaPluginExtension()} instead.
-     */
-    @Deprecated
-    protected JavaPluginConvention getJavaPluginConvention() {
-        return project.getConvention().getPlugin(JavaPluginConvention.class);
     }
 
     protected JavaPluginExtension getJavaPluginExtension() {

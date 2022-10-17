@@ -214,7 +214,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    def "allows user to provide a custom resource for the tarTree"() {
+    def "cannot provide custom resource for the tarTree"() {
         given:
         TestFile tar = file('tar-contents')
         tar.create {
@@ -238,15 +238,9 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             }
 '''
         when:
-        executer.expectDocumentedDeprecationWarning(
-            "Using tarTree() on a resource without a backing file has been deprecated. " +
-                "This will fail with an error in Gradle 8.0. " +
-                "Convert the resource to a file and then pass this file to tarTree(). For converting the resource to a file you can use a custom task or declare a dependency. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#tar_tree_no_backing_file"
-        )
-        run 'copy'
+        fails 'copy'
         then:
-        file('dest').assertHasDescendants('someDir/1.txt')
+        failureHasCause("Cannot use tarTree() on a resource without a backing file.")
     }
 
     def "handles bzip2 compressed tars"() {
@@ -916,39 +910,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         includeEmptyDirs | expectedDescendants
         true             | ["file2.txt", "file3.txt", "dir2/dir3"] // dir3 is not renamed as eachFile() does not apply to directories
         false            | ["file2.txt", "file3.txt"]
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/10311")
-    def "can clear version property on #taskType tasks"() {
-        buildFile << """
-            apply plugin: 'base'
-            version = "1.0"
-            task archive(type: $taskType) {
-                from("src")
-                $prop = null
-            }
-        """
-        settingsFile << """
-            rootProject.name = "archive"
-        """
-        file("src/input").touch()
-        when:
-        // This is explicitly checking that the old API works
-        executer.noDeprecationChecks()
-        succeeds "archive"
-        then:
-        file(archiveFile).assertExists()
-
-        where:
-        taskType | prop       | archiveFile
-        "Zip"    | "version"  | "build/distributions/archive.zip"
-        "Jar"    | "version"  | "build/libs/archive.jar"
-        "Tar"    | "version"  | "build/distributions/archive.tar"
-
-        "Zip"    | "baseName" | "build/distributions/1.0.zip"
-        "Jar"    | "baseName" | "build/libs/1.0.jar"
-        "Tar"    | "baseName" | "build/distributions/1.0.tar"
-
     }
 
     @Issue("")
