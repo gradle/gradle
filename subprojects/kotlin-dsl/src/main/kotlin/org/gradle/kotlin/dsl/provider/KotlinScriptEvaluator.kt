@@ -341,6 +341,8 @@ class CompileKotlinScript(
     override fun visitIdentityInputs(
         visitor: InputVisitor
     ) {
+        val assignmentOverloadEnabled = System.getProperty("org.gradle.experimental.kotlin.assignment", "false").trim() == "true"
+        visitor.visitInputProperty("assignmentOverloadEnabled") { assignmentOverloadEnabled }
         visitor.visitInputProperty("templateId") { templateId }
         visitor.visitInputProperty("sourceHash") { sourceHash }
         visitor.visitClassPathProperty("compilationClassPath", compilationClassPath)
@@ -364,7 +366,7 @@ class CompileKotlinScript(
         identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>
     ): UnitOfWork.Identity {
         val identityHash = newHasher().let { hasher ->
-            listOf("templateId", "sourceHash", "compilationClassPath", "accessorsClassPath").forEach {
+            listOf("assignmentOverloadEnabled", "templateId", "sourceHash", "compilationClassPath", "accessorsClassPath").forEach {
                 requireNotNull(identityInputs[it]).appendToHasher(hasher)
             }
             hasher.hash().toString()

@@ -168,8 +168,9 @@ class Interpreter(val host: Host) {
         val parentClassLoader =
             baseScope.exportClassLoader
 
+        val assignmentOverloadEnabled = System.getProperty("org.gradle.experimental.kotlin.assignment", "false").trim() == "true"
         val programId =
-            ProgramId(templateId, sourceHash, parentClassLoader)
+            ProgramId(templateId, sourceHash, parentClassLoader, assignmentOverloadEnabled = assignmentOverloadEnabled)
 
         val cachedProgram =
             host.cachedClassFor(programId)
@@ -425,12 +426,14 @@ class Interpreter(val host: Host) {
             val parentClassLoader = targetScope.exportClassLoader
             val compileClassPath = host.compilationClassPathOf(targetScope.parent)
 
+            val isAssignmentOverloadEnabled = System.getProperty("org.gradle.experimental.kotlin.assignment", "false").trim() == "true"
             val programId = ProgramId(
                 scriptTemplateId,
                 sourceHash,
                 parentClassLoader,
                 host.hashOf(accessorsClassPath),
-                host.hashOf(compileClassPath)
+                host.hashOf(compileClassPath),
+                isAssignmentOverloadEnabled
             )
 
             val cachedProgram = host.cachedClassFor(programId)

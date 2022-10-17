@@ -29,20 +29,9 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `can use assignment for properties in init scripts when assignment overload is enabled`() {
         withAssignmentOverloadEnabled()
-        val initScript =
-            withFile(
-                "init.gradle.kts",
-                """
-                import org.gradle.kotlin.dsl.support.serviceOf
-                data class Container(val property: Property<String>)
-                fun newStringProperty(): Property<String> = gradle.serviceOf<ObjectFactory>().property(String::class.java)
-                val container = Container(newStringProperty()).apply {
-                    property = "Hello world"
-                }
-                println("Init property value: " + container.property.get())
-                """.trimIndent()
-            )
+        val initScript = withInitScriptWithAssignment()
 
+        // Expect
         build("-I", initScript.canonicalPath).apply {
             assertOutputContains("Init property value: Hello world")
         }
@@ -51,17 +40,9 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `can use assignment for properties in settings scripts when assignment overload is enabled`() {
         withAssignmentOverloadEnabled()
-        withSettings("""
-            import org.gradle.kotlin.dsl.support.serviceOf
-            data class Container(val property: Property<String>)
-            fun newStringProperty(): Property<String> = gradle.serviceOf<ObjectFactory>().property(String::class.java)
-            val container = Container(newStringProperty()).apply {
-                property = "Hello world"
-            }
-            println("Settings property value: " + container.property.get())
-            """.trimIndent()
-        )
+        withSettingsWithAssignment()
 
+        // Expect
         build().apply {
             assertOutputContains("Settings property value: Hello world")
         }
@@ -69,7 +50,133 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `can use assignment for properties in build scripts when assignment overload is enabled`() {
+        // Given
         withAssignmentOverloadEnabled()
+        val outputFile = withBuildScriptWithAssignment()
+
+        // When
+        build("myTask")
+
+        // Then
+        assertEquals(
+            "File 'build/myTask/hello-world.txt' content",
+            "Hello world",
+            outputFile.readText()
+        )
+    }
+
+    @Test
+    fun `cannot use assignment for properties in init scripts when assignment overload is not enabled`() {
+        // Given
+        val initScript = withInitScriptWithAssignment()
+
+        // When
+        val failure = buildAndFail("-I", initScript.canonicalPath)
+
+        // Then
+        failure.assertThatDescription(containsString("Val cannot be reassigned"))
+    }
+
+    @Test
+    fun `cannot use assignment for properties in settings scripts when assignment overload is not enabled`() {
+        // Given
+        withSettingsWithAssignment()
+
+        // When
+        val failure = buildAndFail()
+
+        // Then
+        failure.assertThatDescription(containsString("Val cannot be reassigned"))
+    }
+
+    @Test
+    fun `cannot use assignment for properties in build scripts when assignment overload is not enabled`() {
+        // Given
+        withBuildScriptWithAssignment()
+
+        // When
+        val failure = buildAndFail("myTask")
+
+        // Then
+        failure.assertThatDescription(containsString("Val cannot be reassigned"))
+    }
+
+    @Test
+    fun `opt-in flag change is correctly detected for init scripts`() {
+        // Given
+        val initScript = withInitScriptWithAssignment()
+
+        // When
+        withAssignmentOverloadEnabled()
+
+        // Then
+        build("-I", initScript.canonicalPath)
+
+        // When
+        withAssignmentOverloadEnabled(enabled = false)
+        val failure = buildAndFail("-I", initScript.canonicalPath)
+
+        // Then
+        failure.assertThatDescription(containsString("Val cannot be reassigned"))
+
+        // When
+        withAssignmentOverloadEnabled()
+
+        // Then
+        build("-I", initScript.canonicalPath)
+    }
+
+    @Test
+    fun `opt-in flag change is correctly detected for settings scripts`() {
+        // Given
+        withSettingsWithAssignment()
+
+        // When
+        withAssignmentOverloadEnabled()
+
+        // Then
+        build()
+
+        // When
+        withAssignmentOverloadEnabled(enabled = false)
+        val failure = buildAndFail()
+
+        // Then
+        failure.assertThatDescription(containsString("Val cannot be reassigned"))
+
+        // When
+        withAssignmentOverloadEnabled()
+
+        // Then
+        build()
+    }
+
+    @Test
+    fun `opt-in flag change is correctly detected for build scripts`() {
+        // Given
+        withBuildScriptWithAssignment()
+
+        // When
+        withAssignmentOverloadEnabled()
+
+        // Then
+        build("myTask")
+
+        // When
+        withAssignmentOverloadEnabled(enabled = false)
+        val failure = buildAndFail("myTask")
+
+        // Then
+        failure.assertThatDescription(containsString("Val cannot be reassigned"))
+
+        // When
+        withAssignmentOverloadEnabled()
+
+        // Then
+        build("myTask")
+    }
+
+    private fun withBuildScriptWithAssignment(): File {
         val outputFilePath = "${projectRoot.absolutePath}/build/myTask/hello-world.txt"
         withBuildScript("""
             abstract class MyTask : DefaultTask() {
@@ -90,26 +197,26 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
             }
             """.trimIndent()
         )
+        return File(outputFilePath)
+    }
 
-        build("myTask")
-
-        assertEquals(
-            "File 'build/myTask/hello-world.txt' content",
-            "Hello world",
-            File(outputFilePath).readText()
+    private fun withSettingsWithAssignment() {
+        withSettings("""
+            import org.gradle.kotlin.dsl.support.serviceOf
+            data class Container(val property: Property<String>)
+            fun newStringProperty(): Property<String> = gradle.serviceOf<ObjectFactory>().property(String::class.java)
+            val container = Container(newStringProperty()).apply {
+                property = "Hello world"
+            }
+            println("Settings property value: " + container.property.get())
+            """.trimIndent()
         )
     }
 
-    @Test
-    fun `cannot use assignment for properties in init scripts when assignment overload is not enabled`() {
-        // 'executer.requireOwnGradleUserHomeDir()' is required for init script, since in case some Gradle build was run with assignment enabled
-        // compilation won't fail, since it seems changes are not picked early enough.
-        // TODO: Investigate if we can fix this
-        executer.requireOwnGradleUserHomeDir()
-        val initScript =
-            withFile(
-                "init.gradle.kts",
-                """
+    private fun withInitScriptWithAssignment(): File {
+        return withFile(
+            "init.gradle.kts",
+            """
                 import org.gradle.kotlin.dsl.support.serviceOf
                 data class Container(val property: Property<String>)
                 fun newStringProperty(): Property<String> = gradle.serviceOf<ObjectFactory>().property(String::class.java)
@@ -118,64 +225,10 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
                 }
                 println("Init property value: " + container.property.get())
                 """.trimIndent()
-            )
-
-        val failure = buildAndFail("-I", initScript.canonicalPath)
-
-        failure.assertThatDescription(containsString("Val cannot be reassigned"))
-    }
-
-    @Test
-    fun `cannot use assignment for properties in settings scripts when assignment overload is not enabled`() {
-        // 'executer.requireOwnGradleUserHomeDir()' is required for settings script, since in case some Gradle build was run with assignment enabled
-        // compilation won't fail, since it seems changes are not picked early enough.
-        // TODO: Investigate if we can fix this
-        executer.requireOwnGradleUserHomeDir()
-        withSettings("""
-            import org.gradle.kotlin.dsl.support.serviceOf
-            data class Container(val property: Property<String>)
-            fun newStringProperty(): Property<String> = gradle.serviceOf<ObjectFactory>().property(String::class.java)
-            val container = Container(newStringProperty()).apply {
-                property = "Hello world"
-            }
-            println("Settings property value: " + container.property.get())
-            """.trimIndent()
         )
-
-        val failure = buildAndFail()
-
-        failure.assertThatDescription(containsString("Val cannot be reassigned"))
     }
 
-    @Test
-    fun `cannot use assignment for properties in build scripts when assignment overload is not enabled`() {
-        val outputFilePath = "${projectRoot.absolutePath}/build/myTask/hello-world.txt"
-        withBuildScript("""
-            abstract class MyTask : DefaultTask() {
-                @get:Input
-                abstract val input: Property<String>
-                @get:OutputFile
-                abstract val output: RegularFileProperty
-
-                @TaskAction
-                fun taskAction() {
-                    output.asFile.get().writeText(input.get())
-                }
-            }
-
-            tasks.register<MyTask>("myTask") {
-                input = "Hello world"
-                output = File("$outputFilePath")
-            }
-            """.trimIndent()
-        )
-
-        val failure = buildAndFail("myTask")
-
-        failure.assertThatDescription(containsString("Val cannot be reassigned"))
-    }
-
-    private fun withAssignmentOverloadEnabled() {
-        withFile("gradle.properties", "systemProp.org.gradle.experimental.kotlin.assignment=true")
+    private fun withAssignmentOverloadEnabled(enabled: Boolean = true) {
+        withFile("gradle.properties", "systemProp.org.gradle.experimental.kotlin.assignment=$enabled")
     }
 }
