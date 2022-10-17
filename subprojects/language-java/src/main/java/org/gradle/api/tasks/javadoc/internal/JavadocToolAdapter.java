@@ -28,14 +28,12 @@ public class JavadocToolAdapter implements JavadocTool {
     private final JavadocGenerator generator;
     private final JavaToolchain javaToolchain;
 
-
     public JavadocToolAdapter(ExecActionFactory execActionFactory, JavaToolchain javaToolchain) {
         this.generator = new JavadocGenerator(execActionFactory);
         this.javaToolchain = javaToolchain;
     }
 
     public WorkResult execute(JavadocSpec spec) {
-        spec.setExecutable(getExecutablePath().toString());
         return generator.execute(spec);
     }
 

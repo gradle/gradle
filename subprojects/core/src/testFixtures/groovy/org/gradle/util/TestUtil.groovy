@@ -266,6 +266,23 @@ class TestUtil {
     static ChecksumService getChecksumService() {
         services().get(ChecksumService)
     }
+
+    static Throwable getRootCause(Throwable t) {
+        if (t == null) {
+            return null
+        }
+
+        def cause = t
+        while (true) {
+            def nextCause = cause.cause
+            if (nextCause == null || nextCause === cause) {
+                break
+            }
+            cause = nextCause
+        }
+
+        return cause
+    }
 }
 
 interface TestClosure {
