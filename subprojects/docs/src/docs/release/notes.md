@@ -6,7 +6,7 @@ a flag to [rerun tasks individually](#individual-rerun),
 a new [strongly-typed dependencies block](#strongly-typed-dependencies) for JVM test suites,
 and a [Service Provider Interface (SPI) for Java Toolchains](#toolchain-spi).
 
-There are also enhancements to the [configuration cache](#configuration) and
+As always there are also performance improvements like enhancements to the [configuration cache](#configuration) and
 [incremental compilation](#incremental-compilation-after-failure).
 
 <!--
@@ -100,7 +100,7 @@ Gradle 7.6 supports compiling, testing and running on Java 19.
 #### Introduced strongly-typed `dependencies` block for JVM test suites
 
 The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block
-now uses a [strongly-typed API](dsl/org.gradle.api.plugins.jvm.JvmComponentDependencies.html).
+now uses a [strongly-typed API](dsl/org.gradle.api.plugins.jvm.JvmComponentDependencies.html). This makes the build logic cleaner and improving assistance in the IDEs, especially with Kotlin DSL.
 
 Previously, the JVM test suite `dependencies` block only accepted dependencies of type `Object`.
 
@@ -170,10 +170,10 @@ For more information about the test suite `dependencies` block, see
 <a name="toolchain-spi"></a>
 #### Added support for Java Toolchain downloads from arbitrary repositories
 
-Starting in Gradle 7.6, Gradle can download toolchains from arbitrary repositories.
-By default, Gradle downloads toolchains from Adoptium/AdoptOpenJDK. You can now override the default providers with repositories
-of your choice using a toolchain resolver plugin.
-The following example uses custom plugins that provide `AzulResolver` and `AdoptiumResolver` to add custom toolchains for Adoptium and Azul:
+Starting in Gradle 7.6, Gradle can download JVM [toolchains](https://docs.gradle.org/current/userguide/toolchains.html) from arbitrary repositories.
+By default, Gradle downloads toolchains from Adoptium/AdoptOpenJDK. You can now override the default providers with repositories of your choice using a toolchain resolver plugin.
+
+For example, the following uses custom plugins that provide `AzulResolver` and `AdoptiumResolver` to add custom toolchains for Adoptium and Azul:
 
 ```kotlin
 toolchainManagement {
@@ -238,7 +238,7 @@ Otherwise, use the address of one of the machine's network interfaces.
 
 The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration when converting a Maven project.
 This sharply reduces the number of compilation errors.
-It is still recommended to use `implementation` where possible.
+It is still recommended to use [`implementation`](https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_separation) where possible. 
 
 For more information about Maven conversions, see the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion).
 
@@ -368,6 +368,7 @@ The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are no
 #### Added configuration cache support to the Maven Publish Plugin
 
 The [Maven Publish Plugin](userguide/publishing_maven.html) is now compatible with the configuration cache.
+
 Note that when using credentials, the configuration cache requires [safe credential containers](userguide/configuration_cache.html#config_cache:requirements:safe_credentials).
 
 #### Improved handling of `--offline` option
@@ -399,6 +400,8 @@ gradle myCustomTask --integer-option=123
 
 <a name="ide"></a>
 ### IDE Integration
+
+This improvements are for IDE integrators and are not directly for end-users until their specific IDE implments the integration. 
 
 #### Enhanced test events to distinguish between assertion and framework failures
 
