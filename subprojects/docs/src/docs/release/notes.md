@@ -242,8 +242,8 @@ It is still recommended to use [`implementation`](https://docs.gradle.org/curren
 
 For more information about Maven conversions, see the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion).
 
-<a name="developer-productivity"></a>
-### Developer Productivity
+<a name="general-improvements"></a>
+### General Improvements
 
 <a name="individual-rerun"></a>
 #### Introduced flag for individual task `rerun`
@@ -310,6 +310,10 @@ tasks.register("slowBenchmark") {
 
 Gradle outputs reason messages at log level `INFO`.
 To output reason messages to the console, use the `--info` or `--debug` [log levels](userguide/logging.html).
+
+<a name="dependency-management"></a>
+### Dependency Management
+
 
 #### Clarified the ordering of disambiguation rule checks in `resolvableConfigurations` reports
 
