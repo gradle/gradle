@@ -35,6 +35,7 @@ import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
+import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.loggerFor
@@ -173,7 +174,7 @@ class Interpreter(val host: Host) {
         val parentClassLoader =
             baseScope.exportClassLoader
 
-        val assignmentOverloadEnabled = System.getProperty("org.gradle.experimental.kotlin.assignment", "false").trim() == "true"
+        val assignmentOverloadEnabled = KotlinDslAssignment.isAssignmentOverloadEnabled()
         val programId =
             ProgramId(templateId, sourceHash, parentClassLoader, assignmentOverloadEnabled = assignmentOverloadEnabled)
 
@@ -433,14 +434,14 @@ class Interpreter(val host: Host) {
             val parentClassLoader = targetScope.exportClassLoader
             val compileClassPath = host.compilationClassPathOf(targetScope.parent)
 
-            val isAssignmentOverloadEnabled = System.getProperty("org.gradle.experimental.kotlin.assignment", "false").trim() == "true"
+            val assignmentOverloadEnabled = KotlinDslAssignment.isAssignmentOverloadEnabled()
             val programId = ProgramId(
                 scriptTemplateId,
                 sourceHash,
                 parentClassLoader,
                 host.hashOf(accessorsClassPath),
                 host.hashOf(compileClassPath),
-                isAssignmentOverloadEnabled
+                assignmentOverloadEnabled
             )
 
             val cachedProgram = host.cachedClassFor(programId)

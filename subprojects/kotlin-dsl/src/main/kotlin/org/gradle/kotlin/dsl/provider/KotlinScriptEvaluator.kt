@@ -52,6 +52,7 @@ import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.accessors.PluginAccessorClassPathGenerator
+import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.execution.CompiledScript
 import org.gradle.kotlin.dsl.execution.EvalOption
@@ -352,7 +353,7 @@ class CompileKotlinScript(
     override fun visitIdentityInputs(
         visitor: InputVisitor
     ) {
-        val assignmentOverloadEnabled = System.getProperty("org.gradle.experimental.kotlin.assignment", "false").trim() == "true"
+        val assignmentOverloadEnabled = KotlinDslAssignment.isAssignmentOverloadEnabled()
         visitor.visitInputProperty("assignmentOverloadEnabled") { assignmentOverloadEnabled }
         visitor.visitInputProperty("jvmTarget") { jvmTarget.majorVersion }
         visitor.visitInputProperty("templateId") { templateId }
