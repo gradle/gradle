@@ -19,10 +19,11 @@ package org.gradle.api.plugins
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import spock.lang.IgnoreIf
+import org.gradle.util.internal.TextUtil
 
 
 class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
+
     def "can define and build a source set with implementation dependencies"() {
         settingsFile << """
             include 'main', 'tests'
@@ -51,7 +52,6 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
         file("tests/build/classes/java/unitTest").assertHasDescendants("Test.class")
     }
 
-    @IgnoreIf({ AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8) == null })
     def "can configure source and target Java versions"() {
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
         buildFile << """
@@ -60,12 +60,12 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
                 sourceCompatibility = JavaVersion.VERSION_1_7
                 targetCompatibility = JavaVersion.VERSION_1_8
             }
-            sourceSets { 
-                unitTest { } 
+            sourceSets {
+                unitTest { }
             }
             compileUnitTestJava {
                 options.fork = true
-                options.forkOptions.javaHome = file('${jdk.javaHome.toURI()}')
+                options.forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(jdk.javaHome.toString())}")
             }
             compileUnitTestJava.doFirst {
                 assert sourceCompatibility == "1.7"
