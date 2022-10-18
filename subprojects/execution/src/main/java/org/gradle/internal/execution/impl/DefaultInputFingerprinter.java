@@ -19,6 +19,8 @@ package org.gradle.internal.execution.impl;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Maps;
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.FileCollectionFingerprinter;
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.FileCollectionSnapshotter;
@@ -59,9 +61,56 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,
         Consumer<InputVisitor> inputs
     ) {
-        InputCollectingVisitor visitor = new InputCollectingVisitor(previousValueSnapshots, previousFingerprints, snapshotter, fingerprinterRegistry, valueSnapshotter, knownCurrentValueSnapshots, knownCurrentFingerprints);
+        ImmutableSortedMap.Builder<String, ValueSnapshotFactory> newValueSnapshotsBuilder = ImmutableSortedMap.naturalOrder();
+        ImmutableSortedMap.Builder<String, FileCollectionFingerprintFactory> newFileCollectionFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
+        ImmutableSet.Builder<String> propertiesRequiringIsEmptyCheck = ImmutableSet.builder();
+        InputCollectingVisitor visitor = new InputCollectingVisitor(
+            previousValueSnapshots,
+            previousFingerprints,
+            snapshotter,
+            fingerprinterRegistry,
+            valueSnapshotter,
+            knownCurrentValueSnapshots,
+            knownCurrentFingerprints,
+            newValueSnapshotsBuilder,
+            newFileCollectionFingerprintsBuilder);
         inputs.accept(visitor);
-        return visitor.complete();
+
+        ImmutableSortedMap<String, ValueSnapshot> newValueSnapshots = ImmutableSortedMap.copyOfSorted(Maps.transformValues(newValueSnapshotsBuilder.build(), ValueSnapshotFactory::calculate));
+        // TODO Make this processing a bit less ugly
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> newFileFingerprints = ImmutableSortedMap.copyOfSorted(Maps.transformEntries(
+            newFileCollectionFingerprintsBuilder.build(),
+            (propertyName, factory) -> factory.calculate(snapshotResult -> {
+                if (snapshotResult.containsArchiveTrees()) {
+                    propertiesRequiringIsEmptyCheck.add(propertyName);
+                }
+            })
+        ));
+
+        return new InputFingerprints(
+            knownCurrentValueSnapshots,
+            newValueSnapshots,
+            knownCurrentFingerprints,
+            newFileFingerprints,
+            propertiesRequiringIsEmptyCheck.build());
+    }
+
+    private interface ValueSnapshotFactory {
+        ValueSnapshot calculate();
+    }
+
+    private interface FileCollectionFingerprintFactory {
+        CurrentFileCollectionFingerprint calculate(Consumer<FileCollectionSnapshotter.Result> snapshotHandler);
+
+        class Result {
+            public final CurrentFileCollectionFingerprint fingerprint;
+            public final boolean requiresIsEmptyCheck;
+
+            public Result(CurrentFileCollectionFingerprint fingerprint, boolean requiresIsEmptyCheck) {
+                this.fingerprint = fingerprint;
+                this.requiresIsEmptyCheck = requiresIsEmptyCheck;
+            }
+        }
     }
 
     private static class InputCollectingVisitor implements InputVisitor {
@@ -73,9 +122,8 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         private final ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots;
         private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints;
 
-        private final ImmutableSortedMap.Builder<String, ValueSnapshot> valueSnapshotsBuilder = ImmutableSortedMap.naturalOrder();
-        private final ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> fingerprintsBuilder = ImmutableSortedMap.naturalOrder();
-        private final ImmutableSet.Builder<String> propertiesRequiringIsEmptyCheck = ImmutableSet.builder();
+        private final ImmutableSortedMap.Builder<String, ValueSnapshotFactory> valueSnapshotsBuilder;
+        private final ImmutableSortedMap.Builder<String, FileCollectionFingerprintFactory> fingerprintsBuilder;
 
         public InputCollectingVisitor(
             ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
@@ -84,7 +132,10 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             FileCollectionFingerprinterRegistry fingerprinterRegistry,
             ValueSnapshotter valueSnapshotter,
             ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots,
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,
+
+            ImmutableSortedMap.Builder<String, ValueSnapshotFactory> valueSnapshotsBuilder,
+            ImmutableSortedMap.Builder<String, FileCollectionFingerprintFactory> fingerprintsBuilder
         ) {
             this.previousValueSnapshots = previousValueSnapshots;
             this.previousFingerprints = previousFingerprints;
@@ -93,6 +144,8 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             this.valueSnapshotter = valueSnapshotter;
             this.knownCurrentValueSnapshots = knownCurrentValueSnapshots;
             this.knownCurrentFingerprints = knownCurrentFingerprints;
+            this.valueSnapshotsBuilder = valueSnapshotsBuilder;
+            this.fingerprintsBuilder = fingerprintsBuilder;
         }
 
         @Override
@@ -101,20 +154,22 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                 return;
             }
             Object actualValue = value.getValue();
-            try {
-                ValueSnapshot previousSnapshot = previousValueSnapshots.get(propertyName);
-                if (previousSnapshot == null) {
-                    valueSnapshotsBuilder.put(propertyName, valueSnapshotter.snapshot(actualValue));
-                } else {
-                    valueSnapshotsBuilder.put(propertyName, valueSnapshotter.snapshot(actualValue, previousSnapshot));
+            valueSnapshotsBuilder.put(propertyName, () -> {
+                try {
+                    ValueSnapshot previousSnapshot = previousValueSnapshots.get(propertyName);
+                    if (previousSnapshot == null) {
+                        return valueSnapshotter.snapshot(actualValue);
+                    } else {
+                        return valueSnapshotter.snapshot(actualValue, previousSnapshot);
+                    }
+                } catch (Exception e) {
+                    throw new InputFingerprintingException(
+                        propertyName,
+                        String.format("value '%s' cannot be serialized",
+                            value.getValue()),
+                        e);
                 }
-            } catch (Exception e) {
-                throw new InputFingerprintingException(
-                    propertyName,
-                    String.format("value '%s' cannot be serialized",
-                    value.getValue()),
-                    e);
-            }
+            });
         }
 
         @Override
@@ -123,31 +178,22 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                 return;
             }
 
-            FileCollectionFingerprint previousFingerprint = previousFingerprints.get(propertyName);
             FileNormalizationSpec normalizationSpec = DefaultFileNormalizationSpec.from(
                 value.getNormalizer(),
                 value.getDirectorySensitivity(),
                 value.getLineEndingNormalization());
-            FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
-            try {
-                FileCollectionSnapshotter.Result result = snapshotter.snapshot(value.getFiles());
-                CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(result.getSnapshot(), previousFingerprint);
-                fingerprintsBuilder.put(propertyName, fingerprint);
-                if (result.containsArchiveTrees()) {
-                    propertiesRequiringIsEmptyCheck.add(propertyName);
+            FileCollection files = value.getFiles();
+            fingerprintsBuilder.put(propertyName, snapshotHandler -> {
+                FileCollectionFingerprint previousFingerprint = previousFingerprints.get(propertyName);
+                FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
+                try {
+                    FileCollectionSnapshotter.Result result = snapshotter.snapshot(files);
+                    snapshotHandler.accept(result);
+                    return fingerprinter.fingerprint(result.getSnapshot(), previousFingerprint);
+                } catch (Exception e) {
+                    throw new InputFileFingerprintingException(propertyName, e);
                 }
-            } catch (Exception e) {
-                throw new InputFileFingerprintingException(propertyName, e);
-            }
-        }
-
-        public Result complete() {
-            return new InputFingerprints(
-                knownCurrentValueSnapshots,
-                valueSnapshotsBuilder.build(),
-                knownCurrentFingerprints,
-                fingerprintsBuilder.build(),
-                propertiesRequiringIsEmptyCheck.build());
+            });
         }
     }
 
