@@ -17,6 +17,7 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 
@@ -40,6 +41,9 @@ public interface Dependencies {
     @Inject
     DependencyFactory getDependencyFactory();
 
+    @Inject
+    Project getProject();
+
     /**
      * Converts an absolute or relative path to a project into a {@link ProjectDependency}. Project paths are separated by colons.
      *
@@ -50,14 +54,18 @@ public interface Dependencies {
      *
      * @see org.gradle.api.Project#project(String)
      */
-    ProjectDependency project(String projectPath);
+    default ProjectDependency project(String projectPath) {
+        return getDependencyFactory().create(getProject().project(projectPath));
+    }
 
     /**
      * Returns the current project as a {@link ProjectDependency}.
      *
      * @return the current project as a dependency
      */
-    ProjectDependency project();
+    default ProjectDependency project() {
+        return getDependencyFactory().create(getProject());
+    }
 
     /**
      * Create an {@link ExternalModuleDependency} from the given notation.

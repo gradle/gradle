@@ -60,17 +60,4 @@ public interface DependencyModifier {
     }
 
     <D extends Dependency> D modify(D dependency);
-
-    default ExternalModuleDependency call(CharSequence dependencyNotation) {
-        return modify(dependencyNotation);
-    }
-    default Provider<? extends MinimalExternalModuleDependency> call(ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
-        return modify(providerConvertibleToDependency);
-    }
-    default <D extends Dependency> Provider<D> call(Provider<D> providerConvertibleToDependency) {
-        return modify(providerConvertibleToDependency);
-    }
-    default <D extends Dependency> D call(D dependency) {
-        return modify(dependency);
-    }
 }
