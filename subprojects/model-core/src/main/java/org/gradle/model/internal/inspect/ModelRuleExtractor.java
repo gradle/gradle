@@ -225,7 +225,7 @@ public class ModelRuleExtractor {
 
         Constructor<?>[] constructors = source.getDeclaredConstructors();
         for (Constructor<?> constructor : constructors) {
-            if (constructor.getParameterTypes().length > 0) {
+            if (constructor.getParameterCount() > 0) {
                 problems.add("Cannot declare a constructor that takes arguments");
                 break;
             }

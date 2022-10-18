@@ -37,13 +37,13 @@ class InjectUtil {
 
         if (constructors.size() == 1) {
             ClassGenerator.GeneratedConstructor<T> constructor = constructors.get(0);
-            if (constructor.getParameterTypes().length == 0 && isPublicOrPackageScoped(type.getGeneratedClass(), constructor)) {
+            if (constructor.getParameterCount() == 0 && isPublicOrPackageScoped(type.getGeneratedClass(), constructor)) {
                 return constructor;
             }
             if (constructor.getAnnotation(Inject.class) != null) {
                 return constructor;
             }
-            if (constructor.getParameterTypes().length == 0) {
+            if (constructor.getParameterCount() == 0) {
                 TreeFormatter formatter = new TreeFormatter();
                 formatter.node("The constructor for type ");
                 formatter.appendType(reportAs);

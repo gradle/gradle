@@ -83,7 +83,7 @@ public class ToolingParameterProxy implements InvocationHandler {
 
     private static boolean isGetter(Method method) {
         String methodName = method.getName();
-        return (isPrefixable(methodName, "get") || isPrefixable(methodName, "is")) && method.getParameterTypes().length == 0 && !method.getReturnType().equals(void.class);
+        return (isPrefixable(methodName, "get") || isPrefixable(methodName, "is")) && method.getParameterCount() == 0 && !method.getReturnType().equals(void.class);
     }
 
     private static boolean isSetter(Method method) {

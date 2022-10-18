@@ -44,6 +44,11 @@ abstract class AbstractServiceMethod implements ServiceMethod {
     }
 
     @Override
+    public int getParameterCount() {
+        return parameterTypes.length;
+    }
+
+    @Override
     public Class<?> getOwner() {
         return owner;
     }

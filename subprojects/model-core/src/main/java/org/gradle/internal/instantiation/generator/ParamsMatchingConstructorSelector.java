@@ -92,10 +92,10 @@ class ParamsMatchingConstructorSelector implements ConstructorSelector {
                 if (match == null) {
                     // We had no previous match, so choose this candidate
                     match = constructor;
-                } else if (parameterTypes.length < match.getParameterTypes().length) {
+                } else if (parameterTypes.length < match.getParameterCount()) {
                     // We had a previous match, if this candidate has fewer parameters, choose it as the best match
                     match = constructor;
-                } else if (parameterTypes.length == match.getParameterTypes().length) {
+                } else if (parameterTypes.length == match.getParameterCount()) {
                     // We have a previous match with the same number of parameters as this candidate.
                     // This means for the given parameters, we've found two constructors that could be used
                     // Given constructors C1 and C2.

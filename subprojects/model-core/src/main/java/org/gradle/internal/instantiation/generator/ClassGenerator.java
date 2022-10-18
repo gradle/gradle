@@ -76,6 +76,8 @@ interface ClassGenerator {
 
         Class<?>[] getParameterTypes();
 
+        int getParameterCount();
+
         Type[] getGenericParameterTypes();
 
         @Nullable

@@ -82,6 +82,10 @@ class MethodInvocation {
         return parameterTypes;
     }
 
+    public int getParameterCount() {
+        return parameterTypes.length;
+    }
+
     public boolean found() {
         return found;
     }

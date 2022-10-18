@@ -245,7 +245,7 @@ public class OptionReader {
             return null;
         }
         if (Collection.class.isAssignableFrom(method.getReturnType())
-            && method.getParameterTypes().length == 0
+            && method.getParameterCount() == 0
             && !Modifier.isStatic(method.getModifiers())) {
             return JavaMethod.of(Collection.class, method);
         } else {

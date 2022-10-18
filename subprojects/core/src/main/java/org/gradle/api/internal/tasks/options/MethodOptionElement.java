@@ -41,7 +41,7 @@ public class MethodOptionElement {
             PropertySetter setter = mutateUsingReturnValue(method);
             return AbstractOptionElement.of(optionName, option, setter, optionValueNotationParserFactory);
         }
-        if (method.getParameterTypes().length == 0) {
+        if (method.getParameterCount() == 0) {
             return new BooleanOptionElement(optionName, option, setFlagUsingMethod(method));
         }
 

@@ -180,7 +180,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
     private static Constructor<?> findCustomConstructor(Class<?> typeClass) {
         Constructor<?>[] constructors = typeClass.getConstructors();
         for (Constructor<?> constructor : constructors) {
-            if (constructor.getParameterTypes().length > 0) {
+            if (constructor.getParameterCount() > 0) {
                 return constructor;
             }
         }

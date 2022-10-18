@@ -183,18 +183,18 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     }
 
     private void applyConfigureMethod(ServiceMethod method, Object target) {
-        Object[] params = new Object[method.getParameterTypes().length];
-        for (int i = 0; i < method.getParameterTypes().length; i++) {
-            Type paramType = method.getParameterTypes()[i];
-            if (paramType.equals(ServiceRegistration.class)) {
+        Object[] params = new Object[method.getParameterCount()];
+        final Type[] parameterTypes = method.getParameterTypes();
+        for (int i = 0; i < method.getParameterCount(); i++) {
+            if (parameterTypes[i].equals(ServiceRegistration.class)) {
                 params[i] = newRegistration();
             } else {
-                Service paramProvider = find(paramType, allServices);
+                Service paramProvider = find(parameterTypes[i], allServices);
                 if (paramProvider == null) {
                     throw new ServiceLookupException(String.format("Cannot configure services using %s.%s() as required service of type %s is not available.",
                         method.getOwner().getSimpleName(),
                         method.getName(),
-                        format(paramType)));
+                        format(parameterTypes[i])));
                 }
                 params[i] = paramProvider.get();
             }

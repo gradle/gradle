@@ -740,7 +740,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         @Override
         public void invoke(MethodInvocation invocation) throws Throwable {
             next.invoke(invocation);
-            if (invocation.found() || invocation.getParameterTypes().length != 1 || !invocation.isIsOrGet()) {
+            if (invocation.found() || invocation.getParameterCount() != 1 || !invocation.isIsOrGet()) {
                 return;
             }
 

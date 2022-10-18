@@ -67,7 +67,7 @@ public class MethodInvocationSerializer implements StatefulSerializer<MethodInvo
 
         @Override
         public void write(MethodInvocation value) throws Exception {
-            if (value.getArguments().length != value.getMethod().getParameterTypes().length) {
+            if (value.getArguments().length != value.getMethod().getParameterCount()) {
                 throw new IllegalArgumentException(String.format("Mismatched number of parameters to method %s.", value.getMethod()));
             }
             MethodDetails methodDetails = writeMethod(value.getMethod());
@@ -87,10 +87,10 @@ public class MethodInvocationSerializer implements StatefulSerializer<MethodInvo
                 encoder.writeSmallInt(methodId);
                 encoder.writeString(method.getDeclaringClass().getName());
                 encoder.writeString(method.getName());
-                encoder.writeSmallInt(method.getParameterTypes().length);
-                for (int i = 0; i < method.getParameterTypes().length; i++) {
-                    Class<?> paramType = method.getParameterTypes()[i];
-                    encoder.writeString(paramType.getName());
+                encoder.writeSmallInt(method.getParameterCount());
+                final Class<?>[] parameterTypes = method.getParameterTypes();
+                for (int i = 0; i < method.getParameterCount(); i++) {
+                    encoder.writeString(parameterTypes[i].getName());
                 }
             } else {
                 encoder.writeSmallInt(methodDetails.methodId);

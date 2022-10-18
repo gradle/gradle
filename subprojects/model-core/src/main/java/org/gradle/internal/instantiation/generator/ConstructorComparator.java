@@ -28,7 +28,7 @@ import java.util.Comparator;
 public class ConstructorComparator implements Comparator<ClassGenerator.GeneratedConstructor<?>> {
     @Override
     public int compare(ClassGenerator.GeneratedConstructor<?> o1, ClassGenerator.GeneratedConstructor<?> o2) {
-        int parameterSort = Integer.compare(o1.getParameterTypes().length, o2.getParameterTypes().length);
+        int parameterSort = Integer.compare(o1.getParameterCount(), o2.getParameterCount());
         if (parameterSort == 0) {
             // Both constructors have the same number of parameters
             // Create a stable sort based on the names of all the parameters

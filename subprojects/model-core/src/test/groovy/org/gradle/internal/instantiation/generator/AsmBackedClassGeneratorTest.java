@@ -135,7 +135,7 @@ public class AsmBackedClassGeneratorTest {
     private <T> T newInstance(Class<T> clazz, ServiceRegistry services, Object... args) throws Exception {
         ClassGenerator.GeneratedClass<? extends T> type = generator.generate(clazz);
         for (ClassGenerator.GeneratedConstructor<?> constructor : type.getConstructors()) {
-            if (constructor.getParameterTypes().length == args.length) {
+            if (constructor.getParameterCount() == args.length) {
                 int i = 0;
                 for (; i < args.length; i++) {
                     Object arg = args[i];

@@ -27,6 +27,8 @@ public interface ServiceMethod {
 
     Type[] getParameterTypes();
 
+    int getParameterCount();
+
     Object invoke(Object target, Object... args);
 
     Method getMethod();

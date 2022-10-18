@@ -54,9 +54,10 @@ public class ManagedCollectionProxyClassGenerator extends AbstractProxyClassGene
 
     private <T> void generateConstructors(ClassWriter visitor, Class<? extends T> implClass, Type superclassType) {
         for (Constructor<?> constructor : implClass.getConstructors()) {
-            Type[] paramTypes = new Type[constructor.getParameterTypes().length];
+            Type[] paramTypes = new Type[constructor.getParameterCount()];
+            final Class<?>[] parameterTypes = constructor.getParameterTypes();
             for (int i = 0; i < paramTypes.length; i++) {
-                paramTypes[i] = Type.getType(constructor.getParameterTypes()[i]);
+                paramTypes[i] = Type.getType(parameterTypes[i]);
             }
             String methodDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, paramTypes);
             MethodVisitor constructorVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, CONSTRUCTOR_NAME, methodDescriptor, CONCRETE_SIGNATURE, NO_EXCEPTIONS);
