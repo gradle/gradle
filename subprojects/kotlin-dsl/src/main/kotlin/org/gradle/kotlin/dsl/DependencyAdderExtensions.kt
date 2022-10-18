@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.Dependencies
 import org.gradle.api.artifacts.dsl.DependencyAdder
 import org.gradle.api.artifacts.dsl.DependencyFactory
@@ -71,10 +72,10 @@ operator fun DependencyModifier.invoke(dependencyNotation: CharSequence) = modif
 operator fun DependencyModifier.invoke(dependency: ProviderConvertible<out MinimalExternalModuleDependency>) = modify(dependency)
 
 
-operator fun DependencyModifier.invoke(dependency: Provider<out Dependency>) = modify(dependency)
+operator fun DependencyModifier.invoke(dependency: Provider<out ModuleDependency>) = modify(dependency)
 
 
-operator fun DependencyModifier.invoke(dependency: Dependency) = modify(dependency)
+operator fun DependencyModifier.invoke(dependency: ModuleDependency) = modify(dependency)
 
 
 /**

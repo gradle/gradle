@@ -17,8 +17,8 @@
 package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyModifier;
 import org.gradle.api.tasks.Nested;
@@ -34,9 +34,9 @@ public interface TestFixturesDependencyModifiers {
 
     abstract class TestFixturesDependencyModifier implements DependencyModifier {
         @Override
-        public <D extends Dependency> D modify(D dependency) {
+        public <D extends ModuleDependency> D modify(D dependency) {
             if (dependency instanceof ExternalDependency) {
-                ((ExternalDependency) dependency).capabilities(capabilities -> {
+                dependency.capabilities(capabilities -> {
                     capabilities.requireCapability(new ImmutableCapability(dependency.getGroup(), dependency.getName() + TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX, null));
                 });
             } else if (dependency instanceof ProjectDependency) {

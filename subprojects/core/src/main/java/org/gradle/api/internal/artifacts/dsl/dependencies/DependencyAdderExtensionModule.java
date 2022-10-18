@@ -24,6 +24,7 @@ import groovy.transform.stc.SimpleType;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.dsl.Dependencies;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
@@ -120,10 +121,10 @@ public class DependencyAdderExtensionModule {
     public static Provider<? extends MinimalExternalModuleDependency> call(DependencyModifier self, ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
         return self.modify(providerConvertibleToDependency);
     }
-    public static  <D extends Dependency> Provider<D> call(DependencyModifier self, Provider<D> providerConvertibleToDependency) {
+    public static  <D extends ModuleDependency> Provider<D> call(DependencyModifier self, Provider<D> providerConvertibleToDependency) {
         return self.modify(providerConvertibleToDependency);
     }
-    public static  <D extends Dependency> D call(DependencyModifier self, D dependency) {
+    public static  <D extends ModuleDependency> D call(DependencyModifier self, D dependency) {
         return self.modify(dependency);
     }
 
