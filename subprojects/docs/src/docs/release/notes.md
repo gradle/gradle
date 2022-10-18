@@ -16,14 +16,14 @@ Include only their name, impactful features should be called out separately belo
  THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
-
 [altrisi](https://github.com/altrisi),
 [aSemy](https://github.com/aSemy),
 [Ashwin Pankaj](https://github.com/ashwinpankaj),
-[Aurimas](https://github.com/liutikas)
+[Aurimas](https://github.com/liutikas),
 [BJ Hargrave](https://github.com/bjhargrave),
-[Bradley Turek](https://github.com/TurekBot)
-[Craig Andrews](https://github.com/candrews)
+[Björn Kautler](https://github.com/Vampire),
+[Bradley Turek](https://github.com/TurekBot),
+[Craig Andrews](https://github.com/candrews),
 [Daniel Lin](https://github.com/ephemient),
 [David Morris](https://github.com/codefish1),
 [Edmund Mok](https://github.com/edmundmok),
@@ -37,6 +37,7 @@ We would like to thank the following community members for their contributions t
 [Konstantin Gribov](https://github.com/grossws),
 [Leonardo Brondani Schenkel](https://github.com/lbschenkel),
 [Martin d'Anjou](https://github.com/martinda),
+[Michael Bailey](https://github.com/yogurtearl),
 [Pete Bentley](https://github.com/prbprbprb),
 [Rob Bavey](https://github.com/robbavey),
 [Sam Snyder](https://github.com/sambsnyd),
@@ -44,9 +45,8 @@ We would like to thank the following community members for their contributions t
 [teawithbrownsugar](https://github.com/teawithbrownsugar),
 [Thomas Broadley](https://github.com/tbroadley),
 [urdak](https://github.com/urdak),
+[Varun Sharma](https://github.com/varunsh-coder),
 [Xin Wang](https://github.com/scaventz)
-
-
 
 ## Upgrade instructions
 
