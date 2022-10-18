@@ -17,6 +17,14 @@
 = What is Gradle?
 
 Gradle is an open-source https://en.wikipedia.org/wiki/Build_automation[build automation] tool flexible enough to build almost any type of software.
+Gradle is:
+
+- Fast and dependable
+- General purpose
+- Extensible
+
+== Design
+
 This flexibility is the result of Gradle making few assumptions about what you're trying to build or how to build it.
 Gradle bases its design on the following fundamentals:
 
@@ -40,9 +48,9 @@ Insight::
 https://scans.gradle.com/[Build Scan™] provides extensive information about a build that you can use to identify issues.
 You can use Build Scans to identify problems with a build's performance and even share them for debugging help.
 
-== Concepts
+== Terminology
 
-It's helpful to know the following concepts before you dive into the details of Gradle.
+It's helpful to know the following terminology before you dive into the details of Gradle.
 
 === Projects
 
@@ -86,35 +94,6 @@ Runs the tasks selected at the end of the configuration phase.
 
 === Builds
 
-A build is an execution of a collection of tasks in a Gradle project. You run a build via the CLI or an IDE by specifying task selectors. Gradle configures the build and selects the tasks to run. Gradle runs the smallest complete set of tasks required from the requested tasks and their dependencies.
-
-== Optimizations
-
-Over the years, Gradle has engineered a number of ways to make your builds faster.
-Gradle enables some of these, like the Daemon, by default. You must explicitly enable some other optimizations
-through configuration or build logic. This section highlights some of the most important
-optimizations to know about when you start using Gradle.
-
-=== Configuration Cache
-
-The configuration phase is a large up-front cost for all Gradle builds. Every time you build your project, Gradle
-configures the project based on available inputs like build scripts, settings, and system properties. The
-configuration cache allows Gradle to cache the result of this configuration. This can save significant time
-in every build. However, the configuration cache is only compatible with certain syntax.
-
-=== Build Cache
-
-When you run Gradle with the build cache enabled, Gradle calculates a cache key for the inputs for each
-task. If the build cache already contains the outputs for that key, Gradle reuses those outputs immediately without re-running the task.
-Enabling the build cache can speed up builds significantly by pulling data from the cache instead of running the same task repeatedly.
-
-=== Script Design
-
-Well-designed build scripts consist mostly of
-<<authoring_maintainable_build_scripts#sec:avoid_imperative_logic_in_scripts,declarative configuration, rather than imperative logic>>.
-That configuration runs during the configuration phase.
-Many builds also register instances of custom task types providing additional actions that run during the execution phase.
-
-It's easy to view Gradle's build scripts as executable code, because that's what they are.
-But that's an implementation detail: well-designed build scripts describe _what_ steps build the software,
-not _how_ those steps do the work. That's a job for custom task types and plugins.
+A build is an execution of a collection of tasks in a Gradle project.
+You run a build via the CLI or an IDE by specifying task selectors. Gradle configures the build and selects the tasks to run.
+Gradle runs the smallest complete set of tasks required from the requested tasks and their dependencies.
