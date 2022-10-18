@@ -20,11 +20,39 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
-    def "can define task with abstract read-only Property<T> property"() {
+    def "can define task with non-managed Provider<T> property"() {
         given:
         buildFile << """
             abstract class MyTask extends DefaultTask {
-                @Internal
+                @Input
+                Provider<Integer> getCount() {
+                    project.provider { 12 }
+                }
+
+                @TaskAction
+                void go() {
+                    println("count = \${count.get()}")
+                }
+            }
+
+            tasks.create("thing", MyTask) {
+                println("property = \$count")
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("property = provider(?)")
+        outputContains("count = 12")
+    }
+
+    def "can define task with abstract managed Property<T> property"() {
+        given:
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @Input
                 abstract Property<Integer> getCount()
 
                 @TaskAction
@@ -133,7 +161,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
     }
 
-    def "can define task with abstract read-only ConfigurableFileCollection property"() {
+    def "can define task with managed ConfigurableFileCollection property"() {
         given:
         buildFile << """
             abstract class MyTask extends DefaultTask {
@@ -158,7 +186,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("files = [a, b, c]")
     }
 
-    def "can define task with abstract read-only ConfigurableFileTree property"() {
+    def "can define task with managed ConfigurableFileTree property"() {
         given:
         buildFile << """
             abstract class MyTask extends DefaultTask {
@@ -185,13 +213,13 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("files = [a.txt, b.txt]")
     }
 
-    def "can define task with abstract read-only NamedDomainObjectContainer<T> property"() {
+    def "can define task with managed NamedDomainObjectContainer<T> property"() {
         given:
         buildFile << """
             abstract class Bean {
-                @Internal
+                @Input
                 final String name
-                @Internal
+                @Input
                 abstract Property<String> getProp()
 
                 Bean(String name) {
@@ -224,7 +252,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("beans = [1, 2]")
     }
 
-    def "can define task with abstract read-only DomainObjectSet<T> property"() {
+    def "can define task with managed DomainObjectSet<T> property"() {
         given:
         buildFile << """
             class Bean {
@@ -255,11 +283,11 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("beans = [1, 2]")
     }
 
-    def "can define task with abstract read-only @Nested property"() {
+    def "can define task with managed @Nested property"() {
         given:
         buildFile << """
             interface Params {
-                @Internal
+                @Input
                 Property<Integer> getCount()
             }
             abstract class MyTask extends DefaultTask {
@@ -288,11 +316,11 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("count = 12")
     }
 
-    def "can define task with non-abstract read-only @Nested property"() {
+    def "can define task with non-managed @Nested property"() {
         given:
         buildFile << """
             interface Params {
-                @Internal
+                @Input
                 Property<Integer> getCount()
             }
             class MyTask extends DefaultTask {
@@ -327,7 +355,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             abstract class MyTask extends DefaultTask {
-                @Internal
+                @Input
                 abstract Property<String> getParam()
 
                 MyTask() {
