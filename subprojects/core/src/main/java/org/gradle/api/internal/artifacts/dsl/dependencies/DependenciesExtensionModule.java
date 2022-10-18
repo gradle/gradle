@@ -71,7 +71,7 @@ import java.util.Set;
  * @see org.gradle.api.artifacts.dsl.DependencyModifier
  */
 @SuppressWarnings("unused")
-public class DependencyAdderExtensionModule {
+public class DependenciesExtensionModule {
     private static final String GROUP = "group";
     private static final String NAME = "name";
     private static final String VERSION = "version";
