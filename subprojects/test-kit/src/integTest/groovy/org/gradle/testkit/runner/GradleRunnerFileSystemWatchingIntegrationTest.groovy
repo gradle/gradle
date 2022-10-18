@@ -25,7 +25,6 @@ import org.gradle.util.TestPrecondition
 
 import static org.junit.Assume.assumeTrue
 
-@LocalOnly
 @SuppressWarnings('IntegrationTestFixtures')
 @LocalOnly
 class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerIntegrationTest {
