@@ -361,11 +361,9 @@ The [configuration cache](https://docs.gradle.org/7.5/userguide/configuration_ca
 
 #### Improved configuration cache failure recovery
 
-In previous Gradle versions, it was possible to leave a configuration cache entry in a
-permanently broken state after a dependency resolution failure. The same build would later succeed with configuration caching disabled.
+In previous Gradle versions, it was possible to leave a configuration cache entry in a permanently broken state after a dependency resolution failure. Following builds would simply reproduce the failure without any attempt to recover from it.
 
-Starting with Gradle 7.6, this is no longer the case.
-Gradle recovers from dependency resolution failures in exactly the same way with the configuration cache enabled.
+Starting with Gradle 7.6, this is no longer the case. Gradle recovers from dependency resolution failures in exactly the same way whether the configuration cache is enabled or not.
 
 #### Extended configuration cache task compatibility
 
