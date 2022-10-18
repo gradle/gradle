@@ -19,6 +19,7 @@ package org.gradle.api.artifacts.dsl;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 
@@ -55,9 +56,9 @@ public interface DependencyModifier {
      * @param providerConvertibleToDependency the provider
      * @return a provider to the modified dependency
      */
-    default <D extends Dependency> Provider<D> modify(Provider<D> providerConvertibleToDependency) {
+    default <D extends ModuleDependency> Provider<D> modify(Provider<D> providerConvertibleToDependency) {
         return providerConvertibleToDependency.map(this::modify);
     }
 
-    <D extends Dependency> D modify(D dependency);
+    <D extends ModuleDependency> D modify(D dependency);
 }
