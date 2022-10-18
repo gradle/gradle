@@ -99,8 +99,8 @@ Gradle 7.6 supports compiling, testing and running on Java 19.
 <a name="strongly-typed-dependencies"></a>
 #### Introduced strongly-typed `dependencies` block for JVM test suites
 
-The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block
-now uses a [strongly-typed API](dsl/org.gradle.api.plugins.jvm.JvmComponentDependencies.html). This makes the build logic cleaner and improving assistance in the IDEs, especially with Kotlin DSL.
+The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now uses a [strongly-typed API](dsl/org.gradle.api.plugins.jvm.JvmComponentDependencies.html).
+This makes the build logic cleaner and improves assistance in the IDEs, especially with the Kotlin DSL.
 
 Previously, the JVM test suite `dependencies` block only accepted dependencies of type `Object`.
 
@@ -147,7 +147,7 @@ Using a `FileCollection` provides a `FileCollectionDependency`.
 This allows Java and Kotlin to properly configure all types of dependencies
 and improves IDE support for the Groovy DSL.
 
-In addition, the Kotlin DSL now supports named arguments for external dependencies:
+In addition, the Kotlin DSL now supports named arguments for external dependencies in this block:
 
 ```kotlin
 testing {
