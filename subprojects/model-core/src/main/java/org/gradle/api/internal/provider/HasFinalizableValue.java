@@ -18,10 +18,12 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.HasConfigurableValue;
 
-public interface HasConfigurableValueInternal extends HasConfigurableValue, HasFinalizableValue {
+public interface HasFinalizableValue {
     /**
-     * Same semantics as {@link org.gradle.api.provider.HasConfigurableValue#finalizeValue()}, but finalizes the value of this object lazily, when the value is queried.
+     * Same semantics as {@link HasConfigurableValue#finalizeValue()}.
      * Implementations may then fail on subsequent changes, or generate a deprecation warning and ignore changes.
      */
+    // TODO Make this explicit finalization
+    // TODO Return the finalized value?
     void implicitFinalizeValue();
 }
