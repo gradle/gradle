@@ -55,7 +55,7 @@ It's helpful to know the following terminology before you dive into the details 
 === Projects
 
 Projects are the things that Gradle builds.
-Projects contain a build script, which is a file located in the project's root directory named `build.gradle` or `build.gradle.kts`.
+Projects contain a build script, which is a file located in the project's root directory usually named `build.gradle` or `build.gradle.kts`.
 Builds scripts define tasks, dependencies, plugins, and other configuration for that project.
 A single build can contain one or more projects and each project can contain their own subprojects.
 
