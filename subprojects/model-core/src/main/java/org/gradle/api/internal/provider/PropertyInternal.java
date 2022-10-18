@@ -29,4 +29,7 @@ public interface PropertyInternal<T> extends ProviderInternal<T>, HasConfigurabl
      * Associates this property with the task that produces its value.
      */
     void attachProducer(ModelObject owner);
+
+    @Override
+    void implicitFinalizeValue();
 }
