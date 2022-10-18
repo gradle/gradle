@@ -68,6 +68,12 @@ import org.gradle.api.provider.ProviderConvertible
 operator fun DependencyModifier.invoke(dependencyNotation: CharSequence) = modify(dependencyNotation)
 
 
+operator fun DependencyModifier.invoke(dependency: ProviderConvertible<out MinimalExternalModuleDependency>) = modify(dependency)
+
+
+operator fun DependencyModifier.invoke(dependency: Provider<out Dependency>) = modify(dependency)
+
+
 operator fun DependencyModifier.invoke(dependency: Dependency) = modify(dependency)
 
 

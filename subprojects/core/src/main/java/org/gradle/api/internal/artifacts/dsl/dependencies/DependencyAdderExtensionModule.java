@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.Dependencies;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
+import org.gradle.api.artifacts.dsl.DependencyModifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
@@ -66,6 +67,7 @@ import java.util.Set;
  * @see DependencyAdder
  * @see DependencyFactory
  * @see Dependencies
+ * @see org.gradle.api.artifacts.dsl.DependencyModifier
  */
 @SuppressWarnings("unused")
 public class DependencyAdderExtensionModule {
@@ -109,6 +111,20 @@ public class DependencyAdderExtensionModule {
     @Nullable
     private static String extract(Map<String, CharSequence> map, String key) {
         return (map.containsKey(key)) ? map.get(key).toString() : null;
+    }
+
+
+    public static ExternalModuleDependency call(DependencyModifier self, CharSequence dependencyNotation) {
+        return self.modify(dependencyNotation);
+    }
+    public static Provider<? extends MinimalExternalModuleDependency> call(DependencyModifier self, ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
+        return self.modify(providerConvertibleToDependency);
+    }
+    public static  <D extends Dependency> Provider<D> call(DependencyModifier self, Provider<D> providerConvertibleToDependency) {
+        return self.modify(providerConvertibleToDependency);
+    }
+    public static  <D extends Dependency> D call(DependencyModifier self, D dependency) {
+        return self.modify(dependency);
     }
 
     /**
