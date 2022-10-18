@@ -58,7 +58,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
         steps {
             gradleWrapper {
                 name = "GRADLE_RUNNER_$idx"
-                tasks = "%$testTaskParameterName% -PrerunAllTests --tests %$testNameParameterName% %$testTaskOptionsParameterName%"
+                tasks = "%$testTaskParameterName% --tests %$testNameParameterName% %$testTaskOptionsParameterName%"
                 gradleParams = parameters
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }
