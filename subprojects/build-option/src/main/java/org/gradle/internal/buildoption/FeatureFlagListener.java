@@ -16,25 +16,10 @@
 
 package org.gradle.internal.buildoption;
 
+import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
 
-/**
- * A service that determines whether a feature flag is enabled or not.
- */
-@ServiceScope(Scopes.BuildTree.class)
-public interface FeatureFlags {
-    boolean isEnabled(FeatureFlag flag);
-
-    /**
-     * Explicitly enable the given flag. The resulting flag status may still be overridden.
-     */
-    void enable(FeatureFlag flag);
-
-    /**
-     * Checks if the given flag was enabled with {@link #enable(FeatureFlag)}. This method doesn't take overrides into account.
-     * @param flag the flag to check
-     * @return {@code true} if the flag was enabled
-     */
-    boolean isEnabledWithApi(FeatureFlag flag);
+@EventScope(Scopes.BuildTree.class)
+public interface FeatureFlagListener {
+    void flagRead(FeatureFlag flag);
 }
