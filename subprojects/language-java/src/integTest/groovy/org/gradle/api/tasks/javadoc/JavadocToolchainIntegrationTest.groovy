@@ -20,9 +20,57 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import spock.lang.IgnoreIf
 
+import static org.gradle.integtests.fixtures.AvailableJavaHomes.getDifferentVersion
+import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJvmInstallationMetadata
+
 class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
+
+    def "changing toolchain invalidates task"() {
+        def jdkMetadata1 = getJvmInstallationMetadata(Jvm.current())
+        def jdkMetadata2 = getJvmInstallationMetadata(getDifferentVersion())
+
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            javadoc {
+                javadocTool = javaToolchains.javadocToolFor {
+                    def version = ${jdkMetadata1.languageVersion.majorVersion}
+                    version = providers.gradleProperty('test.javadoc.version').getOrElse(version)
+                    languageVersion = JavaLanguageVersion.of(version)
+                }
+            }
+        """
+        file('src/main/java/Lib.java') << testLib()
+
+        when:
+        withInstallations(jdkMetadata1, jdkMetadata2).run(":javadoc")
+        then:
+        executedAndNotSkipped(":javadoc")
+        file("build/docs/javadoc/Lib.html").text.contains("Some API documentation.")
+
+        when:
+        withInstallations(jdkMetadata1, jdkMetadata2).run(":javadoc")
+        then:
+        skipped(":javadoc")
+
+        when:
+        executer.withArgument("-Ptest.javadoc.version=${jdkMetadata2.languageVersion.majorVersion}")
+        withInstallations(jdkMetadata1, jdkMetadata2).run(":javadoc")
+        then:
+        executedAndNotSkipped(":javadoc")
+        file("build/docs/javadoc/Lib.html").text.contains("Some API documentation.")
+
+        when:
+        executer.withArgument("-Ptest.javadoc.version=${jdkMetadata2.languageVersion.majorVersion}")
+        withInstallations(jdkMetadata1, jdkMetadata2).run(":javadoc")
+        then:
+        skipped(":javadoc")
+    }
 
     @IgnoreIf({ AvailableJavaHomes.getJdk(JavaVersion.VERSION_11) == null })
     def "can manually set javadoc tool via  #type toolchain on javadoc task #type : #jdk"() {
@@ -101,50 +149,10 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentVersion == null })
-    def 'changing toolchain invalidates task'() {
-        def currentJdk = Jvm.current()
-        def someJdk = AvailableJavaHomes.differentVersion
-
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            // need to do as separate task as -version stop javadoc generation
-            javadoc {
-                javadocTool = javaToolchains.javadocToolFor {
-                    def version = ${currentJdk.javaVersion.majorVersion}
-                    version = providers.gradleProperty('test.javadoc.version').getOrElse(version)
-                    languageVersion = JavaLanguageVersion.of(version)
-                }
-            }
-
-        """
-        file('src/main/java/Lib.java') << testLib()
-
-        when:
-        result = executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + currentJdk.javaHome.absolutePath)
-            .withArgument("--info")
-            .withTasks("javadoc")
-            .run()
-
-        then:
-        file("build/docs/javadoc/Lib.html").text.contains("Some API documentation.")
-        noExceptionThrown()
-
-        when:
-        result = executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + someJdk.javaHome.absolutePath)
-            .withArgument("-Ptest.javadoc.version=${someJdk.javaVersion.majorVersion}")
-            .withArgument("--info")
-            .withTasks("javadoc")
-            .run()
-
-        then:
-        result.assertTaskNotSkipped(':javadoc')
-        noExceptionThrown()
+    private withInstallations(JvmInstallationMetadata... jdkMetadata) {
+        def installationPaths = jdkMetadata.collect { it.javaHome.toAbsolutePath().toString() }.join(",")
+        executer.withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
+        this
     }
 
     private static String testLib() {
@@ -158,5 +166,4 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
             }
         """.stripIndent()
     }
-
 }

@@ -97,6 +97,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.result.ResolvedComponentResult",
+            "member": "Method org.gradle.api.artifacts.result.ResolvedComponentResult.getVariant()",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.transform.ArtifactTransform",
             "member": "Class org.gradle.api.artifacts.transform.ArtifactTransform",
             "acceptation": "Legacy ArtifactTransform API has been removed",
@@ -297,6 +305,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Method org.gradle.api.plugins.quality.Checkstyle.getAntBuilder()",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.quality.CheckstylePlugin",
             "member": "Class org.gradle.api.plugins.quality.CheckstylePlugin",
             "acceptation": "Removed deprecated method in Gradle 8.0",
@@ -305,11 +321,27 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.quality.CodeNarc",
+            "member": "Method org.gradle.api.plugins.quality.CodeNarc.getAntBuilder()",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.quality.CodeNarcPlugin",
             "member": "Class org.gradle.api.plugins.quality.CodeNarcPlugin",
             "acceptation": "Removed deprecated method in Gradle 8.0",
             "changes": [
                 "org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin.getJavaPluginConvention()"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Method org.gradle.api.plugins.quality.Pmd.getAntBuilder()",
+            "acceptation": "Deprecated method removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {
@@ -604,6 +636,14 @@
             "type": "org.gradle.api.tasks.javadoc.Groovydoc",
             "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.setIncludePrivate(boolean)",
             "acceptation": "Deprecated method removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Javadoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Javadoc.getExecActionFactory()",
+            "acceptation": "Removed unused injected property with 8.0",
             "changes": [
                 "Method has been removed"
             ]

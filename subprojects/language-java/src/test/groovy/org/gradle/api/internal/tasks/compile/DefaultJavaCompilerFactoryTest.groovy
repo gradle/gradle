@@ -57,8 +57,28 @@ class DefaultJavaCompilerFactoryTest extends Specification {
     }
 
     private static class TestCommandLineJavaSpec extends DefaultJavaCompileSpec implements CommandLineJavaCompileSpec {
+        private final File executable;
+
+        private TestCommandLineJavaSpec(File executable) {
+            this.executable = executable;
+        }
+
+        @Override
+        public File getExecutable() {
+            return executable;
+        }
     }
 
     private static class TestForkingJavaCompileSpec extends DefaultJavaCompileSpec implements ForkingJavaCompileSpec {
+        private final File javaHome;
+
+        private TestForkingJavaCompileSpec(File javaHome) {
+            this.javaHome = javaHome;
+        }
+
+        @Override
+        public File getJavaHome() {
+            return javaHome;
+        }
     }
 }
