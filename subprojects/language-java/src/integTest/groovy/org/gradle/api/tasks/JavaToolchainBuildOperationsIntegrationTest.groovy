@@ -266,12 +266,22 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events2, jdkMetadata2, "JavaLauncher")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/22397")
     def "emits toolchain usages for compilation that configures java home via fork options"() {
+        JvmInstallationMetadata curJdk = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+
+        // TODO: selecting minimum version for compatibility can be removed when the issue is fixed
+        def compatibilityVersion = [curJdk, jdkMetadata]
+            .collect { it.languageVersion.majorVersion.toInteger() }
+            .min()
 
         buildFile << """
             compileJava {
+                options.fork = true
                 options.forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(jdkMetadata.javaHome.toString())}")
+                sourceCompatibility = "${compatibilityVersion}"
+                targetCompatibility = "${compatibilityVersion}"
             }
         """
 
@@ -296,13 +306,22 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/22397")
     def "emits toolchain usages for compilation that configures java home via fork options pointing outside installations"() {
         JvmInstallationMetadata jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         JvmInstallationMetadata jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
+        // TODO: selecting minimum version for compatibility can be removed when the issue is fixed
+        def compatibilityVersion = [jdkMetadata1, jdkMetadata2]
+            .collect { it.languageVersion.majorVersion.toInteger() }
+            .min()
+
         buildFile << """
             compileJava {
+                options.fork = true
                 options.forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(jdkMetadata2.javaHome.toString())}")
+                sourceCompatibility = "${compatibilityVersion}"
+                targetCompatibility = "${compatibilityVersion}"
             }
         """
 

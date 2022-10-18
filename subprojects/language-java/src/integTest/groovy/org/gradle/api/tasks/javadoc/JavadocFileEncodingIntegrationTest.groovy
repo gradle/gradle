@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.javadoc
+package org.gradle.api.tasks.javadoc
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
