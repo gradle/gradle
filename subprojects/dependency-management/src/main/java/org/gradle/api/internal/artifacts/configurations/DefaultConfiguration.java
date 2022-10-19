@@ -341,6 +341,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    @Override
+    public void finalizeValue() {
+        // TODO Can we use resolveExclusively() here?
+        resolveToStateOrLater(ARTIFACTS_RESOLVED);
+    }
+
     @VisibleForTesting
     public InternalState getResolvedState() {
         return currentResolveState.get().state;
@@ -1427,6 +1433,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         public ResolutionResult getValue() {
             return getResultsForArtifacts().getResolutionResult();
         }
+
+        @Override
+        public void finalizeValue() {
+            // TODO Can we use resolveExclusively() here?
+            resolveToStateOrLater(ARTIFACTS_RESOLVED);
+        }
     }
 
     private class SelectedArtifactsProvider implements ResolutionResultProvider<VisitedArtifactSet> {
@@ -1441,6 +1453,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             assertIsResolvable();
             ResolveState currentState = resolveToStateOrLater(ARTIFACTS_RESOLVED);
             return currentState.getCachedResolverResults().getVisitedArtifacts();
+        }
+
+        @Override
+        public void finalizeValue() {
+            // TODO Can we use resolveExclusively() here?
+            resolveToStateOrLater(ARTIFACTS_RESOLVED);
         }
     }
 
@@ -1473,6 +1491,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             this.allowNoMatchingVariants = allowNoMatchingVariants;
             this.selectFromAllVariants = selectFromAllVariants;
             this.resolutionHost = resolutionHost;
+        }
+
+        @Override
+        public void finalizeValue() {
+
         }
 
         @Override

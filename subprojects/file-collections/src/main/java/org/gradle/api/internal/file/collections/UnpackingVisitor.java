@@ -129,11 +129,20 @@ public class UnpackingVisitor {
 
         @Override
         protected Set<File> getIntrinsicFiles() {
+            ensureResolved();
+            return ImmutableSet.of(resolved);
+        }
+
+        @Override
+        public void finalizeValue() {
+            ensureResolved();
+        }
+
+        private void ensureResolved() {
             if (resolved == null) {
                 resolved = resolver.resolve(element);
                 element = null;
             }
-            return ImmutableSet.of(resolved);
         }
     }
 
@@ -162,5 +171,7 @@ public class UnpackingVisitor {
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
             new UnpackingVisitor(visitor, resolver, patternSetFactory, ProviderResolutionStrategy.REQUIRE_PRESENT, false).add(element);
         }
+
+        // TODO Finalize this
     }
 }

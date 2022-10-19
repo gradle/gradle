@@ -172,14 +172,26 @@ class JavaExecHandleBuilderTest extends Specification {
         File moduleJar = new File("module.jar")
         JavaModuleDetector moduleDetector = Mock(JavaModuleDetector) {
             inferModulePath(_, _) >> new AbstractFileCollection() {
+                @Override
                 String getDisplayName() { '' }
 
+                @Override
                 Set<File> getFiles() { [moduleJar] }
+
+                @Override
+                void finalizeValue() {
+                }
             }
             inferClasspath(_, _) >> new AbstractFileCollection() {
+                @Override
                 String getDisplayName() { '' }
 
+                @Override
                 Set<File> getFiles() { [libJar] }
+
+                @Override
+                void finalizeValue() {
+                }
             }
         }
         builder = new JavaExecHandleBuilder(

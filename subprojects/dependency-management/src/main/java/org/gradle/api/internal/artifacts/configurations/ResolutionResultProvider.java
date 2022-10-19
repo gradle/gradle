@@ -33,4 +33,7 @@ public interface ResolutionResultProvider<T> {
      * Returns the finalized value.
      */
     T getValue();
+
+    // TODO Let this implement HasFinalizableValue?
+    void finalizeValue();
 }

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Describable;
 import org.gradle.api.NonNullApi;
@@ -221,6 +222,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         private final TaskInternal task;
         private final PropertyWalker propertyWalker;
         private final FileCollectionFactory fileCollectionFactory;
+        private volatile ImmutableList<FileCollectionInternal> resolvedFiles;
 
         TaskInputUnionFileCollection(String taskDisplayName, String type, boolean skipWhenEmptyOnly, TaskInternal task, PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
             this.taskDisplayName = taskDisplayName;
@@ -238,23 +240,32 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
         @Override
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-            TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
-                @Override
-                public void visitInputFileProperty(
-                    final String propertyName,
-                    boolean optional,
-                    InputBehavior behavior,
-                    DirectorySensitivity directorySensitivity,
-                    LineEndingSensitivity lineEndingSensitivity,
-                    @Nullable Class<? extends FileNormalizer> fileNormalizer,
-                    PropertyValue value, InputFilePropertyType filePropertyType
-                ) {
-                    if (!TaskInputUnionFileCollection.this.skipWhenEmptyOnly || behavior.shouldSkipWhenEmpty()) {
-                        FileCollectionInternal actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
-                        visitor.accept(new PropertyFileCollection(task.toString(), propertyName, "input", actualValue));
+            if (resolvedFiles == null) {
+                synchronized (this) {
+                    if (resolvedFiles == null) {
+                        ImmutableList.Builder<FileCollectionInternal> builder = ImmutableList.builder();
+                        TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
+                            @Override
+                            public void visitInputFileProperty(
+                                final String propertyName,
+                                boolean optional,
+                                InputBehavior behavior,
+                                DirectorySensitivity directorySensitivity,
+                                LineEndingSensitivity lineEndingSensitivity,
+                                @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                                PropertyValue value, InputFilePropertyType filePropertyType
+                            ) {
+                                if (!skipWhenEmptyOnly || behavior.shouldSkipWhenEmpty()) {
+                                    FileCollectionInternal actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
+                                    builder.add(new PropertyFileCollection(task.toString(), propertyName, "input", actualValue));
+                                }
+                            }
+                        });
+                        resolvedFiles = builder.build();
                     }
                 }
-            });
+            }
+            resolvedFiles.forEach(visitor);
         }
     }
 

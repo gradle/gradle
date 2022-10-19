@@ -29,6 +29,7 @@ import java.util.Set;
  */
 public class FileCollectionAdapter extends AbstractOpaqueFileCollection {
     private final MinimalFileSet fileSet;
+    private volatile Set<File> finalizedFiles;
 
     public FileCollectionAdapter(MinimalFileSet fileSet) {
         this.fileSet = fileSet;
@@ -46,6 +47,9 @@ public class FileCollectionAdapter extends AbstractOpaqueFileCollection {
 
     @Override
     protected Set<File> getIntrinsicFiles() {
+        if (finalizedFiles != null) {
+            return finalizedFiles;
+        }
         return fileSet.getFiles();
     }
 
@@ -53,6 +57,19 @@ public class FileCollectionAdapter extends AbstractOpaqueFileCollection {
     public void visitDependencies(TaskDependencyResolveContext context) {
         if (fileSet instanceof Buildable) {
             context.add(fileSet);
+        }
+    }
+
+    @Override
+    public void finalizeValue() {
+        if (finalizedFiles == null) {
+            synchronized (this) {
+                if (finalizedFiles == null) {
+                    // TODO We should probably make a defensive copy of this
+                    //   To reduce performance impact, it would be great if getFiles() would return an ImmutableSet.
+                    finalizedFiles = fileSet.getFiles();
+                }
+            }
         }
     }
 }

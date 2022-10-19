@@ -66,4 +66,6 @@ public class ProviderBackedFileCollection extends CompositeFileCollection {
     public ProviderInternal<?> getProvider() {
         return provider;
     }
+
+    // TOOD Finalize Provider
 }

@@ -124,4 +124,9 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
     public String getDisplayName() {
         return collection.getDisplayName();
     }
+
+    @Override
+    public void finalizeValue() {
+        collection.finalizeValue();
+    }
 }

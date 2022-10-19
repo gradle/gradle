@@ -79,4 +79,9 @@ public class CalculatedTaskInputFileCollection extends AbstractFileCollection im
         targets = null;
         // Discard the calculated files collection too, but need to retain the display name for it
     }
+
+    @Override
+    public void finalizeValue() {
+        // TODO Should this be finalized?
+    }
 }

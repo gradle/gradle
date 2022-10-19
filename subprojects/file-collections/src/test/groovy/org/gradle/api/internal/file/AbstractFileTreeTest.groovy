@@ -86,7 +86,7 @@ class AbstractFileTreeTest extends Specification {
         def tree2 = new TestFileTree([fileVisitDetails2])
 
         when:
-        FileTree sum = tree1.plus(tree2)
+        FileTree sum = tree1 + tree2
 
         then:
         sum.files.sort() == [file1, file2]
@@ -114,16 +114,17 @@ class AbstractFileTreeTest extends Specification {
     }
 
     static class TestFileTree extends AbstractFileTree {
-        List contents
+        List<FileVisitDetails> contents
         TaskDependency builtBy
 
-        def TestFileTree(List files, TaskDependency dependencies = null) {
+        TestFileTree(List<FileVisitDetails> files, TaskDependency dependencies = null) {
             this.contents = files
             this.builtBy = dependencies
         }
 
+        @Override
         String getDisplayName() {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException()
         }
 
         @Override
@@ -141,11 +142,16 @@ class AbstractFileTreeTest extends Specification {
             visitor.accept(this)
         }
 
+        @Override
         FileTree visit(FileVisitor visitor) {
             contents.each { FileVisitDetails details ->
                 visitor.visitFile(details)
             }
             this
+        }
+
+        @Override
+        void finalizeValue() {
         }
     }
 

@@ -372,6 +372,10 @@ class DefaultFileCollectionFactoryTest extends Specification {
             Set<File> getFiles() {
                 return ImmutableSet.copyOf(files)
             }
+
+            @Override
+            void finalizeValue() {
+            }
         }
     }
 

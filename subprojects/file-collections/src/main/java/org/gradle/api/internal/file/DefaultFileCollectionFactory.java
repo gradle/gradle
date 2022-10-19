@@ -223,6 +223,10 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         }
 
         @Override
+        public void finalizeValue() {
+        }
+
+        @Override
         public String getDisplayName() {
             return displayName;
         }
@@ -285,6 +289,10 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         @Override
         protected void visitContents(FileCollectionStructureVisitor visitor) {
         }
+
+        @Override
+        public void finalizeValue() {
+        }
     }
 
     private static final class FixedFileCollection extends AbstractOpaqueFileCollection {
@@ -305,6 +313,11 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         @Override
         protected Set<File> getIntrinsicFiles() {
             return files;
+        }
+
+        @Override
+        public void finalizeValue() {
+            // Already finalized
         }
     }
 
@@ -352,6 +365,8 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
                 formatter.node(item + " (class: " + item.getClass().getName() + ")");
             }
         }
+
+        // TODO Finalize this
     }
 
     private boolean isEmptyArray(Object sources) {

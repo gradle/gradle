@@ -238,7 +238,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileCollection minus(final FileCollection collection) {
-        return new SubtractingFileCollection(this, collection);
+        return new SubtractingFileCollection(this, (FileCollectionInternal) collection);
     }
 
     @Override

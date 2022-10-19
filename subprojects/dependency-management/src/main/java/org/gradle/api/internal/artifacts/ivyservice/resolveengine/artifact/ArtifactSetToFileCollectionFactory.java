@@ -58,6 +58,11 @@ public class ArtifactSetToFileCollectionFactory {
                     throw UncheckedException.throwAsUncheckedException(collectingVisitor.getFailures().iterator().next());
                 }
             }
+
+            @Override
+            public void finalizeValue() {
+                // TODO Finalize this
+            }
         };
     }
 

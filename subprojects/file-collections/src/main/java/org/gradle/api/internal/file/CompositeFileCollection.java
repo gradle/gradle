@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.HasFinalizableValue;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
@@ -43,6 +44,11 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     public CompositeFileCollection() {
+    }
+
+    @Override
+    public void finalizeValue() {
+        visitChildren(HasFinalizableValue::finalizeValue);
     }
 
     @Override

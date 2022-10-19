@@ -38,6 +38,11 @@ public class FilteredFileCollection extends AbstractFileCollection {
     }
 
     @Override
+    public void finalizeValue() {
+        collection.finalizeValue();
+    }
+
+    @Override
     public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
         AbstractFileCollection newCollection = (AbstractFileCollection) collection.replace(original, supplier);
         if (newCollection == collection) {

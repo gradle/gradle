@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.HasFinalizableValue;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -25,7 +26,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import java.io.File;
 import java.util.function.Supplier;
 
-public interface FileCollectionInternal extends FileCollection, TaskDependencyContainer {
+public interface FileCollectionInternal extends FileCollection, TaskDependencyContainer, HasFinalizableValue {
     @Override
     FileCollectionInternal filter(Spec<? super File> filterSpec);
 

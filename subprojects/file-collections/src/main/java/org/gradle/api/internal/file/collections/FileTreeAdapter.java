@@ -117,4 +117,9 @@ public final class FileTreeAdapter extends AbstractFileTree {
             }
         }, this);
     }
+
+    @Override
+    public void finalizeValue() {
+        // TODO Finalize this
+    }
 }

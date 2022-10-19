@@ -25,9 +25,9 @@ import java.util.Set;
 
 public class SubtractingFileCollection extends AbstractOpaqueFileCollection {
     private final AbstractFileCollection left;
-    private final FileCollection right;
+    private final FileCollectionInternal right;
 
-    public SubtractingFileCollection(AbstractFileCollection left, FileCollection right) {
+    public SubtractingFileCollection(AbstractFileCollection left, FileCollectionInternal right) {
         super(left.patternSetFactory);
         this.left = left;
         this.right = right;
@@ -61,5 +61,11 @@ public class SubtractingFileCollection extends AbstractOpaqueFileCollection {
     @Override
     public boolean contains(File file) {
         return left.contains(file) && !right.contains(file);
+    }
+
+    @Override
+    public void finalizeValue() {
+        left.finalizeValue();
+        right.finalizeValue();
     }
 }
