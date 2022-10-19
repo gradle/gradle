@@ -70,6 +70,12 @@ public class FinalizerGroup extends HasFinalizers {
         return this;
     }
 
+    @Override
+    public NodeGroup reachableFrom(OrdinalGroup newOrdinal) {
+        ordinal = newOrdinal;
+        return this;
+    }
+
     public NodeGroup getDelegate() {
         return delegate;
     }
@@ -96,16 +102,6 @@ public class FinalizerGroup extends HasFinalizers {
     @Override
     public FinalizerGroup asFinalizer() {
         return this;
-    }
-
-    @Override
-    public Iterable<? extends Node> getSuccessorsFor(Node node) {
-        // If the node is the finalizer for this group, it should wait for all the finalized nodes
-        if (isFinalizerNode(node)) {
-            return getFinalizedNodes();
-        } else {
-            return Collections.emptyList();
-        }
     }
 
     private static boolean memberCanStartAtAnyTime(Node node) {
