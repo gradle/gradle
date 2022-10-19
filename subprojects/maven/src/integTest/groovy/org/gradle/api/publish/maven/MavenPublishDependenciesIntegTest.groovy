@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
 
@@ -24,7 +23,6 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
     def repoModule = javaLibrary(mavenRepo.module('group', 'root', '1.0'))
 
     @Issue('GRADLE-1574')
-    @ToBeFixedForConfigurationCache
     def "publishes wildcard exclusions for a non-transitive dependency"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -34,6 +32,11 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
 
             group = 'group'
             version = '1.0'
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
 
             dependencies {
                 api('org.test:non-transitive:1.0') { transitive = false }
@@ -68,7 +71,6 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-3233")
-    @ToBeFixedForConfigurationCache
     def "publishes POM dependency with #versionType version for Gradle dependency with null version"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -78,6 +80,11 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
 
             group = 'group'
             version = '1.0'
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
 
             dependencies {
                 api $dependencyNotation
@@ -113,7 +120,6 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         "null"      | "group:'group', name:'projectA', version:null"
     }
 
-    @ToBeFixedForConfigurationCache
     void "defaultDependencies are included in published pom file"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -129,6 +135,10 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
             }
             configurations.implementation.defaultDependencies { deps ->
                 deps.add project.dependencies.create("org:default-dependency:1.0")
+            }
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
             dependencies {
                 implementation "org:explicit-dependency:1.0"
@@ -155,7 +165,6 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         repoModule.assertRuntimeDependencies('org:explicit-dependency:1.0')
     }
 
-    @ToBeFixedForConfigurationCache
     void "dependency mutations are reflected in published pom file"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -166,6 +175,10 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
             group = 'group'
             version = '1.0'
 
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
             dependencies {
                 api "org.test:dep1:1.0"
             }
@@ -196,7 +209,6 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         repoModule.assertApiDependencies('org.test:dep1:X', 'org.test:dep2:1.0')
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishes both dependencies when one has a classifier"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -207,6 +219,10 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
             group = 'group'
             version = '1.0'
 
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
             dependencies {
                 implementation "org:foo:1.0"
                 implementation "org:foo:1.0:classy"
@@ -254,7 +270,6 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "dependencies with multiple dependency artifacts are mapped to multiple dependency declarations in GMM"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -265,6 +280,10 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
             group = 'group'
             version = '1.0'
 
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
             dependencies {
                 implementation "org:foo:1.0"
                 implementation("org:foo:1.0:classy") {
