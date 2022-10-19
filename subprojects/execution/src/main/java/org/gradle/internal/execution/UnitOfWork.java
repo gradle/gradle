@@ -300,6 +300,7 @@ public interface UnitOfWork extends Describable {
         @Nullable
         @Override
         public Object getValue() {
+            // TODO Finalize value
             return value;
         }
 
@@ -333,6 +334,7 @@ public interface UnitOfWork extends Describable {
         @Nonnull
         @Override
         public File getValue() {
+            // TODO Finalize value
             return root;
         }
 

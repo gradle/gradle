@@ -337,6 +337,7 @@ public class DefaultTransformer implements Transformer {
                             fileNormalizer == null ? AbsolutePathInputNormalizer.class : fileNormalizer,
                             directorySensitivity,
                             lineEndingNormalization,
+                            // TODO Finalize file collection
                             () -> FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value)));
                 }
 

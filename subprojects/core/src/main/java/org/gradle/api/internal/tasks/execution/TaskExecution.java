@@ -323,6 +323,7 @@ public class TaskExecution implements UnitOfWork {
                         inputFileProperty.getNormalizer(),
                         inputFileProperty.getDirectorySensitivity(),
                         inputFileProperty.getLineEndingNormalization(),
+                        // TODO finalize file collection
                         inputFileProperty::getPropertyFiles));
             } catch (InputFingerprinter.InputFileFingerprintingException e) {
                 throw decorateSnapshottingException("input", inputFileProperty.getPropertyName(), e.getCause());

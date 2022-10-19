@@ -365,6 +365,7 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
             propertyValue: PropertyValue,
             filePropertyType: InputFilePropertyType
         ) {
+            // TODO Finalize property value?
             properties.add(
                 RegisteredProperty.InputFile(
                     propertyName,
@@ -384,6 +385,7 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
             propertyValue: PropertyValue,
             optional: Boolean
         ) {
+            // TODO Finalize property value?
             properties.add(
                 RegisteredProperty.Input(
                     propertyName,
