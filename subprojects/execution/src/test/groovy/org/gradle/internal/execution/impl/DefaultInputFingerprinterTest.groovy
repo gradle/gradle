@@ -25,7 +25,7 @@ import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.FileNormalizationSpec
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.InputFingerprinter.Result
-import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
+import org.gradle.internal.execution.UnitOfWork.FinalizedInputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -63,7 +63,7 @@ class DefaultInputFingerprinterTest extends Specification {
             visitor.visitInputFileProperty(
                 "file",
                 NON_INCREMENTAL,
-                new InputFileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
+                new FinalizedInputFileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
         }
 
         then:
@@ -90,11 +90,11 @@ class DefaultInputFingerprinterTest extends Specification {
             visitor.visitInputFileProperty(
                 "file",
                 NON_INCREMENTAL,
-                new InputFileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
+                new FinalizedInputFileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
             visitor.visitInputFileProperty(
                 "archiveTree",
                 NON_INCREMENTAL,
-                new InputFileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { archiveTreeInput }))
+                new FinalizedInputFileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { archiveTreeInput }))
         }
 
         then:
@@ -133,7 +133,7 @@ class DefaultInputFingerprinterTest extends Specification {
             visitor.visitInputFileProperty(
                 "file",
                 NON_INCREMENTAL,
-                new InputFileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { throw new RuntimeException("Shouldn't evaluate this") }))
+                new FinalizedInputFileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { throw new RuntimeException("Shouldn't evaluate this") }))
         }
 
         then:
@@ -188,7 +188,7 @@ class DefaultInputFingerprinterTest extends Specification {
             visitor.visitInputFileProperty(
                 "file",
                 NON_INCREMENTAL,
-                new InputFileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
+                new FinalizedInputFileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
         }
 
         then:

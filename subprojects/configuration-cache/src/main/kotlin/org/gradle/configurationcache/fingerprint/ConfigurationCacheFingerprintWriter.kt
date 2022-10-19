@@ -64,8 +64,8 @@ import org.gradle.internal.buildoption.FeatureFlagListener
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.UnitOfWork.FinalizedInputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputBehavior
-import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.WorkInputListener
 import org.gradle.internal.hash.HashCode
@@ -352,9 +352,9 @@ class ConfigurationCacheFingerprintWriter(
     fun captureWorkInputs(work: UnitOfWork, relevantInputBehaviors: EnumSet<InputBehavior>) {
         captureWorkInputs(work.displayName) { visitStructure ->
             work.visitRegularInputs(object : InputVisitor {
-                override fun visitInputFileProperty(propertyName: String, behavior: InputBehavior, value: InputFileValueSupplier) {
+                override fun visitInputFileProperty(propertyName: String, behavior: InputBehavior, value: FinalizedInputFileValueSupplier) {
                     if (relevantInputBehaviors.contains(behavior)) {
-                        visitStructure(value.files as FileCollectionInternal)
+                        visitStructure(value.finalizedFiles as FileCollectionInternal)
                     }
                 }
             })

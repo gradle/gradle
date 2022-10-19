@@ -26,10 +26,10 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.UnitOfWork.FinalizedInputFileValueSupplier
+import org.gradle.internal.execution.UnitOfWork.FinalizedOutputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputBehavior.NON_INCREMENTAL
-import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
-import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -161,7 +161,7 @@ class GenerateProjectAccessors(
         visitor.visitInputFileProperty(
             CLASSPATH_INPUT_PROPERTY,
             NON_INCREMENTAL,
-            InputFileValueSupplier(
+            FinalizedInputFileValueSupplier(
                 classPath,
                 ClasspathNormalizer::class.java,
                 DirectorySensitivity.IGNORE_DIRECTORIES,
@@ -173,8 +173,8 @@ class GenerateProjectAccessors(
     override fun visitOutputs(workspace: File, visitor: UnitOfWork.OutputVisitor) {
         val sourcesOutputDir = getSourcesOutputDir(workspace)
         val classesOutputDir = getClassesOutputDir(workspace)
-        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier(sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir)))
-        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier(classesOutputDir, fileCollectionFactory.fixed(classesOutputDir)))
+        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, FinalizedOutputFileValueSupplier(sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir)))
+        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, DIRECTORY, FinalizedOutputFileValueSupplier(classesOutputDir, fileCollectionFactory.fixed(classesOutputDir)))
     }
 }
 

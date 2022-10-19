@@ -49,8 +49,8 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.Describables;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.UnitOfWork.FinalizedInputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputBehavior;
-import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
@@ -302,6 +302,7 @@ public class DefaultTransformer implements Transformer {
                     boolean optional
                 ) {
                     try {
+                        value.finalizeValue();
                         Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
                         if (preparedValue == null && !optional) {
@@ -332,7 +333,7 @@ public class DefaultTransformer implements Transformer {
                     visitor.visitInputFileProperty(
                         propertyName,
                         behavior,
-                        new InputFileValueSupplier(
+                        new FinalizedInputFileValueSupplier(
                             value,
                             fileNormalizer == null ? AbsolutePathInputNormalizer.class : fileNormalizer,
                             directorySensitivity,

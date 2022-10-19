@@ -72,8 +72,8 @@ public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R exten
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
             work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
                 @Override
-                public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
-                    File root = value.getValue();
+                public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.FinalizedOutputFileValueSupplier value) {
+                    File root = value.getFinalizedValue();
                     switch (type) {
                         case FILE:
                             File parentFile = root.getParentFile();
@@ -109,8 +109,8 @@ public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R exten
     private void cleanupExclusivelyOwnedOutputs(BeforeExecutionContext context, UnitOfWork work) {
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
-                File root = value.getValue();
+            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.FinalizedOutputFileValueSupplier value) {
+                File root = value.getFinalizedValue();
                 if (root.exists()) {
                     try {
                         switch (type) {

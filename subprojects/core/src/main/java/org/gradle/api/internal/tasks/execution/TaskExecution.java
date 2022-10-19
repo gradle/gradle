@@ -48,12 +48,12 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -308,7 +308,10 @@ public class TaskExecution implements UnitOfWork {
         for (InputPropertySpec inputProperty : taskProperties.getInputProperties()) {
             visitor.visitInputProperty(
                 inputProperty.getPropertyName(),
-                () -> InputParameterUtils.prepareInputParameterValue(inputProperty, task));
+                () -> {
+                    inputProperty.getValue().finalizeValue();
+                    return InputParameterUtils.prepareInputParameterValue(inputProperty, task);
+                });
         }
         for (InputFilePropertySpec inputFileProperty : taskProperties.getInputFileProperties()) {
             // SkipWhenEmpty implies incremental.
@@ -318,7 +321,7 @@ public class TaskExecution implements UnitOfWork {
                 visitor.visitInputFileProperty(
                     inputFileProperty.getPropertyName(),
                     inputFileProperty.getBehavior(),
-                    new InputFileValueSupplier(
+                    new FinalizedInputFileValueSupplier(
                         inputFileProperty.getValue(),
                         inputFileProperty.getNormalizer(),
                         inputFileProperty.getDirectorySensitivity(),
@@ -341,7 +344,7 @@ public class TaskExecution implements UnitOfWork {
                     visitor.visitOutputProperty(
                         property.getPropertyName(),
                         property.getOutputType(),
-                        new OutputFileValueSupplier(outputFile, property.getPropertyFiles())
+                        new FinalizedOutputFileValueSupplier(outputFile, property.getPropertyFiles())
                     );
                 } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
                     throw decorateSnapshottingException("output", property.getPropertyName(), e.getCause());

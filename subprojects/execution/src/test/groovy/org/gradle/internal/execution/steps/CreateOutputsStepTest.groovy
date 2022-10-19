@@ -35,8 +35,8 @@ class CreateOutputsStepTest extends StepSpec<ChangingOutputsContext> {
 
         then:
         _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, new UnitOfWork.OutputFileValueSupplier(outputDir, TestFiles.fixed(outputDir)))
-            visitor.visitOutputProperty("file", TreeType.FILE, new UnitOfWork.OutputFileValueSupplier(outputFile, TestFiles.fixed(outputFile)))
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, new UnitOfWork.FinalizedOutputFileValueSupplier(outputDir, TestFiles.fixed(outputDir)))
+            visitor.visitOutputProperty("file", TreeType.FILE, new UnitOfWork.FinalizedOutputFileValueSupplier(outputFile, TestFiles.fixed(outputFile)))
             visitor.visitLocalState(localStateFile)
             visitor.visitDestroyable(destroyableFile)
         }

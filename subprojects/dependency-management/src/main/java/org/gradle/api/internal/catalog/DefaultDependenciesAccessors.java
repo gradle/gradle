@@ -337,7 +337,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         private void visitOutputDir(OutputVisitor visitor, File workspace, String propertyName) {
             File dir = new File(workspace, propertyName);
-            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, new OutputFileValueSupplier(dir, fileCollectionFactory.fixed(dir)));
+            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, new FinalizedOutputFileValueSupplier(dir, fileCollectionFactory.fixed(dir)));
         }
     }
 
@@ -368,7 +368,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             visitor.visitInputProperty(IN_PLUGINS, model::getPluginAliases);
             visitor.visitInputProperty(IN_MODEL_NAME, model::getName);
             visitor.visitInputFileProperty(IN_CLASSPATH, InputBehavior.NON_INCREMENTAL,
-                new InputFileValueSupplier(
+                new FinalizedInputFileValueSupplier(
                     classPath,
                     ClasspathNormalizer.class,
                     DirectorySensitivity.IGNORE_DIRECTORIES,

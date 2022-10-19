@@ -38,8 +38,8 @@ public class CreateOutputsStep<C extends ChangingOutputsContext, R extends Resul
     public R execute(UnitOfWork work, C context) {
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
-                ensureOutput(propertyName, value.getValue(), type);
+            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.FinalizedOutputFileValueSupplier value) {
+                ensureOutput(propertyName, value.getFinalizedValue(), type);
             }
 
             @Override

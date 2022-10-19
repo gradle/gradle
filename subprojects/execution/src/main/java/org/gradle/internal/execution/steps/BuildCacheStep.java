@@ -196,8 +196,8 @@ public class BuildCacheStep implements Step<IncrementalChangesContext, AfterExec
         public void visitOutputTrees(CacheableTreeVisitor visitor) {
             work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
                 @Override
-                public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
-                    visitor.visitOutputTree(propertyName, type, value.getValue());
+                public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.FinalizedOutputFileValueSupplier value) {
+                    visitor.visitOutputTree(propertyName, type, value.getFinalizedValue());
                 }
             });
         }

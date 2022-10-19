@@ -22,14 +22,14 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UnitOfWork.FinalizedInputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputBehavior;
-import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -126,7 +126,7 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
             knownFileFingerprints,
             visitor -> work.visitRegularInputs(new InputVisitor() {
                 @Override
-                public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
+                public void visitInputFileProperty(String propertyName, InputBehavior behavior, FinalizedInputFileValueSupplier value) {
                     if (behavior.shouldSkipWhenEmpty()) {
                         visitor.visitInputFileProperty(propertyName, behavior, value);
                     }
@@ -205,9 +205,9 @@ public class SkipEmptyWorkStep implements Step<PreviousExecutionContext, Caching
         }
 
         @Override
-        public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
+        public void visitInputFileProperty(String propertyName, InputBehavior behavior, FinalizedInputFileValueSupplier value) {
             if (propertyNameFilter.test(propertyName)) {
-                allEmpty = allEmpty && value.getFiles().isEmpty();
+                allEmpty = allEmpty && value.getFinalizedFiles().isEmpty();
             }
         }
 

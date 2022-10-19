@@ -199,13 +199,13 @@ public interface UnitOfWork extends Describable {
     interface InputVisitor {
         default void visitInputProperty(
             String propertyName,
-            ValueSupplier value
+            FinalizedValueSupplier value
         ) {}
 
         default void visitInputFileProperty(
             String propertyName,
             InputBehavior behavior,
-            InputFileValueSupplier value
+            FinalizedInputFileValueSupplier value
         ) {}
     }
 
@@ -267,23 +267,26 @@ public interface UnitOfWork extends Describable {
         }
     }
 
-    interface ValueSupplier {
+    interface FinalizedValueSupplier {
+        /**
+         * Return the finalized value.
+         */
         @Nullable
-        Object getValue();
+        Object getFinalizedValue();
     }
 
-    interface FileValueSupplier extends ValueSupplier {
-        FileCollection getFiles();
+    interface FinalizedFileValueSupplier extends FinalizedValueSupplier {
+        FileCollection getFinalizedFiles();
     }
 
-    class InputFileValueSupplier implements FileValueSupplier {
+    class FinalizedInputFileValueSupplier implements FinalizedFileValueSupplier {
         private final Object value;
         private final Class<? extends FileNormalizer> normalizer;
         private final DirectorySensitivity directorySensitivity;
         private final LineEndingSensitivity lineEndingSensitivity;
         private final Supplier<FileCollection> files;
 
-        public InputFileValueSupplier(
+        public FinalizedInputFileValueSupplier(
             @Nullable Object value,
             Class<? extends FileNormalizer> normalizer,
             DirectorySensitivity directorySensitivity,
@@ -299,7 +302,7 @@ public interface UnitOfWork extends Describable {
 
         @Nullable
         @Override
-        public Object getValue() {
+        public Object getFinalizedValue() {
             // TODO Finalize value
             return value;
         }
@@ -317,29 +320,29 @@ public interface UnitOfWork extends Describable {
         }
 
         @Override
-        public FileCollection getFiles() {
+        public FileCollection getFinalizedFiles() {
             return files.get();
         }
     }
 
-    class OutputFileValueSupplier implements FileValueSupplier {
+    class FinalizedOutputFileValueSupplier implements FinalizedFileValueSupplier {
         private final File root;
         private final FileCollection files;
 
-        public OutputFileValueSupplier(File root, FileCollection files) {
+        public FinalizedOutputFileValueSupplier(File root, FileCollection files) {
             this.root = root;
             this.files = files;
         }
 
         @Nonnull
         @Override
-        public File getValue() {
+        public File getFinalizedValue() {
             // TODO Finalize value
             return root;
         }
 
         @Override
-        public FileCollection getFiles() {
+        public FileCollection getFinalizedFiles() {
             return files;
         }
     }
@@ -348,7 +351,7 @@ public interface UnitOfWork extends Describable {
         default void visitOutputProperty(
             String propertyName,
             TreeType type,
-            OutputFileValueSupplier value
+            FinalizedOutputFileValueSupplier value
         ) {}
 
         default void visitLocalState(File localStateRoot) {}

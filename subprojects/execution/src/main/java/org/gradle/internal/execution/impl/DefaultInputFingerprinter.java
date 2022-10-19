@@ -26,10 +26,10 @@ import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.FileCollectionSnapshotter;
 import org.gradle.internal.execution.FileNormalizationSpec;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.UnitOfWork.FinalizedInputFileValueSupplier;
+import org.gradle.internal.execution.UnitOfWork.FinalizedValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputBehavior;
-import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
-import org.gradle.internal.execution.UnitOfWork.ValueSupplier;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
@@ -149,11 +149,11 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         }
 
         @Override
-        public void visitInputProperty(String propertyName, ValueSupplier value) {
+        public void visitInputProperty(String propertyName, FinalizedValueSupplier value) {
             if (knownCurrentValueSnapshots.containsKey(propertyName)) {
                 return;
             }
-            Object actualValue = value.getValue();
+            Object actualValue = value.getFinalizedValue();
             System.out.printf(">> Snapshotting %s: %s%n", actualValue == null ? null : actualValue.getClass().getSimpleName(), actualValue);
             valueSnapshotsBuilder.put(propertyName, () -> {
                 try {
@@ -167,14 +167,14 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                     throw new InputFingerprintingException(
                         propertyName,
                         String.format("value '%s' cannot be serialized",
-                            value.getValue()),
+                            value.getFinalizedValue()),
                         e);
                 }
             });
         }
 
         @Override
-        public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
+        public void visitInputFileProperty(String propertyName, InputBehavior behavior, FinalizedInputFileValueSupplier value) {
             if (knownCurrentFingerprints.containsKey(propertyName)) {
                 return;
             }
@@ -183,7 +183,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                 value.getNormalizer(),
                 value.getDirectorySensitivity(),
                 value.getLineEndingNormalization());
-            FileCollection files = value.getFiles();
+            FileCollection files = value.getFinalizedFiles();
             System.out.printf(">> Snapshotting %s: %s%n", files.getClass().getSimpleName(), files);
             fingerprintsBuilder.put(propertyName, snapshotHandler -> {
                 FileCollectionFingerprint previousFingerprint = previousFingerprints.get(propertyName);

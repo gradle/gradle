@@ -80,8 +80,8 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
-                builder.add(value.getValue().getAbsolutePath());
+            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.FinalizedOutputFileValueSupplier value) {
+                builder.add(value.getFinalizedValue().getAbsolutePath());
             }
 
             @Override

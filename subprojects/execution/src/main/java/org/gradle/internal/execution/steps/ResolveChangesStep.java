@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UnitOfWork.FinalizedInputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputBehavior;
-import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.DefaultIncrementalInputProperties;
@@ -88,9 +88,9 @@ public class ResolveChangesStep<C extends CachingContext, R extends Result> impl
                 ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
                 InputVisitor visitor = new InputVisitor() {
                     @Override
-                    public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier valueSupplier) {
+                    public void visitInputFileProperty(String propertyName, InputBehavior behavior, FinalizedInputFileValueSupplier valueSupplier) {
                         if (behavior.shouldTrackChanges()) {
-                            Object value = valueSupplier.getValue();
+                            Object value = valueSupplier.getFinalizedValue();
                             if (value == null) {
                                 throw new InvalidUserDataException("Must specify a value for incremental input property '" + propertyName + "'.");
                             }

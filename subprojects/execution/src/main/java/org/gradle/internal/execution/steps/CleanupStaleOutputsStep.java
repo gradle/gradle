@@ -79,8 +79,8 @@ public class CleanupStaleOutputsStep<C extends WorkspaceContext, R extends Resul
         Set<File> filesToDelete = new HashSet<>();
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
-                Streams.stream(value.getFiles())
+            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.FinalizedOutputFileValueSupplier value) {
+                Streams.stream(value.getFinalizedFiles())
                     .filter(cleanupRegistry::isOutputOwnedByBuild)
                     .filter(file -> !outputFilesRepository.isGeneratedByGradle(file))
                     .filter(file -> file.exists() || Files.isSymbolicLink(file.toPath()))

@@ -37,10 +37,10 @@ public class DefaultOutputSnapshotter implements OutputSnapshotter {
         ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
         work.visitOutputs(workspace, new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.FinalizedOutputFileValueSupplier value) {
                 FileSystemSnapshot snapshot;
                 try {
-                    snapshot = fileCollectionSnapshotter.snapshot(value.getFiles()).getSnapshot();
+                    snapshot = fileCollectionSnapshotter.snapshot(value.getFinalizedFiles()).getSnapshot();
                 } catch (Exception ex) {
                     throw new OutputFileSnapshottingException(propertyName, ex);
                 }

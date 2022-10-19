@@ -371,7 +371,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     ? inputArtifact.getAbsolutePath()
                     : inputArtifact.getName());
             visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL,
-                new InputFileValueSupplier(
+                new FinalizedInputFileValueSupplier(
                     dependencies,
                     transformer.getInputArtifactDependenciesNormalizer(),
                     transformer.getInputArtifactDependenciesDirectorySensitivity(),
@@ -385,7 +385,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @OverridingMethodsMustInvokeSuper
         public void visitRegularInputs(InputVisitor visitor) {
             visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, INCREMENTAL,
-                new InputFileValueSupplier(
+                new FinalizedInputFileValueSupplier(
                     inputArtifactProvider,
                     transformer.getInputArtifactNormalizer(),
                     transformer.getInputArtifactDirectorySensitivity(),
@@ -398,9 +398,9 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             File outputDir = getOutputDir(workspace);
             File resultsFile = getResultsFile(workspace);
             visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, DIRECTORY,
-                new OutputFileValueSupplier(outputDir, fileCollectionFactory.fixed(outputDir)));
+                new FinalizedOutputFileValueSupplier(outputDir, fileCollectionFactory.fixed(outputDir)));
             visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, FILE,
-                new OutputFileValueSupplier(resultsFile, fileCollectionFactory.fixed(resultsFile)));
+                new FinalizedOutputFileValueSupplier(resultsFile, fileCollectionFactory.fixed(resultsFile)));
         }
 
         @Override
