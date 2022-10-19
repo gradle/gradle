@@ -682,4 +682,17 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         Assume.assumeTrue('Requires Groovy 4', isAtLeastGroovy4)
     }
 
+    /**
+     * Generates a `repositories` block pointing to the standard maven repo fixture.
+     *
+     * This is often required for running with configuration cache enabled, as
+     * configuration cache eagerly resolves dependencies when storing the classpath.
+     */
+    protected String mavenTestRepository(GradleDsl dsl = GROOVY) {
+        """
+        repositories {
+            ${RepoScriptBlockUtil.repositoryDefinition(dsl, "maven", mavenRepo.rootDir.name, mavenRepo.uri.toString())}
+        }
+        """
+    }
 }

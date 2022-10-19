@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.java.toolchain
+package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
@@ -47,7 +47,7 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractIntegrationSpec {
             /** foo */
             public class Foo {
             }
-            """
+        """
 
         file("src/test/java/FooTest.java") << testClass("FooTest")
 
