@@ -25,7 +25,6 @@ import org.gradle.util.Matchers
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Ignore
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
@@ -99,7 +98,6 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySystemClassLoaderIsUsed')
     }
 
-    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#22138)
     def canRunTestsWithCustomSecurityManager() {
         executer
                 .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
