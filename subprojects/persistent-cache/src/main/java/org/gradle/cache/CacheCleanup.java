@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal;
+package org.gradle.cache;
 
 /**
- * Allows {@link MonitoredCleanupAction} instances to be decorated with additional functionality, such as checking whether cleanup has been disabled or not.
+ * Specifies the details of cache cleanup, including the action to be performed and the frequency at which cache cleanup should occur.
  */
-public interface MonitoredCleanupActionDecorator {
+public interface CacheCleanup {
     /**
-     * Decorates the provided {@link MonitoredCleanupAction}
+     * Returns the action to perform on cleanup.
      */
-    MonitoredCleanupAction decorate(MonitoredCleanupAction cleanupAction);
+    CleanupAction getCleanupAction();
+
+    /**
+     * Returns the frequency at which cache cleanup can occur.  Possible values are only once a day, every time, or never.
+     */
+    CleanupFrequency getCleanupFrequency();
 }

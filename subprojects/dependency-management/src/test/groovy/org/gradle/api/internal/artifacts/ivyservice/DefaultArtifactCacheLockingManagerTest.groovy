@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.gradle.api.cache.CacheResourceConfiguration
 import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.api.cache.CacheConfigurations
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
@@ -50,7 +51,7 @@ class DefaultArtifactCacheLockingManagerTest extends Specification {
         decorate(_) >> { args -> args[0] }
     }
     def cacheConfigurations = Stub(CacheConfigurations) {
-        getDownloadedResources() >> Stub(CacheConfigurations.CacheResourceConfiguration) {
+        getDownloadedResources() >> Stub(CacheResourceConfiguration) {
             getRemoveUnusedEntriesAfterDays() >> Stub(Property) {
                 get() >> CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES
             }

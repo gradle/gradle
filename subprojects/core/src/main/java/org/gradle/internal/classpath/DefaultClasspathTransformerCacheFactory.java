@@ -17,9 +17,10 @@
 package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
+import org.gradle.api.internal.cache.DefaultCacheCleanup;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.internal.CleanupActionDecorator;
-import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheVersionMapping;
@@ -51,9 +52,9 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
 
     private final UsedGradleVersions usedGradleVersions;
     private final CleanupActionDecorator cleanupActionDecorator;
-    private final CacheConfigurations cacheConfigurations;
+    private final CacheConfigurationsInternal cacheConfigurations;
 
-    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CleanupActionDecorator cleanupActionDecorator, CacheConfigurations cacheConfigurations) {
+    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CleanupActionDecorator cleanupActionDecorator, CacheConfigurationsInternal cacheConfigurations) {
         this.usedGradleVersions = usedGradleVersions;
         this.cleanupActionDecorator = cleanupActionDecorator;
         this.cacheConfigurations = cacheConfigurations;
@@ -66,8 +67,15 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
             .withDisplayName(CACHE_NAME)
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
-            .withCleanup(cleanupActionDecorator.decorate(createCleanupAction(fileAccessTimeJournal)))
+            .withCleanup(createCacheCleanup(fileAccessTimeJournal))
             .open();
+    }
+
+    private DefaultCacheCleanup createCacheCleanup(FileAccessTimeJournal fileAccessTimeJournal) {
+        return DefaultCacheCleanup.from(
+            cleanupActionDecorator.decorate(createCleanupAction(fileAccessTimeJournal)),
+            cacheConfigurations.getCleanupFrequency()
+        );
     }
 
     private CompositeCleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal) {
