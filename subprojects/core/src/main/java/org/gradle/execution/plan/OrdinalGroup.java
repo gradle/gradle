@@ -57,6 +57,11 @@ public class OrdinalGroup extends NodeGroup {
         return newOrdinal;
     }
 
+    @Override
+    public NodeGroup reachableFrom(OrdinalGroup newOrdinal) {
+        return newOrdinal;
+    }
+
     public OrdinalNode getProducerLocationsNode() {
         if (producerLocationsNode == null) {
             producerLocationsNode = new OrdinalNode(OrdinalNode.Type.PRODUCER, this);
