@@ -132,11 +132,11 @@ public class ClasspathBuilder {
             return entry;
         }
 
-        private void configureCompression(ZipEntry entry, CompressionMethod compressionMethod, byte[] contents) {
+        private void configureCompression(ZipArchiveEntry entry, CompressionMethod compressionMethod, byte[] contents) {
             if (shouldCompress(compressionMethod)) {
-                entry.setMethod(ZipEntry.DEFLATED);
+                entry.setMethod(ZipArchiveEntry.DEFLATED);
             } else {
-                entry.setMethod(ZipEntry.STORED);
+                entry.setMethod(ZipArchiveEntry.STORED);
                 // A stored ZipEntry requires setting size and CRC32 upfront.
                 // See https://stackoverflow.com/q/1206970.
                 entry.setSize(contents.length);
