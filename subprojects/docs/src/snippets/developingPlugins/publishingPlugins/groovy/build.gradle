@@ -41,7 +41,7 @@ gradlePlugin {
             id = 'org.ysb33r.gradletest'
             displayName = 'Plugin for compatibility testing of Gradle plugins'
             description = 'A plugin that helps you test your plugin against a variety of Gradle versions'
-            tags = ['testing', 'integrationTesting', 'compatibility']
+            tags.addAll('testing', 'integrationTesting', 'compatibility')
             implementationClass = 'org.ysb33r.gradle.gradletest.GradleTestPlugin'
         }
     }
