@@ -355,7 +355,7 @@ class CompileKotlinScript(
         visitor.visitOutputProperty(
             "classesDir",
             TreeType.DIRECTORY,
-                FinalizedOutputFileValueSupplier(classesDir, fileCollectionFactory.fixed(classesDir))
+            FinalizedOutputFileValueSupplier(classesDir, fileCollectionFactory.fixed(classesDir))
         )
     }
 
