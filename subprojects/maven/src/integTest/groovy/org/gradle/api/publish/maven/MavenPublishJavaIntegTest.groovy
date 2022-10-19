@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.maven.MavenJavaModule
 
 class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
@@ -78,10 +77,13 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "a component's variant can be modified before publishing"() {
         given:
         createBuildScripts """
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
             dependencies {
                 api 'org:foo:1.0'
                 implementation 'org:bar:1.0'
