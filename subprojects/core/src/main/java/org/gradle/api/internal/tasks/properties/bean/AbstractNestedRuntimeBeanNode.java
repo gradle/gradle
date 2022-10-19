@@ -21,6 +21,7 @@ import com.google.common.base.Suppliers;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
+import org.gradle.api.internal.provider.HasFinalizableValue;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
@@ -108,6 +109,14 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             if (isConfigurable()) {
                 Object value = cachedInvoker.get();
                 ((HasConfigurableValueInternal) value).implicitFinalizeValue();
+            }
+        }
+
+        @Override
+        public void finalizeValue() {
+            Object value = cachedInvoker.get();
+            if (value instanceof HasFinalizableValue) {
+                ((HasFinalizableValue) value).finalizeValue();
             }
         }
 

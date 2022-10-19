@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.api.internal.provider.HasFinalizableValue;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 
 import javax.annotation.Nullable;
@@ -24,7 +25,7 @@ import java.util.concurrent.Callable;
 /**
  * A supplier of a property value.
  */
-public interface PropertyValue extends Callable<Object> {
+public interface PropertyValue extends Callable<Object>, HasFinalizableValue {
     /**
      * The value of the underlying property.
      */
@@ -57,6 +58,11 @@ public interface PropertyValue extends Callable<Object> {
 
         @Override
         public void maybeFinalizeValue() {
+            // Ignore
+        }
+
+        @Override
+        public void finalizeValue() {
             // Ignore
         }
     };

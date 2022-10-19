@@ -101,5 +101,10 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
         public void maybeFinalizeValue() {
             // Ignore
         }
+
+        @Override
+        public void finalizeValue() {
+            // Ignore
+        }
     }
 }

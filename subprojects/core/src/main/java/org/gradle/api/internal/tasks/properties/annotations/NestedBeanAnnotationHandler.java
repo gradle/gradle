@@ -103,5 +103,10 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         public void maybeFinalizeValue() {
             // Ignore
         }
+
+        @Override
+        public void finalizeValue() {
+            // Ignore
+        }
     }
 }
