@@ -17,8 +17,9 @@
 package org.gradle.groovy.scripts
 
 import org.codehaus.groovy.control.CompilerConfiguration
+import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
+import org.gradle.api.internal.project.DynamicLookupRoutine
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.configuration.internal.DynamicCallContextTracker
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -32,7 +33,7 @@ class DefaultScriptTest extends Specification {
 
     def testApplyMetaData() {
         ServiceRegistry serviceRegistryMock = Mock(ServiceRegistry) {
-            get(DynamicCallContextTracker) >> Stub(DynamicCallContextTracker)
+            get(DynamicLookupRoutine) >> new DefaultDynamicLookupRoutine()
         }
 
         when:

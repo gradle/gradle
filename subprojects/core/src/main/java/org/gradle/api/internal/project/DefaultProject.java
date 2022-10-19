@@ -81,7 +81,6 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
-import org.gradle.configuration.internal.DynamicCallContextTracker;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
@@ -90,7 +89,6 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.extensibility.NoConventionMapping;
@@ -98,7 +96,6 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
-import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
@@ -212,7 +209,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final ExtensibleDynamicObject extensibleDynamicObject;
 
-    private final DynamicCallContextTracker dynamicCallContextTracker;
+    private final DynamicLookupRoutine dynamicLookupRoutine;
 
     private String description;
 
@@ -263,7 +260,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
         ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
 
-        dynamicCallContextTracker = services.get(DynamicCallContextTracker.class);
+        dynamicLookupRoutine = services.get(DynamicLookupRoutine.class);
     }
 
     @SuppressWarnings("unused")
@@ -1102,61 +1099,27 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
-        try {
-            dynamicCallContextTracker.enterDynamicCall(this);
-            return extensibleDynamicObject.getProperty(propertyName);
-        } finally {
-            dynamicCallContextTracker.leaveDynamicCall(this);
-        }
+        return dynamicLookupRoutine.property(extensibleDynamicObject, propertyName);
     }
 
     @Override
     public Object findProperty(String propertyName) {
-        DynamicCallContextTracker tracker = services.get(DynamicCallContextTracker.class);
-        try {
-            tracker.enterDynamicCall(this);
-            // Do not reuse `hasProperty` + `getProperty` as those would count as separate attempts to dynamically
-            // access a property, which might trigger extra diagnostics as if there were two calls.
-            DynamicInvokeResult dynamicInvokeResult = extensibleDynamicObject.tryGetProperty(propertyName);
-            return dynamicInvokeResult.isFound() ? dynamicInvokeResult.getValue() : null;
-        } finally {
-            tracker.leaveDynamicCall(this);
-        }
+        return dynamicLookupRoutine.findProperty(extensibleDynamicObject, propertyName);
     }
 
     @Override
     public void setProperty(String name, Object value) {
-        try {
-            dynamicCallContextTracker.enterDynamicCall(this);
-            extensibleDynamicObject.setProperty(name, value);
-        } finally {
-            dynamicCallContextTracker.leaveDynamicCall(this);
-        }
+        dynamicLookupRoutine.setProperty(extensibleDynamicObject, name, value);
     }
 
     @Override
     public boolean hasProperty(String propertyName) {
-        try {
-            dynamicCallContextTracker.enterDynamicCall(this);
-            return extensibleDynamicObject.hasProperty(propertyName);
-        } finally {
-            dynamicCallContextTracker.leaveDynamicCall(this);
-        }
+        return dynamicLookupRoutine.hasProperty(extensibleDynamicObject, propertyName);
     }
 
     @Override
     public Map<String, ?> getProperties() {
-        try {
-            dynamicCallContextTracker.enterDynamicCall(this);
-            return DeprecationLogger.whileDisabled(new Factory<Map<String, ?>>() {
-                @Override
-                public Map<String, ?> create() {
-                    return extensibleDynamicObject.getProperties();
-                }
-            });
-        } finally {
-            dynamicCallContextTracker.leaveDynamicCall(this);
-        }
+        return dynamicLookupRoutine.getProperties(extensibleDynamicObject);
     }
 
     @Override

@@ -24,6 +24,8 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
+import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
+import org.gradle.api.internal.project.DynamicLookupRoutine
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -160,6 +162,14 @@ class DefaultBuildModelControllerServices(
                 dynamicCallContextTracker.onEnter(reporting::enterDynamicCall)
                 dynamicCallContextTracker.onLeave(reporting::leaveDynamicCall)
             }
+
+        fun createDynamicLookupRoutine(
+            dynamicCallContextTracker: DynamicCallContextTracker,
+            buildModelParameters: BuildModelParameters
+        ): DynamicLookupRoutine = when {
+            buildModelParameters.isIsolatedProjects -> TrackingDynamicLookupRoutine(dynamicCallContextTracker)
+            else -> DefaultDynamicLookupRoutine()
+        }
     }
 
     private
@@ -169,6 +179,9 @@ class DefaultBuildModelControllerServices(
         ): CrossProjectModelAccess {
             return DefaultCrossProjectModelAccess(projectRegistry)
         }
+
+        fun createDynamicLookupRoutine(): DynamicLookupRoutine =
+            DefaultDynamicLookupRoutine()
     }
 
     private
