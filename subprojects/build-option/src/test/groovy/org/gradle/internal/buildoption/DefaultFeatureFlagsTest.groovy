@@ -16,11 +16,16 @@
 
 package org.gradle.internal.buildoption
 
+import org.gradle.internal.event.ListenerManager
 import spock.lang.Specification
 
 class DefaultFeatureFlagsTest extends Specification {
     def sysProperties = [:]
-    def flags = new DefaultFeatureFlags(new DefaultInternalOptions(sysProperties))
+    def featureFlagListener = Mock(FeatureFlagListener)
+    def listenerManager = Stub(ListenerManager) {
+        getBroadcaster(FeatureFlagListener) >> featureFlagListener
+    }
+    def flags = new DefaultFeatureFlags(new DefaultInternalOptions(sysProperties), listenerManager)
 
     def "flag is disabled by default"() {
         def flag = Stub(FeatureFlag)
@@ -28,6 +33,7 @@ class DefaultFeatureFlagsTest extends Specification {
 
         expect:
         !flags.isEnabled(flag)
+        !flags.isEnabledWithApi(flag)
     }
 
     def "flag with associated system property is disabled by default"() {
@@ -36,6 +42,7 @@ class DefaultFeatureFlagsTest extends Specification {
 
         expect:
         !flags.isEnabled(flag)
+        !flags.isEnabledWithApi(flag)
     }
 
     def "can explicitly enable flag"() {
@@ -45,6 +52,7 @@ class DefaultFeatureFlagsTest extends Specification {
 
         expect:
         flags.isEnabled(flag)
+        flags.isEnabledWithApi(flag)
     }
 
     def "can explicitly enable flag with associated system property"() {
@@ -54,6 +62,7 @@ class DefaultFeatureFlagsTest extends Specification {
 
         expect:
         flags.isEnabled(flag)
+        flags.isEnabledWithApi(flag)
     }
 
     def "can use a system property to enable flag"() {
@@ -64,6 +73,7 @@ class DefaultFeatureFlagsTest extends Specification {
 
         expect:
         flags.isEnabled(flag)
+        !flags.isEnabledWithApi(flag)
     }
 
     def "can use a system property to disable a flag that has been enabled"() {
@@ -76,5 +86,20 @@ class DefaultFeatureFlagsTest extends Specification {
 
         expect:
         !flags.isEnabled(flag)
+        flags.isEnabledWithApi(flag)
+    }
+
+    def "querying flag status notifies listener"() {
+        def flag = Stub(FeatureFlag)
+        flag.systemPropertyName >> propertyName
+
+        when:
+        flags.isEnabled(flag)
+
+        then:
+        1 * featureFlagListener.flagRead(flag)
+
+        where:
+        propertyName << ["prop", null]
     }
 }
