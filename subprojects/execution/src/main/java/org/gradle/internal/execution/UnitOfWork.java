@@ -287,7 +287,7 @@ public interface UnitOfWork extends Describable {
         public FileCollection getFinalizedFiles() {
             FileCollection files = getFiles();
             if (files instanceof HasFinalizableValue) {
-                System.out.printf(">> Finalizing file collection %s%n", files);
+                // System.out.printf(">> Finalizing file collection %s%n", files);
                 ((HasFinalizableValue) files).finalizeValue();
             }
             return files;
