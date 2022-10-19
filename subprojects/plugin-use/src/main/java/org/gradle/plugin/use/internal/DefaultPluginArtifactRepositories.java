@@ -16,9 +16,11 @@
 
 package org.gradle.plugin.use.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
@@ -27,6 +29,8 @@ import org.gradle.internal.Factory;
 import org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
+
+import java.net.URI;
 
 class DefaultPluginArtifactRepositories implements PluginArtifactRepositories {
     private final DependencyResolutionServices dependencyResolutionServices;
@@ -44,6 +48,10 @@ class DefaultPluginArtifactRepositories implements PluginArtifactRepositories {
         }
         if (repositoryHandler.isEmpty()) {
             repositoryHandler.gradlePluginPortal();
+            repositoryHandler.maven(mavenArtifactRepository -> {
+                mavenArtifactRepository.setName("Kotlin dev artifacts");
+                mavenArtifactRepository.setUrl(URI.create("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap"));
+            });
         }
     }
 

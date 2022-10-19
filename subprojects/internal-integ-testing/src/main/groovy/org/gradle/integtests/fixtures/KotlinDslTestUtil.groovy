@@ -34,6 +34,10 @@ class KotlinDslTestUtil {
             allprojects {
                 repositories {
                     ${mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                    maven {
+                        name = "Kotlin dev artifacts"
+                        url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/bootstrap")
+                    }
                 }
             }
         """
