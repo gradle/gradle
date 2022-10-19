@@ -65,14 +65,15 @@ class DefaultDynamicCallProblemReporting : DynamicCallProblemReporting {
         currentThreadState.callStack.push(CallEntry(entryPoint))
     }
 
-
     override fun leaveDynamicCall(entryPoint: Any) {
         val innermostCall = currentThreadState.callStack.pop()
         check(entryPoint == innermostCall.entryPoint) { "Mismatched enter-leave calls in DynamicCallProjectIsolationProblemReporting" }
     }
 
     override fun unreportedProblemInCurrentCall(problemKey: Any): Boolean {
-        return currentThreadState.callStack.peek().problemsReportedInCurrentCall.add(problemKey)
+        val currentThreadCallStack = currentThreadState.callStack
+        check(currentThreadCallStack.isNotEmpty()) { "Expected unreportedProblemInCurrentCall to be called after enterDynamicCall" }
+        return currentThreadCallStack.peek().problemsReportedInCurrentCall.add(problemKey)
     }
 
     private
