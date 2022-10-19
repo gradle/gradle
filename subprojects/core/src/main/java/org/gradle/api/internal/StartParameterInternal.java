@@ -146,6 +146,11 @@ public class StartParameterInternal extends StartParameter {
         this.configurationCache = configurationCache;
     }
 
+    @Override
+    public boolean isConfigurationCacheRequested() {
+        return configurationCache.get();
+    }
+
     public BuildOption.Value<Boolean> getIsolatedProjects() {
         return isolatedProjects;
     }
