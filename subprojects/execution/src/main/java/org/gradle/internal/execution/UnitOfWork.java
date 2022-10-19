@@ -19,6 +19,7 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.provider.HasFinalizableValue;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
@@ -279,12 +280,27 @@ public interface UnitOfWork extends Describable {
         FileCollection getFinalizedFiles();
     }
 
-    class FinalizedInputFileValueSupplier implements FinalizedFileValueSupplier {
+    abstract class AbstractFinalizedFileValueSupplier implements FinalizedFileValueSupplier {
+        abstract protected FileCollection getFiles();
+
+        @Override
+        public FileCollection getFinalizedFiles() {
+            FileCollection files = getFiles();
+            if (files instanceof HasFinalizableValue) {
+                System.out.printf(">> Finalizing file collection %s%n", files);
+                ((HasFinalizableValue) files).finalizeValue();
+            }
+            return files;
+        }
+    }
+
+    class FinalizedInputFileValueSupplier extends AbstractFinalizedFileValueSupplier {
         private final Object value;
         private final Class<? extends FileNormalizer> normalizer;
         private final DirectorySensitivity directorySensitivity;
         private final LineEndingSensitivity lineEndingSensitivity;
         private final Supplier<FileCollection> files;
+        private volatile FileCollection resolvedFiles;
 
         public FinalizedInputFileValueSupplier(
             @Nullable Object value,
@@ -303,7 +319,9 @@ public interface UnitOfWork extends Describable {
         @Nullable
         @Override
         public Object getFinalizedValue() {
-            // TODO Finalize value
+            if (value instanceof HasFinalizableValue) {
+                ((HasFinalizableValue) value).finalizeValue();
+            }
             return value;
         }
 
@@ -320,12 +338,19 @@ public interface UnitOfWork extends Describable {
         }
 
         @Override
-        public FileCollection getFinalizedFiles() {
-            return files.get();
+        protected FileCollection getFiles() {
+            if (resolvedFiles == null) {
+                synchronized (this) {
+                    if (resolvedFiles == null) {
+                        resolvedFiles = files.get();
+                    }
+                }
+            }
+            return resolvedFiles;
         }
     }
 
-    class FinalizedOutputFileValueSupplier implements FinalizedFileValueSupplier {
+    class FinalizedOutputFileValueSupplier extends AbstractFinalizedFileValueSupplier {
         private final File root;
         private final FileCollection files;
 
@@ -337,12 +362,11 @@ public interface UnitOfWork extends Describable {
         @Nonnull
         @Override
         public File getFinalizedValue() {
-            // TODO Finalize value
             return root;
         }
 
         @Override
-        public FileCollection getFinalizedFiles() {
+        protected FileCollection getFiles() {
             return files;
         }
     }

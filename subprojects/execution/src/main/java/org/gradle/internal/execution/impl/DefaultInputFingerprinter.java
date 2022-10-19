@@ -154,7 +154,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                 return;
             }
             Object actualValue = value.getFinalizedValue();
-            System.out.printf(">> Snapshotting %s: %s%n", actualValue == null ? null : actualValue.getClass().getSimpleName(), actualValue);
+            System.out.printf(">> Snapshotting '%s' (type %s): %s%n", propertyName, actualValue == null ? null : actualValue.getClass().getSimpleName(), actualValue);
             valueSnapshotsBuilder.put(propertyName, () -> {
                 try {
                     ValueSnapshot previousSnapshot = previousValueSnapshots.get(propertyName);
@@ -184,7 +184,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                 value.getDirectorySensitivity(),
                 value.getLineEndingNormalization());
             FileCollection files = value.getFinalizedFiles();
-            System.out.printf(">> Snapshotting %s: %s%n", files.getClass().getSimpleName(), files);
+            System.out.printf(">> Snapshotting '%s' (type %s): %s%n", propertyName, files.getClass().getSimpleName(), files);
             fingerprintsBuilder.put(propertyName, snapshotHandler -> {
                 FileCollectionFingerprint previousFingerprint = previousFingerprints.get(propertyName);
                 FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
