@@ -20,7 +20,7 @@ import groovy.lang.Binding;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.configuration.internal.DynamicCallContextTracker;
+import org.gradle.api.internal.project.DynamicLookupRoutine;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -37,12 +37,12 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     private StandardOutputCapture standardOutputCapture;
     private Object target;
     private ScriptDynamicObject dynamicObject = new ScriptDynamicObject(this);
-    private DynamicCallContextTracker dynamicCallContextTracker;
+    private DynamicLookupRoutine dynamicLookupRoutine;
 
     @Override
     public void init(Object target, ServiceRegistry services) {
         standardOutputCapture = services.get(StandardOutputCapture.class);
-        dynamicCallContextTracker = services.get(DynamicCallContextTracker.class);
+        dynamicLookupRoutine = services.get(DynamicLookupRoutine.class);
         setScriptTarget(target);
     }
 
@@ -66,50 +66,25 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
 
     @Override
     public Object getProperty(String property) {
-        try {
-            dynamicCallContextTracker.enterDynamicCall(this);
-            return dynamicObject.getProperty(property);
-        } finally {
-            dynamicCallContextTracker.leaveDynamicCall(this);
-        }
+        return dynamicLookupRoutine.property(dynamicObject, property);
     }
 
     @Override
     public void setProperty(String property, Object newValue) {
-        try {
-            dynamicCallContextTracker.enterDynamicCall(this);
-            dynamicObject.setProperty(property, newValue);
-        } finally {
-            dynamicCallContextTracker.leaveDynamicCall(this);
-        }
+        dynamicLookupRoutine.setProperty(dynamicObject, property, newValue);
     }
 
     public Map<String, ?> getProperties() {
-        try {
-            dynamicCallContextTracker.enterDynamicCall(this);
-            return dynamicObject.getProperties();
-        } finally {
-            dynamicCallContextTracker.leaveDynamicCall(this);
-        }
+        return dynamicLookupRoutine.getProperties(dynamicObject);
     }
 
     public boolean hasProperty(String property) {
-        try {
-            dynamicCallContextTracker.enterDynamicCall(this);
-            return dynamicObject.hasProperty(property);
-        } finally {
-            dynamicCallContextTracker.leaveDynamicCall(this);
-        }
+        return dynamicLookupRoutine.hasProperty(dynamicObject, property);
     }
 
     @Override
     public Object invokeMethod(String name, Object args) {
-        try {
-            dynamicCallContextTracker.enterDynamicCall(this);
-            return dynamicObject.invokeMethod(name, (Object[]) args);
-        } finally {
-            dynamicCallContextTracker.leaveDynamicCall(this);
-        }
+        return dynamicLookupRoutine.invokeMethod(dynamicObject, name, (Object[]) args);
     }
 
     @Override
