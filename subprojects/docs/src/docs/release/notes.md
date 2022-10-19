@@ -152,7 +152,7 @@ In addition, the Kotlin DSL now supports named arguments for external dependenci
 ```kotlin
 testing {
     suites {
-        val test by getting(JvmTestSuite::class) {
+        "test"(JvmTestSuite::class) { 
             useJUnitJupiter()
             dependencies {
                 implementation(module(group = "com.google.guava",
