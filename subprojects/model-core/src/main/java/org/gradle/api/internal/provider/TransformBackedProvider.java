@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Transformer;
 
@@ -32,10 +33,17 @@ import javax.annotation.Nullable;
  * @see ProviderInternal for a discussion of the "value" and "value contents".
  */
 public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
-    private final Transformer<? extends OUT, ? super IN> transformer;
-    private final ProviderInternal<? extends IN> provider;
 
-    public TransformBackedProvider(Transformer<? extends OUT, ? super IN> transformer, ProviderInternal<? extends IN> provider) {
+    protected final Class<OUT> type;
+    protected final ProviderInternal<? extends IN> provider;
+    protected final Transformer<? extends OUT, ? super IN> transformer;
+
+    public TransformBackedProvider(
+        @Nullable Class<OUT> type,
+        ProviderInternal<? extends IN> provider,
+        Transformer<? extends OUT, ? super IN> transformer
+    ) {
+        this.type = type;
         this.transformer = transformer;
         this.provider = provider;
     }
@@ -43,10 +51,10 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     @Nullable
     @Override
     public Class<OUT> getType() {
-        // Could do a better job of inferring this
-        return null;
+        return type;
     }
 
+    @VisibleForTesting
     public Transformer<? extends OUT, ? super IN> getTransformer() {
         return transformer;
     }
@@ -60,11 +68,12 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     public ExecutionTimeValue<? extends OUT> calculateExecutionTimeValue() {
         ExecutionTimeValue<? extends IN> value = provider.calculateExecutionTimeValue();
         if (value.hasChangingContent()) {
-            // Need the value contents in order to transform it to produce the value of this provider, so if the value or its contents are built by tasks, the value of this provider is also built by tasks
-            return ExecutionTimeValue.changingValue(new TransformBackedProvider<OUT, IN>(transformer, value.toProvider()));
-        } else {
-            return ExecutionTimeValue.value(mapValue(value.toValue()));
+            // Need the value contents in order to transform it to produce the value of this provider,
+            // so if the value or its contents are built by tasks, the value of this provider is also built by tasks
+            return ExecutionTimeValue.changingValue(new TransformBackedProvider<OUT, IN>(type, value.toProvider(), transformer));
         }
+
+        return ExecutionTimeValue.value(mapValue(value.toValue()));
     }
 
     @Override
@@ -75,14 +84,14 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     }
 
     @Nonnull
-    private Value<? extends OUT> mapValue(Value<? extends IN> value) {
+    protected Value<OUT> mapValue(Value<? extends IN> value) {
         if (value.isMissing()) {
             return value.asType();
         }
         return value.transform(transformer);
     }
 
-    private void beforeRead() {
+    protected void beforeRead() {
         provider.getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
                 throw new InvalidUserCodeException(
@@ -94,6 +103,6 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
 
     @Override
     public String toString() {
-        return "map(" + provider + ")";
+        return "map(" + (type == null ? "" : type.getName() + " ") + provider + ")";
     }
 }
