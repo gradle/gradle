@@ -21,6 +21,30 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     def setup() {
+        settingsFile << """
+            pluginManagement {
+                repositories {
+                    maven {
+                        url 'https://plugins.grdev.net/m2/'
+                    }
+                }
+            }
+
+            plugins {
+                id 'org.gradle.disco-toolchains' version '0.1'
+            }
+            
+            toolchainManagement {
+                jvm {
+                    javaRepositories {
+                        repository('disco') {
+                            resolverClass = org.gradle.disco.DiscoToolchainResolver
+                        }
+                    }
+                }
+            }
+        """ //TODO (#22138): use PROD portal for plugin, when published
+
         buildFile << """
             plugins {
                 id "java"
@@ -28,7 +52,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(14)
+                    languageVersion = JavaLanguageVersion.of(16)
                 }
             }
         """
@@ -45,10 +69,6 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         when:
         result = executer
                 .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
-                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                        "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
-                        "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                        "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
                 .run()
 
         then:
@@ -67,12 +87,8 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         when:
         result = executer
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
-                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                        "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
-                        "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                        "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
-                .run()
+               .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+               .run()
 
         then:
         javaClassFile("Foo.class").assertExists()
@@ -81,7 +97,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     private void assertJdkWasDownloaded(String implementation) {
         assert executer.gradleUserHomeDir.file("jdks").listFiles({ file ->
-            file.name.contains("-14-") && file.name.contains(implementation)
+            file.name.contains("-16-") && file.name.contains(implementation)
         } as FileFilter)
     }
 

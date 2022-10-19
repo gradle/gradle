@@ -16,60 +16,23 @@
 
 package org.gradle.jvm.toolchain
 
-import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.internal.nativeintegration.services.NativeServices
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Ignore
 
 class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
-    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#22138)
-    def "download and provisioning works end-to-end"() {
-        buildFile << """
-            apply plugin: "java"
-
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
-                }
-            }
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-
-        when:
-        executer
-                .withTasks("compileJava")
-                .requireOwnGradleUserHomeDir()
-                .withToolchainDownloadEnabled()
-                .run()
-
-        then:
-
-        TestFile installLocation = temporaryFolder.file("user-home", "jdks", "eclipse_adoptium-11-${architectureInFilename()}-${osInFilename()}")
-
-        File[] subFolders = installLocation.getCanonicalFile().listFiles()
-        subFolders.length == 1
-        TestFile firstSubFolder = installLocation.file(subFolders[0].name)
-        firstSubFolder.isDirectory()
-
-        TestFile marker = firstSubFolder.file("provisioned.ok")
-        marker.isFile()
-    }
-
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#22138)
-    def "can properly fails for missing combination"() {
+    def "fails for missing combination"() {
+        setFoojayDiscoToolchainProvider()
+
         buildFile << """
             apply plugin: "java"
 
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(99)
+                    languageVersion = JavaLanguageVersion.of(14)
+                    implementation = JvmImplementation.J9
                 }
             }
         """
@@ -87,12 +50,13 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse'.")
-            .assertHasCause("Could not read 'https://api.adoptium.net/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse' as it does not exist.")
+            .assertHasCause("No compatible toolchains found for request specification: {languageVersion=14, vendor=any, implementation=J9} (auto-detect true, auto-download true).")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def 'toolchain selection that requires downloading fails when it is disabled'() {
+        setFoojayDiscoToolchainProvider()
+
         buildFile << """
             apply plugin: "java"
 
@@ -122,8 +86,9 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#22138)
     def 'toolchain download on http fails'() {
+        setUnsecuredToolchainProvider()
+
         buildFile << """
             apply plugin: "java"
 
@@ -152,77 +117,75 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from 'http://example.com/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse'.")
-            .assertHasCause("Attempting to download a file from an insecure URI http://example.com/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse. This is not supported, use a secure URI instead.")
+            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from 'http://exoticJavaToolchain.com/java-99'.")
+            .assertHasCause("Attempting to download a file from an insecure URI http://exoticJavaToolchain.com/java-99. This is not supported, use a secure URI instead.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    @Ignore("fix when we will have a Toolchain repository plugin") //TODO (#22138)
-    def 'toolchain download of Semeru forces openj9'() {
-        buildFile << """
-            apply plugin: "java"
+    private TestFile setFoojayDiscoToolchainProvider() {
+        settingsFile << """
+            pluginManagement {
+                repositories {
+                    maven {
+                        url 'https://plugins.grdev.net/m2/'
+                    }
+                }
+            }
 
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(99)
-                    vendor = JvmVendorSpec.IBM_SEMERU
+            plugins {
+                id 'org.gradle.disco-toolchains' version '0.1'
+            }
+            
+            toolchainManagement {
+                jvm {
+                    javaRepositories {
+                        repository('disco') {
+                            resolverClass = org.gradle.disco.DiscoToolchainResolver
+                        }
+                    }
+                }
+            }
+        """ //TODO (#22138): use PROD portal for plugin, when published
+    }
+
+    private TestFile setUnsecuredToolchainProvider() {
+        settingsFile << """
+            public abstract class CustomToolchainResolverPlugin implements Plugin<Settings> {
+                @Inject
+                protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
+            
+                void apply(Settings settings) {
+                    settings.getPlugins().apply("jvm-toolchain-management");
+                
+                    JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
+                    registry.register(CustomToolchainResolver.class);
+                }
+            }
+            
+            
+            import java.util.Optional;
+            import org.gradle.platform.BuildPlatform;
+
+            public abstract class CustomToolchainResolver implements JavaToolchainResolver {
+                @Override
+                public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+                    URI uri = URI.create("http://exoticJavaToolchain.com/java-" + request.getJavaToolchainSpec().getLanguageVersion().get());
+                    return Optional.of(JavaToolchainDownload.fromUri(uri));
+                }
+            }
+            
+
+            apply plugin: CustomToolchainResolverPlugin
+                       
+            toolchainManagement {
+                jvm {
+                    javaRepositories {
+                        repository('custom') {
+                            resolverClass = CustomToolchainResolver
+                        }
+                    }
                 }
             }
         """
-
-        propertiesFile << """
-            org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri=https://example.com
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        failure = executer
-            .withTasks("compileJava")
-            .requireOwnGradleUserHomeDir()
-            .withToolchainDetectionEnabled()
-            .withToolchainDownloadEnabled()
-            .runWithFailure()
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=IBM_SEMERU, implementation=vendor-specific}) from 'https://example.com/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/openj9/normal/adoptopenjdk'.")
-            .assertHasCause("Could not read 'https://example.com/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/openj9/normal/adoptopenjdk' as it does not exist.")
     }
 
-    private static String os() {
-        OperatingSystem os = OperatingSystem.current()
-        if (os.isWindows()) {
-            return "windows";
-        } else if (os.isMacOsX()) {
-            return "mac";
-        } else if (os.isLinux()) {
-            return "linux";
-        }
-        return os.getFamilyName();
-    }
-
-    private static String architecture() {
-        SystemInfo systemInfo = NativeServices.getInstance().get(SystemInfo.class)
-        switch (systemInfo.architecture) {
-            case SystemInfo.Architecture.i386:
-                return "x32";
-            case SystemInfo.Architecture.amd64:
-                return "x64";
-            case SystemInfo.Architecture.aarch64:
-                return "aarch64";
-            default:
-                return "unknown";
-        }
-    }
-
-    private static String osInFilename() {
-        OperatingSystem os = OperatingSystem.current()
-        return os.getFamilyName().replaceAll("[^a-zA-Z0-9\\-]", "_")
-    }
-
-    private static String architectureInFilename() {
-        return System.getProperty("os.arch")
-    }
 }
