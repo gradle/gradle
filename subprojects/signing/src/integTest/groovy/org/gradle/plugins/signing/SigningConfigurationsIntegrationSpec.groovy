@@ -52,7 +52,7 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache
-    def "signing configurations is idempotent"() {
+    def "signing configuration is idempotent"() {
         given:
         buildFile << """
             configurations {
@@ -61,7 +61,7 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
 
             signing {
                 ${signingConfiguration()}
-                sign configurations.archives, configurations.meta, configurations.archives, configurations.meta
+                sign configurations.archives, configurations.archives
             }
 
             ${keyInfo.addAsPropertiesScript()}
@@ -72,12 +72,10 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         run "buildSignatures"
 
         then:
-        executedAndNotSkipped ":signArchives", ":signMeta"
+        executedAndNotSkipped ":signArchives"
 
         and:
         file("build", "libs", "sign-1.0.jar.asc").text
-        file("build", "libs", "sign-1.0-javadoc.jar.asc").text
-        file("build", "libs", "sign-1.0-sources.jar.asc").text
     }
 
     @Issue("gradle/gradle#4980")
