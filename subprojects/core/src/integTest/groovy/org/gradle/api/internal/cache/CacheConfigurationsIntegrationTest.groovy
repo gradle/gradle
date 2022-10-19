@@ -35,7 +35,11 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         new File(initDir, "cache-settings.gradle") << """
             beforeSettings { settings ->
                 settings.caches {
-                    ${modifiedCacheConfigurations}
+                    cleanup = Cleanup.NEVER
+                    releasedWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}
+                    snapshotWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}
+                    downloadedResources.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}
+                    createdResources.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}
                 }
             }
         """
@@ -52,24 +56,29 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
     }
 
-    def "cannot configure caches from settings script"() {
+    def "cannot configure caches from settings script (#property)"() {
         settingsFile << """
             caches {
-                ${modifiedCacheConfigurations}
+                ${modifyCacheConfiguration(property, value)}
             }
         """
 
         expect:
         fails("help")
-        failureCauseContains("The value for property 'removeUnusedEntriesAfterDays' is final and cannot be changed any further")
+        failureCauseContains("The value for property '${name}' is final and cannot be changed any further")
+
+        where:
+        property                                           | name                           | value
+        'cleanup'                                          | 'cleanup'                      | 'Cleanup.NEVER'
+        'releasedWrappers.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesAfterDays' | "${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}"
+        'snapshotWrappers.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesAfterDays' | "${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}"
+        'downloadedResources.removeUnusedEntriesAfterDays' | 'removeUnusedEntriesAfterDays' | "${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}"
+        'createdResources.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesAfterDays' | "${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}"
     }
 
-    static String getModifiedCacheConfigurations() {
+    static String modifyCacheConfiguration(String property, String value) {
         return """
-                    releasedWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}
-                    snapshotWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}
-                    downloadedResources.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}
-                    createdResources.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}
+            ${property} = ${value}
         """
     }
 }

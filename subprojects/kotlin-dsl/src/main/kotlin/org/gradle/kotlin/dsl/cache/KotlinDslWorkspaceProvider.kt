@@ -18,7 +18,7 @@ package org.gradle.kotlin.dsl.cache
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.cache.internal.CleanupActionDecorator
-import org.gradle.api.cache.CacheConfigurations
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.internal.execution.workspace.WorkspaceProvider
@@ -35,7 +35,7 @@ class KotlinDslWorkspaceProvider(
     stringInterner: StringInterner,
     classLoaderHasher: ClassLoaderHierarchyHasher,
     cleanupActionDecorator: CleanupActionDecorator,
-    cacheConfigurations: CacheConfigurations
+    cacheConfigurations: CacheConfigurationsInternal
 ) : Closeable {
 
     private
