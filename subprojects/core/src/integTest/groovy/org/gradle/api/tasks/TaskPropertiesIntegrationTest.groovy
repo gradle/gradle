@@ -29,14 +29,18 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                     project.provider { 12 }
                 }
 
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
                 @TaskAction
                 void go() {
-                    println("count = \${count.get()}")
+                    outputFile.get().asFile.text = count.get()
                 }
             }
 
             tasks.create("thing", MyTask) {
                 println("property = \$count")
+                outputFile = file("output.txt")
             }
         """
 
@@ -45,7 +49,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("property = provider(?)")
-        outputContains("count = 12")
+        file("output.txt").text == "12"
     }
 
     def "can define task with abstract managed Property<T> property"() {
@@ -55,15 +59,19 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 @Input
                 abstract Property<Integer> getCount()
 
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
                 @TaskAction
                 void go() {
-                    println("count = \${count.get()}")
+                    outputFile.get().asFile.text = count.get()
                 }
             }
 
             tasks.create("thing", MyTask) {
                 println("property = \$count")
                 count = 12
+                outputFile = file("output.txt")
             }
         """
 
@@ -72,7 +80,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("property = task ':thing' property 'count'")
-        outputContains("count = 12")
+        file("output.txt").text == "12"
     }
 
     def "reports failure to query managed Property<T> with no value"() {
@@ -168,14 +176,18 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 @InputFiles
                 abstract ConfigurableFileCollection getSource()
 
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
                 @TaskAction
                 void go() {
-                    println("files = \${source.files.name}")
+                    outputFile.get().asFile.text = source.files.name
                 }
             }
 
             tasks.create("thing", MyTask) {
                 source.from("a", "b", "c")
+                outputFile = file("output.txt")
             }
         """
 
@@ -183,7 +195,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("thing")
 
         then:
-        outputContains("files = [a, b, c]")
+        file("output.txt").text == "[a, b, c]"
     }
 
     def "can define task with managed ConfigurableFileTree property"() {
@@ -193,14 +205,19 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 @InputFiles
                 abstract ConfigurableFileTree getSource()
 
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
                 @TaskAction
                 void go() {
-                    println("files = \${source.files.name.sort()}")
+                    outputFile.get().asFile.text = source.files.name.sort()
                 }
             }
 
             tasks.create("thing", MyTask) {
                 source.from("dir")
+                outputFile = file("output.txt")
             }
         """
         file("dir/sub/a.txt").createFile()
@@ -210,7 +227,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("thing")
 
         then:
-        outputContains("files = [a.txt, b.txt]")
+        file("output.txt").text == "[a.txt, b.txt]"
     }
 
     def "can define task with managed NamedDomainObjectContainer<T> property"() {
