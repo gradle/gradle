@@ -292,23 +292,23 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
                 spec.setRelease(compileOptions.getRelease().get());
             } else {
                 boolean isSourceOrTargetConfigured = false;
+                // Using call to super to avoid convention mapping and determine whether a value was actually set by the user
                 if (super.getSourceCompatibility() != null) {
+                    // Using a non-super getter to get an actual value
                     spec.setSourceCompatibility(getSourceCompatibility());
                     isSourceOrTargetConfigured = true;
                 }
+                // Using call to super to avoid convention mapping and determine whether a value was actually set by the user
                 if (super.getTargetCompatibility() != null) {
+                    // Using a non-super getter to get an actual value
                     spec.setTargetCompatibility(getTargetCompatibility());
                     isSourceOrTargetConfigured = true;
                 }
                 if (!isSourceOrTargetConfigured) {
                     JavaLanguageVersion languageVersion = toolchain.getLanguageVersion();
-                    if (languageVersion.canCompileOrRun(10)) {
-                        spec.setRelease(languageVersion.asInt());
-                    } else {
-                        String version = languageVersion.toString();
-                        spec.setSourceCompatibility(version);
-                        spec.setTargetCompatibility(version);
-                    }
+                    String version = languageVersion.toString();
+                    spec.setSourceCompatibility(version);
+                    spec.setTargetCompatibility(version);
                 }
             }
         } else if (compileOptions.getRelease().isPresent()) {
