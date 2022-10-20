@@ -79,6 +79,21 @@ The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/pmd_plugin.html) p
 
 In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
 
+### Dependency verification improvements
+
+#### Dependency verification metadata
+
+Dependency verification metadata file `verification-metadata.xml` now supports `reason` attribute for the `trust` xml node under the `trusted-artifacts`.
+The same attribute is also supported for the `md5`, `sha1`, `sha256` and `sha512` nodes under the `component`.
+
+#### Dependency verification CLI
+
+It's now possible to export all already trusted keys with simple:
+```asciidoc
+./gradlew --export-keys
+```
+Check [Exporting keys](userguide/dependency_verification.html#sec:local-keyring) for more details.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
