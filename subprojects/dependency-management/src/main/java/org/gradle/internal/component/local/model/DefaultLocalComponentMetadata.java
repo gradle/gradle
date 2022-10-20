@@ -521,7 +521,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
 
         @Override
-        public void prepareToResolveArtifacts() {
+        public LocalConfigurationMetadata prepareToResolveArtifacts() {
             synchronized (this) {
                 if (artifacts == null) {
                     if (sourceArtifacts.isEmpty() && hierarchy.isEmpty()) {
@@ -548,6 +548,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             for (LocalVariantMetadata variant : getVariants()) {
                 variant.prepareToResolveArtifacts();
             }
+            return this;
         }
 
         @Override
