@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 
 public class SnapshotUtil {
 
-    public static Map<String, FileSystemLocationSnapshot> index(FileSystemSnapshot snapshot) {
+    public static Map<String, FileSystemLocationSnapshot> indexByAbsolutePath(FileSystemSnapshot snapshot) {
         HashMap<String, FileSystemLocationSnapshot> index = new HashMap<>();
         snapshot.accept(entrySnapshot -> {
             index.put(entrySnapshot.getAbsolutePath(), entrySnapshot);
