@@ -51,8 +51,7 @@ Configuration::
 - Evaluates the build scripts of every project participating in the build.
 - Creates a task graph for all projects.
 Execution::
-- Calculates tasks to run based on the passed task name arguments.
-- Executes each of the selected tasks in the order of their dependencies.
+- Schedules and executes each of the selected tasks in the order of their dependencies.
 
 === Example
 
