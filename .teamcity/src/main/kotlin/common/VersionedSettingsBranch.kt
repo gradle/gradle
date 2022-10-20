@@ -45,7 +45,7 @@ data class VersionedSettingsBranch(val branchName: String, val enableTriggers: B
     }
 
     fun promoteFinalReleaseTaskName(): String = when {
-        isMaster -> throw UnsupportedOperationException()
+        isMaster -> throw UnsupportedOperationException("No final release job on master branch")
         isRelease -> "promoteFinalRelease"
         else -> "promoteFinalBackportRelease"
     }
