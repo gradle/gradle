@@ -485,8 +485,8 @@ All of them match the consumer attributes:
         }
     }
 
-    private ConfigurationMetadata variant(String name, ImmutableAttributes attributes, Capability... capabilities) {
-        Stub(ConfigurationMetadata) {
+    private ModuleConfigurationMetadata variant(String name, ImmutableAttributes attributes, Capability... capabilities) {
+        Stub(ModuleConfigurationMetadata) {
             getName() >> name
             getAttributes() >> attributes
             getCapabilities() >> Mock(CapabilitiesMetadata) {

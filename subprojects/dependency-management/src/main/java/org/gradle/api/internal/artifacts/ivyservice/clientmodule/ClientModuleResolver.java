@@ -40,9 +40,9 @@ import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
+import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -149,7 +149,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
 
         @Override
         @Nullable
-        public ConfigurationMetadata getConfiguration(String name) {
+        public ModuleConfigurationMetadata getConfiguration(String name) {
             return new ClientModuleConfigurationMetadata(delegate.getId(), name, clientModuleArtifact, clientModuleDependencies);
         }
 
