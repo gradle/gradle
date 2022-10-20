@@ -215,11 +215,7 @@ The feature can be disabled with the [`incrementalAfterFailure`](javadoc/org/gra
 
 #### Introduced support for Java 9+ network debugging
 
-You can run a Java test or application child process with
-[debugging options](userguide/java_testing.html#sec:debugging_java_tests)
-to accept debugger client connections over the network.
-If the debugging options only specify a port, but not a host address,
-the set of accepted connections depends on your version of Java:
+You can run a Java test or application child process with [debugging options](userguide/java_testing.html#sec:debugging_java_tests) to accept debugger client connections over the network. If the debugging options only specify a port, but not a host address, the set of accepted connections depends on your version of Java:
 
 - Before Java 9, the debugger client accepts connections from any machine.
 - Starting in Java 9, the debugger client accepts connections originating from the host machine *only*.
@@ -227,9 +223,7 @@ the set of accepted connections depends on your version of Java:
 This release adds a new property to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html): `host`.
 This allows you to specify the debugger host address along with the port.
 
-Similarly, the new Gradle property `org.gradle.debug.host` now enables
-[running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic)
-accepting connections via network on Java 9 and above.
+Similarly, the new Gradle property `org.gradle.debug.host` now enables [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic) accepting connections via network on Java 9 and above.
 
 On Java 9 and above, use the special host address value `*` to make the debugger server listen on all network interfaces.
 Otherwise, use the address of one of the machine's network interfaces.
@@ -265,6 +259,8 @@ For more information about the rerun option, see [Built-in Task Options](usergui
 
 When generating builds with the `init` task and opting in to incubating features,
 Gradle now places convention plugins under the `build-logic` directory instead of in `buildSrc`.
+
+Convention plugins are Gradle’s recommended way of organizing build logic where you can compose custom build logic by applying and configuring both core and external plugins. 
 
 For more information about convention plugins, see [Convention Plugins](userguide/sharing_build_logic_between_subprojects.html#sec:convention_plugins).
 
