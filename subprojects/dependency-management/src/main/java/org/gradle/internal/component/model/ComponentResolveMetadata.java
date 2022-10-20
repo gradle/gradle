@@ -73,15 +73,9 @@ public interface ComponentResolveMetadata extends HasAttributes, ComponentGraphR
     AttributesSchemaInternal getAttributesSchema();
 
     /**
-     * Returns the names of all of the legacy configurations for this component. May be empty, in which case the component should provide at least one variant via {@link #getVariantsForGraphTraversal()}.
+     * Returns the names of all legacy configurations for this component. May be empty, in which case the component should provide at least one variant via {@link #getVariantsForGraphTraversal()}.
      */
     Set<String> getConfigurationNames();
-
-    /**
-     * Locates the configuration with the given name, if any.
-     */
-    @Nullable
-    ConfigurationMetadata getConfiguration(String name);
 
     /**
      * Returns true when this metadata represents the default metadata provided for components with missing metadata files.
