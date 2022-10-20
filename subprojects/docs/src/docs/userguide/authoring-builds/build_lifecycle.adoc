@@ -175,7 +175,7 @@ To receive these events, add a link:{javadocPath}/org/gradle/api/execution/TaskE
 
 === Task Creation
 
-During project evaluation, Gradle creates tasks and configures inputs, outputs, and actions for those tasks.
+During project evaluation, Gradle registers tasks and their configuration actions. The configuration actions define inputs, outputs, and actions for those tasks. They are evaluated if the task is part of the task graph for the requested tasks.
 
 [[sec:task_creation]]
 ==== React to Task Creation
