@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.file.archive;
 
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.gradle.api.GradleException;
@@ -41,8 +39,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.apache.commons.compress.archivers.ArchiveStreamFactory.TAR;
 
 public class TarFileTree extends AbstractArchiveFileTree {
     private final Provider<File> tarFileProvider;
@@ -97,8 +93,6 @@ public class TarFileTree extends AbstractArchiveFileTree {
     }
 
     private void visitImpl(FileVisitor visitor, InputStream inputStream) throws IOException {
-        checkFormat(inputStream);
-
         AtomicBoolean stopFlag = new AtomicBoolean();
         NoCloseTarArchiveInputStream tar = new NoCloseTarArchiveInputStream(inputStream);
         File expandedDir = getExpandedDir();
@@ -110,18 +104,6 @@ public class TarFileTree extends AbstractArchiveFileTree {
             } else {
                 visitor.visitFile(new DetailsImpl(resource, expandedDir, entry, tar, stopFlag, chmod));
             }
-        }
-    }
-
-    private void checkFormat(InputStream inputStream) throws IOException {
-        String format;
-        try {
-            format = ArchiveStreamFactory.detect(inputStream);
-        } catch (ArchiveException e) {
-            return; //the signature might be missing, the stream could be ok, we don't know
-        }
-        if (!TAR.equals(format)) {
-            throw new IOException("Expected tar archive format but found " + format);
         }
     }
 
