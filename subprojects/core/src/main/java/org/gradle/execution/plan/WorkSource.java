@@ -100,13 +100,15 @@ public interface WorkSource<T> {
         private final String displayName;
         private final List<String> ordinalGroups;
         private final List<String> queuedItems;
+        private final List<String> readyToStartItems;
         private final List<String> otherItems;
 
-        public Diagnostics(String displayName, List<String> ordinalGroups, List<String> queuedItems, List<String> otherItems) {
+        public Diagnostics(String displayName, List<String> ordinalGroups, List<String> waitingToStartItems, List<String> readyToStartItems, List<String> otherWaitingItems) {
             this.displayName = displayName;
             this.ordinalGroups = ordinalGroups;
-            this.queuedItems = queuedItems;
-            this.otherItems = otherItems;
+            this.queuedItems = waitingToStartItems;
+            this.readyToStartItems = readyToStartItems;
+            this.otherItems = otherWaitingItems;
         }
 
         public void describeTo(TreeFormatter formatter) {
@@ -116,6 +118,14 @@ public interface WorkSource<T> {
                 formatter.node("Waiting for nodes");
                 formatter.startChildren();
                 for (String item : queuedItems) {
+                    formatter.node(item);
+                }
+                formatter.endChildren();
+            }
+            if (!readyToStartItems.isEmpty()) {
+                formatter.node("Nodes ready to start");
+                formatter.startChildren();
+                for (String item : readyToStartItems) {
                     formatter.node(item);
                 }
                 formatter.endChildren();
