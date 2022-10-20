@@ -30,7 +30,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
                 @Output${files ? "Files" : "Directories"} FileCollection out
 
                 @TaskAction def exec() {
-                    out.each { it${files ? ".text = 'data'" : ".mkdirs()"} }
+                    out.each { it${files ? ".text = 'data' + it.name" : ".mkdirs(); new File(it, 'contents').text = 'data' + it.name"} }
                 }
             }
 
