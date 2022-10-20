@@ -17,7 +17,7 @@
 
 Gradle is an example of *dependency based programming*: you define tasks and dependencies between tasks.
 Gradle guarantees that these tasks execute in the order of their dependencies.
-Your build scripts configure this dependency graph.
+Your build scripts and plugins configure this dependency graph.
 This page discusses the phases of the lifecycle Gradle passes through as it interprets those scripts.
 Additionally, this page explains how you can react to events of the lifecycle using notifications.
 
