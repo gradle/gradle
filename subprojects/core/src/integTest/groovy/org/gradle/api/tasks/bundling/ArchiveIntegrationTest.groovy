@@ -338,13 +338,32 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
+    def "zipTreeFailsGracefully"() {
+        given:
+        file('content/some-file.txt').text = "Content"
+        file('content').tarTo(file('compressedTarWithWrongExtension.zip'))
+        buildFile << '''
+            task copy(type: Copy) {
+                from zipTree('compressedTarWithWrongExtension.zip')
+                into 'dest'
+            }
+        '''.stripIndent()
+
+        when:
+        def failure = runAndFail('copy')
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertThatCause(CoreMatchers.startsWith("Could not expand ZIP"))
+    }
+
     def "tarTreeFailsGracefully"() {
         given:
         file('content/some-file.txt').text = "Content"
-        file('content').zipTo(file('compressedTarWithWrongExtension.tar'))
+        file('content').zipTo(file('compressedZipWithWrongExtension.tar'))
         buildFile << '''
             task copy(type: Copy) {
-                from tarTree('compressedTarWithWrongExtension.tar')
+                from tarTree('compressedZipWithWrongExtension.tar')
                 into 'dest'
             }
         '''.stripIndent()
