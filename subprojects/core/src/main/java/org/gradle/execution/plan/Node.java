@@ -134,23 +134,15 @@ public abstract class Node {
     /**
      * Potentially update the ordinal group of this node when it is reachable from the given group.
      */
-    public void maybeInheritOrdinalAsDependency(NodeGroup candidate) {
-        // This is called prior to updating the groups of finalizers and their dependencies. So both this node and the candidate can be:
-        // - in the "default" group (ie not-a-group) -> use the candidate
-        // - in an ordinal group -> use the group with the lowest ordinal
-        //
-        if (group == candidate || candidate == NodeGroup.DEFAULT_GROUP) {
+    public void maybeInheritOrdinalAsDependency(@Nullable OrdinalGroup candidateOrdinal) {
+        if (group == candidateOrdinal || candidateOrdinal == null) {
+            // Ignore candidate groups that have no ordinal value
             return;
         }
-        if (group == NodeGroup.DEFAULT_GROUP) {
-            setGroup(candidate);
-            return;
-        }
-
-        OrdinalGroup candidateOrdinal = (OrdinalGroup) candidate;
-        OrdinalGroup currentOrdinal = (OrdinalGroup) group;
-        if (candidateOrdinal.getOrdinal() < currentOrdinal.getOrdinal()) {
-            setGroup(candidate);
+        OrdinalGroup currentOrdinal = group.asOrdinal();
+        if (currentOrdinal == null || candidateOrdinal.getOrdinal() < currentOrdinal.getOrdinal()) {
+            // Currently has no ordinal value or candidate has a smaller ordinal value - merge the candidate into the current group
+            setGroup(group.reachableFrom(candidateOrdinal));
         }
     }
 
