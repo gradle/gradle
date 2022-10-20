@@ -98,6 +98,7 @@ To build projects that use a nonstandard layout, execute the build from the dire
 During settings file evaluation, Gradle:
 
 - Adds libraries to your build script classpath.
+- Defines which included builds participate in a composite build.
 - Defines which projects participate in a multi-project build.
 
 Gradle creates a `Project` for every project in the build.
