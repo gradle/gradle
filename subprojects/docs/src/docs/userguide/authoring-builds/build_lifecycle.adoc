@@ -140,7 +140,7 @@ include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/kotlin",files
 include::{snippetsPath}/buildlifecycle/projectEvaluateEvents/tests/projectEvaluateEvents.out[]
 ----
 
-The following example uses `Project.afterEvaluate()` to run logic when a project finishes evaluation:
+The following example uses `gradle.afterProject()` to run logic when a project finishes evaluation:
 
 ====
 include::sample[dir="snippets/buildlifecycle/buildProjectEvaluateEvents/groovy",files="build.gradle[tags=evaluate-events]"]
