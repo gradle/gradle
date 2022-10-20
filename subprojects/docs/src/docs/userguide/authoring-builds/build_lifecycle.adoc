@@ -76,7 +76,7 @@ include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
 [[sec:initialization]]
 == Initialization
 
-In the initialization phase, Gradle detects the set of projects participating in the build.
+In the initialization phase, Gradle detects the set of projects and included builds participating in the build.
 Then, Gradle evaluates the settings file. Finally, Gradle instantiates `Project` instances for each project.
 
 === Detect Settings File
