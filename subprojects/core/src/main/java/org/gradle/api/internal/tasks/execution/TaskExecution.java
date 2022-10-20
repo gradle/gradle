@@ -48,12 +48,12 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -494,7 +494,7 @@ public class TaskExecution implements UnitOfWork {
         @Override
         public FileCollectionInternal createDelegate() {
             List<File> outputs = previousOutputs.values().stream()
-                .map(SnapshotUtil::index)
+                .map(SnapshotUtil::indexByAbsolutePath)
                 .map(Map::keySet)
                 .flatMap(Collection::stream)
                 .map(File::new)

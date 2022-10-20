@@ -31,7 +31,7 @@ import static org.gradle.internal.file.FileMetadata.AccessType.VIA_SYMLINK
 import static org.gradle.internal.file.impl.DefaultFileMetadata.file
 import static org.gradle.internal.hash.TestHashCodes.hashCodeFrom
 import static org.gradle.internal.snapshot.FileSystemSnapshot.EMPTY
-import static org.gradle.internal.snapshot.SnapshotUtil.index
+import static org.gradle.internal.snapshot.SnapshotUtil.indexByAbsolutePath
 
 class FileSystemSnapshotSerializerTest extends SerializerSpec implements TestSnapshotFixture {
     def stringInterner = new StringInterner()
@@ -114,6 +114,6 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec implements TestSna
 
     private static void assertEqualSnapshots(FileSystemSnapshot snapshot, FileSystemSnapshot expected) {
         assert snapshot == expected
-        assert index(snapshot) == index(expected)
+        assert indexByAbsolutePath(snapshot) == indexByAbsolutePath(expected)
     }
 }
