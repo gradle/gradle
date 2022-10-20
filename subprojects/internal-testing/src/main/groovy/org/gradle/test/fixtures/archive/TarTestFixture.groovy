@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.archive
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import org.apache.commons.io.IOUtils
 import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.charset.Charset
@@ -48,17 +49,7 @@ class TarTestFixture extends ArchiveTestFixture {
     }
 
     private static String getContentForEntry(TarArchiveEntry entry, TarArchiveInputStream inputStream, String contentCharset) {
-        OutputStream outputStream = new ByteArrayOutputStream()
-        byte[] buf = new byte[1024];
-        long bytesRemaining = entry.getSize();
-        while (bytesRemaining > 0) {
-            int bytesRead = inputStream.read(buf, 0, buf.length);
-            if (bytesRead == -1) {
-                break;
-            }
-            outputStream.write(buf, 0, bytesRead);
-            bytesRemaining -= bytesRead;
-        }
-        new String(outputStream.toByteArray(), contentCharset ?: Charset.defaultCharset().name())
+        byte[] content = IOUtils.readFully(inputStream, (int) entry.getSize())
+        new String(content, contentCharset ?: Charset.defaultCharset().name())
     }
 }
