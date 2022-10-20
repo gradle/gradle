@@ -73,7 +73,7 @@ abstract class PublishRelease(
 class PublishFinalRelease(branch: VersionedSettingsBranch) : PublishRelease(
     promotedBranch = branch.branchName,
     prepTask = "prepFinalRelease",
-    promoteTask = "promoteFinalRelease",
+    promoteTask = branch.promoteFinalReleaseTaskName(),
     requiredConfirmationCode = "final",
     init = {
         id("Promotion_FinalRelease")
