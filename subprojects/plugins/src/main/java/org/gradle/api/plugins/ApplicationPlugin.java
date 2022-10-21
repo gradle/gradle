@@ -22,7 +22,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
@@ -44,7 +43,6 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import java.io.File;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
@@ -212,9 +210,9 @@ public class ApplicationPlugin implements Plugin<Project> {
         TaskProvider<Task> startScripts = project.getTasks().named(TASK_START_SCRIPTS_NAME);
 
         // TODO Add as task input
-        Provider<Set<ResolvedArtifactResult>> artifacts = project.getConfigurations()
-            .named(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).get()
-            .getIncoming().getArtifacts().getResolvedArtifacts();
+//        Provider<Set<ResolvedArtifactResult>> artifacts = project.getConfigurations()
+//            .named(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).get()
+//            .getIncoming().getArtifacts().getResolvedArtifacts();
 
         // TODO map to Provider<Map<File, String>>
         // artifacts.map(as -> as.stream().map(a -> a.getId()));
@@ -224,9 +222,9 @@ public class ApplicationPlugin implements Plugin<Project> {
         libChildSpec.from(jar);
         libChildSpec.from(project.getConfigurations().named(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
         libChildSpec.setDuplicatesStrategy(DuplicatesStrategy.DEDUPLICATE);
-        libChildSpec.eachFile(fileCopyDetails -> {
-            fileCopyDetails.setName("");
-        });
+//        libChildSpec.eachFile(fileCopyDetails -> {
+//            fileCopyDetails.setName("");
+//        });
 
         CopySpec binChildSpec = project.copySpec();
 
