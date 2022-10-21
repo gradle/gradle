@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
@@ -29,7 +30,7 @@ import javax.annotation.Nullable;
  *
  * <p>Implementations of this type should be immutable and thread safe.</p>
  */
-public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata {
+public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata, ComponentGraphResolveMetadata {
     /**
      * {@inheritDoc}
      */

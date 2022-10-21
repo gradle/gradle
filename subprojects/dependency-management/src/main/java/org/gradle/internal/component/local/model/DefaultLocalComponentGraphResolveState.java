@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
-public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentMetadata> implements LocalComponentGraphResolveState {
+public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentMetadata, LocalComponentMetadata> implements LocalComponentGraphResolveState {
     private final ConcurrentMap<LocalVariantGraphResolveMetadata, DefaultLocalVariantArtifactResolveState> variants = new ConcurrentHashMap<>();
 
     @Override
@@ -52,7 +52,7 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     }
 
     public DefaultLocalComponentGraphResolveState(LocalComponentMetadata metadata) {
-        super(metadata);
+        super(metadata, metadata);
     }
 
     @Override

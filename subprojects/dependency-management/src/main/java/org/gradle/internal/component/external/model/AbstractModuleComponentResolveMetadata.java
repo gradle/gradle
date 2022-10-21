@@ -27,12 +27,14 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
@@ -119,6 +121,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     @Override
     public boolean isMissing() {
         return missing;
+    }
+
+    @Override
+    public List<? extends DependencyMetadata> getSyntheticDependencies(String configuration) {
+        return Collections.emptyList();
     }
 
     @Override
