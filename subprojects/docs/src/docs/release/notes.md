@@ -3,14 +3,11 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release includes [building and running code with Java 19](#java19),
 a flag to [rerun tasks individually](#individual-rerun),
-and a new [strongly-typed dependencies block](#strongly-typed-dependencies) for JVM test suites.
+a new [strongly-typed dependencies block](#strongly-typed-dependencies) for JVM test suites,
+and a [Service Provider Interface (SPI) for Java Toolchains](#toolchain-spi).
 
-There are also enhancements to the [configuration cache](#configuration) and
+As always there are also performance improvements like enhancements to the [configuration cache](#configuration) and
 [incremental compilation](#incremental-compilation-after-failure).
-
-This release introduces a [Service Provider Interface (SPI) for Java Toolchains](#toolchain-spi).
-
-The Kotlin DSL now supports [named dependency arguments](#named-kotlin-dsl-dependency-arguments) for external dependencies.
 
 <!--
 Include only their name, impactful features should be called out separately below.
@@ -19,14 +16,14 @@ Include only their name, impactful features should be called out separately belo
  THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
-
 [altrisi](https://github.com/altrisi),
 [aSemy](https://github.com/aSemy),
 [Ashwin Pankaj](https://github.com/ashwinpankaj),
-[Aurimas](https://github.com/liutikas)
+[Aurimas](https://github.com/liutikas),
 [BJ Hargrave](https://github.com/bjhargrave),
-[Bradley Turek](https://github.com/TurekBot)
-[Craig Andrews](https://github.com/candrews)
+[Björn Kautler](https://github.com/Vampire),
+[Bradley Turek](https://github.com/TurekBot),
+[Craig Andrews](https://github.com/candrews),
 [Daniel Lin](https://github.com/ephemient),
 [David Morris](https://github.com/codefish1),
 [Edmund Mok](https://github.com/edmundmok),
@@ -40,6 +37,7 @@ We would like to thank the following community members for their contributions t
 [Konstantin Gribov](https://github.com/grossws),
 [Leonardo Brondani Schenkel](https://github.com/lbschenkel),
 [Martin d'Anjou](https://github.com/martinda),
+[Michael Bailey](https://github.com/yogurtearl),
 [Pete Bentley](https://github.com/prbprbprb),
 [Rob Bavey](https://github.com/robbavey),
 [Sam Snyder](https://github.com/sambsnyd),
@@ -47,9 +45,8 @@ We would like to thank the following community members for their contributions t
 [teawithbrownsugar](https://github.com/teawithbrownsugar),
 [Thomas Broadley](https://github.com/tbroadley),
 [urdak](https://github.com/urdak),
+[Varun Sharma](https://github.com/varunsh-coder),
 [Xin Wang](https://github.com/scaventz)
-
-
 
 ## Upgrade instructions
 
@@ -99,33 +96,11 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 Gradle 7.6 supports compiling, testing and running on Java 19.
 
-<a name="named-kotlin-dsl-dependency-arguments"></a>
-#### Introduced named dependency arguments in the Kotlin DSL for external dependencies
-
-
-In the [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block,
-the Kotlin DSL now supports named arguments for external dependencies:
-
-```kotlin
-testing {
-    suites {
-        val test by getting(JvmTestSuite::class) {
-            useJUnitJupiter()
-            dependencies {
-                implementation(module(group = "com.google.guava",
-                               name = "guava",
-                               version = "31.1-jre"))
-            }
-        }
-    }
-}
-```
-
 <a name="strongly-typed-dependencies"></a>
 #### Introduced strongly-typed `dependencies` block for JVM test suites
 
-The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block
-now uses a [strongly-typed API](dsl/org.gradle.api.plugins.jvm.JvmComponentDependencies.html).
+The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now uses a [strongly-typed API](dsl/org.gradle.api.plugins.jvm.JvmComponentDependencies.html).
+This makes the build logic cleaner and improves assistance in the IDEs, especially with the Kotlin DSL.
 
 Previously, the JVM test suite `dependencies` block only accepted dependencies of type `Object`.
 
@@ -172,33 +147,58 @@ Using a `FileCollection` provides a `FileCollectionDependency`.
 This allows Java and Kotlin to properly configure all types of dependencies
 and improves IDE support for the Groovy DSL.
 
+In addition, the Kotlin DSL now supports named arguments for external dependencies in this block:
+
+```kotlin
+testing {
+    suites {
+        "test"(JvmTestSuite::class) { 
+            useJUnitJupiter()
+            dependencies {
+                implementation(module(group = "com.google.guava",
+                               name = "guava",
+                               version = "31.1-jre"))
+            }
+        }
+    }
+}
+```
+
 For more information about the test suite `dependencies` block, see
 [Differences Between Test Suite and Top-Level Dependencies](userguide/jvm_test_suite_plugin.html#differences_between_the_test_suite_dependencies_and_the_top_level_dependencies_blocks).
 
-#### Introduced support for Java 9+ network debugging
+<a name="toolchain-spi"></a>
+#### Added support for Java Toolchain downloads from arbitrary repositories
 
-You can run a Java test or application child process with
-[debugging options](userguide/java_testing.html#sec:debugging_java_tests)
-to accept debugger client connections over the network.
-If the debugging options only specify a port, but not a host address,
-the set of accepted connections depends on your version of Java:
+Starting in Gradle 7.6, Gradle can download JVM [toolchains](userguide/toolchains.html) from arbitrary repositories.
+By default, Gradle downloads toolchains from Adoptium/AdoptOpenJDK. You can now override the default providers with repositories of your choice using a toolchain resolver plugin.
 
-- Before Java 9, the debugger client accepts connections from any machine.
-- Starting in Java 9, the debugger client accepts connections originating from the host machine *only*.
+For example, the following uses custom plugins that provide `AzulResolver` and `AdoptiumResolver` to add custom toolchains for Adoptium and Azul:
 
-This release adds a new property to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html): `host`.
-This allows you to specify the debugger host address along with the port.
+```kotlin
+toolchainManagement {
+    jvm {
+        javaRepositories {
+            repository("azul") {
+                resolverClass.set(AzulResolver::class.java)
+                credentials {
+                    username = "user"
+                    password = "password"
+                }
+                authentication {
+                    create<DigestAuthentication>("digest")
+                }
+            }
+            repository("adoptium") {
+                resolverClass.set(AdoptiumResolver::class.java)
+            }
+        }
+    }
+}
+```
 
-Similarly, the new Gradle property `org.gradle.debug.host` now enables
-[running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic)
-accepting connections via network on Java 9 and above.
-
-On Java 9 and above, use the special host address value `*` to make the debugger server listen on all network interfaces.
-Otherwise, use the address of one of the machine's network interfaces.
-
-
-<a name="developer-productivity"></a>
-### Developer Productivity
+For more information about using custom toolchain resolvers, see the [Toolchain Download Repositories documentation](userguide/toolchains.html#sub:download_repositories).
+For more information about writing custom toolchain resolvers, see the [Toolchain Resolver Plugins documentation](userguide/toolchain_plugins.html).
 
 <a name="incremental-compilation-after-failure"></a>
 #### Added support for incremental compilation following a compilation failure
@@ -213,6 +213,45 @@ Starting in Gradle 7.6, Java and Groovy incremental compilation can work even af
 This feature is enabled by default when incremental compilation is enabled.
 The feature can be disabled with the [`incrementalAfterFailure`](javadoc/org/gradle/api/tasks/compile/CompileOptions.html#getIncrementalAfterFailure--) compile option.
 
+#### Introduced support for Java 9+ network debugging
+
+You can run a Java test or application child process with [debugging options](userguide/java_testing.html#sec:debugging_java_tests) to accept debugger client connections over the network. If the debugging options only specify a port, but not a host address, the set of accepted connections depends on your version of Java:
+
+- Before Java 9, the debugger client accepts connections from any machine.
+- Starting in Java 9, the debugger client accepts connections originating from the host machine *only*.
+
+This release adds a new property to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html): `host`.
+This allows you to specify the debugger host address along with the port.
+
+Similarly, the new Gradle property `org.gradle.debug.host` now enables [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic) accepting connections via network on Java 9 and above.
+
+On Java 9 and above, use the special host address value `*` to make the debugger server listen on all network interfaces.
+Otherwise, use the address of one of the machine's network interfaces.
+
+#### Revised dependencies generated from `init` Maven conversions from `implementation` to `api`
+
+The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration when converting a Maven project.
+This sharply reduces the number of compilation errors.
+It is still recommended to use [`implementation`](userguide/java_library_plugin.html#sec:java_library_separation) where possible. 
+
+For more information about Maven conversions, see the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion).
+
+<a name="general-improvements"></a>
+### General Improvements
+
+<a name="individual-rerun"></a>
+#### Introduced flag for individual task `rerun`
+
+All tasks can now use the `--rerun` option. This option works like `--rerun-tasks`,
+except `--rerun` only effects a single task. For example, you can force tests to
+ignore up-to-date checks like this:
+
+```
+gradle test --rerun
+```
+
+For more information about the rerun option, see [Built-in Task Options](userguide/command_line_interface.html#sec:builtin_task_options).
+
 <a name="init"></a>
 #### Relocated convention plugins in projects generated with `init`
 
@@ -221,13 +260,9 @@ The feature can be disabled with the [`incrementalAfterFailure`](javadoc/org/gra
 When generating builds with the `init` task and opting in to incubating features,
 Gradle now places convention plugins under the `build-logic` directory instead of in `buildSrc`.
 
+Convention plugins are Gradle’s recommended way of organizing build logic where you can compose custom build logic by applying and configuring both core and external plugins. 
+
 For more information about convention plugins, see [Convention Plugins](userguide/sharing_build_logic_between_subprojects.html#sec:convention_plugins).
-
-#### Revised dependencies generated by Maven conversions from `implementation` to `api`
-
-The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration
-when converting a Maven project. This sharply reduces the number of compilation errors.
-For more information about Maven conversions, see the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion).
 
 #### Introduced network timeout configuration for wrapper download
 
@@ -256,19 +291,6 @@ networkTimeout=30000
 
 For more information about the Gradle wrapper, see [Gradle Wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper).
 
-<a name="individual-rerun"></a>
-#### Introduced flag for individual task `rerun`
-
-All tasks can now use the `--rerun` option. This option works like `--rerun-tasks`,
-except `--rerun` only effects a single task. For example, you can force tests to
-ignore up-to-date checks like this:
-
-```
-gradle test --rerun
-```
-
-For more information about the rerun option, see [Built-in Task Options](userguide/command_line_interface.html#sec:builtin_task_options).
-
 #### Introduced ability to explain why a task was skipped with a message
 
 You can now provide a reason message when conditionally disabling a task using the
@@ -285,25 +307,9 @@ tasks.register("slowBenchmark") {
 Gradle outputs reason messages at log level `INFO`.
 To output reason messages to the console, use the `--info` or `--debug` [log levels](userguide/logging.html).
 
-<a name="configuration"></a>
-### Configuration
+<a name="dependency-management"></a>
+### Dependency Management
 
-#### Improved configuration cache failure recovery
-
-In previous Gradle versions, it was possible to leave a configuration cache entry in a
-permanently broken state after a dependency resolution failure. The same build would later succeed with configuration caching disabled.
-
-Starting with Gradle 7.6, this is no longer the case.
-Gradle recovers from dependency resolution failures in exactly the same way with the configuration cache enabled.
-
-#### Extended configuration cache task compatibility
-
-The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are now compatible with the configuration cache.
-
-#### Added configuration cache support to the Maven Publish Plugin
-
-The [Maven Publish Plugin](userguide/publishing_maven.html) is now compatible with the configuration cache.
-Note that when using credentials, the configuration cache requires [safe credential containers](userguide/configuration_cache.html#config_cache:requirements:safe_credentials).
 
 #### Clarified the ordering of disambiguation rule checks in `resolvableConfigurations` reports
 
@@ -343,6 +349,28 @@ The following Attributes have disambiguation rules defined.
 For more information, see [Attribute Disambiguation Rules](userguide/variant_attributes.html#sec:abm_disambiguation_rules).
 
 
+
+<a name="configuration"></a>
+### Configuration Cache
+
+The [configuration cache](https://docs.gradle.org/7.5/userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds.
+
+#### Improved configuration cache failure recovery
+
+In previous Gradle versions, it was possible to leave a configuration cache entry in a permanently broken state after a dependency resolution failure. Following builds would simply reproduce the failure without any attempt to recover from it.
+
+Starting with Gradle 7.6, this is no longer the case. Gradle recovers from dependency resolution failures in exactly the same way whether the configuration cache is enabled or not.
+
+#### Extended configuration cache task compatibility
+
+The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are now compatible with the configuration cache.
+
+#### Added configuration cache support to the Maven Publish Plugin
+
+The [Maven Publish Plugin](userguide/publishing_maven.html) is now compatible with the configuration cache.
+
+Note that when using credentials, the configuration cache requires [safe credential containers](userguide/configuration_cache.html#config_cache:requirements:safe_credentials).
+
 #### Improved handling of `--offline` option
 
 Gradle now stores configuration caches for online and offline modes separately.
@@ -351,7 +379,7 @@ This change supports builds and plugins that need to behave differently during c
 For more information, see [the `--offline` CLI option](userguide/command_line_interface.html#sec:command_line_execution_options).
 
 <a name="plugin"></a>
-### Plugin
+### Plugin Development
 
 #### Introduced support for task options of type `Integer`
 
@@ -370,41 +398,10 @@ can be passed from the command line as follows:
 gradle myCustomTask --integer-option=123
 ```
 
-<a name="toolchain-spi"></a>
-#### Added support for Java Toolchain downloads from arbitrary repositories
-
-Starting in Gradle 7.6, Gradle can download toolchains from arbitrary repositories.
-By default, Gradle downloads toolchains from Adoptium/AdoptOpenJDK. You can now override the default providers with repositories
-of your choice using a toolchain resolver plugin.
-The following example uses custom plugins that provide `AzulResolver` and `AdoptiumResolver` to add custom toolchains for Adoptium and Azul:
-
-```kotlin
-toolchainManagement {
-    jvm {
-        javaRepositories {
-            repository("azul") {
-                resolverClass.set(AzulResolver::class.java)
-                credentials {
-                    username = "user"
-                    password = "password"
-                }
-                authentication {
-                    create<DigestAuthentication>("digest")
-                }
-            }
-            repository("adoptium") {
-                resolverClass.set(AdoptiumResolver::class.java)
-            }
-        }
-    }
-}
-```
-
-For more information about using custom toolchain resolvers, see the [Toolchain Download Repositories documentation](userguide/toolchains.html#sub:download_repositories).
-For more information about writing custom toolchain resolvers, see the [Toolchain Resolver Plugins documentation](userguide/toolchain_plugins.html).
-
 <a name="ide"></a>
-### IDE
+### IDE Integration
+
+This improvements are for IDE integrators and are not directly for end-users until their specific IDE implments the integration. 
 
 #### Enhanced test events to distinguish between assertion and framework failures
 
