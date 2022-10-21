@@ -44,8 +44,8 @@ A Gradle build has three distinct phases.
 Gradle runs these phases in order: first initialization, then configuration, and finally execution.
 
 Initialization::
-- Detects the settings file.
-- Evaluates the <<organizing_gradle_projects#sec:settings_file,settings file>> to determine which projects and included builds participate in the build.
+- Detects the <<organizing_gradle_projects#sec:settings_file,settings file>>.
+- Evaluates the settings file to determine which projects and included builds participate in the build.
 - Creates a link:{groovyDslPath}/org.gradle.api.Project.html[`Project`] instance for every project.
 Configuration::
 - Evaluates the build scripts of every project participating in the build.
