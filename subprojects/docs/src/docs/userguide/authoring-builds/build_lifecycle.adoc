@@ -128,7 +128,8 @@ For example, you could use these notifications for:
 - custom logging
 - custom profiling
 
-The following example adds a `test` task to each project where the `hasTests` property value is `true`:
+The following example uses `gradle.beforeProject()` to add `hasTests` property to certain tests.
+Later, the example uses `gradle.afterProject()` to add a `test` task to each project where the `hasTests` property value is `true`:
 
 ====
 include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/groovy",files="build.gradle[tags=after-evaluate];project-a.gradle[]"]
@@ -138,26 +139,6 @@ include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/kotlin",files
 ----
 > gradle -q test
 include::{snippetsPath}/buildlifecycle/projectEvaluateEvents/tests/projectEvaluateEvents.out[]
-----
-
-The following example uses `gradle.afterProject()` to run logic when a project finishes evaluation:
-
-====
-include::sample[dir="snippets/buildlifecycle/buildProjectEvaluateEvents/groovy",files="build.gradle[tags=evaluate-events]"]
-include::sample[dir="snippets/buildlifecycle/buildProjectEvaluateEvents/kotlin",files="build.gradle.kts[tags=evaluate-events]"]
-====
-
-The following example runs logic when *any* project finishes evaluation:
-
-[source.multi-language-sample,groovy]
-----
-> gradle -q test
-include::{snippetsPath}/buildlifecycle/buildProjectEvaluateEvents/tests-groovy/buildProjectEvaluateEvents.groovy.out[]
-----
-[source.multi-language-sample,kotlin]
-----
-> gradle -q test
-include::{snippetsPath}/buildlifecycle/buildProjectEvaluateEvents/tests-kotlin/buildProjectEvaluateEvents.kotlin.out[]
 ----
 
 To receive these events via a listener instead of a closure, add a link:{javadocPath}/org/gradle/api/ProjectEvaluationListener.html[ProjectEvaluationListener] to a build's link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] instance.

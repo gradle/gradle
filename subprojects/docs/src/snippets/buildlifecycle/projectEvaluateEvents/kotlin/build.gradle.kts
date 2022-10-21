@@ -1,15 +1,16 @@
 // tag::after-evaluate[]
-allprojects {
+gradle.beforeProject {
     // Set a default value
     extra["hasTests"] = false
+}
 
-    afterEvaluate {
-        if (extra["hasTests"] as Boolean) {
-            println("Adding test task to $project")
-            tasks.register("test") {
-                doLast {
-                    println("Running tests for $project")
-                }
+gradle.afterProject {
+    if (extra["hasTests"] as Boolean) {
+        val projectString = project.toString()
+        println("Adding test task to $projectString")
+        tasks.register("test") {
+            doLast {
+                println("Running tests for $projectString")
             }
         }
     }
