@@ -370,8 +370,8 @@ public class Foo {
 
         where:
         source | target | sourceOut | targetOut
-        '9'    | '10'   | '1.9'     | '1.10'
-        '9'    | 'none' | '1.9'     | '11'
+        '9'    | '10'   | '9'       | '10'
+        '9'    | 'none' | '9'       | '11'
         'none' | 'none' | '11'      | '11'
 
     }
