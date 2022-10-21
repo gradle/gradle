@@ -338,10 +338,10 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    def "zipTreeFailsGracefully"() {
+    def "zipTreeFailsGracefully when #scenario"() {
         given:
-        file('content/some-file.txt').text = "Content"
-        file('content').tarTo(file('compressedTarWithWrongExtension.zip'))
+        content.call(getTestDirectory())
+        file('content/some-file.txt').text = "Content"; file('content').tarTo(file('compressedTarWithWrongExtension.zip'))
         buildFile << '''
             task copy(type: Copy) {
                 from zipTree('compressedTarWithWrongExtension.zip')
@@ -355,12 +355,16 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':copy'.")
         failure.assertThatCause(CoreMatchers.startsWith("Could not expand ZIP"))
+
+        where:
+        scenario | content
+        "archive of other format"   | { td -> td.file('content/some-file.txt').text = "Content"; td.file('content').tarTo(td.file('compressedTarWithWrongExtension.zip')) }
+        "random file"               | { td -> td.file('compressedZipWithWrongExtension.tar').text = "MamboJumbo" }
     }
 
-    def "tarTreeFailsGracefully"() {
+    def "tarTreeFailsGracefully when #scenario"() {
         given:
-        file('content/some-file.txt').text = "Content"
-        file('content').zipTo(file('compressedZipWithWrongExtension.tar'))
+        content.call(getTestDirectory())
         buildFile << '''
             task copy(type: Copy) {
                 from tarTree('compressedZipWithWrongExtension.tar')
@@ -374,6 +378,11 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':copy'.")
         failure.assertThatCause(CoreMatchers.startsWith("Unable to expand TAR"))
+
+        where:
+        scenario | content
+        "archive of other format"   | { td -> td.file('content/some-file.txt').text = "Content"; td.file('content').zipTo(td.file('compressedZipWithWrongExtension.tar')) }
+        "random file"               | { td -> td.file('compressedZipWithWrongExtension.tar').text = "MamboJumbo" }
     }
 
     def cannotCreateAnEmptyZip() {

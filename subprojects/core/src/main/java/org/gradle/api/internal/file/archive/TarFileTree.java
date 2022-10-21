@@ -118,7 +118,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
         try {
             format = ArchiveStreamFactory.detect(inputStream);
         } catch (ArchiveException e) {
-            return; //the signature might be missing, the stream could be ok, we don't know
+            throw new IOException("Failed detecting archive format!", e);
         }
         if (!TAR.equals(format)) {
             throw new IOException("Expected tar archive format but found " + format);
