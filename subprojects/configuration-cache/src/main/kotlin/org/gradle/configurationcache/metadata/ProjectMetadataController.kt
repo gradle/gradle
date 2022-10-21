@@ -42,7 +42,7 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata
 import org.gradle.internal.component.local.model.LocalComponentMetadata
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata
+import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
@@ -79,19 +79,19 @@ class ProjectMetadataController(
     }
 
     private
-    suspend fun WriteContext.writeConfigurations(configurations: List<LocalConfigurationMetadata>) {
+    suspend fun WriteContext.writeConfigurations(configurations: List<LocalConfigurationGraphResolveMetadata>) {
         writeCollection(configurations) {
             writeConfiguration(it)
         }
     }
 
     private
-    suspend fun WriteContext.writeConfiguration(configuration: LocalConfigurationMetadata) {
-        configuration.prepareToResolveArtifacts()
+    suspend fun WriteContext.writeConfiguration(configuration: LocalConfigurationGraphResolveMetadata) {
+        val artifactMetadata = configuration.prepareToResolveArtifacts()
         writeString(configuration.name)
         write(configuration.attributes)
-        writeDependencies(configuration.dependencies)
-        writeVariants(configuration.variants)
+        writeDependencies(artifactMetadata.dependencies)
+        writeVariants(artifactMetadata.variants)
     }
 
     private

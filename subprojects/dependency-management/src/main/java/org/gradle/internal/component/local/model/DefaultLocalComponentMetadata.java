@@ -246,7 +246,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     @Override
-    public DefaultLocalConfigurationMetadata getConfiguration(final String name) {
+    public LocalConfigurationGraphResolveMetadata getConfiguration(final String name) {
         return allConfigurations.get(name);
     }
 
@@ -304,7 +304,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         }
     }
 
-    protected class DefaultLocalConfigurationMetadata implements LocalConfigurationMetadata, BuildableLocalConfigurationMetadata {
+    protected class DefaultLocalConfigurationMetadata implements LocalConfigurationMetadata, BuildableLocalConfigurationMetadata, LocalConfigurationGraphResolveMetadata {
         private final String name;
         private final String description;
         private final boolean transitive;

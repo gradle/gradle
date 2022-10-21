@@ -39,7 +39,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentMetadata, LocalComponentMetadata> implements LocalComponentGraphResolveState {
-    private final ConcurrentMap<LocalVariantGraphResolveMetadata, DefaultLocalVariantArtifactResolveState> variants = new ConcurrentHashMap<>();
+    private final ConcurrentMap<LocalConfigurationGraphResolveMetadata, DefaultLocalVariantArtifactResolveState> variants = new ConcurrentHashMap<>();
 
     @Override
     public ModuleVersionIdentifier getModuleVersionId() {
@@ -57,23 +57,23 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
     @Override
     public VariantArtifactGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant) {
-        return stateFor((LocalVariantGraphResolveMetadata) variant);
+        return stateFor((LocalConfigurationGraphResolveMetadata) variant);
     }
 
     @Override
     public VariantArtifactResolveState prepareForArtifactResolution(VariantGraphResolveMetadata variant) {
-        return stateFor((LocalVariantGraphResolveMetadata) variant);
+        return stateFor((LocalConfigurationGraphResolveMetadata) variant);
     }
 
-    private DefaultLocalVariantArtifactResolveState stateFor(LocalVariantGraphResolveMetadata variant) {
+    private DefaultLocalVariantArtifactResolveState stateFor(LocalConfigurationGraphResolveMetadata variant) {
         return variants.computeIfAbsent(variant, c -> new DefaultLocalVariantArtifactResolveState(getMetadata(), variant));
     }
 
     private static class DefaultLocalVariantArtifactResolveState implements VariantArtifactResolveState, VariantArtifactGraphResolveMetadata {
         private final LocalComponentMetadata component;
-        private final LocalVariantGraphResolveMetadata graphSelectedVariant;
+        private final LocalConfigurationGraphResolveMetadata graphSelectedVariant;
 
-        public DefaultLocalVariantArtifactResolveState(LocalComponentMetadata component, LocalVariantGraphResolveMetadata graphSelectedVariant) {
+        public DefaultLocalVariantArtifactResolveState(LocalComponentMetadata component, LocalConfigurationGraphResolveMetadata graphSelectedVariant) {
             this.component = component;
             this.graphSelectedVariant = graphSelectedVariant;
         }
@@ -100,8 +100,8 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
             final Set<? extends VariantResolveMetadata> allVariants;
             if (component.getVariantsForGraphTraversal().isPresent()) {
                 allVariants = component.getVariantsForGraphTraversal().get().stream().
-                    map(LocalVariantGraphResolveMetadata.class::cast).
-                    map(LocalVariantGraphResolveMetadata::prepareToResolveArtifacts).
+                    map(LocalConfigurationGraphResolveMetadata.class::cast).
+                    map(LocalConfigurationGraphResolveMetadata::prepareToResolveArtifacts).
                     flatMap(variant -> variant.getVariants().stream()).
                     collect(Collectors.toSet());
             } else {

@@ -50,7 +50,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ShadowedCapability;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
+import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -199,11 +199,11 @@ public class NodeState implements DependencyGraphNode {
 
     @Override
     public Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges() {
-        if (metadata instanceof LocalConfigurationMetadata) {
+        if (metadata instanceof LocalConfigurationGraphResolveMetadata) {
             // Only when this node has a transitive incoming edge
             for (EdgeState incomingEdge : incomingEdges) {
                 if (incomingEdge.isTransitive()) {
-                    return ((LocalConfigurationMetadata) metadata).getFiles();
+                    return ((LocalConfigurationGraphResolveMetadata) metadata).getFiles();
                 }
             }
         }
