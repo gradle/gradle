@@ -85,9 +85,9 @@ When you run Gradle in a directory that contains a `settings.gradle` file, Gradl
 You can run Gradle within any subproject of the build.footnote:[Gradle supports partial multi-project builds (see <<intro_multi_project_builds.adoc#intro_multi_project_builds,Executing Multi-Project Builds>>).]
 When you run Gradle in a directory that contains *no* `settings.gradle` file:
 
-. Gradle looks for a `settings.gradle` file in parent directories.
-. If Gradle finds a `settings.gradle` file, Gradle checks if the current project is part of the multi-project build. If so, Gradle builds as a multi-project.
-. If Gradle does not find a `settings.gradle` file, Gradle builds as a single project.
+. Gradle looks for a `settings.gradle(.kts)` file in parent directories.
+. If Gradle finds a `settings.gradle(.kts)` file, Gradle checks if the current project is part of the multi-project build. If so, Gradle builds as a multi-project.
+. If Gradle does not find a `settings.gradle(.kts)` file, Gradle builds as a single project.
 
 In the standard Gradle project layout, project paths match the physical subproject layout on disk.
 The automatic search for a `settings.gradle` file only works for multi-project builds with a standard project layout.
