@@ -17,14 +17,13 @@
 package org.gradle.internal.component.local.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.util.List;
 import java.util.Set;
 
-public interface LocalConfigurationMetadata extends ConfigurationMetadata, ConfigurationGraphResolveMetadata, LocalVariantGraphResolveMetadata {
+public interface LocalConfigurationMetadata extends ConfigurationMetadata {
 
     String getDescription();
 

@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VirtualPlatformState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -59,7 +59,7 @@ public class TestComponentResolutionState implements ComponentResolutionState {
 
     @Nullable
     @Override
-    public ComponentResolveMetadata getMetadataOrNull() {
+    public ComponentGraphResolveMetadata getMetadataOrNull() {
         return null;
     }
 

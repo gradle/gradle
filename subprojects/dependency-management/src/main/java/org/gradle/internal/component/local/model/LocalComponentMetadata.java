@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 public interface LocalComponentMetadata extends ComponentResolveMetadata, ComponentGraphResolveMetadata {
     @Nullable
     @Override
-    LocalConfigurationMetadata getConfiguration(String name);
+    LocalConfigurationGraphResolveMetadata getConfiguration(String name);
 
     LocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts);
 }

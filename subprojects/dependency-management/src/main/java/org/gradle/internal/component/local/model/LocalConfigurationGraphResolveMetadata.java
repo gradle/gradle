@@ -16,9 +16,16 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.internal.component.model.VariantGraphResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
+
+import java.util.Set;
 
 // This should be a state object, not a metadata object
-public interface LocalVariantGraphResolveMetadata extends VariantGraphResolveMetadata {
+public interface LocalConfigurationGraphResolveMetadata extends ConfigurationGraphResolveMetadata {
+    /**
+     * Returns the files attached to this configuration, if any. These should be represented as dependencies, but are currently represented as files as a migration step.
+     */
+    Set<LocalFileDependencyMetadata> getFiles();
+
     LocalConfigurationMetadata prepareToResolveArtifacts();
 }

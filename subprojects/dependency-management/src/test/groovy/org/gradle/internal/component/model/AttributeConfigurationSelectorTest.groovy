@@ -44,7 +44,7 @@ class AttributeConfigurationSelectorTest extends Specification {
     private final AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
     private ComponentGraphResolveState targetState
-    private ComponentResolveMetadata targetComponent
+    private ComponentGraphResolveMetadata targetComponent
     private ConfigurationMetadata selected
     private ImmutableAttributes consumerAttributes = ImmutableAttributes.EMPTY
     private List<Capability> requestedCapabilities = []
@@ -465,7 +465,7 @@ All of them match the consumer attributes:
     }
 
     private void component(ConfigurationMetadata... variants) {
-        targetComponent = Stub(ComponentResolveMetadata) {
+        targetComponent = Stub(ComponentGraphResolveMetadata) {
             getModuleVersionId() >> Stub(ModuleVersionIdentifier) {
                 getGroup() >> 'org'
                 getName() >> 'lib'

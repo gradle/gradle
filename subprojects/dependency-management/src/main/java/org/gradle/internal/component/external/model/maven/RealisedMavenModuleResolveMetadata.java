@@ -121,7 +121,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         }
         ImmutableList.Builder<ModuleConfigurationMetadata> builder = new ImmutableList.Builder<>();
         builder.addAll(derivedVariants);
-        Map<String, ConfigurationMetadata> variantsByName = derivedVariants.stream().collect(Collectors.toMap(ConfigurationMetadata::getName, Function.identity()));
+        Map<String, ModuleConfigurationMetadata> variantsByName = derivedVariants.stream().collect(Collectors.toMap(ConfigurationMetadata::getName, Function.identity()));
         for (AdditionalVariant additionalVariant : additionalVariants) {
             String name = additionalVariant.getName();
             String baseName = additionalVariant.getBase();
@@ -130,7 +130,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
             List<? extends ModuleDependencyMetadata> dependencies;
             ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
 
-            ConfigurationMetadata baseConf = variantsByName.get(baseName);
+            ModuleConfigurationMetadata baseConf = variantsByName.get(baseName);
             if (baseConf == null) {
                 attributes = componentMetadata.getAttributes();
                 capabilities = ImmutableCapabilities.EMPTY;
@@ -139,7 +139,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
             } else {
                 attributes = baseConf.getAttributes();
                 capabilities = (ImmutableCapabilities) baseConf.getCapabilities();
-                dependencies = ((ModuleConfigurationMetadata) baseConf).getDependencies();
+                dependencies = baseConf.getDependencies();
                 artifacts = Cast.uncheckedCast(baseConf.getArtifacts());
             }
 

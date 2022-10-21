@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.ResolveContext
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
@@ -53,6 +54,7 @@ import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
+import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper
 import org.gradle.internal.component.local.model.RootLocalComponentMetadata
@@ -126,7 +128,7 @@ class DependencyGraphBuilderTest extends Specification {
         _ * configuration.name >> 'root'
         _ * configuration.path >> 'root'
         _ * configuration.allDependencies >> Stub(DependencySet)
-        _ * moduleResolver.resolve(_, _) >> { it[1].resolved(root) }
+        _ * moduleResolver.resolve(_, _) >> { ResolveContext context, BuildableComponentResolveResult result -> result.resolved(new DefaultLocalComponentGraphResolveState(root)) }
 
         builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, moduleConflictHandler, capabilitiesConflictHandler, Specs.satisfyAll(), attributesSchema, moduleExclusions, buildOperationProcessor, dependencySubstitutionApplicator, componentSelectorConverter, AttributeTestUtil.attributesFactory(), versionSelectorScheme, versionComparator.asVersionComparator(), new VersionParser())
     }
@@ -1047,7 +1049,7 @@ class DependencyGraphBuilderTest extends Specification {
         println "Traverse $from to ${to.id}"
         1 * metaDataResolver.resolve(to.id, _, _) >> { ComponentIdentifier id, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult result ->
             println "Called ${to.id}"
-            result.resolved(to)
+            result.resolved(new DefaultLocalComponentGraphResolveState(to))
         }
     }
 
