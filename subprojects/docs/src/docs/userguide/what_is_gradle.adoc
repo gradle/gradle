@@ -17,15 +17,11 @@
 = What is Gradle?
 
 Gradle is an open-source https://en.wikipedia.org/wiki/Build_automation[build automation] tool flexible enough to build almost any type of software.
-Gradle is:
-
-- Fast and dependable
-- General purpose
-- Extensible
+Gradle makes few assumptions about what you're trying to build or how to build it.
+This makes Gradle particularly flexible.
 
 == Design
 
-This flexibility is the result of Gradle making few assumptions about what you're trying to build or how to build it.
 Gradle bases its design on the following fundamentals:
 
 High performance::
@@ -39,6 +35,7 @@ Conventions::
 Gradle makes common types of projects easy to build through conventions. Plugins set sensible defaults to keep build scripts minimal.
 But these conventions don't limit you: you can configure settings, add your own tasks, and make many other customizations in your builds.
 Extensibility::
+Most builds have special requirements that require custom build logic.
 You can readily extend Gradle to provide your own build logic with custom tasks and plugins.
 See Android builds for an example: they add many new build concepts such as flavors and build types.
 IDE support::
@@ -74,10 +71,14 @@ Tasks themselves consist of:
 
 === Plugins
 
+Plugins allow you to introduce new concepts into a build beyond tasks, files and dependency configurations.
+For example, most language plugins add the concept of <<building_java_projects#sec:java_source_sets,source sets>> to a build.
+
 Plugins provide a means of reusing logic and configuration across multiple projects.
-With plugins, you can write a task once and use it in multiple builds. Or you can store common configuration,
-like logging, dependencies, and version management, in one place. This reduces duplication in
-build scripts.
+With plugins, you can write a task once and use it in multiple builds.
+Or you can store common configuration, like logging, dependencies, and version management, in one place.
+This reduces duplication in build scripts.
+Appropriately modeling build processes with plugins can greatly improve ease of use and efficiency.
 
 === Build Phases
 
@@ -95,5 +96,6 @@ Runs the tasks selected at the end of the configuration phase.
 === Builds
 
 A build is an execution of a collection of tasks in a Gradle project.
-You run a build via the CLI or an IDE by specifying task selectors. Gradle configures the build and selects the tasks to run.
-Gradle runs the smallest complete set of tasks required from the requested tasks and their dependencies.
+You run a build via the command line interface (CLI) or an IDE by specifying task selectors.
+Gradle configures the build and selects the tasks to run.
+Gradle runs the smallest complete set of tasks based on the requested tasks and their dependencies.
