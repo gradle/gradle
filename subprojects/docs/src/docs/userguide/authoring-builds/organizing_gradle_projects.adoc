@@ -89,6 +89,7 @@ While those conventions can be reconfigured, it makes it harder to build script 
 Try to stick to the default conventions as much as possible except if you need to adapt to the layout of a legacy project.
 Refer to the reference page of the relevant plugin to learn about its default conventions.
 
+[[sec:settings_file]]
 == Always define a settings file
 
 Gradle tries to locate a `settings.gradle` (Groovy DSL) or a `settings.gradle.kts` (Kotlin DSL) file with every invocation of the build.
