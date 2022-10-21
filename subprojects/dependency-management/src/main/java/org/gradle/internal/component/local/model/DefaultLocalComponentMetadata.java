@@ -42,6 +42,7 @@ import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -86,6 +87,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     @Override
     public ModuleVersionIdentifier getModuleVersionId() {
         return moduleVersionId;
+    }
+
+    @Override
+    public List<? extends DependencyMetadata> getSyntheticDependencies(String configuration) {
+        return Collections.emptyList();
     }
 
     /**

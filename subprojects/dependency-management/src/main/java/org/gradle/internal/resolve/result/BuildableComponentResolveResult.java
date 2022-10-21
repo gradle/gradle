@@ -28,11 +28,6 @@ public interface BuildableComponentResolveResult extends ComponentResolveResult,
     void resolved(ComponentGraphResolveState state);
 
     /**
-     * Marks the component as resolved, with the given metadata.
-     */
-    void resolved(ComponentResolveMetadata metadata);
-
-    /**
      * Marks the resolve as failed with the given exception.
      */
     BuildableComponentResolveResult failed(ModuleVersionResolveException failure);
