@@ -67,6 +67,7 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         when:
         run ('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id, '--incubating')
+
         then:
         subprojectDir.file("src/main/kotlin").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
         subprojectDir.file("src/test/kotlin").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
@@ -77,6 +78,23 @@ class KotlinLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
         when:
         succeeds('test')
+        then:
+        assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    def "creates with gradle.properties when using #scriptDsl build scripts with --incubating"() {
+        when:
+        run ('init', '--type', 'kotlin-library', '--dsl', scriptDsl.id, '--incubating')
+
+        then:
+        gradlePropertiesGenerated()
+
+        when:
+        succeeds('test')
+
         then:
         assertTestPassed("some.thing.LibraryTest", "someLibraryMethodReturnsTrue")
 

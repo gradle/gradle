@@ -116,6 +116,6 @@ public class InitSettings {
 
     @Incubating
     public boolean isUseTestSuites() {
-        return useIncubatingAPIs; // The only Incubating API used, for now
+        return useIncubatingAPIs;
     }
 }
