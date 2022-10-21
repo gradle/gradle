@@ -25,7 +25,9 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
@@ -34,7 +36,7 @@ import javax.annotation.Nullable;
 /**
  * Provides the metadata for a component consumed from the same build that produces it.
  *
- * Currently, the metadata for a component is different based on whether it is consumed from the producing build or from another build. This difference should go away.
+ * <p>Currently, the metadata for a component is different based on whether it is consumed from the producing build or from another build. This difference should go away.
  */
 public class DefaultProjectLocalComponentProvider implements LocalComponentProvider {
     private final LocalComponentMetadataBuilder metadataBuilder;
@@ -53,9 +55,10 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
 
     @Nullable
     @Override
-    public LocalComponentMetadata getComponent(ProjectState projectState) {
+    public LocalComponentGraphResolveState getComponent(ProjectState projectState) {
         projectState.ensureConfigured();
-        return projectState.fromMutableState(p -> getLocalComponentMetadata(projectState, p));
+        LocalComponentMetadata metadata = projectState.fromMutableState(p -> getLocalComponentMetadata(projectState, p));
+        return new DefaultLocalComponentGraphResolveState(metadata);
     }
 
     private LocalComponentMetadata getLocalComponentMetadata(ProjectState projectState, ProjectInternal project) {
