@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.project.ProjectHierarchyUtils;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.internal.Pair;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
@@ -59,7 +60,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
 
     private void setProjectProperties(Project project, CachingPropertyApplicator applicator) {
         addPropertiesToProject(project, applicator);
-        for (Project childProject : project.getChildProjects().values()) {
+        for (Project childProject : ProjectHierarchyUtils.getChildProjectsForInternalUse(project)) {
             setProjectProperties(childProject, applicator);
         }
     }

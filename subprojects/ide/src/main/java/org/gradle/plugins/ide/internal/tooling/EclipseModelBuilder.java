@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectHierarchyUtils;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.invocation.Gradle;
@@ -186,7 +187,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
     private DefaultEclipseProject buildHierarchy(Project project) {
         List<DefaultEclipseProject> children = new ArrayList<>();
-        for (Project child : project.getChildProjects().values()) {
+        for (Project child : ProjectHierarchyUtils.getChildProjectsForInternalUse(project)) {
             children.add(buildHierarchy(child));
         }
 
@@ -241,7 +242,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             populateEclipseProjectJdt(eclipseProject, eclipseModel.getJdt());
         });
 
-        for (Project childProject : project.getChildProjects().values()) {
+        for (Project childProject : ProjectHierarchyUtils.getChildProjectsForInternalUse(project)) {
             populate(childProject);
         }
     }
