@@ -18,40 +18,42 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
-
-import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.invalidPluginsCall
-import org.gradle.kotlin.dsl.template.KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider
-
 import org.gradle.plugin.use.PluginDependenciesSpec
-
-import kotlin.script.extensions.SamWithReceiverAnnotations
-import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
-import kotlin.script.templates.ScriptTemplateDefinition
+import org.jetbrains.kotlin.scripting.definitions.annotationsForSamWithReceivers
+import kotlin.script.experimental.annotations.KotlinScript
+import kotlin.script.experimental.api.KotlinType
+import kotlin.script.experimental.api.ScriptCompilationConfiguration
+import kotlin.script.experimental.api.asSuccess
+import kotlin.script.experimental.api.refineConfiguration
+import kotlin.script.experimental.api.with
 
 
 /**
  * Base class for Kotlin build scripts.
  */
-@ScriptTemplateDefinition(
-    resolver = KotlinBuildScriptDependenciesResolver::class,
-    scriptFilePattern = ".+(?<!(^|\\.)(init|settings))\\.gradle\\.kts"
+//@ScriptTemplateDefinition(
+//    resolver = KotlinBuildScriptDependenciesResolver::class,
+//    scriptFilePattern = ".+(?<!(^|\\.)(init|settings))\\.gradle\\.kts"
+//)
+//@ScriptTemplateAdditionalCompilerArguments(
+//    [
+//        "-language-version", "1.7",
+//        "-api-version", "1.7",
+//        "-jvm-target", "1.8",
+//        "-Xjvm-default=all",
+//        "-Xjsr305=strict",
+//        "-XXLanguage:+DisableCompatibilityModeForNewInference"
+//    ],
+//    provider = KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider::class
+//)
+@KotlinScript(
+    fileExtension = "gradle.kts",
+    compilationConfiguration = GradleScriptCompilationConfiguration::class
 )
-@ScriptTemplateAdditionalCompilerArguments(
-    [
-        "-language-version", "1.7",
-        "-api-version", "1.7",
-        "-jvm-target", "1.8",
-        "-Xjvm-default=all",
-        "-Xjsr305=strict",
-        "-XXLanguage:+DisableCompatibilityModeForNewInference"
-    ],
-    provider = KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider::class
-)
-@SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 abstract class KotlinBuildScript(
     private val host: KotlinScriptHost<Project>
@@ -84,3 +86,23 @@ abstract class KotlinBuildScript(
     fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
         invalidPluginsCall()
 }
+
+internal
+object GradleScriptCompilationConfiguration : ScriptCompilationConfiguration({
+    annotationsForSamWithReceivers.putIfAny(listOf(KotlinType("org.gradle.api.HasImplicitReceiver")))
+    refineConfiguration {
+        println("GradleScriptCompilationConfiguration: refineConfiguration")
+        beforeParsing { (s, compilationConfiguration, _) ->
+            println("GradleScriptCompilationConfiguration: beforeParsing: ${s.locationId}")
+            compilationConfiguration.with {
+                println("GradleScriptCompilationConfiguration: beforeParsing::compilationConfiguration: ${s.locationId}")
+            }.asSuccess()
+        }
+        beforeCompiling { (s, compilationConfiguration, _) ->
+            println("GradleScriptCompilationConfiguration: beforeCompiling: ${s.locationId}")
+            compilationConfiguration.with {
+                println("GradleScriptCompilationConfiguration: beforeCompiling::compilationConfiguration: ${s.locationId}")
+            }.asSuccess()
+        }
+    }
+})

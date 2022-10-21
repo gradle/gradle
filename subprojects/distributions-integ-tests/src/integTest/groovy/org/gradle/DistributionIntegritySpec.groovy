@@ -17,10 +17,12 @@
 package org.gradle
 
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import java.util.zip.ZipFile
 
+@Ignore
 class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
     /*
