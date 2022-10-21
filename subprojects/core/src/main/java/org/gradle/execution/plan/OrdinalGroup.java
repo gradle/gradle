@@ -98,7 +98,7 @@ public class OrdinalGroup extends NodeGroup {
     }
 
     public String diagnostics() {
-        return "group " + ordinal + " entry nodes: " + entryNodes;
+        return "group " + ordinal + " entry nodes: " + Node.formatNodes(entryNodes);
     }
 
     public OrdinalNode locationsNode(OrdinalNode.Type ordinalType) {
