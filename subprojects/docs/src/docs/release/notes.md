@@ -170,7 +170,7 @@ For more information about the test suite `dependencies` block, see
 <a name="toolchain-spi"></a>
 #### Added support for Java Toolchain downloads from arbitrary repositories
 
-Starting in Gradle 7.6, Gradle can download JVM [toolchains](https://docs.gradle.org/current/userguide/toolchains.html) from arbitrary repositories.
+Starting in Gradle 7.6, Gradle can download JVM [toolchains](userguide/toolchains.html) from arbitrary repositories.
 By default, Gradle downloads toolchains from Adoptium/AdoptOpenJDK. You can now override the default providers with repositories of your choice using a toolchain resolver plugin.
 
 For example, the following uses custom plugins that provide `AzulResolver` and `AdoptiumResolver` to add custom toolchains for Adoptium and Azul:
@@ -232,7 +232,7 @@ Otherwise, use the address of one of the machine's network interfaces.
 
 The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration when converting a Maven project.
 This sharply reduces the number of compilation errors.
-It is still recommended to use [`implementation`](https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_separation) where possible. 
+It is still recommended to use [`implementation`](userguide/java_library_plugin.html#sec:java_library_separation) where possible. 
 
 For more information about Maven conversions, see the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion).
 
