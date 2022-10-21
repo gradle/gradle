@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal
 
-import org.gradle.internal.buildoption.BuildOption
+
+import org.gradle.internal.buildoption.Option
 import spock.lang.Specification
 
 class StartParameterInternalTest extends Specification {
@@ -26,7 +27,7 @@ class StartParameterInternalTest extends Specification {
         expect:
         !parameter.configurationCacheRequested
 
-        parameter.setConfigurationCache(BuildOption.Value.defaultValue(true))
+        parameter.setConfigurationCache(Option.Value.defaultValue(true))
         parameter.configurationCacheRequested
     }
 }
