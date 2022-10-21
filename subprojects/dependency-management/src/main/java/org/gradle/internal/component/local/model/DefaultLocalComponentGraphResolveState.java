@@ -85,7 +85,6 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
         @Override
         public ComponentArtifactMetadata resolveArtifact(IvyArtifactName artifact) {
-            graphSelectedVariant.prepareToResolveArtifacts();
             return graphSelectedVariant.prepareToResolveArtifacts().artifact(artifact);
         }
 

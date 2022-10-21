@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.attributes.EmptySchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.configurationcache.ConfigurationCacheIO
 import org.gradle.configurationcache.ConfigurationCacheStateStore
 import org.gradle.configurationcache.DefaultConfigurationCache
@@ -31,6 +32,7 @@ import org.gradle.configurationcache.models.ProjectStateStore
 import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.configurationcache.serialization.ownerService
 import org.gradle.configurationcache.serialization.readCollection
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
@@ -123,7 +125,7 @@ class ProjectMetadataController(
         return context.runReadOperation {
             val id = readNonNull<ComponentIdentifier>()
             val moduleVersionId = readNonNull<ModuleVersionIdentifier>()
-            val metadata = DefaultLocalComponentMetadata(moduleVersionId, id, Project.DEFAULT_STATUS, EmptySchema.INSTANCE)
+            val metadata = DefaultLocalComponentMetadata(moduleVersionId, id, Project.DEFAULT_STATUS, EmptySchema.INSTANCE, RootScriptDomainObjectContext.INSTANCE, ownerService())
             readConfigurationsInto(metadata)
             metadata
         }
