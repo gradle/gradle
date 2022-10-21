@@ -42,7 +42,9 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata
+import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
@@ -59,17 +61,17 @@ class ProjectMetadataController(
     private val host: DefaultConfigurationCache.Host,
     private val cacheIO: ConfigurationCacheIO,
     store: ConfigurationCacheStateStore
-) : ProjectStateStore<Path, LocalComponentMetadata>(store, StateType.ProjectMetadata) {
+) : ProjectStateStore<Path, LocalComponentGraphResolveState>(store, StateType.ProjectMetadata) {
 
     override fun projectPathForKey(key: Path) = key
 
-    override fun write(encoder: Encoder, value: LocalComponentMetadata) {
+    override fun write(encoder: Encoder, value: LocalComponentGraphResolveState) {
         val (context, codecs) = cacheIO.writerContextFor(encoder)
         context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec())
         context.runWriteOperation {
             write(value.id)
             write(value.moduleVersionId)
-            val configurations = value.configurationsToPersist()
+            val configurations = value.artifactMetadata.configurationsToPersist()
             writeConfigurations(configurations)
         }
     }
@@ -119,7 +121,7 @@ class ProjectMetadataController(
         writeCollection(variant.artifacts)
     }
 
-    override fun read(decoder: Decoder): LocalComponentMetadata {
+    override fun read(decoder: Decoder): LocalComponentGraphResolveState {
         val (context, codecs) = cacheIO.readerContextFor(decoder)
         context.push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec())
         return context.runReadOperation {
@@ -127,7 +129,7 @@ class ProjectMetadataController(
             val moduleVersionId = readNonNull<ModuleVersionIdentifier>()
             val metadata = DefaultLocalComponentMetadata(moduleVersionId, id, Project.DEFAULT_STATUS, EmptySchema.INSTANCE, RootScriptDomainObjectContext.INSTANCE, ownerService())
             readConfigurationsInto(metadata)
-            metadata
+            DefaultLocalComponentGraphResolveState(metadata)
         }
     }
 
