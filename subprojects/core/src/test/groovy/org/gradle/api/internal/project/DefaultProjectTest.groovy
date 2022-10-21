@@ -454,9 +454,9 @@ class DefaultProjectTest extends Specification {
 
     def getChildProject() {
         expect:
-        project.childProjects.size() == 2
-        project.childProjects.child1.is(child1)
-        project.childProjects.child2.is(child2)
+        project.childProjectsInternal.size() == 2
+        project.childProjectsInternal.child1.is(child1)
+        project.childProjectsInternal.child2.is(child2)
     }
 
     def defaultTasks() {

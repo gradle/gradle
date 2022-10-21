@@ -48,8 +48,8 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
 
     def setup() {
         _ * gradle.rootProject >> rootProject
-        _ * rootProject.childProjects >> [child: childProject]
-        _ * childProject.childProjects >> [:]
+        _ * rootProject.childProjectsInternal >> [child: childProject]
+        _ * childProject.childProjectsInternal >> [:]
         _ * rootProject.projectDir >> rootProjectDir
         _ * childProject.projectDir >> childProjectDir
         _ * rootProject.extensions >> rootExtension

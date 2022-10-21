@@ -49,6 +49,7 @@ import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Set;
 
 @UsedByScanPlugin("scan, test-retry")
@@ -100,6 +101,20 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer);
 
     void subprojects(ProjectInternal referrer, Action<? super Project> configureAction);
+
+    /**
+     * Do not use this method to access the child projects in the Gradle codebase!
+     * The implementations may add check that enforce correct usage of the public API, such as
+     * cross-project model access checks, which are meant to report warnings on incorrect API usages
+     * from third-party code. The internal usages won't pass these checks and will break.
+     *
+     * @see ProjectInternal#getChildProjectsInternal()
+     * @see ProjectHierarchyUtils#getChildProjectsForInternalUse(Project)
+     */
+    @Override
+    Map<String, Project> getChildProjects();
+
+    Map<String, Project> getChildProjectsInternal();
 
     Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer);
 
