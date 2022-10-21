@@ -180,6 +180,22 @@ Previously Gradle used to detect if an input file collection annotated with `@Sk
 To ignore directories in Gradle 8.0 and later, the input property needs to be explicitly annotated with `@IgnoreEmptyDirectories`.
 For more information see <<empty_directories_file_tree>>.
 
+==== Format of `JavaVersion` has changed for Java 9 and Java 10
+
+The string format of the `JavaVersion` has changed to match the official Java versioning.
+Starting from Java 9, the language version must not contain the `1.` prefix.
+This affects the format of the `sourceCompatiblity` and `targetCompatibility` properties on the `JavaCompile` task and `JavaExtension`.
+The old format is still supported when resolving the `JavaVersion` from a string.
+
+[cols="1,1"]
+|===
+| Gradle 7.6 | Gradle 8.0
+| `1.8` | `1.8`
+| `1.9` | `9`
+| `1.10`| `10`
+| `11`  | `11`
+|===
+
 [[strict-kotlin-dsl-precompiled-scripts-accessors-by-default]]
 === Precompiled script plugins use strict Kotlin DSL accessor generation by default
 
