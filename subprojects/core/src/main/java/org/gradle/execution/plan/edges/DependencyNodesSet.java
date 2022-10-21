@@ -51,6 +51,11 @@ public interface DependencyNodesSet {
         public Node.DependenciesState getState(Node node) {
             return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
         }
+
+        @Override
+        public void healthDiagnostics(StringBuilder builder) {
+            builder.append("no dependencies");
+        }
     };
 
     NavigableSet<Node> getDependencySuccessors();
@@ -64,4 +69,6 @@ public interface DependencyNodesSet {
     void onNodeComplete(Node node, Node dependency);
 
     Node.DependenciesState getState(Node node);
+
+    void healthDiagnostics(StringBuilder builder);
 }
