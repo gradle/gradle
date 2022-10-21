@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultRootComponentMetadataBuilderTest extends Specification {
@@ -50,7 +51,8 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         moduleIdentifierFactory,
         configurationComponentMetaDataBuilder,
         projectStateRegistry,
-        dependencyLockingProvider
+        dependencyLockingProvider,
+        TestUtil.calculatedValueContainerFactory()
     )
 
     def builder = builderFactory.create(configurationsProvider)

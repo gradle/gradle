@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
 
 import javax.annotation.Nullable;
 
@@ -38,13 +39,16 @@ import javax.annotation.Nullable;
 public class DefaultProjectLocalComponentProvider implements LocalComponentProvider {
     private final LocalComponentMetadataBuilder metadataBuilder;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
     public DefaultProjectLocalComponentProvider(
         LocalComponentMetadataBuilder metadataBuilder,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
         this.metadataBuilder = metadataBuilder;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
     }
 
     @Nullable
@@ -58,7 +62,7 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         Module module = project.getDependencyMetaDataProvider().getModule();
         ModuleVersionIdentifier moduleVersionIdentifier = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
         ProjectComponentIdentifier componentIdentifier = projectState.getComponentIdentifier();
-        DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), (AttributesSchemaInternal) project.getDependencies().getAttributesSchema());
+        DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), (AttributesSchemaInternal) project.getDependencies().getAttributesSchema(), projectState, calculatedValueContainerFactory);
         for (Configuration configuration : project.getConfigurations()) {
             metadataBuilder.addConfiguration(metaData, Cast.uncheckedCast(configuration));
         }
