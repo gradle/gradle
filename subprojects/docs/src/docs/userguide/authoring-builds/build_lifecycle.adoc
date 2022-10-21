@@ -49,7 +49,7 @@ Initialization::
 - Creates a link:{groovyDslPath}/org.gradle.api.Project.html[`Project`] instance for every project.
 Configuration::
 - Evaluates the build scripts of every project participating in the build.
-- Creates a task graph for all projects.
+- Creates a task graph for requested tasks.
 Execution::
 - Schedules and executes each of the selected tasks in the order of their dependencies.
 
