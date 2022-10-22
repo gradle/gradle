@@ -30,6 +30,8 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import java.util.Comparator;
 import java.util.Set;
 
+import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
+
 public class NotifyingBuildLoader implements BuildLoader {
 
     private static final NotifyProjectsLoadedBuildOperationType.Result PROJECTS_LOADED_OP_RESULT = new NotifyProjectsLoadedBuildOperationType.Result() {
@@ -102,7 +104,7 @@ public class NotifyingBuildLoader implements BuildLoader {
             ((ProjectInternal) project).getIdentityPath().toString(),
             project.getProjectDir().getAbsolutePath(),
             project.getBuildFile().getAbsolutePath(),
-            convert(project.getChildProjects().values()));
+            convert(getChildProjectsForInternalUse(project)));
     }
 
     private Set<LoadProjectsBuildOperationType.Result.Project> convert(Iterable<Project> children) {
