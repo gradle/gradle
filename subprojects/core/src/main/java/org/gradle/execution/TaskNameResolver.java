@@ -21,7 +21,6 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectHierarchyUtils;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 
@@ -29,6 +28,8 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 
 public class TaskNameResolver {
 
@@ -121,7 +122,7 @@ public class TaskNameResolver {
     private void collectTaskNames(ProjectInternal project, Set<String> result) {
         discoverTasks(project);
         result.addAll(getTaskNames(project));
-        for (Project subProject : ProjectHierarchyUtils.getChildProjectsForInternalUse(project)) {
+        for (Project subProject : getChildProjectsForInternalUse(project)) {
             collectTaskNames((ProjectInternal) subProject, result);
         }
     }
@@ -181,7 +182,7 @@ public class TaskNameResolver {
                     return;
                 }
             }
-            for (Project subProject : ProjectHierarchyUtils.getChildProjectsForInternalUse(project)) {
+            for (Project subProject : getChildProjectsForInternalUse(project)) {
                 collect((ProjectInternal) subProject, tasks);
             }
         }

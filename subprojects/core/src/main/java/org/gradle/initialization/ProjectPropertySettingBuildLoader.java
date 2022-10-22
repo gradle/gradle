@@ -19,7 +19,6 @@ package org.gradle.initialization;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.project.ProjectHierarchyUtils;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.internal.Pair;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
@@ -36,6 +35,7 @@ import java.util.Properties;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Collections.emptyMap;
+import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 import static org.gradle.internal.Cast.uncheckedCast;
 
 public class ProjectPropertySettingBuildLoader implements BuildLoader {
@@ -60,7 +60,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
 
     private void setProjectProperties(Project project, CachingPropertyApplicator applicator) {
         addPropertiesToProject(project, applicator);
-        for (Project childProject : ProjectHierarchyUtils.getChildProjectsForInternalUse(project)) {
+        for (Project childProject : getChildProjectsForInternalUse(project)) {
             setProjectProperties(childProject, applicator);
         }
     }

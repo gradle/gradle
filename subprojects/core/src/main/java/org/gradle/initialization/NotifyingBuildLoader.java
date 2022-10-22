@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.project.ProjectHierarchyUtils;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -30,6 +29,8 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.Comparator;
 import java.util.Set;
+
+import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 
 public class NotifyingBuildLoader implements BuildLoader {
 
@@ -103,7 +104,7 @@ public class NotifyingBuildLoader implements BuildLoader {
             ((ProjectInternal) project).getIdentityPath().toString(),
             project.getProjectDir().getAbsolutePath(),
             project.getBuildFile().getAbsolutePath(),
-            convert(ProjectHierarchyUtils.getChildProjectsForInternalUse(project)));
+            convert(getChildProjectsForInternalUse(project)));
     }
 
     private Set<LoadProjectsBuildOperationType.Result.Project> convert(Iterable<Project> children) {
