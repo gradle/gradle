@@ -24,6 +24,7 @@ import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.util.GradleVersion
+import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -355,6 +356,6 @@ class DeprecationMessagesTest extends Specification {
     private void expectMessage(String expectedMessage) {
         def events = outputEventListener.events
         events.size() == 1
-        assert events[0].message == expectedMessage
+        assert events[0].message.startsWith(TextUtil.toPlatformLineSeparators("$expectedMessage\n"))
     }
 }

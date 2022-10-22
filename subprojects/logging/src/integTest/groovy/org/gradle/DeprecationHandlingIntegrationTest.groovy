@@ -205,7 +205,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.contains('build.gradle:2)') == withFullStacktrace
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
-        withFullStacktrace ? (output.count('\tat') > 1) : (output.count('\tat') == 1)
+        withFullStacktrace ? (output.count('\tat') > 2) : (output.count('\tat') == 2)
         withFullStacktrace == !output.contains(RUN_WITH_STACKTRACE)
 
         where:
@@ -239,7 +239,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.contains('build.gradle:2)') == withFullStacktrace
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
-        withFullStacktrace ? (output.count('\tat') > 1) : (output.count('\tat') == 1)
+        withFullStacktrace ? (output.count('\tat') > 2) : (output.count('\tat') == 2)
         withFullStacktrace == !output.contains(RUN_WITH_STACKTRACE)
 
         where:
@@ -248,13 +248,13 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         'with full stacktrace'    | true
     }
 
-    boolean assertFullStacktraceResult(boolean fullStacktraceEnabled, int warningsCountInConsole) {
+    void assertFullStacktraceResult(boolean fullStacktraceEnabled, int warningsCountInConsole) {
         if (warningsCountInConsole == 0) {
-            output.count('\tat') == 0 && output.count(RUN_WITH_STACKTRACE) == 0
+            assert output.count('\tat') == 0 && output.count(RUN_WITH_STACKTRACE) == 0
         } else if (fullStacktraceEnabled) {
-            output.count('\tat') > 3 && output.count(RUN_WITH_STACKTRACE) == 0
+            assert output.count('\tat') > 7 && output.count(RUN_WITH_STACKTRACE) == 0
         } else {
-            output.count('\tat') == 3 && output.count(RUN_WITH_STACKTRACE) == 3
+            assert output.count('\tat') == 7 && output.count(RUN_WITH_STACKTRACE) == 4
         }
     }
 

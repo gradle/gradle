@@ -115,13 +115,22 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             return;
         }
 
+        boolean nonSystemOrScriptElementFound = false;
         for (StackTraceElement element : stack) {
             if (isGradleScriptElement(element)) {
                 // only print first Gradle script stack trace element
                 appendStackTraceElement(element, message, lineSeparator);
-                appendRunWithStacktraceInfo(message, lineSeparator);
-                return;
+                break;
             }
+
+            if (!nonSystemOrScriptElementFound && !isSystemElement(element)) {
+                // only print first non Gradle script and non-system stack trace element
+                appendStackTraceElement(element, message, lineSeparator);
+                nonSystemOrScriptElementFound = true;
+            }
+        }
+        if (!stack.isEmpty()) {
+            appendRunWithStacktraceInfo(message, lineSeparator);
         }
     }
 
@@ -148,6 +157,17 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             return true;
         }
         return false;
+    }
+
+    private static boolean isSystemElement(StackTraceElement element) {
+        String className = element.getClassName();
+        return className.startsWith("org.codehaus.groovy.")
+            || className.startsWith("org.gradle.")
+            || className.startsWith("groovy.")
+            || className.startsWith("java.")
+            || className.startsWith("sun.")
+            || className.startsWith("com.sun.")
+            || className.startsWith("jdk.internal.");
     }
 
     /**
