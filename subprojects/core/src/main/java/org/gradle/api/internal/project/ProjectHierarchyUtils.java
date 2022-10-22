@@ -30,8 +30,9 @@ public class ProjectHierarchyUtils {
      * @return the collection of the child projects
      *
      * @see Project#getChildProjects()
+     * @see ProjectInternal#getChildProjectsUnchecked()
      */
     public static Collection<Project> getChildProjectsForInternalUse(Project thisProject) {
-        return ((ProjectInternal) thisProject).getChildProjectsInternal().values();
+        return ((ProjectInternal) thisProject).getChildProjectsUnchecked().values();
     }
 }

@@ -497,7 +497,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public Map<String, Project> getChildProjectsInternal() {
+    public Map<String, Project> getChildProjectsUnchecked() {
         Map<String, Project> childProjects = Maps.newTreeMap();
         for (ProjectState project : owner.getChildProjects()) {
             childProjects.put(project.getName(), project.getMutableModel());
@@ -507,7 +507,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Map<String, Project> getChildProjects() {
-        return getChildProjectsInternal().entrySet().stream().collect(
+        return getChildProjectsUnchecked().entrySet().stream().collect(
             Collectors.toMap(
                 Map.Entry::getKey,
                 entry -> getCrossProjectModelAccess().access(this, (ProjectInternal) entry.getValue())
