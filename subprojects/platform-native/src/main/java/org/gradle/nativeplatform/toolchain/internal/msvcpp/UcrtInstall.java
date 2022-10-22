@@ -41,7 +41,7 @@ public class UcrtInstall extends WindowsKitInstall {
         if (platform.getArchitecture().isArm64()) {
             return new UcrtSystemLibraries("arm64");
         }
-        if (platform.getArchitecture().isArm()) {
+        if (platform.getArchitecture().isArm32()) {
             return new UcrtSystemLibraries("arm");
         }
         if (platform.getArchitecture().isI386()) {

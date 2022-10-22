@@ -36,8 +36,15 @@ class ArchitecturesTest extends Specification {
 
     def "test ARM aliases"() {
         expect:
-        Architectures.forInput(architecture).isArm()
+        Architectures.forInput(architecture).isArm32()
         where:
-        architecture << [ "aarch64", "arm-v8", "arm", "armv7" ]
+        architecture << [ "arm", "armv7" ]
+    }
+
+    def "test ARM 64 aliases"() {
+        expect:
+        Architectures.forInput(architecture).isArm64()
+        where:
+        architecture << [ "aarch64", "arm-v8" ]
     }
 }
