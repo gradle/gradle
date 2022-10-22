@@ -282,8 +282,8 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.childProjects
         }
 
-        override fun getChildProjectsInternal(): MutableMap<String, Project> {
-            return delegate.childProjectsInternal
+        override fun getChildProjectsUnchecked(): MutableMap<String, Project> {
+            return delegate.childProjectsUnchecked
         }
 
         override fun setProperty(name: String, value: Any?) {
