@@ -31,6 +31,15 @@ import java.util.Set;
 
 /**
  * The meta-data for a component instance that is required during dependency resolution.
+ *
+ * <p>Note that this type is being replaced by several other interfaces that separate out the data and state required at various stages of dependency resolution.
+ * You should try to use those interfaces instead of using this interface or introduce a new interface that provides a view over this type but exposes only the
+ * data required.
+ * </p>
+ *
+ * @see ComponentGraphResolveState
+ * @see ComponentGraphResolveMetadata
+ * @see ComponentArtifactResolveState
  */
 public interface ComponentResolveMetadata extends HasAttributes {
     List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");

@@ -27,5 +27,10 @@ public interface LocalConfigurationGraphResolveMetadata extends ConfigurationGra
      */
     Set<LocalFileDependencyMetadata> getFiles();
 
+    /**
+     * Calculates the set of artifacts for this configuration.
+     *
+     * <p>Note that this may be expensive, and should be called only when required.</p>
+     */
     LocalConfigurationMetadata prepareToResolveArtifacts();
 }
