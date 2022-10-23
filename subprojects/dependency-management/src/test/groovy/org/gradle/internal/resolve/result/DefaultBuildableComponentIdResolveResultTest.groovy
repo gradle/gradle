@@ -19,8 +19,8 @@ package org.gradle.internal.resolve.result
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
-import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
@@ -42,29 +42,10 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
         result.failure == null
     }
 
-    def "can resolve using metadata"() {
-        def id = Stub(ComponentIdentifier)
-        def mvId = Stub(ModuleVersionIdentifier)
-        def metadata = Stub(ComponentResolveMetadata) {
-            getId() >> id
-            getModuleVersionId() >> mvId
-        }
-
-        when:
-        result.resolved(metadata)
-
-        then:
-        result.hasResult()
-        result.id == id
-        result.moduleVersionId == mvId
-        result.state.metadata == metadata
-        result.failure == null
-    }
-
     def "can resolve using state"() {
         def id = Stub(ComponentIdentifier)
         def mvId = Stub(ModuleVersionIdentifier)
-        def metadata = Stub(ComponentResolveMetadata) {
+        def metadata = Stub(ComponentGraphResolveMetadata) {
             getModuleVersionId() >> mvId
         }
         def state = Stub(ComponentGraphResolveState) {

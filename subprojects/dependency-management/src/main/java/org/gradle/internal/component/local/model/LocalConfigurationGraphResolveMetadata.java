@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,21 @@
 
 package org.gradle.internal.component.local.model;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
+import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata;
 
-import java.util.List;
 import java.util.Set;
 
-public interface LocalConfigurationMetadata extends ConfigurationMetadata {
-
-    String getDescription();
-
-    Set<String> getExtendsFrom();
-
-    @Override
-    List<? extends LocalOriginDependencyMetadata> getDependencies();
-
-    @Override
-    ImmutableList<? extends LocalComponentArtifactMetadata> getArtifacts();
-
+// This should be a state object, not a metadata object
+public interface LocalConfigurationGraphResolveMetadata extends ConfigurationGraphResolveMetadata {
     /**
      * Returns the files attached to this configuration, if any. These should be represented as dependencies, but are currently represented as files as a migration step.
      */
     Set<LocalFileDependencyMetadata> getFiles();
+
+    /**
+     * Calculates the set of artifacts for this configuration.
+     *
+     * <p>Note that this may be expensive, and should be called only when required.</p>
+     */
+    LocalConfigurationMetadata prepareToResolveArtifacts();
 }
