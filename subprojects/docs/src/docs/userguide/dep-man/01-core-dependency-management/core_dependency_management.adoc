@@ -14,7 +14,7 @@ For a general overview on the terms used throughout the user guide, refer to <<d
 == Dependency management in Gradle
 
 Gradle has built-in support for dependency management and lives up to the task of fulfilling typical scenarios encountered in modern software projects.
-We’ll explore the main concepts with the help of an example project.
+We’ll explore the main concepts with the help of link:../samples/[an example project].
 The illustration below should give you an rough overview on all the moving parts.
 
 [.inset]
