@@ -71,17 +71,13 @@ public class DefaultArtifactSelector implements ArtifactSelector {
         ImmutableSet<ResolvedVariant> legacyResolvedVariants = buildResolvedVariants(component, legacyVariants, exclusions, resolvedVariantCache);
         ComponentArtifactResolveVariantState componentArtifactResolveVariantState = () -> buildResolvedVariants(component, allVariants.get(), exclusions, resolvedVariantCache);
 
-        ArtifactSet artifacts = null;
         for (OriginArtifactSelector selector : selectors) {
-            artifacts = selector.resolveArtifacts(component, componentArtifactResolveVariantState, legacyResolvedVariants, exclusions, overriddenAttributes);
+            ArtifactSet artifacts = selector.resolveArtifacts(component, componentArtifactResolveVariantState, legacyResolvedVariants, exclusions, overriddenAttributes);
             if (artifacts != null) {
-                break;
+                return artifacts;
             }
         }
-        if (artifacts == null) {
-            throw new IllegalStateException("No artifacts selected.");
-        }
-        return artifacts;
+        throw new IllegalStateException("No artifacts selected.");
     }
 
     private ImmutableSet<ResolvedVariant> buildResolvedVariants(ComponentResolveMetadata component, Set<? extends VariantResolveMetadata> allVariants, ExcludeSpec exclusions, @Nullable Map<VariantResolveMetadata.Identifier, ResolvedVariant> resolvedVariantCache) {
@@ -113,7 +109,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
             // An ad hoc variant, has no identifier
             return createResolvedVariant(null, displayName, variantAttributes, artifacts, capabilities, ownerId, moduleSources, artifactsToResolve);
         } else {
-            if (resolvedVariantCache == null){
+            if (resolvedVariantCache == null) {
                 return createResolvedVariant(identifier, displayName, variantAttributes, artifacts, capabilities, ownerId, moduleSources, artifactsToResolve);
             } else {
                 return resolvedVariantCache.computeIfAbsent(identifier, id -> createResolvedVariant(identifier, displayName, variantAttributes, artifacts, capabilities, ownerId, moduleSources, artifactsToResolve));
