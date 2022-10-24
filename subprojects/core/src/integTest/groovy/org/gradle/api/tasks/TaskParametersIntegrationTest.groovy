@@ -893,9 +893,7 @@ task someTask(type: SomeTask) {
                     nestedInputValueCount++
                 }
             }
-            def evaluationCount = project.getGradle().getSharedServices().registerIfAbsent("evaluationCount", EvaluationCountBuildService) {
-                maxParallelUsages.set(1)
-            }
+            def evaluationCount = project.getGradle().getSharedServices().registerIfAbsent("evaluationCount", EvaluationCountBuildService) {}
 
             @CacheableTask
             abstract class CustomTask extends DefaultTask {
