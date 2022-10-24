@@ -19,6 +19,17 @@ import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 import org.testcontainers.DockerClientFactory
 
+/**
+ * Usage:
+ * <pre>
+ * <code>@</code>Requires(TestPrecondition.JDK17_OR_LATER)
+ * def "test with environment expectations"() {
+ *     // the test is executed with Java 17 or later
+ * }
+ * </pre>
+ *
+ * @see Requires
+ */
 enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NULL_REQUIREMENT({ true }),
     SYMLINKS({
