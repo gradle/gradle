@@ -26,7 +26,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
@@ -48,18 +48,20 @@ import java.util.Set;
 public abstract class AbstractRealisedModuleComponentResolveMetadata extends AbstractModuleComponentResolveMetadata {
 
     private Optional<List<? extends VariantGraphResolveMetadata>> graphVariants;
-    private final ImmutableMap<String, ConfigurationMetadata> configurations;
+    private final ImmutableMap<String, ModuleConfigurationMetadata> configurations;
 
     public AbstractRealisedModuleComponentResolveMetadata(AbstractRealisedModuleComponentResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
         super(metadata, sources, derivationStrategy);
         this.configurations = metadata.configurations;
     }
 
-    public AbstractRealisedModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata mutableMetadata,
-                                                          ImmutableList<? extends ComponentVariant> variants,
-                                                          Map<String, ConfigurationMetadata> configurations) {
+    public AbstractRealisedModuleComponentResolveMetadata(
+        AbstractModuleComponentResolveMetadata mutableMetadata,
+        ImmutableList<? extends ComponentVariant> variants,
+        Map<String, ModuleConfigurationMetadata> configurations
+    ) {
         super(mutableMetadata, variants);
-        this.configurations = ImmutableMap.<String, ConfigurationMetadata>builder().putAll(configurations).build();
+        this.configurations = ImmutableMap.<String, ModuleConfigurationMetadata>builder().putAll(configurations).build();
     }
 
     @Override
@@ -74,7 +76,7 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
 
     @Nullable
     @Override
-    public ConfigurationMetadata getConfiguration(String name) {
+    public ModuleConfigurationMetadata getConfiguration(String name) {
         return configurations.get(name);
     }
 
@@ -90,7 +92,7 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         if (variants.isEmpty()) {
             return maybeDeriveVariants();
         }
-        ImmutableList.Builder<ConfigurationMetadata> configurations = new ImmutableList.Builder<>();
+        ImmutableList.Builder<ModuleConfigurationMetadata> configurations = new ImmutableList.Builder<>();
         for (ComponentVariant variant : variants) {
             configurations.add(new RealisedVariantBackedConfigurationMetadata(getId(), variant, getAttributes(), getAttributesFactory()));
         }
@@ -151,11 +153,13 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         private final ImmutableList<? extends ModuleDependencyMetadata> dependencyMetadata;
         private final boolean externalVariant;
 
-        public ImmutableRealisedVariantImpl(ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes,
-                                            ImmutableList<? extends Dependency> dependencies, ImmutableList<? extends DependencyConstraint> dependencyConstraints,
-                                            ImmutableList<? extends File> files, ImmutableCapabilities capabilities,
-                                            List<? extends ModuleDependencyMetadata> dependencyMetadata,
-                                            boolean externalVariant) {
+        public ImmutableRealisedVariantImpl(
+            ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes,
+            ImmutableList<? extends Dependency> dependencies, ImmutableList<? extends DependencyConstraint> dependencyConstraints,
+            ImmutableList<? extends File> files, ImmutableCapabilities capabilities,
+            List<? extends ModuleDependencyMetadata> dependencyMetadata,
+            boolean externalVariant
+        ) {
             this.componentId = componentId;
             this.name = name;
             this.attributes = attributes;
