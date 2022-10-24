@@ -143,7 +143,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         taskGraphCalculations[1].details.buildPath == ":"
         taskGraphCalculations[1].result.requestedTaskPaths == [":build"]
         taskGraphCalculations[2].details.buildPath == ":b"
-        taskGraphCalculations[2].result.requestedTaskPaths == [":compileJava", ":jar"]
+        taskGraphCalculations[2].result.requestedTaskPaths == [":classes", ":compileJava", ":jar"]
     }
 
     def "exposes task plan details"() {
@@ -194,15 +194,15 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         with(operations[0].result.taskPlan) {
             task.taskPath == [":compileJava", ":processResources", ":classes", ":independentTask", ":anotherTask", ":otherTask", ":someTask", ":lastTask"]
             task.buildPath == [":", ":", ":", ":", ":", ":", ":", ":"]
-            dependencies.taskPath.collect { it.sort() } == [[":compileJava"], [], [":compileJava", ":processResources"], [], [], [], [":anotherTask", ":otherTask"], []]
-            dependencies.buildPath == [[":included-build"], [], [":", ":"], [], [], [], [":", ":"], []]
+            dependencies.taskPath.collect { it.sort() } == [[":classes", ":compileJava"], [], [":compileJava", ":processResources"], [], [], [], [":anotherTask", ":otherTask"], []]
+            dependencies.buildPath == [[":included-build", ":included-build"], [], [":", ":"], [], [], [], [":", ":"], []]
             finalizedBy.taskPath == [[], [], [], [], [], [], [":lastTask"], []]
             mustRunAfter.taskPath == [[], [], [], [], [], [], [":firstTask"], []]
             shouldRunAfter.taskPath == [[], [], [], [], [], [], [":secondTask"], []]
         }
         with(operations[1].result.taskPlan) {
-            task.taskPath == [':compileJava']
-            task.buildPath == [':included-build']
+            task.taskPath == [':compileJava', ":processResources", ":classes"]
+            task.buildPath == [':included-build', ':included-build', ':included-build']
         }
     }
 
@@ -312,7 +312,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         then:
         with(operations()[0].result.taskPlan) {
             task.taskPath == [":producer:compileJava", ":producer:processResources", ":producer:classes", ":producer:jar", ":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distZip"]
-            dependencies.taskPath.collect { it.sort() } == [[], [], [":producer:compileJava", ":producer:processResources"], [":producer:classes", ":producer:compileJava"], [":producer:compileJava"], [], [":compileJava", ":processResources"], [":classes", ":compileJava"], [":jar", ":producer:jar"], [":jar", ":producer:jar", ":startScripts"]]
+            dependencies.taskPath.collect { it.sort() } == [[], [], [":producer:compileJava", ":producer:processResources"], [":producer:classes", ":producer:compileJava"], [":producer:classes", ":producer:compileJava"], [], [":compileJava", ":processResources"], [":classes", ":compileJava"], [":jar", ":producer:jar"], [":jar", ":producer:jar", ":startScripts"]]
         }
     }
 

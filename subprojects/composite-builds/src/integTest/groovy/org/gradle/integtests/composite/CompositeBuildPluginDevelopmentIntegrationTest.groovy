@@ -458,12 +458,14 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         then:
         failure.assertHasCause("""
 Circular dependency between the following tasks:
-:pluginDependencyA:compileJava
-\\--- :pluginDependencyB:jar
-     +--- :pluginDependencyB:classes
-     |    \\--- :pluginDependencyB:compileJava
-     |         \\--- :pluginDependencyA:compileJava (*)
-     \\--- :pluginDependencyB:compileJava (*)
+:pluginDependencyA:classes
+\\--- :pluginDependencyA:compileJava
+     \\--- :pluginDependencyB:jar
+          +--- :pluginDependencyB:classes
+          |    \\--- :pluginDependencyB:compileJava
+          |         +--- :pluginDependencyA:classes (*)
+          |         \\--- :pluginDependencyA:compileJava (*)
+          \\--- :pluginDependencyB:compileJava (*)
 
 (*) - details omitted (listed previously)
 """.trim())

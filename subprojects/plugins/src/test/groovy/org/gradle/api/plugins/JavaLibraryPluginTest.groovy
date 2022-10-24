@@ -190,13 +190,15 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         def task = project.tasks.compileJava
 
         then:
-        task.taskDependencies.getDependencies(task)*.path as Set == [":common:$producingTask", ":tools:$producingTask"] as Set<String>
+        task.taskDependencies.getDependencies(task)*.path as Set ==
+            ([":common:$producingTask", ":tools:$producingTask"] + (producingTask == 'compileJava' ? [":common:classes", ":tools:classes"] : [])) as Set<String>
 
         when:
         task = commonProject.tasks.compileJava
 
         then:
-        task.taskDependencies.getDependencies(task)*.path as Set == [":tools:$producingTask", ":internal:$producingTask"] as Set<String>
+        task.taskDependencies.getDependencies(task)*.path as Set ==
+            ([":internal:$producingTask", ":tools:$producingTask"] + (producingTask == 'compileJava' ? [":internal:classes", ":tools:classes"] : [])) as Set<String>
 
         cleanup:
         System.setProperty(JavaBasePlugin.COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY, "")

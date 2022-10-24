@@ -176,7 +176,7 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // requires 'c' to do compileJava for the classpath of the javadoc task of 'b'
-        result.assertTasksExecuted(':a:collectJavadoc', ':a:javadoc', ':a:javadocJar', ':a:classes', ':a:compileJava', ':a:processResources', ':b:javadoc', ':b:javadocJar', ':b:classes', ':b:compileJava', ':b:processResources', ':c:compileJava')
+        result.assertTasksExecuted(':a:collectJavadoc', ':a:javadoc', ':a:javadocJar', ':a:classes', ':a:compileJava', ':a:processResources', ':b:javadoc', ':b:javadocJar', ':b:classes', ':b:compileJava', ':b:processResources', ':c:compileJava', ":c:classes", ":c:processResources")
         output('javadocs') == ['a-javadoc.jar', 'b-javadoc.jar'] as Set
         jar('javadocs/a-javadoc.jar').assertContainsFile('ToolImpl.html')
         jar('javadocs/b-javadoc.jar').assertContainsFile('Tool.html')

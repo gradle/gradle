@@ -35,7 +35,7 @@ class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec
 
         then:
         executedAndNotSkipped(":lib:compileScala")
-        notExecuted(":lib:processResources", ":lib:jar")
+        notExecuted(":lib:jar")
     }
 
     def "scala and java source directory compilation order can be reversed (task configuration #configurationStyle)"() {

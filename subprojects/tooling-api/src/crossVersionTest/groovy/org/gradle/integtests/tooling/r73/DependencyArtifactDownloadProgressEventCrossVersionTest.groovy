@@ -130,8 +130,8 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         }
 
         then:
-        events.operations.size() == 10
-        events.trees.size() == 2
+        events.operations.size() == 12
+        events.trees.size() == 4
         events.operation("Task :a:compileJava")
         def task = events.operation("Task :resolve")
         task.child("Download ${modules.projectB.pom.uri}").assertIsDownload(modules.projectB.pom)

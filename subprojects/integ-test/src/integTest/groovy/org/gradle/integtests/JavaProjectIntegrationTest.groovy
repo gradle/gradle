@@ -250,7 +250,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
         """
 
         def result = inTestDirectory().withTasks("a:classes").run()
-        result.assertTasksExecuted(":b:compileJava", ":a:compileJava", ":a:processResources", ":a:classes")
+        result.assertTasksExecuted(":b:compileJava", ":a:compileJava", ":a:processResources", ":a:classes", ":b:classes", ":b:processResources")
     }
 
 }

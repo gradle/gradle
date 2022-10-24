@@ -71,7 +71,7 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
             jar.hasDescendants("Dummy.class", "GroovyClass.class")
         } else {
             executedAndNotSkipped(":groovyLib:compileJava", ":groovyLib:compileGroovy")
-            notExecuted(":groovyLib:classes", ":groovyLib:jar")
+            notExecuted(":groovyLib:jar")
         }
 
         then:
@@ -163,7 +163,7 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
         succeeds 'javaLib:checkDeps'
 
         executedAndNotSkipped(":groovyLib:compileJava", ":groovyLib:compileGroovy")
-        notExecuted(":groovyLib:classes", ":groovyLib:jar")
+        notExecuted(":groovyLib:jar")
 
         then:
         resolve.expectGraph {
