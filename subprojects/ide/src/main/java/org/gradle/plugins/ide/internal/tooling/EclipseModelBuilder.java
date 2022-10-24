@@ -85,6 +85,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
+
 public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
     private final GradleProjectBuilder gradleProjectBuilder;
     private final EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider;
@@ -186,7 +188,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
     private DefaultEclipseProject buildHierarchy(Project project) {
         List<DefaultEclipseProject> children = new ArrayList<>();
-        for (Project child : project.getChildProjects().values()) {
+        for (Project child : getChildProjectsForInternalUse(project)) {
             children.add(buildHierarchy(child));
         }
 
@@ -241,7 +243,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             populateEclipseProjectJdt(eclipseProject, eclipseModel.getJdt());
         });
 
-        for (Project childProject : project.getChildProjects().values()) {
+        for (Project childProject : getChildProjectsForInternalUse(project)) {
             populate(childProject);
         }
     }
