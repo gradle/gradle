@@ -218,7 +218,7 @@ project(':consumer') {
         resolve()
 
         then:
-        result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":consumer:resolve")
+        result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":consumer:resolve", ":java:classes", ":java:processResources")
         assertResolveOutput("""
             files: [main, file-dep.jar, main, implementation-1.0.jar, runtime-only-1.0.jar]
             main (project :java) {artifactType=java-classes-directory, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes, org.gradle.usage=java-runtime}

@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
+import org.gradle.util.GradleVersion
 
 @ToolingApiVersion(">=7.3")
 @TargetGradleVersion(">=7.3")
@@ -128,10 +129,14 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
             build.addProgressListener(events, OperationType.FILE_DOWNLOAD, OperationType.TASK)
                 .run()
         }
-
         then:
-        events.operations.size() == 12
-        events.trees.size() == 4
+        if (targetVersion >= GradleVersion.version('7.5.1')) {
+            assert events.operations.size() == 12
+            assert events.trees.size() == 4
+        } else {
+            assert events.operations.size() == 10
+            assert events.trees.size() == 2
+        }
         events.operation("Task :a:compileJava")
         def task = events.operation("Task :resolve")
         task.child("Download ${modules.projectB.pom.uri}").assertIsDownload(modules.projectB.pom)

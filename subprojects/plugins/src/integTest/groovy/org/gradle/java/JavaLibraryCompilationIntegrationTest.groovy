@@ -153,7 +153,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':b:compileJava'
-        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+        notExecuted ':b:jar'
     }
 
     def "uses the API of a library when compiling a custom source set against it [compileClasspathPackaging=#compileClasspathPackaging]"() {
@@ -243,7 +243,7 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':b:compileJava'
-        notExecuted ':b:processResources', ':b:classes', ':b:jar'
+        notExecuted ':b:jar'
     }
 
     def "recompiles consumer if API dependency of producer changed [compileClasspathPackaging=#compileClasspathPackaging]"() {
@@ -420,20 +420,21 @@ class JavaLibraryCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ":b:$executed"
-        notExecuted ":b:$notExec"
+        if (notExec != null) {
+            notExecuted ":b:$notExec"
+        }
 
         where:
         scenario              | token       | expectedDirName     | executed           | notExec
-        'class directory'     | 'CLASSES'   | 'classes/java/main' | 'compileJava'      | 'processResources'
+        'class directory'     | 'CLASSES'   | 'classes/java/main' | 'compileJava'      | null
         'resources directory' | 'RESOURCES' | 'resources/main'    | 'processResources' | 'compileJava'
     }
 
     private void packagingTasks(boolean expectExecuted) {
-        def tasks = [':b:processResources', ':b:classes', ':b:jar']
         if (expectExecuted) {
-            executed(*tasks)
+            executed(':b:processResources', ':b:classes', ':b:jar')
         } else {
-            notExecuted(*tasks)
+            notExecuted(':b:jar')
         }
     }
 
