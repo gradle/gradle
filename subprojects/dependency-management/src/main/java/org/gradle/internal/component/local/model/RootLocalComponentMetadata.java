@@ -38,6 +38,8 @@ import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.lazy.Lazy;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.ModelContainer;
 
 import java.util.Collections;
 import java.util.List;
@@ -49,15 +51,23 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
     private final DependencyLockingProvider dependencyLockingProvider;
     private final Map<String, RootLocalConfigurationMetadata> rootConfigs = Maps.newHashMap();
 
-    public RootLocalComponentMetadata(ModuleVersionIdentifier moduleVersionIdentifier, ComponentIdentifier componentIdentifier, String status, AttributesSchemaInternal schema, DependencyLockingProvider dependencyLockingProvider) {
-        super(moduleVersionIdentifier, componentIdentifier, status, schema);
+    public RootLocalComponentMetadata(
+        ModuleVersionIdentifier moduleVersionIdentifier,
+        ComponentIdentifier componentIdentifier,
+        String status,
+        AttributesSchemaInternal schema,
+        DependencyLockingProvider dependencyLockingProvider,
+        ModelContainer<?> model,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    ) {
+        super(moduleVersionIdentifier, componentIdentifier, status, schema, model, calculatedValueContainerFactory);
         this.dependencyLockingProvider = dependencyLockingProvider;
     }
 
     @Override
     public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, DeprecationMessageBuilder.WithDocumentation consumptionDeprecation, boolean canBeResolved, ImmutableCapabilities capabilities, Supplier<List<DependencyConstraint>> consistentResolutionConstraints) {
         assert hierarchy.contains(name);
-        RootLocalConfigurationMetadata conf = new RootLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionDeprecation, canBeResolved, capabilities, consistentResolutionConstraints);
+        RootLocalConfigurationMetadata conf = new RootLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionDeprecation, canBeResolved, capabilities, model, calculatedValueContainerFactory, consistentResolutionConstraints);
         addToConfigurations(name, conf);
         rootConfigs.put(name, conf);
         return conf;
@@ -85,8 +95,10 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
                                        DeprecationMessageBuilder.WithDocumentation consumptionDeprecation,
                                        boolean canBeResolved,
                                        ImmutableCapabilities capabilities,
+                                       ModelContainer<?> model,
+                                       CalculatedValueContainerFactory calculatedValueContainerFactory,
                                        Supplier<List<DependencyConstraint>> consistentResolutionConstraints) {
-            super(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionDeprecation, canBeResolved, capabilities);
+            super(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionDeprecation, canBeResolved, capabilities, model, calculatedValueContainerFactory);
             this.consistentResolutionConstraints = consistentResolutionConstraints;
         }
 

@@ -27,12 +27,16 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.EmptySchema;
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.RootLocalComponentMetadata;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.ModelContainer;
 
 import javax.inject.Inject;
 
@@ -45,6 +49,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
     private final MetadataHolder holder;
     private final ProjectStateRegistry projectStateRegistry;
     private final DependencyLockingProvider dependencyLockingProvider;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final DefaultRootComponentMetadataBuilder.Factory factory;
 
     /**
@@ -58,6 +63,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         ConfigurationsProvider configurationsProvider,
         ProjectStateRegistry projectStateRegistry,
         DependencyLockingProvider dependencyLockingProvider,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
         Factory factory
     ) {
         this.metadataProvider = metadataProvider;
@@ -67,6 +73,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         this.configurationsProvider = configurationsProvider;
         this.projectStateRegistry = projectStateRegistry;
         this.dependencyLockingProvider = dependencyLockingProvider;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.factory = factory;
         this.holder = new MetadataHolder();
     }
@@ -93,15 +100,15 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
             }
             return projectState.fromMutableState(project -> {
                 AttributesSchemaInternal schema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
-                return getRootComponentMetadata(module, componentIdentifier, moduleVersionIdentifier, schema, dependencyLockingProvider);
+                return getRootComponentMetadata(module, componentIdentifier, moduleVersionIdentifier, schema, dependencyLockingProvider, projectState);
             });
         } else {
-            return getRootComponentMetadata(module, componentIdentifier, moduleVersionIdentifier, null, dependencyLockingProvider);
+            return getRootComponentMetadata(module, componentIdentifier, moduleVersionIdentifier, EmptySchema.INSTANCE, dependencyLockingProvider, RootScriptDomainObjectContext.INSTANCE);
         }
     }
 
-    private DefaultLocalComponentMetadata getRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, AttributesSchemaInternal schema, DependencyLockingProvider dependencyLockingHandler) {
-        DefaultLocalComponentMetadata metadata = new RootLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, dependencyLockingHandler);
+    private DefaultLocalComponentMetadata getRootComponentMetadata(Module module, ComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, AttributesSchemaInternal schema, DependencyLockingProvider dependencyLockingHandler, ModelContainer<?> model) {
+        DefaultLocalComponentMetadata metadata = new RootLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus(), schema, dependencyLockingHandler, model, calculatedValueContainerFactory);
         for (ConfigurationInternal configuration : configurationsProvider.getAll()) {
             addConfiguration(metadata, configuration);
         }
@@ -153,6 +160,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         private final LocalComponentMetadataBuilder localComponentMetadataBuilder;
         private final ProjectStateRegistry projectStateRegistry;
         private final DependencyLockingProvider dependencyLockingProvider;
+        private final CalculatedValueContainerFactory calculatedValueContainerFactory;
 
         @Inject
         public Factory(
@@ -161,7 +169,8 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
             LocalComponentMetadataBuilder localComponentMetadataBuilder,
             ProjectStateRegistry projectStateRegistry,
-            DependencyLockingProvider dependencyLockingProvider
+            DependencyLockingProvider dependencyLockingProvider,
+            CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
             this.metaDataProvider = metaDataProvider;
             this.componentIdentifierFactory = componentIdentifierFactory;
@@ -169,6 +178,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
             this.localComponentMetadataBuilder = localComponentMetadataBuilder;
             this.projectStateRegistry = projectStateRegistry;
             this.dependencyLockingProvider = dependencyLockingProvider;
+            this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         }
 
         public DefaultRootComponentMetadataBuilder create(ConfigurationsProvider configurationsProvider) {
@@ -180,6 +190,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
                 configurationsProvider,
                 projectStateRegistry,
                 dependencyLockingProvider,
+                calculatedValueContainerFactory,
                 this
             );
         }
