@@ -83,16 +83,16 @@ public abstract class Node {
             return this + " (state=" + state + ")";
         } else {
             StringBuilder specificState = new StringBuilder();
+            dependencyNodes.healthDiagnostics(specificState);
             nodeSpecificHealthDiagnostics(specificState);
             return this + " (state=" + state
                 + ", dependencies=" + dependenciesState
                 + ", group=" + group
-                + ", dependencies=" + formatNodes(dependencyNodes.getDependencySuccessors())
-                + specificState + " )";
+                + ", " + specificState + " )";
         }
     }
 
-    protected String formatNodes(Iterable<? extends Node> nodes) {
+    public static String formatNodes(Iterable<? extends Node> nodes) {
         StringBuilder builder = new StringBuilder();
         builder.append('[');
         boolean first = true;

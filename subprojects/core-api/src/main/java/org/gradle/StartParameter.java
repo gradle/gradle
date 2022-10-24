@@ -966,4 +966,15 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     public void setWelcomeMessageConfiguration(WelcomeMessageConfiguration welcomeMessageConfiguration) {
         this.welcomeMessageConfiguration = welcomeMessageConfiguration;
     }
+
+    /**
+     * Returns true if configuration caching has been requested. Note that the configuration cache may not necessarily be used even when requested, for example
+     * it may be disabled due to the presence of configuration cache problems. It is also currently not used during an IDE import/sync.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public boolean isConfigurationCacheRequested() {
+        return false;
+    }
 }

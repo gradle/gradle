@@ -181,18 +181,22 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             ordinalGroups.add(group.diagnostics());
         }
 
-        List<String> waitingForNodeNames = new ArrayList<>(this.waitingToStartNodes.size());
+        List<String> waitingToStartItems = new ArrayList<>(waitingToStartNodes.size());
         for (Node node : waitingToStartNodes) {
-            waitingForNodeNames.add(node.healthDiagnostics());
+            waitingToStartItems.add(node.healthDiagnostics());
         }
-        List<String> otherNodeNames = new ArrayList<>();
+        List<String> readyToStartItems = new ArrayList<>(readyNodes.size());
+        for (Node node : readyNodes.nodes) {
+            readyToStartItems.add(node.toString());
+        }
+        List<String> otherWaitingItems = new ArrayList<>();
         visitWaitingNodes(node -> {
             if (!waitingToStartNodes.contains(node)) {
-                otherNodeNames.add(node.healthDiagnostics());
+                otherWaitingItems.add(node.healthDiagnostics());
             }
         });
 
-        return new Diagnostics(displayName, ordinalGroups, waitingForNodeNames, otherNodeNames);
+        return new Diagnostics(displayName, ordinalGroups, waitingToStartItems, readyToStartItems, otherWaitingItems);
     }
 
     /**
