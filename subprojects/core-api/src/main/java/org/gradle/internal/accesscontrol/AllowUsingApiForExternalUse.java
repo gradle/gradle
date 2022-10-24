@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.model;
+package org.gradle.internal.accesscontrol;
 
-import java.util.List;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Immutable metadata for the artifacts of a variant instance that is used to perform dependency graph resolution.
- * This is a separate from {@link VariantGraphResolveMetadata} because calculating the artifacts for a variant may be expensive, and is
- * used during graph resolution only in very specific cases.
+ * Suppresses the checks done for {@link ForExternalUse}, effectively allowing the code point
+ * marked by this annotation to use public API declarations that are meant for external use only in.
  *
- * <p>Note: only provides a limited view of the artifact metadata, exposing only that required to perform graph resolution.</p>
+ * @see ForExternalUse
  */
-public interface VariantArtifactGraphResolveMetadata {
-    List<? extends ComponentArtifactMetadata> getArtifacts();
+@Retention(RetentionPolicy.CLASS)
+@Target({ElementType.METHOD, ElementType.FIELD, ElementType.CONSTRUCTOR})
+public @interface AllowUsingApiForExternalUse {
 }

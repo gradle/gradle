@@ -48,20 +48,6 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         result.state == state
     }
 
-    def "can query id and metadata when resolved from metadata"() {
-        ModuleVersionIdentifier id = Stub()
-        def metaData = Stub(ModuleComponentResolveMetadata) {
-            getModuleVersionId() >> id
-        }
-
-        when:
-        result.resolved(metaData)
-
-        then:
-        result.moduleVersionId == id
-        result.state.metadata == metaData
-    }
-
     def "cannot get id when no result has been specified"() {
         when:
         result.moduleVersionId
@@ -117,7 +103,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
     def "failure is null when successfully resolved"() {
         when:
-        result.resolved(Mock(ModuleComponentResolveMetadata))
+        result.resolved(Mock(ComponentGraphResolveState))
 
         then:
         result.failure == null
