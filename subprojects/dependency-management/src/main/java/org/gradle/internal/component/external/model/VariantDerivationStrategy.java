@@ -16,7 +16,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 
 /**
  * Variant derivation strategies should be stateless. If they aren't singletons,
@@ -24,5 +24,5 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
  */
 public interface VariantDerivationStrategy {
     boolean derivesVariants();
-    ImmutableList<? extends ConfigurationMetadata> derive(ModuleComponentResolveMetadata metadata);
+    ImmutableList<? extends ModuleConfigurationMetadata> derive(ModuleComponentResolveMetadata metadata);
 }
