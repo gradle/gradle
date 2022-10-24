@@ -47,10 +47,10 @@ public class JavaToolchainFactory {
         this.eventEmitter = eventEmitter;
     }
 
-    public Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input) {
+    public Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input, boolean isFallbackToolchain) {
         final JvmInstallationMetadata metadata = detector.getMetadata(javaHome);
-        if(metadata.isValidInstallation()) {
-            final JavaToolchain toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, fileFactory, input, eventEmitter);
+        if (metadata.isValidInstallation()) {
+            final JavaToolchain toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, fileFactory, input, isFallbackToolchain, eventEmitter);
             return Optional.of(toolchain);
         }
         return Optional.empty();
