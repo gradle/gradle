@@ -105,7 +105,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
                 }
             }
         } catch (Exception e) {
-            throw new GradleException(format("Could not expand %s.", getDisplayName()), e);
+            throw new GradleException(format("Cannot expand %s.", getDisplayName()), e);
         }
     }
 
