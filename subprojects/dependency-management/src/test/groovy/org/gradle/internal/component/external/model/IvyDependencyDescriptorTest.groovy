@@ -31,10 +31,12 @@ import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
+import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ConfigurationNotFoundException
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.Exclude
+import org.gradle.internal.component.model.ModuleConfigurationMetadata
 
 import static com.google.common.collect.ImmutableList.copyOf
 
@@ -156,7 +158,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
     def "selects no configurations when no configuration mappings provided"() {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
-        def fromConfig = Stub(ConfigurationMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
         fromConfig.name >> "from"
 
         expect:
@@ -168,9 +170,9 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig2 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
         toState.metadata >> toComponent
         toComponent.getConfiguration("to-1") >> toConfig1
@@ -190,9 +192,9 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ModuleConfigurationMetadata)
+        def toConfig2 = Stub(ModuleConfigurationMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from", "super")
         toState.metadata >> toComponent
         toComponent.getConfiguration("to-1") >> toConfig1
@@ -212,10 +214,10 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def fromConfig2 = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def fromConfig2 = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig2 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
         fromConfig2.hierarchy >> ImmutableSet.of("other")
         toState.metadata >> toComponent
@@ -236,7 +238,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
         def toConfig1 = config('to-1', true)
         def toConfig2 = config('to-2', true)
@@ -257,8 +259,8 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         metadata.selectLegacyConfigurations(fromComponent, fromConfig, toState).variants == [toConfig1, toConfig2]
     }
 
-    private ConfigurationMetadata config(name, visible) {
-        def toConfig1 = Stub(ConfigurationMetadata)
+    private ConfigurationGraphResolveMetadata config(name, visible) {
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
         toConfig1.visible >> visible
         toConfig1.name >> name
         toConfig1.getHierarchy() >> ImmutableSet.of(name)
@@ -269,11 +271,11 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def fromConfig2 = Stub(ConfigurationMetadata)
-        def fromConfig3 = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def fromConfig2 = Stub(ModuleConfigurationMetadata)
+        def fromConfig3 = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig2 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
         fromConfig2.hierarchy >> ImmutableSet.of("child", "from")
         fromConfig3.hierarchy >> ImmutableSet.of("other")
@@ -297,12 +299,12 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def fromConfig2 = Stub(ConfigurationMetadata)
-        def fromConfig3 = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
-        def toConfig3 = Stub(ConfigurationMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def fromConfig2 = Stub(ModuleConfigurationMetadata)
+        def fromConfig3 = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig2 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig3 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
         fromConfig2.hierarchy >> ImmutableSet.of("child", "from")
         fromConfig3.hierarchy >> ImmutableSet.of("other")
@@ -327,11 +329,11 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def fromConfig2 = Stub(ConfigurationMetadata)
-        def fromConfig3 = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def fromConfig2 = Stub(ModuleConfigurationMetadata)
+        def fromConfig3 = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig2 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
         fromConfig2.hierarchy >> ImmutableSet.of("other")
         fromConfig3.hierarchy >> ImmutableSet.of("other2")
@@ -359,9 +361,9 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def fromConfig2 = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def fromConfig2 = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("a")
         fromConfig2.hierarchy >> ImmutableSet.of("other", "a")
         toState.metadata >> toComponent
@@ -380,10 +382,10 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def fromConfig2 = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def fromConfig2 = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig2 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.name >> "a"
         fromConfig2.name >> "b"
         fromConfig.hierarchy >> ImmutableSet.of("a")
@@ -405,10 +407,10 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def fromComponent = Stub(ComponentIdentifier)
         def toState = Stub(ComponentGraphResolveState)
         def toComponent = Stub(ComponentGraphResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def fromConfig2 = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def fromConfig2 = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig2 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.name >> "a"
         fromConfig2.name >> "b"
         fromConfig.hierarchy >> ImmutableSet.of("a")
@@ -445,7 +447,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def toComponent = Stub(ComponentGraphResolveMetadata)
         toState.metadata >> toComponent
         toComponent.id >> toId
-        def fromConfig = Stub(ConfigurationMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
         fromConfig.name >> "from"
         toComponent.getConfiguration(_) >> null

@@ -131,7 +131,7 @@ class InstantiatingBuildLoaderTest extends Specification {
         1 * gradle.setDefaultProject(childProject)
 
         and:
-        rootProject.childProjects['child'].is childProject
+        rootProject.childProjectsUnchecked['child'].is childProject
     }
 
     ProjectDescriptor descriptor(String name, ProjectDescriptor parent, File projectDir) {

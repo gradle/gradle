@@ -18,14 +18,15 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import javax.annotation.Nullable;
 
-public interface LocalComponentMetadata extends ComponentResolveMetadata {
+public interface LocalComponentMetadata extends ComponentResolveMetadata, ComponentGraphResolveMetadata {
     @Nullable
     @Override
-    LocalConfigurationMetadata getConfiguration(String name);
+    LocalConfigurationGraphResolveMetadata getConfiguration(String name);
 
     LocalComponentMetadata copy(ComponentIdentifier componentIdentifier, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifacts);
 }
