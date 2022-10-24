@@ -7,12 +7,19 @@ description = "Infrastructure that bootstraps a worker process"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(project(":base-services"))
-    implementation(project(":logging"))
-    implementation(project(":messaging"))
+    api(project(":base-annotations"))
+    api(project(":base-services"))
+    api(project(":build-operations"))
+    api(project(":logging-api"))
+    api(project(":logging"))
+    api(project(":messaging"))
+    api(project(":problems-api"))
+    api(project(":process-services"))
+
+    implementation(project(":enterprise-logging"))
     implementation(project(":native"))
-    implementation(project(":process-services"))
-    implementation(project(":problems-api"))
+
+    implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(project(":core")))
 }

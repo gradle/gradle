@@ -22,20 +22,20 @@ plugins {
 description = "Basic components required by the IDE plugins project"
 
 dependencies {
-    implementation(project(":base-services"))
+    api(project(":base-services"))
+    api(project(":core-api"))
+    api(project(":ide"))
+
     implementation(project(":core"))
-    implementation(project(":core-api"))
-    implementation(project(":dependency-management"))
-    implementation(project(":file-collections"))
-    implementation(project(":ide"))
     implementation(project(":logging"))
-    implementation(project(":model-core"))
+    implementation(project(":logging-api"))
     implementation(project(":process-services"))
 
     implementation(libs.commonsLang)
-    implementation(libs.groovy)
     implementation(libs.guava)
-    implementation(libs.inject)
+
+    runtimeOnly(project(":dependency-management"))
+    runtimeOnly(libs.groovy)
 
     testImplementation(testFixtures(project(":core")))
 

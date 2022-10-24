@@ -162,6 +162,7 @@ dependencies {
         api(libs.aircompressor)         { version { strictly("0.8") }}
         api(libs.archunit)              { version { strictly(archunitVersion) }}
         api(libs.archunitJunit5)        { version { strictly(archunitVersion) }}
+        api(libs.archunitJunit5Api)     { version { strictly(archunitVersion) }}
         api(libs.awaitility)            { version { strictly("3.1.6") }}
         api(libs.bytebuddy)             { version { strictly(bytebuddyVersion) }}
         api(libs.bytebuddyAgent)        { version { strictly(bytebuddyVersion) }}

@@ -33,10 +33,13 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
 }
 
 dependencies {
+    api(project(":file-collections"))
+
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
     implementation(project(":build-operations"))
     implementation(project(":enterprise-operations"))
+    implementation(project(":enterprise-workers"))
     implementation(project(":functional"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
@@ -52,7 +55,6 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":files"))
     implementation(project(":file-temp"))
-    implementation(project(":file-collections"))
     implementation(project(":process-services"))
     implementation(project(":jvm-services"))
     implementation(project(":model-groovy"))
@@ -105,6 +107,8 @@ dependencies {
     testImplementation(libs.jsoup)
     testImplementation(libs.log4jToSlf4j)
     testImplementation(libs.jclToSlf4j)
+
+    testFixturesCompileOnly(libs.jetbrainsAnnotations)
 
     testFixturesApi(project(":base-services")) {
         because("test fixtures expose Action")

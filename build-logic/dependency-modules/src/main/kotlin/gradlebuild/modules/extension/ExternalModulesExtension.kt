@@ -149,6 +149,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val aircompressor = "io.airlift:aircompressor"
     val archunit = "com.tngtech.archunit:archunit"
     val archunitJunit5 = "com.tngtech.archunit:archunit-junit5"
+    val archunitJunit5Api = "com.tngtech.archunit:archunit-junit5-api"
     val awaitility = "org.awaitility:awaitility-kotlin"
     val bytebuddy = "net.bytebuddy:byte-buddy"
     val bytebuddyAgent = "net.bytebuddy:byte-buddy-agent"
