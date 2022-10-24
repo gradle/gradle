@@ -341,7 +341,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     def "zipTreeFailsGracefully when #scenario"() {
         given:
         content.call(getTestDirectory())
-        file('content/some-file.txt').text = "Content"; file('content').tarTo(file('compressedTarWithWrongExtension.zip'))
         buildFile << '''
             task copy(type: Copy) {
                 from zipTree('compressedTarWithWrongExtension.zip')
@@ -354,7 +353,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Execution failed for task ':copy'.")
-        failure.assertThatCause(CoreMatchers.startsWith("Could not expand ZIP"))
+        failure.assertThatCause(CoreMatchers.startsWith("Cannot expand ZIP"))
 
         where:
         scenario | content

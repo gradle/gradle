@@ -113,15 +113,19 @@ public class TarFileTree extends AbstractArchiveFileTree {
         }
     }
 
+    /**
+     * Using Apache Commons Compress to un-tar a non-tar archive fails silently, without any exception
+     * or error, so we need a way of checking the format explicitly.
+     */
     private void checkFormat(InputStream inputStream) throws IOException {
         String format;
         try {
             format = ArchiveStreamFactory.detect(inputStream);
         } catch (ArchiveException e) {
-            throw new IOException("Failed detecting archive format!", e);
+            throw new IOException("Failed to detect archive format!", e);
         }
         if (!TAR.equals(format)) {
-            throw new IOException("Expected tar archive format but found " + format);
+            throw new IOException("Expected TAR archive format but found " + format);
         }
     }
 
@@ -208,7 +212,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
             if (read && file != null) {
                 return GFileUtils.openInputStream(file);
             }
-            if (read) {
+            if (read || tar.getCurrentEntry() != entry) {
                 throw new UnsupportedOperationException(String.format("The contents of %s has already been read.", this));
             }
             read = true;
