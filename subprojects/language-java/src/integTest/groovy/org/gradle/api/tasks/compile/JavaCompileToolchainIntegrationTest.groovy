@@ -21,28 +21,295 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Requires
 import org.gradle.util.internal.TextUtil
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.junit.Assume.assumeNotNull
 
 class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
 
-    @Issue("https://github.com/gradle/gradle/issues/22398")
-    def "ignore #what in fork options if not forking"() {
-        def curJvm = Jvm.current()
-        def otherJvm = AvailableJavaHomes.differentVersion
-        def path = TextUtil.normaliseFileSeparators(otherJvm.javaHome.absolutePath + appendPath)
-
+    def setup() {
         file("src/main/java/Foo.java") << "public class Foo {}"
+    }
+
+    def "fails on toolchain and forkOptions mismatch when #when"() {
+        def currentJdk = Jvm.current()
+        def otherJdk = AvailableJavaHomes.differentVersion
+
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        if (tool != null) {
+            configureTool(tool == "current" ? currentJdk : otherJdk)
+        }
+        if (javaHome != null) {
+            configureForkOptionsJavaHome(javaHome == "current" ? currentJdk : otherJdk)
+        }
+        if (executable != null) {
+            configureForkOptionsExecutable(executable == "current" ? currentJdk : otherJdk)
+        }
+
+        when:
+        withInstallations(currentJdk, otherJdk).runAndFail(":compileJava")
+
+        then:
+        failureHasCause("Toolchain from `${errorFor}` property on `ForkOptions` does not match toolchain from `javaCompiler` property")
+
+        where:
+        when                                  | tool    | javaHome  | executable | errorFor
+        "java home disagrees with executable" | null    | "other"   | "current"  | "executable"
+        "tool disagrees with executable"      | "other" | null      | "current"  | "executable"
+        "tool disagrees with java home"       | "other" | "current" | null       | "javaHome"
+        "tool disagrees with "                | "other" | "current" | "current"  | "javaHome"
+    }
+
+    def "fails on toolchain and forkOptions mismatch when #when (without java base plugin)"() {
+        def currentJdk = Jvm.current()
+        def otherJdk = AvailableJavaHomes.differentVersion
+
+        def compileWithVersion = [currentJdk, otherJdk].collect { it.javaVersion }.min()
+
+        buildFile << """
+            plugins {
+                id 'jvm-toolchains'
+            }
+
+            task compileJava(type: JavaCompile) {
+                classpath = project.layout.files()
+                source = project.layout.files("src/main/java")
+                destinationDirectory = project.layout.buildDirectory.dir("classes/java/main")
+                sourceCompatibility = "${compileWithVersion}"
+                targetCompatibility = "${compileWithVersion}"
+            }
+        """
+
+        if (tool != null) {
+            configureTool(tool == "current" ? currentJdk : otherJdk)
+        }
+        if (javaHome != null) {
+            configureForkOptionsJavaHome(javaHome == "current" ? currentJdk : otherJdk)
+        }
+        if (executable != null) {
+            configureForkOptionsExecutable(executable == "current" ? currentJdk : otherJdk)
+        }
+
+        when:
+        withInstallations(currentJdk, otherJdk).runAndFail(":compileJava")
+
+        then:
+        failureHasCause("Toolchain from `${errorForProperty}` property on `ForkOptions` does not match toolchain from `javaCompiler` property")
+
+        where:
+        when                                  | tool    | javaHome  | executable | errorForProperty
+        "java home disagrees with executable" | null    | "other"   | "current"  | "executable"
+        "tool disagrees with executable"      | "other" | null      | "current"  | "executable"
+        "tool disagrees with java home"       | "other" | "current" | null       | "javaHome"
+        "tool disagrees with "                | "other" | "current" | "current"  | "javaHome"
+    }
+
+    def "uses #uses toolchain #when"() {
+        def currentJdk = Jvm.current()
+        def otherJdk = AvailableJavaHomes.differentVersion
+
+        // Stateful function to return target JDK first, and another for every subsequent call
+        def usedJdk = false
+        def useJdk = {
+            if (!usedJdk) {
+                usedJdk = true
+                return otherJdk
+            } else {
+                return currentJdk
+            }
+        }
+
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        // Order is important because it corresponds to toolchain priority
+        if (withTool) {
+            configureTool(useJdk())
+        }
+        if (withJavaHome) {
+            configureForkOptionsJavaHome(useJdk())
+        }
+        if (withExecutable) {
+            configureForkOptionsExecutable(useJdk())
+        }
+        if (withJavaExtension) {
+            configureJavaExtension(useJdk())
+        }
+
+        def targetJdk = usedJdk ? otherJdk : currentJdk
+
+        when:
+        withInstallations(currentJdk, otherJdk).run(":compileJava", "--info")
+
+        then:
+        executedAndNotSkipped(":compileJava")
+        outputContains("Compiling with toolchain '${targetJdk.javaHome.absolutePath}'")
+        targetJdk.javaVersion == JavaVersion.forClass(javaClassFile("Foo.class").bytes)
+
+        where:
+        // Some cases are skipped, because forkOptions (when configured) must match the resulting toolchain, otherwise the build fails
+        uses             | when                                 | withTool | withJavaHome | withExecutable | withJavaExtension
+        "current JVM"    | "when nothing is configured"         | false    | false        | false          | false
+        "java extension" | "when configured"                    | false    | false        | false          | true
+        "executable"     | "when configured"                    | false    | false        | true           | false
+        "java home"      | "when configured"                    | false    | true         | false          | false
+        "assigned tool"  | "when configured"                    | true     | false        | false          | false
+        "executable"     | "over java extension"                | false    | false        | true           | true
+        "java home"      | "over executable and java extension" | false    | true         | false          | true
+        "assigned tool"  | "over java extension"                | true     | false        | false          | true
+    }
+
+    def "uses #uses toolchain #when (without java base plugin)"() {
+        def currentJdk = Jvm.current()
+        def otherJdk = AvailableJavaHomes.differentVersion
+
+        // Stateful function to return target JDK first, and another for every subsequent call
+        def usedJdk = false
+        def useJdk = {
+            if (!usedJdk) {
+                usedJdk = true
+                return otherJdk
+            } else {
+                return currentJdk
+            }
+        }
+
+        def compileWithVersion = [currentJdk, otherJdk].collect { it.javaVersion }.min()
+
+        buildFile << """
+            plugins {
+                id 'jvm-toolchains'
+            }
+
+            task compileJava(type: JavaCompile) {
+                classpath = project.layout.files()
+                source = project.layout.files("src/main/java")
+                destinationDirectory = project.layout.buildDirectory.dir("classes/java/main")
+                sourceCompatibility = "${compileWithVersion}"
+                targetCompatibility = "${compileWithVersion}"
+            }
+        """
+
+        // Order of if's is important as it denotes toolchain priority
+        if (withTool) {
+            configureTool(useJdk())
+        }
+        if (withJavaHome) {
+            configureForkOptionsJavaHome(useJdk())
+        }
+        if (withExecutable) {
+            configureForkOptionsExecutable(useJdk())
+        }
+
+        def targetJdk = usedJdk ? otherJdk : currentJdk
+
+        when:
+        withInstallations(currentJdk, otherJdk).run(":compileJava", "--info")
+
+        then:
+        executedAndNotSkipped(":compileJava")
+        outputContains("Compiling with toolchain '${targetJdk.javaHome.absolutePath}'")
+
+        where:
+        // Some cases are skipped, because forkOptions (when configured) must match the resulting toolchain, otherwise the build fails
+        uses            | when                                 | withTool | withJavaHome | withExecutable
+        "current JVM"   | "when toolchains are not configured" | false    | false        | false
+        "executable"    | "when configured"                    | false    | false        | true
+        "java home"     | "when configured"                    | false    | true         | false
+        "assigned tool" | "when configured"                    | true     | false        | false
+    }
+
+    def "uses toolchain from forkOptions #forkOption when it points outside of installations"() {
+        def currentJdk = Jvm.current()
+        def otherJdk = AvailableJavaHomes.differentVersion
+
+        def path = TextUtil.normaliseFileSeparators(otherJdk.javaHome.absolutePath.toString() + appendPath)
+
+        def compatibilityVersion = [currentJdk, otherJdk].collect { it.javaVersion }.min()
 
         buildFile << """
             apply plugin: "java"
 
             compileJava {
+                options.fork = true
+                ${configure.replace("<path>", path)}
+                sourceCompatibility = "${compatibilityVersion}"
+                targetCompatibility = "${compatibilityVersion}"
+            }
+        """
+
+        when:
+        // not adding the other JDK to the installations
+        withInstallations(currentJdk).run(":compileJava", "--info")
+
+        then:
+        executedAndNotSkipped(":compileJava")
+        outputContains("Compiling with toolchain '${otherJdk.javaHome.absolutePath}'")
+        JavaVersion.toVersion(compatibilityVersion) == JavaVersion.forClass(javaClassFile("Foo.class").bytes)
+
+        where:
+        forkOption   | configure                                       | appendPath
+        "java home"  | 'options.forkOptions.javaHome = file("<path>")' | ''
+        "executable" | 'options.forkOptions.executable = "<path>"'     | OperatingSystem.current().getExecutableName('/bin/javac')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22397")
+    def "uses source and target compatibility from earlier toolchain from forkOptions #forkOption"() {
+        def currentJdk = Jvm.current()
+        def earlierJdk = AvailableJavaHomes.getDifferentVersion { it.languageVersion < currentJdk.javaVersion }
+        assumeNotNull(earlierJdk)
+
+        def path = TextUtil.normaliseFileSeparators(earlierJdk.javaHome.absolutePath.toString() + appendPath)
+
+        buildFile << """
+            apply plugin: "java"
+
+            compileJava {
+                options.fork = true
+                ${configure.replace("<path>", path)}
+
+                doFirst {
+                    println "sourceCompatibility: \${sourceCompatibility}"
+                    println "targetCompatibility: \${targetCompatibility}"
+                }
+            }
+        """
+
+        when:
+        withInstallations(earlierJdk).run(":compileJava", "--info")
+
+        then:
+        executedAndNotSkipped(":compileJava")
+        outputContains("Compiling with toolchain '${earlierJdk.javaHome.absolutePath}'")
+        outputContains("sourceCompatibility: ${earlierJdk.javaVersion}")
+        outputContains("targetCompatibility: ${earlierJdk.javaVersion}")
+        earlierJdk.javaVersion == JavaVersion.forClass(javaClassFile("Foo.class").bytes)
+
+        where:
+        forkOption   | configure                                       | appendPath
+        "java home"  | 'options.forkOptions.javaHome = file("<path>")' | ''
+        "executable" | 'options.forkOptions.executable = "<path>"'     | OperatingSystem.current().getExecutableName('/bin/javac')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22398")
+    def "ignore #forkOption if not forking"() {
+        def curJvm = Jvm.current()
+        def otherJvm = AvailableJavaHomes.getDifferentJdk()
+        def path = TextUtil.normaliseFileSeparators(otherJvm.javaHome.absolutePath + appendPath)
+
+        buildFile << """
+            apply plugin: "java"
+
+            compileJava {
+                // we do not set `options.fork = true`
                 ${configure.replace("<path>", path)}
             }
         """
@@ -58,64 +325,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain("Started Gradle worker daemon")
 
         where:
-        what         | configure                                       | appendPath
+        forkOption   | configure                                       | appendPath
         "java home"  | 'options.forkOptions.javaHome = file("<path>")' | ''
         "executable" | 'options.forkOptions.executable = "<path>"'     | OperatingSystem.current().getExecutableName('/bin/javac')
-    }
-
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
-    def "can manually set java compiler via #type toolchain on java compile task"() {
-        buildFile << """
-            apply plugin: "java"
-
-            compileJava {
-                javaCompiler = javaToolchains.compilerFor {
-                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
-                }
-            }
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        runWithToolchainConfigured(jdk)
-
-        then:
-        outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'.")
-        javaClassFile("Foo.class").exists()
-
-        where:
-        type           | jdk
-        'differentJdk' | AvailableJavaHomes.differentJdk
-        'current'      | Jvm.current()
-    }
-
-    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_14) != null })
-    def "can set explicit toolchain used by JavaCompile"() {
-        def someJdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_14)
-        buildFile << """
-            apply plugin: "java"
-
-            compileJava {
-                // Make sure declaration ordering is not an issue
-            }
-
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(${someJdk.javaVersion.majorVersion})
-                }
-            }
-        """
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
-        when:
-        runWithToolchainConfigured(someJdk)
-
-        then:
-        outputDoesNotContain("Compiling with Java command line compiler")
-        outputContains("Compiling with toolchain '${someJdk.javaHome.absolutePath}'.")
-        javaClassFile("Foo.class").exists()
     }
 
     @ToBeFixedForConfigurationCache(because = "Creates a second exception")
@@ -128,9 +340,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
                     languageVersion = JavaLanguageVersion.of(99)
                 }
             }
-"""
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
+        """
 
         when:
         failure = executer
@@ -144,7 +354,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7) != null })
     def "can use toolchains to compile java 1.7 code"() {
-        def java7jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7)
+        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7)
         buildFile << """
             apply plugin: "java"
 
@@ -155,20 +365,18 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
         when:
-        runWithToolchainConfigured(java7jdk)
+        withInstallations(jdk).run(":compileJava", "--info")
 
         then:
         outputContains("Compiling with Java command line compiler")
-        outputContains("Compiling with toolchain '${java7jdk.javaHome.absolutePath}'.")
+        outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'.")
         javaClassFile("Foo.class").exists()
+        jdk.javaVersion == JavaVersion.forClass(javaClassFile("Foo.class").bytes)
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_11) != null })
     def "uses matching compatibility options for source and target level"() {
-        def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
+        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
         buildFile << """
             apply plugin: "java"
 
@@ -179,69 +387,69 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        file("src/main/java/Foo.java") << """
-public class Foo {
-    public void foo() {
-        java.util.function.Function<String, String> append = (var string) -> string + " ";
-    }
-}
-"""
+        file("src/main/java/Bar.java") << """
+            public class Bar {
+                public void bar() {
+                    java.util.function.Function<String, String> append = (var string) -> string + " ";
+                }
+            }
+        """
 
         when:
-        runWithToolchainConfigured(jdk11)
+        withInstallations(jdk).run(":compileJava", "--info")
 
         then:
-        outputContains("Compiling with toolchain '${jdk11.javaHome.absolutePath}'.")
-        javaClassFile("Foo.class").exists()
+        outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'.")
+        javaClassFile("Bar.class").exists()
+        jdk.javaVersion == JavaVersion.forClass(javaClassFile("Bar.class").bytes)
     }
 
     def "uses correct vendor when selecting a toolchain"() {
+        def jdk = Jvm.current()
+
         buildFile << """
             apply plugin: "java"
 
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(${Jvm.current().javaVersion.majorVersion})
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
                     vendor = JvmVendorSpec.matching("${System.getProperty("java.vendor").toLowerCase()}")
                 }
             }
         """
 
-        file("src/main/java/Foo.java") << """public class Foo {}"""
-
         when:
-        runWithToolchainConfigured(Jvm.current())
+        withInstallations(jdk).run(":compileJava", "--info")
 
         then:
-        outputContains("Compiling with toolchain '${Jvm.current().javaHome.absolutePath}'.")
+        outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'.")
         javaClassFile("Foo.class").exists()
+        jdk.javaVersion == JavaVersion.forClass(javaClassFile("Foo.class").bytes)
     }
 
     @ToBeFixedForConfigurationCache(because = "Creates a second exception")
     def "fails if no toolchain has a matching vendor"() {
+        def version = Jvm.current().javaVersion.majorVersion
         buildFile << """
             apply plugin: "java"
 
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(${Jvm.current().javaVersion.majorVersion})
+                    languageVersion = JavaLanguageVersion.of(${version})
                     vendor = JvmVendorSpec.AMAZON
                 }
             }
         """
 
-        file("src/main/java/Foo.java") << """public class Foo {}"""
-
         when:
         fails("compileJava")
 
         then:
-        failureHasCause("No compatible toolchains found for request specification: {languageVersion=${Jvm.current().javaVersion.majorVersion}, vendor=AMAZON, implementation=vendor-specific} (auto-detect false, auto-download false)")
+        failureHasCause("No compatible toolchains found for request specification: {languageVersion=${version}, vendor=AMAZON, implementation=vendor-specific} (auto-detect false, auto-download false)")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8) != null })
     def "can use compile daemon with tools jar"() {
-        def jdk8 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
+        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
         buildFile << """
             apply plugin: "java"
 
@@ -252,45 +460,53 @@ public class Foo {
             }
         """
 
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
         when:
-        runWithToolchainConfigured(jdk8)
+        withInstallations(jdk).run(":compileJava", "--info")
 
         then:
         outputDoesNotContain("Compiling with Java command line compiler")
-        outputContains("Compiling with toolchain '${jdk8.javaHome.absolutePath}'.")
+        outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'.")
         javaClassFile("Foo.class").exists()
+        jdk.javaVersion == JavaVersion.forClass(javaClassFile("Foo.class").bytes)
     }
 
-    def 'cannot configure both toolchain and source and target compatibility at project level'() {
+    def 'configuring toolchain on java extension with source and target compatibility is supported'() {
         def jdk = Jvm.current()
+        def prevJavaVersion = JavaVersion.toVersion(jdk.javaVersion.majorVersion.toInteger() - 1)
         buildFile << """
             apply plugin: 'java'
 
             java {
-                sourceCompatibility = JavaVersion.VERSION_14
-                targetCompatibility = JavaVersion.VERSION_14
+                sourceCompatibility = JavaVersion.toVersion('$prevJavaVersion')
+                targetCompatibility = JavaVersion.toVersion('$prevJavaVersion')
                 toolchain {
                     languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
                 }
             }
-"""
 
-        file("src/main/java/Foo.java") << "public class Foo {}"
+            compileJava {
+                def projectSourceCompat = project.java.sourceCompatibility
+                def projectTargetCompat = project.java.targetCompatibility
+                doLast {
+                    logger.lifecycle("project.sourceCompatibility = \$projectSourceCompat")
+                    logger.lifecycle("project.targetCompatibility = \$projectTargetCompat")
+                    logger.lifecycle("task.sourceCompatibility = \$sourceCompatibility")
+                    logger.lifecycle("task.targetCompatibility = \$targetCompatibility")
+                }
+            }
+        """
 
         when:
-        failure = executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath)
-            .withArgument("--info")
-            .withTasks("compileJava")
-            .runWithFailure()
+        withInstallations(jdk).run(":compileJava", "--info")
 
         then:
-        failureHasCause('The new Java toolchain feature cannot be used at the project level in combination with source and/or target compatibility')
+        outputContains("project.sourceCompatibility = $prevJavaVersion")
+        outputContains("project.targetCompatibility = $prevJavaVersion")
+        outputContains("task.sourceCompatibility = $prevJavaVersion")
+        outputContains("task.targetCompatibility = $prevJavaVersion")
     }
 
-    def 'configuring toolchain and clearing source and target compatibility is supported'() {
+    def 'configuring toolchain on java extension and clearing source and target compatibility is supported'() {
         def jdk = Jvm.current()
         buildFile << """
             apply plugin: 'java'
@@ -315,22 +531,19 @@ public class Foo {
                     logger.lifecycle("task.targetCompatibility = \$targetCompatibility")
                 }
             }
-"""
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
+        """
 
         when:
-        runWithToolchainConfigured(jdk)
+        withInstallations(jdk).run(":compileJava", "--info")
 
         then:
         outputContains("project.sourceCompatibility = ${jdk.javaVersion}")
         outputContains("project.targetCompatibility = ${jdk.javaVersion}")
-        outputContains("task.sourceCompatibility = ${jdk.javaVersion.majorVersion}")
-        outputContains("task.targetCompatibility = ${jdk.javaVersion.majorVersion}")
+        outputContains("task.sourceCompatibility = ${jdk.javaVersion}")
+        outputContains("task.targetCompatibility = ${jdk.javaVersion}")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_11) != null })
-    def 'source and target compatibility reflect toolchain usage (source #source, target #target)'() {
+    def 'source and target compatibility override toolchain (source #source, target #target)'() {
         def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
         buildFile << """
             apply plugin: 'java'
@@ -355,12 +568,10 @@ public class Foo {
                     logger.lifecycle("task.targetCompatibility = \$targetCompatibility")
                 }
             }
-"""
-
-        file("src/main/java/Foo.java") << "public class Foo {}"
+        """
 
         when:
-        runWithToolchainConfigured(jdk11)
+        withInstallations(jdk11).run(":compileJava", "--info")
 
         then:
         outputContains("project.sourceCompatibility = 11")
@@ -371,9 +582,8 @@ public class Foo {
         where:
         source | target | sourceOut | targetOut
         '9'    | '10'   | '9'       | '10'
-        '9'    | 'none' | '9'       | '11'
+        '9'    | 'none' | '9'       | '9'
         'none' | 'none' | '11'      | '11'
-
     }
 
     def "can compile Java using different JDKs"() {
@@ -391,28 +601,17 @@ public class Foo {
             }
         """
 
-        file("src/main/java/Foo.java") << "public class Foo {}"
-
         when:
-        runWithToolchainConfigured(jdk)
+        withInstallations(jdk).run(":compileJava", "--info")
 
         then:
         outputDoesNotContain("Compiling with Java command line compiler")
         outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'.")
         javaClassFile("Foo.class").exists()
+        jdk.javaVersion == JavaVersion.forClass(javaClassFile("Foo.class").bytes)
 
         where:
-        javaVersion << [
-            JavaVersion.VERSION_1_8,
-            JavaVersion.VERSION_1_9,
-            JavaVersion.VERSION_11,
-            JavaVersion.VERSION_12,
-            JavaVersion.VERSION_13,
-            JavaVersion.VERSION_14,
-            JavaVersion.VERSION_15,
-            JavaVersion.VERSION_16,
-            JavaVersion.VERSION_17
-        ]
+        javaVersion << (8..19).collect { JavaVersion.toVersion(it) }
     }
 
     /**
@@ -444,6 +643,7 @@ public class Foo {
                 public void foo() {}
             }
         """
+
         def fileWithDeprecation = file("src/main/java/com/example/Bar.java") << """
             package com.example;
             public class Bar {
@@ -453,10 +653,11 @@ public class Foo {
             }
         """
 
-        executer.expectDeprecationWarning("$fileWithDeprecation:5: warning: $deprecationMessage");
+        //noinspection GrDeprecatedAPIUsage
+        executer.expectDeprecationWarning("$fileWithDeprecation:5: warning: $deprecationMessage")
 
         when:
-        runWithToolchainConfigured(jdk)
+        withInstallations(jdk).run(":compileJava", "--info")
 
         then:
         outputDoesNotContain("Compiling with Java command line compiler")
@@ -475,12 +676,49 @@ public class Foo {
         JavaVersion.VERSION_17  | "[deprecation] foo() in Foo has been deprecated"
     }
 
-    def runWithToolchainConfigured(Jvm jvm) {
-        result = executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + jvm.javaHome.absolutePath)
-            .withArgument("--info")
-            .withTasks("compileJava")
-            .run()
+    private TestFile configureJavaExtension(Jvm jdk) {
+        buildFile << """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+            }
+        """
+    }
+
+    private TestFile configureForkOptionsExecutable(Jvm jdk) {
+        buildFile << """
+            compileJava {
+                options.fork = true
+                options.forkOptions.executable = "${TextUtil.normaliseFileSeparators(jdk.javacExecutable.absolutePath)}"
+            }
+        """
+    }
+
+    private TestFile configureForkOptionsJavaHome(Jvm jdk) {
+        buildFile << """
+            compileJava {
+                options.fork = true
+                options.forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(jdk.javaHome.absolutePath)}")
+            }
+        """
+    }
+
+    private TestFile configureTool(Jvm jdk) {
+        buildFile << """
+            compileJava {
+                javaCompiler = javaToolchains.compilerFor {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+            }
+        """
+    }
+
+    private withInstallations(Jvm... jvm) {
+        def installationPaths = jvm.collect { it.javaHome.absolutePath }.join(",")
+        executer
+            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
+        this
     }
 
 }

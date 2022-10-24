@@ -39,6 +39,7 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         if (toolchain != null) {
             return chooseSpecForToolchain();
         }
+
         if (compileOptions.isFork()) {
             File customJavaHome = compileOptions.getForkOptions().getJavaHome();
             if (customJavaHome != null) {
@@ -51,9 +52,9 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
             }
 
             return getForkingSpec(Jvm.current().getJavaHome());
-        } else {
-            return getDefaultSpec();
         }
+
+        return getDefaultSpec();
     }
 
     private T chooseSpecForToolchain() {
@@ -61,10 +62,22 @@ public abstract class AbstractJavaCompileSpecFactory<T extends JavaCompileSpec> 
         if (!toolchain.getLanguageVersion().canCompileOrRun(8)) {
             return getCommandLineSpec(Jvm.forHome(toolchainJavaHome).getJavacExecutable());
         }
-        if (!compileOptions.isFork() && toolchain.isCurrentJvm()) {
-            return getDefaultSpec();
+
+        if (compileOptions.isFork()) {
+            // Presence of the fork options means that the user has explicitly requested a command-line compiler
+            if (compileOptions.getForkOptions().getJavaHome() != null || compileOptions.getForkOptions().getExecutable() != null) {
+                // We use the toolchain path because the fork options must agree with the selected toolchain
+                return getCommandLineSpec(Jvm.forHome(toolchainJavaHome).getJavacExecutable());
+            }
+
+            return getForkingSpec(toolchainJavaHome);
         }
-        return getForkingSpec(toolchainJavaHome);
+
+        if (!toolchain.isCurrentJvm()) {
+            return getForkingSpec(toolchainJavaHome);
+        }
+
+        return getDefaultSpec();
     }
 
     abstract protected T getCommandLineSpec(File executable);

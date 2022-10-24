@@ -17,7 +17,9 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.AbstractProperty
 import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec
 import org.gradle.api.internal.tasks.compile.ForkingJavaCompileSpec
 import org.gradle.internal.jvm.Jvm
@@ -25,34 +27,96 @@ import org.gradle.jvm.toolchain.JavaCompiler
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 import spock.lang.Issue
 
 class JavaCompileTest extends AbstractProjectBuilderSpec {
 
-    def "disallow using custom java_home with compiler present"() {
-        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+    def "uses current JVM toolchain compiler as convention and sets source and target compatibility"() {
+        def javaCompile = project.tasks.create('compileJava', JavaCompile)
+        javaCompile.destinationDirectory.fileValue(new File('tmp'))
+        def javaHome = Jvm.current().javaHome
 
         when:
-        javaCompile.javaCompiler.set(Mock(JavaCompiler))
-        javaCompile.options.forkOptions.javaHome = Mock(File)
-        javaCompile.createSpec()
+        def spec = javaCompile.createSpec()
+        def actualCompiler = javaCompile.javaCompiler.get()
 
         then:
-        def e = thrown(IllegalStateException)
-        e.message == "Must not use `javaHome` property on `ForkOptions` together with `javaCompiler` property"
+        spec.sourceCompatibility == Jvm.current().javaVersion.toString()
+        spec.targetCompatibility == Jvm.current().javaVersion.toString()
+        spec.compileOptions.forkOptions.javaHome == null
+        spec.compileOptions.forkOptions.executable == null
+        actualCompiler.metadata.installationPath.toString() == javaHome.toString()
     }
 
-    def "disallow using custom executable with compiler present"() {
-        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+    def "uses toolchain compiler over custom executable"() {
+        def javaCompile = project.tasks.create('compileJava', JavaCompile)
+        javaCompile.destinationDirectory.fileValue(new File('tmp'))
+        def javaHome = Jvm.current().javaHome
+        def metadata = Mock(JavaInstallationMetadata)
+        def compiler = Mock(JavaCompiler)
+
+        metadata.languageVersion >> JavaLanguageVersion.of(15)
+        metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
+        compiler.metadata >> metadata
+
+        given:
+        javaCompile.javaCompiler.set(compiler)
+        javaCompile.options.forkOptions.executable = "/custom/executable/path"
 
         when:
-        javaCompile.javaCompiler.set(Mock(JavaCompiler))
-        javaCompile.options.forkOptions.executable = "somejavac"
-        javaCompile.createSpec()
+        def spec = javaCompile.createSpec()
+        def actualCompiler = javaCompile.javaCompiler.get()
 
         then:
-        def e = thrown(IllegalStateException)
-        e.message == "Must not use `executable` property on `ForkOptions` together with `javaCompiler` property"
+        spec.compileOptions.forkOptions.javaHome == null
+        spec.compileOptions.forkOptions.executable == "/custom/executable/path"
+        actualCompiler.metadata.installationPath.toString() == javaHome.toString()
+    }
+
+    def "uses toolchain compiler over custom java_home"() {
+        def javaCompile = project.tasks.create('compileJava', JavaCompile)
+        javaCompile.destinationDirectory.fileValue(new File('tmp'))
+        def javaHome = Jvm.current().javaHome
+        def metadata = Mock(JavaInstallationMetadata)
+        def compiler = Mock(JavaCompiler)
+
+        metadata.languageVersion >> JavaLanguageVersion.of(15)
+        metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
+        compiler.metadata >> metadata
+        def customJavaHome = new File("custom/java_home/path")
+
+        given:
+        javaCompile.javaCompiler.set(compiler)
+        javaCompile.options.forkOptions.javaHome = customJavaHome
+
+        when:
+        def spec = javaCompile.createSpec()
+        def actualCompiler = javaCompile.javaCompiler.get()
+
+        then:
+        spec.compileOptions.forkOptions.javaHome == customJavaHome
+        spec.compileOptions.forkOptions.executable == null
+        actualCompiler.metadata.installationPath.toString() == javaHome.toString()
+    }
+
+    def "uses custom java_home over custom executable"() {
+        def javaCompile = project.tasks.create('compileJava', JavaCompile)
+        javaCompile.destinationDirectory.fileValue(new File('tmp'))
+        def javaHome = Jvm.current().javaHome
+
+        given:
+        javaCompile.options.forkOptions.javaHome = javaHome
+        javaCompile.options.forkOptions.executable = "/custom/executable/path"
+
+        when:
+        def spec = javaCompile.createSpec()
+        def actualCompiler = javaCompile.javaCompiler.get()
+
+        then:
+        spec.compileOptions.forkOptions.javaHome == javaHome
+        spec.compileOptions.forkOptions.executable == "/custom/executable/path"
+        actualCompiler.metadata.installationPath.toString() == javaHome.toString()
     }
 
     def "fails if custom executable does not exist"() {
@@ -66,9 +130,10 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         javaCompile.createSpec()
 
         then:
-        def e = thrown(InvalidUserDataException)
-        e.message.contains("The configured executable does not exist")
-        e.message.contains(invalidExecutable)
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("The configured executable does not exist")
+        cause.message.contains(invalidExecutable)
     }
 
     def 'uses release property combined with toolchain compiler'() {
@@ -91,8 +156,8 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
 
         then:
         spec.release == 9
-        spec.getSourceCompatibility() == null
-        spec.getTargetCompatibility() == null
+        spec.sourceCompatibility == null
+        spec.targetCompatibility == null
         spec.compileOptions.forkOptions.javaHome == null
         (spec as ForkingJavaCompileSpec).javaHome == javaHome
     }
@@ -117,44 +182,61 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def spec = javaCompile.createSpec()
 
         then:
-        spec.getSourceCompatibility() == '11'
-        spec.getTargetCompatibility() == '14'
+        spec.sourceCompatibility == '11'
+        spec.targetCompatibility == '14'
         spec.compileOptions.forkOptions.javaHome == null
         (spec as ForkingJavaCompileSpec).javaHome == javaHome
     }
 
-    def "spec is configured using the toolchain compiler in-process using the current jvm as toolchain and sets release"() {
-        def javaCompile = project.tasks.create("compileJava", JavaCompile)
-        javaCompile.destinationDirectory.set(new File("tmp"))
+    def 'source compatibility serves as target compatibility fallback on compile spec'() {
+        def javaCompile = project.tasks.create('compileJava', JavaCompile)
+        javaCompile.destinationDirectory.fileValue(new File('somewhere'))
+
+        def prevJavaVersion = JavaVersion.toVersion(Jvm.current().javaVersion.majorVersion.toInteger() - 1).toString()
+
+        given:
+        javaCompile.setSourceCompatibility(prevJavaVersion)
+
+        when:
+        def spec = javaCompile.createSpec()
+
+        then:
+        spec.sourceCompatibility == prevJavaVersion
+        spec.targetCompatibility == prevJavaVersion
+    }
+
+    def 'source compatibility serves as target compatibility fallback on compile spec when compiler tool is defined'() {
+        def javaCompile = project.tasks.create('compileJava', JavaCompile)
+        javaCompile.destinationDirectory.fileValue(new File('somewhere'))
         def javaHome = Jvm.current().javaHome
         def metadata = Mock(JavaInstallationMetadata)
         def compiler = Mock(JavaCompiler)
 
-        metadata.languageVersion >> JavaLanguageVersion.of(12)
+        metadata.languageVersion >> JavaLanguageVersion.of(15)
         metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
         compiler.metadata >> metadata
 
-        when:
+        given:
         javaCompile.javaCompiler.set(compiler)
+        javaCompile.setSourceCompatibility('11')
+
+        when:
         def spec = javaCompile.createSpec()
 
         then:
-        spec.getSourceCompatibility() == "12"
-        spec.getTargetCompatibility() == "12"
-        spec.release == null
-        spec.compileOptions.forkOptions.javaHome == null
-        (spec as ForkingJavaCompileSpec).javaHome == javaHome
+        spec.sourceCompatibility == '11'
+        spec.targetCompatibility == '11'
     }
 
     @Issue('https://bugs.openjdk.java.net/browse/JDK-8139607')
-    def "spec is configured using the toolchain compiler in-process using the current jvm as toolchain and does not set release for Java 9"() {
+    def "configuring toolchain compiler sets source and target compatibility on the compile spec"() {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
         javaCompile.destinationDirectory.set(new File("tmp"))
         def javaHome = Jvm.current().javaHome
         def metadata = Mock(JavaInstallationMetadata)
         def compiler = Mock(JavaCompiler)
 
-        metadata.languageVersion >> JavaLanguageVersion.of(9)
+        metadata.languageVersion >> JavaLanguageVersion.of(toolchainVersion)
         metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
         compiler.metadata >> metadata
 
@@ -163,34 +245,14 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def spec = javaCompile.createSpec()
 
         then:
-        spec.getSourceCompatibility() == '9'
-        spec.getTargetCompatibility() == '9'
+        spec.sourceCompatibility == JavaVersion.toVersion(toolchainVersion).toString()
+        spec.targetCompatibility == JavaVersion.toVersion(toolchainVersion).toString()
         spec.release == null
         spec.compileOptions.forkOptions.javaHome == null
         (spec as ForkingJavaCompileSpec).javaHome == javaHome
-    }
 
-    def "spec is configured using the toolchain compiler in-process using the current jvm as toolchain and set source and target compatibility"() {
-        def javaCompile = project.tasks.create("compileJava", JavaCompile)
-        javaCompile.destinationDirectory.set(new File("tmp"))
-        def javaHome = Jvm.current().javaHome
-        def metadata = Mock(JavaInstallationMetadata)
-        def compiler = Mock(JavaCompiler)
-
-        metadata.languageVersion >> JavaLanguageVersion.of(8)
-        metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
-        compiler.metadata >> metadata
-
-        when:
-        javaCompile.javaCompiler.set(compiler)
-        def spec = javaCompile.createSpec()
-
-        then:
-        spec.getSourceCompatibility() == '8'
-        spec.getTargetCompatibility() == '8'
-        spec.release == null
-        spec.compileOptions.forkOptions.javaHome == null
-        (spec as ForkingJavaCompileSpec).javaHome == javaHome
+        where:
+        toolchainVersion << [8, 9, 10, 11]
     }
 
     def "incremental compilation is enabled by default"() {
@@ -224,23 +286,6 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
 
         when:
         javaCompile.options.fork = true
-        javaCompile.options.forkOptions.javaHome = javaHome
-        def spec = javaCompile.createSpec()
-
-        then:
-        spec instanceof CommandLineJavaCompileSpec
-        spec.executable.absolutePath == jvm.javacExecutable.absolutePath
-    }
-
-    def "java home takes precedence over executable when forking"() {
-        def javaCompile = project.tasks.create("compileJava", JavaCompile)
-        javaCompile.destinationDirectory.set(new File("tmp"))
-        def jvm = Jvm.current()
-        def javaHome = jvm.javaHome
-
-        when:
-        javaCompile.options.fork = true
-        javaCompile.options.forkOptions.executable = "/custom/executable/path"
         javaCompile.options.forkOptions.javaHome = javaHome
         def spec = javaCompile.createSpec()
 
