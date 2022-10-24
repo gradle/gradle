@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
-import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
@@ -81,7 +80,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
+public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository implements MavenArtifactRepository, ResolutionAwareRepository {
     private static final DefaultMavenPomMetadataSource.MavenMetadataValidator NO_OP_VALIDATION_SERVICES = (repoName, metadata, artifactResolver) -> true;
 
     private final Transformer<String, MavenArtifactRepository> describer;
@@ -224,16 +223,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     @Override
-    public ModuleVersionPublisher createPublisher() {
-        return createRealResolver();
-    }
-
-    @Override
-    public ConfiguredModuleComponentRepository createResolver() {
-        return createRealResolver();
-    }
-
-    @Override
     protected RepositoryDescriptor createDescriptor() {
         URI rootUri = validateUrl();
         return new MavenRepositoryDescriptor.Builder(getName(), rootUri)
@@ -261,7 +250,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return urlArtifactRepository.validateUrl();
     }
 
-    protected MavenResolver createRealResolver() {
+    @Override
+    public ConfiguredModuleComponentRepository createResolver() {
         URI rootUrl = validateUrl();
         MavenResolver resolver = createResolver(rootUrl);
 

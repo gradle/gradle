@@ -106,7 +106,7 @@ It's also a good idea to run `./gradlew sanityCheck` before submitting your chan
 
 After you submit your pull request, a Gradle developer will review it. It is normal for this to take several iterations, so don't get discouraged by change requests. They ensure the high quality that we all enjoy.
 
-If you need to check on [CI](http://builds.gradle.org/) status as an external contributor, you can login as "guest".
+If you need to check on [CI](http://builds.gradle.org/) status as an external contributor, you can click "Log in as guest".
 
 ## Useful tips
 
@@ -136,7 +136,7 @@ Then force push your branch:
 
 ### Java Toolchain
 
-The Gradle build uses [Java Toolchain](https://docs.gradle.org/current/userguide/toolchains.html) support to compile and execute tests across multiple versions of Java.
+The Gradle build uses [Java Toolchain](userguide/toolchains.html) support to compile and execute tests across multiple versions of Java.
 
 Available JDKs on your machine are automatically detected and wired for the various compile and test tasks.
 
