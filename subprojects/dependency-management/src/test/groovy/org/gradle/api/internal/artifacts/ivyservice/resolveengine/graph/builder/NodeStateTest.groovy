@@ -23,8 +23,8 @@ import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints
 import org.gradle.api.specs.Spec
-import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.VariantGraphResolveMetadata
 import spock.lang.Specification
 
 class NodeStateTest extends Specification {
@@ -218,7 +218,7 @@ class NodeStateTest extends Specification {
     }
 
     private NodeState nextNode(int outgoingEndorsing = 0) {
-        def metadata = Stub(ConfigurationMetadata)
+        def metadata = Stub(VariantGraphResolveMetadata)
         def resolveState = Stub(ResolveState)
         def newState = new NodeState(idIdx++, null, Mock(ComponentState), resolveState, metadata, true)
         // if there are outgoing endorsing edges, also include a normal edge to make sure that it is filtered out
