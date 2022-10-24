@@ -22,6 +22,7 @@ import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
@@ -29,10 +30,12 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.services.ServiceReference;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.DisplayName;
@@ -411,6 +414,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type SERVICE_REGISTRY_TYPE = getType(ServiceRegistry.class);
         private static final Type SERVICE_LOOKUP_TYPE = getType(ServiceLookup.class);
         private static final Type MANAGED_OBJECT_FACTORY_TYPE = getType(ManagedObjectFactory.class);
+        private static final Type DEFAULT_PROPERTY_TYPE = getType(DefaultProperty.class);
+        private static final Type BUILD_SERVICE_PROVIDER_TYPE = getType("Lorg/gradle/api/services/internal/BuildServiceProvider;");
         private static final Type JAVA_LANG_REFLECT_TYPE = getType(java.lang.reflect.Type.class);
         private static final Type OBJECT_TYPE = getType(Object.class);
         private static final Type CLASS_TYPE = getType(Class.class);
@@ -427,7 +432,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type DESCRIBABLE_TYPE = getType(Describable.class);
         private static final Type DISPLAY_NAME_TYPE = getType(DisplayName.class);
         private static final Type INJECT_TYPE = getType(Inject.class);
-
         private static final String RETURN_STRING = getMethodDescriptor(STRING_TYPE);
         private static final String RETURN_DESCRIBABLE = getMethodDescriptor(DESCRIBABLE_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT = getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE);
@@ -455,6 +459,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_VOID_FROM_META_CLASS = getMethodDescriptor(Type.VOID_TYPE, META_CLASS_TYPE);
         private static final String GET_DECLARED_METHOD_DESCRIPTOR = getMethodDescriptor(METHOD_TYPE, STRING_TYPE, CLASS_ARRAY_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT_MODEL_OBJECT = getMethodDescriptor(VOID_TYPE, OBJECT_TYPE, MODEL_OBJECT_TYPE);
+        private static final String RETURN_VOID_FROM_DEFAULT_PROPERTY_SERVICE_REGISTRY_STRING = getMethodDescriptor(VOID_TYPE, DEFAULT_PROPERTY_TYPE, SERVICE_REGISTRY_TYPE, STRING_TYPE);
         private static final String RETURN_VOID_FROM_MODEL_OBJECT_DISPLAY_NAME = getMethodDescriptor(VOID_TYPE, MODEL_OBJECT_TYPE, DISPLAY_NAME_TYPE);
         private static final String RETURN_OBJECT_FROM_TYPE = getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE);
         private static final String RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING = getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE);
@@ -1137,6 +1142,13 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     applyRole();
                 }
 
+                String buildServiceName = getBuildServiceName(property);
+                if (buildServiceName != null) {
+                    // property is a service reference declaring a name
+                    _DUP();
+                    setBuildServiceConvention(buildServiceName);
+                }
+
                 _CHECKCAST(propType);
             }});
         }
@@ -1158,6 +1170,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _SWAP();
                 _ALOAD(0);
                 _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "applyRole", RETURN_VOID_FROM_OBJECT_MODEL_OBJECT);
+            }
+
+            // Caller should place property value on the top of the stack
+            protected void setBuildServiceConvention(String serviceName) {
+                // GENERATE BuildServiceProvider.setBuildServiceAsConvention(defaultProperty, getServices(), "<serviceName>")
+                _CHECKCAST(DEFAULT_PROPERTY_TYPE);
+                putServiceRegistryOnStack();
+                _LDC(serviceName);
+                _INVOKESTATIC(BUILD_SERVICE_PROVIDER_TYPE, "setBuildServiceAsConvention", RETURN_VOID_FROM_DEFAULT_PROPERTY_SERVICE_REGISTRY_STRING);
             }
 
             protected void putServiceRegistryOnStack() {
@@ -1737,6 +1758,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 this.getterName = getterName;
             }
         }
+    }
+
+    @Nullable
+    private static String getBuildServiceName(PropertyMetadata property) {
+        ServiceReference annotation = property.getAnnotation(ServiceReference.class);
+        if (annotation != null) {
+            return StringUtils.trimToNull(annotation.value());
+        }
+        return null;
     }
 
     @Nonnull

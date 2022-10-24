@@ -248,8 +248,7 @@ service: closed with value 12
         fails 'missingService'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':missingService'.")
-        failure.assertHasCause("Cannot query the value of task ':missingService' property 'counter' because it has no value available.")
+        failure.assertHasCause("BuildServiceRegistration with name 'oneCounter' not found.")
     }
 
     def "@ServiceReference property must implement BuildService"() {

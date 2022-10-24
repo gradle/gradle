@@ -162,14 +162,12 @@ class BuildServiceProviderCodec(
 
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
         encodePreservingSharedIdentityOf(value) {
-            val buildIdentifier = value.buildIdentifier
-            write(buildIdentifier)
-            writeString(value.name)
-            writeClass(value.implementationType)
-            write(value.parameters)
-            writeInt(
-                buildServiceRegistryOf(buildIdentifier).forService(value).maxUsages
-            )
+            val serviceDetails = value.serviceDetails
+            write(serviceDetails.getBuildIdentifier())
+            writeString(serviceDetails.getName())
+            writeClass(serviceDetails.getImplementationType())
+            write(serviceDetails.getParameters())
+            writeInt(serviceDetails.getMaxUsages())
         }
     }
 

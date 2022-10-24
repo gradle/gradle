@@ -36,7 +36,8 @@ public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
      */
     BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages);
 
-    SharedResource forService(Provider<? extends BuildService<?>> service);
+    @Nullable
+    SharedResource forService(BuildServiceProvider<?, ?> service);
 
     /**
      * Discards all registered services.

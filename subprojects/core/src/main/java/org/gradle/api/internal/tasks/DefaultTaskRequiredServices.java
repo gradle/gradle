@@ -20,18 +20,18 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
-import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceRegistry;
+import org.gradle.api.services.internal.BuildServiceProvider;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
-import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class DefaultTaskRequiredServices implements TaskRequiredServices {
     private final TaskInternal task;
@@ -39,17 +39,21 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
     private final PropertyWalker propertyWalker;
     private final BuildServiceRegistry buildServiceRegistry;
     private Set<Provider<? extends BuildService<?>>> servicesRegistered;
+    private Set<Provider<? extends BuildService<?>>> servicesRequired;
+
     public DefaultTaskRequiredServices(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, BuildServiceRegistry buildServiceRegistry) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.propertyWalker = propertyWalker;
         this.buildServiceRegistry = buildServiceRegistry;
-        visitAnnotatedProperties(this::assignServiceIfNeeded);
     }
 
     @Override
     public Set<Provider<? extends BuildService<?>>> getRequiredServices() {
-        return collectServicesRequired();
+        if (servicesRequired == null) {
+            servicesRequired = collectServicesRequired();
+        }
+        return servicesRequired;
     }
 
     @Override
@@ -64,7 +68,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
 
     @Override
     public boolean isServiceRequired(Provider<? extends BuildService<?>> toCheck) {
-        return getRequiredServices().contains(toCheck);
+        return getRequiredServices().stream().anyMatch(it -> BuildServiceProvider.isSameService(it, toCheck));
     }
 
     /**
@@ -72,10 +76,18 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
      */
     private Set<Provider<? extends BuildService<?>>> collectServicesRequired() {
         Set<Provider<? extends BuildService<?>>> servicesRequired = new LinkedHashSet<>();
-        visitServiceReferences((provider, name) -> {
-            servicesRequired.add(assignServiceIfNeeded(provider, name));
-        });
+        visitServiceReferences(referenceProvider ->
+            servicesRequired.add(asBuildServiceProvider(referenceProvider))
+        );
         return servicesRequired;
+    }
+
+    private Provider<? extends BuildService<?>> asBuildServiceProvider(Provider<? extends BuildService<?>> referenceProvider) {
+        if (referenceProvider instanceof DefaultProperty) {
+            DefaultProperty asProperty = Cast.uncheckedNonnullCast(referenceProvider);
+            return Cast.uncheckedNonnullCast(asProperty.getProvider());
+        }
+        return referenceProvider;
     }
 
     private void visitAnnotatedProperties(BiConsumer<Provider<? extends BuildService<?>>, String> visitor) {
@@ -86,11 +98,11 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
             }
         });
     }
-    private void visitServiceReferences(BiConsumer<Provider<? extends BuildService<?>>, String> visitor) {
+    private void visitServiceReferences(Consumer<Provider<? extends BuildService<?>>> visitor) {
         TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
             @Override
             public void visitServiceReference(Provider<? extends BuildService<?>> referenceProvider, String serviceName) {
-                visitor.accept(referenceProvider, serviceName);
+                visitor.accept(referenceProvider);
             }
         });
     }
@@ -104,21 +116,5 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
             // TODO:configuration-cache assert build service is from the same build as the task
             servicesRegistered.add(service);
         });
-    }
-
-    @SuppressWarnings("unchecked")
-    private Provider<? extends BuildService<?>> assignServiceIfNeeded(Provider<? extends BuildService<?>> referenceProvider, @Nullable String serviceName) {
-        if (referenceProvider instanceof Property) {
-            DefaultProperty asProperty = (DefaultProperty) referenceProvider;
-            if (serviceName != null) {
-                BuildServiceRegistration<?, ?> found = buildServiceRegistry.getRegistrations().findByName(serviceName);
-                if (found != null) {
-                    Provider resolved = found.getService();
-                    asProperty.convention(resolved);
-                }
-            }
-            return asProperty.getProvider();
-        }
-        return referenceProvider;
     }
 }
