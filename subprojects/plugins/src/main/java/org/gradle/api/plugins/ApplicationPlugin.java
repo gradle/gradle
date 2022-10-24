@@ -27,6 +27,7 @@ import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultApplicationPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.provider.Provider;
@@ -38,6 +39,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
@@ -159,14 +161,22 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             run.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
-            run.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
+            ObjectFactory objectFactory = project.getObjects();
+            Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
+                JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(run, objectFactory));
+            run.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
         });
     }
 
-    private <T> Provider<T> getToolchainTool(Project project, BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<T>> toolMapper) {
-        final JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
-        final JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
-        return toolMapper.apply(service, extension.getToolchain());
+    private <T> Provider<T> getToolchainTool(
+        Project project,
+        BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<T>> toolMapper,
+        Provider<JavaToolchainSpec> toolchainOverride
+    ) {
+        JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
+        JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
+        return toolchainOverride.orElse(extension.getToolchain())
+            .flatMap(spec -> toolMapper.apply(service, spec));
     }
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
