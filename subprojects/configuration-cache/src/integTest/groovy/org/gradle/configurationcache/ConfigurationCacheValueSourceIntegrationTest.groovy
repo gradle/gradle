@@ -17,6 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.process.ShellScript
+import spock.lang.Issue
 
 class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -292,6 +293,45 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         problems.assertResultHasProblems(result) {
             withInput("Build file 'build.gradle': system property 'some.property'")
             ignoringUnexpectedInputs()
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22305")
+    def "evaluating a value source parameter does not enable input tracking inside the value source"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile.text = """
+
+            import org.gradle.api.provider.*
+
+            abstract class MySource implements ValueSource<String, Parameters> {
+                interface Parameters extends ValueSourceParameters {
+                    Property<String> getValue()
+                }
+                @Override String obtain() {
+                    def suffix = parameters.value.orElse("").get()
+                    return System.getProperty("my.property") + suffix
+                }
+            }
+
+            def someProp = providers.systemProperty("some.property")
+
+            def vsResult = providers.of(MySource) {
+                parameters.value = someProp
+            }
+
+            println("ValueSource result = \${vsResult.get()}")
+        """
+
+        when:
+        configurationCacheRun("-Dsome.property=1", "-Dmy.property=value")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("result = value1")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': system property 'some.property'")
+            withInput("Build file 'build.gradle': value from custom source 'MySource'")
         }
     }
 

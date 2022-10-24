@@ -16,9 +16,11 @@
 
 package org.gradle.configurationcache
 
+import org.junit.Assert
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.lang.IllegalStateException
 import java.util.concurrent.Executors
 
 
@@ -43,7 +45,7 @@ class InputTrackingStateTest {
     fun `input tracking can be re-enabled after disabled`() {
         val state = InputTrackingState()
         state.disableForCurrentThread()
-        state.enableForCurrentThread()
+        state.restoreForCurrentThread()
 
         assertTrue(state.isEnabledForCurrentThread())
     }
@@ -62,5 +64,60 @@ class InputTrackingStateTest {
         }
 
         assertTrue(enabledOnOtherThread)
+    }
+
+    @Test
+    fun `input tracking is restored to the state when it was disabled`() {
+        val state = InputTrackingState()
+        state.disableForCurrentThread() // <1>
+        state.disableForCurrentThread() // <2>
+
+        state.restoreForCurrentThread() // Revert call at <2>, restore to "disabled" state set by call at <1>
+        assertFalse(state.isEnabledForCurrentThread())
+
+        state.restoreForCurrentThread() // Revert call at <1>, restore to "enabled" state
+        assertTrue(state.isEnabledForCurrentThread())
+    }
+
+    @Test
+    fun `disable and restore calls can be mixed non-trivially`() {
+        val state = InputTrackingState()
+        state.disableForCurrentThread() // <1>
+        state.disableForCurrentThread() // <2>
+        state.restoreForCurrentThread() // Revert <2>
+        state.disableForCurrentThread() // <3>
+
+        assertFalse(state.isEnabledForCurrentThread())
+        state.restoreForCurrentThread() // Revert <3>
+
+        assertFalse(state.isEnabledForCurrentThread())
+        state.restoreForCurrentThread() // Revert <1>
+
+        assertTrue(state.isEnabledForCurrentThread())
+    }
+
+    @Test
+    fun `initial restore is an exception`() {
+        val state = InputTrackingState()
+        try {
+            state.restoreForCurrentThread()
+            Assert.fail("Exception expected")
+        } catch (ignored: IllegalStateException) {
+            // Expected exception
+        }
+    }
+
+    @Test
+    fun `unmatched restore is an exception`() {
+        val state = InputTrackingState()
+        state.disableForCurrentThread()
+        state.restoreForCurrentThread()
+
+        try {
+            state.restoreForCurrentThread()
+            Assert.fail("Exception expected")
+        } catch (ignored: IllegalStateException) {
+            // Expected exception
+        }
     }
 }
