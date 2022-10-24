@@ -39,6 +39,7 @@ import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.model.DefaultComponentGraphResolveState;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -85,9 +86,11 @@ public class DynamicVersionResolver {
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
     private final CachePolicy cachePolicy;
 
-    public DynamicVersionResolver(VersionedComponentChooser versionedComponentChooser, VersionParser versionParser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory,
-                                  ImmutableAttributesFactory attributesFactory, ComponentMetadataProcessorFactory componentMetadataProcessor,
-                                  ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor, CachePolicy cachePolicy) {
+    public DynamicVersionResolver(
+        VersionedComponentChooser versionedComponentChooser, VersionParser versionParser, Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> metaDataFactory,
+        ImmutableAttributesFactory attributesFactory, ComponentMetadataProcessorFactory componentMetadataProcessor,
+        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor, CachePolicy cachePolicy
+    ) {
         this.versionedComponentChooser = versionedComponentChooser;
         this.versionParser = versionParser;
         this.metaDataFactory = metaDataFactory;
@@ -133,7 +136,7 @@ public class DynamicVersionResolver {
         for (RepositoryResolveState resolveState : resolveStates) {
             resolveState.registerAttempts(result);
         }
-        result.resolved(metaDataFactory.transform(latestResolved));
+        result.resolved(DefaultComponentGraphResolveState.of(metaDataFactory.transform(latestResolved)));
     }
 
     private void notFound(BuildableComponentIdResolveResult result, ModuleComponentSelector requested, List<RepositoryResolveState> resolveStates) {
