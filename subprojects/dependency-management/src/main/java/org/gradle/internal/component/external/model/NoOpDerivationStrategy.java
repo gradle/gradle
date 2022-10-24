@@ -16,7 +16,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 
 public class NoOpDerivationStrategy extends AbstractStatelessDerivationStrategy {
     private static final NoOpDerivationStrategy INSTANCE = new NoOpDerivationStrategy();
@@ -34,7 +34,7 @@ public class NoOpDerivationStrategy extends AbstractStatelessDerivationStrategy 
     }
 
     @Override
-    public ImmutableList<? extends ConfigurationMetadata> derive(ModuleComponentResolveMetadata metadata) {
+    public ImmutableList<? extends ModuleConfigurationMetadata> derive(ModuleComponentResolveMetadata metadata) {
         throw new UnsupportedOperationException("This method should not have been called.");
     }
 }

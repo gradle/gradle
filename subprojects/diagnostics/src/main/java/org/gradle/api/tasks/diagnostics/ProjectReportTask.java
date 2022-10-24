@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectHierarchyUtils;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
@@ -102,7 +103,7 @@ public class ProjectReportTask extends AbstractProjectBasedReportTask<ProjectRep
     }
 
     private List<ProjectReportModel> calculateChildrenProjectsFor(Project project) {
-        List<Project> childProjects = CollectionUtils.sort(project.getChildProjects().values());
+        List<Project> childProjects = CollectionUtils.sort(ProjectHierarchyUtils.getChildProjectsForInternalUse(project));
         List<ProjectReportModel> children = new ArrayList<>(childProjects.size());
         for (Project childProject : childProjects) {
             children.add(calculateReportModelFor(childProject));
