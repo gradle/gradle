@@ -23,8 +23,9 @@ Additionally, this page explains how you can react to events of the lifecycle us
 
 == Task Graphs
 
-Some build tools assemble a task graph lazily, as they execute tasks.
-Gradle builds the complete task graph eagerly, before executing any task.
+Some build tools assemble a task graph as they execute tasks.
+Gradle builds the task graph before executing any task.
+With configuration avoidance, Gradle skips configuration for tasks that aren't part of the current build.
 
 Within each project, tasks form a http://en.wikipedia.org/wiki/Directed_acyclic_graph[Directed Acyclic Graph] (DAG).
 
