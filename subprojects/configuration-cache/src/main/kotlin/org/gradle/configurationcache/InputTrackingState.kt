@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import com.google.common.base.Preconditions
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import kotlin.reflect.KProperty
@@ -32,16 +33,29 @@ import kotlin.reflect.KProperty
 @ServiceScope(Scopes.BuildTree::class)
 class InputTrackingState {
     private
-    var inputTrackingEnabledForThread by ThreadLocal.withInitial { true }
+    var inputTrackingDisabledCounterForThread by ThreadLocal.withInitial { 0 }
 
-    fun isEnabledForCurrentThread(): Boolean = inputTrackingEnabledForThread
+    /**
+     * Returns input tracking status for the current thread.
+     */
+    fun isEnabledForCurrentThread(): Boolean = inputTrackingDisabledCounterForThread == 0
 
-    fun enableForCurrentThread() {
-        inputTrackingEnabledForThread = true
+    /**
+     * Disables input tracking for the current thread. Multiple calls to this method "stack", so if
+     * this method was called twice then [restoreForCurrentThread] should also be called twice to
+     * enable input tracking back.
+     */
+    fun disableForCurrentThread() {
+        ++inputTrackingDisabledCounterForThread
     }
 
-    fun disableForCurrentThread() {
-        inputTrackingEnabledForThread = false
+    /**
+     * Restores the input tracking state to the state it was in before the last call to
+     * [disableForCurrentThread].
+     */
+    fun restoreForCurrentThread() {
+        Preconditions.checkState(inputTrackingDisabledCounterForThread > 0, "Restore input tracking state without prior disable is detected")
+        --inputTrackingDisabledCounterForThread
     }
 }
 

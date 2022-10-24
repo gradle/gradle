@@ -69,7 +69,7 @@ public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements Grad
         try {
             job.run();
         } finally {
-            inputTrackingState.enableForCurrentThread();
+            inputTrackingState.restoreForCurrentThread();
         }
     }
 
