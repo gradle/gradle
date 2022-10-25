@@ -17,8 +17,16 @@ package org.gradle.api.internal.file.archive;
 
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+import org.apache.commons.compress.archivers.arj.ArjArchiveInputStream;
+import org.apache.commons.compress.archivers.cpio.CpioArchiveInputStream;
+import org.apache.commons.compress.archivers.dump.DumpArchiveInputStream;
+import org.apache.commons.compress.archivers.jar.JarArchiveInputStream;
+import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import org.apache.commons.compress.utils.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileVisitDetails;
@@ -36,6 +44,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.util.internal.GFileUtils;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -120,7 +129,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
     private void checkFormat(InputStream inputStream) throws IOException {
         String format;
         try {
-            format = ArchiveStreamFactory.detect(inputStream);
+            format = detectFormat(inputStream);
         } catch (ArchiveException e) {
             throw new IOException("Failed to detect archive format!", e);
         }
@@ -238,5 +247,93 @@ public class TarFileTree extends AbstractArchiveFileTree {
         @Override
         public void close() throws IOException {
         }
+    }
+
+    /**
+     * Copy of <code>ArchiveStreamFactory.detect(InputStream)</code>, extended to not
+     * throw an exception for empty TAR files (ie. ones with no entries in them).
+     */
+    private static String detectFormat(InputStream inputStream) throws ArchiveException {
+        if (!inputStream.markSupported()) {
+            throw new IllegalArgumentException("Mark is not supported.");
+        }
+
+        final byte[] signature = new byte[12]; //ArchiveStreamFactory.SIGNATURE_SIZE
+        inputStream.mark(signature.length);
+        int signatureLength = -1;
+        try {
+            signatureLength = IOUtils.readFully(inputStream, signature);
+            inputStream.reset();
+        } catch (final IOException e) {
+            throw new ArchiveException("IOException while reading signature.", e);
+        }
+
+        if (ZipArchiveInputStream.matches(signature, signatureLength)) {
+            return ArchiveStreamFactory.ZIP;
+        }
+        if (JarArchiveInputStream.matches(signature, signatureLength)) {
+            return ArchiveStreamFactory.JAR;
+        }
+        if (ArArchiveInputStream.matches(signature, signatureLength)) {
+            return ArchiveStreamFactory.AR;
+        }
+        if (CpioArchiveInputStream.matches(signature, signatureLength)) {
+            return ArchiveStreamFactory.CPIO;
+        }
+        if (ArjArchiveInputStream.matches(signature, signatureLength)) {
+            return ArchiveStreamFactory.ARJ;
+        }
+        if (SevenZFile.matches(signature, signatureLength)) {
+            return ArchiveStreamFactory.SEVEN_Z;
+        }
+
+        // Dump needs a bigger buffer to check the signature;
+        final byte[] dumpsig = new byte[32]; //ArchiveStreamFactory.DUMP_SIGNATURE_SIZE
+        inputStream.mark(dumpsig.length);
+        try {
+            signatureLength = IOUtils.readFully(inputStream, dumpsig);
+            inputStream.reset();
+        } catch (final IOException e) {
+            throw new ArchiveException("IOException while reading dump signature", e);
+        }
+        if (DumpArchiveInputStream.matches(dumpsig, signatureLength)) {
+            return ArchiveStreamFactory.DUMP;
+        }
+
+        // Tar needs an even bigger buffer to check the signature; read the first block
+        final byte[] tarHeader = new byte[512]; //ArchiveStreamFactory.TAR_HEADER_SIZE
+        inputStream.mark(tarHeader.length);
+        try {
+            signatureLength = IOUtils.readFully(inputStream, tarHeader);
+            inputStream.reset();
+        } catch (final IOException e) {
+            throw new ArchiveException("IOException while reading tar signature", e);
+        }
+        if (TarArchiveInputStream.matches(tarHeader, signatureLength)) {
+            return TAR;
+        }
+
+        // COMPRESS-117 - improve auto-recognition
+        if (signatureLength >= 512) { //ArchiveStreamFactory.TAR_HEADER_SIZE
+            TarArchiveInputStream tais = null;
+            try {
+                tais = new TarArchiveInputStream(new ByteArrayInputStream(tarHeader));
+                // COMPRESS-191 - verify the header checksum
+                if (tais.getNextTarEntry() == null) {
+                    return TAR; //empty one
+                }
+                if (tais.getNextTarEntry().isCheckSumOK()) {
+                    return TAR;
+                }
+            } catch (final Exception e) { // NOPMD NOSONAR
+                // can generate IllegalArgumentException as well
+                // as IOException
+                // autodetection, simply not a TAR
+                // ignored
+            } finally {
+                IOUtils.closeQuietly(tais);
+            }
+        }
+        throw new ArchiveException("No Archiver found for the stream signature");
     }
 }
