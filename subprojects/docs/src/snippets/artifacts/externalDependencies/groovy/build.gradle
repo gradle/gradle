@@ -15,8 +15,9 @@ dependencies {
 
 // tag::use-configuration[]
 tasks.register('listJars') {
+    FileCollection implementation = configurations.implementation
     doLast {
-        configurations.compile.each { File file -> println file.name }
+        implementation.each { File file -> println file.name }
     }
 }
 // end::use-configuration[]

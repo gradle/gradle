@@ -13,8 +13,9 @@ dependencies {
 
 // tag::use-configuration[]
 tasks.register("listJars") {
+    val implementation: FileCollection = configurations["implementation"]
     doLast {
-        configurations["compile"].forEach { file: File -> println(file.name) }
+        implementation.forEach { file: File -> println(file.name) }
     }
 }
 // end::use-configuration[]
