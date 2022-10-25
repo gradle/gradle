@@ -79,7 +79,7 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.internal.FallbackToolchainSpec;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -208,8 +208,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             }
         });
 
-        Provider<JavaToolchainSpec> toolchainSpec =
-            executableOverrideToolchainSpec.orElse(new FallbackToolchainSpec(objectFactory));
+        Provider<JavaToolchainSpec> toolchainSpec = executableOverrideToolchainSpec
+            .orElse(objectFactory.newInstance(DefaultToolchainSpec.class));
 
         return toolchainSpec
             .flatMap(new Transformer<Provider<JavaLauncher>, JavaToolchainSpec>() {
