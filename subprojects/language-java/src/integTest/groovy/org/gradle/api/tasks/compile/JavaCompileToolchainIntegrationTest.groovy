@@ -618,8 +618,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
         jdk.javaVersion == JavaVersion.forClass(javaClassFile("Foo.class").bytes)
 
         where:
-        // Range of Java versions from 8 up to the current
-        javaVersion << JavaVersion.values().findAll { it.isJava8Compatible() && JavaVersion.current().isCompatibleWith(it) }
+        javaVersion << JavaVersion.values().findAll { it.isJava8Compatible() }
     }
 
     /**
