@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.internal.os.OperatingSystem
@@ -30,7 +31,7 @@ import spock.lang.Issue
 
 import static org.junit.Assume.assumeNotNull
 
-class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
+class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     def setup() {
         file("src/main/java/Foo.java") << "public class Foo {}"
@@ -696,12 +697,4 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
             }
         """
     }
-
-    private withInstallations(Jvm... jvm) {
-        def installationPaths = jvm.collect { it.javaHome.absolutePath }.join(",")
-        executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
-        this
-    }
-
 }
