@@ -20,6 +20,10 @@ plugins {
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+repositories {
+    mavenCentral()
+}
+
 // tag::configure[]
 tasks.withType(KotlinCompile).configureEach {
     kotlinOptions.freeCompilerArgs += "-Xsam-conversions=class"
