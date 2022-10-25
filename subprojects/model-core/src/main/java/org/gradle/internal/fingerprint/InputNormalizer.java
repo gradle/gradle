@@ -16,6 +16,8 @@
 
 package org.gradle.internal.fingerprint;
 
+// TODO Break this up between simple normalizers and Java classpath normalizers
+//      The latter should be moved to :normalization-java
 public enum InputNormalizer implements Normalizer {
     ABSOLUTE_PATH(false),
     RELATIVE_PATH(false),
