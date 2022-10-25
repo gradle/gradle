@@ -16,17 +16,26 @@
 
 package org.gradle.api.internal.tasks.properties.bean;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.codehaus.groovy.runtime.ConvertedClosure;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
+import org.gradle.internal.snapshot.impl.ImplementationValue;
+import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.util.internal.ConfigureUtil;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Proxy;
 import java.util.Map;
 
 public class RuntimeBeanNodeFactory {
 
     private final TypeMetadataStore metadataStore;
+    private ImplementationIdentifier implementationIdentifier;
 
-    public RuntimeBeanNodeFactory(TypeMetadataStore metadataStore) {
+    public RuntimeBeanNodeFactory(TypeMetadataStore metadataStore, ImplementationIdentifier implementationIdentifier) {
         this.metadataStore = metadataStore;
+        this.implementationIdentifier = implementationIdentifier;
     }
 
     public RuntimeBeanNode<?> createRoot(Object bean) {
@@ -44,6 +53,35 @@ public class RuntimeBeanNodeFactory {
                 return new IterableRuntimeBeanNode(parentNode, propertyName, (Iterable<?>) bean, typeMetadata);
             }
         }
-        return new NestedRuntimeBeanNode(parentNode, propertyName, bean, typeMetadata);
+        Object unwrapped = unwrapBean(bean);
+//        String classIdentifier = ScriptOriginUtil.getOriginClassIdentifier(unwrapped);
+//        ImplementationValue implementation = new ImplementationValue(classIdentifier, unwrapped);
+        ImplementationValue implementation = implementationIdentifier.identify(unwrapped);
+        return new NestedRuntimeBeanNode(parentNode, propertyName, bean, implementation, typeMetadata);
+    }
+
+    @VisibleForTesting
+    static Object unwrapBean(Object bean) {
+        // When Groovy coerces a Closure into an SAM type, then it creates a Proxy which is backed by the Closure.
+        // We want to track the implementation of the Closure, since the class name and classloader of the proxy will not change.
+        // Java and Kotlin Lambdas are coerced to SAM types at compile time, so no unpacking is necessary there.
+        if (Proxy.isProxyClass(bean.getClass())) {
+            InvocationHandler invocationHandler = Proxy.getInvocationHandler(bean);
+            if (invocationHandler instanceof ConvertedClosure) {
+                return ((ConvertedClosure) invocationHandler).getDelegate();
+            }
+            return invocationHandler;
+        }
+
+        // Same as above, if we have wrapped a closure in a WrappedConfigureAction or a ClosureBackedAction, we want to
+        // track the closure itself, not the action class.
+        if (bean instanceof ConfigureUtil.WrappedConfigureAction) {
+            return ((ConfigureUtil.WrappedConfigureAction<?>) bean).getConfigureClosure();
+        }
+
+        if (bean instanceof ClosureBackedAction) {
+            return ((ClosureBackedAction<?>) bean).getClosure();
+        }
+        return bean;
     }
 }
