@@ -197,6 +197,7 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
 
     @Override
     protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
+        super.nodeSpecificHealthDiagnostics(builder);
         builder.append(", taskState=").append(taskState).append(", ").append(getTarget().healthDiagnostics());
     }
 

@@ -538,7 +538,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         compileJava.targetCompatibility == "1.8"
         compileJava.sourceCompatibility == "1.8"
-        testCompileJava.targetCompatibility == "1.9"
-        testCompileJava.sourceCompatibility == "1.9"
+        testCompileJava.targetCompatibility == "9"
+        testCompileJava.sourceCompatibility == "9"
     }
 }

@@ -275,7 +275,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
-    @Incubating
     ProviderFactory getProviders();
 
     /**

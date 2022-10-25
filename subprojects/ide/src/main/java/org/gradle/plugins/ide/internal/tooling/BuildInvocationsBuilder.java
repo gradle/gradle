@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
 
 public class BuildInvocationsBuilder implements ToolingModelBuilder {
@@ -101,7 +102,7 @@ public class BuildInvocationsBuilder implements ToolingModelBuilder {
     }
 
     private void findTasks(Project project, Map<String, LaunchableGradleTaskSelector> taskSelectors, Collection<String> visibleTasks) {
-        for (Project child : project.getChildProjects().values()) {
+        for (Project child : getChildProjectsForInternalUse(project)) {
             findTasks(child, taskSelectors, visibleTasks);
         }
 

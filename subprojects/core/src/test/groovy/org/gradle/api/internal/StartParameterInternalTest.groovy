@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts;
+package org.gradle.api.internal
 
-import org.gradle.internal.component.external.ivypublish.IvyModulePublishMetadata;
 
-public interface ModuleVersionPublisher {
-    void publish(IvyModulePublishMetadata moduleVersion);
+import org.gradle.internal.buildoption.Option
+import spock.lang.Specification
+
+class StartParameterInternalTest extends Specification {
+    def 'can query whether configuration caching is requested'() {
+        def parameter = new StartParameterInternal()
+
+        expect:
+        !parameter.configurationCacheRequested
+
+        parameter.setConfigurationCache(Option.Value.defaultValue(true))
+        parameter.configurationCacheRequested
+    }
 }

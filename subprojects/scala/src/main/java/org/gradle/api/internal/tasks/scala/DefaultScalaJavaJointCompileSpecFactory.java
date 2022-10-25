@@ -23,6 +23,7 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 
 import javax.annotation.Nullable;
+import java.io.File;
 
 public class DefaultScalaJavaJointCompileSpecFactory extends AbstractJavaCompileSpecFactory<DefaultScalaJavaJointCompileSpec> {
     public DefaultScalaJavaJointCompileSpecFactory(CompileOptions compileOptions, @Nullable JavaInstallationMetadata javaInstallationMetadata) {
@@ -30,13 +31,13 @@ public class DefaultScalaJavaJointCompileSpecFactory extends AbstractJavaCompile
     }
 
     @Override
-    protected DefaultScalaJavaJointCompileSpec getCommandLineSpec() {
-        return new DefaultCommandLineScalaJavaJointCompileSpec();
+    protected DefaultScalaJavaJointCompileSpec getCommandLineSpec(File executable) {
+        return new DefaultCommandLineScalaJavaJointCompileSpec(executable);
     }
 
     @Override
-    protected DefaultScalaJavaJointCompileSpec getForkingSpec() {
-        return new DefaultForkingScalaJavaJointCompileSpec();
+    protected DefaultScalaJavaJointCompileSpec getForkingSpec(File javaHome) {
+        return new DefaultForkingScalaJavaJointCompileSpec(javaHome);
     }
 
     @Override
@@ -45,8 +46,28 @@ public class DefaultScalaJavaJointCompileSpecFactory extends AbstractJavaCompile
     }
 
     private static class DefaultCommandLineScalaJavaJointCompileSpec extends DefaultScalaJavaJointCompileSpec implements CommandLineJavaCompileSpec {
+        private final File executable;
+
+        private DefaultCommandLineScalaJavaJointCompileSpec(File executable) {
+            this.executable = executable;
+        }
+
+        @Override
+        public File getExecutable() {
+            return executable;
+        }
     }
 
     private static class DefaultForkingScalaJavaJointCompileSpec extends DefaultScalaJavaJointCompileSpec implements ForkingJavaCompileSpec {
+        private final File javaHome;
+
+        private DefaultForkingScalaJavaJointCompileSpec(File javaHome) {
+            this.javaHome = javaHome;
+        }
+
+        @Override
+        public File getJavaHome() {
+            return javaHome;
+        }
     }
 }
