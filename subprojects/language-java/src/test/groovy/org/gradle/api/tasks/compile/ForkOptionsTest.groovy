@@ -22,7 +22,7 @@ import spock.lang.Specification
 class ForkOptionsTest extends Specification {
     static final List PROPS = ['executable', 'memoryInitialSize', 'memoryMaximumSize', 'tempDir']
 
-    ForkOptions forkOptions = TestUtil.objectFactory().newInstance(ForkOptions)
+    ForkOptions forkOptions = TestUtil.newInstance(ForkOptions)
 
     def 'initial values of forkOptions'() {
         expect:

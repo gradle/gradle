@@ -30,7 +30,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
     private EclipseWtpPlugin wtpPlugin
 
     def setup() {
-        wtpPlugin = TestUtil.objectFactory().newInstance(EclipseWtpPlugin, project.services.get(Instantiator))
+        wtpPlugin = TestUtil.newInstance(EclipseWtpPlugin, project.services.get(Instantiator))
     }
 
     def "has description"() {

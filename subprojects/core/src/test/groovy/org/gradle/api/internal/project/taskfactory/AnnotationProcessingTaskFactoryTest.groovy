@@ -931,11 +931,11 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
                     // The test code is more lenient because this just assumes the first constructor is the correct one.
                     // This allows us to pass null to the constructor scenarios where the production code would not allow it.
                     // To switch to objectFactory, we would need to rewrite the tests to no longer pass null as a parameter.
-                    // return TestUtil.objectFactory().newInstance(type, params)
+                    // return TestUtil.newInstance(type, params)
                     assert type.constructors.size() == 1
                     return type.cast(type.constructors[0].newInstance(params))
                 } else {
-                    return TestUtil.objectFactory().newInstance(type)
+                    return TestUtil.newInstance(type)
                 }
             }
         })

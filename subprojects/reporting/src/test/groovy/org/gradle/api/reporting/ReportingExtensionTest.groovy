@@ -24,7 +24,7 @@ import spock.lang.Specification
 class ReportingExtensionTest extends Specification {
 
     Project project = ProjectBuilder.builder().build()
-    ReportingExtension extension = TestUtil.objectFactory().newInstance(ReportingExtension.class, project)
+    ReportingExtension extension = TestUtil.newInstance(ReportingExtension.class, project)
 
     def "defaults to reports dir in build dir"() {
         expect:

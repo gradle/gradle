@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class EclipseProjectTest extends Specification {
 
-    def eclipseProject = TestUtil.objectFactory().newInstance(EclipseProject, Mock(XmlFileContentMerger))
+    def eclipseProject = TestUtil.newInstance(EclipseProject, Mock(XmlFileContentMerger))
 
     def "allows adding linked resources"() {
         when:

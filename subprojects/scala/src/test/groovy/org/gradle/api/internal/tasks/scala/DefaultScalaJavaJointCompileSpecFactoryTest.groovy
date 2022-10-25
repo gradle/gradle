@@ -52,7 +52,7 @@ class DefaultScalaJavaJointCompileSpecFactoryTest extends Specification {
         metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
         metadata.isCurrentJvm() >> (Jvm.current().javaHome == javaHome)
 
-        CompileOptions options = TestUtil.objectFactory().newInstance(CompileOptions, Mock(ObjectFactory))
+        CompileOptions options = TestUtil.newInstance(CompileOptions, Mock(ObjectFactory))
         options.fork = fork
         DefaultScalaJavaJointCompileSpecFactory factory = new DefaultScalaJavaJointCompileSpecFactory(options, metadata)
 

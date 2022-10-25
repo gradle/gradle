@@ -20,7 +20,7 @@ import org.gradle.util.TestUtil
 import org.junit.Test
 
 class DebugOptionsTest {
-    DebugOptions debugOptions = TestUtil.objectFactory().newInstance(DebugOptions)
+    DebugOptions debugOptions = TestUtil.newInstance(DebugOptions)
 
     @Test
     void testDebugOptions() {

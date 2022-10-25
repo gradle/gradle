@@ -34,7 +34,7 @@ class DefaultGroovyJavaJointCompileSpecFactoryTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "produces correct spec type" () {
-        CompileOptions options = TestUtil.objectFactory().newInstance(CompileOptions.class, TestUtil.objectFactory())
+        CompileOptions options = TestUtil.newInstance(CompileOptions.class, TestUtil.objectFactory())
         options.fork = fork
         options.forkOptions.executable = executable
         DefaultGroovyJavaJointCompileSpecFactory factory = new DefaultGroovyJavaJointCompileSpecFactory(options, null)
@@ -69,7 +69,7 @@ class DefaultGroovyJavaJointCompileSpecFactoryTest extends Specification {
         metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
         metadata.isCurrentJvm() >> (Jvm.current().javaHome == javaHome)
 
-        CompileOptions options = TestUtil.objectFactory().newInstance(CompileOptions.class, Mock(ObjectFactory))
+        CompileOptions options = TestUtil.newInstance(CompileOptions.class, Mock(ObjectFactory))
         options.fork = fork
         DefaultGroovyJavaJointCompileSpecFactory factory = new DefaultGroovyJavaJointCompileSpecFactory(options, metadata)
 

@@ -27,7 +27,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class ApplicationPluginTest extends AbstractProjectBuilderSpec {
-    private final ApplicationPlugin plugin = TestUtil.objectFactory().newInstance(ApplicationPlugin)
+    private final ApplicationPlugin plugin = TestUtil.newInstance(ApplicationPlugin)
 
     def "applies JavaPlugin and adds convention object with default values"() {
         when:

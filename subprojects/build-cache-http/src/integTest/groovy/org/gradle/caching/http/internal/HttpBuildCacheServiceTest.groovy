@@ -82,7 +82,7 @@ class HttpBuildCacheServiceTest extends Specification {
             return getHashCode()
         }
     }
-    private config = TestUtil.objectFactory().newInstance(HttpBuildCache.class)
+    private config = TestUtil.newInstance(HttpBuildCache.class)
 
     HttpBuildCacheService cacheRef
 
