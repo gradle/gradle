@@ -42,7 +42,7 @@ public class DefaultFileCollectionFingerprinterRegistry implements FileCollectio
     public FileCollectionFingerprinter getFingerprinter(FileNormalizationSpec spec) {
         FileCollectionFingerprinter fingerprinter = fingerprinters.get(spec);
         if (fingerprinter == null) {
-            throw new IllegalStateException(String.format("No fingerprinter registered with type '%s', directory sensitivity '%s' and line ending normalization '%s'", spec.getNormalizer().getName(), spec.getDirectorySensitivity().name(), spec.getLineEndingNormalization()));
+            throw new IllegalStateException(String.format("No fingerprinter registered with '%s' normalization, directory sensitivity '%s' and line ending normalization '%s'", spec.getNormalizer(), spec.getDirectorySensitivity().name(), spec.getLineEndingNormalization()));
         }
         return fingerprinter;
     }

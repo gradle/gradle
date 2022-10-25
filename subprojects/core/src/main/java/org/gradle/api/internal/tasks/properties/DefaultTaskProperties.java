@@ -23,10 +23,10 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.ResolvingValue;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
-import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -205,7 +205,7 @@ public class DefaultTaskProperties implements TaskProperties {
             InputBehavior behavior,
             DirectorySensitivity directorySensitivity,
             LineEndingSensitivity lineEndingSensitivity,
-            @Nullable Class<? extends FileNormalizer> fileNormalizer,
+            @Nullable Normalizer fileNormalizer,
             PropertyValue value,
             InputFilePropertyType filePropertyType
         ) {

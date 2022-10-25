@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.DefaultTransformer
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileLookup
-import org.gradle.api.tasks.FileNormalizer
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -32,6 +31,7 @@ import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.InputNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.model.CalculatedValueContainer
 import org.gradle.internal.service.ServiceRegistry
@@ -47,8 +47,8 @@ class DefaultTransformerCodec(
         encodePreservingSharedIdentityOf(value) {
             writeClass(value.implementationClass)
             write(value.fromAttributes)
-            writeClass(value.inputArtifactNormalizer)
-            writeClass(value.inputArtifactDependenciesNormalizer)
+            writeEnum(value.inputArtifactNormalizer as InputNormalizer)
+            writeEnum(value.inputArtifactDependenciesNormalizer as InputNormalizer)
             writeBoolean(value.isCacheable)
             writeEnum(value.inputArtifactDirectorySensitivity)
             writeEnum(value.inputArtifactDependenciesDirectorySensitivity)
@@ -63,8 +63,8 @@ class DefaultTransformerCodec(
         return decodePreservingSharedIdentity {
             val implementationClass = readClassOf<TransformAction<*>>()
             val fromAttributes = readNonNull<ImmutableAttributes>()
-            val inputArtifactNormalizer = readClassOf<FileNormalizer>()
-            val inputArtifactDependenciesNormalizer = readClassOf<FileNormalizer>()
+            val inputArtifactNormalizer = readEnum<InputNormalizer>()
+            val inputArtifactDependenciesNormalizer = readEnum<InputNormalizer>()
             val isCacheable = readBoolean()
             val inputArtifactDirectorySensitivity = readEnum<DirectorySensitivity>()
             val inputArtifactDependenciesDirectorySensitivity = readEnum<DirectorySensitivity>()
