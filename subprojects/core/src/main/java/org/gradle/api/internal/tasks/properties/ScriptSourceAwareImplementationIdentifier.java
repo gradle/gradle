@@ -19,11 +19,13 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.internal.tasks.properties.bean.ImplementationIdentifier;
 import org.gradle.internal.scripts.ScriptOriginUtil;
 import org.gradle.internal.snapshot.impl.ImplementationValue;
+import org.gradle.util.internal.ConfigureUtil;
 
 public class ScriptSourceAwareImplementationIdentifier implements ImplementationIdentifier {
     @Override
     public ImplementationValue identify(Object bean) {
-        String classIdentifier = ScriptOriginUtil.getOriginClassIdentifier(bean);
-        return new ImplementationValue(classIdentifier, bean);
+        Object unwrapped = ConfigureUtil.unwrapBean(bean);
+        String classIdentifier = ScriptOriginUtil.getOriginClassIdentifier(unwrapped);
+        return new ImplementationValue(classIdentifier, unwrapped);
     }
 }

@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.properties.bean;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.internal.snapshot.impl.ImplementationValue;
-import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.Map;
 
@@ -48,8 +47,7 @@ public class RuntimeBeanNodeFactory {
                 return new IterableRuntimeBeanNode(parentNode, propertyName, (Iterable<?>) bean, typeMetadata);
             }
         }
-        Object unwrapped = ConfigureUtil.unwrapBean(bean);
-        ImplementationValue implementation = implementationIdentifier.identify(unwrapped);
+        ImplementationValue implementation = implementationIdentifier.identify(bean);
         return new NestedRuntimeBeanNode(parentNode, propertyName, bean, implementation, typeMetadata);
     }
 }
