@@ -74,11 +74,11 @@ public interface DependencyModifier {
     /**
      * Takes a given {@code Provider} to a {@link ExternalModuleDependency} and modifies the dependency to select the variant of the given module as described in {@link #modify(ModuleDependency)}.
      *
-     * @param providerConvertibleToDependency the provider
+     * @param providerToDependency the provider
      * @return a provider to the modified dependency
      */
-    default <D extends ModuleDependency> Provider<D> modify(Provider<D> providerConvertibleToDependency) {
-        return providerConvertibleToDependency.map(this::modify);
+    default <D extends ModuleDependency> Provider<D> modify(Provider<D> providerToDependency) {
+        return providerToDependency.map(this::modify);
     }
 
     /**
