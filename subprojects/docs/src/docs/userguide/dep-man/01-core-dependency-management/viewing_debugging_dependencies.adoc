@@ -91,7 +91,7 @@ Given a dependency, you can identify the selection reason and origin.
 `--dependency <dependency>` (mandatory)::
 The dependency to generate an insight report for.
 You can supply a complete `group:name`, or part of it.
-If multiple dependencies match, Gradle generates a report for each matching dependency.
+If multiple dependencies match, Gradle generates a report covering all matching dependencies.
 `--configuration <name>` (mandatory)::
 The dependency configuration from which to supply the dependency information.
 This parameter is optional for projects that use the <<java_plugin#java_plugin, Java plugin>>, since the plugin provides a default value of `compileClasspath`.
