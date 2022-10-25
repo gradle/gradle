@@ -28,6 +28,7 @@ import org.gradle.api.internal.credentials.CredentialListener
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsExternalProcess
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsSafeCredentials
@@ -52,7 +53,8 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private val userCodeApplicationContext: UserCodeApplicationContext,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val taskExecutionTracker: TaskExecutionTracker,
-    private val featureFlags: FeatureFlags,
+    private val featurePreviews: FeaturePreviews,
+    private val inputTrackingState: InputTrackingState,
 ) : ConfigurationCacheProblemsListener {
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
@@ -70,7 +72,11 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     }
 
     override fun onExternalProcessStarted(command: String, consumer: String?) {
+<<<<<<< HEAD
         if (!featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE) || !atConfigurationTime() || taskExecutionTracker.currentTask.isPresent) {
+=======
+        if (!isStableConfigurationCacheEnabled() || !atConfigurationTime() || isExecutingTask() || isInputTrackingDisabled()) {
+>>>>>>> origin/release
             return
         }
         problems.onProblem(
@@ -172,4 +178,13 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private
     fun atConfigurationTime() =
         configurationTimeBarrier.isAtConfigurationTime
+
+    private
+    fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
+
+    private
+    fun isStableConfigurationCacheEnabled() = featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
+
+    private
+    fun isExecutingTask() = taskExecutionTracker.currentTask.isPresent
 }
