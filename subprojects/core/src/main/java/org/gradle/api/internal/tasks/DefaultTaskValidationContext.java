@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.file.FileOperations;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeProblemBuilder;
@@ -26,12 +26,12 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import java.io.File;
 
 public class DefaultTaskValidationContext implements TaskValidationContext, TypeValidationContext {
-    private final FileOperations fileOperations;
+    private final PathToFileResolver fileResolver;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final TypeValidationContext delegate;
 
-    public DefaultTaskValidationContext(FileOperations fileOperations, ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry, TypeValidationContext delegate) {
-        this.fileOperations = fileOperations;
+    public DefaultTaskValidationContext(PathToFileResolver fileResolver, ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry, TypeValidationContext delegate) {
+        this.fileResolver = fileResolver;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
         this.delegate = delegate;
     }
@@ -47,8 +47,8 @@ public class DefaultTaskValidationContext implements TaskValidationContext, Type
     }
 
     @Override
-    public FileOperations getFileOperations() {
-        return fileOperations;
+    public PathToFileResolver getFileResolver() {
+        return fileResolver;
     }
 
     @Override

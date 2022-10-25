@@ -46,9 +46,9 @@ import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.FileCollectionSnapshotter;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.ReservedFileSystemLocation;
@@ -126,7 +126,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             reservedFileSystemLocationRegistry,
             fileCollectionFactory,
             taskDependencyFactory,
-            fileOperations
+            // TODO Can we inject a PathToFileResolver here directly?
+            fileOperations.getFileResolver()
         );
         executer = new FinalizePropertiesTaskExecuter(executer);
         executer = new ResolveTaskExecutionModeExecuter(repository, executer);
