@@ -441,8 +441,12 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
 
             project(':one') {
                 dependencies {
-                    implementation ('someGroup:someLib:1.0') {
-                        force = project.hasProperty("forceDeps")
+                    implementation ('someGroup:someLib') {
+                        if (project.hasProperty("strictDeps")) {
+                            version {
+                                strictly '1.0'
+                            }
+                        }
                     }
                     implementation project(':two')
                 }
@@ -466,8 +470,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         dependencies = parseIml("two/two.iml").dependencies
         assert dependencies.libraries*.jarName as Set == [someLib2Jar.name] as Set
 
-        executer.expectDeprecationWarning()
-        executer.withArgument("-PforceDeps=true").withTasks("idea").run()
+        executer.withArgument("-PstrictDeps=true").withTasks("idea").run()
 
         //then
         dependencies = parseIml("one/one.iml").dependencies
