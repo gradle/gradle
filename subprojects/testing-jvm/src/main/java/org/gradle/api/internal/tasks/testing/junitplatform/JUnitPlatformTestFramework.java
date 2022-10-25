@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -32,10 +32,17 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 @UsedByScanPlugin("test-retry")
 public class JUnitPlatformTestFramework implements TestFramework {
+    private static final Set<? extends DistributionModule> DISTRIBUTION_MODULES = ImmutableSet.of(
+        new DefaultDistributionModule("junit-platform-engine", Pattern.compile("junit-platform-engine-1.*\\.jar")),
+        new DefaultDistributionModule("junit-platform-launcher", Pattern.compile("junit-platform-launcher-1.*\\.jar")),
+        new DefaultDistributionModule("junit-platform-commons", Pattern.compile("junit-platform-commons-1.*\\.jar"))
+    );
+
     private final JUnitPlatformOptions options;
     private final DefaultTestFilter filter;
     private final boolean useImplementationDependencies;
@@ -96,17 +103,17 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     @Override
-    public List<String> getTestWorkerImplementationClasses() {
-        return Collections.emptyList();
+    public Set<? extends DistributionModule> getTestWorkerApplicationClasses() {
+        return Collections.emptySet();
     }
 
     @Override
-    public List<String> getTestWorkerImplementationModules() {
-        return ImmutableList.of("junit-platform-engine", "junit-platform-launcher", "junit-platform-commons");
+    public Set<? extends DistributionModule> getTestWorkerApplicationModules() {
+        return DISTRIBUTION_MODULES;
     }
 
     @Override
-    public boolean getUseImplementationDependencies() {
+    public boolean getUseDistributionDependencies() {
         return useImplementationDependencies;
     }
 

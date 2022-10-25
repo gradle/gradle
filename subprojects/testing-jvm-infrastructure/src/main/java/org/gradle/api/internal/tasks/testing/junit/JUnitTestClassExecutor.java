@@ -124,9 +124,22 @@ public class JUnitTestClassExecutor implements Action<String> {
     }
 
     private void verifyJUnitCategorySupport() {
+        boolean failed = false;
         try {
             applicationClassLoader.loadClass("org.junit.experimental.categories.Category");
+
+            // In some cases, we may end up in a situation where we have multiple versions of JUnit
+            // on the classpath. Even if we can successfully load Category from the newer version, we
+            // need to verify the older has at least Description#getTestClass.
+            Class<?> desc = applicationClassLoader.loadClass("org.junit.runner.Description");
+            desc.getMethod("getTestClass"); // Added in JUnit 4.6
         } catch (ClassNotFoundException e) {
+            failed = true;
+        } catch (NoSuchMethodException e) {
+            failed = true;
+        }
+
+        if (failed) {
             throw new GradleException("JUnit Categories defined but declared JUnit version does not support Categories.");
         }
     }

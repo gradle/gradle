@@ -26,7 +26,8 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.Closeable;
-import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 @UsedByScanPlugin("test-retry")
 public interface TestFramework extends Closeable {
@@ -70,31 +71,91 @@ public interface TestFramework extends Closeable {
      * Returns a list of jars the test worker requires on the classpath.
      * These dependencies are loaded from the Gradle distribution.
      *
-     * @see #getUseImplementationDependencies()
+     * @see #getUseDistributionDependencies()
      */
     @Internal
-    List<String> getTestWorkerImplementationClasses();
+    Set<? extends DistributionModule> getTestWorkerApplicationClasses();
 
     /**
      * Returns a list of modules the test worker requires on the modulepath if it runs as a module.
      * These dependencies are loaded from the Gradle distribution.
      *
-     * @see #getUseImplementationDependencies()
+     * @see #getUseDistributionDependencies()
      */
     @Internal
-    List<String> getTestWorkerImplementationModules();
+    Set<? extends DistributionModule> getTestWorkerApplicationModules();
 
     /**
      * Whether the legacy behavior of loading test framework dependencies from the Gradle distribution
-     * is enabled. If true, jars and modules as specified by {@link #getTestWorkerImplementationClasses()}
-     * and {@link #getTestWorkerImplementationModules()} respectively are loaded from the Gradle distribution
-     * and placed on the test worker classpath and/or modulepath.
+     * is enabled. If true, jars and modules as specified by {@link #getTestWorkerApplicationClasses()}
+     * and {@link #getTestWorkerApplicationModules()} respectively are loaded from the Gradle distribution
+     * and placed on the test worker application classpath and/or modulepath.
      * <p>
      * This functionality is legacy and will eventually be deprecated and removed. Test framework dependencies
      * should be managed externally from the Gradle distribution, as is done by test suites.
      *
-     * @return Whether test framework implementation dependencies should be loaded from the Gradle distribution.
+     * @return Whether test framework dependencies should be loaded from the Gradle distribution.
      */
     @Internal
-    boolean getUseImplementationDependencies();
+    boolean getUseDistributionDependencies();
+
+    /**
+     * A third-party module which may be loaded from the Gradle distribution.
+     */
+    interface DistributionModule {
+        /**
+         * The name of the module to load.
+         */
+        String getModuleName();
+
+        /**
+         * A pattern which matches jars provided by the module. Used to determine
+         * if this module already exists on the classpath.
+         */
+        Pattern getFileNameMatcher();
+    }
+
+    class DefaultDistributionModule implements DistributionModule {
+        private final String moduleName;
+        private final Pattern fileNameMatcher;
+
+        public DefaultDistributionModule(String moduleName, Pattern fileNameMatcher) {
+            this.moduleName = moduleName;
+            this.fileNameMatcher = fileNameMatcher;
+        }
+
+        @Override
+        public String getModuleName() {
+            return moduleName;
+        }
+
+        @Override
+        public Pattern getFileNameMatcher() {
+            return fileNameMatcher;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            DefaultDistributionModule that = (DefaultDistributionModule) o;
+
+            if (!moduleName.equals(that.moduleName)) {
+                return false;
+            }
+            return fileNameMatcher.equals(that.fileNameMatcher);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = moduleName.hashCode();
+            result = 31 * result + fileNameMatcher.hashCode();
+            return result;
+        }
+    }
 }
