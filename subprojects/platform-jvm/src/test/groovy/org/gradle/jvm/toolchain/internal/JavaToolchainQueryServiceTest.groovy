@@ -220,23 +220,6 @@ class JavaToolchainQueryServiceTest extends Specification {
         toolchain.get().getInstallationPath().toString() == Jvm.current().javaHome.absolutePath
     }
 
-    def "returns fallback toolchain if requested"() {
-        given:
-        def registry = createInstallationRegistry(versionRange(8, 19))
-        def toolchainFactory = newToolchainFactory()
-        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory(), TestUtil.objectFactory())
-
-        when:
-        def filter = new FallbackToolchainSpec(TestUtil.objectFactory())
-        def toolchain = queryService.findMatchingToolchain(filter)
-
-        then:
-        toolchain.isPresent()
-        toolchain.get().isFallbackToolchain()
-        toolchain.get().languageVersion == JavaLanguageVersion.of(Jvm.current().javaVersion.majorVersion)
-        toolchain.get().getInstallationPath().toString() == Jvm.current().javaHome.absolutePath
-    }
-
     def "returns fallback toolchain if filter is not configured"() {
         given:
         def registry = createInstallationRegistry(versionRange(8, 19))
@@ -274,10 +257,9 @@ class JavaToolchainQueryServiceTest extends Specification {
 
     /**
      * This test validates that caching of toolchains works correctly,
-     * given that the fallback toolchain extends the current JVM toolchain,
-     * but must not be resolved for the filters matching current JVM.
+     * i.e. that a cached toolchain for the current JVM does not get returned for a non-configured case.
      */
-    def "returns fallback toolchain if requested even after returning current JVM"() {
+    def "returns fallback toolchain if filter is not configured even after returning current JVM"() {
         given:
         def registry = createInstallationRegistry(versionRange(8, 19))
         def toolchainFactory = newToolchainFactory()
@@ -290,7 +272,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         !currentJvmToolchain.isFallbackToolchain()
 
         when:
-        def fallbackFilter = new FallbackToolchainSpec(TestUtil.objectFactory())
+        def fallbackFilter = new DefaultToolchainSpec(TestUtil.objectFactory())
         def fallbackToolchain = queryService.findMatchingToolchain(fallbackFilter).get()
         then:
         fallbackToolchain.isFallbackToolchain()
@@ -299,8 +281,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
     /**
      * This test validates that caching of toolchains works correctly,
-     * given that the fallback toolchain extends the current JVM toolchain,
-     * but must not be resolved for the filters matching current JVM.
+     * i.e. that a cached toolchain for the fallback case does not get returned for a current JVM request case.
      */
     def "returns non-fallback current JVM toolchain if requested even after returning fallback toolchain"() {
         given:
@@ -309,7 +290,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory(), TestUtil.objectFactory())
 
         when:
-        def fallbackFilter = new FallbackToolchainSpec(TestUtil.objectFactory())
+        def fallbackFilter = new DefaultToolchainSpec(TestUtil.objectFactory())
         def fallbackToolchain = queryService.findMatchingToolchain(fallbackFilter).get()
         then:
         fallbackToolchain.isFallbackToolchain()
