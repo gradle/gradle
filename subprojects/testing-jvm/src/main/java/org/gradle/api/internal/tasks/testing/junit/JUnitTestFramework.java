@@ -31,10 +31,14 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 @UsedByScanPlugin("test-retry")
 public class JUnitTestFramework implements TestFramework {
+    private static final Set<? extends DistributionModule> DISTRIBUTION_CLASSES = Collections.singleton(
+        new DefaultDistributionModule("junit", Pattern.compile("junit-4.*\\.jar")));
+
     private JUnitOptions options;
     private JUnitDetector detector;
     private final DefaultTestFilter filter;
@@ -88,17 +92,17 @@ public class JUnitTestFramework implements TestFramework {
     }
 
     @Override
-    public List<String> getTestWorkerImplementationClasses() {
-        return Collections.singletonList("junit");
+    public Set<? extends DistributionModule> getTestWorkerApplicationClasses() {
+        return DISTRIBUTION_CLASSES;
     }
 
     @Override
-    public List<String> getTestWorkerImplementationModules() {
-        return Collections.emptyList();
+    public Set<? extends DistributionModule> getTestWorkerApplicationModules() {
+        return Collections.emptySet();
     }
 
     @Override
-    public boolean getUseImplementationDependencies() {
+    public boolean getUseDistributionDependencies() {
         return useImplementationDependencies;
     }
 

@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 @UsedByScanPlugin("test-retry")
@@ -202,17 +203,17 @@ public class TestNGTestFramework implements TestFramework {
     }
 
     @Override
-    public List<String> getTestWorkerImplementationClasses() {
-        return Collections.emptyList();
+    public Set<? extends DistributionModule> getTestWorkerApplicationClasses() {
+        return Collections.emptySet();
     }
 
     @Override
-    public List<String> getTestWorkerImplementationModules() {
-        return Collections.emptyList();
+    public Set<? extends DistributionModule> getTestWorkerApplicationModules() {
+        return Collections.emptySet();
     }
 
     @Override
-    public boolean getUseImplementationDependencies() {
+    public boolean getUseDistributionDependencies() {
         // We have no (default) implementation dependencies (see above).
         // The user must add their TestNG dependency to the test's runtimeClasspath themselves
         // or preferably use test suites where the dependencies are automatically managed.
