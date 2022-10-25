@@ -25,6 +25,7 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.ConfigurationCacheStateFile
+import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.extensions.hashCodeOf
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
@@ -76,6 +77,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val userCodeApplicationContext: UserCodeApplicationContext,
     private val taskExecutionTracker: TaskExecutionTracker,
     private val environmentChangeTracker: EnvironmentChangeTracker,
+    private val inputTrackingState: InputTrackingState,
 ) : Stoppable {
 
     interface Host {
@@ -124,7 +126,8 @@ class ConfigurationCacheFingerprintController internal constructor(
                 fileCollectionFactory,
                 directoryFileTreeFactory,
                 taskExecutionTracker,
-                environmentChangeTracker
+                environmentChangeTracker,
+                inputTrackingState
             )
             addListener(fingerprintWriter)
             return Writing(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)
