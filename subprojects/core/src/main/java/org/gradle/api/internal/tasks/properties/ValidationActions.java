@@ -117,6 +117,19 @@ public enum ValidationActions implements ValidationAction {
         }
     };
 
+    public static ValidationAction inputValidationActionFor(InputFilePropertyType type) {
+        switch (type) {
+            case FILE:
+                return INPUT_FILE_VALIDATOR;
+            case DIRECTORY:
+                return INPUT_DIRECTORY_VALIDATOR;
+            case FILES:
+                return NO_OP;
+            default:
+                throw new AssertionError("Unknown input property type " + type);
+        }
+    }
+
     public static ValidationAction outputValidationActionFor(OutputFilePropertySpec spec) {
         if (spec instanceof DirectoryTreeOutputFilePropertySpec) {
             return OUTPUT_FILE_TREE_VALIDATOR;
