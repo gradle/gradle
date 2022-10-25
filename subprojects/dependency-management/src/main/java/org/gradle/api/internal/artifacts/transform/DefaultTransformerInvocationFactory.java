@@ -56,10 +56,10 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.UnitOfWork.InputBehavior.INCREMENTAL;
-import static org.gradle.internal.execution.UnitOfWork.InputBehavior.NON_INCREMENTAL;
 import static org.gradle.internal.file.TreeType.DIRECTORY;
 import static org.gradle.internal.file.TreeType.FILE;
+import static org.gradle.internal.properties.InputBehavior.INCREMENTAL;
+import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL;
 
 public class DefaultTransformerInvocationFactory implements TransformerInvocationFactory {
     private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");

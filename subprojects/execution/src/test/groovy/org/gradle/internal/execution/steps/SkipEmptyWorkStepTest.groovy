@@ -16,24 +16,23 @@
 
 package org.gradle.internal.execution.steps
 
-
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.execution.OutputChangeListener
-import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.InputFingerprinter
-import org.gradle.internal.execution.impl.DefaultInputFingerprinter
+import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.history.OutputsCleaner
 import org.gradle.internal.execution.history.PreviousExecutionState
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
+import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.SHORT_CIRCUITED
-import static org.gradle.internal.execution.UnitOfWork.InputBehavior.PRIMARY
+import static org.gradle.internal.properties.InputBehavior.PRIMARY
 
 class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def outputChangeListener = Mock(OutputChangeListener)
@@ -42,7 +41,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
     def inputFingerprinter = Mock(InputFingerprinter)
     def fileCollectionSnapshotter = TestFiles.fileCollectionSnapshotter()
     def primaryFileInputs = EnumSet.of(PRIMARY)
-    def allFileInputs = EnumSet.allOf(UnitOfWork.InputBehavior)
+    def allFileInputs = EnumSet.allOf(InputBehavior)
 
     def step = new SkipEmptyWorkStep(
         outputChangeListener,

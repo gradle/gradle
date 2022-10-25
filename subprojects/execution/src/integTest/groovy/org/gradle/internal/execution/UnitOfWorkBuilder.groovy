@@ -35,7 +35,7 @@ import org.gradle.test.fixtures.file.TestFile
 import java.util.function.Consumer
 import java.util.function.Supplier
 
-import static org.gradle.internal.execution.UnitOfWork.InputBehavior.NON_INCREMENTAL
+import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL
 
 @CompileStatic
 class UnitOfWorkBuilder {
