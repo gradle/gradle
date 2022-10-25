@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
@@ -29,7 +30,7 @@ import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
-class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainBuildOperationsFixture {
+class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, JavaToolchainBuildOperationsFixture {
 
     static kgpLatestVersions = new KotlinGradlePluginVersions().latests.toList()
 
@@ -599,13 +600,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
                 }
             }
         """
-    }
-
-    private withInstallations(JvmInstallationMetadata... jdkMetadata) {
-        def installationPaths = jdkMetadata.collect { it.javaHome.toAbsolutePath().toString() }.join(",")
-        executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
-        this
     }
 
     private static String latestStableKotlinPluginVersion(String major) {
