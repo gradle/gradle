@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.Action;
 import org.gradle.internal.file.PathToFileResolver;
