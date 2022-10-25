@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -29,10 +28,11 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionEngine.Result;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -70,7 +70,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final FileCollectionFactory fileCollectionFactory;
-    private final FileOperations fileOperations;
+    private final PathToFileResolver fileResolver;
 
     public ExecuteActionsTaskExecuter(
         BuildCacheState buildCacheState,
@@ -87,7 +87,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         FileCollectionFactory fileCollectionFactory,
-        FileOperations fileOperations
+        PathToFileResolver fileResolver
     ) {
         this.buildCacheState = buildCacheState;
         this.scanPluginState = scanPluginState;
@@ -103,7 +103,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.fileOperations = fileOperations;
+        this.fileResolver = fileResolver;
     }
 
     @Override
@@ -120,7 +120,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             classLoaderHierarchyHasher,
             executionHistoryStore,
             fileCollectionFactory,
-            fileOperations,
+            fileResolver,
             inputFingerprinter,
             listenerManager,
             reservedFileSystemLocationRegistry,

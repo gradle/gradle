@@ -24,7 +24,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskAction;
 import org.gradle.api.internal.tasks.DefaultTaskValidationContext;
@@ -58,6 +57,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -106,7 +106,7 @@ public class TaskExecution implements UnitOfWork {
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ExecutionHistoryStore executionHistoryStore;
     private final FileCollectionFactory fileCollectionFactory;
-    private final FileOperations fileOperations;
+    private final PathToFileResolver fileResolver;
     private final InputFingerprinter inputFingerprinter;
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
@@ -123,7 +123,7 @@ public class TaskExecution implements UnitOfWork {
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
-        FileOperations fileOperations,
+        PathToFileResolver fileResolver,
         InputFingerprinter inputFingerprinter,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
@@ -139,7 +139,7 @@ public class TaskExecution implements UnitOfWork {
         this.executionHistoryStore = executionHistoryStore;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.fileOperations = fileOperations;
+        this.fileResolver = fileResolver;
         this.inputFingerprinter = inputFingerprinter;
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
@@ -460,7 +460,7 @@ public class TaskExecution implements UnitOfWork {
         TypeValidationContext typeValidationContext = validationContext.forType(taskType, cacheable);
         context.getTaskProperties().validateType(typeValidationContext);
         context.getTaskProperties().validate(new DefaultTaskValidationContext(
-            fileOperations,
+            fileResolver,
             reservedFileSystemLocationRegistry,
             typeValidationContext
         ));

@@ -23,7 +23,6 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
-import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
@@ -40,17 +39,17 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.WorkValidationContext
-import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
-import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputsCleaner
 import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
@@ -68,6 +67,7 @@ import org.gradle.internal.execution.steps.ResolveInputChangesStep
 import org.gradle.internal.execution.steps.SkipEmptyWorkStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.ValidateStep
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
@@ -159,7 +159,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def reservedFileSystemLocationRegistry = Stub(ReservedFileSystemLocationRegistry)
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)
     def fileCollectionFactory = fileCollectionFactory()
-    def fileOperations = Stub(FileOperations)
     def deleter = deleter()
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningRecorder)
     def buildOutputCleanupRegistry = Stub(BuildOutputCleanupRegistry)
@@ -199,7 +198,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         listenerManager,
         reservedFileSystemLocationRegistry,
         fileCollectionFactory,
-        fileOperations
+        Stub(PathToFileResolver)
     )
 
     def setup() {
