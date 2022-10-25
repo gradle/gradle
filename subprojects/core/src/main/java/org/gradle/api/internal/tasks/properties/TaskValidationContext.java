@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.reflect.validation.TypeValidationContext;

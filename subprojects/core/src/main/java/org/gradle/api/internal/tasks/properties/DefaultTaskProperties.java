@@ -23,7 +23,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.ResolvingValue;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
-import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
