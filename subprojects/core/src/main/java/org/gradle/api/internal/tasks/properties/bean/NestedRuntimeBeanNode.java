@@ -16,25 +16,21 @@
 
 package org.gradle.api.internal.tasks.properties.bean;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.codehaus.groovy.runtime.ConvertedClosure;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.scripts.ScriptOriginUtil;
 import org.gradle.internal.snapshot.impl.ImplementationValue;
-import org.gradle.util.internal.ClosureBackedAction;
-import org.gradle.util.internal.ConfigureUtil;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Proxy;
 import java.util.Queue;
 
 class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
-    public NestedRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Object bean, TypeMetadata typeMetadata) {
+    private final ImplementationValue implementation;
+
+    public NestedRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Object bean, ImplementationValue implementation, TypeMetadata typeMetadata) {
         super(parentNode, propertyName, bean, typeMetadata);
+        this.implementation = implementation;
     }
 
     @Override
@@ -44,38 +40,11 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
     }
 
     private void visitImplementation(PropertyVisitor visitor) {
-        Object unwrapped = unwrapBean(getBean());
-        String classIdentifier = ScriptOriginUtil.getOriginClassIdentifier(unwrapped);
         visitor.visitInputProperty(
             getPropertyName(),
-            new ImplementationPropertyValue(new ImplementationValue(classIdentifier, unwrapped)),
+            new ImplementationPropertyValue(implementation),
             false
         );
-    }
-
-    @VisibleForTesting
-    static Object unwrapBean(Object bean) {
-        // When Groovy coerces a Closure into an SAM type, then it creates a Proxy which is backed by the Closure.
-        // We want to track the implementation of the Closure, since the class name and classloader of the proxy will not change.
-        // Java and Kotlin Lambdas are coerced to SAM types at compile time, so no unpacking is necessary there.
-        if (Proxy.isProxyClass(bean.getClass())) {
-            InvocationHandler invocationHandler = Proxy.getInvocationHandler(bean);
-            if (invocationHandler instanceof ConvertedClosure) {
-                return ((ConvertedClosure) invocationHandler).getDelegate();
-            }
-            return invocationHandler;
-        }
-
-        // Same as above, if we have wrapped a closure in a WrappedConfigureAction or a ClosureBackedAction, we want to
-        // track the closure itself, not the action class.
-        if (bean instanceof ConfigureUtil.WrappedConfigureAction) {
-            return ((ConfigureUtil.WrappedConfigureAction<?>) bean).getConfigureClosure();
-        }
-
-        if (bean instanceof ClosureBackedAction) {
-            return ((ClosureBackedAction<?>) bean).getClosure();
-        }
-        return bean;
     }
 
     private static class ImplementationPropertyValue implements PropertyValue {

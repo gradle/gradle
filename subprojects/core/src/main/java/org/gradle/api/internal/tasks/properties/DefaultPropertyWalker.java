@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.properties.bean.ImplementationIdentifier;
 import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNode;
 import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNodeFactory;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -28,8 +29,8 @@ import java.util.Queue;
 public class DefaultPropertyWalker implements PropertyWalker {
     private final RuntimeBeanNodeFactory nodeFactory;
 
-    public DefaultPropertyWalker(TypeMetadataStore typeMetadataStore) {
-        this.nodeFactory = new RuntimeBeanNodeFactory(typeMetadataStore);
+    public DefaultPropertyWalker(TypeMetadataStore typeMetadataStore, ImplementationIdentifier implementationIdentifier) {
+        this.nodeFactory = new RuntimeBeanNodeFactory(typeMetadataStore, implementationIdentifier);
     }
 
     @Override

@@ -21,10 +21,12 @@ import org.gradle.util.internal.ClosureBackedAction
 import org.gradle.util.internal.ConfigureUtil
 import spock.lang.Specification
 
-class NestedRuntimeBeanNodeTest extends Specification {
+import static org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNodeFactory.unwrapBean
+
+class RuntimeBeanNodeFactoryTest extends Specification {
     def "correct implementation for #type coerced to Action is tracked"() {
         expect:
-        NestedRuntimeBeanNode.unwrapBean(implementation as Action) == implementation
+        unwrapBean(implementation as Action) == implementation
 
         where:
         type      | implementation
@@ -37,9 +39,9 @@ class NestedRuntimeBeanNodeTest extends Specification {
         def closure = { it }
 
         expect:
-        NestedRuntimeBeanNode.unwrapBean(ConfigureUtil.configureUsing(closure)) == closure
+        unwrapBean(ConfigureUtil.configureUsing(closure)) == closure
 
         and:
-        NestedRuntimeBeanNode.unwrapBean(ClosureBackedAction.of(closure)) == closure
+        unwrapBean(ClosureBackedAction.of(closure)) == closure
     }
 }
