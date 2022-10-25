@@ -84,8 +84,8 @@ To make custom tasks available in your build, you can use the `taskdef` (usually
 
 .Using a custom Ant task
 ====
-include::sample[dir="snippets/ant/useExternalAntTask/groovy",files="build.gradle"]
-include::sample[dir="snippets/ant/useExternalAntTask/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/useExternalAntTask/groovy",files="build.gradle[tags=configure-task]"]
+include::sample[dir="snippets/ant/useExternalAntTask/kotlin",files="build.gradle.kts[tags=configure-task]"]
 ====
 
 You can use Gradle's dependency management to assemble the classpath to use for the custom tasks. To do this, you need to define a custom configuration for the classpath, then add some dependencies to the configuration. This is described in more detail in link:declaring_dependencies.html[Declaring Dependencies].
