@@ -12,8 +12,9 @@ dependencies {
 }
 
 tasks.register("printArtifactNames") {
+    val compileClasspath: FileCollection = configurations.compileClasspath.get()
     doLast {
-        val libraryNames = configurations.compileClasspath.get().map { it.name }
+        val libraryNames = compileClasspath.map { it.name }
         logger.quiet(libraryNames.toString())
     }
 }
