@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.tasks.ClasspathNormalizer
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -32,6 +31,7 @@ import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.InputNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
@@ -163,7 +163,7 @@ class GenerateProjectAccessors(
             NON_INCREMENTAL,
             InputFileValueSupplier(
                 classPath,
-                ClasspathNormalizer::class.java,
+                InputNormalizer.RUNTIME_CLASSPATH,
                 DirectorySensitivity.IGNORE_DIRECTORIES,
                 LineEndingSensitivity.DEFAULT,
             ) { fileCollectionFactory.fixed(classPath.asFiles) }

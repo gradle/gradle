@@ -19,12 +19,15 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
-import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.api.tasks.ClasspathNormalizer;
+import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.InputNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.Normalizer;
 
 @NonNullApi
 public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePropertyRegistration implements TaskInputFilePropertyRegistration {
@@ -33,7 +36,7 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     private boolean skipWhenEmpty;
     private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
     private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;
-    private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
+    private Normalizer normalizer = InputNormalizer.ABSOLUTE_PATH;
 
     public DefaultTaskInputFilePropertyRegistration(StaticValue value, InputFilePropertyType filePropertyType) {
         super(value);
@@ -80,17 +83,32 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
 
     @Override
     public TaskInputFilePropertyBuilderInternal withPathSensitivity(PathSensitivity sensitivity) {
-        return withNormalizer(FileParameterUtils.determineNormalizerForPathSensitivity(sensitivity));
+        return withInternalNormalizer(FileParameterUtils.determineNormalizerForPathSensitivity(sensitivity));
     }
 
     @Override
-    public TaskInputFilePropertyBuilderInternal withNormalizer(Class<? extends FileNormalizer> normalizer) {
+    public TaskInputFilePropertyBuilderInternal withNormalizer(Class<? extends org.gradle.api.tasks.FileNormalizer> normalizer) {
+        if (normalizer == ClasspathNormalizer.class) {
+            return withInternalNormalizer(InputNormalizer.RUNTIME_CLASSPATH);
+        } else if (normalizer == CompileClasspathNormalizer.class) {
+            return withInternalNormalizer(InputNormalizer.COMPILE_CLASSPATH);
+        } else {
+            DeprecationLogger.deprecateBehaviour("Setting an input property's normalizer to a custom implementation of FileNormalizer")
+                .willBeRemovedInGradle9()
+                // TODO Document this
+                .undocumented();
+            return this;
+        }
+    }
+
+    @Override
+    public TaskInputFilePropertyBuilderInternal withInternalNormalizer(Normalizer normalizer) {
         this.normalizer = normalizer;
         return this;
     }
 
     @Override
-    public Class<? extends FileNormalizer> getNormalizer() {
+    public Normalizer getNormalizer() {
         return normalizer;
     }
 
@@ -130,6 +148,6 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
 
     @Override
     public String toString() {
-        return getPropertyName() + " (" + getNormalizer().getSimpleName().replace("Normalizer", "") + ")";
+        return getPropertyName() + " (" + getNormalizer() + ")";
     }
 }

@@ -22,17 +22,16 @@ import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.CompileClasspath;
-import org.gradle.api.tasks.CompileClasspathNormalizer;
-import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.InputNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
@@ -60,16 +59,16 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
         Annotation fileNormalization = propertyMetadata.getAnnotationForCategory(NORMALIZATION);
-        Class<? extends FileNormalizer> fileNormalizer;
+        Normalizer normalizer;
         if (fileNormalization == null) {
-            fileNormalizer = null;
+            normalizer = null;
         } else if (fileNormalization instanceof PathSensitive) {
             PathSensitivity pathSensitivity = ((PathSensitive) fileNormalization).value();
-            fileNormalizer = FileParameterUtils.determineNormalizerForPathSensitivity(pathSensitivity);
+            normalizer = FileParameterUtils.determineNormalizerForPathSensitivity(pathSensitivity);
         } else if (fileNormalization instanceof Classpath) {
-            fileNormalizer = ClasspathNormalizer.class;
+            normalizer = InputNormalizer.RUNTIME_CLASSPATH;
         } else if (fileNormalization instanceof CompileClasspath) {
-            fileNormalizer = CompileClasspathNormalizer.class;
+            normalizer = InputNormalizer.COMPILE_CLASSPATH;
         } else {
             throw new IllegalStateException("Unknown normalization annotation used: " + fileNormalization);
         }
@@ -78,8 +77,8 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             propertyMetadata.isAnnotationPresent(Optional.class),
             determineBehavior(propertyMetadata),
             determineDirectorySensitivity(propertyMetadata),
-            propertyMetadata.isAnnotationPresent(NormalizeLineEndings.class) ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS : LineEndingSensitivity.DEFAULT,
-            fileNormalizer,
+            determineLineEndingSensitivity(propertyMetadata),
+            normalizer,
             value,
             getFilePropertyType()
         );
@@ -91,6 +90,12 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             : propertyMetadata.isAnnotationPresent(Incremental.class)
             ? InputBehavior.INCREMENTAL
             : InputBehavior.NON_INCREMENTAL;
+    }
+
+    private static LineEndingSensitivity determineLineEndingSensitivity(PropertyMetadata propertyMetadata) {
+        return propertyMetadata.isAnnotationPresent(NormalizeLineEndings.class)
+            ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS
+            : LineEndingSensitivity.DEFAULT;
     }
 
     protected DirectorySensitivity determineDirectorySensitivity(PropertyMetadata propertyMetadata) {

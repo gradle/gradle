@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.properties.InputBehavior;
 
 import javax.annotation.Nullable;
@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
  * Visits properties of beans which are inputs, outputs, destroyables, local state or service references.
  */
 public interface PropertyVisitor {
-    void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType);
+    void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Normalizer fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType);
 
     void visitInputProperty(String propertyName, PropertyValue value, boolean optional);
 
@@ -44,7 +44,7 @@ public interface PropertyVisitor {
 
     class Adapter implements PropertyVisitor {
         @Override
-        public void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
+        public void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Normalizer fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
         }
 
         @Override

@@ -23,9 +23,9 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.InputNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.ValueSnapshot
@@ -212,7 +212,7 @@ class UnitOfWorkBuilder {
                         NON_INCREMENTAL,
                         new UnitOfWork.InputFileValueSupplier(
                             entry.value,
-                            AbsolutePathInputNormalizer,
+                            InputNormalizer.ABSOLUTE_PATH,
                             DirectorySensitivity.DEFAULT,
                             LineEndingSensitivity.DEFAULT,
                             () -> TestFiles.fixed(entry.value)

@@ -29,7 +29,6 @@ import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
@@ -43,6 +42,7 @@ import org.gradle.internal.enterprise.test.TestTaskPropertiesService;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.properties.InputBehavior;
@@ -90,7 +90,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
                 InputBehavior behavior,
                 DirectorySensitivity directorySensitivity,
                 LineEndingSensitivity lineEndingSensitivity,
-                @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                @Nullable Normalizer fileNormalizer,
                 PropertyValue value,
                 InputFilePropertyType filePropertyType
             ) {
