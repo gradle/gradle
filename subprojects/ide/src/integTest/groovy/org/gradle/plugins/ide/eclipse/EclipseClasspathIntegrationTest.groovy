@@ -348,9 +348,14 @@ subprojects {
 
 configure(project(":a")){
     dependencies {
-        implementation ('someGroup:someLib:1.0'){
-            force = project.hasProperty("forceDeps")
+        implementation ('someGroup:someLib') {
+            if (project.hasProperty("strictDeps")) {
+                version {
+                    strictly '1.0'
+                }
+            }
         }
+
         implementation project(':b')
     }
 }
@@ -368,8 +373,7 @@ configure(project(":b")){
         assert libs.size() == 1
         libs[0].assertHasJar(someLib2Jar)
 
-        executer.expectDeprecationWarning()
-        executer.withArgument("-PforceDeps=true").withTasks("eclipse").run()
+        executer.withArgument("-PstrictDeps=true").withTasks("eclipse").run()
 
         libs = classpath("a").libs
         assert classpath("a").projects.collect { it.name } == ['b']
