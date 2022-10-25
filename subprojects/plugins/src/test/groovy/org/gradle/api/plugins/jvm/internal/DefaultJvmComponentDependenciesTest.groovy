@@ -25,30 +25,13 @@ import org.gradle.api.artifacts.dsl.DependencyAdder
 import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.jvm.JvmComponentDependencies
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.ConfigureUtil
 import spock.lang.Specification
 
 class DefaultJvmComponentDependenciesTest extends Specification {
-    def currentProject = Mock(Project)
-    def dependencyFactory = Mock(DependencyFactory)
     def implementation = Mock(DependencyAdder)
-
-    def dependencies = new DefaultJvmComponentDependencies(implementation, Mock(DependencyAdder), Mock(DependencyAdder), Mock(DependencyAdder)) {
-        @Override
-        protected Project getCurrentProject() {
-            return DefaultJvmComponentDependenciesTest.this.currentProject
-        }
-
-        @Override
-        protected ObjectFactory getObjectFactory() {
-            throw new IllegalStateException()
-        }
-
-        @Override
-        DependencyFactory getDependencyFactory() {
-            return DefaultJvmComponentDependenciesTest.this.dependencyFactory
-        }
-    }
+    def dependencies = TestUtil.objectFactory().newInstance(DefaultJvmComponentDependencies, implementation, Mock (DependencyAdder), Mock(DependencyAdder), Mock(DependencyAdder))
 
     def "String notation is supported"() {
         when:

@@ -29,24 +29,46 @@ import javax.inject.Inject;
 
 
 /**
- * Dependency APIs for using <a href="https://docs.gradle.org/current/userguide/java_platform_plugin.html#java_platform_plugin">Platforms</a> in {@code dependencies} blocks.
+ * Dependency modifier APIs available that can find platform and enforced platforms in other modules for {@code dependencies} blocks.
  *
  * <p>
  * NOTE: This API is <strong>incubating</strong> and is likely to change until it's made stable.
  * </p>
+ * <br>
+ * <p>
+ * These methods are not intended to be implemented by end users or plugin authors.
+ * </p>
  *
- * @since 7.6
+ * @since 8.0
  */
 @Incubating
 public interface PlatformDependencyModifiers {
-
+    /**
+     * A dependency modifier that can modify a dependency to select a platform variant.
+     *
+     * @return the dependency modifier
+     *
+     * @see PlatformDependencyModifiers.PlatformDependencyModifier#modify(ModuleDependency)
+     */
     @Nested
     PlatformDependencyModifier getPlatform();
 
+    /**
+     * Implementation for the platform dependency modifier.
+     *
+     * @see #modify(ModuleDependency)
+     * @since 8.0
+     */
+    @Incubating
     abstract class PlatformDependencyModifier implements DependencyModifier {
         @Inject
         protected abstract ObjectFactory getObjectFactory();
 
+        /**
+         * {@inheritDoc}
+         *
+         * Selects the platform variant of the given dependency.
+         */
         @Override
         public <D extends ModuleDependency> D modify(D dependency) {
             dependency.endorseStrictVersions();
@@ -55,12 +77,32 @@ public interface PlatformDependencyModifiers {
         }
     }
 
+    /**
+     * A dependency modifier that can modify a dependency to select an enforced platform variant.
+     *
+     * @return the dependency modifier
+     *
+     * @see PlatformDependencyModifiers.EnforcedPlatformDependencyModifier#modify(ModuleDependency)
+     */
     @Nested
     EnforcedPlatformDependencyModifier getEnforcedPlatform();
+
+    /**
+     * Implementation for the enforced platform dependency modifier.
+     *
+     * @see #modify(ModuleDependency)
+     * @since 8.0
+     */
+    @Incubating
     abstract class EnforcedPlatformDependencyModifier implements DependencyModifier {
         @Inject
         protected abstract ObjectFactory getObjectFactory();
 
+        /**
+         * {@inheritDoc}
+         *
+         * Selects the enforced platform variant of the given dependency.
+         */
         @Override
         public <D extends ModuleDependency> D modify(D dependency) {
             if (dependency instanceof ExternalDependency) {

@@ -16,7 +16,7 @@
 
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -25,12 +25,33 @@ import org.gradle.api.provider.ProviderConvertible;
 
 import javax.inject.Inject;
 
+/**
+ * Universal APIs that are available for all {@code dependencies} blocks.
+ *
+ * <p>
+ * NOTE: This API is <strong>incubating</strong> and is likely to change until it's made stable.
+ * </p>
+ * <br>
+ * <p>
+ * Most of these methods are not intended to be implemented by end users or plugin authors.
+ * Only {@link #modify(ModuleDependency)} should be implemented.
+ * </p>
+ *
+ * @since 8.0
+ */
+@Incubating
 public interface DependencyModifier {
+    /**
+     * A dependency factory is used to convert supported dependency notations into {@link org.gradle.api.artifacts.Dependency} instances.
+     *
+     * @return a dependency factory
+     * @see DependencyFactory
+     */
     @Inject
     DependencyFactory getDependencyFactory();
 
     /**
-     * Create an {@link ExternalModuleDependency} from the given notation and modifies it to select the Test Fixtures variant of the given module.
+     * Create an {@link ExternalModuleDependency} from the given notation and modifies it to select the variant of the given module as described in {@link #modify(ModuleDependency)}.
      *
      * @param dependencyNotation the dependency notation
      * @return the modified dependency
@@ -41,7 +62,7 @@ public interface DependencyModifier {
     }
 
     /**
-     * Takes a given {@code Provider} to a {@link MinimalExternalModuleDependency} and modifies the dependency to select the Test Fixtures variant of the given module.
+     * Takes a given {@code Provider} to a {@link MinimalExternalModuleDependency} and modifies the dependency to select the variant of the given module as described in {@link #modify(ModuleDependency)}.
      *
      * @param providerConvertibleToDependency the provider
      * @return a provider to the modified dependency
@@ -51,7 +72,7 @@ public interface DependencyModifier {
     }
 
     /**
-     * Takes a given {@code Provider} to a {@link ExternalModuleDependency} and modifies the dependency to select the Test Fixtures variant of the given module.
+     * Takes a given {@code Provider} to a {@link ExternalModuleDependency} and modifies the dependency to select the variant of the given module as described in {@link #modify(ModuleDependency)}.
      *
      * @param providerConvertibleToDependency the provider
      * @return a provider to the modified dependency
@@ -60,5 +81,13 @@ public interface DependencyModifier {
         return providerConvertibleToDependency.map(this::modify);
     }
 
+    /**
+     * Takes a given {@link ModuleDependency} and modifies the dependency to select the variant of the given module. Dependency resolution may fail if the given module does not have a compatible variant.
+     * <p></p>
+     *
+     * @param dependency the dependency to modify
+     * @return the modified dependency
+     * @param <D> the type of the {@link ModuleDependency}
+     */
     <D extends ModuleDependency> D modify(D dependency);
 }

@@ -41,34 +41,31 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * This class is used to add extra methods to {@link DependencyAdder} for the Groovy DSL to make the DSL more idiomatic.
- * This is implemented as a <a href="https://groovy-lang.org/metaprogramming.html#_extension_modules">Groovy Extension Module</a>.
+ * This file is used to add <a href="https://groovy-lang.org/metaprogramming.html#_extension_modules">Groovy Extension Module</a> to {@link DependencyAdder} and {@link DependencyModifier} to make the Groovy DSL more idiomatic.
  * <p>
- * These extension methods allow an interface exposing an instance of {@code DependencyAdder} to add dependencies without explicitly calling {@code add(...)}.
- * </p>
- * For example:
- * <pre>
- * interface MyDependencies {
- *     DependencyAdder getImplementation()
- * }
- * // In the build script
- * myDependencies {
- *     implementation "org:foo:1.0"
- * }
- * </pre>
- *
- * In this Groovy DSL example, {@code implementation "org:foo:1.0"}
+ * These extension methods allow an interface to implement a dependencies block in the Groovy DSL by
  * <ul>
- *     <li>is equivalent to {@code getImplementation().call("org:foo:1.0")} because of this extension</li>
- *     <li>has the same effect as {@code getImplementation().add("org:foo:1.0")} in Java</li>
+ * <li>exposing an instance of {@link DependencyAdder} to add dependencies without explicitly calling {@link DependencyAdder#add(Dependency)}</li>
+ * <li>exposing an instance of {@link DependencyModifier} to modify dependencies without explicitly calling {@link DependencyModifier#modify(ModuleDependency)}</li>
  * </ul>
+ * </p>
  *
- * There are {@code call(...)} equivalents for all the {@code add(...)} methods in {@code DependencyAdder}.
+ * <p>
+ * There are {@code call(...)} equivalents for all the {@code add(...)} methods in {@link DependencyAdder}.
+ * </p>
  *
- * @see DependencyAdder
- * @see DependencyFactory
+ * <p>
+ * There are {@code call(...)} equivalents for all the {@code modify(...)} methods in {@link DependencyModifier}.
+ * </p>
+ *
+ * @since 7.6
+ *
  * @see Dependencies
- * @see org.gradle.api.artifacts.dsl.DependencyModifier
+ * @see DependencyAdder
+ * @see DependencyModifier
+ * @see DependencyFactory
+ *
+ * See DependenciesExtension for Kotlin DSL version of this.
  */
 @SuppressWarnings("unused")
 public class DependenciesExtensionModule {
@@ -114,17 +111,53 @@ public class DependenciesExtensionModule {
         return (map.containsKey(key)) ? map.get(key).toString() : null;
     }
 
-
+    /**
+     * Modifies a dependency.
+     *
+     * @param dependencyNotation dependency to modify
+     * @return the modified dependency
+     *
+     * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
+     *
+     * @since 8.0
+     */
     public static ExternalModuleDependency call(DependencyModifier self, CharSequence dependencyNotation) {
         return self.modify(dependencyNotation);
     }
+
+    /**
+     * Modifies a dependency.
+     *
+     * @param providerConvertibleToDependency dependency to modify
+     * @return the modified dependency
+     *
+     * @since 8.0
+     */
     public static Provider<? extends MinimalExternalModuleDependency> call(DependencyModifier self, ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
         return self.modify(providerConvertibleToDependency);
     }
-    public static  <D extends ModuleDependency> Provider<D> call(DependencyModifier self, Provider<D> providerConvertibleToDependency) {
-        return self.modify(providerConvertibleToDependency);
+
+    /**
+     * Modifies a dependency.
+     *
+     * @param providerToDependency dependency to modify
+     * @return the modified dependency
+     *
+     * @since 8.0
+     */
+    public static <D extends ModuleDependency> Provider<D> call(DependencyModifier self, Provider<D> providerToDependency) {
+        return self.modify(providerToDependency);
     }
-    public static  <D extends ModuleDependency> D call(DependencyModifier self, D dependency) {
+
+    /**
+     * Modifies a dependency.
+     *
+     * @param dependency dependency to modify
+     * @return the modified dependency
+     *
+     * @since 8.0
+     */
+    public static <D extends ModuleDependency> D call(DependencyModifier self, D dependency) {
         return self.modify(dependency);
     }
 
