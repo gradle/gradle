@@ -24,6 +24,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
@@ -156,15 +157,15 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         // Some cases are skipped, because forkOptions (when configured) must match the resulting toolchain, otherwise the build fails
-        uses             | when                                 | withTool | withJavaHome | withExecutable | withJavaExtension
-        "current JVM"    | "when nothing is configured"         | false    | false        | false          | false
-        "java extension" | "when configured"                    | false    | false        | false          | true
-        "executable"     | "when configured"                    | false    | false        | true           | false
-        "java home"      | "when configured"                    | false    | true         | false          | false
-        "assigned tool"  | "when configured"                    | true     | false        | false          | false
-        "executable"     | "over java extension"                | false    | false        | true           | true
-        "java home"      | "over executable and java extension" | false    | true         | false          | true
-        "assigned tool"  | "over java extension"                | true     | false        | false          | true
+        uses             | when                         | withTool | withJavaHome | withExecutable | withJavaExtension
+        "current JVM"    | "when nothing is configured" | false    | false        | false          | false
+        "java extension" | "when configured"            | false    | false        | false          | true
+        "executable"     | "when configured"            | false    | false        | true           | false
+        "java home"      | "when configured"            | false    | true         | false          | false
+        "assigned tool"  | "when configured"            | true     | false        | false          | false
+        "executable"     | "over java extension"        | false    | false        | true           | true
+        "java home"      | "over java extension"        | false    | true         | false          | true
+        "assigned tool"  | "over java extension"        | true     | false        | false          | true
     }
 
     def "uses #uses toolchain #when (without java base plugin)"() {
@@ -497,17 +498,20 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        withInstallations(jdk).run(":compileJava", "--info")
+        withInstallations(jdk).run(":compileJava")
 
         then:
         outputContains("project.sourceCompatibility = $prevJavaVersion")
         outputContains("project.targetCompatibility = $prevJavaVersion")
         outputContains("task.sourceCompatibility = $prevJavaVersion")
         outputContains("task.targetCompatibility = $prevJavaVersion")
+        prevJavaVersion == JavaVersion.forClass(javaClassFile("Foo.class").bytes)
     }
 
     def 'configuring toolchain on java extension and clearing source and target compatibility is supported'() {
         def jdk = Jvm.current()
+        def javaVersion = jdk.javaVersion
+
         buildFile << """
             apply plugin: 'java'
 
@@ -515,7 +519,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
                 sourceCompatibility = JavaVersion.VERSION_14
                 targetCompatibility = JavaVersion.VERSION_14
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                    languageVersion = JavaLanguageVersion.of(${javaVersion.majorVersion})
                 }
                 sourceCompatibility = null
                 targetCompatibility = null
@@ -534,17 +538,19 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        withInstallations(jdk).run(":compileJava", "--info")
+        withInstallations(jdk).run(":compileJava")
 
         then:
-        outputContains("project.sourceCompatibility = ${jdk.javaVersion}")
-        outputContains("project.targetCompatibility = ${jdk.javaVersion}")
-        outputContains("task.sourceCompatibility = ${jdk.javaVersion}")
-        outputContains("task.targetCompatibility = ${jdk.javaVersion}")
+        outputContains("project.sourceCompatibility = $javaVersion")
+        outputContains("project.targetCompatibility = $javaVersion")
+        outputContains("task.sourceCompatibility = $javaVersion")
+        outputContains("task.targetCompatibility = $javaVersion")
+        javaVersion == JavaVersion.forClass(javaClassFile("Foo.class").bytes)
     }
 
     def 'source and target compatibility override toolchain (source #source, target #target)'() {
         def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
+
         buildFile << """
             apply plugin: 'java'
 
@@ -571,13 +577,14 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        withInstallations(jdk11).run(":compileJava", "--info")
+        withInstallations(jdk11).run(":compileJava")
 
         then:
         outputContains("project.sourceCompatibility = 11")
         outputContains("project.targetCompatibility = 11")
         outputContains("task.sourceCompatibility = $sourceOut")
         outputContains("task.targetCompatibility = $targetOut")
+        JavaVersion.toVersion(targetOut) == JavaVersion.forClass(javaClassFile("Foo.class").bytes)
 
         where:
         source | target | sourceOut | targetOut
@@ -611,16 +618,17 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
         jdk.javaVersion == JavaVersion.forClass(javaClassFile("Foo.class").bytes)
 
         where:
-        javaVersion << (8..19).collect { JavaVersion.toVersion(it) }
+        // Range of Java versions from 8 up to the current
+        javaVersion << JavaVersion.values().findAll { it.isJava8Compatible() && JavaVersion.current().isCompatibleWith(it) }
     }
 
     /**
      * This test covers the case where in Java8 the class name becomes fully qualified in the deprecation message which is
      * somehow caused by invoking javacTask.getElements() in the IncrementalCompileTask of the incremental compiler plugin.
      */
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     def "Java deprecation messages with different JDKs"() {
         def jdk = AvailableJavaHomes.getJdk(javaVersion)
-        assumeNotNull(jdk)
 
         buildFile << """
             plugins {
@@ -662,18 +670,14 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputDoesNotContain("Compiling with Java command line compiler")
         outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'.")
+        outputContains("Compiling with JDK Java compiler API.")
         javaClassFile("com/example/Foo.class").exists()
         javaClassFile("com/example/Bar.class").exists()
 
         where:
         javaVersion             | deprecationMessage
         JavaVersion.VERSION_1_8 | "[deprecation] foo() in com.example.Foo has been deprecated"
-        JavaVersion.VERSION_11  | "[deprecation] foo() in Foo has been deprecated"
-        JavaVersion.VERSION_13  | "[deprecation] foo() in Foo has been deprecated"
-        JavaVersion.VERSION_14  | "[deprecation] foo() in Foo has been deprecated"
-        JavaVersion.VERSION_15  | "[deprecation] foo() in Foo has been deprecated"
-        JavaVersion.VERSION_16  | "[deprecation] foo() in Foo has been deprecated"
-        JavaVersion.VERSION_17  | "[deprecation] foo() in Foo has been deprecated"
+        JavaVersion.current()   | "[deprecation] foo() in Foo has been deprecated"
     }
 
     private TestFile configureJavaExtension(Jvm jdk) {
