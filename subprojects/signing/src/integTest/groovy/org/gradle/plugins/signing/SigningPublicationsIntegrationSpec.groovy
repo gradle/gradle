@@ -791,7 +791,11 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache
-    def "sign publication is idempotent"() {
+    @Issue([
+        "https://github.com/gradle/gradle/issues/21857",
+        "https://github.com/gradle/gradle/issues/22375"
+    ])
+    def "sign publication should be idempotent"() {
         given:
         buildFile << """
             apply plugin: 'maven-publish'

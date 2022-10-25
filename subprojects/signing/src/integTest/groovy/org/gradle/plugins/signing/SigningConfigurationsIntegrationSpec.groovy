@@ -52,7 +52,11 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache
-    def "signing configuration is idempotent"() {
+    @Issue([
+        "https://github.com/gradle/gradle/issues/21857",
+        "https://github.com/gradle/gradle/issues/22375"
+    ])
+    def "signing configuration should be idempotent"() {
         given:
         buildFile << """
             configurations {
