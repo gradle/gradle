@@ -15,6 +15,7 @@
  */
 
 @file:Incubating
+@file:Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 
 package org.gradle.kotlin.dsl
 
@@ -57,11 +58,11 @@ import org.gradle.api.provider.ProviderConvertible
  * @sample DependenciesExtensions.sample
  */
 @Suppress("unused")
-private class DependenciesExtensions {
+private
+class DependenciesExtensions {
     interface MyDependencies : GradleDependencies {
         val implementation: DependencyAdder
         val testFixtures: DependencyModifier
-
         operator fun invoke(action: Action<in MyDependencies>)
     }
 
@@ -72,7 +73,7 @@ private class DependenciesExtensions {
             implementation("org:foo:1.0") // is getImplementation().add("org:foo:1.0")
 
             // Add a dependency with explicit coordinate parameters
-            implementation(module(group="org", name="foo", version="1.0")) // is getImplementation().add(module("org", "foo", "1.0"))
+            implementation(module(group = "org", name = "foo", version = "1.0")) // is getImplementation().add(module("org", "foo", "1.0"))
 
             // Add dependencies on projects
             implementation(project(":path")) // is getImplementation().add(project(":path"))
@@ -93,7 +94,7 @@ private class DependenciesExtensions {
  *
  * @since 7.6
  */
-fun Dependencies.module(group: String?, name: String, version: String?) = module(group, name, version)
+fun Dependencies.module(group: String?, name: String, version: String?): ExternalModuleDependency = module(group, name, version)
 
 
 /**
@@ -102,7 +103,7 @@ fun Dependencies.module(group: String?, name: String, version: String?) = module
  * @see DependencyModifier
  * @since 8.0
  */
-operator fun DependencyModifier.invoke(dependencyNotation: CharSequence) = modify(dependencyNotation)
+operator fun DependencyModifier.invoke(dependencyNotation: CharSequence): ExternalModuleDependency = modify(dependencyNotation)
 
 
 /**
@@ -111,7 +112,7 @@ operator fun DependencyModifier.invoke(dependencyNotation: CharSequence) = modif
  * @see DependencyModifier
  * @since 8.0
  */
-operator fun DependencyModifier.invoke(dependency: ProviderConvertible<out MinimalExternalModuleDependency>) = modify(dependency)
+operator fun DependencyModifier.invoke(dependency: ProviderConvertible<out MinimalExternalModuleDependency>): Provider<out MinimalExternalModuleDependency> = modify(dependency)
 
 
 /**
@@ -120,7 +121,7 @@ operator fun DependencyModifier.invoke(dependency: ProviderConvertible<out Minim
  * @see DependencyModifier
  * @since 8.0
  */
-operator fun DependencyModifier.invoke(dependency: Provider<out ModuleDependency>) = modify(dependency)
+operator fun DependencyModifier.invoke(dependency: Provider<out ModuleDependency>): Provider<out ModuleDependency> = modify(dependency)
 
 
 /**
@@ -129,7 +130,7 @@ operator fun DependencyModifier.invoke(dependency: Provider<out ModuleDependency
  * @see DependencyModifier
  * @since 8.0
  */
-operator fun <D : ModuleDependency> DependencyModifier.invoke(dependency: D) = modify(dependency)
+operator fun <D : ModuleDependency> DependencyModifier.invoke(dependency: D): D = modify(dependency)
 
 
 /**

@@ -103,6 +103,7 @@ public class DependenciesExtensionModule {
         String group = extract(map, GROUP);
         String name = extract(map, NAME);
         String version = extract(map, VERSION);
+        assert name != null;
         return self.module(group, name, version);
     }
 

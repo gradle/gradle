@@ -83,7 +83,7 @@ public interface DependencyModifier {
 
     /**
      * Takes a given {@link ModuleDependency} and modifies the dependency to select the variant of the given module. Dependency resolution may fail if the given module does not have a compatible variant.
-     * <p></p>
+     * <p><br></p>
      *
      * @param dependency the dependency to modify
      * @return the modified dependency
