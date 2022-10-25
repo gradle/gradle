@@ -79,7 +79,6 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -194,6 +193,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         forkOptions.setExecutable(null);
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
+        javaLauncher.finalizeValueOnRead();
         testFramework = objectFactory.property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
         testFramework.finalizeValueOnRead();
     }
@@ -208,16 +208,17 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             }
         });
 
-        Provider<JavaToolchainSpec> toolchainSpec = executableOverrideToolchainSpec
-            .orElse(objectFactory.newInstance(DefaultToolchainSpec.class));
-
-        return toolchainSpec
+        return executableOverrideToolchainSpec
             .flatMap(new Transformer<Provider<JavaLauncher>, JavaToolchainSpec>() {
                 @Override
                 public Provider<JavaLauncher> transform(JavaToolchainSpec spec) {
                     return javaToolchainService.launcherFor(spec);
                 }
-            });
+            })
+            .orElse(javaToolchainService.launcherFor(new Action<JavaToolchainSpec>() {
+                @Override
+                public void execute(JavaToolchainSpec javaToolchainSpec) {}
+            }));
     }
 
     /**

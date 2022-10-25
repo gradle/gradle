@@ -31,7 +31,6 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -135,9 +134,10 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         Provider<JavaLauncher> javaLauncherConvention = getProviderFactory()
             .provider(() -> JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(this, objectFactory))
-            .orElse(objectFactory.newInstance(DefaultToolchainSpec.class))
-            .flatMap(javaToolchainService::launcherFor);
+            .flatMap(javaToolchainService::launcherFor)
+            .orElse(javaToolchainService.launcherFor(it -> {}));
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaLauncherConvention);
+        javaLauncher.finalizeValueOnRead();
     }
 
     @TaskAction
