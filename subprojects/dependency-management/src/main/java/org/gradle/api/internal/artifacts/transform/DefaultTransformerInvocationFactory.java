@@ -36,8 +36,8 @@ import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.fingerprint.InputNormalizer;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -367,7 +367,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 // since it is part of the ComponentArtifactIdentifier returned by the transform.
                 // For absolute paths, the name is already part of the normalized path,
                 // and for all the other normalization strategies we use the name directly.
-                transformer.getInputArtifactNormalizer().equals(AbsolutePathInputNormalizer.class)
+                transformer.getInputArtifactNormalizer() == InputNormalizer.ABSOLUTE_PATH
                     ? inputArtifact.getAbsolutePath()
                     : inputArtifact.getName());
             visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL,

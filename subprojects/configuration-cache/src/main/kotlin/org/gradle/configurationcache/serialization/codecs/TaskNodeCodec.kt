@@ -31,7 +31,6 @@ import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.specs.Spec
-import org.gradle.api.tasks.FileNormalizer
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.problems.PropertyTrace
@@ -57,7 +56,9 @@ import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.InputNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
+import org.gradle.internal.fingerprint.Normalizer
 import org.gradle.internal.properties.InputBehavior
 import org.gradle.util.internal.DeferredUtil
 
@@ -252,7 +253,7 @@ sealed class RegisteredProperty {
         val optional: Boolean,
         val filePropertyType: InputFilePropertyType,
         val behavior: InputBehavior,
-        val fileNormalizer: Class<out FileNormalizer>?,
+        val normalizer: Normalizer?,
         val directorySensitivity: DirectorySensitivity,
         val lineEndingSensitivity: LineEndingSensitivity
     ) : RegisteredProperty()
@@ -294,7 +295,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
                     writeBoolean(true)
                     writeEnum(filePropertyType)
                     writeEnum(behavior)
-                    writeClass(fileNormalizer!!)
+                    writeEnum(normalizer!! as InputNormalizer)
                     writeEnum(directorySensitivity)
                     writeEnum(lineEndingSensitivity)
                 }
@@ -363,7 +364,7 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
             behavior: InputBehavior,
             directorySensitivity: DirectorySensitivity,
             lineEndingSensitivity: LineEndingSensitivity,
-            fileNormalizer: Class<out FileNormalizer>?,
+            normalizer: Normalizer?,
             propertyValue: PropertyValue,
             filePropertyType: InputFilePropertyType
         ) {
@@ -374,7 +375,7 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
                     optional,
                     filePropertyType,
                     behavior,
-                    fileNormalizer,
+                    normalizer,
                     directorySensitivity,
                     lineEndingSensitivity
                 )
@@ -417,10 +418,10 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                 isFileInputProperty -> {
                     val filePropertyType = readEnum<InputFilePropertyType>()
                     val inputBehavior = readEnum<InputBehavior>()
-                    val normalizer = readClass()
+                    val normalizer = readEnum<InputNormalizer>()
                     val directorySensitivity = readEnum<DirectorySensitivity>()
                     val lineEndingNormalization = readEnum<LineEndingSensitivity>()
-                    task.inputs.run {
+                    (task as TaskInternal).inputs.run {
                         when (filePropertyType) {
                             InputFilePropertyType.FILE -> file(pack(propertyValue))
                             InputFilePropertyType.DIRECTORY -> dir(pack(propertyValue))
@@ -430,7 +431,7 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                         withPropertyName(propertyName)
                         optional(optional)
                         skipWhenEmpty(inputBehavior.shouldSkipWhenEmpty())
-                        withNormalizer(normalizer.uncheckedCast())
+                        withInternalNormalizer(normalizer)
                         ignoreEmptyDirectories(directorySensitivity == DirectorySensitivity.IGNORE_DIRECTORIES)
                         normalizeLineEndings(lineEndingNormalization == LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
                     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,29 @@
 
 package org.gradle.internal.fingerprint;
 
-/**
- * {@link Normalizer} used for output files.
- *
- * Like {@link InputNormalizer#ABSOLUTE_PATH}, but ignoring missing files.
- */
-public enum OutputNormalizer implements Normalizer {
-    INSTANCE;
+public enum InputNormalizer implements Normalizer {
+    ABSOLUTE_PATH(false),
+    RELATIVE_PATH(false),
+    NAME_ONLY(false),
+    IGNORE_PATH(true),
+    RUNTIME_CLASSPATH(true),
+    COMPILE_CLASSPATH(true);
+
+    private final boolean ignoreDirectories;
+    private final String description;
+
+    InputNormalizer(boolean ignoreDirectories) {
+        this.ignoreDirectories = ignoreDirectories;
+        this.description = name().toLowerCase().replace('_', ' ');
+    }
 
     @Override
     public boolean isIgnoreDirectories() {
-        return false;
+        return ignoreDirectories;
     }
 
     @Override
     public String toString() {
-        return "output";
+        return description;
     }
 }

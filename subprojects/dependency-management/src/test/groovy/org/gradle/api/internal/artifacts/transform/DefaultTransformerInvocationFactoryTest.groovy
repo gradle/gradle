@@ -32,7 +32,6 @@ import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.FileNormalizer
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.Try
@@ -52,9 +51,10 @@ import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.FingerprinterRegistration
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.execution.timeout.TimeoutHandler
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.InputNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
+import org.gradle.internal.fingerprint.Normalizer
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
@@ -216,13 +216,13 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         @Override
-        Class<? extends FileNormalizer> getInputArtifactNormalizer() {
-            return AbsolutePathInputNormalizer
+        Normalizer getInputArtifactNormalizer() {
+            return InputNormalizer.ABSOLUTE_PATH
         }
 
         @Override
-        Class<? extends FileNormalizer> getInputArtifactDependenciesNormalizer() {
-            return AbsolutePathInputNormalizer
+        Normalizer getInputArtifactDependenciesNormalizer() {
+            return InputNormalizer.ABSOLUTE_PATH
         }
 
         @Override
