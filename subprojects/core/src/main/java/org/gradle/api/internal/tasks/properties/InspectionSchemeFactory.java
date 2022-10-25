@@ -24,8 +24,6 @@ import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandle
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
-import org.gradle.internal.scripts.ScriptOriginUtil;
-import org.gradle.internal.snapshot.impl.ImplementationValue;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
@@ -80,10 +78,7 @@ public class InspectionSchemeFactory {
 
         public InspectionSchemeImpl(List<TypeAnnotationHandler> typeHandlers, List<PropertyAnnotationHandler> propertyHandlers, Collection<Class<? extends Annotation>> propertyModifiers, TypeAnnotationMetadataStore typeAnnotationMetadataStore, CrossBuildInMemoryCacheFactory cacheFactory) {
             metadataStore = new DefaultTypeMetadataStore(typeHandlers, propertyHandlers, propertyModifiers, typeAnnotationMetadataStore, cacheFactory);
-            propertyWalker = new DefaultPropertyWalker(metadataStore, bean -> {
-                String classIdentifier = ScriptOriginUtil.getOriginClassIdentifier(bean);
-                return new ImplementationValue(classIdentifier, bean);
-            });
+            propertyWalker = new DefaultPropertyWalker(metadataStore, new ScriptSourceAwareImplementationIdentifier());
         }
 
         @Override
