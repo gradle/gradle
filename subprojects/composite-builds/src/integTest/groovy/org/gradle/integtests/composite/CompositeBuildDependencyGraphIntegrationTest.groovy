@@ -377,27 +377,6 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         }
     }
 
-    def "substitutes forced direct dependency"() {
-        given:
-        buildA.buildFile << """
-            dependencies {
-                implementation("org.test:buildB:1.0") { force = true }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        checkDependencies()
-
-        then:
-        checkGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
-                configuration = "runtimeElements"
-                compositeSubstitute()
-            }
-        }
-    }
-
     def "substitutes transitive dependency with forced version"() {
         given:
         mavenRepo.module("org.external", "external-dep", '1.0').dependsOn("org.test", "buildB", "1.0").publish()
