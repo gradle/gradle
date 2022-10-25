@@ -105,6 +105,7 @@ public class AnnotationProcessingTasks {
     }
 
     public static class TaskWithMultipleMethods extends TestTask {
+        @Inject
         public TaskWithMultipleMethods(Runnable action) {
             super(action);
         }

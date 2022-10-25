@@ -927,10 +927,12 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         T task = AbstractTask.injectIntoNewInstance(project, TaskIdentity.create(name, type, project), new Callable<T>() {
             T call() throws Exception {
                 if (params.length > 0) {
-                    // TODO: This should be using objectFactory too because it more closely matches
-                    // what the production code does. The production code is more lenient with types
-                    // and this just assumes the first constructor is the correct one.
-                    //  return TestUtil.objectFactory().newInstance(type, params)
+                    // TODO: This should be using objectFactory too because that more closely matches what the production code does.
+                    // The test code is more lenient because this just assumes the first constructor is the correct one.
+                    // This allows us to pass null to the constructor scenarios where the production code would not allow it.
+                    // To switch to objectFactory, we would need to rewrite the tests to no longer pass null as a parameter.
+                    // return TestUtil.objectFactory().newInstance(type, params)
+                    assert type.constructors.size() == 1
                     return type.cast(type.constructors[0].newInstance(params))
                 } else {
                     return TestUtil.objectFactory().newInstance(type)
