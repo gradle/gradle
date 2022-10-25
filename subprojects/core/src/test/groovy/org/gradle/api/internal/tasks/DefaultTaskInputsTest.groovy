@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler
+import org.gradle.api.internal.tasks.properties.bean.TestImplementationIdentifier
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.api.tasks.Internal
@@ -79,7 +80,8 @@ class DefaultTaskInputsTest extends Specification {
         { false },
         cacheFactory
     )
-    def walker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, cacheFactory))
+    def typeMetadataStore = new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, cacheFactory)
+    def walker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationIdentifier())
     private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, fileCollectionFactory)
 
     def "default values"() {
