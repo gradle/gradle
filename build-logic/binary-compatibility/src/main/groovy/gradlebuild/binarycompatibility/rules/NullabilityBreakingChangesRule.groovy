@@ -34,8 +34,8 @@ import java.lang.reflect.Proxy
 @CompileStatic
 class NullabilityBreakingChangesRule extends AbstractGradleViolationRule {
 
-    NullabilityBreakingChangesRule(Map<String, String> acceptedApiChanges) {
-        super(acceptedApiChanges)
+    NullabilityBreakingChangesRule(Map<String, Object> params) {
+        super(params)
     }
 
     @Override

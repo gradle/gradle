@@ -15,24 +15,17 @@
  */
 package org.gradle.integtests.fixtures.extensions;
 
-import org.gradle.internal.Cast;
 import org.spockframework.runtime.extension.AbstractMethodInterceptor;
 import org.spockframework.runtime.extension.IDataDriver;
 import org.spockframework.runtime.extension.IMethodInvocation;
-import org.spockframework.runtime.model.DataProcessorMetadata;
-import org.spockframework.runtime.model.DataProviderInfo;
 import org.spockframework.runtime.model.FeatureInfo;
-import org.spockframework.runtime.model.Invoker;
 import org.spockframework.runtime.model.IterationInfo;
-import org.spockframework.runtime.model.MethodInfo;
-import org.spockframework.runtime.model.MethodKind;
 import org.spockframework.runtime.model.NameProvider;
 import org.spockframework.runtime.model.SpecInfo;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -60,9 +53,9 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
     public void interceptFeature(FeatureInfo feature) {
         initExecutions();
 
-        boolean featureIsParameterized = feature.isParameterized();
-        if (!featureIsParameterized) {
-            parameterizeFeature(feature);
+        if (!feature.isParameterized()) {
+            // Treat all features as parameterized, so we can use the data driver.
+            feature.setForceParameterized(true);
         }
 
         NameProvider<IterationInfo> iterationNameProvider = feature.getIterationNameProvider();
@@ -76,7 +69,7 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
             TestDetails testDetails = new TestDetails(feature);
             while(dataIterator.hasNext()) {
                 Object[] arguments = dataIterator.next();
-                Object[] actualArguments =  featureIsParameterized ? IDataDriver.prepareArgumentArray(arguments, parameters) : new Object[0];
+                Object[] actualArguments = IDataDriver.prepareArgumentArray(arguments, parameters);
                 for (Execution execution : executions) {
                     if (execution.isTestEnabled(testDetails)) {
                         currentExecution = execution;
@@ -100,45 +93,6 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
         }
 
         feature.getIterationInterceptors().add(0, new ParameterizedFeatureMultiVersionInterceptor());
-    }
-
-    /**
-     * Parameterizes a feature running one iteration with 0 parameters.
-     */
-    private void parameterizeFeature(FeatureInfo feature) {
-        if (feature.getDataProcessorMethod() == null) {
-            MethodInfo dataProcessor = new SyntheticMethodInfo(new Object[]{"data"}) {
-                @Override
-                public <ANN extends Annotation> ANN getAnnotation(Class<ANN> clazz) {
-                    if (clazz.equals(DataProcessorMetadata.class)) {
-                        return Cast.uncheckedCast(new DataProcessorMetadata() {
-                            @Override
-                            public String[] dataVariables() {
-                                return new String[0];
-                            }
-
-                            @Override
-                            public Class<? extends Annotation> annotationType() {
-                                return DataProcessorMetadata.class;
-                            }
-                        });
-                    }
-                    return null;
-                }
-            };
-            dataProcessor.setParent(feature.getSpec());
-            dataProcessor.setName("internalDataProcessor");
-            dataProcessor.setKind(MethodKind.DATA_PROCESSOR);
-
-            MethodInfo dataProviderMethod = new SyntheticMethodInfo(Collections.singleton("data"));
-            feature.setDataProcessorMethod(dataProcessor);
-            DataProviderInfo dataProvider = new DataProviderInfo();
-            dataProvider.setParent(feature);
-            dataProvider.setDataVariables(new ArrayList<>());
-            dataProvider.setPreviousDataTableVariables(new ArrayList<>());
-            dataProvider.setDataProviderMethod(dataProviderMethod);
-            feature.getDataProviders().add(dataProvider);
-        }
     }
 
     protected abstract void createExecutions();
@@ -230,36 +184,6 @@ public abstract class AbstractMultiTestInterceptor extends AbstractMethodInterce
             currentExecution.before(invocation);
             invocation.proceed();
             currentExecution.after();
-        }
-    }
-
-    public static class SyntheticMethodInfo extends MethodInfo {
-        public SyntheticMethodInfo(Object returnValue) {
-            super(new ConstantInvoker(returnValue));
-        }
-
-        /**
-         * This method is called when Spock sanitizes the stacktrace.
-         *
-         * The default implementation would fail here, so we always return false,
-         * since this method never will be in the bytecode.
-         */
-        @Override
-        public boolean hasBytecodeName(String name) {
-            return false;
-        }
-    }
-
-    public static class ConstantInvoker implements Invoker {
-        private final Object value;
-
-        public ConstantInvoker(Object value) {
-            this.value = value;
-        }
-
-        @Override
-        public Object invoke(Object target, Object... arguments) throws Throwable {
-            return value;
         }
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.attributes;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -31,7 +30,7 @@ import java.util.Set;
  * meaning that when we get a value from the container, the returned value type is
  * inferred from the type of the attribute. In a way, an attribute container is
  * similar to a {@link java.util.Map} where the entry is a "typed String" and the value
- * is of the string type. However the set of methods available to the container is
+ * is of the string type. However, the set of methods available to the container is
  * much more limited.
  *
  * It is not allowed to have two attributes with the same name but different types in
@@ -74,7 +73,6 @@ public interface AttributeContainer extends HasAttributes {
      * @return this container
      * @since 7.4
      */
-    @Incubating
     <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider);
 
     /**

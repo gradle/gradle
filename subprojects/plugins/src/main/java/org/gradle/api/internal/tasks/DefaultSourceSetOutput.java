@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -30,9 +29,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -46,15 +43,12 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     private final ConfigurableFileCollection generatedSourcesDirs;
     private final FileResolver fileResolver;
 
-    private final List<DirectoryContribution> classesContributions = new ArrayList<>();
     private DirectoryContribution resourcesContributor;
 
     public DefaultSourceSetOutput(String sourceSetDisplayName, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
         this.fileResolver = fileResolver;
 
         this.classesDirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " classesDirs");
-        // TODO: This should be more specific to just the tasks that create the class files?
-        classesDirs.builtBy(this);
 
         this.outputDirectories = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " classes");
         outputDirectories.from(classesDirs, (Callable<File>) this::getResourcesDir);
@@ -86,17 +80,6 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     @Override
     public ConfigurableFileCollection getClassesDirs() {
         return classesDirs;
-    }
-
-    /**
-     * Adds a new classes directory that compiled classes are assembled into.
-     *
-     * @param directory The classes directory provider.
-     * @param task The task which generates {@code directory}.
-     */
-    public void addClassesDir(Provider<Directory> directory, TaskProvider<?> task) {
-        classesDirs.from(directory);
-        classesContributions.add(new DirectoryContribution(directory.map(Directory::getAsFile), task));
     }
 
     /**
@@ -158,10 +141,6 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     @Override
     public ConfigurableFileCollection getGeneratedSourcesDirs() {
         return generatedSourcesDirs;
-    }
-
-    public List<DirectoryContribution> getClassesContributors() {
-        return new ArrayList<>(classesContributions);
     }
 
     @Nullable

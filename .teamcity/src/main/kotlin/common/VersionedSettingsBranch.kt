@@ -39,6 +39,17 @@ data class VersionedSettingsBranch(val branchName: String, val enableTriggers: B
     fun promoteNightlyTaskName() = nightlyTaskName("promote")
     fun prepNightlyTaskName() = nightlyTaskName("prep")
 
+    fun promoteMilestoneTaskName(): String = when {
+        isRelease -> "promoteReleaseMilestone"
+        else -> "promoteMilestone"
+    }
+
+    fun promoteFinalReleaseTaskName(): String = when {
+        isMaster -> throw UnsupportedOperationException("No final release job on master branch")
+        isRelease -> "promoteFinalRelease"
+        else -> "promoteFinalBackportRelease"
+    }
+
     private fun nightlyTaskName(prefix: String): String = when {
         isMaster -> "${prefix}Nightly"
         isRelease -> "${prefix}ReleaseNightly"

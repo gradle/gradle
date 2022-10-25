@@ -304,7 +304,6 @@ public class IdeaPlugin extends IdePlugin {
                 return testResourceDirs;
             }
         });
-
         Set<File> excludeDirs = Sets.newLinkedHashSet();
         conventionMapping.map("excludeDirs", new Callable<Set<File>>() {
             @Override

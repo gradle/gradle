@@ -46,7 +46,6 @@ public interface JavaInstallationMetadata {
      * @since 7.1
      */
     @Internal
-    @Incubating
     String getJavaRuntimeVersion();
 
     /**
@@ -56,7 +55,6 @@ public interface JavaInstallationMetadata {
      * @since 7.1
      */
     @Internal
-    @Incubating
     String getJvmVersion();
 
     /**
@@ -77,4 +75,13 @@ public interface JavaInstallationMetadata {
      */
     @Internal
     Directory getInstallationPath();
+
+    /**
+     * Returns true if this installation corresponds to the build JVM.
+     *
+     * @since 8.0
+     */
+    @Internal
+    @Incubating
+    boolean isCurrentJvm();
 }

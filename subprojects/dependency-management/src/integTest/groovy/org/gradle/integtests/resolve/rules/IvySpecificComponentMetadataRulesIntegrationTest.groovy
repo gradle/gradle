@@ -110,6 +110,7 @@ resolve.doLast { assert IvyRule.ruleInvoked }
             }
         }
 
+        def lines = buildFile.readLines().size()
         buildFile << """
 class IvyRule implements ComponentMetadataRule {
 
@@ -139,7 +140,7 @@ dependencies {
 
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
-        failure.assertHasLineNumber(53)
+        failure.assertHasLineNumber(lines + 6)
         failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
         failure.assertHasCause("Could not resolve org.test:projectA:1.0.")
         failure.assertHasCause("Cannot get extra info element named 'foo' by name since elements with this name were found from multiple namespaces (http://my.extra.info/foo, http://some.other.ns).  Use get(String namespace, String name) instead.")
