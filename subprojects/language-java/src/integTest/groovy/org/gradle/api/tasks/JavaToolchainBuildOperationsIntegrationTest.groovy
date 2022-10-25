@@ -455,8 +455,8 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         eventsOnCompile = toolchainEvents(":compileKotlin")
         eventsOnTest = toolchainEvents(":test")
         then:
-        if (!isAlwaysUpToDate && GradleContextualExecuter.configCache) {
-            // For Kotlin 1.6 the compilation is not up-to-date with configuration caching
+        if (!isAlwaysUpToDate && Jvm.current().javaVersion.java8 && GradleContextualExecuter.configCache) {
+            // For Kotlin 1.6 the compilation is not up-to-date with configuration caching when running on Java 8
             executedAndNotSkipped(":compileKotlin")
         } else {
             skipped(":compileKotlin", ":test")
@@ -466,9 +466,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         where:
         kotlinPlugin | isAlwaysUpToDate
-        "latest"     | true
-        "1.7"        | true
         "1.6"        | false
+        "1.7"        | true
+        "latest"     | true
 
         kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestStableKotlinPluginVersion(kotlinPlugin)
     }
