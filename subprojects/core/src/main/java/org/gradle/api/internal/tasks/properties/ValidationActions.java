@@ -292,6 +292,6 @@ public enum ValidationActions implements ValidationAction {
     }
 
     private static File toFile(TaskValidationContext context, Object value) {
-        return context.getFileOperations().file(value);
+        return context.getFileResolver().resolve(value);
     }
 }

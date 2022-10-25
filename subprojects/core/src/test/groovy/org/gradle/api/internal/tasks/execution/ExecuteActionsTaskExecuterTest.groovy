@@ -23,7 +23,6 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
-import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
@@ -69,6 +68,7 @@ import org.gradle.internal.execution.steps.ResolveInputChangesStep
 import org.gradle.internal.execution.steps.SkipEmptyWorkStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.ValidateStep
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
@@ -160,7 +160,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def reservedFileSystemLocationRegistry = Stub(ReservedFileSystemLocationRegistry)
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)
     def fileCollectionFactory = fileCollectionFactory()
-    def fileOperations = Stub(FileOperations)
     def deleter = deleter()
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningRecorder)
     def buildOutputCleanupRegistry = Stub(BuildOutputCleanupRegistry)
@@ -201,7 +200,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         reservedFileSystemLocationRegistry,
         fileCollectionFactory,
         TestFiles.taskDependencyFactory(),
-        fileOperations
+        Stub(PathToFileResolver)
     )
 
     def setup() {
