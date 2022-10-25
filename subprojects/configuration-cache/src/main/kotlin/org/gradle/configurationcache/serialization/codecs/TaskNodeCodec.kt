@@ -56,9 +56,9 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeEnum
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
-import org.gradle.internal.execution.UnitOfWork.InputBehavior
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
+import org.gradle.internal.properties.InputBehavior
 import org.gradle.util.internal.DeferredUtil
 
 
@@ -298,12 +298,14 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
                     writeEnum(directorySensitivity)
                     writeEnum(lineEndingSensitivity)
                 }
+
                 is RegisteredProperty.Input -> {
                     val finalValue = InputParameterUtils.prepareInputParameterValue(propertyValue)
                     writeInputProperty(propertyName, finalValue)
                     writeBoolean(optional)
                     writeBoolean(false)
                 }
+
                 else -> throw IllegalStateException()
             }
         }
@@ -433,6 +435,7 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                         normalizeLineEndings(lineEndingNormalization == LineEndingSensitivity.NORMALIZE_LINE_ENDINGS)
                     }
                 }
+
                 else -> {
                     task.inputs
                         .property(propertyName, propertyValue)

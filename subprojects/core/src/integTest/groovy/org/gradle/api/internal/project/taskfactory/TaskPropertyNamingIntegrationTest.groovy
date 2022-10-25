@@ -58,9 +58,8 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
             import org.gradle.api.internal.tasks.*
             import org.gradle.api.internal.tasks.properties.*
-            import org.gradle.internal.execution.UnitOfWork.InputBehavior
-            import org.gradle.internal.fingerprint.DirectorySensitivity
-            import org.gradle.internal.fingerprint.LineEndingSensitivity
+            import org.gradle.internal.fingerprint.*
+            import org.gradle.internal.properties.*
 
             import javax.annotation.Nullable
 
@@ -400,9 +399,8 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         """
             import org.gradle.api.internal.tasks.*
             import org.gradle.api.internal.tasks.properties.*
-            import org.gradle.internal.execution.UnitOfWork.InputBehavior
-            import org.gradle.internal.fingerprint.DirectorySensitivity
-            import org.gradle.internal.fingerprint.LineEndingSensitivity
+            import org.gradle.internal.fingerprint.*
+            import org.gradle.internal.properties.*
 
             import javax.annotation.Nullable
 
