@@ -19,24 +19,22 @@ package org.gradle.java.compile
 
 import org.gradle.internal.jvm.Jvm
 
-import spock.lang.IgnoreIf
 import org.gradle.util.internal.TextUtil
 
-@IgnoreIf({ !Jvm.current().getExecutable("javac").exists() })
 class CommandLineJavaCompilerForExecutableIntegrationTest extends JavaCompilerIntegrationSpec {
 
-    def compilerConfiguration() {
-        def executable = TextUtil.escapeString(Jvm.current().getExecutable("javac"))
-
+    @Override
+    String compilerConfiguration() {
         """
-compileJava.options.with {
-    fork = true
-    forkOptions.executable = "$executable"
-}
-"""
+            compileJava.options.with {
+                fork = true
+                forkOptions.executable = "${TextUtil.normaliseFileSeparators(Jvm.current().getExecutable("javac").absolutePath)}"
+            }
+        """
     }
 
-    def logStatement() {
+    @Override
+    String logStatement() {
         "Compiling with Java command line compiler"
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.BuildDefinition
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.project.ProjectState
@@ -63,6 +64,7 @@ import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
+import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
@@ -312,6 +314,7 @@ class ConfigurationCacheState(
         withGradleIsolate(gradle, userTypesCodec) {
             withDebugFrame({ "environment state" }) {
                 writeCachedEnvironmentState(gradle)
+                writePreviewFlags(gradle)
             }
             withDebugFrame({ "gradle enterprise" }) {
                 writeGradleEnterprisePluginManager(gradle)
@@ -326,6 +329,7 @@ class ConfigurationCacheState(
     suspend fun DefaultReadContext.readBuildTreeState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
             readCachedEnvironmentState(gradle)
+            readPreviewFlags(gradle)
             // It is important that the Gradle Enterprise plugin be read before
             // build cache configuration, as it may contribute build cache configuration.
             readGradleEnterprisePluginManager(gradle)
@@ -610,6 +614,22 @@ class ConfigurationCacheState(
     }
 
     private
+    suspend fun DefaultWriteContext.writePreviewFlags(gradle: GradleInternal) {
+        val featureFlags = gradle.serviceOf<FeatureFlags>()
+        val enabledFeatures = FeaturePreviews.Feature.values().filter { featureFlags.isEnabledWithApi(it) }
+        writeCollection(enabledFeatures)
+    }
+
+    private
+    suspend fun DefaultReadContext.readPreviewFlags(gradle: GradleInternal) {
+        val featureFlags = gradle.serviceOf<FeatureFlags>()
+        readCollection {
+            val enabledFeature = read() as FeaturePreviews.Feature
+            featureFlags.enable(enabledFeature)
+        }
+    }
+
+    private
     suspend fun DefaultWriteContext.writeGradleEnterprisePluginManager(gradle: GradleInternal) {
         val manager = gradle.serviceOf<GradleEnterprisePluginManager>()
         val adapter = manager.adapter
@@ -623,9 +643,12 @@ class ConfigurationCacheState(
     suspend fun DefaultReadContext.readGradleEnterprisePluginManager(gradle: GradleInternal) {
         val adapter = read() as GradleEnterprisePluginAdapter?
         if (adapter != null) {
-            adapter.onLoadFromConfigurationCache()
             val manager = gradle.serviceOf<GradleEnterprisePluginManager>()
-            manager.registerAdapter(adapter)
+            if (manager.adapter == null) {
+                // Don't replace the existing adapter. The adapter will be present if the current Gradle invocation wrote this entry.
+                adapter.onLoadFromConfigurationCache()
+                manager.registerAdapter(adapter)
+            }
         }
     }
 

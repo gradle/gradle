@@ -24,6 +24,7 @@ plugins {
 android {
     compileSdkVersion(24)
     buildToolsVersion("$androidBuildToolsVersion")
+    namespace = "org.gradle.smoketest.kotlin.android"
     defaultConfig {
         applicationId = "org.gradle.smoketest.kotlin.android"
         minSdkVersion(16)

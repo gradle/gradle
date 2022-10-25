@@ -18,7 +18,7 @@ package org.gradle.internal.watch.registry.impl;
 
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.file.FileWatcher;
-import net.rubygrapefruit.platform.internal.jni.AbstractFileEventFunctions;
+import net.rubygrapefruit.platform.internal.jni.AbstractNativeFileEventFunctions;
 import net.rubygrapefruit.platform.internal.jni.NativeLogger;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
@@ -50,7 +50,7 @@ import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.REMOVE
 public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileWatcherRegistry.class);
 
-    private final AbstractFileEventFunctions<?> fileEventFunctions;
+    private final AbstractNativeFileEventFunctions<?> fileEventFunctions;
     private final FileWatcher watcher;
     private final BlockingQueue<FileWatchEvent> fileEvents;
     private final Thread eventConsumerThread;
@@ -61,7 +61,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private volatile boolean stopping = false;
 
     public DefaultFileWatcherRegistry(
-        AbstractFileEventFunctions<?> fileEventFunctions,
+        AbstractNativeFileEventFunctions<?> fileEventFunctions,
         FileWatcher watcher,
         ChangeHandler handler,
         FileWatcherUpdater fileWatcherUpdater,
@@ -182,7 +182,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     public FileWatchingStatistics getAndResetStatistics() {
         MutableFileWatchingStatistics currentStatistics = fileWatchingStatistics;
         fileWatchingStatistics = new MutableFileWatchingStatistics();
-        AtomicInteger numberOfWatchedHierarchies = new AtomicInteger(0);
+        AtomicInteger numberOfWatchedHierarchies = new AtomicInteger();
         fileWatcherUpdater.getWatchedFiles().visitRoots(root -> numberOfWatchedHierarchies.incrementAndGet());
         return new FileWatchingStatistics() {
             @Override

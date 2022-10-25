@@ -41,13 +41,13 @@ public class PublishToMavenLocal extends AbstractPublishToMaven {
             throw new InvalidUserDataException("The 'publication' property is required");
         }
 
-        getDuplicatePublicationTracker().checkCanPublishToMavenLocal(publicationInternal);
         return publicationInternal.asNormalisedPublication();
     }
 
     @TaskAction
     public void publish() {
         MavenNormalizedPublication normalizedPublication = this.normalizedPublication.get();
+        getDuplicatePublicationTracker().checkCanPublishToMavenLocal(normalizedPublication);
         doPublish(normalizedPublication);
     }
 

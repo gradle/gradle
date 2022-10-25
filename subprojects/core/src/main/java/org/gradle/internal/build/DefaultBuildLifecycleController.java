@@ -117,6 +117,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
+    public void resetState() {
+        state.restart(State.Configure, () -> gradle.resetState());
+    }
+
+    @Override
     public GradleInternal getConfiguredBuild() {
         // Should not ignore other threads. See above.
         return state.notInStateIgnoreOtherThreads(State.Finished, modelController::getConfiguredModel);

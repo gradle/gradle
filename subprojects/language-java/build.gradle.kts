@@ -85,7 +85,7 @@ strictCompile {
 
 packageCycles {
     // These public packages have classes that are tangled with the corresponding internal package.
-    excludePatterns.add("org/gradle/api/tasks/compile/**")
+    excludePatterns.add("org/gradle/api/tasks/**")
     excludePatterns.add("org/gradle/external/javadoc/**")
 }
 

@@ -69,19 +69,6 @@ public interface ResolvedComponentResult extends ComponentResult {
     ModuleVersionIdentifier getModuleVersion();
 
     /**
-     * Returns the variant that was selected for this component. When Gradle metadata is not used, this usually only refers to the target
-     * "configuration" (for an Ivy dependency) or "scope" (for a Maven dependency).
-     *
-     * @return the resolved variant for this component
-     *
-     * @since 4.6
-     *
-     * @deprecated Use {@link #getVariants()} instead}
-     */
-    @Deprecated
-    ResolvedVariantResult getVariant();
-
-    /**
      * Returns the variants that were selected for this component. When Gradle metadata is not used, this usually only refers to the target
      * "configuration" (for an Ivy dependency) or "scope" (for a Maven dependency).
      *

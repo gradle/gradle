@@ -468,7 +468,7 @@ class JUnitIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation '$dependencyNotation'
+                ${dependencyNotation.collect { "testImplementation '$it'" }.join('\n')}
             }
         """
 
