@@ -38,7 +38,7 @@ import spock.lang.Specification
 
 import java.util.function.Consumer
 
-import static org.gradle.internal.execution.UnitOfWork.InputBehavior.NON_INCREMENTAL
+import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL
 
 class DefaultInputFingerprinterTest extends Specification {
     def fingerprinter = Mock(FileCollectionFingerprinter)
