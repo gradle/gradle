@@ -36,8 +36,8 @@ class EclipseModelTest extends Specification {
 
     def setup() {
         project.getObjects() >> TestUtil.objectFactory()
-        model = TestUtil.objectFactory().newInstance(EclipseModel, project)
-        model.classpath = TestUtil.objectFactory().newInstance(EclipseClasspath, project)
+        model = TestUtil.newInstance(EclipseModel, project)
+        model.classpath = TestUtil.newInstance(EclipseClasspath, project)
     }
 
     def "enables setting path variables even if wtp is not configured"() {
@@ -54,7 +54,7 @@ class EclipseModelTest extends Specification {
 
     def "enables setting path variables even if wtp component is not configured"() {
         given:
-        model.wtp = TestUtil.objectFactory().newInstance(EclipseWtp)
+        model.wtp = TestUtil.newInstance(EclipseWtp)
         //for example when wtp+java applied but project is not a dependency to any war/ear.
         assert model.wtp.component == null
 
@@ -67,8 +67,8 @@ class EclipseModelTest extends Specification {
 
     def "enables setting path variables"() {
         given:
-        model.wtp = TestUtil.objectFactory().newInstance(EclipseWtp)
-        model.wtp.component = TestUtil.objectFactory().newInstance(EclipseWtpComponent, project, Mock(XmlFileContentMerger))
+        model.wtp = TestUtil.newInstance(EclipseWtp)
+        model.wtp.component = TestUtil.newInstance(EclipseWtpComponent, project, Mock(XmlFileContentMerger))
 
         when:
         model.pathVariables(one: new File('.'))
@@ -83,7 +83,7 @@ class EclipseModelTest extends Specification {
         def xmlTransformer = Mock(XmlTransformer)
         def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
         def xmlAction = {} as Action<XmlProvider>
-        model.project = TestUtil.objectFactory().newInstance(EclipseProject, xmlMerger)
+        model.project = TestUtil.newInstance(EclipseProject, xmlMerger)
 
         when: "configure project"
         model.project({ p -> p.comment = 'something' } as Action<EclipseProject>)
@@ -135,7 +135,7 @@ class EclipseModelTest extends Specification {
         def propertiesTransformer = Mock(PropertiesTransformer)
         def propertiesMerger = Spy(PropertiesFileContentMerger, constructorArgs: [propertiesTransformer])
         def propertiesAction = {} as Action<Properties>
-        model.jdt = TestUtil.objectFactory().newInstance(EclipseJdt, propertiesMerger)
+        model.jdt = TestUtil.newInstance(EclipseJdt, propertiesMerger)
 
         when: "configure jdt"
         model.jdt({ jdt -> jdt.sourceCompatibility = JavaVersion.VERSION_1_9 } as Action<EclipseJdt>)
@@ -161,9 +161,9 @@ class EclipseModelTest extends Specification {
         def xmlTransformer = Mock(XmlTransformer)
         def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
         def xmlAction = {} as Action<XmlProvider>
-        def facet = TestUtil.objectFactory().newInstance(EclipseWtpFacet, xmlMerger)
-        def component = TestUtil.objectFactory().newInstance(EclipseWtpComponent, project, xmlMerger)
-        model.wtp = TestUtil.objectFactory().newInstance(EclipseWtp)
+        def facet = TestUtil.newInstance(EclipseWtpFacet, xmlMerger)
+        def component = TestUtil.newInstance(EclipseWtpComponent, project, xmlMerger)
+        model.wtp = TestUtil.newInstance(EclipseWtp)
 
         when: "configure wtp"
         model.wtp({ wtp ->

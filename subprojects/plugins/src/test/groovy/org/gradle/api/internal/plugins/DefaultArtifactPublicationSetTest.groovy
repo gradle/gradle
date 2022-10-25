@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.PublishArtifact
 
 class DefaultArtifactPublicationSetTest extends Specification {
     final PublishArtifactSet publications = Mock()
-    final DefaultArtifactPublicationSet publication = TestUtil.objectFactory().newInstance(DefaultArtifactPublicationSet, publications)
+    final DefaultArtifactPublicationSet publication = TestUtil.newInstance(DefaultArtifactPublicationSet, publications)
 
     def "adds provider to artifact set"() {
         when:

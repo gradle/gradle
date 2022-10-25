@@ -31,7 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 class ScalaPluginTest extends AbstractProjectBuilderSpec {
 
-    private final ScalaPlugin scalaPlugin = TestUtil.objectFactory().newInstance(ScalaPlugin)
+    private final ScalaPlugin scalaPlugin = TestUtil.newInstance(ScalaPlugin)
 
     def appliesTheJavaPluginToTheProject() {
         when:

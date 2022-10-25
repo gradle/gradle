@@ -33,7 +33,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 class DefaultScalaSourceSetTest {
     public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    private final DefaultScalaSourceSet sourceSet = TestUtil.objectFactory().newInstance(DefaultScalaSourceSet, "<set-display-name>", TestUtil.objectFactory(tmpDir.testDirectory))
+    private final DefaultScalaSourceSet sourceSet = TestUtil.newInstance(DefaultScalaSourceSet, "<set-display-name>", TestUtil.objectFactory(tmpDir.testDirectory))
 
     @Test
     void defaultValues() {

@@ -28,7 +28,7 @@ import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.CoreMatchers.instanceOf
 
 class ProjectReportsPluginTest extends AbstractProjectBuilderSpec {
-    private final ProjectReportsPlugin plugin = TestUtil.objectFactory().newInstance(ProjectReportsPlugin.class)
+    private final ProjectReportsPlugin plugin = TestUtil.newInstance(ProjectReportsPlugin.class)
 
     def appliesBaseReportingPluginAndAddsConventionObject() {
         when:

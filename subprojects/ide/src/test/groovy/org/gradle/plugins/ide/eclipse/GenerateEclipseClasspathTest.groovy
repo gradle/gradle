@@ -33,6 +33,6 @@ class GenerateEclipseClasspathTest extends AbstractSpockTaskTest {
         def project = Mock(Project)
         project.getObjects() >> TestUtil.objectFactory()
         eclipseClasspath = createTask(GenerateEclipseClasspath.class)
-        eclipseClasspath.classpath = TestUtil.objectFactory().newInstance(EclipseClasspath, project)
+        eclipseClasspath.classpath = TestUtil.newInstance(EclipseClasspath, project)
     }
 }

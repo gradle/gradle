@@ -33,14 +33,14 @@ import spock.lang.Specification
 
 class IdeaModelTest extends Specification {
 
-    IdeaModel model = TestUtil.objectFactory().newInstance(IdeaModel)
+    IdeaModel model = TestUtil.newInstance(IdeaModel)
 
     def "can configure workspace with Actions"() {
         given:
         def xmlTransformer = Mock(XmlTransformer)
         def xmlMerger = Spy(XmlFileContentMerger, constructorArgs: [xmlTransformer])
         def xmlAction = {} as Action<XmlProvider>
-        model.workspace = TestUtil.objectFactory().newInstance(IdeaWorkspace)
+        model.workspace = TestUtil.newInstance(IdeaWorkspace)
 
         model.workspace.iws = xmlMerger
 
@@ -75,7 +75,7 @@ class IdeaModelTest extends Specification {
                 get(BuildTreeWorkGraphController) >> (BuildTreeWorkGraphController) null
             }
         }
-        model.project = TestUtil.objectFactory().newInstance(IdeaProject, gradleProject, xmlMerger)
+        model.project = TestUtil.newInstance(IdeaProject, gradleProject, xmlMerger)
 
         when: "configure project"
         model.project({ p -> p.vcs = 'GIT' } as Action<IdeaProject>)
@@ -109,7 +109,7 @@ class IdeaModelTest extends Specification {
         }
         def xmlAction = {} as Action<XmlProvider>
         def moduleIml = Spy(IdeaModuleIml, constructorArgs: [xmlTransformer, null])
-        model.module = TestUtil.objectFactory().newInstance(IdeaModule, project, moduleIml)
+        model.module = TestUtil.newInstance(IdeaModule, project, moduleIml)
 
         when: "configure module"
         model.module({ mod -> mod.name = 'name' } as Action<IdeaModule>)

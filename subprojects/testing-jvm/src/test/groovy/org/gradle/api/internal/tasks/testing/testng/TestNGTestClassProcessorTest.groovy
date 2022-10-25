@@ -44,7 +44,7 @@ class TestNGTestClassProcessorTest extends Specification {
             getAsFile() >> dir.testDirectory
         }
     }
-    def options = Spy(TestNGSpec, constructorArgs: [TestUtil.objectFactory().newInstance(TestNGOptions, layout), new DefaultTestFilter() ])
+    def options = Spy(TestNGSpec, constructorArgs: [TestUtil.newInstance(TestNGOptions, layout), new DefaultTestFilter() ])
 
     @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 

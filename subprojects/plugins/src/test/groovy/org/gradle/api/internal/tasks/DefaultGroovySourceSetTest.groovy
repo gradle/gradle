@@ -30,7 +30,7 @@ import static org.gradle.api.reflect.TypeOf.typeOf
 class DefaultGroovySourceSetTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    def sourceSet = TestUtil.objectFactory().newInstance(DefaultGroovySourceSet, "<name>", "<display-name>", TestUtil.objectFactory(tmpDir.testDirectory))
+    def sourceSet = TestUtil.newInstance(DefaultGroovySourceSet, "<name>", "<display-name>", TestUtil.objectFactory(tmpDir.testDirectory))
 
     void defaultValues() {
         expect:

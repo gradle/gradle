@@ -29,7 +29,7 @@ class CompileOptionsTest extends Specification {
     CompileOptions compileOptions
 
     def setup()  {
-        compileOptions = TestUtil.objectFactory().newInstance(CompileOptions, TestUtil.objectFactory())
+        compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
     }
 
     @SuppressWarnings("GrDeprecatedAPIUsage")

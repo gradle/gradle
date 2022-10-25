@@ -27,7 +27,7 @@ class GenerateEclipseWtpFacetTest extends AbstractSpockTaskTest {
 
     def setup() {
         eclipseFacet = createTask(GenerateEclipseWtpFacet)
-        eclipseFacet.facet = TestUtil.objectFactory().newInstance(EclipseWtpFacet, Mock(XmlFileContentMerger))
+        eclipseFacet.facet = TestUtil.newInstance(EclipseWtpFacet, Mock(XmlFileContentMerger))
     }
 
     GenerateEclipseWtpFacet getTask() {

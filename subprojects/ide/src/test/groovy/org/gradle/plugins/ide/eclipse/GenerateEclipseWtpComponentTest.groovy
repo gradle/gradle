@@ -26,7 +26,7 @@ class GenerateEclipseWtpComponentTest extends AbstractSpockTaskTest {
 
     def setup() {
         eclipseComponent = createTask(GenerateEclipseWtpComponent)
-        eclipseComponent.component = TestUtil.objectFactory().newInstance(EclipseWtpComponent, project, Mock(XmlFileContentMerger))
+        eclipseComponent.component = TestUtil.newInstance(EclipseWtpComponent, project, Mock(XmlFileContentMerger))
     }
 
     ConventionTask getTask() { eclipseComponent }

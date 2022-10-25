@@ -44,8 +44,8 @@ class DefaultSourceSetTest extends Specification {
     private final FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory, taskDependencyFactory)
 
     private DefaultSourceSet sourceSet(String name) {
-        def s = TestUtil.objectFactory().newInstance(DefaultSourceSet, name, TestUtil.objectFactory(tmpDir.testDirectory))
-        s.classes = TestUtil.objectFactory().newInstance(DefaultSourceSetOutput, s.displayName, fileResolver, fileCollectionFactory)
+        def s = TestUtil.newInstance(DefaultSourceSet, name, TestUtil.objectFactory(tmpDir.testDirectory))
+        s.classes = TestUtil.newInstance(DefaultSourceSetOutput, s.displayName, fileResolver, fileCollectionFactory)
         return s
     }
 

@@ -40,7 +40,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         taskFactory = new TaskFactory().createChild(project, instantiationScheme)
         _ * instantiationScheme.instantiator() >> instantiator
         _ * instantiationScheme.deserializationInstantiator() >> deserializeInstantiator
-        _ * instantiator.newInstanceWithDisplayName(_, _, _) >> { args -> TestUtil.objectFactory().newInstance(args[0]) }
+        _ * instantiator.newInstanceWithDisplayName(_, _, _) >> { args -> TestUtil.newInstance(args[0]) }
     }
 
     void injectsProjectAndNameIntoTask() {

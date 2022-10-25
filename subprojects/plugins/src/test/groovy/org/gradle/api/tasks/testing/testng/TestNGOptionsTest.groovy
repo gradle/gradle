@@ -27,7 +27,7 @@ class TestNGOptionsTest extends Specification {
             getAsFile() >> new File("projectDir")
         }
     }
-    TestNGOptions testngOptions  = TestUtil.objectFactory().newInstance(TestNGOptions, layout)
+    TestNGOptions testngOptions  = TestUtil.newInstance(TestNGOptions, layout)
 
     String[] groups = ['fast', 'unit']
 
@@ -92,7 +92,7 @@ class TestNGOptionsTest extends Specification {
     }
 
     private TestNGOptions testNGOptionsWithPrefix(String prefix, boolean booleanValue, int intValue) {
-        return TestUtil.objectFactory().newInstance(TestNGOptions, layout)
+        return TestUtil.newInstance(TestNGOptions, layout)
         .tap {
             setOutputDirectory(new File(prefix + "OutputDirectory"))
             setIncludeGroups([prefix + "IncludedGroup"] as Set)
