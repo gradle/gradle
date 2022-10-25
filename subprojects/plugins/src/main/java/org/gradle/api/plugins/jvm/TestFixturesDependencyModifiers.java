@@ -27,12 +27,44 @@ import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.component.external.model.TestFixturesSupport;
 
+/**
+ * Dependency modifier APIs available that can find test fixtures in other modules for {@code dependencies} blocks.
+ *
+ * <p>
+ * NOTE: This API is <strong>incubating</strong> and is likely to change until it's made stable.
+ * </p>
+ * <br>
+ * <p>
+ * These methods are not intended to be implemented by end users or plugin authors.
+ * </p>
+ *
+ * @since 8.0
+ */
 @Incubating
 public interface TestFixturesDependencyModifiers {
+    /**
+     * A dependency modifier that can modify a dependency to select a test fixtures variant.
+     *
+     * @return the dependency modifier
+     *
+     * @see TestFixturesDependencyModifier#modify(ModuleDependency)
+     */
     @Nested
     TestFixturesDependencyModifier getTestFixtures();
 
+    /**
+     * Implementation for the test fixtures dependency modifier.
+     *
+     * @see #modify(ModuleDependency)
+     * @since 8.0
+     */
+    @Incubating
     abstract class TestFixturesDependencyModifier implements DependencyModifier {
+        /**
+         * {@inheritDoc}
+         *
+         * Selects the test fixtures variant of the given dependency.
+         */
         @Override
         public <D extends ModuleDependency> D modify(D dependency) {
             if (dependency instanceof ExternalDependency) {

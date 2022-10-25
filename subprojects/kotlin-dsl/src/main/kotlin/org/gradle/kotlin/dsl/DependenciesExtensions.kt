@@ -29,53 +29,63 @@ import org.gradle.api.artifacts.dsl.Dependencies
 import org.gradle.api.artifacts.dsl.DependencyAdder
 import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyModifier
+import org.gradle.api.artifacts.dsl.GradleDependencies
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
 
-/**
- * This class is used to add extra methods to {@link DependencyAdder} for the Kotlin DSL to make the DSL more idiomatic.
- * This is implemented as <a href="https://kotlinlang.org/docs/extensions.html">Kotlin extension functions</a>.
- * <p>
- * These extension methods allow an interface exposing an instance of {@code DependencyAdder} to add dependencies without explicitly calling {@code add(...)}.
- * </p>
- * For example:
- * <pre>
- * interface MyDependencies {
- *     DependencyAdder getImplementation()
- * }
- * // In the build script
- * myDependencies {
- *     implementation("org:foo:1.0")
- * }
- * </pre>
- *
- * In this Kotlin DSL example, {@code implementation("org:foo:1.0")}
- * <ul>
- *     <li>is equivalent to {@code getImplementation().invoke("org:foo:1.0")} because of these extension functions</li>
- *     <li>has the same effect as {@code getImplementation().add("org:foo:1.0")} in Java</li>
- * </ul>
- *
- * There are {@code invoke(...)} equivalents for all the {@code add(...)} methods in {@code DependencyAdder}.
- *
- */
-
 
 /**
- * Creates a dependency based on the group, name and version (GAV) coordinates.
+ * This file is used to add [Kotlin extension functions](https://kotlinlang.org/docs/extensions.html) to [Dependencies], [DependencyAdder] and [DependencyModifier] to make the Kotlin DSL more idiomatic.
+ *
+ * These extension functions allow an interface to implement a dependencies block in the Kotlin DSL by
+ * - exposing an instance of [DependencyAdder] to add dependencies without explicitly calling [DependencyAdder.add]
+ * - exposing an instance of [DependencyModifier] to modify dependencies without explicitly calling [DependencyModifier.modify]
+ *
+ * There are `invoke(...)` equivalents for all the `add(...)` methods in [DependencyAdder].
+ *
+ * There are `invoke(...)` equivalents for all the `modify(...)` methods in [DependencyModifier].
  *
  * @since 7.6
+ *
+ * @see org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule
+ * @see Dependencies
+ * @see DependencyAdder
+ * @see DependencyModifier
+ * @see DependencyFactory
+ *
+ * @sample DependenciesExtensions.sample
  */
-operator fun DependencyModifier.invoke(dependencyNotation: CharSequence) = modify(dependencyNotation)
+@Suppress("unused")
+private class DependenciesExtensions {
+    interface MyDependencies : GradleDependencies {
+        val implementation: DependencyAdder
+        val testFixtures: DependencyModifier
 
+        operator fun invoke(action: Action<in MyDependencies>)
+    }
 
-operator fun DependencyModifier.invoke(dependency: ProviderConvertible<out MinimalExternalModuleDependency>) = modify(dependency)
+    fun sample(dependencies: MyDependencies) {
+        // In a Kotlin DSL build script
+        dependencies {
+            // Add a dependency by String
+            implementation("org:foo:1.0") // is getImplementation().add("org:foo:1.0")
 
+            // Add a dependency with explicit coordinate parameters
+            implementation(module(group="org", name="foo", version="1.0")) // is getImplementation().add(module("org", "foo", "1.0"))
 
-operator fun DependencyModifier.invoke(dependency: Provider<out ModuleDependency>) = modify(dependency)
+            // Add dependencies on projects
+            implementation(project(":path")) // is getImplementation().add(project(":path"))
+            implementation(project()) // is getImplementation().add(project())
 
+            // Add a dependency on the Gradle API
+            implementation(gradleApi()) // is getImplementation().add(gradleApi())
 
-operator fun DependencyModifier.invoke(dependency: ModuleDependency) = modify(dependency)
+            // Modify a dependency to select test fixtures
+            implementation(testFixtures("org:foo:1.0")) // is getImplementation().add(getTestFixtures().modify("org:foo:1.0"))
+        }
+    }
+}
 
 
 /**
@@ -84,6 +94,42 @@ operator fun DependencyModifier.invoke(dependency: ModuleDependency) = modify(de
  * @since 7.6
  */
 fun Dependencies.module(group: String?, name: String, version: String?) = module(group, name, version)
+
+
+/**
+ * Modifies a dependency to select the variant of the given module.
+ *
+ * @see DependencyModifier
+ * @since 8.0
+ */
+operator fun DependencyModifier.invoke(dependencyNotation: CharSequence) = modify(dependencyNotation)
+
+
+/**
+ * Modifies a dependency to select the variant of the given module.
+ *
+ * @see DependencyModifier
+ * @since 8.0
+ */
+operator fun DependencyModifier.invoke(dependency: ProviderConvertible<out MinimalExternalModuleDependency>) = modify(dependency)
+
+
+/**
+ * Modifies a dependency to select the variant of the given module.
+ *
+ * @see DependencyModifier
+ * @since 8.0
+ */
+operator fun DependencyModifier.invoke(dependency: Provider<out ModuleDependency>) = modify(dependency)
+
+
+/**
+ * Modifies a dependency to select the variant of the given module.
+ *
+ * @see DependencyModifier
+ * @since 8.0
+ */
+operator fun <D : ModuleDependency> DependencyModifier.invoke(dependency: D) = modify(dependency)
 
 
 /**

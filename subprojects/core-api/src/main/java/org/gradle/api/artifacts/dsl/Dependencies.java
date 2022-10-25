@@ -27,6 +27,13 @@ import javax.inject.Inject;
 /**
  * Universal APIs that are available for all {@code dependencies} blocks.
  *
+ * <p>
+ * NOTE: This API is <strong>incubating</strong> and is likely to change until it's made stable.
+ * </p>
+ * <br>
+ * <p>
+ * These methods are not intended to be implemented by end users or plugin authors.
+ * </p>
  * @since 7.6
  */
 @Incubating
@@ -41,6 +48,13 @@ public interface Dependencies {
     @Inject
     DependencyFactory getDependencyFactory();
 
+    /**
+     * The current project. You need to use {@link #project()} or {@link #project(String)} to add a {@link ProjectDependency}.
+     *
+     * @return current project
+     *
+     * @since 8.0
+     */
     @Inject
     Project getProject();
 
