@@ -50,7 +50,7 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "deleted files show up in task destroys"() {
         buildFile << """
-            import org.gradle.api.internal.tasks.properties.PropertyVisitor
+            import org.gradle.internal.properties.PropertyVisitor
             import org.gradle.api.internal.tasks.properties.PropertyWalker
             import org.gradle.api.internal.tasks.TaskPropertyUtils
 

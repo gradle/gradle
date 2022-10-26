@@ -18,8 +18,8 @@ package org.gradle.api.internal;
 
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.TaskInputs;
+import org.gradle.internal.properties.PropertyVisitor;
 
 public interface TaskInputsInternal extends TaskInputs, TaskDependencyContainer {
 

@@ -18,13 +18,13 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;

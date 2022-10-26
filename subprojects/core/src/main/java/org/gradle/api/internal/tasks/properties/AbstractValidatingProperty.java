@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;

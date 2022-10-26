@@ -20,6 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.properties.bean.ImplementationIdentifier;
 import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNode;
 import org.gradle.api.internal.tasks.properties.bean.RuntimeBeanNodeFactory;
+import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.ArrayDeque;
