@@ -15,6 +15,6 @@
  */
 
 @NonNullApi
-package org.gradle.api.internal.tasks.properties.bean;
+package org.gradle.internal.properties.bean;
 
 import org.gradle.api.NonNullApi;

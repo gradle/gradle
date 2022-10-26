@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties.bean;
+package org.gradle.internal.properties.bean;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;

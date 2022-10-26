@@ -60,6 +60,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.internal.tasks.properties.*
             import org.gradle.internal.fingerprint.*
             import org.gradle.internal.properties.*
+            import org.gradle.internal.properties.bean.*
 
             import javax.annotation.Nullable
 
@@ -401,6 +402,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.internal.tasks.properties.*
             import org.gradle.internal.fingerprint.*
             import org.gradle.internal.properties.*
+            import org.gradle.internal.properties.bean.*
 
             import javax.annotation.Nullable
 

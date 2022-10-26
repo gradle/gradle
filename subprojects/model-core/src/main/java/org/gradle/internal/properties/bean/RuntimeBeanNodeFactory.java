@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties.bean;
+package org.gradle.internal.properties.bean;
 
 import org.gradle.internal.properties.TypeMetadata;
 import org.gradle.internal.properties.TypeMetadataStore;

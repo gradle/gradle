@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties
+package org.gradle.internal.properties.bean
 
 import groovy.transform.EqualsAndHashCode
 import org.gradle.api.DefaultTask
@@ -248,7 +248,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
         def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
             [],
-                ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
+            ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
             ["java", "groovy"],
             [],
             [Object, GroovyObject],

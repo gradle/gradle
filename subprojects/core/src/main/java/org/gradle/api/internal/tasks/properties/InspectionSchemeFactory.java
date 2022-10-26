@@ -25,6 +25,8 @@ import org.gradle.internal.properties.DefaultTypeMetadataStore;
 import org.gradle.internal.properties.TypeMetadataStore;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
+import org.gradle.internal.properties.bean.DefaultPropertyWalker;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 
 import java.lang.annotation.Annotation;
