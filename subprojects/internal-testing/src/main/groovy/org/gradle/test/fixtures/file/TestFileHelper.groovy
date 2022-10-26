@@ -243,13 +243,13 @@ class TestFileHelper {
 
     private void setSourceDirectory(archiveTask, boolean readOnly) {
         if (readOnly) {
-            ArchiveFileSet archiveFileSet = archiveTask instanceof Zip ? new ZipFileSet() : archiveTask.createTarFileSet();
-            archiveFileSet.setDir(file);
-            archiveFileSet.setFileMode("0444");
-            archiveFileSet.setDirMode("0555");
-            archiveTask.add(archiveFileSet);
+            ArchiveFileSet archiveFileSet = archiveTask instanceof Zip ? new ZipFileSet() : archiveTask.createTarFileSet()
+            archiveFileSet.setDir(file)
+            archiveFileSet.setFileMode("0444")
+            archiveFileSet.setDirMode("0555")
+            archiveTask.add(archiveFileSet)
         } else {
-            archiveTask.setBasedir(file);
+            archiveTask.setBasedir(file)
         }
     }
 
@@ -275,7 +275,9 @@ class TestFileHelper {
           try (ArchiveOutputStream o = streamSupplier.get()) {
             Path path = file.toPath()
             Files.walk(path).forEach(p -> {
-                if (p == path) return;
+                if (p == path) {
+                    return
+                }
                 File f = p.toFile()
                 def entryName = path.relativize(p).toString()
                 def entry = o.createArchiveEntry(f, entryName)
@@ -287,7 +289,7 @@ class TestFileHelper {
                 }
                 o.closeArchiveEntry()
             })
-            o.finish();
+            o.finish()
         }
     }
 
