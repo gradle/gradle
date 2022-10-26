@@ -14,29 +14,33 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties.bean;
+package org.gradle.internal.properties.bean;
 
-import com.google.common.base.Preconditions;
+import org.gradle.api.Named;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.TypeMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
-import java.util.Map;
+import javax.annotation.Nullable;
 import java.util.Queue;
 
-class MapRuntimeBeanNode extends RuntimeBeanNode<Map<?, ?>> {
-    public MapRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Map<?, ?> map, TypeMetadata typeMetadata) {
-        super(parentNode, propertyName, map, typeMetadata);
+class IterableRuntimeBeanNode extends RuntimeBeanNode<Iterable<?>> {
+    public IterableRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Iterable<?> iterable, TypeMetadata typeMetadata) {
+        super(parentNode, propertyName, iterable, typeMetadata);
+    }
+
+    private static String determinePropertyName(@Nullable Object input, int count) {
+        String prefix = input instanceof Named ? ((Named) input).getName() : "";
+        return prefix + "$" + count;
     }
 
     @Override
     public void visitNode(PropertyVisitor visitor, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory, TypeValidationContext validationContext) {
-        for (Map.Entry<?, ?> entry : getBean().entrySet()) {
-            RuntimeBeanNode<?> childNode = createChildNode(
-                Preconditions.checkNotNull(entry.getKey(), "Null keys in nested map '%s' are not allowed.", getPropertyName()).toString(),
-                entry.getValue(),
-                nodeFactory);
-            queue.add(childNode);
+        int count = 0;
+        for (Object input : getBean()) {
+            String propertyName = determinePropertyName(input, count);
+            count++;
+            queue.add(createChildNode(propertyName, input, nodeFactory));
         }
     }
 }
