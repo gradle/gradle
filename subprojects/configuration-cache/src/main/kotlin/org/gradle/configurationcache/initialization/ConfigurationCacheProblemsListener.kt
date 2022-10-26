@@ -62,6 +62,13 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         onTaskExecutionAccessProblem(invocationDescription, task)
     }
 
+    override fun onConventionAccess(invocationDescription: String, task: TaskInternal) {
+        if (atConfigurationTime()) {
+            return
+        }
+        onTaskExecutionAccessProblem(invocationDescription, task)
+    }
+
     override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal) {
         onTaskExecutionAccessProblem(invocationDescription, task)
     }
