@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.properties.bean;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.TypeMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.Map;

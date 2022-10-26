@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.base.Equivalence;
+import org.gradle.internal.properties.TypeMetadata;
 
 import javax.annotation.Nullable;
 

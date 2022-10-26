@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties
+package org.gradle.internal.properties
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
@@ -64,7 +64,7 @@ import spock.lang.Specification
 import javax.inject.Inject
 import java.lang.annotation.Annotation
 
-import static ModifierAnnotationCategory.NORMALIZATION
+import static org.gradle.internal.properties.ModifierAnnotationCategory.NORMALIZATION
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 

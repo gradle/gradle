@@ -22,11 +22,11 @@ import org.gradle.internal.reflect.AnnotationCategory;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.INCREMENTAL;
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZE_LINE_ENDINGS;
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.properties.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
+import static org.gradle.internal.properties.ModifierAnnotationCategory.INCREMENTAL;
+import static org.gradle.internal.properties.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.internal.properties.ModifierAnnotationCategory.NORMALIZE_LINE_ENDINGS;
+import static org.gradle.internal.properties.ModifierAnnotationCategory.OPTIONAL;
 
 public class InputFilesPropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
     @Override
