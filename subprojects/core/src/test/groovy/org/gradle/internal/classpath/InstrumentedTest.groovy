@@ -277,40 +277,4 @@ class InstrumentedTest extends Specification {
         1 * listener.fileOpened(new File(userDir, 'bar.txt'), 'consumer')
         0 * listener._
     }
-
-    def "does not notify the listener if disabled for current thread"() {
-        def listener = Mock(Instrumented.Listener)
-        Instrumented.setListener(listener)
-
-        System.setProperty("prop", "value")
-
-        when:
-        Instrumented.disableListenerForCurrentThread()
-        String value = null
-        try {
-            value = Instrumented.systemProperty("prop", "consumer")
-        } finally {
-            Instrumented.restoreListenerForCurrentThread()
-        }
-
-        then:
-        value == "value"
-        0 * listener._
-    }
-
-    def "notifies the listener if restored for current thread"() {
-        def listener = Mock(Instrumented.Listener)
-        Instrumented.setListener(listener)
-        System.setProperty("prop", "value")
-
-        when:
-        Instrumented.disableListenerForCurrentThread()
-        Instrumented.restoreListenerForCurrentThread()
-        String value = Instrumented.systemProperty("prop", "consumer")
-
-        then:
-        value == "value"
-        1 * listener.systemPropertyQueried("prop", "value", "consumer")
-        0 * listener._
-    }
 }
