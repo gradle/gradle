@@ -40,6 +40,11 @@ import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class ServiceReferencePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
+    public Kind getKind() {
+        return Kind.OTHER;
+    }
+
+    @Override
     public Class<? extends Annotation> getAnnotationType() {
         return ServiceReference.class;
     }

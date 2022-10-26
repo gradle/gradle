@@ -30,6 +30,11 @@ import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategor
 
 public abstract class AbstractOutputPropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
+    public Kind getKind() {
+        return Kind.OUTPUT;
+    }
+
+    @Override
     public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
         return ImmutableSet.of(OPTIONAL);
     }

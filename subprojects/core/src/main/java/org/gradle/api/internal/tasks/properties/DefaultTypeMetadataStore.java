@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.InputFiles;
@@ -44,6 +43,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -75,13 +75,12 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         this.cache = cacheFactory.newClassCache();
     }
 
-    private static String calculateDisplayName(Iterable<? extends PropertyAnnotationHandler> annotationHandlers) {
-        for (PropertyAnnotationHandler annotationHandler : annotationHandlers) {
-            if (annotationHandler instanceof AbstractOutputPropertyAnnotationHandler) {
-                return "an input or output annotation";
-            }
-        }
-        return "an input annotation";
+    private static String calculateDisplayName(Collection<? extends PropertyAnnotationHandler> annotationHandlers) {
+        return annotationHandlers.stream()
+            .map(PropertyAnnotationHandler::getKind)
+            .anyMatch(Predicate.isEqual(PropertyAnnotationHandler.Kind.OUTPUT))
+            ? "an input or output annotation"
+            : "an input annotation";
     }
 
     @Override
@@ -283,12 +282,12 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
     private static Collector<? super String, ?, String> forDisplay() {
         return Collectors.collectingAndThen(Collectors.toList(), stringList -> {
-                if (stringList.isEmpty()) {
-                    return "";
-                }
-                if (stringList.size() == 1) {
-                    return stringList.get(0);
-                }
+            if (stringList.isEmpty()) {
+                return "";
+            }
+            if (stringList.size() == 1) {
+                return stringList.get(0);
+            }
             int bound = stringList.size() - 1;
             return String.join(", ", stringList.subList(0, bound)) + " or " + stringList.get(bound);
         });

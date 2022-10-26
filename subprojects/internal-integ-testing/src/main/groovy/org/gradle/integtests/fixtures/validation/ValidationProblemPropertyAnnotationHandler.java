@@ -31,6 +31,11 @@ import java.util.Optional;
 
 class ValidationProblemPropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
+    public Kind getKind() {
+        return Kind.OTHER;
+    }
+
+    @Override
     public Class<? extends Annotation> getAnnotationType() {
         return ValidationProblem.class;
     }

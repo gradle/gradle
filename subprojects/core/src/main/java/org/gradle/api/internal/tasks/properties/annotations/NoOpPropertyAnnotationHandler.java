@@ -34,6 +34,11 @@ public class NoOpPropertyAnnotationHandler implements PropertyAnnotationHandler 
     }
 
     @Override
+    public Kind getKind() {
+        return Kind.OTHER;
+    }
+
+    @Override
     public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
         return ImmutableSet.of();
     }
