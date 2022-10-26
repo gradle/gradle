@@ -23,6 +23,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.testing.base.TestSuite;
 
@@ -205,6 +206,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      *
      * @return dependency handler
      */
+    @Nested
     JvmComponentDependencies getDependencies();
 
     /**

@@ -27,6 +27,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 
+import java.util.Set;
+
 /**
  * <p>A {@code DependencyAdder} is used to add dependencies to a specific configuration.</p>
  *
@@ -165,4 +167,5 @@ public interface DependencyAdder {
      */
     <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
 
+    Provider<Set<Dependency>> getDeclaredDependencies();
 }

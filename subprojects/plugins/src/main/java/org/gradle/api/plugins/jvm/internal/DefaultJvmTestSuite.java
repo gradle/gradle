@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -142,28 +141,24 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
-    private final JvmComponentDependencies dependencies;
 
     @Inject
     public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations) {
         this.name = name;
         this.sourceSet = sourceSets.create(getName());
+        this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
+        this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
+
 
         Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
         Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
         Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
 
-        this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
-        this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
-
-        this.dependencies = getObjectFactory().newInstance(
-                DefaultJvmComponentDependencies.class,
-                getObjectFactory().newInstance(DefaultDependencyAdder.class, implementation),
-                getObjectFactory().newInstance(DefaultDependencyAdder.class, compileOnly),
-                getObjectFactory().newInstance(DefaultDependencyAdder.class, runtimeOnly),
-                getObjectFactory().newInstance(DefaultDependencyAdder.class, annotationProcessor)
-        );
+        compileOnly.getDependencies().addAllLater(getDependencies().getCompileOnly().getDeclaredDependencies());
+        implementation.getDependencies().addAllLater(getDependencies().getImplementation().getDeclaredDependencies());
+        runtimeOnly.getDependencies().addAllLater(getDependencies().getRuntimeOnly().getDeclaredDependencies());
+        annotationProcessor.getDependencies().addAllLater(getDependencies().getAnnotationProcessor().getDeclaredDependencies());
 
         if (!name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
@@ -187,10 +182,10 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         // We avoid triggering realization of getTestSuiteTestingFramework by only adding our dependencies just before
         // resolution.
         implementation.withDependencies(dependencySet -> {
-            this.dependencies.getImplementation().bundle(getTestSuiteTestingFramework().map(vtf -> createDependencies(vtf.getImplementationDependencies())).orElse(Collections.emptyList()));
+            this.getDependencies().getImplementation().bundle(getTestSuiteTestingFramework().map(vtf -> createDependencies(vtf.getImplementationDependencies())).orElse(Collections.emptyList()));
         });
         runtimeOnly.withDependencies(dependencySet -> {
-            this.dependencies.getRuntimeOnly().bundle(getTestSuiteTestingFramework().map(vtf -> createDependencies(vtf.getRuntimeOnlyDependencies())).orElse(Collections.emptyList()));
+            this.getDependencies().getRuntimeOnly().bundle(getTestSuiteTestingFramework().map(vtf -> createDependencies(vtf.getRuntimeOnlyDependencies())).orElse(Collections.emptyList()));
         });
     }
 
@@ -351,13 +346,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     @Override
-    public JvmComponentDependencies getDependencies() {
-        return dependencies;
-    }
-
-    @Override
     public void dependencies(Action<? super JvmComponentDependencies> action) {
-        action.execute(dependencies);
+        action.execute(getDependencies());
     }
 
     @Override

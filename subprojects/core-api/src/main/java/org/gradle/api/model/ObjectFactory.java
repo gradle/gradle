@@ -23,6 +23,7 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
@@ -261,4 +262,8 @@ public interface ObjectFactory {
      * @since 5.0
      */
     RegularFileProperty fileProperty();
+
+    default DependencyAdder dependencyAdder() {
+        throw new IllegalStateException("not implemented");
+    }
 }

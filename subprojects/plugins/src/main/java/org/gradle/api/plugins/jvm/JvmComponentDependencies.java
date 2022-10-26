@@ -19,6 +19,7 @@ package org.gradle.api.plugins.jvm;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.artifacts.dsl.GradleDependencies;
+import org.gradle.api.tasks.Nested;
 
 /**
  * This DSL element is used to add dependencies to a component, like {@link JvmTestSuite}.
@@ -47,6 +48,7 @@ public interface JvmComponentDependencies extends PlatformDependencyModifiers, T
      * @since 7.6
      * @return a {@link DependencyAdder} to add to the set of implementation dependencies
      */
+    @Nested
     DependencyAdder getImplementation();
 
     /**
@@ -57,6 +59,7 @@ public interface JvmComponentDependencies extends PlatformDependencyModifiers, T
      * @since 7.6
      * @return a {@link DependencyAdder} to add to the set of compile-only dependencies
      */
+    @Nested
     DependencyAdder getCompileOnly();
 
     /**
@@ -67,6 +70,7 @@ public interface JvmComponentDependencies extends PlatformDependencyModifiers, T
      * @since 7.6
      * @return a {@link DependencyAdder} to add to the set of runtime-only dependencies
      */
+    @Nested
     DependencyAdder getRuntimeOnly();
 
     /**
@@ -77,5 +81,6 @@ public interface JvmComponentDependencies extends PlatformDependencyModifiers, T
      * @since 7.6
      * @return a {@link DependencyAdder} to add to the set of annotation processor dependencies
      */
+    @Nested
     DependencyAdder getAnnotationProcessor();
 }

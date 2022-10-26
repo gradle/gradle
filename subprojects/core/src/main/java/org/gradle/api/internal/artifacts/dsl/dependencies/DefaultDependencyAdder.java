@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
@@ -27,6 +26,7 @@ import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.api.provider.SetProperty;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -34,14 +34,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class DefaultDependencyAdder implements DependencyAdder {
+public abstract class DefaultDependencyAdder implements DependencyAdder {
     private final DependencyFactoryInternal dependencyFactory;
-    private final Configuration configuration;
+
+    public abstract SetProperty<Dependency> getDeclaredDependencies();
 
     @Inject
-    public DefaultDependencyAdder(DependencyFactoryInternal dependencyFactory, Configuration configuration) {
+    public DefaultDependencyAdder(DependencyFactoryInternal dependencyFactory) {
         this.dependencyFactory = dependencyFactory;
-        this.configuration = configuration;
     }
 
     @SuppressWarnings("unchecked")
@@ -55,7 +55,7 @@ public class DefaultDependencyAdder implements DependencyAdder {
         if (config != null) {
             config.execute(dependency);
         }
-        configuration.getDependencies().add(dependency);
+        getDeclaredDependencies().add(dependency);
     }
 
     private <D extends Dependency> void doAddLazy(Provider<D> dependency, @Nullable Action<? super D> config) {
@@ -77,7 +77,7 @@ public class DefaultDependencyAdder implements DependencyAdder {
                 return d;
             });
         }
-        configuration.getDependencies().addLater(provider);
+        getDeclaredDependencies().add(provider);
     }
 
     private <D extends Dependency> List<Dependency> createDependencyList(Iterable<? extends D> bundle, @Nullable Action<? super D> config) {
@@ -96,12 +96,12 @@ public class DefaultDependencyAdder implements DependencyAdder {
 
     private <D extends Dependency> void doAddBundleEager(Iterable<? extends D> bundle, @Nullable Action<? super D> config) {
         List<Dependency> dependencies = createDependencyList(bundle, config);
-        configuration.getDependencies().addAll(dependencies);
+        getDeclaredDependencies().addAll(dependencies);
     }
 
     private <D extends Dependency> void doAddBundleLazy(Provider<? extends Iterable<? extends D>> dependency, @Nullable Action<? super D> config) {
         Provider<List<Dependency>> provider = dependency.map(bundle -> createDependencyList(bundle, config));
-        configuration.getDependencies().addAllLater(provider);
+        getDeclaredDependencies().addAll(provider);
     }
 
     @Override
@@ -182,10 +182,5 @@ public class DefaultDependencyAdder implements DependencyAdder {
     @Override
     public <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration) {
         doAddBundleLazy(bundle.asProvider(), configuration);
-    }
-
-    @Override
-    public String toString() {
-        return DependencyAdder.class.getSimpleName() + " for " + configuration.getName();
     }
 }
