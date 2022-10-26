@@ -30,6 +30,11 @@ import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategor
 
 public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
+    public Kind getKind() {
+        return Kind.OTHER;
+    }
+
+    @Override
     public Class<? extends Annotation> getAnnotationType() {
         return LocalState.class;
     }

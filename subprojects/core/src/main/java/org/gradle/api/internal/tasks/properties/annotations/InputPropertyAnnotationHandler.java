@@ -43,6 +43,11 @@ import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
+    public Kind getKind() {
+        return Kind.INPUT;
+    }
+
+    @Override
     public Class<? extends Annotation> getAnnotationType() {
         return Input.class;
     }

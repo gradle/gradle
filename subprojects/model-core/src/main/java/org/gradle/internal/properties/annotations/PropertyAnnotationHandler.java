@@ -62,4 +62,13 @@ public interface PropertyAnnotationHandler {
      * Visits problems associated with the given property, if any.
      */
     default void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {}
+
+    /**
+     * Returns the kind of properties this handler handles.
+     */
+    Kind getKind();
+
+    enum Kind {
+        INPUT, OUTPUT, OTHER
+    }
 }
