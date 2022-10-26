@@ -7,7 +7,7 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 
  THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
- The list is rendered as is, so use commas after each contributor's name, and a period at the end. 
+ The list is rendered as is, so use commas after each contributor's name, and a period at the end.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
 
@@ -78,6 +78,10 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/pmd_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process and therefore their tasks may now run in parallel within one project.
 
 In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
+
+#### CodeNarc Plugin automatically detects appropriate version for current Groovy runtime
+
+The [CodeNarc](https://codenarc.org/) project now publishes separate versions for use with Groovy 4.  Although Gradle still currently ships with Groovy 3, to ensure future compatibility the [CodeNarcPlugin](userguide/codenarc_plugin.html) will now by default automatically detect the appropriate version of CodeNarc to use for the current Groovy runtime.  The `toolVersion` property on the [CodeNarcExtension](current/dsl/org.gradle.api.plugins.quality.CodeNarcExtension.html#org.gradle.api.plugins.quality.CodeNarcExtension) can still be used to explicitly specify the version of CodeNarc to use.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
