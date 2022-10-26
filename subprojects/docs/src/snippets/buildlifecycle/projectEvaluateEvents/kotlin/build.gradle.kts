@@ -5,7 +5,7 @@ gradle.beforeProject {
 }
 
 gradle.afterProject {
-    if (project.ext.has("hasTests") && project.ext.get("hasTests")) {
+    if (project.ext.has("hasTests") && project.ext.get("hasTests") as Boolean) {
         val projectString = project.toString()
         println("Adding test task to $projectString")
         tasks.register("test") {
