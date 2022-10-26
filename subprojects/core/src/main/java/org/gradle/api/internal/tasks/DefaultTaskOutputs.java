@@ -205,7 +205,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return previousOutputFiles.getFiles();
     }
 
-    private static class HasDeclaredOutputsVisitor extends PropertyVisitor.Adapter {
+    private static class HasDeclaredOutputsVisitor implements PropertyVisitor {
         boolean hasDeclaredOutputs;
 
         @Override

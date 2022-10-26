@@ -63,7 +63,8 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     def destroyablePaths = []
                     def propertyWalker = services.get(PropertyWalker)
-                    TaskPropertyUtils.visitProperties(propertyWalker, it, new PropertyVisitor.Adapter() {
+                    TaskPropertyUtils.visitProperties(propertyWalker, it, new PropertyVisitor() {
+                        @Override
                         void visitDestroyableProperty(Object value) {
                             destroyablePaths << value
                         }

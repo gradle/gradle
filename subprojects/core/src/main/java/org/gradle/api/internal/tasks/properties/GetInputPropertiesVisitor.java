@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 
-public class GetInputPropertiesVisitor extends PropertyVisitor.Adapter {
+public class GetInputPropertiesVisitor implements PropertyVisitor {
     private final ImmutableSortedSet.Builder<InputPropertySpec> inputProperties = ImmutableSortedSet.naturalOrder();
 
     @Override

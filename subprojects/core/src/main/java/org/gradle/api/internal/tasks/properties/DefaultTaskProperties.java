@@ -158,7 +158,7 @@ public class DefaultTaskProperties implements TaskProperties {
         return destroyableFiles;
     }
 
-    private static class GetLocalStateVisitor extends PropertyVisitor.Adapter {
+    private static class GetLocalStateVisitor implements PropertyVisitor {
         private final String beanName;
         private final FileCollectionFactory fileCollectionFactory;
         private final List<Object> localState = new ArrayList<>();
@@ -178,7 +178,7 @@ public class DefaultTaskProperties implements TaskProperties {
         }
     }
 
-    private static class GetDestroyablesVisitor extends PropertyVisitor.Adapter {
+    private static class GetDestroyablesVisitor implements PropertyVisitor {
         private final String beanName;
         private final FileCollectionFactory fileCollectionFactory;
         private final List<Object> destroyables = new ArrayList<>();
@@ -198,7 +198,7 @@ public class DefaultTaskProperties implements TaskProperties {
         }
     }
 
-    private static class ValidationVisitor extends PropertyVisitor.Adapter implements OutputUnpacker.UnpackedOutputConsumer {
+    private static class ValidationVisitor implements OutputUnpacker.UnpackedOutputConsumer, PropertyVisitor {
         private final List<ValidatingProperty> taskPropertySpecs = new ArrayList<>();
 
         @Override
