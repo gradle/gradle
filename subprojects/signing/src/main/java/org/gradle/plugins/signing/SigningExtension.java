@@ -104,7 +104,7 @@ public class SigningExtension {
         this.configuration = getDefaultConfiguration();
         this.signatureTypes = createSignatureTypeProvider();
         this.signatories = createSignatoryProvider();
-        this.signTasks = createSignTasksMap();
+        this.signTasks = new HashMap<String, Sign>();
         project.getTasks().withType(Sign.class, new Action<Sign>() {
             @Override
             public void execute(Sign task) {
@@ -186,13 +186,6 @@ public class SigningExtension {
      */
     protected SignatoryProvider createSignatoryProvider() {
         return new PgpSignatoryProvider();
-    }
-
-    /**
-     * Provides a mapping from task name to sign task. Called once during construction.
-     */
-    protected Map<String, Sign> createSignTasksMap() {
-        return new HashMap<String, Sign>();
     }
 
     /**
