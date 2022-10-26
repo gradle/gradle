@@ -429,11 +429,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         Usage.JAVA_RUNTIME           | Usage.JAVA_API               | false
         Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME           | true
-
-        // Temporary compatibility
-        Usage.JAVA_API               | Usage.JAVA_RUNTIME_JARS      | true
-        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_JARS      | true
-
     }
 
     @Issue("gradle/gradle#8700")
@@ -441,9 +436,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         given:
         JavaEcosystemSupport.UsageDisambiguationRules rules = new JavaEcosystemSupport.UsageDisambiguationRules(
                 usage(Usage.JAVA_API),
-                usage(Usage.JAVA_API_JARS),
-                usage(Usage.JAVA_RUNTIME),
-                usage(Usage.JAVA_RUNTIME_JARS)
+                usage(Usage.JAVA_RUNTIME)
         )
         MultipleCandidatesDetails details = new DefaultMultipleCandidateResult(usage(consumer), candidates.collect { usage(it)} as Set)
 
@@ -461,15 +454,6 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         consumer                | candidates                                     | preferred
         Usage.JAVA_API          | [Usage.JAVA_API, Usage.JAVA_RUNTIME]           | Usage.JAVA_API
         Usage.JAVA_RUNTIME      | [Usage.JAVA_RUNTIME, Usage.JAVA_API]           | Usage.JAVA_RUNTIME
-
-        //Temporary compatibility
-        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
-        Usage.JAVA_RUNTIME      | [Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS]      | Usage.JAVA_RUNTIME_JARS
-
-        // while unlikely that a candidate would expose both JAVA_API_JARS and JAVA_API,
-        // this confirms that JAVA_API_JARS takes precedence, per JavaEcosystemSupport
-        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
-
     }
 
     private Usage usage(String value) {

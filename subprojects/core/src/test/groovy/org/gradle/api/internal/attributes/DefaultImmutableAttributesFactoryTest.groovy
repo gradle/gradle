@@ -17,8 +17,6 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.attributes.Usage
-import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
