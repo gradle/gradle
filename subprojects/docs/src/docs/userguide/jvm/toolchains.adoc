@@ -281,7 +281,7 @@ gradle -q javaToolchains
      | Vendor:             AdoptOpenJDK
      | Architecture:       x86_64
      | Is JDK:             false
-     | Detected by:        system property 'org.gradle.java.installations.paths'
+     | Detected by:        Gradle property 'org.gradle.java.installations.paths'
 
  + Microsoft JDK 16.0.2+7
      | Location:           /Users/username/.sdkman/candidates/java/16.0.2.7.1-ms
@@ -322,17 +322,18 @@ In order to disable auto-provisioning, you can use the `org.gradle.java.installa
 == Custom toolchain locations
 
 If auto-detecting local toolchains is not sufficient or disabled, there are additional ways you can let Gradle know about installed toolchains.
+To let Gradle know which directories to look at when detecting JVMs, use one of the following Gradle properties in `gradle.properties`.
 
 If your setup already provides environment variables pointing to installed JVMs, you can also let Gradle know about which environment variables to take into account.
-Assuming the environment variables `JDK8` and `JRE17` point to valid java installations, the following instructs Gradle to resolve those environment variables and consider those installations when looking for a matching toolchain.
+Assuming the environment variables `JDK8` and `JRE17` point to valid java installations, setting the `org.gradle.java.installations.fromEnv` Gradle property instructs
+Gradle to resolve those environment variables and consider those installations when looking for a matching toolchain:
 
 ----
 org.gradle.java.installations.fromEnv=JDK8,JRE17
 ----
 
-Additionally, you can provide a comma-separated list of paths to specific installations using the `org.gradle.java.installations.paths` property.
-For example, using the following in your `gradle.properties` will let Gradle know which directories to look at when detecting toolchains.
-Gradle will treat these directories as possible installations but will not descend into any nested directories.
+Additionally, you can provide a comma-separated list of paths to specific installations using the `org.gradle.java.installations.paths` Gradle property.
+Gradle will treat these directories as possible installations but will not descend into any nested directories:
 
 ----
 org.gradle.java.installations.paths=/custom/path/jdk1.8,/shared/jre11
