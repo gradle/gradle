@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
-import org.gradle.api.internal.tasks.properties.annotations.AbstractInputFilePropertyAnnotationHandler;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.properties.InputFilePropertyType;
+import org.gradle.internal.properties.annotations.AbstractInputFilePropertyAnnotationHandler;
 import org.gradle.internal.reflect.AnnotationCategory;
 
 import java.lang.annotation.Annotation;

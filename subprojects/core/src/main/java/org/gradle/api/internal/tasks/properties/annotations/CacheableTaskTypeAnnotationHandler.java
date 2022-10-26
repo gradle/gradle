@@ -23,7 +23,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfTypeAnnotation;
+import static org.gradle.internal.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfTypeAnnotation;
 
 public class CacheableTaskTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override

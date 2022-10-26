@@ -24,7 +24,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfTypeAnnotation;
+import static org.gradle.internal.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfTypeAnnotation;
 
 public class DisableCachingByDefaultTypeAnnotationHandler implements TypeAnnotationHandler {
     @Override
