@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties.annotations;
+package org.gradle.internal.properties.annotations;
 
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
