@@ -58,7 +58,11 @@ public interface FileCollectionFactory {
      * Creates an empty {@link FileCollection}
      */
     static FileCollectionInternal empty(String displayName) {
-        return new EmptyFileCollection(displayName);
+        if (FileCollectionInternal.DEFAULT_COLLECTION_DISPLAY_NAME.equals(displayName)) {
+            return empty();
+        } else {
+            return new EmptyFileCollection(displayName);
+        }
     }
 
     /**
@@ -166,6 +170,10 @@ public interface FileCollectionFactory {
     }
 
     static FileTreeInternal emptyTree(String displayName) {
-        return new EmptyFileTree(displayName);
+        if (FileTreeInternal.DEFAULT_TREE_DISPLAY_NAME.equals(displayName)) {
+            return emptyTree();
+        } else {
+            return new EmptyFileTree(displayName);
+        }
     }
 }
