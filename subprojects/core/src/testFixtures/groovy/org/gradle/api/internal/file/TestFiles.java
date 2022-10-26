@@ -70,7 +70,7 @@ public class TestFiles {
         DefaultExecActionFactory.of(resolver(), fileCollectionFactory(), new DefaultExecutorFactory(), NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class));
 
     public static FileCollectionInternal empty() {
-        return fileCollectionFactory().empty();
+        return FileCollectionFactory.empty();
     }
 
     public static FileCollectionInternal fixed(File... files) {

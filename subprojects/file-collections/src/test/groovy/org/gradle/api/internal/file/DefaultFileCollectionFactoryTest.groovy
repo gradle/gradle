@@ -96,7 +96,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
     def "constructs an empty collection"() {
         expect:
-        def collection = factory.empty()
+        def collection = FileCollectionFactory.empty()
         emptyCollection(collection)
         collection.toString() == "file collection"
 
@@ -107,7 +107,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
     def "constructs empty collection with display name"() {
         expect:
-        def collection = factory.empty("some collection")
+        def collection = FileCollectionFactory.empty("some collection")
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
         collection.visitStructure(new BrokenVisitor())
