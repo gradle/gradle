@@ -128,5 +128,10 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         public Object call() {
             return cachedInvoker.get();
         }
+
+        @Override
+        public String toString() {
+            return "Bean: " + bean + ", method: " + method;
+        }
     }
 }

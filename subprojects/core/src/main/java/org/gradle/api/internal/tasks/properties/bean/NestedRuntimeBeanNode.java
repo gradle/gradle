@@ -70,5 +70,10 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
         public void maybeFinalizeValue() {
             // Ignore
         }
+
+        @Override
+        public String toString() {
+            return "Implementation: " + implementationValue;
+        }
     }
 }
