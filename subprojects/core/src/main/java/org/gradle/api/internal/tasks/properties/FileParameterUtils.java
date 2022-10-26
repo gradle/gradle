@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.fingerprint.InputNormalizer;
 import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.properties.InputFilePropertyType;
@@ -30,21 +29,6 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class FileParameterUtils {
-
-    public static Normalizer determineNormalizerForPathSensitivity(PathSensitivity pathSensitivity) {
-        switch (pathSensitivity) {
-            case NONE:
-                return InputNormalizer.IGNORE_PATH;
-            case NAME_ONLY:
-                return InputNormalizer.NAME_ONLY;
-            case RELATIVE:
-                return InputNormalizer.RELATIVE_PATH;
-            case ABSOLUTE:
-                return InputNormalizer.ABSOLUTE_PATH;
-            default:
-                throw new IllegalArgumentException("Unknown path sensitivity: " + pathSensitivity);
-        }
-    }
 
     public static Normalizer normalizerOrDefault(@Nullable Normalizer fileNormalizer) {
         // If this default is ever changed, ensure the documentation on PathSensitive is updated as well as this guide:

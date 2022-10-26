@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties.annotations
+package org.gradle.internal.properties.annotations
 
 import org.gradle.api.Action
-import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.properties.DefaultValidatingProperty
 import org.gradle.api.internal.tasks.properties.PropertyValidationContext
 import org.gradle.api.internal.tasks.properties.ValidationActions
@@ -35,8 +33,6 @@ class NestedBeanAnnotationHandlerTest extends Specification {
 
     def value = Mock(PropertyValue)
     def propertyVisitor = Mock(PropertyVisitor)
-    def task = Stub(TaskInternal)
-    def resolver = Mock(FileResolver)
     def context = Mock(BeanPropertyContext)
     def propertyMetadata = Mock(PropertyMetadata)
 
