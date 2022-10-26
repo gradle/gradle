@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.Task;
 import org.gradle.api.tasks.UntrackedTask;
+import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
