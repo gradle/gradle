@@ -66,7 +66,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
             return;
         }
         if (nested != null) {
-            context.addNested(propertyName, nested);
+            context.addNested(nested);
         } else if (!propertyMetadata.isAnnotationPresent(Optional.class)) {
             visitor.visitInputProperty(propertyName, PropertyValue.ABSENT, false);
         }

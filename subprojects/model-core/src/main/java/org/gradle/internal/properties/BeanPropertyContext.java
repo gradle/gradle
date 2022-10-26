@@ -17,5 +17,5 @@
 package org.gradle.internal.properties;
 
 public interface BeanPropertyContext {
-    void addNested(String propertyName, Object bean);
+    void addNested(Object bean);
 }

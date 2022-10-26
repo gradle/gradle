@@ -56,7 +56,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
                     value,
                     propertyMetadata,
                     visitor,
-                    (childPropertyName, bean) -> queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, childPropertyName, bean))
+                    childBean -> queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, propertyName, childBean))
                 );
             }
         }
