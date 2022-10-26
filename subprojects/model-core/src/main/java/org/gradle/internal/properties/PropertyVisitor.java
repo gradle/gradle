@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.internal.properties;
 
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.Normalizer;
-import org.gradle.internal.properties.InputBehavior;
 
 import javax.annotation.Nullable;
 

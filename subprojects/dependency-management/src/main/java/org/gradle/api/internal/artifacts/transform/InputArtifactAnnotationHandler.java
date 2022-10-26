@@ -18,16 +18,17 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.transform.InputArtifact;
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractInputFilePropertyAnnotationHandler;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
+import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.reflect.AnnotationCategory;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.*;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.INCREMENTAL;
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZE_LINE_ENDINGS;
 
 public class InputArtifactAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler implements InjectAnnotationHandler {
     @Override

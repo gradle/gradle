@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.tasks.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyValue;
 
 import javax.annotation.Nullable;
 import java.util.function.Function;

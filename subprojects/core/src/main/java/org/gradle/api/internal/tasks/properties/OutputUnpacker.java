@@ -28,6 +28,9 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.properties.OutputFilePropertyType;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.util.internal.DeferredUtil;
 
 import javax.annotation.Nullable;
