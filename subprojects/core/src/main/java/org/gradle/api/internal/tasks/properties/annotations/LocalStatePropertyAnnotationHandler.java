@@ -26,7 +26,7 @@ import org.gradle.internal.reflect.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.properties.ModifierAnnotationCategory.OPTIONAL;
 
 public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override

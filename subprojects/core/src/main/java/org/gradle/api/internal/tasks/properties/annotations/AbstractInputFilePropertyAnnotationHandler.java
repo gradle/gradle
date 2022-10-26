@@ -43,8 +43,8 @@ import org.gradle.work.NormalizeLineEndings;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandlerSupport.validateUnsupportedPropertyValueTypes;
+import static org.gradle.internal.properties.ModifierAnnotationCategory.NORMALIZATION;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override

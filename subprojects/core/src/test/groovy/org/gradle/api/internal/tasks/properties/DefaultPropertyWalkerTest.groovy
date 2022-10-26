@@ -38,7 +38,9 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.properties.DefaultTypeMetadataStore
 import org.gradle.internal.properties.InputFilePropertyType
+import org.gradle.internal.properties.ModifierAnnotationCategory
 import org.gradle.internal.properties.OutputFilePropertyType
 import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler
@@ -246,7 +248,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
         def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
             [],
-            ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
+                ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
             ["java", "groovy"],
             [],
             [Object, GroovyObject],
