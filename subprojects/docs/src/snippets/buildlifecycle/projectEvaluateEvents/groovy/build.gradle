@@ -1,9 +1,9 @@
 // tag::after-evaluate[]
-gradle.beforeProject {
+gradle.beforeProject { project ->
     project.ext.set("hasTests", false)
 }
 
-gradle.afterProject {
+gradle.afterProject { project ->
     if (project.ext.has("hasTests") && project.ext.get("hasTests")) {
         def projectString = project.toString()
         println "Adding test task to $projectString"
