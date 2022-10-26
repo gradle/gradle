@@ -54,10 +54,7 @@ public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDer
             return ImmutableList.of(
                     // When deriving variants for the Java ecosystem, we actually have 2 components "mixed together": the library and the platform
                     // and there's no way to figure out what was the intent when it was published. So we derive variants, but we also need
-                    // to use generic JAVA_API and JAVA_RUNTIME attributes, instead of more precise JAVA_API_JARS and JAVA_RUNTIME_JARS
-                    // because of the platform aspect (which aren't jars but "something"). Using JAVA_API_JARS for the library part and
-                    // JAVA_API for the platform would lead to selection of the platform when we don't want them (in other words in a single
-                    // component we cannot mix precise usages with more generic ones)
+                    // to use generic JAVA_API and JAVA_RUNTIME attributes because of the platform aspect (which aren't jars but "something").
                 libraryWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API),
                 libraryWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME),
                 libraryWithSourcesVariant(runtimeConfiguration, attributes, attributesFactory, metadata),
