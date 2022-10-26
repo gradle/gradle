@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file.archive;
 
-import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
@@ -42,8 +41,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.apache.commons.compress.archivers.ArchiveStreamFactory.TAR;
 
 public class TarFileTree extends AbstractArchiveFileTree {
     private final Provider<File> tarFileProvider;
@@ -111,22 +108,6 @@ public class TarFileTree extends AbstractArchiveFileTree {
             } else {
                 visitor.visitFile(new DetailsImpl(resource, expandedDir, entry, tar, stopFlag, chmod));
             }
-        }
-    }
-
-    /**
-     * Using Apache Commons Compress to un-tar a non-tar archive fails silently, without any exception
-     * or error, so we need a way of checking the format explicitly.
-     */
-    private void checkFormat(InputStream inputStream) throws IOException {
-        String format;
-        try {
-            format = detectFormat(inputStream);
-        } catch (ArchiveException e) {
-            throw new IOException("Failed to detect archive format!", e);
-        }
-        if (!TAR.equals(format)) {
-            throw new IOException("Expected TAR archive format but found " + format);
         }
     }
 
@@ -242,46 +223,40 @@ public class TarFileTree extends AbstractArchiveFileTree {
     }
 
     /**
-     * Copy of <code>ArchiveStreamFactory.detect(InputStream)</code>, extended to not
-     * throw an exception for empty TAR files (ie. ones with no entries in them).
+     * Using Apache Commons Compress to un-tar a non-tar archive fails silently, without any exception
+     * or error, so we need a way of checking the format explicitly.
+     *
+     * This is a simplified version of <code>ArchiveStreamFactory.detect(InputStream)</code>,
+     * and extended to not throw an exception for empty TAR files (i.e. ones with no entries in them).
      */
-    private static String detectFormat(InputStream inputStream) throws ArchiveException {
+    private void checkFormat(InputStream inputStream) throws IOException {
         if (!inputStream.markSupported()) {
-            throw new IllegalArgumentException("Mark is not supported.");
+            throw new IOException("TAR input stream does not support mark/reset.");
         }
 
-        int signatureLength;
-        final byte[] tarHeader = new byte[512]; //ArchiveStreamFactory.TAR_HEADER_SIZE
-        inputStream.mark(tarHeader.length);
-        try {
-            signatureLength = IOUtils.readFully(inputStream, tarHeader);
-            inputStream.reset();
-        } catch (final IOException e) {
-            throw new ArchiveException("IOException while reading tar signature", e);
-        }
+        int tarHeaderSize = 512; // ArchiveStreamFactory.TAR_HEADER_SIZE
+        inputStream.mark(tarHeaderSize);
+        final byte[] tarHeader = new byte[tarHeaderSize];
+        int signatureLength = IOUtils.readFully(inputStream, tarHeader);
+        inputStream.reset();
         if (TarArchiveInputStream.matches(tarHeader, signatureLength)) {
-            return TAR;
+            return;
         }
 
-        // COMPRESS-117 - improve auto-recognition
-        if (signatureLength >= 512) { //ArchiveStreamFactory.TAR_HEADER_SIZE
-            TarArchiveInputStream tais = null;
-            try {
-                tais = new TarArchiveInputStream(new ByteArrayInputStream(tarHeader));
-                // COMPRESS-191 - verify the header checksum
+        if (signatureLength >= tarHeaderSize) {
+            try (TarArchiveInputStream tais = new TarArchiveInputStream(new ByteArrayInputStream(tarHeader))) {
                 if (tais.getNextTarEntry() == null) {
-                    return TAR; //empty one
+                    // empty TAR
+                    return;
                 }
                 if (tais.getNextTarEntry().isCheckSumOK()) {
-                    return TAR;
+                    return;
                 }
-            } catch (final Exception e) { // NOPMD NOSONAR
+            } catch (Exception e) {
                 // can generate IllegalArgumentException as well as IOException
                 // not a TAR ignored
-            } finally {
-                IOUtils.closeQuietly(tais);
             }
         }
-        throw new ArchiveException("No Archiver found for the stream signature");
+        throw new IOException("Not a TAR archive");
     }
 }
