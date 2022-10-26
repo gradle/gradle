@@ -71,12 +71,20 @@ public interface FileCollectionFactory {
     /**
      * Creates an empty {@link FileCollection}
      */
-    FileCollectionInternal empty(String displayName);
+    static FileCollectionInternal empty(String displayName) {
+        if (FileCollectionInternal.DEFAULT_COLLECTION_DISPLAY_NAME.equals(displayName)) {
+            return empty();
+        } else {
+            return new EmptyFileCollection(displayName);
+        }
+    }
 
     /**
      * Creates an empty {@link FileCollection}
      */
-    FileCollectionInternal empty();
+    static FileCollectionInternal empty() {
+        return EmptyFileCollection.INSTANCE;
+    }
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
@@ -170,4 +178,16 @@ public interface FileCollectionFactory {
     FileTreeInternal treeOf(List<? extends FileTreeInternal> fileTrees);
 
     FileTreeInternal treeOf(MinimalFileTree tree);
+
+    static FileTreeInternal emptyTree() {
+        return EmptyFileTree.INSTANCE;
+    }
+
+    static FileTreeInternal emptyTree(String displayName) {
+        if (FileTreeInternal.DEFAULT_TREE_DISPLAY_NAME.equals(displayName)) {
+            return emptyTree();
+        } else {
+            return new EmptyFileTree(displayName);
+        }
+    }
 }

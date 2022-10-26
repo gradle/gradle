@@ -136,7 +136,9 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
 
     private FileCollection resolveLeniently(PropertyValue value) {
         Object sources = value.call();
-        return sources == null ? fileCollectionFactory.empty() : fileCollectionFactory.resolvingLeniently(sources);
+        return sources == null
+            ? FileCollectionFactory.empty()
+            : fileCollectionFactory.resolvingLeniently(sources);
     }
 
     private TestTaskFilters collectFilters(Test task) {

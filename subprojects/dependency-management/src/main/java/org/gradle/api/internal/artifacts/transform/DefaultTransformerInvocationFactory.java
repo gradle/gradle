@@ -377,7 +377,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     transformer.getInputArtifactDependenciesDirectorySensitivity(),
                     transformer.getInputArtifactDependenciesLineEndingNormalization(),
                     () -> dependencies.getFiles()
-                        .orElse(fileCollectionFactory.empty())));
+                        .orElse(FileCollectionFactory.empty())));
         }
 
         @Override

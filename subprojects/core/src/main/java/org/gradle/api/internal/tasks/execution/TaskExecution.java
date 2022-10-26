@@ -159,7 +159,7 @@ public class TaskExecution implements UnitOfWork {
     public WorkOutput execute(ExecutionRequest executionRequest) {
         FileCollection previousFiles = executionRequest.getPreviouslyProducedOutputs()
             .<FileCollection>map(previousOutputs -> new PreviousOutputFileCollection(task, taskDependencyFactory, fileCollectionFactory, previousOutputs))
-            .orElseGet(fileCollectionFactory::empty);
+            .orElseGet(FileCollectionFactory::empty);
         TaskOutputsInternal outputs = task.getOutputs();
         outputs.setPreviousOutputFiles(previousFiles);
         try {
