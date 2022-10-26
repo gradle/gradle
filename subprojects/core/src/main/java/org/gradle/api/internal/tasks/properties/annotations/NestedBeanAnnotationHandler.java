@@ -104,5 +104,10 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         public void maybeFinalizeValue() {
             // Ignore
         }
+
+        @Override
+        public String toString() {
+            return "INVALID: " + exception.getMessage();
+        }
     }
 }

@@ -59,5 +59,10 @@ public interface PropertyValue extends Callable<Object> {
         public void maybeFinalizeValue() {
             // Ignore
         }
+
+        @Override
+        public String toString() {
+            return "ABSENT";
+        }
     };
 }
