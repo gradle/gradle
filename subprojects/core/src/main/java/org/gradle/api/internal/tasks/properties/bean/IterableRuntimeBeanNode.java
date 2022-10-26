@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.properties.bean;
 
 import org.gradle.api.Named;
-import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.TypeMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import javax.annotation.Nullable;

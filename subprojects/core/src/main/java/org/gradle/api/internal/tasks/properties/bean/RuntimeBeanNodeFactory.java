@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties.bean;
 
-import org.gradle.api.internal.tasks.properties.TypeMetadata;
-import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
+import org.gradle.internal.properties.TypeMetadata;
+import org.gradle.internal.properties.TypeMetadataStore;
 import org.gradle.internal.snapshot.impl.ImplementationValue;
 
 import java.util.Map;

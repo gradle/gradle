@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
+import org.gradle.internal.properties.DefaultTypeMetadataStore;
+import org.gradle.internal.properties.TypeMetadataStore;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;

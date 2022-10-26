@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.internal.properties.TypeMetadataStore;
+
 /**
  * A scheme, or strategy, for inspecting object graphs.
  *

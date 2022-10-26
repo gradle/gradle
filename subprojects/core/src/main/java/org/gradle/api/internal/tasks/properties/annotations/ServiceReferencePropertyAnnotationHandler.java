@@ -35,7 +35,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.properties.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class ServiceReferencePropertyAnnotationHandler implements PropertyAnnotationHandler {
@@ -65,7 +65,6 @@ public class ServiceReferencePropertyAnnotationHandler implements PropertyAnnota
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
         if (propertyMetadata.isAnnotationPresent(ServiceReference.class)) {
             ServiceReference annotation = (ServiceReference) propertyMetadata.getAnnotationForCategory(AnnotationCategory.TYPE);
