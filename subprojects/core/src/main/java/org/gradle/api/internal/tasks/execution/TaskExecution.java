@@ -31,7 +31,7 @@ import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
-import org.gradle.api.internal.tasks.properties.DefaultTaskValidationContext;
+import org.gradle.api.internal.tasks.properties.DefaultPropertyValidationContext;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputPropertySpec;
@@ -463,7 +463,7 @@ public class TaskExecution implements UnitOfWork {
         boolean cacheable = taskType.isAnnotationPresent(CacheableTask.class);
         TypeValidationContext typeValidationContext = validationContext.forType(taskType, cacheable);
         context.getTaskProperties().validateType(typeValidationContext);
-        context.getTaskProperties().validate(new DefaultTaskValidationContext(
+        context.getTaskProperties().validate(new DefaultPropertyValidationContext(
             fileResolver,
             reservedFileSystemLocationRegistry,
             typeValidationContext

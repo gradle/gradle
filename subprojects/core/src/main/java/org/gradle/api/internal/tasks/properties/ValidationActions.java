@@ -34,12 +34,12 @@ import static org.gradle.internal.reflect.validation.Severity.ERROR;
 public enum ValidationActions implements ValidationAction {
     NO_OP("file collection") {
         @Override
-        public void doValidate(String propertyName, Object value, TaskValidationContext context) {
+        public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
         }
     },
     INPUT_FILE_VALIDATOR("file") {
         @Override
-        public void doValidate(String propertyName, Object value, TaskValidationContext context) {
+        public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
             File file = toFile(context, value);
             if (!file.exists()) {
                 reportMissingInput(context, "File", propertyName, file);
@@ -50,7 +50,7 @@ public enum ValidationActions implements ValidationAction {
     },
     INPUT_DIRECTORY_VALIDATOR("directory") {
         @Override
-        public void doValidate(String propertyName, Object value, TaskValidationContext context) {
+        public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
             File directory = toDirectory(context, value);
             if (!directory.exists()) {
                 reportMissingInput(context, "Directory", propertyName, directory);
@@ -61,7 +61,7 @@ public enum ValidationActions implements ValidationAction {
     },
     OUTPUT_DIRECTORY_VALIDATOR("file") {
         @Override
-        public void doValidate(String propertyName, Object value, TaskValidationContext context) {
+        public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
             File directory = toFile(context, value);
             validateNotInReservedFileSystemLocation(propertyName, context, directory);
             if (directory.exists()) {
@@ -80,7 +80,7 @@ public enum ValidationActions implements ValidationAction {
     },
     OUTPUT_FILE_VALIDATOR("file") {
         @Override
-        public void doValidate(String propertyName, Object value, TaskValidationContext context) {
+        public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
             File file = toFile(context, value);
             validateNotInReservedFileSystemLocation(propertyName, context, file);
             if (file.exists()) {
@@ -100,7 +100,7 @@ public enum ValidationActions implements ValidationAction {
     },
     OUTPUT_FILE_TREE_VALIDATOR("directory") {
         @Override
-        public void doValidate(String propertyName, Object value, TaskValidationContext context) {
+        public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
             File directory = toFile(context, value);
             validateNotInReservedFileSystemLocation(propertyName, context, directory);
             if (directory.exists()) {
@@ -145,7 +145,7 @@ public enum ValidationActions implements ValidationAction {
         }
     }
 
-    private static void reportMissingInput(TaskValidationContext context, String kind, String propertyName, File input) {
+    private static void reportMissingInput(PropertyValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase();
             problem.withId(ValidationProblemId.INPUT_FILE_DOES_NOT_EXIST)
@@ -159,7 +159,7 @@ public enum ValidationActions implements ValidationAction {
         });
     }
 
-    private static void reportUnexpectedInputKind(TaskValidationContext context, String kind, String propertyName, File input) {
+    private static void reportUnexpectedInputKind(PropertyValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyProblem(problem -> {
             String lowerKind = kind.toLowerCase();
             problem.withId(ValidationProblemId.UNEXPECTED_INPUT_FILE_TYPE)
@@ -173,7 +173,7 @@ public enum ValidationActions implements ValidationAction {
         });
     }
 
-    private static void reportCannotWriteToDirectory(String propertyName, TaskValidationContext context, File directory, String cause) {
+    private static void reportCannotWriteToDirectory(String propertyName, PropertyValidationContext context, File directory, String cause) {
         context.visitPropertyProblem(problem ->
             problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
                 .reportAs(ERROR)
@@ -185,7 +185,7 @@ public enum ValidationActions implements ValidationAction {
         );
     }
 
-    private static void reportFileTreeWithFileRoot(String propertyName, TaskValidationContext context, File directory) {
+    private static void reportFileTreeWithFileRoot(String propertyName, PropertyValidationContext context, File directory) {
         context.visitPropertyProblem(problem ->
             problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
                 .reportAs(ERROR)
@@ -197,7 +197,7 @@ public enum ValidationActions implements ValidationAction {
         );
     }
 
-    private static void reportCannotWriteFileToDirectory(String propertyName, TaskValidationContext context, File file) {
+    private static void reportCannotWriteFileToDirectory(String propertyName, PropertyValidationContext context, File file) {
         context.visitPropertyProblem(problem -> {
                 PropertyProblemBuilder problemBuilder = problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
                     .reportAs(ERROR)
@@ -211,7 +211,7 @@ public enum ValidationActions implements ValidationAction {
         );
     }
 
-    private static void reportCannotCreateParentDirectories(String propertyName, TaskValidationContext context, File file, File ancestor) {
+    private static void reportCannotCreateParentDirectories(String propertyName, PropertyValidationContext context, File file, File ancestor) {
         context.visitPropertyProblem(problem -> {
                 PropertyProblemBuilder problemBuilder = problem.withId(ValidationProblemId.CANNOT_WRITE_OUTPUT)
                     .reportAs(ERROR)
@@ -234,7 +234,7 @@ public enum ValidationActions implements ValidationAction {
         return "unexpected file type";
     }
 
-    private static void validateNotInReservedFileSystemLocation(String propertyName, TaskValidationContext context, File location) {
+    private static void validateNotInReservedFileSystemLocation(String propertyName, PropertyValidationContext context, File location) {
         if (context.isInReservedFileSystemLocation(location)) {
             context.visitPropertyProblem(problem ->
                 problem.withId(ValidationProblemId.CANNOT_WRITE_TO_RESERVED_LOCATION)
@@ -254,10 +254,10 @@ public enum ValidationActions implements ValidationAction {
         this.targetType = targetType;
     }
 
-    protected abstract void doValidate(String propertyName, Object value, TaskValidationContext context);
+    protected abstract void doValidate(String propertyName, Object value, PropertyValidationContext context);
 
     @Override
-    public void validate(String propertyName, Object value, TaskValidationContext context) {
+    public void validate(String propertyName, Object value, PropertyValidationContext context) {
         try {
             doValidate(propertyName, value, context);
         } catch (UnsupportedNotationException unsupportedNotationException) {
@@ -297,14 +297,14 @@ public enum ValidationActions implements ValidationAction {
         return "Use " + result;
     }
 
-    private static File toDirectory(TaskValidationContext context, Object value) {
+    private static File toDirectory(PropertyValidationContext context, Object value) {
         if (value instanceof ConfigurableFileTree) {
             return ((ConfigurableFileTree) value).getDir();
         }
         return toFile(context, value);
     }
 
-    private static File toFile(TaskValidationContext context, Object value) {
+    private static File toFile(PropertyValidationContext context, Object value) {
         return context.getFileResolver().resolve(value);
     }
 }

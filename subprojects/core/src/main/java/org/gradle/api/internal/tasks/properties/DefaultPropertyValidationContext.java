@@ -25,12 +25,12 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.io.File;
 
-public class DefaultTaskValidationContext implements TaskValidationContext, TypeValidationContext {
+public class DefaultPropertyValidationContext implements PropertyValidationContext, TypeValidationContext {
     private final PathToFileResolver fileResolver;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final TypeValidationContext delegate;
 
-    public DefaultTaskValidationContext(PathToFileResolver fileResolver, ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry, TypeValidationContext delegate) {
+    public DefaultPropertyValidationContext(PathToFileResolver fileResolver, ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry, TypeValidationContext delegate) {
         this.fileResolver = fileResolver;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
         this.delegate = delegate;
