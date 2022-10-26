@@ -21,7 +21,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.io.File;
 
-public interface TaskValidationContext extends TypeValidationContext {
+public interface PropertyValidationContext extends TypeValidationContext {
     PathToFileResolver getFileResolver();
 
     boolean isInReservedFileSystemLocation(File location);

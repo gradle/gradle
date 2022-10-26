@@ -49,7 +49,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
     }
 
     @Override
-    public void validate(TaskValidationContext context) {
+    public void validate(PropertyValidationContext context) {
         Object unpacked = DeferredUtil.unpackOrNull(value.call());
         if (unpacked == null) {
             if (!optional) {

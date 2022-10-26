@@ -81,5 +81,5 @@ public interface TaskProperties {
     /**
      * Validations for the properties.
      */
-    void validate(TaskValidationContext validationContext);
+    void validate(PropertyValidationContext validationContext);
 }
