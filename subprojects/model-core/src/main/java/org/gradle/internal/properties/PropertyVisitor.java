@@ -26,35 +26,14 @@ import javax.annotation.Nullable;
  * Visits properties of beans which are inputs, outputs, destroyables or local state.
  */
 public interface PropertyVisitor {
-    void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Normalizer fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType);
+    default void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Normalizer fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {}
 
-    void visitInputProperty(String propertyName, PropertyValue value, boolean optional);
+    default void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {}
 
-    void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType);
+    default void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {}
 
-    void visitDestroyableProperty(Object value);
+    default void visitDestroyableProperty(Object value) {}
 
-    void visitLocalStateProperty(Object value);
+    default void visitLocalStateProperty(Object value) {}
 
-    class Adapter implements PropertyVisitor {
-        @Override
-        public void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Normalizer fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
-        }
-
-        @Override
-        public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
-        }
-
-        @Override
-        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-        }
-
-        @Override
-        public void visitDestroyableProperty(Object value) {
-        }
-
-        @Override
-        public void visitLocalStateProperty(Object value) {
-        }
-    }
 }

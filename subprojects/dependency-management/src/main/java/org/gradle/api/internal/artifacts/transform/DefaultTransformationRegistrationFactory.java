@@ -209,7 +209,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         }
     }
 
-    private static class NormalizerCollectingVisitor extends PropertyVisitor.Adapter {
+    private static class NormalizerCollectingVisitor implements PropertyVisitor {
         private Normalizer normalizer;
         private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
         private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;

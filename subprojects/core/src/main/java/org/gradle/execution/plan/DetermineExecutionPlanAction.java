@@ -372,7 +372,7 @@ class DetermineExecutionPlanAction {
         return ((ProjectInternal) task.getProject()).getServices().get(PropertyWalker.class);
     }
 
-    private static class TaskClassifier extends PropertyVisitor.Adapter {
+    private static class TaskClassifier implements PropertyVisitor {
         private boolean isProducer;
         private boolean isDestroyer;
 

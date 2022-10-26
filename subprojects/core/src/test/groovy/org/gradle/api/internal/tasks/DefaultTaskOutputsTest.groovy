@@ -234,7 +234,7 @@ class DefaultTaskOutputsTest extends Specification {
         def names = []
 
         when:
-        outputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
+        outputs.visitRegisteredProperties(new PropertyVisitor() {
             @Override
             void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
                 names += propertyName

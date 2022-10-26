@@ -82,7 +82,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
     public TestTaskProperties collectProperties(Test task) {
         ImmutableList.Builder<InputFileProperty> inputFileProperties = ImmutableList.builder();
         ImmutableList.Builder<OutputFileProperty> outputFileProperties = ImmutableList.builder();
-        TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
+        TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor() {
             @Override
             public void visitInputFileProperty(
                 String propertyName,

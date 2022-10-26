@@ -40,7 +40,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-public class OutputUnpacker extends PropertyVisitor.Adapter {
+public class OutputUnpacker implements PropertyVisitor {
 
     private final String ownerDisplayName;
     private final FileCollectionFactory fileCollectionFactory;
