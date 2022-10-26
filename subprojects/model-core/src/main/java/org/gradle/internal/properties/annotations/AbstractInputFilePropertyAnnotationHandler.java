@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties.annotations;
+package org.gradle.internal.properties.annotations;
 
-import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -31,9 +30,9 @@ import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.properties.BeanPropertyContext;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.InputFilePropertyType;
+import org.gradle.internal.properties.NormalizationUtil;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
@@ -43,8 +42,8 @@ import org.gradle.work.NormalizeLineEndings;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandlerSupport.validateUnsupportedPropertyValueTypes;
 import static org.gradle.internal.properties.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.internal.properties.annotations.PropertyAnnotationHandlerSupport.validateUnsupportedPropertyValueTypes;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
@@ -70,7 +69,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             normalizer = null;
         } else if (fileNormalization instanceof PathSensitive) {
             PathSensitivity pathSensitivity = ((PathSensitive) fileNormalization).value();
-            normalizer = FileParameterUtils.determineNormalizerForPathSensitivity(pathSensitivity);
+            normalizer = NormalizationUtil.determineNormalizerForPathSensitivity(pathSensitivity);
         } else if (fileNormalization instanceof Classpath) {
             normalizer = InputNormalizer.RUNTIME_CLASSPATH;
         } else if (fileNormalization instanceof CompileClasspath) {

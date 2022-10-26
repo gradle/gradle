@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties.annotations;
+package org.gradle.internal.properties.annotations;
 
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.provider.Provider;

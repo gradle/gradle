@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.properties.annotations;
+package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.InputDirectory;

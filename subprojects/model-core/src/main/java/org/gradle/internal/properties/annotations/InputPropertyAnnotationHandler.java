@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.properties.annotations;
+package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.Directory;
@@ -26,7 +26,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.internal.properties.BeanPropertyContext;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.PropertyMetadata;
@@ -37,8 +36,8 @@ import org.gradle.model.internal.type.ModelType;
 import java.io.File;
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandlerSupport.validateUnsupportedPropertyValueTypes;
 import static org.gradle.internal.properties.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.properties.annotations.PropertyAnnotationHandlerSupport.validateUnsupportedPropertyValueTypes;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
