@@ -69,4 +69,9 @@ public class StaticValue implements PropertyValue {
     public Object call() {
         return value;
     }
+
+    @Override
+    public String toString() {
+        return "Static: " + value;
+    }
 }
