@@ -132,7 +132,7 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     @Override
-    public void validate(TaskValidationContext validationContext) {
+    public void validate(PropertyValidationContext validationContext) {
         for (ValidatingProperty validatingProperty : validatingProperties) {
             validatingProperty.validate(validationContext);
         }
