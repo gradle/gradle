@@ -304,7 +304,7 @@ class DefaultTaskInputsTest extends Specification {
         def names = []
 
         when:
-        inputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
+        inputs.visitRegisteredProperties(new PropertyVisitor() {
             @Override
             void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity emptyDirectorySensitivity, LineEndingSensitivity lineEndingNormalization, @Nullable Normalizer fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                 names += propertyName
@@ -333,7 +333,7 @@ class DefaultTaskInputsTest extends Specification {
 
     def inputFileProperties() {
         def inputFiles = [:]
-        TaskPropertyUtils.visitProperties(walker, task, new PropertyVisitor.Adapter() {
+        TaskPropertyUtils.visitProperties(walker, task, new PropertyVisitor() {
             @Override
             void visitInputFileProperty(
                 String propertyName,

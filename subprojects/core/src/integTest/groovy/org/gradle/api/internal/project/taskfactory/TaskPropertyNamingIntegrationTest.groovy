@@ -85,7 +85,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                     def outputFiles = [:]
                     def inputFiles = [:]
                     def layout = services.get(ProjectLayout)
-                    TaskPropertyUtils.visitProperties(services.get(PropertyWalker), it, new PropertyVisitor.Adapter() {
+                    TaskPropertyUtils.visitProperties(services.get(PropertyWalker), it, new PropertyVisitor() {
                         @Override
                         void visitInputFileProperty(String propertyName, boolean optional, InputBehavior behavior, DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, @Nullable Normalizer normalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                             inputFiles[propertyName] = layout.files(value)
@@ -409,7 +409,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 Task task
                 @TaskAction
                 void printInputsAndOutputs() {
-                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), task, new PropertyVisitor.Adapter() {
+                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), task, new PropertyVisitor() {
                         @Override
                         void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
                             println "Input property '\${propertyName}'"

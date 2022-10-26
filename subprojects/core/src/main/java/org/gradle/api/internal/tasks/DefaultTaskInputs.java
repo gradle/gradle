@@ -191,7 +191,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
+        TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor() {
             @Override
             public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
                 context.add(value.getTaskDependencies());
@@ -239,7 +239,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
         @Override
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-            TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
+            TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor() {
                 @Override
                 public void visitInputFileProperty(
                     final String propertyName,
@@ -259,7 +259,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
-    private static class HasInputsVisitor extends PropertyVisitor.Adapter {
+    private static class HasInputsVisitor implements PropertyVisitor {
         private boolean hasInputs;
 
         public boolean hasInputs() {

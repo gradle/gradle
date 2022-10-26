@@ -329,7 +329,7 @@ fun collectRegisteredOutputsOf(task: Task): List<RegisteredProperty.OutputFile> 
 
     val properties = mutableListOf<RegisteredProperty.OutputFile>()
 
-    (task.outputs as TaskOutputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
+    (task.outputs as TaskOutputsInternal).visitRegisteredProperties(object : PropertyVisitor {
 
         override fun visitOutputFileProperty(
             propertyName: String,
@@ -356,7 +356,7 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
 
     val properties = mutableListOf<RegisteredProperty>()
 
-    (task.inputs as TaskInputsInternal).visitRegisteredProperties(object : PropertyVisitor.Adapter() {
+    (task.inputs as TaskInputsInternal).visitRegisteredProperties(object : PropertyVisitor {
 
         override fun visitInputFileProperty(
             propertyName: String,

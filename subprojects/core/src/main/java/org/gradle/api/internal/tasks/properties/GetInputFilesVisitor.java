@@ -32,7 +32,7 @@ import org.gradle.internal.properties.PropertyVisitor;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class GetInputFilesVisitor extends PropertyVisitor.Adapter {
+public class GetInputFilesVisitor implements PropertyVisitor {
     private final List<InputFilePropertySpec> specs = Lists.newArrayList();
     private final FileCollectionFactory fileCollectionFactory;
     private final String ownerDisplayName;

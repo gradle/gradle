@@ -294,7 +294,7 @@ public class DefaultTransformer implements Transformer {
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            visitor -> propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor.Adapter() {
+            visitor -> propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor() {
                 @Override
                 public void visitInputProperty(
                     String propertyName,
@@ -600,7 +600,7 @@ public class DefaultTransformer implements Transformer {
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             if (parameterObject != null) {
-                parameterPropertyWalker.visitProperties(parameterObject, TypeValidationContext.NOOP, new PropertyVisitor.Adapter() {
+                parameterPropertyWalker.visitProperties(parameterObject, TypeValidationContext.NOOP, new PropertyVisitor() {
                     @Override
                     public void visitInputFileProperty(
                         String propertyName,
