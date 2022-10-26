@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.internal.properties.bean;
 
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.reflect.validation.TypeValidationContext;

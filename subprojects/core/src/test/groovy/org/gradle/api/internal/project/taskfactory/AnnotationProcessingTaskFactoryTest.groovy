@@ -24,7 +24,6 @@ import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
 import org.gradle.api.internal.tasks.properties.bean.TestImplementationIdentifier
 import org.gradle.api.provider.Property
@@ -37,6 +36,7 @@ import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.properties.DefaultTypeMetadataStore
 import org.gradle.internal.properties.ModifierAnnotationCategory
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler
+import org.gradle.internal.properties.bean.DefaultPropertyWalker
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.reflect.problems.ValidationProblemId

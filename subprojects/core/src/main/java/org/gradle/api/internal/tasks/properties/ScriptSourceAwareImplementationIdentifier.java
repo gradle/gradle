@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.properties.bean.ImplementationIdentifier;
+import org.gradle.internal.properties.bean.ImplementationIdentifier;
 import org.gradle.internal.scripts.ScriptOriginUtil;
 import org.gradle.internal.snapshot.impl.ImplementationValue;
 import org.gradle.util.internal.ConfigureUtil;

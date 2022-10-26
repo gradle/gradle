@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties.bean;
+package org.gradle.api.internal.tasks.properties.bean
 
-import org.gradle.internal.snapshot.impl.ImplementationValue;
+import org.gradle.internal.properties.bean.ImplementationIdentifier
+import org.gradle.internal.snapshot.impl.ImplementationValue
 
 class TestImplementationIdentifier implements ImplementationIdentifier {
     @Override

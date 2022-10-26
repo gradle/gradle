@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.internal.properties.bean;
 
 import com.google.common.base.Equivalence;
 import org.gradle.internal.properties.TypeMetadata;
