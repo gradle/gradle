@@ -111,10 +111,6 @@ class TestFileHelper {
         untar.execute()
     }
 
-    private boolean isUnix() {
-        return !System.getProperty('os.name').toLowerCase().contains('windows')
-    }
-
     String getPermissions() {
         if (!isUnix()) {
             return "-rwxr-xr-x"
@@ -148,16 +144,6 @@ class TestFileHelper {
         if (retval != 0) {
             throw new RuntimeException("Could not set permissions for '$file': $error")
         }
-    }
-
-    private int toMode(String permissions) {
-        int m = [6, 3, 0].inject(0) { mode, pos ->
-            mode |= permissions[9 - pos - 3] == 'r' ? 4 << pos : 0
-            mode |= permissions[9 - pos - 2] == 'w' ? 2 << pos : 0
-            mode |= permissions[9 - pos - 1] == 'x' ? 1 << pos : 0
-            return mode
-        }
-        return m
     }
 
     int getMode() {
@@ -254,6 +240,8 @@ class TestFileHelper {
     }
 
     void tarTo(TestFile tarFile, boolean nativeTools) {
+        //TODO: there is an inconsistency here; when using native tools the root folder is put into the TAR, but only its content is packaged by the other branch
+        // for example if we put an empty folder into the TAR, then native tools will insert an entry with an empty directory, while the other branch will insert no entries
         if (nativeTools && isUnix()) {
             def process = ['tar', "-cf", tarFile.absolutePath, file.name].execute(null, file.parentFile)
             process.consumeProcessOutput(System.out, System.err)
@@ -312,5 +300,19 @@ class TestFileHelper {
         } finally {
             outStr.close()
         }
+    }
+
+    private static boolean isUnix() {
+        return !System.getProperty('os.name').toLowerCase().contains('windows')
+    }
+
+    private static int toMode(String permissions) {
+        int m = [6, 3, 0].inject(0) { mode, pos ->
+            mode |= permissions[9 - pos - 3] == 'r' ? 4 << pos : 0
+            mode |= permissions[9 - pos - 2] == 'w' ? 2 << pos : 0
+            mode |= permissions[9 - pos - 1] == 'x' ? 1 << pos : 0
+            return mode
+        }
+        return m
     }
 }
