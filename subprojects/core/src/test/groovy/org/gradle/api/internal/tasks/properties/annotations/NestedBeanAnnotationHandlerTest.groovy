@@ -112,7 +112,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
 
         then:
         1 * value.call() >> nestedBean
-        1 * context.addNested(nestedPropertyName, nestedBean)
+        1 * context.addNested(nestedBean)
         0 * _
     }
 }
