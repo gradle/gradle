@@ -16,9 +16,9 @@
 package org.gradle.api.internal.tasks.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
 

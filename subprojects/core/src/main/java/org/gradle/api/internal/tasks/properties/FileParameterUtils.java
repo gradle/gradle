@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.fingerprint.InputNormalizer;
 import org.gradle.internal.fingerprint.Normalizer;
+import org.gradle.internal.properties.InputFilePropertyType;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;

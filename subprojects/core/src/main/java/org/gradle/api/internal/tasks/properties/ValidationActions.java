@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.properties;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.GeneratedSubclass;
+import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.PropertyProblemBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;

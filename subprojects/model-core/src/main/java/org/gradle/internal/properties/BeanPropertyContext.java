@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.internal.properties;
 
-public enum InputFilePropertyType {
-    FILE,
-    DIRECTORY,
-    FILES
+public interface BeanPropertyContext {
+    void addNested(String propertyName, Object bean);
 }

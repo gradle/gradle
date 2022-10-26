@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 /**
