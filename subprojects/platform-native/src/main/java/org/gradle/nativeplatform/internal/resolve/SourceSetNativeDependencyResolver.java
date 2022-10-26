@@ -52,38 +52,34 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
         if (sourceSet instanceof HeaderExportingSourceSet) {
             return new LanguageSourceSetNativeDependencySet((HeaderExportingSourceSet) sourceSet, fileCollectionFactory);
         }
-        return new EmptyNativeDependencySet(fileCollectionFactory);
+        return EmptyNativeDependencySet.INSTANCE;
     }
 
     private static class EmptyNativeDependencySet implements NativeDependencySet {
-        private final FileCollectionFactory fileCollectionFactory;
 
-        public EmptyNativeDependencySet(FileCollectionFactory fileCollectionFactory) {
-            this.fileCollectionFactory = fileCollectionFactory;
-        }
+        private static final NativeDependencySet INSTANCE = new EmptyNativeDependencySet();
 
         @Override
         public FileCollection getIncludeRoots() {
-            return fileCollectionFactory.empty();
+            return FileCollectionFactory.empty();
         }
 
         @Override
         public FileCollection getLinkFiles() {
-            return fileCollectionFactory.empty();
+            return FileCollectionFactory.empty();
         }
 
         @Override
         public FileCollection getRuntimeFiles() {
-            return fileCollectionFactory.empty();
+            return FileCollectionFactory.empty();
         }
     }
 
-    private static class LanguageSourceSetNativeDependencySet extends EmptyNativeDependencySet {
+    private static class LanguageSourceSetNativeDependencySet implements NativeDependencySet {
         private final HeaderExportingSourceSet sourceSet;
         private final FileCollectionFactory fileCollectionFactory;
 
         private LanguageSourceSetNativeDependencySet(HeaderExportingSourceSet sourceSet, FileCollectionFactory fileCollectionFactory) {
-            super(fileCollectionFactory);
             this.sourceSet = sourceSet;
             this.fileCollectionFactory = fileCollectionFactory;
         }
@@ -91,6 +87,16 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
         @Override
         public FileCollection getIncludeRoots() {
             return fileCollectionFactory.create(new HeaderFileCollection());
+        }
+
+        @Override
+        public FileCollection getLinkFiles() {
+            return FileCollectionFactory.empty();
+        }
+
+        @Override
+        public FileCollection getRuntimeFiles() {
+            return FileCollectionFactory.empty();
         }
 
         private class HeaderFileCollection implements MinimalFileSet, Buildable {

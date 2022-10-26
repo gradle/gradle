@@ -57,12 +57,16 @@ public interface FileCollectionFactory {
     /**
      * Creates an empty {@link FileCollection}
      */
-    FileCollectionInternal empty(String displayName);
+    static FileCollectionInternal empty(String displayName) {
+        return new EmptyFileCollection(displayName);
+    }
 
     /**
      * Creates an empty {@link FileCollection}
      */
-    FileCollectionInternal empty();
+    static FileCollectionInternal empty() {
+        return EmptyFileCollection.INSTANCE;
+    }
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
@@ -156,4 +160,12 @@ public interface FileCollectionFactory {
     FileTreeInternal treeOf(List<? extends FileTreeInternal> fileTrees);
 
     FileTreeInternal treeOf(MinimalFileTree tree);
+
+    static FileTreeInternal emptyTree() {
+        return EmptyFileTree.INSTANCE;
+    }
+
+    static FileTreeInternal emptyTree(String displayName) {
+        return new EmptyFileTree(displayName);
+    }
 }
