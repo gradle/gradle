@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.TransformAction;
-import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
+import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;

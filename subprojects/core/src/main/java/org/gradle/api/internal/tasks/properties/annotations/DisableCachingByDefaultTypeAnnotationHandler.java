@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.work.DisableCachingByDefault;
 

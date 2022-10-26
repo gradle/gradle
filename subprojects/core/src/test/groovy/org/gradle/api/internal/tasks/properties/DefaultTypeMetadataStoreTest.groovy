@@ -26,7 +26,6 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.internal.IConventionAware
-import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Property
@@ -47,6 +46,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler
+import org.gradle.internal.properties.annotations.TypeAnnotationHandler
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.PropertyMetadata
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
