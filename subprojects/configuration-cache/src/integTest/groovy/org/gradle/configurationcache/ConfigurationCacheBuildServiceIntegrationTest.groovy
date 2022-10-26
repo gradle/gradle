@@ -123,7 +123,6 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
                     @$ServiceReference.name("counter")
                     public abstract $Property.name<CountingService> getCountingService();
 
-                    @$Inject.name
                     public CountingTask() {}
 
                     @$TaskAction.name
@@ -137,7 +136,6 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
 
                     private ${AtomicInteger.name} count = new ${AtomicInteger.name}();
 
-                    @$Inject.name
                     public CountingService() {}
 
                     public int increment() {
@@ -197,7 +195,6 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
                     $BuildService.name<${BuildServiceParameters.name}.None>,
                     $OperationCompletionListener.name {
 
-                    @$Inject.name
                     public ListenerBuildService() {}
 
                     @Override
@@ -278,7 +275,6 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
                     $BuildService.name<ProbeServiceParameters>,
                     $OperationCompletionListener.name {
 
-                    @$Inject.name
                     public ProbeService() {}
 
                     public void probe(String eventName, String taskPath) {
@@ -302,7 +298,6 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
                     @$Internal.name
                     public abstract $Property.name<ProbeService> getProbeService();
 
-                    @$Inject.name
                     public ProbeTask() {}
 
                     @$TaskAction.name

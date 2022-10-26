@@ -80,6 +80,9 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
         if (!(thisProvider instanceof BuildServiceProvider && anotherProvider instanceof BuildServiceProvider)) {
             return false;
         }
+        if (thisProvider == anotherProvider) {
+            return true;
+        }
         BuildServiceProvider thisBuildServiceProvider = (BuildServiceProvider) thisProvider;
         BuildServiceProvider otherBuildServiceProvider = (BuildServiceProvider) anotherProvider;
         return thisBuildServiceProvider.getName().equals(otherBuildServiceProvider.getName()) && thisBuildServiceProvider.getType() == otherBuildServiceProvider.getType();

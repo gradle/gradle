@@ -145,7 +145,9 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             task named(type: Consumer) {
                 // reference will be set by name
                 doLast {
-                    assert !requiredServices.requiredServices.isEmpty()
+                    assert requiredServices.requiredServices.any { service ->
+                        service.type == CountingService
+                    }
                 }
             }
         """
@@ -833,7 +835,6 @@ service: closed with value 12
         then:
         dest.file
     }
-
 
     def "task cannot use build service for #annotationType property"() {
         serviceImplementation()

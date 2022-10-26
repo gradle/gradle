@@ -25,12 +25,10 @@ import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class DefaultTaskRequiredServices implements TaskRequiredServices {
@@ -58,9 +56,9 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
 
     @Override
     public void visitRegisteredProperties(PropertyVisitor visitor) {
-        Set<Provider<? extends BuildService<?>>> tmpServicesRegistered = servicesRegistered;
-        if (tmpServicesRegistered != null) {
-            for (Provider<? extends BuildService<?>> next: tmpServicesRegistered) {
+        Set<Provider<? extends BuildService<?>>> servicesRegistered = this.servicesRegistered;
+        if (servicesRegistered != null) {
+            for (Provider<? extends BuildService<?>> next: servicesRegistered) {
                 visitor.visitServiceReference(next, /* no name provided for explicit registrations */ null);
             }
         }
@@ -90,14 +88,6 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
         return referenceProvider;
     }
 
-    private void visitAnnotatedProperties(BiConsumer<Provider<? extends BuildService<?>>, String> visitor) {
-        TaskPropertyUtils.visitAnnotatedProperties(propertyWalker, task, TypeValidationContext.NOOP, new PropertyVisitor.Adapter() {
-            @Override
-            public void visitServiceReference(Provider<? extends BuildService<?>> referenceProvider, String serviceName) {
-            visitor.accept(referenceProvider, serviceName);
-            }
-        });
-    }
     private void visitServiceReferences(Consumer<Provider<? extends BuildService<?>>> visitor) {
         TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
             @Override

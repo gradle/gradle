@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.services.internal;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -59,6 +58,4 @@ public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServi
     public int getMaxUsages() {
         return maxUsages;
     }
-
-
 }
