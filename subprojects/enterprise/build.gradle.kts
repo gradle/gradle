@@ -16,7 +16,6 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":core-api"))
     implementation(project(":execution"))
-    implementation(project(":configuration-cache"))
     implementation(project(":file-collections"))
     implementation(project(":jvm-services"))
     implementation(project(":launcher"))
@@ -37,7 +36,6 @@ dependencies {
 
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":internal-integ-testing"))
-    integTestImplementation(testFixtures(project(":core")))
 
     // Dependencies of the integ test fixtures
     integTestImplementation(project(":build-option"))

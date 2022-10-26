@@ -16,7 +16,6 @@
 
 package org.gradle.internal.enterprise.impl
 
-import org.gradle.configurationcache.InputTrackingState
 import spock.lang.Specification
 
 import java.util.concurrent.FutureTask
@@ -26,7 +25,7 @@ class DefaultGradleEnterprisePluginBackgroundJobExecutorsTest extends Specificat
     DefaultGradleEnterprisePluginBackgroundJobExecutors jobExecutors
 
     void setup() {
-        jobExecutors = new DefaultGradleEnterprisePluginBackgroundJobExecutors(new InputTrackingState())
+        jobExecutors = new DefaultGradleEnterprisePluginBackgroundJobExecutors()
     }
 
     void cleanup() {
