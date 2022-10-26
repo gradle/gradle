@@ -48,6 +48,11 @@ import static org.gradle.api.internal.tasks.properties.annotations.PropertyAnnot
 
 public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
+    public Kind getKind() {
+        return Kind.INPUT;
+    }
+
+    @Override
     public boolean isPropertyRelevant() {
         return true;
     }

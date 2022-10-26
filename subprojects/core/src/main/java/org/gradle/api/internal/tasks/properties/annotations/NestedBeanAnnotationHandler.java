@@ -35,6 +35,10 @@ import java.lang.annotation.Annotation;
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 
 public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
+    @Override
+    public Kind getKind() {
+        return Kind.OTHER;
+    }
 
     @Override
     public Class<? extends Annotation> getAnnotationType() {
