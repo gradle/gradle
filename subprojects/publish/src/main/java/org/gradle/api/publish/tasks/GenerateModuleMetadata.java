@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
@@ -186,7 +185,6 @@ public class GenerateModuleMetadata extends DefaultTask {
      *
      * @since 7.0
      */
-    @Incubating
     @Input
     public SetProperty<String> getSuppressedValidationErrors() {
         return suppressedValidationErrors;

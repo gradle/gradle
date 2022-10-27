@@ -789,4 +789,41 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("$artifactId-${version}-c.txt").assertExists()
         m2RepoFile("$artifactId-${version}-c.txt.asc").assertExists()
     }
+
+    @ToBeFixedForConfigurationCache
+    @Issue([
+        "https://github.com/gradle/gradle/issues/21857",
+        "https://github.com/gradle/gradle/issues/22375"
+    ])
+    def "sign publication should be idempotent"() {
+        given:
+        buildFile << """
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    mavenJava(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications.mavenJava
+                sign publishing.publications.mavenJava
+            }
+        """
+
+        when:
+        run "signMavenJavaPublication"
+
+        then:
+        executedAndNotSkipped(":signMavenJavaPublication")
+
+        and:
+        file("build", "libs", "sign-1.0.jar.asc").text
+        file("build", "publications", "mavenJava", "pom-default.xml.asc").text
+    }
 }
