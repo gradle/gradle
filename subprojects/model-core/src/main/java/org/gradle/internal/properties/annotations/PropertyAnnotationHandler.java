@@ -16,7 +16,6 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.properties.BeanPropertyContext;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.reflect.AnnotationCategory;
@@ -57,6 +56,10 @@ public interface PropertyAnnotationHandler {
      * Visit the value of a property with this annotation attached.
      */
     void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context);
+
+    interface BeanPropertyContext {
+        void addNested(Object bean);
+    }
 
     /**
      * Visits problems associated with the given property, if any.

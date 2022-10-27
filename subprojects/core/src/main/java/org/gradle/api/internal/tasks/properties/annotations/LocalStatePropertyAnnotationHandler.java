@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.LocalState;
-import org.gradle.internal.properties.BeanPropertyContext;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;

@@ -21,7 +21,6 @@ import org.gradle.api.services.BuildService;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.Cast;
-import org.gradle.internal.properties.BeanPropertyContext;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
