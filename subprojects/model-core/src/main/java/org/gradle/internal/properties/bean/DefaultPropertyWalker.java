@@ -18,7 +18,7 @@ package org.gradle.internal.properties.bean;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.properties.TypeMetadataStore;
+import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.ArrayDeque;

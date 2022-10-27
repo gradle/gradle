@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.properties.annotations;
 
-package org.gradle.api.internal.tasks.properties;
-
-import org.gradle.internal.properties.annotations.TypeMetadataStore;
-import org.gradle.internal.properties.bean.PropertyWalker;
-
-/**
- * A scheme, or strategy, for inspecting object graphs.
- *
- * <p>Instances are created using a {@link InspectionSchemeFactory}.</p>
- */
-public interface InspectionScheme {
-    PropertyWalker getPropertyWalker();
-
-    TypeMetadataStore getMetadataStore();
-}
+import org.gradle.api.NonNullApi;
