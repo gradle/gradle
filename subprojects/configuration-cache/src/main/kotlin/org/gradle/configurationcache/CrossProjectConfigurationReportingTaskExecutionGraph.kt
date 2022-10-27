@@ -65,15 +65,25 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
         delegate.whenReady(action.wrap())
     }
 
-    override fun hasTask(path: String): Boolean {
-        // If the queried task is in the referrer project, it's basically not a case of cross-project configuration;
-        // If there are only tasks from the current project in the task graph, then it's safe, too.
-        val parentPath = Path.path(path).parent?.path
-        if (parentPath != referrerProject.path && delegate.allTasks.any { it.project.path != parentPath }) {
-            val coupledProjects = listOfNotNull(parentPath).mapNotNull { referrerProject.findProject(it) }
-            reportCrossProjectTaskAccess(coupledProjects, path)
+    override fun findTask(path: String?): Task? {
+        return delegate.findTask(path).also { task ->
+            if (task == null) {
+                // check whether the path refers to a different project
+                val parentPath = path?.let(Path::path)?.parent?.path
+                if (parentPath != referrerProject.path) {
+                    // even though the task was not found, the current project is coupled with the other project:
+                    // if the configuration of that project changes, the result of this call might be different
+                    val coupledProjects = listOfNotNull(parentPath?.let { referrerProject.findProject(it) })
+                    reportCrossProjectTaskAccess(coupledProjects, path)
+                }
+            } else {
+                checkCrossProjectTaskAccess(task)
+            }
         }
-        return delegate.hasTask(path)
+    }
+
+    override fun hasTask(path: String): Boolean {
+        return findTask(path) != null
     }
 
     private
