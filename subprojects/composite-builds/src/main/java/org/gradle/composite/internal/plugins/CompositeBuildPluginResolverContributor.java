@@ -98,7 +98,6 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
                 return PluginResult.NO_INCLUDED_BUILDS;
             }
             for (IncludedBuildState build : includedBuilds) {
-                buildIncluder.prepareForPluginResolution(build);
                 Optional<PluginResolution> pluginResolution = build.withState(gradleInternal -> LocalPluginResolution.resolvePlugin(gradleInternal, requestedPluginId));
                 if (pluginResolution.isPresent()) {
                     return new ResolvedPlugin(pluginResolution.get());
@@ -110,7 +109,6 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         private PluginResolution resolveFromIncludedPluginBuilds(PluginId requestedPluginId) {
             for (IncludedBuildState build : buildIncluder.getRegisteredPluginBuilds()) {
                 buildIncluder.prepareForPluginResolution(build);
-
                 Optional<PluginResolution> pluginResolution = build.withState(gradleInternal -> LocalPluginResolution.resolvePlugin(gradleInternal, requestedPluginId));
                 if (pluginResolution.isPresent()) {
                     return pluginResolution.get();

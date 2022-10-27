@@ -97,11 +97,6 @@ public interface BuildStateRegistry {
     void visitBuilds(Consumer<? super BuildState> visitor);
 
     /**
-     * Register dependency substitutions for the given build.
-     */
-    void registerSubstitutionsFor(CompositeBuildParticipantBuildState build);
-
-    /**
      * Restarts each build in the tree.
      */
     void resetStateForAllBuilds();
