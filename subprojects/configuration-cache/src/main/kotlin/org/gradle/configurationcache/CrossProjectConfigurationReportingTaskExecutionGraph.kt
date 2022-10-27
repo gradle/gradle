@@ -42,13 +42,21 @@ import java.util.function.Consumer
 
 
 class CrossProjectConfigurationReportingTaskExecutionGraph(
-    private val delegate: TaskExecutionGraphInternal,
+    taskGraph: TaskExecutionGraphInternal,
     private val referrerProject: ProjectInternal,
     private val problems: ProblemsListener,
     private val crossProjectModelAccess: CrossProjectModelAccess,
     private val coupledProjectsListener: CoupledProjectsListener,
     private val userCodeContext: UserCodeApplicationContext
 ) : TaskExecutionGraphInternal {
+
+    private
+    val delegate: TaskExecutionGraphInternal = when (taskGraph) {
+        // 'unwrapping' ensures that there are no chains of delegation
+        is CrossProjectConfigurationReportingTaskExecutionGraph -> taskGraph.delegate
+        else -> taskGraph
+    }
+
     override fun addTaskExecutionGraphListener(listener: TaskExecutionGraphListener) {
         delegate.addTaskExecutionGraphListener(listener.wrap())
     }
