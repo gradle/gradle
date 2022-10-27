@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.TypeScheme;
 import org.gradle.internal.instantiation.InstantiationScheme;
-import org.gradle.internal.properties.TypeMetadataStore;
+import org.gradle.internal.properties.annotations.TypeMetadataStore;
 
 public class ArtifactTransformParameterScheme implements TypeScheme {
     private final InstantiationScheme instantiationScheme;

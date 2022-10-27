@@ -19,7 +19,7 @@ package org.gradle.internal.properties.bean;
 import com.google.common.base.Equivalence;
 import com.google.common.base.Preconditions;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.properties.TypeMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import javax.annotation.Nullable;
