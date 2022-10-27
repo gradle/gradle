@@ -260,7 +260,8 @@ WARNING: Note that the Signing plugin is not yet compatible with the <<configura
 
 [TIP]
 ====
-`publishToMavenLocal` do not create checksum files to _$USER_HOME/.m2/repository_ since it works in Maven itself. If you want to validate locally, please validate checksum files `<project directory>/build` directory, which `publish` task generates.
+`publishToMavenLocal` does not create checksum files in `$USER_HOME/.m2/repository`.
+Instead, `publishToMavenLocal` creates checksum files in the `<project directory>/build` directory during the `publish` task.
 ====
 
 [[publishing_maven:deferred_configuration]]
