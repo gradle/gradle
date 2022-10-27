@@ -60,7 +60,7 @@ import static org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation
 /**
  * The global signing configuration for a project.
  */
-public class SigningExtension {
+public abstract class SigningExtension {
 
     /**
      * The name of the configuration that all signature artifacts will be placed into ("signatures")

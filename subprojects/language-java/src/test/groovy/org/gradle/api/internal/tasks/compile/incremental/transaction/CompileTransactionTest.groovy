@@ -50,7 +50,7 @@ class CompileTransactionTest extends Specification {
         stashDir = new File(transactionDir, "stash-dir")
         spec = new DefaultJavaCompileSpec()
         spec.setTempDir(temporaryFolder)
-        spec.setCompileOptions(new CompileOptions(TestUtil.objectFactory()))
+        spec.setCompileOptions(TestUtil.newInstance(CompileOptions, TestUtil.objectFactory()))
         spec.setDestinationDir(createNewDirectory(file("classes")))
         spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(true)
     }

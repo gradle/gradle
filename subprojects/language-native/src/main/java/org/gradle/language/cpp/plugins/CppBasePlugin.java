@@ -47,7 +47,7 @@ import java.util.concurrent.Callable;
  * @since 4.1
  */
 @NonNullApi
-public class CppBasePlugin implements Plugin<Project> {
+public abstract class CppBasePlugin implements Plugin<Project> {
     private final ProjectPublicationRegistry publicationRegistry;
 
     @Inject

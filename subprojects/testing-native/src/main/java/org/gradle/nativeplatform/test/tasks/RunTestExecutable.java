@@ -31,7 +31,7 @@ import java.io.File;
  * Runs a compiled and installed test executable.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> implements VerificationTask {
+public abstract class RunTestExecutable extends AbstractExecTask<RunTestExecutable> implements VerificationTask {
     /**
      * The directory where the results should be generated.
      */

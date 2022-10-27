@@ -80,7 +80,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  * @since 4.3
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateModuleMetadata extends DefaultTask {
+public abstract class GenerateModuleMetadata extends DefaultTask {
     private final Transient<Property<Publication>> publication;
     private final Transient<ListProperty<Publication>> publications;
     private final RegularFileProperty outputFile;

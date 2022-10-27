@@ -46,7 +46,7 @@ import static java.util.Collections.singleton;
  * @since 2.10
  */
 @UntrackedTask(because = "Produces only non-cacheable console output")
-public class BuildEnvironmentReportTask extends DefaultTask {
+public abstract class BuildEnvironmentReportTask extends DefaultTask {
 
     public static final String TASK_NAME = "buildEnvironment";
 

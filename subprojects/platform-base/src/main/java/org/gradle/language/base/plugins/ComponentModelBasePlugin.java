@@ -91,7 +91,7 @@ import static com.google.common.base.Strings.emptyToNull;
  * For each binary instance added to the binaries container, registers a lifecycle task to create that binary.
  */
 @Incubating
-public class ComponentModelBasePlugin implements Plugin<Project> {
+public abstract class ComponentModelBasePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {

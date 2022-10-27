@@ -48,7 +48,7 @@ import java.util.Map;
  */
 @Incubating
 @NonNullApi
-public class CppLangPlugin implements Plugin<Project> {
+public abstract class CppLangPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         PluginManager pluginManager = project.getPluginManager();

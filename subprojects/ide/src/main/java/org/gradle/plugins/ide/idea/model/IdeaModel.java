@@ -31,11 +31,11 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * <p>
  * See the examples in docs for {@link IdeaModule} or {@link IdeaProject}.
  */
-public class IdeaModel {
+public abstract class IdeaModel {
 
     private IdeaModule module;
     private IdeaProject project;
-    private IdeaWorkspace workspace = new IdeaWorkspace();
+    private IdeaWorkspace workspace;
     private String targetVersion;
 
     /**

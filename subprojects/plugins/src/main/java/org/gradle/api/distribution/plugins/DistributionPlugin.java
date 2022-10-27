@@ -49,7 +49,7 @@ import java.util.concurrent.Callable;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/distribution_plugin.html">Distribution plugin reference</a>
  */
-public class DistributionPlugin implements Plugin<Project> {
+public abstract class DistributionPlugin implements Plugin<Project> {
     /**
      * Name of the main distribution
      */
