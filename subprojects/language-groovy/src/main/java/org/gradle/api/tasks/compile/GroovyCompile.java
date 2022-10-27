@@ -28,6 +28,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
+import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
@@ -134,8 +135,15 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         checkGroovyClasspathIsNonEmpty();
         warnIfCompileAvoidanceEnabled();
         GroovyJavaJointCompileSpec spec = createSpec();
+        maybeDisableIncrementalCompilationAfterFailure(spec);
         WorkResult result = getCompiler(spec, inputChanges).execute(spec);
         setDidWork(result.getDidWork());
+    }
+
+    private void maybeDisableIncrementalCompilationAfterFailure(GroovyJavaJointCompileSpec spec) {
+        if (CommandLineJavaCompileSpec.class.isAssignableFrom(spec.getClass())) {
+            spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(false);
+        }
     }
 
     /**
