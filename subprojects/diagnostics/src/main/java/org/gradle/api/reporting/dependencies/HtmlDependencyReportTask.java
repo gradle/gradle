@@ -18,7 +18,6 @@ package org.gradle.api.reporting.dependencies;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -85,7 +84,6 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
      * @since 7.1
      */
     @Internal
-    @Incubating
     public DirectoryProperty getProjectReportDirectory() {
         return reportDir;
     }
