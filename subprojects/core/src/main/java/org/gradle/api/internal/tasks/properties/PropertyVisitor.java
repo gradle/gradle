@@ -42,7 +42,7 @@ public interface PropertyVisitor {
     /**
      * Visits a service reference. Service references may or may not be declared with a name.
      */
-    void visitServiceReference(Provider<? extends BuildService<?>> value, @Nullable String serviceName);
+    void visitServiceReference(String propertyName, boolean optional, Provider<? extends BuildService<?>> value, @Nullable String serviceName);
 
     class Adapter implements PropertyVisitor {
         @Override
@@ -66,7 +66,7 @@ public interface PropertyVisitor {
         }
 
         @Override
-        public void visitServiceReference(Provider<? extends BuildService<?>> value, @Nullable String serviceName) {
+        public void visitServiceReference(String propertyName, boolean optional, Provider<? extends BuildService<?>> value, @Nullable String serviceName) {
         }
     }
 }

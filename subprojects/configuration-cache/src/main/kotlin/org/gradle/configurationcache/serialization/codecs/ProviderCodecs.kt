@@ -169,6 +169,7 @@ class BuildServiceProviderCodec(
             writeClass(serviceDetails.implementationType)
             write(serviceDetails.parameters)
             writeInt(serviceDetails.maxUsages)
+            writeBoolean(serviceDetails.isResolved)
         }
     }
 
@@ -179,7 +180,13 @@ class BuildServiceProviderCodec(
             val implementationType = readClassOf<BuildService<*>>()
             val parameters = read() as BuildServiceParameters?
             val maxUsages = readInt()
-            buildServiceRegistryOf(buildIdentifier).register(name, implementationType, parameters, maxUsages)
+            val isResolved = readBoolean()
+            val read = if (isResolved) {
+                buildServiceRegistryOf(buildIdentifier).register(name, implementationType, parameters, maxUsages)
+            } else {
+                buildServiceRegistryOf(buildIdentifier).consume(name, implementationType)
+            }
+            read
         }
 
     private

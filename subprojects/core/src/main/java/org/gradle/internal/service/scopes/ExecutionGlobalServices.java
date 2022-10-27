@@ -114,14 +114,14 @@ public class ExecutionGlobalServices {
         OutputDirectories.class,
         OutputDirectory.class,
         OutputFile.class,
-        OutputFiles.class
+        OutputFiles.class,
+        ServiceReference.class
     );
 
     @VisibleForTesting
     public static final ImmutableSet<Class<? extends Annotation>> IGNORED_METHOD_ANNOTATIONS = ImmutableSet.of(
         Internal.class,
-        ReplacedBy.class,
-        ServiceReference.class
+        ReplacedBy.class
     );
 
     TaskExecutionTracker createTaskExecutionTracker(BuildOperationAncestryTracker ancestryTracker, BuildOperationListenerManager operationListenerManager) {

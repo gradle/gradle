@@ -197,6 +197,15 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         });
     }
 
+    @Override
+    public BuildServiceProvider<?, ?> consume(String name, Class<? extends BuildService<?>> implementationType) {
+        return doConsume(name, Cast.uncheckedCast(implementationType));
+    }
+
+    private <T extends BuildService<BuildServiceParameters>> BuildServiceProvider<T, BuildServiceParameters> doConsume(String name, Class<T> implementationType) {
+        return new ConsumedBuildServiceProvider<>(buildIdentifier, name, implementationType, services);
+    }
+
     private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(
         String name,
         Class<T> implementationType,
@@ -318,13 +327,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         }
     }
 
-    private static class ServiceCleanupListener extends BuildAdapter {
-        private final RegisteredBuildServiceProvider<?, ?> provider;
-
-        ServiceCleanupListener(RegisteredBuildServiceProvider<?, ?> provider) {
-            this.provider = provider;
-        }
-
+    private class ServiceCleanupListener extends BuildAdapter {
         @SuppressWarnings("deprecation")
         @Override
         public void buildFinished(BuildResult result) {

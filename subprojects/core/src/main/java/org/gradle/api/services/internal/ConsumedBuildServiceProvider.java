@@ -16,6 +16,7 @@
 
 package org.gradle.api.services.internal;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistration;
@@ -27,19 +28,21 @@ import javax.annotation.Nullable;
 
 /**
  * A build service that is consumed.
- *
- *
  */
-public class ConsumedBuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends BuildServiceProvider<T, P> {
-
+public class ConsumedBuildServiceProvider<T extends BuildService<BuildServiceParameters>> extends BuildServiceProvider<T, BuildServiceParameters> {
     protected final ServiceRegistry internalServices;
     private final String serviceName;
     private final Class<T> serviceType;
-    private BuildServiceProvider<T, P> serviceProvider;
+    private final BuildIdentifier buildIdentifier;
+    private BuildServiceProvider<T, BuildServiceParameters> resolvedProvider;
 
-    public ConsumedBuildServiceProvider(String serviceName,
-                                        Class<T> serviceType,
-                                        ServiceRegistry internalServices) {
+    public ConsumedBuildServiceProvider(
+        BuildIdentifier buildIdentifier,
+        String serviceName,
+        Class<T> serviceType,
+        ServiceRegistry internalServices
+    ) {
+        this.buildIdentifier = buildIdentifier;
         this.serviceName = serviceName;
         this.serviceType = serviceType;
         this.internalServices = internalServices;
@@ -47,16 +50,25 @@ public class ConsumedBuildServiceProvider<T extends BuildService<P>, P extends B
 
     @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-        return getServiceProvider().calculateValue(consumer);
+        BuildServiceProvider<T, ?> resolvedProvider = resolve();
+        if (resolvedProvider == null) {
+            return Value.missing();
+        }
+        return resolvedProvider.calculateValue(consumer);
     }
 
-    private BuildServiceProvider<T, P> getServiceProvider() {
-        if (serviceProvider == null) {
+    @Nullable
+    private BuildServiceProvider<T, BuildServiceParameters> resolve() {
+        if (resolvedProvider == null) {
             BuildServiceRegistry buildServiceRegistry = internalServices.get(BuildServiceRegistry.class);
-            BuildServiceRegistration<?, ?> registration = buildServiceRegistry.getRegistrations().getByName(serviceName);
-            serviceProvider = Cast.uncheckedCast(registration.getService());
+            BuildServiceRegistration<?, ?> registration = buildServiceRegistry.getRegistrations().findByName(serviceName);
+            if (registration == null) {
+                return null;
+            }
+            // resolved, so remember it
+            resolvedProvider = Cast.uncheckedCast(registration.getService());
         }
-        return serviceProvider;
+        return resolvedProvider;
     }
 
     @Nullable
@@ -70,7 +82,8 @@ public class ConsumedBuildServiceProvider<T extends BuildService<P>, P extends B
     }
 
     @Override
-    public BuildServiceDetails<T, P> getServiceDetails() {
-        return getServiceProvider().getServiceDetails();
+    public BuildServiceDetails<T, BuildServiceParameters> getServiceDetails() {
+        BuildServiceProvider<T, BuildServiceParameters> resolvedProvider = resolve();
+        return resolvedProvider != null ? resolvedProvider.getServiceDetails() : new BuildServiceDetails<>(buildIdentifier, serviceName, serviceType);
     }
 }
