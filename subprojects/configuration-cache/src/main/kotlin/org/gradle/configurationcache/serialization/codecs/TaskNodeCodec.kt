@@ -105,7 +105,7 @@ class TaskNodeCodec(
                     }
                     writeDestroyablesOf(task)
                     writeLocalStateOf(task)
-                    writeRegisteredServicesOf(task)
+                    writeRequiredServices(task)
                 }
             }
         }
@@ -131,7 +131,7 @@ class TaskNodeCodec(
             readRegisteredPropertiesOf(task)
             readDestroyablesOf(task)
             readLocalStateOf(task)
-            readRegisteredServicesOf(task)
+            readRequiredServices(task)
         }
 
         return task
@@ -169,12 +169,12 @@ class TaskNodeCodec(
     }
 
     private
-    suspend fun WriteContext.writeRegisteredServicesOf(task: TaskInternal) {
-        writeCollection(task.requiredServices.requiredServices)
+    suspend fun WriteContext.writeRequiredServices(task: TaskInternal) {
+        writeCollection(task.requiredServices.elements)
     }
 
     private
-    suspend fun ReadContext.readRegisteredServicesOf(task: TaskInternal) {
+    suspend fun ReadContext.readRequiredServices(task: TaskInternal) {
         readCollection {
             task.usesService(readNonNull())
         }

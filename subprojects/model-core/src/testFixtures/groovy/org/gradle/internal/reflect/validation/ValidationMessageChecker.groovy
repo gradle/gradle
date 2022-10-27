@@ -958,6 +958,4 @@ trait ValidationMessageChecker {
             super(checker)
         }
     }
-
-
 }

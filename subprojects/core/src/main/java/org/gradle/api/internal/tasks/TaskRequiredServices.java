@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 
@@ -32,12 +31,7 @@ public interface TaskRequiredServices {
      * Returns services required, be it using {@link org.gradle.api.Task#usesService} or
      * by annotating a property as {@link org.gradle.api.services.ServiceReference}.
      */
-    Set<Provider<? extends BuildService<?>>> getRequiredServices();
-
-    /**
-     * Visits service referencing properties explicitly declared via {@link org.gradle.api.Task#usesService(Provider)}.
-     */
-    void visitRegisteredProperties(PropertyVisitor visitor);
+    Set<Provider<? extends BuildService<?>>> getElements();
 
     /**
      * Returns whether a service is required, be it using {@link org.gradle.api.Task#usesService} or

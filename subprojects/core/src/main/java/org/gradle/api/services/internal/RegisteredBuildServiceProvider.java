@@ -153,7 +153,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
                             try {
                                 ((AutoCloseable) t).close();
                             } catch (Exception e) {
-                                throw new ServiceLifecycleException("Failed to stop service '" + name + "'.", e);
+                                throw new ServiceLifecycleException("Failed to stop service '" + getName() + "'.", e);
                             }
                         }
                     });

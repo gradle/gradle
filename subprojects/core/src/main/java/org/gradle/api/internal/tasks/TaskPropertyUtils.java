@@ -48,7 +48,7 @@ public class TaskPropertyUtils {
         task.getOutputs().visitRegisteredProperties(visitor);
         ((TaskDestroyablesInternal) task.getDestroyables()).visitRegisteredProperties(visitor);
         ((TaskLocalStateInternal) task.getLocalState()).visitRegisteredProperties(visitor);
-        task.getRequiredServices().visitRegisteredProperties(visitor);
+        // build services declared via Task#usesService are not visited as there is no use case for that
     }
 
     static void visitAnnotatedProperties(PropertyWalker propertyWalker, TaskInternal task, TypeValidationContext validationContext, PropertyVisitor visitor) {

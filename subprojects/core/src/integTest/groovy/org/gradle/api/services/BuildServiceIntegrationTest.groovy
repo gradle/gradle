@@ -16,15 +16,21 @@
 
 package org.gradle.api.services
 
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.LocalState
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
@@ -35,6 +41,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheTest
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
+import spock.lang.Issue
 
 import javax.inject.Inject
 
@@ -84,6 +91,140 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'broken'
     }
 
+    @Issue("https://github.com/gradle/configuration-cache/issues/97")
+    def "does nag when service is used indirectly via another service even if task declares service reference and feature preview is enabled"() {
+        given:
+        serviceImplementation()
+        buildFile """
+            abstract class WrapperService implements ${BuildService.name}<${BuildServiceParameters.None.name}> {
+                @${ServiceReference.name}('counter')
+                abstract Property<CountingService> getCounter()
+
+                public void incrementIndirectly() {
+                    counter.get().increment()
+                }
+            }
+            abstract class Consumer extends DefaultTask {
+                @${ServiceReference.name}('wrapper')
+                abstract Property<WrapperService> getWrapper()
+                @TaskAction
+                def go() {
+                    wrapper.get().incrementIndirectly()
+                }
+            }
+
+            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+                maxParallelUsages = 1
+            }
+
+            gradle.sharedServices.registerIfAbsent("wrapper", WrapperService) {
+                maxParallelUsages = 1
+            }
+
+            task broken(type: Consumer) {
+                // reference will be set by name
+            }
+        """
+        enableStableConfigurationCache()
+        executer.expectDocumentedDeprecationWarning(
+            "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
+                "This behavior has been deprecated. " +
+                "This will fail with an error in Gradle 8.0. " +
+                "Declare the association between the task and the build service using 'Task#usesService'. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
+        )
+
+        expect:
+        succeeds 'broken'
+    }
+
+    @Issue("https://github.com/gradle/configuration-cache/issues/156")
+    def "does nag when service is used by artifact transform parameters and feature preview is enabled"() {
+        given:
+        serviceImplementation()
+        buildFile """
+            plugins {
+                id('java-library')
+            }
+            abstract class CounterTransform implements $TransformAction.name<Parameters> {
+                interface Parameters extends $TransformParameters.name {
+                    @$ServiceReference.name("counter")
+                    abstract Property<CountingService> getCounter()
+                }
+
+                @Override
+                void transform($TransformOutputs.name outputs) {
+                    println "Transforming ${UUID.randomUUID()}"
+                    parameters.counter.get().increment()
+                }
+            }
+
+            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+                maxParallelUsages = 1
+            }
+
+            def artifactType = Attribute.of('artifactType', String)
+            def counted = Attribute.of('counted', Boolean)
+
+            repositories {
+                mavenCentral()
+            }
+
+            configurations.all {
+                afterEvaluate {
+                    attributes.attribute(counted, true)
+                }
+            }
+
+            dependencies {
+                attributesSchema {
+                    attribute(artifactType)
+                }
+
+                artifactTypes.getByName("jar") {
+                    attributes.attribute(counted, false)
+                }
+            }
+
+            dependencies {
+                registerTransform(CounterTransform) {
+                    from.attribute(counted, false).attribute(artifactType, "jar")
+                    to.attribute(counted, true).attribute(artifactType, "jar")
+                }
+            }
+
+            dependencies {
+                implementation 'org.apache.commons:commons-lang3:3.10'
+            }
+        """
+        file("src/main/java").createDir()
+        file("src/main/java/Foo.java").createFile().text = """class Foo {}"""
+        enableStableConfigurationCache()
+        // should not be expected
+        executer.expectDocumentedDeprecationWarning(
+            "Build service 'counter' is being used by task ':compileJava' without the corresponding declaration via 'Task#usesService'. " +
+                "This behavior has been deprecated. " +
+                "This will fail with an error in Gradle 8.0. " +
+                "Declare the association between the task and the build service using 'Task#usesService'. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
+        )
+
+        when:
+        succeeds 'build'
+
+        then:
+        outputContains "Transforming"
+        outputContains """
+service: created with value = 10
+service: value is 11
+        """
+        outputContains """
+service: closed with value 11
+        """
+    }
+
     def "does not nag when service is used by task with an explicit usesService call and feature preview is enabled"() {
         given:
         serviceImplementation()
@@ -112,7 +253,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "does not nag when service is annotated with @ServiceReference (unnamed) and feature preview is enabled"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}()")
+        customTaskUsingServiceViaProperty("@${ServiceReference.name}()")
         buildFile """
             def provider = gradle.sharedServices.registerIfAbsent("counterService", CountingService) {
                 parameters.initial = 10
@@ -132,10 +273,58 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain "'Task#usesService'"
     }
 
+    def "can inject shared build service by name into nested bean property when reference is annotated with @ServiceReference('...')"() {
+        given:
+        serviceImplementation()
+        buildFile """
+            abstract class NestedBean {
+                @${ServiceReference.name}('counter')
+                abstract Property<CountingService> getCounter()
+            }
+            abstract class Consumer extends DefaultTask {
+                @${Nested.name}
+                final Property<NestedBean> nestedCounter = project.objects.property(NestedBean)
+
+                @TaskAction
+                def go() {
+                    assert nestedCounter.present
+                    nestedCounter.get().counter.get().increment()
+                }
+            }
+
+            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+                maxParallelUsages = 1
+            }
+
+            task named(type: Consumer) {
+                // reference will be set by name
+                nestedCounter.convention(providers.provider { objects.newInstance(NestedBean) } )
+                doLast {
+                    assert requiredServices.elements.any { service ->
+                        service instanceof ${BuildServiceProvider.name}
+                    }
+                }
+            }
+        """
+        enableStableConfigurationCache()
+
+        when:
+        succeeds 'named'
+
+        then:
+        outputDoesNotContain "'Task#usesService'"
+        outputContains """
+service: created with value = 10
+service: value is 11
+service: closed with value 11
+        """
+    }
+
     def "can inject shared build service by name when reference is annotated with @ServiceReference('...')"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}('counter')")
+        customTaskUsingServiceViaProperty("@${ServiceReference.name}('counter')")
         buildFile """
             gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
@@ -145,7 +334,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             task named(type: Consumer) {
                 // reference will be set by name
                 doLast {
-                    assert requiredServices.requiredServices.any { service ->
+                    assert requiredServices.elements.any { service ->
                         service.type == CountingService
                     }
                 }
@@ -168,7 +357,7 @@ service: closed with value 11
     def "injection by name can be overridden by explicit convention"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}('counter')")
+        customTaskUsingServiceViaProperty("@${ServiceReference.name}('counter')")
         buildFile """
             gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
@@ -201,7 +390,7 @@ service: closed with value 10001
     def "injection by name works at configuration time"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}('counter')")
+        customTaskUsingServiceViaProperty("@${ServiceReference.name}('counter')")
         buildFile """
             gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
@@ -230,10 +419,66 @@ service: closed with value 12
         """
     }
 
-    def "injection by name fails if service is not found"() {
+    def "injection by name fails validation if required service is not found, even if not used"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}('oneCounter')")
+        buildFile """
+            abstract class Consumer extends DefaultTask {
+                @${ServiceReference.name}('counter')
+                abstract Property<CountingService> getCounter()
+
+                @TaskAction
+                def go() {
+                    println("Service is not used")
+                }
+            }
+            task missingRequiredService(type: Consumer) {}
+        """
+        enableStableConfigurationCache()
+
+        when:
+        fails 'missingRequiredService'
+
+        then:
+        failureDescriptionContains("A problem was found with the configuration of task ':missingRequiredService' (type 'Consumer').")
+        failureDescriptionContains("- Type 'Consumer' property 'counter' doesn't have a configured value.")
+        failureDescriptionContains("Reason: This property isn't marked as optional and no value has been configured.")
+    }
+
+    def "injection by name does not fail validation if service is not found but property marked as @Optional"() {
+        given:
+        serviceImplementation()
+        buildFile """
+            abstract class Consumer extends DefaultTask {
+                @${Optional.name}
+                @${ServiceReference.name}('counter')
+                abstract Property<CountingService> getCounter()
+
+                @TaskAction
+                def go() {
+                    if (counter.getOrNull() == null) {
+                        println("Skipping counting as service not available")
+                    }
+                }
+            }
+            task missingOptionalService(type: Consumer) {}
+        """
+        enableStableConfigurationCache()
+
+        when:
+        succeeds 'missingOptionalService'
+
+        then:
+        outputContains("Skipping counting as service not available")
+    }
+
+    def "injection by name fails if optional service is not found but used"() {
+        given:
+        serviceImplementation()
+        customTaskUsingServiceViaProperty("""
+            @${Optional.name}
+            @${ServiceReference.name}('oneCounter')
+        """)
         buildFile """
             gradle.sharedServices.registerIfAbsent("anotherCounter", CountingService) {
                 parameters.initial = 10
@@ -250,7 +495,8 @@ service: closed with value 12
         fails 'missingService'
 
         then:
-        failure.assertHasCause("BuildServiceRegistration with name 'oneCounter' not found.")
+        failure.assertHasDescription("Execution failed for task ':missingService'")
+        failure.assertHasCause("Cannot query the value of task ':missingService' property 'counter' because it has no value available.")
     }
 
     def "@ServiceReference property must implement BuildService"() {
