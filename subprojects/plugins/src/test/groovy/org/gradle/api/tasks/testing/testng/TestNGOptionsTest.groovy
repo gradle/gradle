@@ -17,6 +17,7 @@ package org.gradle.api.tasks.testing.testng
 
 import org.gradle.api.file.Directory
 import org.gradle.api.file.ProjectLayout
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class TestNGOptionsTest extends Specification {
@@ -26,7 +27,7 @@ class TestNGOptionsTest extends Specification {
             getAsFile() >> new File("projectDir")
         }
     }
-    TestNGOptions testngOptions  = new TestNGOptions(layout)
+    TestNGOptions testngOptions  = TestUtil.newInstance(TestNGOptions, layout)
 
     String[] groups = ['fast', 'unit']
 
@@ -91,7 +92,7 @@ class TestNGOptionsTest extends Specification {
     }
 
     private TestNGOptions testNGOptionsWithPrefix(String prefix, boolean booleanValue, int intValue) {
-        return new TestNGOptions(layout)
+        return TestUtil.newInstance(TestNGOptions, layout)
         .tap {
             setOutputDirectory(new File(prefix + "OutputDirectory"))
             setIncludeGroups([prefix + "IncludedGroup"] as Set)

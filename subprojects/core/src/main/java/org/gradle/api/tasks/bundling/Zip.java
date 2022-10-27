@@ -36,7 +36,7 @@ import java.nio.charset.Charset;
  * The default is to compress the contents of the zip.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class Zip extends AbstractArchiveTask {
+public abstract class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";
     private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
     private boolean allowZip64;

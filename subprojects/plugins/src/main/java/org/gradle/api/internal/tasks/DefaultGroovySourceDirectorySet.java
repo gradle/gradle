@@ -20,8 +20,11 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.tasks.GroovySourceDirectorySet;
 
-public class DefaultGroovySourceDirectorySet extends DefaultSourceDirectorySet implements GroovySourceDirectorySet {
+import javax.inject.Inject;
 
+public abstract class DefaultGroovySourceDirectorySet extends DefaultSourceDirectorySet implements GroovySourceDirectorySet {
+
+    @Inject
     public DefaultGroovySourceDirectorySet(SourceDirectorySet sourceDirectorySet) {
         super(sourceDirectorySet);
     }

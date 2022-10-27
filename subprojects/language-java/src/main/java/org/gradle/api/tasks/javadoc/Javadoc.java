@@ -102,7 +102,7 @@ import static org.gradle.util.internal.GUtil.isTrue;
  * </pre>
  */
 @CacheableTask
-public class Javadoc extends SourceTask {
+public abstract class Javadoc extends SourceTask {
 
     private File destinationDir;
 

@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Options for Scala platform compilation.
  */
-public class BaseScalaCompileOptions extends AbstractOptions {
+public abstract class BaseScalaCompileOptions extends AbstractOptions {
 
     private static final long serialVersionUID = 0;
 
@@ -60,7 +60,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
 
     private List<String> loggingPhases;
 
-    private ScalaForkOptions forkOptions = new ScalaForkOptions();
+    private ScalaForkOptions forkOptions = getObjectFactory().newInstance(ScalaForkOptions.class);
 
     private IncrementalCompileOptions incrementalOptions;
 

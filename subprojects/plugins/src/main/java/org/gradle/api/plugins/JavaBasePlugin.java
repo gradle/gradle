@@ -77,7 +77,7 @@ import java.util.function.Supplier;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/java_plugin.html">Java plugin reference</a>
  */
-public class JavaBasePlugin implements Plugin<Project> {
+public abstract class JavaBasePlugin implements Plugin<Project> {
     public static final String CHECK_TASK_NAME = LifecycleBasePlugin.CHECK_TASK_NAME;
 
     public static final String VERIFICATION_GROUP = LifecycleBasePlugin.VERIFICATION_GROUP;
@@ -140,7 +140,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         DefaultToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
         DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec, jvmPluginServices);
-        project.getConvention().getPlugins().put("java", new DefaultJavaPluginConvention(project, javaPluginExtension));
+        project.getConvention().getPlugins().put("java", project.getObjects().newInstance(DefaultJavaPluginConvention.class, project, javaPluginExtension));
         return javaPluginExtension;
     }
 

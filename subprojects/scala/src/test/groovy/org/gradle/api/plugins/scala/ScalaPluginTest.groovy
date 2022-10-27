@@ -22,6 +22,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.internal.WrapUtil.toLinkedSet
@@ -30,7 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 class ScalaPluginTest extends AbstractProjectBuilderSpec {
 
-    private final ScalaPlugin scalaPlugin = new ScalaPlugin()
+    private final ScalaPlugin scalaPlugin = TestUtil.newInstance(ScalaPlugin)
 
     def appliesTheJavaPluginToTheProject() {
         when:

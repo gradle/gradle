@@ -55,7 +55,7 @@ import static java.util.Collections.emptyList;
  * by enabling the command line option {@code --all}.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class TaskReportTask extends ConventionReportTask {
+public abstract class TaskReportTask extends ConventionReportTask {
 
     private boolean detail;
     private final Property<Boolean> showTypes = getProject().getObjects().property(Boolean.class);

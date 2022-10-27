@@ -98,7 +98,7 @@ public class DefaultObjectFactory implements ObjectFactory {
 
     @Override
     public SourceDirectorySet sourceDirectorySet(final String name, final String displayName) {
-        return new DefaultSourceDirectorySet(name, displayName, patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, DefaultObjectFactory.this);
+        return newInstance(DefaultSourceDirectorySet.class, name, displayName, patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, DefaultObjectFactory.this);
     }
 
     @Override

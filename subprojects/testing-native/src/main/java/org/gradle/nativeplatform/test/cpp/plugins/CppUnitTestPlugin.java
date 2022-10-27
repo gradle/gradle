@@ -65,7 +65,7 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildO
  *
  * @since 4.4
  */
-public class CppUnitTestPlugin implements Plugin<Project> {
+public abstract class CppUnitTestPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final ObjectFactory objectFactory;
