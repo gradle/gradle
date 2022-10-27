@@ -17,6 +17,7 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
+import spock.lang.Issue
 
 class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationSupport {
     CompiledLanguage language = CompiledLanguage.GROOVY
@@ -26,7 +27,8 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         configureGroovyIncrementalCompilation()
     }
 
-    def 'compilation does not fail when Java class in api is changed and affected Java class in impl is referenced through a property of a Groovy class'() {
+    @Issue("https://github.com/gradle/gradle/issues/22531")
+    def 'incremental compilation does not fail when Java class in api is changed and affected Java class in impl is referenced through a property of a Groovy class'() {
         given:
         // A is a private dependency of B and B is referenced in E.isCacheEnabled through inheritance
         sourceWithFileSuffixForProject("java", "api", "class A { void m1() {}; }")
@@ -39,8 +41,36 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         when:
         sourceWithFileSuffixForProject("java", "api", "class A { void m1() {}; void m2() {}; }")
         sourceWithFileSuffixForProject("groovy", "impl", "class E { boolean isCacheEnabled = D.cache; int a = 0; }")
+        impl.snapshot()
 
         then:
-        run ":impl:compileGroovy", "--info"
+        run ":impl:compileGroovy"
+        impl.recompiledClasses("B", "E")
+    }
+
+    def 'incremental compilation after a failure works on api dependency change'() {
+        given:
+        sourceWithFileSuffixForProject("java", "api", "class A { void m1() {}; }")
+        sourceWithFileSuffixForProject("java", "impl", "class B { void m1() { new A().m1(); }; }")
+        sourceWithFileSuffixForProject("java", "impl", "class C extends B {}")
+        sourceWithFileSuffixForProject("java", "impl", "class D extends C { static boolean cache() { return true; } }")
+        sourceWithFileSuffixForProject("groovy", "impl", "class E { boolean isCacheEnabled = D.cache }")
+        run ":impl:compileGroovy"
+
+        when:
+        sourceWithFileSuffixForProject("java", "api", "class A { void m1() {}; void m2() {}; }")
+        sourceWithFileSuffixForProject("groovy", "impl", "class E { garbage }")
+
+        then:
+        runAndFail ":impl:compileGroovy", "--info"
+
+        when:
+        sourceWithFileSuffixForProject("java", "api", "class A { void m1() {}; void m2() {}; }")
+        sourceWithFileSuffixForProject("groovy", "impl", "class E { boolean isCacheEnabled = D.cache }")
+        impl.snapshot()
+
+        then:
+        run ":impl:compileGroovy"
+        impl.recompiledClasses("B")
     }
 }
