@@ -46,7 +46,6 @@ public interface JavaInstallationMetadata {
      * @since 7.1
      */
     @Internal
-    @Incubating
     String getJavaRuntimeVersion();
 
     /**
@@ -56,7 +55,6 @@ public interface JavaInstallationMetadata {
      * @since 7.1
      */
     @Internal
-    @Incubating
     String getJvmVersion();
 
     /**
