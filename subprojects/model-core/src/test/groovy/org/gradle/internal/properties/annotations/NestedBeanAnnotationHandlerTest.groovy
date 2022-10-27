@@ -21,13 +21,14 @@ import org.gradle.api.internal.tasks.properties.DefaultValidatingProperty
 import org.gradle.api.internal.tasks.properties.PropertyValidationContext
 import org.gradle.api.internal.tasks.properties.ValidationActions
 import org.gradle.api.tasks.Optional
-import org.gradle.internal.properties.BeanPropertyContext
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.reflect.PropertyMetadata
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Specification
+
+import static org.gradle.internal.properties.annotations.PropertyAnnotationHandler.BeanPropertyContext
 
 class NestedBeanAnnotationHandlerTest extends Specification {
 
