@@ -1,19 +1,17 @@
 // tag::after-evaluate[]
-allprojects {
-    afterEvaluate { project ->
-        if (project.hasTests) {
-            def projectString = project.toString()
-            println "Adding test task to $projectString"
-            project.task('test') {
-                doLast {
-                    println "Running tests for $projectString"
-                }
+gradle.beforeProject { project ->
+    project.ext.set("hasTests", false)
+}
+
+gradle.afterProject { project ->
+    if (project.ext.has("hasTests") && project.ext.get("hasTests") as Boolean) {
+        def projectString = project.toString()
+        println "Adding test task to $projectString"
+        project.task('test') {
+            doLast {
+                println "Running tests for $projectString"
             }
         }
     }
 }
 // end::after-evaluate[]
-
-allprojects {
-    ext.hasTests = false
-}

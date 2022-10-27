@@ -158,7 +158,7 @@ Groovy DSL script files use the `.gradle` file name extension.
 Kotlin DSL script files use the `.gradle.kts` file name extension.
 ====
 
-To activate the Kotlin DSL, simply use the `.gradle.kts` extension for your build scripts in place of `.gradle`. That also applies to the <<build_lifecycle#sec:settings_file,settings file>> — for example `settings.gradle.kts` — and <<init_scripts#init_scripts,initialization scripts>>.
+To activate the Kotlin DSL, simply use the `.gradle.kts` extension for your build scripts in place of `.gradle`. That also applies to the <<organizing_gradle_projects#sec:settings_file,settings file>> — for example `settings.gradle.kts` — and <<init_scripts#init_scripts,initialization scripts>>.
 
 Note that you can mix Groovy DSL build scripts with Kotlin DSL ones, i.e. a Kotlin DSL build script can apply a Groovy DSL one and each project in a multi-project build can use either one.
 

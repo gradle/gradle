@@ -37,6 +37,8 @@ public class BuildLayoutParametersBuildOptions extends BuildOptionSet<BuildLayou
         List<BuildOption<BuildLayoutParameters>> options = new ArrayList<BuildOption<BuildLayoutParameters>>();
         options.add(new GradleUserHomeOption());
         options.add(new ProjectDirOption());
+        options.add(new SettingsFileOption());
+        options.add(new BuildFileOption());
         BuildLayoutParametersBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -70,4 +72,31 @@ public class BuildLayoutParametersBuildOptions extends BuildOptionSet<BuildLayou
             settings.setProjectDir(projectDir);
         }
     }
+
+    @Deprecated
+    public static class SettingsFileOption extends StringBuildOption<BuildLayoutParameters> {
+        public SettingsFileOption() {
+            super(null, CommandLineOptionConfiguration.create("settings-file", "c", "Specify the settings file. [deprecated]"));
+        }
+
+        @Override
+        public void applyTo(String value, BuildLayoutParameters settings, Origin origin) {
+            Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
+            settings.setSettingsFile(resolver.transform(value));
+        }
+    }
+
+    @Deprecated
+    public static class BuildFileOption extends StringBuildOption<BuildLayoutParameters> {
+        public BuildFileOption() {
+            super(null, CommandLineOptionConfiguration.create("build-file", "b", "Specify the build file. [deprecated]"));
+        }
+
+        @Override
+        public void applyTo(String value, BuildLayoutParameters settings, Origin origin) {
+            Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
+            settings.setBuildFile(resolver.transform(value));
+        }
+    }
+
 }

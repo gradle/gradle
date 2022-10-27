@@ -17,7 +17,6 @@ package org.gradle.initialization.layout;
 
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.service.scopes.Scope;
@@ -53,9 +52,6 @@ public class BuildLayoutFactory {
         }
         File explicitSettingsFile = configuration.getSettingsFile();
         if (explicitSettingsFile != null) {
-            if (!explicitSettingsFile.isFile()) {
-                throw new MissingResourceException(explicitSettingsFile.toURI(), String.format("Could not read settings file '%s' as it does not exist.", explicitSettingsFile.getAbsolutePath()));
-            }
             return buildLayoutFrom(configuration, explicitSettingsFile);
         }
 

@@ -505,4 +505,39 @@ Artifacts
         then:
         result.assertTaskExecuted(":customCompile")
     }
+
+    // This is not intended behavior, though it remains due to backwards compatibility.
+    // There is no reason to run processResources if only the classes are needed.
+    @Issue("https://github.com/gradle/gradle/issues/22484")
+    def "executing task which depends on source set classes builds resources"() {
+        buildFile("""
+            plugins {
+                id 'java'
+            }
+
+            def fooTask = tasks.register("foo") {
+                outputs.file(project.layout.buildDirectory.dir("fooOut"))
+            }
+
+            tasks.register("bar") {
+                inputs.files(java.sourceSets.main.output.classesDirs)
+            }
+
+            java {
+                sourceSets {
+                    main {
+                        resources.srcDir(fooTask.map { it.outputs.files.singleFile })
+                    }
+                }
+            }
+        """)
+
+        file("src/main/java/com/example/Main.java") << "package com.example; public class Main {}"
+
+        when:
+        succeeds "bar"
+
+        then:
+        result.assertTasksExecuted(":compileJava", ":foo", ":processResources", ":classes", ":bar")
+    }
 }
