@@ -16,25 +16,20 @@
 package org.gradle.test.fixtures.file
 
 import com.google.common.io.ByteStreams
-import org.apache.commons.compress.archivers.ArchiveOutputStream
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
-import org.apache.commons.compress.utils.IOUtils
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang.StringUtils
 import org.apache.tools.ant.Project
 import org.apache.tools.ant.taskdefs.Expand
+import org.apache.tools.ant.taskdefs.Tar
 import org.apache.tools.ant.taskdefs.Untar
 import org.apache.tools.ant.taskdefs.Zip
 import org.apache.tools.ant.types.ArchiveFileSet
+import org.apache.tools.ant.types.EnumeratedAttribute
 import org.apache.tools.ant.types.ZipFileSet
 import org.apache.tools.bzip2.CBZip2OutputStream
 
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermissions
-import java.util.function.Supplier
 import java.util.zip.GZIPOutputStream
 import java.util.zip.ZipInputStream
 
@@ -239,7 +234,7 @@ class TestFileHelper {
         }
     }
 
-    void tarTo(TestFile tarFile, boolean nativeTools) {
+    void tarTo(TestFile tarFile, boolean nativeTools, boolean readOnly) {
         //TODO: there is an inconsistency here; when using native tools the root folder is put into the TAR, but only its content is packaged by the other branch
         // for example if we put an empty folder into the TAR, then native tools will insert an entry with an empty directory, while the other branch will insert no entries
         if (nativeTools && isUnix()) {
@@ -247,38 +242,30 @@ class TestFileHelper {
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
         } else {
-            tar(() -> new TarArchiveOutputStream(new BufferedOutputStream(new FileOutputStream(tarFile))))
+            Tar tar = new Tar()
+            tar.setProject(new Project())
+            setSourceDirectory(tar, readOnly)
+            tar.setDestFile(tarFile)
+            tar.execute()
         }
     }
 
-    void tgzTo(TestFile tarFile) {
-        tar(() -> new TarArchiveOutputStream(new GzipCompressorOutputStream(new BufferedOutputStream(new FileOutputStream(tarFile)))))
+    void tgzTo(TestFile tarFile, boolean readOnly) {
+        Tar tar = new Tar()
+        tar.setProject(new Project())
+        setSourceDirectory(tar, readOnly)
+        tar.setDestFile(tarFile)
+        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "gzip"))
+        tar.execute()
     }
 
-    void tbzTo(TestFile tarFile) {
-        tar(() -> new TarArchiveOutputStream(new BZip2CompressorOutputStream(new BufferedOutputStream(new FileOutputStream(tarFile)))))
-    }
-
-    private void tar(Supplier<ArchiveOutputStream> streamSupplier) {
-          try (ArchiveOutputStream o = streamSupplier.get()) {
-            Path path = file.toPath()
-            Files.walk(path).forEach(p -> {
-                if (p == path) {
-                    return
-                }
-                File f = p.toFile()
-                def entryName = path.relativize(p).toString()
-                def entry = o.createArchiveEntry(f, entryName)
-                o.putArchiveEntry(entry)
-                if (f.isFile()) {
-                    try (InputStream i = Files.newInputStream(p)) {
-                        IOUtils.copy(i, o)
-                    }
-                }
-                o.closeArchiveEntry()
-            })
-            o.finish()
-        }
+    void tbzTo(TestFile tarFile, boolean readOnly) {
+        Tar tar = new Tar()
+        tar.setProject(new Project())
+        setSourceDirectory(tar, readOnly)
+        tar.setDestFile(tarFile)
+        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "bzip2"))
+        tar.execute()
     }
 
     void bzip2To(TestFile compressedFile) {
