@@ -59,7 +59,7 @@ class PerformanceTest(
             text(
                 "performance.baselines",
                 type.defaultBaselines,
-                display = ParameterDisplay.PROMPT,
+                display = ParameterDisplay.NORMAL,
                 allowEmpty = true,
                 description = "The baselines you want to run performance tests against. Empty means default baseline."
             )
