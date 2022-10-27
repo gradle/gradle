@@ -32,7 +32,6 @@ public abstract class JvmVendorSpec {
      *
      * @since 7.4
      */
-    @Incubating
     public static final JvmVendorSpec ADOPTIUM = matching(KnownJvmVendor.ADOPTIUM);
     public static final JvmVendorSpec ADOPTOPENJDK = matching(KnownJvmVendor.ADOPTOPENJDK);
     public static final JvmVendorSpec AMAZON = matching(KnownJvmVendor.AMAZON);
@@ -45,7 +44,6 @@ public abstract class JvmVendorSpec {
      *
      * @since 7.1
      */
-    @Incubating
     public static final JvmVendorSpec GRAAL_VM = matching(KnownJvmVendor.GRAAL_VM);
 
     public static final JvmVendorSpec HEWLETT_PACKARD = matching(KnownJvmVendor.HEWLETT_PACKARD);
@@ -55,7 +53,6 @@ public abstract class JvmVendorSpec {
      *
      * @since 7.4
      */
-    @Incubating
     public static final JvmVendorSpec IBM_SEMERU = matching(KnownJvmVendor.IBM_SEMERU);
 
     /**
@@ -63,7 +60,6 @@ public abstract class JvmVendorSpec {
      *
      * @since 7.3
      */
-    @Incubating
     public static final JvmVendorSpec MICROSOFT = matching(KnownJvmVendor.MICROSOFT);
     public static final JvmVendorSpec ORACLE = matching(KnownJvmVendor.ORACLE);
     public static final JvmVendorSpec SAP = matching(KnownJvmVendor.SAP);
