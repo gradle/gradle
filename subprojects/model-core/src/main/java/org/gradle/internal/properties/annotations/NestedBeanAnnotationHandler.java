@@ -22,7 +22,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.properties.BeanPropertyContext;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.reflect.AnnotationCategory;
