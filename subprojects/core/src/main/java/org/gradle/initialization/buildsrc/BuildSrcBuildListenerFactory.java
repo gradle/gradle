@@ -24,6 +24,7 @@ import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
@@ -83,7 +84,7 @@ public class BuildSrcBuildListenerFactory {
                 classpathConfiguration.setCanBeConsumed(false);
                 resolver.prepareClassPath(classpathConfiguration, rootProject.getDependencies());
                 classpathConfiguration.getDependencies().add(rootProject.getDependencies().create(rootProject));
-                plan.addEntryTasks(classpathConfiguration.getBuildDependencies().getDependencies(null));
+                plan.addEntryTasks(TaskDependencyUtil.getDependenciesForInternalUse(classpathConfiguration.getBuildDependencies(), null));
             });
         }
 
