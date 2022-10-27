@@ -109,9 +109,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    @RunFor(
-        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
-    )
+    @RunFor([]) //TODO (#19570), re-enable: @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "largeMonolithicJavaProject"])
     def "clean assemble with local cache"() {
         given:
         setupTestProject(runner)
