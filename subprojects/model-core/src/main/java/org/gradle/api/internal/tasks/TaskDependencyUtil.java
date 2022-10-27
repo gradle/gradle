@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
 
 import javax.annotation.Nullable;
 import java.util.Set;
@@ -32,6 +33,7 @@ public class TaskDependencyUtil {
      * @param task inherits the semantics from the corresponding parameter of {@link TaskDependency#getDependencies(Task)}
      * @return the set of task dependencies, as {@link TaskDependency#getDependencies(Task)} would.
      */
+    @AllowUsingApiForExternalUse
     public static Set<? extends Task> getDependenciesForInternalUse(TaskDependency taskDependency, @Nullable Task task) {
         return taskDependency instanceof TaskDependencyInternal ?
             ((TaskDependencyInternal) taskDependency).getDependenciesForInternalUse(task) :
