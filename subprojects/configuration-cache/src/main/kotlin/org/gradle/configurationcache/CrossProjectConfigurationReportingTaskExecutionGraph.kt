@@ -197,15 +197,8 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
 
     private
     fun Action<in TaskExecutionGraph>.wrap(): Action<TaskExecutionGraph> = Action {
-        val wrappedGraph = if (this@Action == this@CrossProjectConfigurationReportingTaskExecutionGraph)
-            this@Action
-        else run {
-            val originalDelegate = when (val receiver = this@Action) {
-                is CrossProjectConfigurationReportingTaskExecutionGraph -> receiver.delegate
-                else -> receiver as TaskExecutionGraphInternal
-            }
-            crossProjectModelAccess.taskGraphForProject(referrerProject, originalDelegate)
-        }
+        require(this@Action is TaskExecutionGraphInternal) { "Expected the TaskExecutionGraph instance to be TaskExecutionGraphInternal" }
+        val wrappedGraph = crossProjectModelAccess.taskGraphForProject(referrerProject, this@Action)
         this@wrap.execute(wrappedGraph)
     }
 
