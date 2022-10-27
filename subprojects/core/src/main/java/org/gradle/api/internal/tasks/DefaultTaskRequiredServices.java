@@ -26,6 +26,7 @@ import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -59,7 +60,8 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
         Set<Provider<? extends BuildService<?>>> servicesRegistered = this.servicesRegistered;
         if (servicesRegistered != null) {
             for (Provider<? extends BuildService<?>> next: servicesRegistered) {
-                visitor.visitServiceReference(next, /* no name provided for explicit registrations */ null);
+                // no name provided for explicit registrations
+                visitor.visitServiceReference(null, null, next, null);
             }
         }
     }
@@ -91,7 +93,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
     private void visitServiceReferences(Consumer<Provider<? extends BuildService<?>>> visitor) {
         TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
             @Override
-            public void visitServiceReference(Provider<? extends BuildService<?>> referenceProvider, String serviceName) {
+            public void visitServiceReference(String propertyName, Boolean optional, Provider<? extends BuildService<?>> referenceProvider, @Nullable String serviceName) {
                 visitor.accept(referenceProvider);
             }
         });

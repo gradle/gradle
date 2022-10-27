@@ -30,6 +30,7 @@ public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServi
     private final Class<T> implementationType;
     private final P parameters;
     private final int maxUsages;
+    private final boolean resolved;
 
     public BuildServiceDetails(BuildIdentifier buildIdentifier, String name, Class<T> implementationType, @Nullable P parameters, @Nullable Integer maxUsages) {
         this.buildIdentifier = buildIdentifier;
@@ -37,6 +38,16 @@ public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServi
         this.implementationType = implementationType;
         this.parameters = parameters;
         this.maxUsages = maxUsages == null ? -1 : maxUsages;
+        this.resolved = true;
+    }
+
+    public BuildServiceDetails(BuildIdentifier buildIdentifier, String name, Class<T> implementationType) {
+        this.buildIdentifier = buildIdentifier;
+        this.name = name;
+        this.implementationType = implementationType;
+        this.parameters = null;
+        this.maxUsages = -1;
+        this.resolved = false;
     }
 
     public BuildIdentifier getBuildIdentifier() {
@@ -57,5 +68,9 @@ public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServi
 
     public int getMaxUsages() {
         return maxUsages;
+    }
+
+    public boolean isResolved() {
+        return resolved;
     }
 }

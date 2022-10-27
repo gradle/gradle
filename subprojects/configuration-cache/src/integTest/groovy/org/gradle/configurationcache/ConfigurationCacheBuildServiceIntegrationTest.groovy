@@ -25,6 +25,7 @@ import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -69,7 +70,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
 
     def "build service is restored when using @ServiceReference"() {
         given:
-        withCountingServicePlugin()
+        withCountingServicePlugin("counter", "counter")
         file('settings.gradle') << """
             pluginManagement {
                 repositories {
@@ -103,7 +104,45 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         outputContains 'Count: 1'
     }
 
-    private void withCountingServicePlugin() {
+    def "missing build service when using @ServiceReference"() {
+        given:
+        withCountingServicePlugin("registeredCounter", "consumedCounter")
+        file('settings.gradle') << """
+            pluginManagement {
+                repositories {
+                    maven { url '$mavenRepo.uri' }
+                }
+            }
+        """
+        file('build.gradle') << """
+            plugins { id 'counting-service-plugin' version '1.0' }
+
+            tasks.register('failedCount', CountingTask) {
+                doLast {
+                    assert countingService.getOrNull() == null
+                }
+            }
+        """
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheFails(":failedCount")
+
+        then:
+        configurationCache.assertStateStored()
+        failureDescriptionContains("Execution failed for task ':failedCount'.")
+        failureCauseContains("Cannot query the value of task ':failedCount' property 'countingService' because it has no value available.")
+
+        when:
+        configurationCacheFails(":failedCount")
+
+        then:
+        configurationCache.assertStateLoaded()
+        failureDescriptionContains("Execution failed for task ':failedCount'.")
+        failureCauseContains("Cannot query the value of this property because it has no value available.")
+    }
+
+    private void withCountingServicePlugin(String registeredServiceName, String consumedServiceName) {
         createDir('plugin') {
             file("src/main/java/CountingServicePlugin.java") << """
                 public abstract class CountingServicePlugin implements $Plugin.name<$Project.name> {
@@ -111,7 +150,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
                     @Override
                     public void apply($Project.name project) {
                         project.getGradle().getSharedServices().registerIfAbsent(
-                            "counter",
+                            "${registeredServiceName}",
                             CountingService.class,
                             (spec) -> {}
                         );
@@ -120,7 +159,8 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
 
                 abstract class CountingTask extends $DefaultTask.name {
 
-                    @$ServiceReference.name("counter")
+                    @$ServiceReference.name("${consumedServiceName}")
+                    @$Optional.name
                     public abstract $Property.name<CountingService> getCountingService();
 
                     public CountingTask() {}

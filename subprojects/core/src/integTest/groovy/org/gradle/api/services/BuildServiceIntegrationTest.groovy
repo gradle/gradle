@@ -25,6 +25,7 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.LocalState
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
@@ -112,7 +113,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "does not nag when service is annotated with @ServiceReference (unnamed) and feature preview is enabled"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}()")
+        customTaskUsingServiceViaProperty("@${ServiceReference.name}()")
         buildFile """
             def provider = gradle.sharedServices.registerIfAbsent("counterService", CountingService) {
                 parameters.initial = 10
@@ -135,7 +136,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can inject shared build service by name when reference is annotated with @ServiceReference('...')"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}('counter')")
+        customTaskUsingServiceViaProperty("@${ServiceReference.name}('counter')")
         buildFile """
             gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
@@ -168,7 +169,7 @@ service: closed with value 11
     def "injection by name can be overridden by explicit convention"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}('counter')")
+        customTaskUsingServiceViaProperty("@${ServiceReference.name}('counter')")
         buildFile """
             gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
@@ -201,7 +202,7 @@ service: closed with value 10001
     def "injection by name works at configuration time"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}('counter')")
+        customTaskUsingServiceViaProperty("@${ServiceReference.name}('counter')")
         buildFile """
             gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
@@ -230,10 +231,66 @@ service: closed with value 12
         """
     }
 
-    def "injection by name fails if service is not found"() {
+    def "injection by name fails validation if required service is not found, even if not used"() {
         given:
         serviceImplementation()
-        customTaskUsingServiceViaProperty("@${ServiceReference.class.name}('oneCounter')")
+        buildFile """
+            abstract class Consumer extends DefaultTask {
+                @${ServiceReference.name}('counter')
+                abstract Property<CountingService> getCounter()
+
+                @TaskAction
+                def go() {
+                    println("Service is not used")
+                }
+            }
+            task missingRequiredService(type: Consumer) {}
+        """
+        enableStableConfigurationCache()
+
+        when:
+        fails 'missingRequiredService'
+
+        then:
+        failureDescriptionContains("A problem was found with the configuration of task ':missingRequiredService' (type 'Consumer').")
+        failureDescriptionContains("- Type 'Consumer' property 'counter' doesn't have a configured value.")
+        failureDescriptionContains("Reason: This property isn't marked as optional and no value has been configured.")
+    }
+
+    def "injection by name does not fail validation if service is not found but property marked as @Optional"() {
+        given:
+        serviceImplementation()
+        buildFile """
+            abstract class Consumer extends DefaultTask {
+                @${Optional.name}
+                @${ServiceReference.name}('counter')
+                abstract Property<CountingService> getCounter()
+
+                @TaskAction
+                def go() {
+                    if (counter.getOrNull() == null) {
+                        println("Skipping counting as service not available")
+                    }
+                }
+            }
+            task missingOptionalService(type: Consumer) {}
+        """
+        enableStableConfigurationCache()
+
+        when:
+        succeeds 'missingOptionalService'
+
+        then:
+        outputContains("Skipping counting as service not available")
+    }
+
+    def "injection by name fails if optional service is not found but used"() {
+        given:
+        serviceImplementation()
+        customTaskUsingServiceViaProperty("""
+            @${Optional.name}
+            @${ServiceReference.name}('oneCounter')
+        """)
         buildFile """
             gradle.sharedServices.registerIfAbsent("anotherCounter", CountingService) {
                 parameters.initial = 10
@@ -250,7 +307,8 @@ service: closed with value 12
         fails 'missingService'
 
         then:
-        failure.assertHasCause("BuildServiceRegistration with name 'oneCounter' not found.")
+        failure.assertHasDescription("Execution failed for task ':missingService'")
+        failure.assertHasCause("Cannot query the value of task ':missingService' property 'counter' because it has no value available.")
     }
 
     def "@ServiceReference property must implement BuildService"() {

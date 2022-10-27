@@ -21,8 +21,12 @@ import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
+import org.gradle.api.services.BuildServiceRegistry;
+import org.gradle.internal.Cast;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.Managed;
+
+import javax.annotation.Nonnull;
 
 /**
  * A provider for build services that are registered or consumed.
@@ -62,9 +66,10 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
     }
 
     @SuppressWarnings("unused") // Used via instrumentation
-    public static <P extends BuildServiceParameters, T extends BuildService<P>> void setBuildServiceAsConvention(DefaultProperty<T> property, ServiceRegistry serviceRegistry, String buildServiceName) {
-        ConsumedBuildServiceProvider<T, P> lazyProvider = new ConsumedBuildServiceProvider<>(buildServiceName, property.getType(), serviceRegistry);
-        property.convention(lazyProvider);
+    public static <P extends BuildServiceParameters, T extends BuildService<P>> void setBuildServiceAsConvention(@Nonnull DefaultProperty<T> property, ServiceRegistry serviceRegistry, String buildServiceName) {
+        BuildServiceRegistryInternal buildServiceRegistry = (BuildServiceRegistryInternal) serviceRegistry.get(BuildServiceRegistry.class);
+        BuildServiceProvider<T, P> consumer = Cast.uncheckedCast(buildServiceRegistry.consume(buildServiceName, property.getType()));
+        property.convention(consumer);
     }
 
     public abstract BuildServiceDetails<T, P> getServiceDetails();
