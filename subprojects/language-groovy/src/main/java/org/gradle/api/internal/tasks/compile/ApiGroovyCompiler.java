@@ -255,6 +255,9 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                         }));
 
                         try {
+                            if (spec.getBeforeJavaCompilationRunnable() != null) {
+                                spec.getBeforeJavaCompilationRunnable().run();
+                            }
                             WorkResult javaCompilerResult = javaCompiler.execute(spec);
                             if (javaCompilerResult instanceof ApiCompilerResult) {
                                 result.getSourceClassesMapping().putAll(((ApiCompilerResult) javaCompilerResult).getSourceClassesMapping());

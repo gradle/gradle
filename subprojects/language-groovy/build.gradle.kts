@@ -34,6 +34,7 @@ dependencies {
     testImplementation(project(":internal-testing"))
     testImplementation(project(":resources"))
     testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":language-java")))
 
     testFixturesApi(testFixtures(project(":language-jvm")))
     testFixturesImplementation(project(":core"))

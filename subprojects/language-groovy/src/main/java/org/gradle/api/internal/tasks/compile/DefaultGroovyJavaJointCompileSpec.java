@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
 public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec implements GroovyJavaJointCompileSpec {
     private MinimalGroovyCompileOptions groovyCompileOptions;
     private List<File> groovyClasspath;
+    private File originalDestinationDir;
+    private Runnable beforeJavaCompilationRunnable;
 
     @Override
     public MinimalGroovyCompileOptions getGroovyCompileOptions() {
@@ -45,5 +48,26 @@ public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec im
     @Override
     public boolean incrementalCompilationEnabled() {
         return getCompileOptions().getPreviousCompilationDataFile() != null;
+    }
+
+    @Override
+    public File getOriginalDestinationDir() {
+        return originalDestinationDir;
+    }
+
+    @Override
+    public void setOriginalDestinationDir(File file) {
+        this.originalDestinationDir = file;
+    }
+
+    @Nullable
+    @Override
+    public Runnable getBeforeJavaCompilationRunnable() {
+        return beforeJavaCompilationRunnable;
+    }
+
+    @Override
+    public void setBeforeJavaCompilationRunnable(@Nullable Runnable runnable) {
+        this.beforeJavaCompilationRunnable = runnable;
     }
 }

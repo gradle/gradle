@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.transaction
 
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
@@ -24,7 +23,6 @@ import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.Genera
 import org.gradle.api.tasks.WorkResults
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -32,11 +30,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.stream.Stream
 
-import static com.google.common.base.Preconditions.checkNotNull
+abstract class AbstractCompileTransactionTest extends Specification {
 
-class CompileTransactionTest extends Specification {
-
-    private static final DID_WORK = WorkResults.didWork(true)
+    static final DID_WORK = WorkResults.didWork(true)
 
     @TempDir
     File temporaryFolder
@@ -48,24 +44,19 @@ class CompileTransactionTest extends Specification {
         transactionDir = new File(temporaryFolder, "compileTransaction")
         transactionDir.mkdir()
         stashDir = new File(transactionDir, "stash-dir")
-        spec = new DefaultJavaCompileSpec()
+        spec = newCompileSpec()
         spec.setTempDir(temporaryFolder)
-        spec.setCompileOptions(TestUtil.newInstance(CompileOptions, TestUtil.objectFactory()))
         spec.setDestinationDir(createNewDirectory(file("classes")))
         spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(true)
     }
 
-    CompileTransaction newCompileTransaction() {
-        return new CompileTransaction(spec, new PatternSet(), Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
-    }
+    abstract JavaCompileSpec newCompileSpec();
 
-    CompileTransaction newCompileTransaction(PatternSet classesToDelete) {
-        return new CompileTransaction(spec, classesToDelete, Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
-    }
+    abstract CompileTransaction newCompileTransaction();
 
-    CompileTransaction newCompileTransaction(PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete) {
-        return new CompileTransaction(spec, classesToDelete, resourcesToDelete, TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
-    }
+    abstract CompileTransaction newCompileTransaction(PatternSet classesToDelete);
+
+    abstract CompileTransaction newCompileTransaction(PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete);
 
     def "transaction base directory is cleared before execution"() {
         fileInTransactionDir("some-dummy-file.txt").createNewFile()
@@ -353,31 +344,31 @@ class CompileTransactionTest extends Specification {
         spec.getCompileOptions().getHeaderOutputDirectory() == file("header-sources")
     }
 
-    private File fileInTransactionDir(String path) {
-        return new File(checkNotNull(transactionDir), path)
+    File fileInTransactionDir(String path) {
+        return new File(Objects.requireNonNull(transactionDir), path)
     }
 
-    private File file(String path) {
-        return new File(checkNotNull(temporaryFolder) as File, path)
+    File file(String path) {
+        return new File(Objects.requireNonNull(temporaryFolder) as File, path)
     }
 
-    private File createNewDirectory(File file) {
+    File createNewDirectory(File file) {
         file.parentFile.mkdirs()
         file.mkdir()
         return file
     }
 
-    private File createNewFile(File file) {
+    File createNewFile(File file) {
         file.parentFile.mkdirs()
         file.createNewFile()
         return file
     }
 
-    private boolean isEmptyDirectory(File file) {
+    boolean isEmptyDirectory(File file) {
         file.listFiles().length == 0
     }
 
-    private boolean hasOnlyDirectories(File file) {
+    boolean hasOnlyDirectories(File file) {
         try (Stream<Path> stream = Files.walk(file.toPath())) {
             return stream.allMatch { Files.isDirectory(it) }
         }

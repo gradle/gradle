@@ -19,9 +19,15 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
+import org.gradle.api.internal.tasks.compile.incremental.transaction.CompileTransaction;
+import org.gradle.api.internal.tasks.compile.incremental.transaction.GroovyCompileTransaction;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
 import org.gradle.work.FileChange;
 
+import java.util.Map;
 import java.util.Set;
 
 public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
@@ -44,5 +50,10 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     @Override
     protected boolean isIncrementalOnResourceChanges(CurrentCompilation currentCompilation) {
         return false;
+    }
+
+    @Override
+    protected CompileTransaction newCompileTransaction(JavaCompileSpec spec, RecompilationSpec recompilationSpec, PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete, FileOperations fileOperations, Deleter deleter) {
+        return new GroovyCompileTransaction(spec, recompilationSpec, classesToDelete, resourcesToDelete, fileOperations, deleter);
     }
 }

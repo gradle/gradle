@@ -16,5 +16,13 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import javax.annotation.Nullable;
+import java.io.File;
+
 public interface GroovyJavaJointCompileSpec extends JavaCompileSpec, GroovyCompileSpec {
+    File getOriginalDestinationDir();
+    void setOriginalDestinationDir(File file);
+    @Nullable
+    Runnable getBeforeJavaCompilationRunnable();
+    void setBeforeJavaCompilationRunnable(@Nullable Runnable runnable);
 }
