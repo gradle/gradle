@@ -26,7 +26,7 @@ As the build script executes, it configures this `Project`.
 _Build scripts_ define `Project` objects.
 Gradle uses other scripts as well:
 
-- <<build_lifecycle.adoc#sec:settings_file,Settings scripts>>
+- <<organizing_gradle_projects.adoc#sec:settings_file,Settings scripts>>
   define link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] objects.
 - <<init_scripts.adoc#init_scripts,Init scripts>>
   define link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] objects.

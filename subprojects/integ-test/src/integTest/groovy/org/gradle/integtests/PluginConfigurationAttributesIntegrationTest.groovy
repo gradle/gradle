@@ -29,35 +29,6 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         """
     }
 
-    def "plugin runtime configuration is deprecated for consumption"() {
-        given:
-        file("producer/build.gradle") << """
-            plugins {
-                id("$plugin")
-            }
-        """
-
-        when:
-        file("consumer/build.gradle") << """
-            plugins {
-                id("java-library")
-            }
-            dependencies {
-                implementation(project(path: ":producer", configuration: "$configuration"))
-            }
-        """
-
-        then:
-        executer.expectDocumentedDeprecationWarning("The $configuration configuration has been deprecated for consumption. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#plugin_configuration_consumption")
-        succeeds("test")
-
-        where:
-        plugin       | configuration
-        'scala'      | 'zinc'
-        'war'        | 'providedRuntime'
-        'war'        | 'providedCompile'
-    }
-
     def "plugin runtime configuration is not consumable"() {
         given:
         file("producer/build.gradle") << """
@@ -88,6 +59,9 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         'jacoco'     | 'jacocoAnt'
         'pmd'        | 'pmd'
         'checkstyle' | 'checkstyle'
+        'scala'      | 'zinc'
+        'war'        | 'providedRuntime'
+        'war'        | 'providedCompile'
     }
 
     def "plugin runtime configuration can be extended and consumed without deprecation"() {

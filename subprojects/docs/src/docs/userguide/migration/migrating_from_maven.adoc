@@ -37,7 +37,7 @@ In-depth performance comparison and business cases for switching from Maven to G
 == General guidelines
 
 Gradle and Maven have fundamentally different views on how to build a project.
-Gradle provides a flexible and extensible build model that delegates the actual work to a <<what_is_gradle#the_core_model_is_based_on_tasks,_graph of task dependencies_>>.
+Gradle provides a flexible and extensible build model that delegates the actual work to the execution of a graph of tasks.
 Maven uses a model of fixed, linear phases to which you can attach goals (the things that do the work).
 This may make migrating between the two seem intimidating, but migrations can be surprisingly easy because Gradle follows many of the same conventions as Maven -- such as the <<java_plugin#sec:java_project_layout,standard project structure>> -- and its dependency management works in a similar way.
 
