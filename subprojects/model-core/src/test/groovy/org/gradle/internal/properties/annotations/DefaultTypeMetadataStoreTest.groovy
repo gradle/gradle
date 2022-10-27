@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.properties
+package org.gradle.internal.properties.annotations
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
@@ -45,8 +45,9 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.properties.annotations.PropertyAnnotationHandler
-import org.gradle.internal.properties.annotations.TypeAnnotationHandler
+import org.gradle.internal.properties.CustomCacheable
+import org.gradle.internal.properties.ModifierAnnotationCategory
+import org.gradle.internal.properties.SearchPath
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.PropertyMetadata
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore

@@ -23,10 +23,10 @@ import org.gradle.api.internal.tasks.properties.bean.TestImplementationIdentifie
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.properties.DefaultTypeMetadataStore
 import org.gradle.internal.properties.OutputFilePropertyType
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
+import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
 import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler
 import org.gradle.internal.properties.bean.DefaultPropertyWalker
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore

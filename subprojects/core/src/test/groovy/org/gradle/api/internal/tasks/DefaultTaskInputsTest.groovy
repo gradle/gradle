@@ -29,11 +29,11 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.Normalizer
-import org.gradle.internal.properties.DefaultTypeMetadataStore
 import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.properties.InputFilePropertyType
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
+import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
 import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler
 import org.gradle.internal.properties.bean.DefaultPropertyWalker
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore

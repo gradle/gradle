@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.internal.properties.TypeMetadataStore;
+import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.properties.bean.PropertyWalker;
 
 /**

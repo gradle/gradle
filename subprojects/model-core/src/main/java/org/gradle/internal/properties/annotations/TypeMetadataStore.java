@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.properties;
+package org.gradle.internal.properties.annotations;
 
 public interface TypeMetadataStore {
     <T> TypeMetadata getTypeMetadata(Class<T> type);

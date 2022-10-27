@@ -16,8 +16,8 @@
 
 package org.gradle.internal.properties.bean;
 
-import org.gradle.internal.properties.TypeMetadata;
-import org.gradle.internal.properties.TypeMetadataStore;
+import org.gradle.internal.properties.annotations.TypeMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.snapshot.impl.ImplementationValue;
 
 import java.util.Map;

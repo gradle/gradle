@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.properties;
+package org.gradle.internal.properties.annotations;
 
-import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
