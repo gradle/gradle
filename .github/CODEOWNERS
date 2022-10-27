@@ -64,7 +64,6 @@ subprojects/docs/src/docs/userguide/core-plugins/ear_plugin.adoc                
 subprojects/docs/src/docs/userguide/core-plugins/jacoco_plugin.adoc               @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/core-plugins/java_gradle_plugin.adoc          @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/core-plugins/pmd_plugin.adoc                  @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/project_report_plugin.adoc       @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/core-plugins/war_plugin.adoc                  @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/dep-man/                                      @gradle/bt-jvm
 subprojects/docs/src/docs/userguide/jvm/                                          @gradle/bt-jvm
