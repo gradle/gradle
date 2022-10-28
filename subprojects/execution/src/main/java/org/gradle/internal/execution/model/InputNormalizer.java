@@ -14,26 +14,51 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.properties;
+package org.gradle.internal.execution.model;
 
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.fingerprint.InputNormalizer;
 import org.gradle.internal.fingerprint.Normalizer;
 
-public class NormalizationUtil {
+// TODO Break this up between simple normalizers and Java classpath normalizers
+//      The latter should be moved to :normalization-java
+public enum InputNormalizer implements Normalizer {
+    ABSOLUTE_PATH(false),
+    RELATIVE_PATH(false),
+    NAME_ONLY(false),
+    IGNORE_PATH(true),
+    RUNTIME_CLASSPATH(true),
+    COMPILE_CLASSPATH(true);
+
+    private final boolean ignoreDirectories;
+    private final String description;
+
+    InputNormalizer(boolean ignoreDirectories) {
+        this.ignoreDirectories = ignoreDirectories;
+        this.description = name().toLowerCase().replace('_', ' ');
+    }
+
     public static Normalizer determineNormalizerForPathSensitivity(PathSensitivity pathSensitivity) {
         switch (pathSensitivity) {
             case NONE:
-                return InputNormalizer.IGNORE_PATH;
+                return IGNORE_PATH;
             case NAME_ONLY:
-                return InputNormalizer.NAME_ONLY;
+                return NAME_ONLY;
             case RELATIVE:
-                return InputNormalizer.RELATIVE_PATH;
+                return RELATIVE_PATH;
             case ABSOLUTE:
-                return InputNormalizer.ABSOLUTE_PATH;
+                return ABSOLUTE_PATH;
             default:
                 throw new IllegalArgumentException("Unknown path sensitivity: " + pathSensitivity);
         }
     }
 
+    @Override
+    public boolean isIgnoreDirectories() {
+        return ignoreDirectories;
+    }
+
+    @Override
+    public String toString() {
+        return description;
+    }
 }

@@ -24,13 +24,12 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.InputNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.InputFilePropertyType;
-import org.gradle.internal.properties.NormalizationUtil;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
@@ -66,7 +65,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
             normalizer = null;
         } else if (fileNormalization instanceof PathSensitive) {
             PathSensitivity pathSensitivity = ((PathSensitive) fileNormalization).value();
-            normalizer = NormalizationUtil.determineNormalizerForPathSensitivity(pathSensitivity);
+            normalizer = InputNormalizer.determineNormalizerForPathSensitivity(pathSensitivity);
         } else if (fileNormalization instanceof Classpath) {
             normalizer = InputNormalizer.RUNTIME_CLASSPATH;
         } else if (fileNormalization instanceof CompileClasspath) {
