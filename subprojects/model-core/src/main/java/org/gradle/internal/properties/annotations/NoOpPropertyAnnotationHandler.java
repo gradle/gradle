@@ -51,11 +51,6 @@ public class NoOpPropertyAnnotationHandler implements PropertyAnnotationHandler 
     }
 
     @Override
-    public boolean shouldVisit(PropertyVisitor visitor) {
-        return false;
-    }
-
-    @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
     }
 }

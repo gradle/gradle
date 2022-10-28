@@ -59,11 +59,6 @@ public class ServiceReferencePropertyAnnotationHandler implements PropertyAnnota
     }
 
     @Override
-    public boolean shouldVisit(PropertyVisitor visitor) {
-        return true;
-    }
-
-    @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
         if (propertyMetadata.isAnnotationPresent(ServiceReference.class)) {
             ServiceReference annotation = (ServiceReference) propertyMetadata.getAnnotationForCategory(AnnotationCategory.TYPE);

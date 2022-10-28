@@ -50,11 +50,6 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
     }
 
     @Override
-    public boolean shouldVisit(PropertyVisitor visitor) {
-        return true;
-    }
-
-    @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
         visitor.visitDestroyableProperty(value);
     }
