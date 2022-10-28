@@ -45,7 +45,7 @@ import java.util.Set;
  * @since 5.2
  * @see <a href="https://docs.gradle.org/current/userguide/java_platform_plugin.html">Java Platform plugin reference</a>
  */
-public class JavaPlatformPlugin implements Plugin<Project> {
+public abstract class JavaPlatformPlugin implements Plugin<Project> {
     // Buckets of dependencies
     public static final String API_CONFIGURATION_NAME = "api";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";

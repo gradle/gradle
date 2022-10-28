@@ -106,10 +106,6 @@ class TestFileHelper {
         untar.execute()
     }
 
-    private boolean isUnix() {
-        return !System.getProperty('os.name').toLowerCase().contains('windows')
-    }
-
     String getPermissions() {
         if (!isUnix()) {
             return "-rwxr-xr-x"
@@ -143,16 +139,6 @@ class TestFileHelper {
         if (retval != 0) {
             throw new RuntimeException("Could not set permissions for '$file': $error")
         }
-    }
-
-    private int toMode(String permissions) {
-        int m = [6, 3, 0].inject(0) { mode, pos ->
-            mode |= permissions[9 - pos - 3] == 'r' ? 4 << pos : 0
-            mode |= permissions[9 - pos - 2] == 'w' ? 2 << pos : 0
-            mode |= permissions[9 - pos - 1] == 'x' ? 1 << pos : 0
-            return mode
-        }
-        return m
     }
 
     int getMode() {
@@ -219,65 +205,67 @@ class TestFileHelper {
         return result
     }
 
-    public void zipTo(TestFile zipFile, boolean nativeTools, boolean readOnly) {
+    void zipTo(TestFile zipFile, boolean nativeTools, boolean readOnly) {
         if (nativeTools && isUnix()) {
             def process = ['zip', zipFile.absolutePath, "-r", file.name].execute(null, file.parentFile)
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
         } else {
-            Zip zip = new Zip();
+            Zip zip = new Zip()
             zip.setProject(new Project())
-            setSourceDirectory(zip, readOnly);
-            zip.setDestFile(zipFile);
+            setSourceDirectory(zip, readOnly)
+            zip.setDestFile(zipFile)
             def whenEmpty = new Zip.WhenEmpty()
             whenEmpty.setValue("create")
-            zip.setWhenempty(whenEmpty);
-            zip.execute();
+            zip.setWhenempty(whenEmpty)
+            zip.execute()
         }
     }
 
     private void setSourceDirectory(archiveTask, boolean readOnly) {
         if (readOnly) {
-            ArchiveFileSet archiveFileSet = archiveTask instanceof Zip ? new ZipFileSet() : archiveTask.createTarFileSet();
-            archiveFileSet.setDir(file);
-            archiveFileSet.setFileMode("0444");
-            archiveFileSet.setDirMode("0555");
-            archiveTask.add(archiveFileSet);
+            ArchiveFileSet archiveFileSet = archiveTask instanceof Zip ? new ZipFileSet() : archiveTask.createTarFileSet()
+            archiveFileSet.setDir(file)
+            archiveFileSet.setFileMode("0444")
+            archiveFileSet.setDirMode("0555")
+            archiveTask.add(archiveFileSet)
         } else {
-            archiveTask.setBasedir(file);
+            archiveTask.setBasedir(file)
         }
     }
 
-    public void tarTo(TestFile tarFile, boolean nativeTools, boolean readOnly) {
+    void tarTo(TestFile tarFile, boolean nativeTools, boolean readOnly) {
+        //TODO: there is an inconsistency here; when using native tools the root folder is put into the TAR, but only its content is packaged by the other branch
+        // for example if we put an empty folder into the TAR, then native tools will insert an entry with an empty directory, while the other branch will insert no entries
         if (nativeTools && isUnix()) {
             def process = ['tar', "-cf", tarFile.absolutePath, file.name].execute(null, file.parentFile)
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
         } else {
-            Tar tar = new Tar();
+            Tar tar = new Tar()
             tar.setProject(new Project())
-            setSourceDirectory(tar, readOnly);
-            tar.setDestFile(tarFile);
-            tar.execute();
+            setSourceDirectory(tar, readOnly)
+            tar.setDestFile(tarFile)
+            tar.execute()
         }
     }
 
-    public void tgzTo(TestFile tarFile, boolean readOnly) {
-        Tar tar = new Tar();
+    void tgzTo(TestFile tarFile, boolean readOnly) {
+        Tar tar = new Tar()
         tar.setProject(new Project())
-        setSourceDirectory(tar, readOnly);
-        tar.setDestFile(tarFile);
-        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "gzip"));
-        tar.execute();
+        setSourceDirectory(tar, readOnly)
+        tar.setDestFile(tarFile)
+        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "gzip"))
+        tar.execute()
     }
 
-    public void tbzTo(TestFile tarFile, boolean readOnly) {
-        Tar tar = new Tar();
+    void tbzTo(TestFile tarFile, boolean readOnly) {
+        Tar tar = new Tar()
         tar.setProject(new Project())
-        setSourceDirectory(tar, readOnly);
-        tar.setDestFile(tarFile);
-        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "bzip2"));
-        tar.execute();
+        setSourceDirectory(tar, readOnly)
+        tar.setDestFile(tarFile)
+        tar.setCompression((Tar.TarCompressionMethod) EnumeratedAttribute.getInstance(Tar.TarCompressionMethod.class, "bzip2"))
+        tar.execute()
     }
 
     void bzip2To(TestFile compressedFile) {
@@ -299,5 +287,19 @@ class TestFileHelper {
         } finally {
             outStr.close()
         }
+    }
+
+    private static boolean isUnix() {
+        return !System.getProperty('os.name').toLowerCase().contains('windows')
+    }
+
+    private static int toMode(String permissions) {
+        int m = [6, 3, 0].inject(0) { mode, pos ->
+            mode |= permissions[9 - pos - 3] == 'r' ? 4 << pos : 0
+            mode |= permissions[9 - pos - 2] == 'w' ? 2 << pos : 0
+            mode |= permissions[9 - pos - 1] == 'x' ? 1 << pos : 0
+            return mode
+        }
+        return m
     }
 }
