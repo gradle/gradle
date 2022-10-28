@@ -711,7 +711,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
             "  - None of the consumable configurations have attributes.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Resolve test fixture doesn't support configuration cache")
+    @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "includes build identifier in error message on failure to resolve dependencies of included build"() {
         def m = mavenRepo.module("org.test", "test", "1.2")
 

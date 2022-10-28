@@ -34,9 +34,12 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
+import org.gradle.tooling.internal.protocol.test.InternalTaskSpec;
+import org.gradle.tooling.internal.protocol.test.InternalTestSpec;
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -100,6 +103,27 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
                 requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(className).append(".").append(methodName).append("()");
             }
         }
+
+        for (InternalTaskSpec taskSpec : internalTestExecutionRequest.getTaskSpecs()) {
+            if (taskSpec instanceof InternalTestSpec) {
+                InternalTestSpec testSpec = (InternalTestSpec) taskSpec;
+                for (String cls : testSpec.getClasses()) {
+                    requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test class: ").append(cls).append(" in task " + taskSpec.getTaskPath());
+                }
+                for (Map.Entry<String, List<String>> methods : testSpec.getMethods().entrySet()) {
+                    for (String method : methods.getValue()) {
+                        requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test method ").append(methods.getKey()).append(".").append(method).append("()").append(" in task " + taskSpec.getTaskPath());
+                    }
+                }
+                for (String pkg : testSpec.getPackages()) {
+                    requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test package ").append(pkg).append(" in task " + taskSpec.getTaskPath());
+                }
+                for (String pattern : testSpec.getPatterns()) {
+                    requestDetails.append("\n").append(Strings.repeat(INDENT, 2)).append("Test pattern ").append(pattern).append(" in task " + taskSpec.getTaskPath());
+                }
+            }
+        }
+
         return requestDetails.toString();
     }
 

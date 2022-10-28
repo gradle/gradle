@@ -18,10 +18,8 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 import spock.lang.Issue
 
 class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
@@ -53,7 +51,6 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
-    @ToBeFixedForConfigurationCache(because = "Gradle.addBuildListener")
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
@@ -75,19 +72,11 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
 
         then:
         runner('groovydoc')
-            .expectDeprecationWarning(
-                "Internal API configureDocumentationVariantWithArtifact (no FileResolver) has been deprecated." +
-                    " This is scheduled to be removed in Gradle 8.0." +
-                    " Please use configureDocumentationVariantWithArtifact (with FileResolver) instead." +
-                    " Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#lazypublishartifact_fileresolver",
-                ""
-            )
             .build()
     }
 
-    @Ignore("Waiting for Groovy3 compatibility https://github.com/gradle/gradle/issues/16358")
     @Issue('https://plugins.gradle.org/plugin/nebula.lint')
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "Task.project at execution time")
     def 'nebula lint plugin'() {
         given:
         buildFile << """
@@ -130,21 +119,24 @@ testImplementation('junit:junit:4.7')""")
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-lock')
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
-    def 'nebula dependency lock plugin'() {
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished, TaskExecutionGraph.addTaskExecutionListener and Task.project at execution time")
+    def 'nebula dependency lock plugin #nebulaDepLockVersion'() {
         when:
         buildFile << """
             plugins {
-                id "nebula.dependency-lock" version "${TestedVersions.nebulaDependencyLock.latest()}"
+                id "nebula.dependency-lock" version "$nebulaDepLockVersion"
             }
         """.stripIndent()
 
         then:
         runner('buildEnvironment', 'generateLock').build()
+
+        where:
+        nebulaDepLockVersion << TestedVersions.nebulaDependencyLock.versions
     }
 
     @Issue("gradle/gradle#3798")
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished and TaskExecutionGraph.addTaskExecutionListener")
     def "nebula dependency lock plugin version #version binary compatibility"() {
         when:
         buildFile << """
@@ -209,7 +201,6 @@ testImplementation('junit:junit:4.7')""")
 
     @Issue('https://plugins.gradle.org/plugin/nebula.resolution-rules')
     @Requires(TestPrecondition.JDK11_OR_EARLIER)
-    @ToBeFixedForConfigurationCache
     def 'nebula resolution rules plugin'() {
         when:
         file('rules.json') << """

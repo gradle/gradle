@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
@@ -89,7 +90,7 @@ public interface ComponentMetadataHandler {
      * @param rule the rule to be added
      * @return this
      */
-    ComponentMetadataHandler all(Closure<?> rule);
+    ComponentMetadataHandler all(@DelegatesTo(ComponentMetadataDetails.class) Closure<?> rule);
 
     /**
      * Adds a rule that may modify the metadata of any resolved software component.
@@ -148,7 +149,7 @@ public interface ComponentMetadataHandler {
      * @param rule the rule to be added
      * @return this
      */
-    ComponentMetadataHandler withModule(Object id, Closure<?> rule);
+    ComponentMetadataHandler withModule(Object id, @DelegatesTo(ComponentMetadataDetails.class) Closure<?> rule);
 
     /**
      * Adds a rule that may modify the metadata of any resolved software component belonging to the specified module.

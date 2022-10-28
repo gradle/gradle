@@ -169,7 +169,7 @@ trait ValidationMessageChecker {
         config.description("has @Input annotation used on property of type '${config.propertyType}'")
             .reason("A property of type '${config.propertyType}' annotated with @Input cannot determine how to interpret the file")
             .solution("Annotate with @InputFile for regular files")
-            .solution("Annotate with @InputDirectory for directories")
+            .solution("Annotate with @InputFiles for collections of files")
             .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
             .render()
     }
@@ -395,6 +395,20 @@ trait ValidationMessageChecker {
             type(onType).property(onProperty)
             description(desc)
             reason(testReason)
+        }.render()
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.TEST_PROBLEM
+    )
+    String dummyValidationProblemWithLink(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
+        display(SimpleMessage, 'dummy') {
+            type(onType).property(onProperty)
+            description(desc)
+            reason(testReason)
+            includeLink()
+            documentationId("id")
+            documentationSection("section")
         }.render()
     }
 

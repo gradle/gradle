@@ -21,24 +21,58 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
+import spock.lang.Issue
 import spock.lang.Specification
 
-import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
-
 abstract class DependenciesMetadataAdapterTest extends Specification {
-    List<ModuleDependencyMetadata> dependenciesMetadata = []
-    TestDependenciesMetadataAdapter adapter
+    DirectDependenciesMetadataAdapter adapter
 
     abstract ModuleDependencyMetadata newDependency(ModuleComponentSelector requested);
 
     def setup() {
         fillDependencyList(0)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20510")
+    def "can read to removed element"() {
+        given:
+        adapter.add "org.gradle.test:module1:1.0"
+        adapter.add "org.gradle.test:module2:1.0"
+
+        when:
+        List<DirectDependencyMetadata> found = adapter.findAll { (it.name == "module1") }
+        adapter.removeAll(found)
+
+        then:
+        found.first().name == "module1"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20510")
+    def "can remove and add dependencies"() {
+        given:
+        adapter.add "org.gradle.test:module1:1.0"
+        adapter.add "org.gradle.test:module2:1.0"
+
+        when:
+        List<DirectDependencyMetadata> found = adapter.findAll { (it.name == "module1") }
+        adapter.removeAll(found)
+        found.each { adapter.add("$it.group:$it.name:2.0") }
+
+        then:
+        dependenciesMetadata.size() == 2
+        dependenciesMetadata[0].selector.group == "org.gradle.test"
+        dependenciesMetadata[0].selector.module == "module2"
+        dependenciesMetadata[0].selector.version == "1.0"
+
+        dependenciesMetadata[1].selector.group == "org.gradle.test"
+        dependenciesMetadata[1].selector.module == "module1"
+        dependenciesMetadata[1].selector.version == "2.0"
     }
 
     def "add via string id is propagate to the underlying dependency list"() {
@@ -108,49 +142,16 @@ abstract class DependenciesMetadataAdapterTest extends Specification {
         fillDependencyList(1)
 
         when:
-        adapter.add("org.gradle.test:module1:2.0")
+        adapter.add("org.gradle.test:module0:2.0")
 
         then:
         dependenciesMetadata.size() == 2
         dependenciesMetadata[0].selector.group == "org.gradle.test"
-        dependenciesMetadata[0].selector.module == "module1"
+        dependenciesMetadata[0].selector.module == "module0"
         dependenciesMetadata[0].selector.version == "1.0"
         dependenciesMetadata[1].selector.group == "org.gradle.test"
-        dependenciesMetadata[1].selector.module == "module1"
+        dependenciesMetadata[1].selector.module == "module0"
         dependenciesMetadata[1].selector.version == "2.0"
-    }
-
-    def "adapters for list items are created lazily"() {
-        when:
-        fillDependencyList(2)
-
-        then:
-        dependenciesMetadata.size() == 2
-        adapter.dependencyMetadataAdapters.size() == 0
-
-        when:
-        ++adapter.iterator()
-
-        then:
-        dependenciesMetadata.size() == 2
-        adapter.dependencyMetadataAdapters.size() == 1
-
-        when:
-        adapter.each {}
-
-        then:
-        dependenciesMetadata.size() == 2
-        adapter.dependencyMetadataAdapters.size() == 2
-    }
-
-    def "size check is propagated to the underlying dependency list"() {
-        when:
-        fillDependencyList(3)
-
-        then:
-        dependenciesMetadata.size() == 3
-        adapter.size() == 3
-        adapter.dependencyMetadataAdapters.size() == 0
     }
 
     def "iterator returns views on underlying list items"() {
@@ -175,7 +176,7 @@ abstract class DependenciesMetadataAdapterTest extends Specification {
         then:
         dependenciesMetadata.size() == 1
         dependenciesMetadata[0].selector.group == "org.gradle.test"
-        dependenciesMetadata[0].selector.module == "module1"
+        dependenciesMetadata[0].selector.module == "module0"
         dependenciesMetadata[0].selector.version == "2.0"
     }
 
@@ -190,7 +191,7 @@ abstract class DependenciesMetadataAdapterTest extends Specification {
         then:
         dependenciesMetadata.size() == 1
         dependenciesMetadata[0].selector.group == "org.gradle.test"
-        dependenciesMetadata[0].selector.module == "module1"
+        dependenciesMetadata[0].selector.module == "module0"
         dependenciesMetadata[0].selector.version == "1.0"
         dependenciesMetadata[0].selector.attributes.keySet() == [attr] as Set
         dependenciesMetadata[0].selector.attributes.getAttribute(attr) == 'foo'
@@ -217,32 +218,19 @@ abstract class DependenciesMetadataAdapterTest extends Specification {
     }
 
     private fillDependencyList(int size) {
-        dependenciesMetadata = []
+        adapter = new DirectDependenciesMetadataAdapter(
+            AttributeTestUtil.attributesFactory(),
+            TestUtil.instantiatorFactory().decorateLenient(),
+            DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe()))
+
         for (int i = 0; i < size; i++) {
-            ModuleComponentSelector requested = newSelector(DefaultModuleIdentifier.newId("org.gradle.test", "module$size"), "1.0")
-            dependenciesMetadata += [newDependency(requested)]
+            ModuleComponentSelector requested = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("org.gradle.test", "module$i"), "1.0")
+            ModuleDependencyMetadata dep = newDependency(requested)
+            adapter.add ( DirectInstantiator.INSTANCE.newInstance(DirectDependencyMetadataAdapter, AttributeTestUtil.attributesFactory(), dep))
         }
-        adapter = new TestDependenciesMetadataAdapter(dependenciesMetadata)
     }
 
-    class TestDependenciesMetadataAdapter extends AbstractDependenciesMetadataAdapter<DirectDependencyMetadata> {
-        TestDependenciesMetadataAdapter(List<DependencyMetadata> dependenciesMetadata) {
-            super(AttributeTestUtil.attributesFactory(), dependenciesMetadata, TestUtil.instantiatorFactory().decorateLenient(), DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe()))
-        }
-
-        @Override
-        protected Class adapterImplementationType() {
-            return DirectDependencyMetadataAdapter
-        }
-
-        @Override
-        protected boolean isConstraint() {
-            return false
-        }
-
-        @Override
-        protected boolean isEndorsingStrictVersions(DirectDependencyMetadata details) {
-            return details.isEndorsingStrictVersions()
-        }
+    List<ModuleDependencyMetadata> getDependenciesMetadata() {
+        return adapter.getMetadatas()
     }
 }

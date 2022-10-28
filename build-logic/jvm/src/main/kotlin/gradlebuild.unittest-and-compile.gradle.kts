@@ -15,12 +15,13 @@
  */
 
 import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
+import com.gradle.enterprise.gradleplugin.testselection.internal.PredictiveTestSelectionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.flakyTestStrategy
-import gradlebuild.basics.isExperimentalTestFilteringEnabled
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionPartitionSecond
+import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.rerunAllTests
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.testDistributionEnabled
@@ -59,7 +60,7 @@ fun configureCompile() {
     java.toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
         // Do not force Adoptium vendor for M1 Macs
-        if (!OperatingSystem.current().toString().contains("aarch64")) {
+        if (System.getProperty("os.arch") != "aarch64") {
             vendor.set(JvmVendorSpec.ADOPTIUM)
         }
     }
@@ -69,8 +70,8 @@ fun configureCompile() {
     }
     tasks.withType<GroovyCompile>().configureEach {
         groovyOptions.encoding = "utf-8"
-        sourceCompatibility = "8"
-        targetCompatibility = "8"
+        sourceCompatibility = "1.8"
+        targetCompatibility = "1.8"
         configureCompileTask(options)
     }
     addCompileAllTask()
@@ -118,9 +119,7 @@ fun configureClasspathManifestGeneration() {
         this.externalDependencies.from(runtimeClasspath.fileCollection { it is ExternalDependency })
         this.manifestFile.set(moduleIdentity.baseName.map { layout.buildDirectory.file("generated-resources/$it-classpath/$it-classpath.properties").get() })
     }
-    sourceSets.main.get().output.dir(
-        classpathManifest.map { it.manifestFile.get().asFile.parentFile }
-    )
+    sourceSets.main.get().output.dir(classpathManifest.map { it.manifestFile.get().asFile.parentFile })
 }
 
 fun addDependencies() {
@@ -135,6 +134,7 @@ fun addDependencies() {
         testImplementation(libs.spock)
         testImplementation(libs.junit5Vintage)
         testImplementation(libs.spockJUnit4)
+        testImplementation(libs.gradleEnterpriseTestAnnotation)
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
 
@@ -174,12 +174,7 @@ fun configureJarTasks() {
     tasks.withType<Jar>().configureEach {
         archiveBaseName.set(moduleIdentity.baseName)
         archiveVersion.set(moduleIdentity.version.map { it.baseVersion.version })
-        manifest.attributes(
-            mapOf(
-                Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-                Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }
-            )
-        )
+        manifest.attributes(mapOf(Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle", Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }))
     }
 }
 
@@ -236,7 +231,7 @@ fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "w
 fun Test.usesEmbeddedExecuter() = name.startsWith("embedded")
 
 fun Test.configureRerun() {
-    if (project.rerunAllTests.isPresent) {
+    if (project.rerunAllTests.get()) {
         doNotTrackState("All tests should re-run")
     }
 }
@@ -260,6 +255,7 @@ fun configureTests() {
     }
 
     tasks.withType<Test>().configureEach {
+
         configureAndroidUserHome()
         filterEnvironmentVariables()
 
@@ -285,16 +281,13 @@ fun configureTests() {
         configureSpock()
         configureFlakyTest()
 
-        if (project.enableExperimentalTestFiltering() && !isUnitTest()) {
-            distribution {
-                enabled.set(true)
-                maxRemoteExecutors.set(0)
-                // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
-                (this as TestDistributionExtensionInternal).server.set(uri("https://ge-td-dogfooding.grdev.net"))
-            }
+        distribution {
+            this as TestDistributionExtensionInternal
+            // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
+            server.set(uri("https://ge-td-dogfooding.grdev.net"))
         }
 
-        if (project.testDistributionEnabled && !isUnitTest()) {
+        if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject()) {
             println("Remote test distribution has been enabled for $testName")
 
             distribution {
@@ -305,8 +298,15 @@ fun configureTests() {
                 }
                 // No limit; use all available executors
                 distribution.maxRemoteExecutors.set(if (project.isPerformanceProject()) 0 else null)
-                // Dogfooding TD against ge-td-dogfooding in order to test new features and benefit from bug fixes before they are released
-                server.set(uri("https://ge-td-dogfooding.grdev.net"))
+
+                // Test distribution annotation-class filters
+                // See: https://docs.gradle.com/enterprise/test-distribution/#gradle_executor_restrictions_class_matcher
+                localOnly {
+                    includeAnnotationClasses.addAll("com.gradle.enterprise.testing.annotations.LocalOnly")
+                }
+                remoteOnly {
+                    includeAnnotationClasses.addAll("com.gradle.enterprise.testing.annotations.RemoteOnly")
+                }
 
                 if (BuildEnvironment.isCiServer) {
                     when {
@@ -319,21 +319,30 @@ fun configureTests() {
                 }
             }
         }
+
+        if (project.supportsPredictiveTestSelection() && !isUnitTest()) {
+            // GitHub actions for contributor PRs uses public build scan instance
+            // in this case we need to explicitly configure the PTS server
+            // Don't move this line into the lambda as it may cause config cache problems
+            (predictiveSelection as PredictiveTestSelectionExtensionInternal).server.set(uri("https://ge.gradle.org"))
+            predictiveSelection {
+                enabled.convention(project.predictiveTestSelectionEnabled)
+            }
+        }
     }
 }
 
 fun removeTeamcityTempProperty() {
     // Undo: https://github.com/JetBrains/teamcity-gradle/blob/e1dc98db0505748df7bea2e61b5ee3a3ba9933db/gradle-runner-agent/src/main/scripts/init.gradle#L818
     if (project.hasProperty("teamcity")) {
-        @Suppress("UNCHECKED_CAST")
-        val teamcity = project.property("teamcity") as MutableMap<String, Any>
+        @Suppress("UNCHECKED_CAST") val teamcity = project.property("teamcity") as MutableMap<String, Any>
         teamcity["teamcity.build.tempDir"] = ""
     }
 }
 
 fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
 
-fun Project.enableExperimentalTestFiltering() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name) && isExperimentalTestFilteringEnabled
+fun Project.supportsPredictiveTestSelection() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name)
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).

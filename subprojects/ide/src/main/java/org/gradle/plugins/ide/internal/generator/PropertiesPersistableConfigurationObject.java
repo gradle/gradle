@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.internal.generator;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.internal.PropertiesTransformer;
 
@@ -51,7 +52,7 @@ public abstract class PropertiesPersistableConfigurationObject extends AbstractP
 
     protected abstract void load(Properties properties);
 
-    public void transformAction(Closure action) {
+    public void transformAction(@DelegatesTo(Properties.class) Closure action) {
         transformAction(configureUsing(action));
     }
 

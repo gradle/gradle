@@ -2,8 +2,12 @@ package configurations
 
 import common.buildToolGradleParameters
 import common.customGradle
+import common.dependsOn
 import common.gradleWrapper
+import common.requiresNotEc2Agent
+import common.skipConditionally
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import model.CIBuildModel
@@ -18,12 +22,22 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
     name = "Gradleception - Java8 Linux"
     description = "Builds Gradle with the version of Gradle which is currently under development (twice)"
 
+    requirements {
+        // Gradleception is a heavy build which runs ~40m on EC2 agents but only ~20m on Hetzner agents
+        requiresNotEc2Agent()
+    }
+
     features {
         publishBuildStatusToGithub(model)
     }
 
     failureConditions {
         javaCrash = false
+    }
+
+    dependencies {
+        // If SanityCheck fails, Gradleception will definitely fail because the last build step is also sanityCheck
+        dependsOn(RelativeId(SanityCheck.buildTypeId(model)))
     }
 
     /*
@@ -49,7 +63,6 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(sta
         model,
         this,
         ":distributions-full:install",
-        notQuick = true,
         extraParameters = "-Pgradle_installPath=dogfood-first-for-hash -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp1 $buildScanTagForType",
         extraSteps = {
             script {
@@ -88,4 +101,5 @@ fun BuildSteps.localGradle(init: GradleBuildStep.() -> Unit): GradleBuildStep =
     customGradle(init) {
         param("ui.gradleRunner.gradle.wrapper.useWrapper", "false")
         buildFile = ""
+        skipConditionally()
     }

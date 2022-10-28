@@ -91,7 +91,6 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     fun `all embedded kotlin dependencies are resolvable`() {
 
         withBuildScript(
@@ -182,7 +181,6 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     fun `can add embedded dependencies to custom configuration`() {
 
         withBuildScript(

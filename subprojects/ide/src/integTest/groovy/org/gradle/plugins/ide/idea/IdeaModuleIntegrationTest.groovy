@@ -868,4 +868,19 @@ dependencies {
         assert dependencies.libraries.size() == 1
         dependencies.assertHasLibrary('PROVIDED', 'foo-1.0.jar')
     }
+
+    @Test // TODO: remove in Gradle 8.0
+    @ToBeFixedForConfigurationCache(because = "All other tests in this class are not for CC, this new test is temporary, to be removed in Gradle 8.0")
+    void "using deprecated IdeaModule properties emits deprecation warnings"() {
+        runIdeaTask '''
+apply plugin: "idea"
+
+idea {
+    module {
+        testSourceDirs += file('additionalCustomTestSources')
+        testResourceDirs += file('additionalCustomTestResources')
+    }
+}
+'''
+    }
 }

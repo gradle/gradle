@@ -22,6 +22,7 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMa
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheQuietOption
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.BuildOperationTreeFixture
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
@@ -61,10 +62,10 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaDependencyRecommender = "11.0.0"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "16.0.1"
+        static nebulaPluginPlugin = "17.1.0"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "17.2.3"
+        static nebulaLint = "17.7.0"
 
         // https://plugins.gradle.org/plugin/org.jetbrains.gradle.plugin.idea-ext
         static ideaExt = "1.1"
@@ -72,7 +73,7 @@ abstract class AbstractSmokeTest extends Specification {
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
         // TODO: Re-add "8.8.x", "9.4.x" and "10.1.x" if fixed:
         //   https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/215
-        static nebulaDependencyLock = Versions.of("12.1.0")
+        static nebulaDependencyLock = Versions.of("12.6.1")
 
         // https://plugins.gradle.org/plugin/nebula.resolution-rules
         static nebulaResolutionRules = "9.0.0"
@@ -93,7 +94,7 @@ abstract class AbstractSmokeTest extends Specification {
         static tomcat = "2.7.0"
 
         // https://plugins.gradle.org/plugin/io.spring.dependency-management
-        static springDependencyManagement = "1.0.11.RELEASE"
+        static springDependencyManagement = "1.0.14.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
         static springBoot = "2.5.5"
@@ -111,8 +112,8 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = [
-            [version: "3.0.7", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
-            [version: "4.0.0", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
+            [version: "3.0.9", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
+            [version: "4.0.3", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
         ]
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
@@ -128,8 +129,8 @@ abstract class AbstractSmokeTest extends Specification {
         static errorProne = "2.0.2"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
-        static protobufPlugin = "0.8.18"
-        static protobufTools = "3.17.1"
+        static protobufPlugin = "0.8.19"
+        static protobufTools = "3.21.5"
 
         // https://plugins.gradle.org/plugin/org.gradle.test-retry
         static testRetryPlugin = "1.3.1"
@@ -170,7 +171,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0", "1.6.10", "1.6.21")
+        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0", "1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.20-RC")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp
@@ -178,7 +179,7 @@ abstract class AbstractSmokeTest extends Specification {
         static node = Versions.of("1.3.1")
 
         // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint
-        static ktlint = Versions.of("10.2.0")
+        static ktlint = Versions.of("10.3.0")
 
         // https://plugins.gradle.org/plugin/com.github.node-gradle.node
         static newNode = Versions.of("3.1.1")
@@ -202,6 +203,15 @@ abstract class AbstractSmokeTest extends Specification {
 
         String latest() {
             versions.last()
+        }
+
+        String latestStable() {
+            versions.reverse().find { version ->
+                !version.containsIgnoreCase("rc") &&
+                !version.containsIgnoreCase("beta") &&
+                !version.containsIgnoreCase("alpha") &&
+                !version.containsIgnoreCase("milestone")
+            }
         }
 
         String latestStartsWith(String prefix) {
@@ -254,7 +264,7 @@ abstract class AbstractSmokeTest extends Specification {
             .withProjectDir(testProjectDir)
             .forwardOutput()
             .withArguments(
-                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters()
+                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters() + toolchainParameters()
             ) as DefaultGradleRunner
         gradleRunner.withJvmArguments(["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"])
         return new SmokeTestGradleRunner(gradleRunner)
@@ -290,6 +300,14 @@ abstract class AbstractSmokeTest extends Specification {
             '--init-script', mirrorInitScriptPath,
             "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
             "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
+        ]
+    }
+
+    private static List<String> toolchainParameters() {
+        return [
+            "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}" as String,
+            '-Porg.gradle.java.installations.auto-detect=false',
+            '-Porg.gradle.java.installations.auto-download=false',
         ]
     }
 

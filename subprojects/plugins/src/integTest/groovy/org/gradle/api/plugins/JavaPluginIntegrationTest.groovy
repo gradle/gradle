@@ -240,9 +240,7 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 testImplementation 'junit:junit:4.13'
@@ -288,9 +286,7 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 testImplementation 'junit:junit:4.13'
@@ -338,9 +334,7 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 testImplementation 'junit:junit:4.13'
@@ -389,9 +383,7 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 testImplementation 'junit:junit:4.13'
@@ -428,9 +420,7 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation project(':subA')
@@ -469,5 +459,85 @@ Artifacts
         succeeds ":subB:test"
         result.assertTaskOrder(":subA:jar", ":subB:test")
         result.assertTaskNotExecuted(":subA:test")
+    }
+
+    def "classes directories registered on source set output are included in runtime classes variant"() {
+        settingsFile << "include 'consumer'"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            TaskProvider<JavaCompile> taskProvider = tasks.register("customCompile", JavaCompile) {
+                source = files("src/custom/java/com/example/Example.java")
+                destinationDirectory = file("build/classes/custom")
+                classpath = files()
+            }
+
+            sourceSets.main.output.classesDirs.from(taskProvider.flatMap(it -> it.getDestinationDirectory()))
+        """
+        file("src/custom/java/com/example/Example.java") << """
+            package com.example;
+            public class Example {}
+        """
+
+        file("consumer/build.gradle") << """
+            configurations.register("config") {
+                attributes {
+                    attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                }
+            }
+            dependencies {
+                config project(":")
+            }
+            tasks.register("consumeRuntimeClasses") {
+                dependsOn configurations.config
+                doLast {
+                    assert configurations.config.files*.name.contains("custom")
+                }
+            }
+        """
+
+        when:
+        succeeds "consumer:consumeRuntimeClasses"
+
+        then:
+        result.assertTaskExecuted(":customCompile")
+    }
+
+    // This is not intended behavior, though it remains due to backwards compatibility.
+    // There is no reason to run processResources if only the classes are needed.
+    @Issue("https://github.com/gradle/gradle/issues/22484")
+    def "executing task which depends on source set classes builds resources"() {
+        buildFile("""
+            plugins {
+                id 'java'
+            }
+
+            def fooTask = tasks.register("foo") {
+                outputs.file(project.layout.buildDirectory.dir("fooOut"))
+            }
+
+            tasks.register("bar") {
+                inputs.files(java.sourceSets.main.output.classesDirs)
+            }
+
+            java {
+                sourceSets {
+                    main {
+                        resources.srcDir(fooTask.map { it.outputs.files.singleFile })
+                    }
+                }
+            }
+        """)
+
+        file("src/main/java/com/example/Main.java") << "package com.example; public class Main {}"
+
+        when:
+        succeeds "bar"
+
+        then:
+        result.assertTasksExecuted(":compileJava", ":foo", ":processResources", ":classes", ":bar")
     }
 }

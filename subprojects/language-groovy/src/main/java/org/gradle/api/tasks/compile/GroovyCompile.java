@@ -63,6 +63,7 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.IncubationLogger;
@@ -95,6 +96,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         ObjectFactory objectFactory = getObjectFactory();
         CompileOptions compileOptions = objectFactory.newInstance(CompileOptions.class);
         compileOptions.setIncremental(false);
+        compileOptions.getIncrementalAfterFailure().convention(true);
         this.compileOptions = compileOptions;
         this.javaLauncher = objectFactory.property(JavaLauncher.class);
         this.astTransformationClasspath = objectFactory.fileCollection();
@@ -343,7 +345,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         }
         final File customHome = getOptions().getForkOptions().getJavaHome();
         if (customHome != null) {
-            return getServices().get(JvmMetadataDetector.class).getMetadata(customHome).getLanguageVersion().getMajorVersion();
+            return getServices().get(JvmMetadataDetector.class).getMetadata(new InstallationLocation(customHome, "JVM for Groovy compiler")).getLanguageVersion().getMajorVersion();
         }
         return JavaVersion.current().getMajorVersion();
     }

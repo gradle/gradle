@@ -202,16 +202,14 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         return when {
             testCoverage.testType == TestType.platform && testCoverage.os == Os.LINUX ->
                 splitDocsSubproject(validSubprojects) +
-                    SmallSubprojectBucket(validSubprojects.first { it.name == "file-watching" }, false) +
-                    splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs", "file-watching"), true)
+                    splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs"), true)
             testCoverage.testType == TestType.platform ->
                 splitDocsSubproject(validSubprojects) +
                     splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs"), false)
             testCoverage.os == Os.LINUX ->
-                splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("file-watching"), true) +
-                    SmallSubprojectBucket(validSubprojects.first { it.name == "file-watching" }, false)
+                splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, emptyList(), true)
             else ->
-                splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("file-watching"), false)
+                splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, emptyList(), false)
         }
     }
 
@@ -265,7 +263,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             val foundTestCoverage = testCoverages.firstOrNull {
                 it.testType == TestType.platform &&
                     it.os == testCoverage.os &&
-                    it.buildJvmVersion == testCoverage.buildJvmVersion
+                    it.buildJvm == testCoverage.buildJvm
             }
             foundTestCoverage?.let {
                 buildProjectClassTimes[it.asId(MASTER_CHECK_CONFIGURATION)]

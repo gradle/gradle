@@ -17,39 +17,27 @@
 package org.gradle.execution.plan;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.NavigableSet;
 import java.util.Set;
-import java.util.function.Consumer;
+
+import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
 
 public abstract class TaskNode extends Node {
-    private final NavigableSet<Node> mustSuccessors = Sets.newTreeSet();
-    private final Set<Node> mustPredecessors = Sets.newHashSet();
-    private final NavigableSet<Node> shouldSuccessors = Sets.newTreeSet();
-    private final NavigableSet<Node> finalizers = Sets.newTreeSet();
-    private final NavigableSet<Node> finalizingSuccessors = Sets.newTreeSet();
+    private final NavigableSet<Node> shouldSuccessors = newSortedNodeSet();
+    private final NavigableSet<Node> finalizingSuccessors = newSortedNodeSet();
 
     @Override
-    public DependenciesState doCheckDependenciesComplete() {
-        DependenciesState state = super.doCheckDependenciesComplete();
-        if (state != DependenciesState.COMPLETE_AND_SUCCESSFUL) {
-            return state;
+    protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
+        if (!finalizingSuccessors.isEmpty()) {
+            builder.append(", finalizes=").append(formatNodes(finalizingSuccessors));
         }
-
-        for (Node dependency : mustSuccessors) {
-            if (!dependency.isComplete()) {
-                return DependenciesState.NOT_COMPLETE;
-            }
-        }
-
-        return DependenciesState.COMPLETE_AND_SUCCESSFUL;
     }
 
     public Set<Node> getMustSuccessors() {
-        return mustSuccessors;
+        return getDependencyNodes().getMustSuccessors();
     }
 
     public abstract Set<Node> getLifecycleSuccessors();
@@ -57,32 +45,18 @@ public abstract class TaskNode extends Node {
     public abstract void setLifecycleSuccessors(Set<Node> successors);
 
     @Override
-    public Set<Node> getFinalizers() {
-        return finalizers;
-    }
-
-    @Override
-    public void addFinalizer(Node finalizer) {
-        finalizers.add(finalizer);
-    }
-
-    @Override
     public Set<Node> getFinalizingSuccessors() {
         return finalizingSuccessors;
-    }
-
-    public Set<Node> getFinalizingSuccessorsInReverseOrder() {
-        return finalizingSuccessors.descendingSet();
     }
 
     public Set<Node> getShouldSuccessors() {
         return shouldSuccessors;
     }
 
-    public void addMustSuccessor(TaskNode toNode) {
+    public void addMustSuccessor(Node toNode) {
         deprecateLifecycleHookReferencingNonLocalTask("mustRunAfter", toNode);
-        mustSuccessors.add(toNode);
-        toNode.mustPredecessors.add(this);
+        updateDependencyNodes(getDependencyNodes().addMustSuccessor(toNode));
+        toNode.addMustPredecessor(this);
     }
 
     public void addFinalizingSuccessor(Node finalized) {
@@ -103,8 +77,8 @@ public abstract class TaskNode extends Node {
     public Iterable<Node> getAllSuccessors() {
         return Iterables.concat(
             shouldSuccessors,
-            getGroup().getSuccessorsFor(this),
-            mustSuccessors,
+            finalizingSuccessors,
+            getMustSuccessors(),
             super.getAllSuccessors()
         );
     }
@@ -112,31 +86,10 @@ public abstract class TaskNode extends Node {
     @Override
     public Iterable<Node> getHardSuccessors() {
         return Iterables.concat(
-            getGroup().getSuccessorsFor(this),
-            mustSuccessors,
+            finalizingSuccessors,
+            getMustSuccessors(),
             super.getHardSuccessors()
         );
-    }
-
-    @Override
-    public Iterable<Node> getAllSuccessorsInReverseOrder() {
-        return Iterables.concat(
-            super.getAllSuccessorsInReverseOrder(),
-            mustSuccessors.descendingSet(),
-            getGroup().getSuccessorsInReverseOrderFor(this),
-            shouldSuccessors.descendingSet()
-        );
-    }
-
-    @Override
-    protected void visitAllNodesWaitingForThisNode(Consumer<Node> visitor) {
-        super.visitAllNodesWaitingForThisNode(visitor);
-        for (Node node : mustPredecessors) {
-            visitor.accept(node);
-        }
-        for (Node node : finalizers) {
-            node.getFinalizerGroup().visitAllMembers(visitor);
-        }
     }
 
     public abstract TaskInternal getTask();
@@ -151,17 +104,11 @@ public abstract class TaskNode extends Node {
     }
 
     @Override
-    public void updateGroupOfFinalizer() {
-        super.updateGroupOfFinalizer();
+    public void maybeInheritFinalizerGroups() {
+        super.maybeInheritFinalizerGroups();
         if (!getFinalizingSuccessors().isEmpty()) {
             // This node is a finalizer, decorate the current group to add finalizer behaviour
             NodeGroup oldGroup = getGroup();
-            if (oldGroup instanceof HasFinalizers) {
-                // The finalizer has its own scheduling logic. Its execution moment is determined by the node it finalizes.
-                // The other finalizer groups containing this node (as a dependency of the finalizer) should always consider it
-                // as a hard successor for group elements.
-                ((HasFinalizers) oldGroup).removeFromOwnedMembers(this);
-            }
             FinalizerGroup finalizerGroup = new FinalizerGroup(this, oldGroup);
             setGroup(finalizerGroup);
         }

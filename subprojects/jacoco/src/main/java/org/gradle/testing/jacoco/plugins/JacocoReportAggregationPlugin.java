@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.FileCollection;
@@ -87,6 +88,9 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         classDirectoriesConf.setVisible(false);
         classDirectoriesConf.setCanBeConsumed(false);
         classDirectoriesConf.setCanBeResolved(true);
+        classDirectoriesConf.attributes(attributes -> {
+            attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.class, LibraryElements.CLASSES));
+        });
 
         ArtifactView classDirectories = classDirectoriesConf.getIncoming().artifactView(view -> {
             view.componentFilter(id -> id instanceof ProjectComponentIdentifier);

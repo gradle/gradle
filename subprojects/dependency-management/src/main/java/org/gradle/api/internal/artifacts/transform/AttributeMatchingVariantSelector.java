@@ -54,16 +54,18 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final TransformedVariantFactory transformedVariantFactory;
     private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
+
+    private final boolean selectFromAllVariants;
     private final ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver;
 
     AttributeMatchingVariantSelector(
-        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
-        AttributesSchemaInternal schema,
-        ImmutableAttributesFactory attributesFactory,
-        TransformedVariantFactory transformedVariantFactory,
-        AttributeContainerInternal requested,
-        boolean ignoreWhenNoMatches,
-        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver
+            ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
+            AttributesSchemaInternal schema,
+            ImmutableAttributesFactory attributesFactory,
+            TransformedVariantFactory transformedVariantFactory,
+            AttributeContainerInternal requested,
+            boolean ignoreWhenNoMatches,
+            boolean selectFromAllVariants, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
@@ -71,6 +73,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         this.transformedVariantFactory = transformedVariantFactory;
         this.requested = requested.asImmutable();
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
+        this.selectFromAllVariants = selectFromAllVariants;
         this.dependenciesResolver = dependenciesResolver;
     }
 
@@ -98,7 +101,14 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, Factory factory, AttributeMatchingExplanationBuilder explanationBuilder) {
         AttributeMatcher matcher = schema.withProducer(producer.getSchema());
         ImmutableAttributes componentRequested = attributesFactory.concat(requested, producer.getOverriddenAttributes());
-        List<? extends ResolvedVariant> matches = matcher.matches(producer.getVariants(), componentRequested, explanationBuilder);
+        final Set<ResolvedVariant> variants;
+        if (selectFromAllVariants) {
+            variants = producer.getAllVariants();
+        } else {
+            variants = producer.getVariants();
+        }
+
+        List<? extends ResolvedVariant> matches = matcher.matches(variants, componentRequested, explanationBuilder);
         if (matches.size() == 1) {
             return matches.get(0).getArtifacts();
         }
@@ -114,7 +124,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         }
 
         List<Pair<ResolvedVariant, MutableConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<>();
-        for (ResolvedVariant variant : producer.getVariants()) {
+        for (ResolvedVariant variant : variants) {
             AttributeContainerInternal variantAttributes = variant.getAttributes().asImmutable();
             ConsumerVariantMatchResult matchResult = consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, componentRequested);
             for (MutableConsumerVariantMatchResult.ConsumerVariant consumerVariant : matchResult.getMatches()) {
@@ -138,7 +148,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         if (ignoreWhenNoMatches) {
             return ResolvedArtifactSet.EMPTY;
         }
-        throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, producer.getVariants(), matcher, DescriberSelector.selectDescriber(componentRequested, schema));
+        throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, variants, matcher, DescriberSelector.selectDescriber(componentRequested, schema));
     }
 
     private List<Pair<ResolvedVariant, MutableConsumerVariantMatchResult.ConsumerVariant>> tryDisambiguate(AttributeMatcher matcher, List<Pair<ResolvedVariant, MutableConsumerVariantMatchResult.ConsumerVariant>> candidates, ImmutableAttributes componentRequested, AttributeMatchingExplanationBuilder explanationBuilder) {

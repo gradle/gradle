@@ -105,7 +105,9 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
                 int expectedNumberOfRetainedFiles = retainedFilesInLastBuild - numberOfChangesBetweenBuilds
                 int retainedFilesAtTheBeginningOfTheCurrentBuild = vfsLogs.retainedFilesSinceLastBuild
                 assert retainedFilesAtTheBeginningOfTheCurrentBuild <= expectedNumberOfRetainedFiles
-                assert expectedNumberOfRetainedFiles - 100 <= retainedFilesAtTheBeginningOfTheCurrentBuild
+                // For some reason some extra files are invalidated between builds apart from the changed files.
+                // We assert here that not too many files are invalidated.
+                assert expectedNumberOfRetainedFiles * 0.98 <= retainedFilesAtTheBeginningOfTheCurrentBuild
             }
             assert vfsLogs.receivedFileSystemEventsSinceLastBuild >= minimumExpectedFileSystemEvents(numberOfChangesBetweenBuilds, 1)
             retainedFilesInLastBuild = vfsLogs.retainedFilesInCurrentBuild
@@ -148,9 +150,14 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
     }
 
     private static getMaxFileChangesWithoutOverflow() {
-        OperatingSystem.current().windows
-            ? 200
-            : 1000
+        def os = OperatingSystem.current()
+        if (os.windows) {
+            return 200
+        } else if (os.macOsX) {
+            return 150
+        } else {
+            return 1000
+        }
     }
 
     private static boolean detectOverflow(DaemonFixture daemon, long fromLine) {

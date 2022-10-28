@@ -63,6 +63,7 @@ class WrapperTest extends AbstractTaskTest {
         Wrapper.PathBase.GRADLE_USER_HOME == wrapper.getArchiveBase()
         wrapper.getDistributionUrl() != null
         wrapper.getDistributionSha256Sum() == null
+        !wrapper.getNetworkTimeout().isPresent()
     }
 
     def "determines Windows script path from unix script path"() {
@@ -128,6 +129,14 @@ class WrapperTest extends AbstractTaskTest {
         "somehash" == wrapper.getDistributionSha256Sum()
     }
 
+    def "uses defined network timeout"() {
+        given:
+        wrapper.setNetworkTimeout(5000)
+
+        expect:
+        5000 == wrapper.getNetworkTimeout().get()
+    }
+
     def "execute with non extant wrapper jar parent directory"() {
         when:
         def unjarDir = temporaryFolder.createDir("unjar")
@@ -145,11 +154,23 @@ class WrapperTest extends AbstractTaskTest {
         properties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY) == wrapper.getArchivePath()
     }
 
+    def "execute with networkTimeout set"() {
+        given:
+        wrapper.setNetworkTimeout(6000)
+
+        when:
+        execute(wrapper)
+        def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
+
+        then:
+        properties.getProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY) == "6000"
+    }
+
     def "check inputs"() {
         expect:
         TaskPropertyTestUtils.getProperties(wrapper).keySet() == WrapUtil.toSet(
             "distributionBase", "distributionPath", "distributionUrl", "distributionSha256Sum",
-            "distributionType", "archiveBase", "archivePath", "gradleVersion")
+            "distributionType", "archiveBase", "archivePath", "gradleVersion", "networkTimeout")
     }
 
     def "execute with extant wrapper jar parent directory and extant wrapper jar"() {

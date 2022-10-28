@@ -18,7 +18,7 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
@@ -27,11 +27,11 @@ public class DefaultVariantMetadata implements VariantResolveMetadata {
     private final String name;
     private final Identifier identifier;
     private final DisplayName displayName;
-    private final AttributeContainerInternal attributes;
+    private final ImmutableAttributes attributes;
     private final ImmutableList<? extends ComponentArtifactMetadata> artifacts;
     private final CapabilitiesMetadata capabilitiesMetadata;
 
-    public DefaultVariantMetadata(String name, @Nullable Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, @Nullable CapabilitiesMetadata capabilitiesMetadata) {
+    public DefaultVariantMetadata(String name, @Nullable Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, @Nullable CapabilitiesMetadata capabilitiesMetadata) {
         this.name = name;
         this.identifier = identifier;
         this.displayName = displayName;
@@ -56,7 +56,7 @@ public class DefaultVariantMetadata implements VariantResolveMetadata {
     }
 
     @Override
-    public AttributeContainerInternal getAttributes() {
+    public ImmutableAttributes getAttributes() {
         return attributes;
     }
 

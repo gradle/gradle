@@ -19,22 +19,25 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.artifacts.DirectDependenciesMetadata;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import java.util.List;
-
-public class DirectDependenciesMetadataAdapter extends AbstractDependenciesMetadataAdapter<DirectDependencyMetadata> implements DirectDependenciesMetadata {
+public class DirectDependenciesMetadataAdapter extends AbstractDependenciesMetadataAdapter<DirectDependencyMetadata, DirectDependencyMetadataAdapter> implements DirectDependenciesMetadata {
     public DirectDependenciesMetadataAdapter(ImmutableAttributesFactory attributesFactory,
-                                             List<org.gradle.internal.component.model.DependencyMetadata> dependenciesMetadata,
                                              Instantiator instantiator,
                                              NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser) {
-        super(attributesFactory, dependenciesMetadata, instantiator, dependencyNotationParser);
+        super(attributesFactory, instantiator, dependencyNotationParser);
     }
 
     @Override
-    protected Class<? extends DirectDependencyMetadata> adapterImplementationType() {
+    protected Class<DirectDependencyMetadataAdapter> adapterImplementationType() {
         return DirectDependencyMetadataAdapter.class;
+    }
+
+    @Override
+    protected ModuleDependencyMetadata getAdapterMetadata(DirectDependencyMetadataAdapter adapter) {
+        return adapter.getMetadata();
     }
 
     @Override

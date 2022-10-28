@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.verification
 
-
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint

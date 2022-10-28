@@ -79,7 +79,7 @@ Artifacts
                         testType = TestSuiteType.INTEGRATION_TEST
 
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -117,16 +117,14 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
                     test {
                         useJUnit()
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -181,16 +179,14 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
                     test {
                         useJUnit()
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -212,16 +208,14 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
                     test {
                         useJUnit()
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -292,9 +286,7 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation project(':transitive')
@@ -305,7 +297,7 @@ Artifacts
                     test {
                         useJUnit()
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -326,16 +318,14 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
                     test {
                         useJUnit()
                         dependencies {
-                            implementation project
+                            implementation project()
                         }
                     }
                 }
@@ -465,9 +455,7 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {
@@ -483,9 +471,7 @@ Artifacts
                 id 'java'
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
 
             testing {
                 suites {

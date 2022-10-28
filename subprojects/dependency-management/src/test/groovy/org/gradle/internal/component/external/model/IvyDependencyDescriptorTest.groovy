@@ -23,17 +23,20 @@ import com.google.common.collect.LinkedHashMultimap
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
-import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveState
+import org.gradle.internal.component.model.ConfigurationGraphResolveMetadata
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ConfigurationNotFoundException
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.Exclude
+import org.gradle.internal.component.model.ModuleConfigurationMetadata
 
 import static com.google.common.collect.ImmutableList.copyOf
 
@@ -154,22 +157,24 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
     def "selects no configurations when no configuration mappings provided"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
+        def toState = Stub(ComponentGraphResolveState)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
         fromConfig.name >> "from"
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, ImmutableListMultimap.of(), [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent).empty
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toState).variants.empty
     }
 
     def "selects configurations from target component that match configuration mappings"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
+        def toState = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig2 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
+        toState.metadata >> toComponent
         toComponent.getConfiguration("to-1") >> toConfig1
         toComponent.getConfiguration("to-2") >> toConfig2
 
@@ -180,16 +185,18 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2] // verify order as well
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toState).variants == [toConfig1, toConfig2] // verify order as well
     }
 
     def "selects matching configurations for super-configurations"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
+        def toState = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ModuleConfigurationMetadata)
+        def toConfig2 = Stub(ModuleConfigurationMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from", "super")
+        toState.metadata >> toComponent
         toComponent.getConfiguration("to-1") >> toConfig1
         toComponent.getConfiguration("to-2") >> toConfig2
 
@@ -200,18 +207,20 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toState).variants == [toConfig1, toConfig2]
     }
 
     def "configuration mapping can use wildcard on LHS"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def fromConfig2 = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
+        def toState = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def fromConfig2 = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig2 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
         fromConfig2.hierarchy >> ImmutableSet.of("other")
+        toState.metadata >> toComponent
         toComponent.getConfiguration("to-1") >> toConfig1
         toComponent.getConfiguration("to-2") >> toConfig2
 
@@ -221,18 +230,20 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent) as List == [toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toState).variants == [toConfig1, toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toState).variants == [toConfig2]
     }
 
     def "configuration mapping can use wildcard on RHS to select all public configurations"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
+        def toState = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
         def toConfig1 = config('to-1', true)
         def toConfig2 = config('to-2', true)
         def toConfig3 = config('to-3', false)
+        toState.metadata >> toComponent
         toComponent.getConfigurationNames() >> ["to-1", "to-2", "to-3"]
         toComponent.getConfiguration("to-1") >> toConfig1
         toComponent.getConfiguration("to-2") >> toConfig2
@@ -245,11 +256,11 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toState).variants == [toConfig1, toConfig2]
     }
 
-    private ConfigurationMetadata config(name, visible) {
-        def toConfig1 = Stub(ConfigurationMetadata)
+    private ConfigurationGraphResolveMetadata config(name, visible) {
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
         toConfig1.visible >> visible
         toConfig1.name >> name
         toConfig1.getHierarchy() >> ImmutableSet.of(name)
@@ -258,15 +269,17 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
     def "configuration mapping can use all-except-wildcard on LHS"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def fromConfig2 = Stub(ConfigurationMetadata)
-        def fromConfig3 = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
+        def toState = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def fromConfig2 = Stub(ModuleConfigurationMetadata)
+        def fromConfig3 = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig2 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
         fromConfig2.hierarchy >> ImmutableSet.of("child", "from")
         fromConfig3.hierarchy >> ImmutableSet.of("other")
+        toState.metadata >> toComponent
         toComponent.getConfiguration("to-1") >> toConfig1
         toComponent.getConfiguration("to-2") >> toConfig2
 
@@ -277,23 +290,25 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent) as List == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toComponent) as List == [toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toState).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toState).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toState).variants == [toConfig2]
     }
 
     def "configuration mapping can include fallback on LHS"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def fromConfig2 = Stub(ConfigurationMetadata)
-        def fromConfig3 = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
-        def toConfig3 = Stub(ConfigurationMetadata)
+        def toState = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def fromConfig2 = Stub(ModuleConfigurationMetadata)
+        def fromConfig3 = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig2 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig3 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
         fromConfig2.hierarchy >> ImmutableSet.of("child", "from")
         fromConfig3.hierarchy >> ImmutableSet.of("other")
+        toState.metadata >> toComponent
         toComponent.getConfiguration("to-1") >> toConfig1
         toComponent.getConfiguration("to-2") >> toConfig2
         toComponent.getConfiguration("to-3") >> toConfig3
@@ -305,24 +320,26 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig3]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent) as List == [toConfig1, toConfig3]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toComponent) as List == [toConfig2, toConfig3]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toState).variants == [toConfig1, toConfig3]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toState).variants == [toConfig1, toConfig3]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toState).variants == [toConfig2, toConfig3]
     }
 
     def "configuration mapping can include fallback on RHS"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def fromConfig2 = Stub(ConfigurationMetadata)
-        def fromConfig3 = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
+        def toState = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def fromConfig2 = Stub(ModuleConfigurationMetadata)
+        def fromConfig3 = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig2 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
         fromConfig2.hierarchy >> ImmutableSet.of("other")
         fromConfig3.hierarchy >> ImmutableSet.of("other2")
         toConfig1.visible >> true
         toConfig2.visible >> true
+        toState.metadata >> toComponent
         toComponent.getConfigurationNames() >> ["to-1", "to-2"]
         toComponent.getConfiguration("unknown") >> null
         toComponent.getConfiguration("to-1") >> toConfig1
@@ -335,19 +352,21 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1, toConfig2]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent) as List == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toComponent) as List == [toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toState).variants == [toConfig1, toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toState).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig3, toState).variants == [toConfig2]
     }
 
     def "configuration mapping can include self placeholder on RHS"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def fromConfig2 = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
+        def toState = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def fromConfig2 = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("a")
         fromConfig2.hierarchy >> ImmutableSet.of("other", "a")
+        toState.metadata >> toComponent
         toComponent.getConfiguration("a") >> toConfig1
 
         def configMapping = LinkedHashMultimap.create()
@@ -355,21 +374,23 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent) as List == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toState).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toState).variants == [toConfig1]
     }
 
     def "configuration mapping can include this placeholder on RHS"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def fromConfig2 = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
+        def toState = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def fromConfig2 = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig2 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.name >> "a"
         fromConfig2.name >> "b"
         fromConfig.hierarchy >> ImmutableSet.of("a")
         fromConfig2.hierarchy >> ImmutableSet.of("b", "a")
+        toState.metadata >> toComponent
         toComponent.getConfiguration("a") >> toConfig1
         toComponent.getConfiguration("b") >> toConfig2
 
@@ -378,21 +399,23 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent) as List == [toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toState).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toState).variants == [toConfig2]
     }
 
     def "configuration mapping can include wildcard on LHS and placeholder on RHS"() {
         def fromComponent = Stub(ComponentIdentifier)
-        def toComponent = Stub(ComponentResolveMetadata)
-        def fromConfig = Stub(ConfigurationMetadata)
-        def fromConfig2 = Stub(ConfigurationMetadata)
-        def toConfig1 = Stub(ConfigurationMetadata)
-        def toConfig2 = Stub(ConfigurationMetadata)
+        def toState = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(ComponentGraphResolveMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
+        def fromConfig2 = Stub(ModuleConfigurationMetadata)
+        def toConfig1 = Stub(ConfigurationGraphResolveMetadata)
+        def toConfig2 = Stub(ConfigurationGraphResolveMetadata)
         fromConfig.name >> "a"
         fromConfig2.name >> "b"
         fromConfig.hierarchy >> ImmutableSet.of("a")
         fromConfig2.hierarchy >> ImmutableSet.of("b", "a")
+        toState.metadata >> toComponent
         toComponent.getConfiguration("a") >> toConfig1
         toComponent.getConfiguration("b") >> toConfig2
 
@@ -401,8 +424,8 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
 
         expect:
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent) as List == [toConfig1]
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toComponent) as List == [toConfig2]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toState).variants == [toConfig1]
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig2, toState).variants == [toConfig2]
 
         where:
         // these all map to the same thing
@@ -420,9 +443,11 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def toId = Stub(ComponentIdentifier) {
             getDisplayName() >> "thing b"
         }
-        def toComponent = Stub(ComponentResolveMetadata)
+        def toState = Stub(ComponentGraphResolveState)
+        def toComponent = Stub(ComponentGraphResolveMetadata)
+        toState.metadata >> toComponent
         toComponent.id >> toId
-        def fromConfig = Stub(ConfigurationMetadata)
+        def fromConfig = Stub(ModuleConfigurationMetadata)
         fromConfig.hierarchy >> ImmutableSet.of("from")
         fromConfig.name >> "from"
         toComponent.getConfiguration(_) >> null
@@ -433,7 +458,7 @@ class IvyDependencyDescriptorTest extends ExternalDependencyDescriptorTest {
         def metadata = new IvyDependencyDescriptor(requested, "12", true, true, false, configMapping, [], [])
 
         when:
-        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toComponent)
+        metadata.selectLegacyConfigurations(fromComponent, fromConfig, toState)
 
         then:
         ConfigurationNotFoundException e = thrown()

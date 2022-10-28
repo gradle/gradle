@@ -175,6 +175,9 @@
                 <td>org.gradle.api.artifacts.ComponentSelectionRules</td>
             </tr>
             <tr>
+                <td>org.gradle.api.artifacts.dsl.DependencyAdder</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.plugins.ExtensionAware</td>
             </tr>
             <tr>
@@ -506,6 +509,9 @@
                 <td>org.gradle.api.plugins.quality.Pmd</td>
             </tr>
             <tr>
+                <td>org.gradle.language.jvm.tasks.ProcessResources</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.publish.ivy.tasks.PublishToIvyRepository</td>
             </tr>
             <tr>
@@ -578,6 +584,21 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.testing.Test</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.dsl.Dependencies</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.dsl.GradleDependencies</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.dsl.TestFixturesDependencyModifiers</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.dsl.PlatformDependencyModifiers</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.plugins.jvm.JvmComponentDependencies</td>
             </tr>
         </table>
     </section>

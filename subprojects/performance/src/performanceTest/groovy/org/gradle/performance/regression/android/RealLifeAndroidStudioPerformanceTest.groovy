@@ -40,10 +40,9 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
         def testProject = AndroidTestProject.projectFor(runner.testProject)
         testProject.configure(runner)
         AndroidTestProject.useStableAgpVersion(runner)
-        runner.warmUpRuns = 40
-        runner.runs = 40
+        runner.warmUpRuns = 20
+        runner.runs = 20
         runner.minimumBaseVersion = "6.5"
-        runner.targetVersions = ["7.5-20220615234050+0000"]
         runner.setupAndroidStudioSync()
 
         when:

@@ -155,4 +155,17 @@ class DistributionPluginTest extends AbstractProjectBuilderSpec {
         def distZipTask = project.tasks.distZip
         distZipTask.archiveFileName.get() == "SuperApp.zip"
     }
+
+    def "distribution names with classifier"() {
+        when:
+        project.pluginManager.apply(DistributionPlugin)
+        project.distributions.main.distributionBaseName = "app"
+        project.distributions.main.distributionClassifier = "classifier"
+
+        then:
+        def zip = project.tasks.distZip
+        zip.archiveFileName.get() == "app-classifier.zip"
+        def tar = project.tasks.distTar
+        tar.archiveFileName.get() == "app-classifier.tar"
+    }
 }

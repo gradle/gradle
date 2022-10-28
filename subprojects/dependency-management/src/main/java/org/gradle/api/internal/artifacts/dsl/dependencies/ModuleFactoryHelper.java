@@ -19,8 +19,10 @@ import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 
+import javax.annotation.Nullable;
+
 public class ModuleFactoryHelper {
-    public static void addExplicitArtifactsIfDefined(ExternalDependency moduleDependency, String artifactType, String classifier) {
+    public static void addExplicitArtifactsIfDefined(ExternalDependency moduleDependency, @Nullable String artifactType, @Nullable String classifier) {
         String actualArtifactType = artifactType;
         if (actualArtifactType == null) {
             if (classifier != null) {

@@ -25,13 +25,13 @@ import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
-import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
 import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.internal.stream.EncodedStream;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.GradleWorkerMain;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
-import org.gradle.util.internal.GUtil;
+import org.gradle.process.internal.worker.messaging.WorkerConfig;
+import org.gradle.process.internal.worker.messaging.WorkerConfigSerializer;
 
 import java.io.DataOutputStream;
 import java.io.File;
@@ -148,20 +148,17 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
                 }
             }
 
+            WorkerConfig config = new WorkerConfig(
+                logLevel, publishProcessInfo, gradleUserHomeDir.getAbsolutePath(),
+                (MultiChoiceAddress) serverAddress, workerId, displayName, processBuilder.getWorker());
+
             // Serialize the worker config, this is consumed by SystemApplicationClassLoaderWorker
             OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(outstr);
-            encoder.writeSmallInt(logLevel.ordinal());
-            encoder.writeBoolean(publishProcessInfo);
-            encoder.writeString(gradleUserHomeDir.getAbsolutePath());
-            new MultiChoiceAddressSerializer().write(encoder, (MultiChoiceAddress) serverAddress);
-            encoder.writeSmallLong(workerId);
-            encoder.writeString(displayName);
-
-            // Serialize the worker action, this is consumed by SystemApplicationClassLoaderWorker
-            byte[] serializedWorker = GUtil.serialize(processBuilder.getWorker());
-            encoder.writeBinary(serializedWorker);
-
-            encoder.flush();
+            try {
+                new WorkerConfigSerializer().write(encoder, config);
+            } finally {
+                encoder.flush();
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

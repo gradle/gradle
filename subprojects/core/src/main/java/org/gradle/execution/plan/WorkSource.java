@@ -16,13 +16,13 @@
 
 package org.gradle.execution.plan;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -98,46 +98,53 @@ public interface WorkSource<T> {
      */
     class Diagnostics {
         private final String displayName;
-        private final boolean canMakeProgress;
+        private final List<String> ordinalGroups;
         private final List<String> queuedItems;
+        private final List<String> readyToStartItems;
         private final List<String> otherItems;
 
-        public Diagnostics(String displayName, boolean canMakeProgress, List<String> queuedItems, List<String> otherItems) {
+        public Diagnostics(String displayName, List<String> ordinalGroups, List<String> waitingToStartItems, List<String> readyToStartItems, List<String> otherWaitingItems) {
             this.displayName = displayName;
-            this.canMakeProgress = canMakeProgress;
-            this.queuedItems = queuedItems;
-            this.otherItems = otherItems;
-        }
-
-        public Diagnostics(String displayName) {
-            this(displayName, true, Collections.emptyList(), Collections.emptyList());
-        }
-
-        /**
-         * Returns true when either all work is finished or there are further items that can be selected.
-         * Returns false when there are items queued but none of them will be able to be selected, without some external change (eg completion of a task in an included build).
-         */
-        public boolean canMakeProgress() {
-            return canMakeProgress;
+            this.ordinalGroups = ordinalGroups;
+            this.queuedItems = waitingToStartItems;
+            this.readyToStartItems = readyToStartItems;
+            this.otherItems = otherWaitingItems;
         }
 
         public void describeTo(TreeFormatter formatter) {
+            formatter.node(StringUtils.capitalize(displayName));
+            formatter.startChildren();
             if (!queuedItems.isEmpty()) {
-                formatter.node("Queued nodes for " + displayName);
+                formatter.node("Waiting for nodes");
                 formatter.startChildren();
                 for (String item : queuedItems) {
                     formatter.node(item);
                 }
                 formatter.endChildren();
             }
+            if (!readyToStartItems.isEmpty()) {
+                formatter.node("Nodes ready to start");
+                formatter.startChildren();
+                for (String item : readyToStartItems) {
+                    formatter.node(item);
+                }
+                formatter.endChildren();
+            }
             if (!otherItems.isEmpty()) {
-                formatter.node("Non-queued nodes for " + displayName);
+                formatter.node("Reachable nodes");
                 formatter.startChildren();
                 for (String item : otherItems) {
                     formatter.node(item);
                 }
                 formatter.endChildren();
             }
+            formatter.node("Ordinal groups");
+            formatter.startChildren();
+            for (String item : ordinalGroups) {
+                formatter.node(item);
+            }
+            formatter.endChildren();
+            formatter.endChildren();
         }
     }
 
@@ -182,7 +189,9 @@ public interface WorkSource<T> {
     void collectFailures(Collection<? super Throwable> failures);
 
     /**
-     * Returns some diagnostic information about the state of this plan. This is used to monitor the health of the plan.
+     * Returns some diagnostic information about the state of this plan.
+     *
+     * <p>The implementation does not need to be particularly efficient, as it is called only when a fatal problem is detected.</p>
      */
     Diagnostics healthDiagnostics();
 }

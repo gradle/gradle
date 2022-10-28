@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.tasks.Input;
@@ -44,4 +45,12 @@ public abstract class MachineArchitecture implements Named {
      * The intel x86 64-bit architecture
      */
     public static final String X86_64 = "x86-64";
+
+    /**
+     * The ARM 64-bit architecture
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public static final String ARM64 = "aarch64";
 }

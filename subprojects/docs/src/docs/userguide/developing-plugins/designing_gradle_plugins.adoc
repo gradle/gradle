@@ -136,6 +136,7 @@ Your build script would usually contain the following declaration:
 ====
 include::sample[dir="snippets/plugins/customPlugin/kotlin/plugin",files="build.gradle.kts[tags=gradle-api-dependencies]"]
 include::sample[dir="snippets/plugins/customPlugin/groovy/plugin",files="build.gradle[tags=gradle-api-dependencies]"]
+
 ====
 
 It’s important to understand that this dependency includes the full Gradle runtime.

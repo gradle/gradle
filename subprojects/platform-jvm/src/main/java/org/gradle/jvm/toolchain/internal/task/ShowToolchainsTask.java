@@ -25,7 +25,7 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
+import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
@@ -101,7 +101,7 @@ public class ShowToolchainsTask extends DefaultTask {
     }
 
     private ReportableToolchain asReportableToolchain(InstallationLocation location) {
-        JvmInstallationMetadata metadata = getMetadataDetector().getMetadata(location.getLocation());
+        JvmInstallationMetadata metadata = getMetadataDetector().getMetadata(location);
         return new ReportableToolchain(metadata, location);
     }
 

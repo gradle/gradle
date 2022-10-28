@@ -297,6 +297,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                     it.withId(ValidationProblemId.TEST_PROBLEM)
                         .reportAs(WARNING)
                         .withDescription("Validation problem")
+                        .documentedAt("id", "section")
                         .happensBecause("Test")
                 }
             }
@@ -605,6 +606,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                         .reportAs(ERROR)
                         .forType(Object)
                         .withDescription("Validation error")
+                        .documentedAt("id", "section")
                         .happensBecause("Test")
                 }
             }
@@ -617,7 +619,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         then:
         def ex = thrown WorkValidationException
         WorkValidationExceptionChecker.check(ex) {
-            hasProblem dummyValidationProblem('java.lang.Object', null, 'Validation error', 'Test').trim()
+            hasProblem dummyValidationProblemWithLink('java.lang.Object', null, 'Validation error', 'Test').trim()
         }
     }
 

@@ -9,6 +9,7 @@ object UtilPerformanceProject : Project({
     buildType(AdHocPerformanceScenarioLinux)
     buildType(AdHocPerformanceScenarioWindows)
     buildType(AdHocPerformanceScenarioMacOS)
+    buildType(AdHocPerformanceScenarioMacM1)
 
     params {
         param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")

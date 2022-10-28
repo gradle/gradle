@@ -30,7 +30,7 @@ import model.PerformanceTestCoverage
 import model.PerformanceTestType
 import model.SpecificBuild
 import model.Stage
-import model.StageNames
+import model.StageName
 import model.TestCoverage
 import model.TestType
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -57,7 +57,7 @@ class PerformanceTestBuildTypeTest {
         val performanceTest = PerformanceTest(
             buildModel,
             Stage(
-                StageNames.PULL_REQUEST_FEEDBACK,
+                StageName.PULL_REQUEST_FEEDBACK,
                 specificBuilds = listOf(
                     SpecificBuild.BuildDistributions,
                     SpecificBuild.Gradleception,
@@ -93,7 +93,7 @@ class PerformanceTestBuildTypeTest {
             "-PautoDownloadAndroidStudio=true",
             "-PrunAndroidStudioInHeadlessMode=true",
             "-Porg.gradle.java.installations.auto-download=false",
-            "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java18.openjdk.64bit%,%linux.java8.openjdk.64bit%\"",
+            "\"-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java19.openjdk.64bit%,%linux.java8.openjdk.64bit%\"",
             "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
             "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
             "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",

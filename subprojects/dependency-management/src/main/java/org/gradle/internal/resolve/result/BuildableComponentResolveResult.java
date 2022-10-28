@@ -17,14 +17,14 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public interface BuildableComponentResolveResult extends ComponentResolveResult, ResourceAwareResolveResult {
     /**
-     * Marks the component as resolved, with the given meta-data.
+     * Marks the component as resolved, with the given graph resolution state.
      */
-    void resolved(ComponentResolveMetadata metaData);
+    void resolved(ComponentGraphResolveState state);
 
     /**
      * Marks the resolve as failed with the given exception.
@@ -37,8 +37,8 @@ public interface BuildableComponentResolveResult extends ComponentResolveResult,
     void notFound(ModuleComponentIdentifier versionIdentifier);
 
     /**
-     * Replaces the meta-data in the result. Result must already be resolved.
+     * Replaces the graph resolution state in the result. Result must already be resolved.
      */
-    void setMetadata(ComponentResolveMetadata metadata);
+    void setResult(ComponentGraphResolveState state);
 
 }

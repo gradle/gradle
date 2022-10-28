@@ -15,22 +15,26 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationFinder;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.work.DisableCachingByDefault;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -39,11 +43,11 @@ import java.util.TreeSet;
  * Displays the dependency tree for a configuration.
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
-public abstract class AbstractDependencyReportTask extends ProjectBasedReportTask {
+public abstract class AbstractDependencyReportTask extends AbstractProjectBasedReportTask<AbstractDependencyReportTask.DependencyReportModel> {
 
     private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
 
-    private Set<Configuration> configurations;
+    private transient Set<Configuration> configurations;
 
     @Override
     public ReportRenderer getRenderer() {
@@ -57,11 +61,35 @@ public abstract class AbstractDependencyReportTask extends ProjectBasedReportTas
         this.renderer = renderer;
     }
 
+
+    /**
+     * Report model.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public static final class DependencyReportModel {
+        private final List<ConfigurationDetails> configurations;
+
+        private DependencyReportModel(List<ConfigurationDetails> configurations) {
+            this.configurations = configurations;
+        }
+    }
+
     @Override
-    public void generate(Project project) throws IOException {
+    protected DependencyReportModel calculateReportModelFor(Project project) {
         SortedSet<Configuration> sortedConfigurations = new TreeSet<>(Comparator.comparing(Configuration::getName));
         sortedConfigurations.addAll(getReportConfigurations());
+        List<ConfigurationDetails> configurationDetails = new ArrayList<>(sortedConfigurations.size());
         for (Configuration configuration : sortedConfigurations) {
+            configurationDetails.add(ConfigurationDetails.of(configuration));
+        }
+        return new DependencyReportModel(configurationDetails);
+    }
+
+    @Override
+    protected void generateReportFor(ProjectDetails project, DependencyReportModel model) {
+        for (ConfigurationDetails configuration : model.configurations) {
             renderer.startConfiguration(configuration);
             renderer.render(configuration);
             renderer.completeConfiguration(configuration);

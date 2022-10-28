@@ -30,7 +30,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -47,6 +47,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.initialization.buildsrc.GradlePluginApiVersionAttributeConfigurationAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
@@ -145,6 +146,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         configureDescriptorGeneration(project, extension);
         validatePluginDeclarations(project, extension);
         configurePluginValidations(project, extension);
+        configureDependencyGradlePluginsResolution(project);
     }
 
     private void registerPlugins(Project project, GradlePluginDevelopmentExtension extension) {
@@ -208,8 +210,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private static boolean excludeGradleApi(ComponentIdentifier componentId) {
         if (componentId instanceof OpaqueComponentIdentifier) {
-            DependencyFactory.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
-            return classPathNotation != DependencyFactory.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
+            DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
+            return classPathNotation != DependencyFactoryInternal.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
         }
         return true;
     }
@@ -261,6 +263,10 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             task.getClasspath().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getCompileClasspath());
         });
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, check -> check.dependsOn(validatorTask));
+    }
+
+    private void configureDependencyGradlePluginsResolution(Project project) {
+        new GradlePluginApiVersionAttributeConfigurationAction().execute((ProjectInternal) project);
     }
 
     /**
@@ -408,7 +414,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
         @Override
         public Iterable<String> asArguments() {
-            return test.getJavaVersion().isCompatibleWith(JavaVersion.VERSION_16)
+            return test.getJavaVersion().isCompatibleWith(JavaVersion.VERSION_1_9)
                 ? Collections.singletonList("--add-opens=java.base/java.lang=ALL-UNNAMED")
                 : Collections.emptyList();
         }

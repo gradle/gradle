@@ -135,8 +135,8 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
-    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, graph: BuildTreeWorkGraph) {
-        readConfigurationCacheState(stateFile) { state ->
+    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
+        return readConfigurationCacheState(stateFile) { state ->
             state.run {
                 readRootBuildState(graph, host::createBuild)
             }
@@ -306,6 +306,7 @@ class ConfigurationCacheIO internal constructor(
             instantiator = service(),
             listenerManager = service(),
             taskNodeFactory = service(),
+            ordinalGroupFactory = service(),
             inputFingerprinter = service(),
             buildOperationExecutor = service(),
             classLoaderHierarchyHasher = service(),

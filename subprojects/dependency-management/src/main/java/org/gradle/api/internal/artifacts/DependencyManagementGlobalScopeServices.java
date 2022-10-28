@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ModuleSelectorStringNotationConverter;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultLocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory;
@@ -93,6 +94,10 @@ class DependencyManagementGlobalScopeServices {
             .toType(ComponentSelector.class)
             .converter(new CrossBuildCachingNotationConverter<>(new ModuleSelectorStringNotationConverter(moduleIdentifierFactory), cacheFactory.newCache()))
             .toComposite();
+    }
+
+    VersionParser createVersionParser() {
+        return new VersionParser();
     }
 
     IvyContextManager createIvyContextManager() {

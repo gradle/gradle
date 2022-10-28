@@ -16,6 +16,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
@@ -147,7 +148,7 @@ public interface SourceSet extends ExtensionAware {
      * @param configureClosure The closure to use to configure the resources.
      * @return this
      */
-    SourceSet resources(@Nullable Closure configureClosure);
+    SourceSet resources(@Nullable @DelegatesTo(SourceDirectorySet.class) Closure configureClosure);
 
     /**
      * Configures the non-Java resources for this set.
@@ -174,7 +175,7 @@ public interface SourceSet extends ExtensionAware {
      * @param configureClosure The closure to use to configure the Java source.
      * @return this
      */
-    SourceSet java(@Nullable Closure configureClosure);
+    SourceSet java(@Nullable @DelegatesTo(SourceDirectorySet.class) Closure configureClosure);
 
     /**
      * Configures the Java source for this set.

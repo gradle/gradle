@@ -54,6 +54,12 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     MAC_OS_X({
         OperatingSystem.current().macOsX
     }),
+    MAC_OS_X_M1({
+        OperatingSystem.current().macOsX && OperatingSystem.current().toString().contains("aarch64")
+    }),
+    NOT_MAC_OS_X_M1({
+        !MAC_OS_X_M1.fulfilled
+    }),
     NOT_MAC_OS_X({
         !OperatingSystem.current().macOsX
     }),
@@ -128,6 +134,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK18_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_18
     }),
+    JDK19_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_19
+    }),
     JDK_ORACLE({
         System.getProperty('java.vm.vendor') == 'Oracle Corporation'
     }),
@@ -155,9 +164,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         WINDOWS.fulfilled && "embedded" != System.getProperty("org.gradle.integtest.executer")
     }),
     SUPPORTS_TARGETING_JAVA6({ !JDK12_OR_LATER.fulfilled }),
-    // Currently JDK 18 has a bug that prevents UTF-8 standard output on Windows.
-    // https://bugs.openjdk.java.net/browse/JDK-8283620
-    SUPPORTS_UTF8_STDOUT({ !(JDK18_OR_LATER.fulfilled && WINDOWS.fulfilled) }),
     // Currently mac agents are not that strong so we avoid running high-concurrency tests on them
     HIGH_PERFORMANCE(NOT_MAC_OS_X),
     NOT_EC2_AGENT({

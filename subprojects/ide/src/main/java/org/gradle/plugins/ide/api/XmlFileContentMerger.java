@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.api;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.internal.xml.XmlTransformer;
@@ -53,7 +54,7 @@ public class XmlFileContentMerger extends FileContentMerger {
      *
      * @param closure The closure to execute when the XML has been created.
      */
-    public void withXml(Closure closure) {
+    public void withXml(@DelegatesTo(XmlProvider.class) Closure closure) {
         xmlTransformer.addAction(closure);
     }
 

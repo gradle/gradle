@@ -16,15 +16,17 @@
 
 package org.gradle.buildinit.plugins
 
-
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@Requires(TestPrecondition.NOT_MAC_OS_X_M1) // M1 Macs need modern Xcode to compile aarch64 binaries
 class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_APPLICATION_CLASS = "main.swift"

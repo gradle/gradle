@@ -16,6 +16,8 @@
 
 package org.gradle.tooling;
 
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
 
 /**
@@ -141,6 +143,18 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
     TestLauncher debugTestsOn(int port);
 
     /**
+     * Sets the tasks to be executed. If no tasks are specified, the project's default tasks are executed.
+     * <p>
+     * The specified tasks are ignored if the target Gradle versions is &lt;7.6.
+     *
+     * @param tasks The paths of the tasks to be executed. Relative paths are evaluated relative to the project for which this launcher was created.
+     * @return this
+     * @since 7.6
+     */
+    @Incubating
+    TestLauncher forTasks(String... tasks);
+
+    /**
      * Executes the tests, blocking until complete.
      *
      * @throws TestExecutionException when one or more tests fail, or no tests for execution declared or no matching tests can be found.
@@ -167,4 +181,30 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * @since 2.6
      */
     void run(ResultHandler<? super Void> handler);
+
+    /**
+     * Adds tests to be executed declared using a fine-grained test selection API.
+     *
+     * <p>
+     * Clients can target tests via the {@code TestSpec} interface, which can configure the target test tasks as well as what tests should be executed
+     * <pre>
+     *     TestLauncher testLauncher = projectConnection.newTestLauncher();
+     *     testLauncher.withTestsFor(spec -&gt; {
+     *         spec.forTaskPath(":test")
+     *             .includePackage("org.pkg")
+     *             .includeClass("com.TestClass")
+     *             .includeMethod("com.TestClass")
+     *             .includePattern("io.*")
+     *     }).run();
+     * </pre>
+     *
+     * <p>
+     * Note: These tests are ignored for target Gradle version earlier than 7.6.
+     *
+     * @param testSpec The action selecting the target tests.
+     * @return this
+     * @since 7.6
+     */
+    @Incubating
+    TestLauncher withTestsFor(Action<TestSpecs> testSpec);
 }

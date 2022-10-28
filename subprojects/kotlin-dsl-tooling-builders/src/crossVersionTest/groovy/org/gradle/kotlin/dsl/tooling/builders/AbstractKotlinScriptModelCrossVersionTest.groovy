@@ -325,9 +325,9 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
 
     protected static Matcher<? super String> matching(String pattern) {
         def compiledPattern = Pattern.compile(pattern)
-        return matching({ it.appendText("a string matching the pattern").appendValue(pattern) }) { String item ->
+        return matching({ it.appendText("a string matching the pattern").appendValue(pattern) }, { String item ->
             compiledPattern.matcher(item).matches()
-        }
+        } as Predicate<String>)
     }
 
     protected static <T> Matcher<T> matching(Consumer<Description> describe, Predicate<T> match) {

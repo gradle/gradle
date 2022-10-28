@@ -43,7 +43,8 @@ import static org.gradle.util.AttributeTestUtil.attributes
 class AttributeConfigurationSelectorTest extends Specification {
     private final AttributesSchemaInternal attributesSchema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
 
-    private ComponentResolveMetadata targetComponent
+    private ComponentGraphResolveState targetState
+    private ComponentGraphResolveMetadata targetComponent
     private ConfigurationMetadata selected
     private ImmutableAttributes consumerAttributes = ImmutableAttributes.EMPTY
     private List<Capability> requestedCapabilities = []
@@ -430,13 +431,13 @@ All of them match the consumer attributes:
     }
 
     private void performSelection() {
-        selected = AttributeConfigurationSelector.selectConfigurationUsingAttributeMatching(
+        selected = AttributeConfigurationSelector.selectVariantsUsingAttributeMatching(
                 consumerAttributes,
                 requestedCapabilities,
-                targetComponent,
+                targetState,
                 attributesSchema,
                 artifacts
-        )
+        ).variants[0]
     }
 
     private void requireArtifact(String name = "foo", String type = "jar", String ext = "jar", String classifier = null) {
@@ -464,7 +465,7 @@ All of them match the consumer attributes:
     }
 
     private void component(ConfigurationMetadata... variants) {
-        targetComponent = Stub(ComponentResolveMetadata) {
+        targetComponent = Stub(ComponentGraphResolveMetadata) {
             getModuleVersionId() >> Stub(ModuleVersionIdentifier) {
                 getGroup() >> 'org'
                 getName() >> 'lib'
@@ -478,10 +479,14 @@ All of them match the consumer attributes:
             )
             getAttributesSchema() >> attributesSchema
         }
+        targetState = Stub(ComponentGraphResolveState) {
+            getMetadata() >> targetComponent
+            resolveArtifactsFor(_) >> { VariantGraphResolveMetadata variant -> variant }
+        }
     }
 
-    private ConfigurationMetadata variant(String name, ImmutableAttributes attributes, Capability... capabilities) {
-        Stub(ConfigurationMetadata) {
+    private ModuleConfigurationMetadata variant(String name, ImmutableAttributes attributes, Capability... capabilities) {
+        Stub(ModuleConfigurationMetadata) {
             getName() >> name
             getAttributes() >> attributes
             getCapabilities() >> Mock(CapabilitiesMetadata) {

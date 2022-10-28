@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.AntUtil
+import org.gradle.util.internal.ToBeImplemented
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
@@ -37,7 +38,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getMaxDistributionSizeBytes() {
-        return 48 * 1024 * 1024
+        return 49 * 1024 * 1024
     }
 
     @Override
@@ -80,6 +81,26 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
         then:
         TestFile unpackedRoot = new TestFile(contentsDir.file('build/distributions/unzip').listFiles().first())
         unpackedRoot.file("bin/gradle").exists()
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/21114")
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "source distribution must contain generated sources"() {
+        given:
+        TestFile contentsDir = unpackDistribution()
+
+        when:
+        def generatedSourceName = "/org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt"
+        def foundGeneratedSources = false
+        contentsDir.eachFileRecurse {
+            if (it.absolutePath.endsWith(generatedSourceName)) {
+                foundGeneratedSources = true
+            }
+        }
+
+        then:
+        // TODO: remove negation when fixed
+        !foundGeneratedSources
     }
 
 }

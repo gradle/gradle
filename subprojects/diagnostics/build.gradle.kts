@@ -49,7 +49,7 @@ dependencies {
     }
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/reporting/model/internal/*")
     excludePatterns.add("org/gradle/api/reporting/dependencies/internal/*")
     excludePatterns.add("org/gradle/api/plugins/internal/*")

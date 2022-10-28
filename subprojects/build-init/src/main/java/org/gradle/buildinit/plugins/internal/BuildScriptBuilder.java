@@ -772,7 +772,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            printer.println(printer.syntax.dependencySpec(configuration, "project"));
+            printer.println(printer.syntax.dependencySpec(configuration, "project()"));
         }
     }
 
@@ -1243,7 +1243,7 @@ public class BuildScriptBuilder {
 
         @Override
         public SuiteSpec kotlinTestSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, null,  builder);
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, libraryVersionProvider.getVersion("kotlin"),  builder);
             suites.add(spec);
             return spec;
         }
@@ -1962,7 +1962,14 @@ public class BuildScriptBuilder {
     private static final class KotlinSyntax implements Syntax {
         @Override
         public String string(String string) {
-            return '"' + string + '"';
+            return '"' + escapeKotlinStringLiteral(string) + '"';
+        }
+
+        private String escapeKotlinStringLiteral(String string) {
+            return string
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("$", "\\$");
         }
 
         @Override
@@ -2132,7 +2139,11 @@ public class BuildScriptBuilder {
     private static final class GroovySyntax implements Syntax {
         @Override
         public String string(String string) {
-            return "'" + string + "'";
+            return "'" + escapeGroovyStringLiteral(string) + "'";
+        }
+
+        private String escapeGroovyStringLiteral(String string) {
+            return string.replace("\\", "\\\\").replace("'", "\\'");
         }
 
         @Override

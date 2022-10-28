@@ -46,6 +46,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             "org.gradle.api.plugins.JavaPlugin": "org.gradle.java",
             "org.gradle.api.plugins.JavaBasePlugin": null,
             "org.gradle.api.plugins.JvmEcosystemPlugin": null,
+            "org.gradle.api.plugins.JvmToolchainsPlugin": null,
             "org.gradle.api.plugins.BasePlugin": null,
             "org.gradle.language.base.plugins.LifecycleBasePlugin": null,
             "org.gradle.api.plugins.ReportingBasePlugin": null,

@@ -106,7 +106,6 @@ See link:{javadocPath}/org/gradle/plugin/use/PluginDependenciesSpec.html[PluginD
 This way of adding plugins to a project is much more than a more convenient syntax. The plugins DSL is processed in a way which allows Gradle to determine the plugins in use very early and very quickly. This allows Gradle to do smart things such as:
 
 * Optimize the loading and reuse of plugin classes.
-* Allow different plugins to use different versions of dependencies.
 * Provide editors detailed information about the potential properties and values in the buildscript for editing assistance.
 
 This requires that plugins be specified in a way that Gradle can easily and quickly extract, before executing the rest of the build script. It also requires that the definition of plugins to use be somewhat static.

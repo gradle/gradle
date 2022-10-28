@@ -77,11 +77,8 @@ testFixturesRuntimeElements.outgoing.variants.maybeCreate("resources").run {
     attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
     attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.RESOURCES))
 
-    artifact(object : JvmPluginsHelper.IntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources) {
-        override fun getFile(): File {
-            return processResources.get().destinationDir
-        }
-    })
+    artifact(JvmPluginsHelper.ProviderBasedIntermediateJavaArtifact(
+        ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, processResources, processResources.map { it.destinationDir }))
 }
 
 // Do not publish test fixture, we use them only internal for now
@@ -97,9 +94,9 @@ plugins.withType<IdeaPlugin> {
     configure<IdeaModel> {
         module {
             val testFixtures = sourceSets.testFixtures.get()
-            testSourceDirs = testSourceDirs + testFixtures.java.srcDirs
-            testSourceDirs = testSourceDirs + testFixtures.groovy.srcDirs
-            testResourceDirs = testResourceDirs + testFixtures.resources.srcDirs
+            testSources.from(testFixtures.java.srcDirs)
+            testSources.from(testFixtures.groovy.srcDirs)
+            testResources.from(testFixtures.resources.srcDirs)
         }
     }
 }

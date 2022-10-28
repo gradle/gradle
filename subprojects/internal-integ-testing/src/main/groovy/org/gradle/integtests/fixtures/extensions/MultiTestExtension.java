@@ -28,7 +28,6 @@ public abstract class MultiTestExtension<T extends Annotation> implements IAnnot
     public void visitSpecAnnotation(T annotation, SpecInfo spec) {
         if (!spec.getFeatures().isEmpty()) {
             AbstractMultiTestInterceptor interceptor = makeInterceptor(spec.getBottomSpec().getReflection());
-            spec.addInitializerInterceptor(interceptor);
             for (FeatureInfo feature : spec.getFeatures()) {
                 interceptor.interceptFeature(feature);
             }

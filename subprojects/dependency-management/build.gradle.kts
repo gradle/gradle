@@ -114,7 +114,7 @@ dependencies {
     crossVersionTestImplementation(libs.jettyWebApp)
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 

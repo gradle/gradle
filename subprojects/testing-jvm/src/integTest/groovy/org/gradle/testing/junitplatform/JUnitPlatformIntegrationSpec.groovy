@@ -34,9 +34,7 @@ class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec {
         buildScript("""
             apply plugin: 'java'
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'
             }

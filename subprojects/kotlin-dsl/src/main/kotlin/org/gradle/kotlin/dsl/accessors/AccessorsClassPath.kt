@@ -94,13 +94,12 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
 
 
     private
-    fun configuredProjectSchemaOf(project: Project): TypedProjectSchema? =
-        if (enabledJitAccessors(project)) {
-            require(classLoaderScopeOf(project).isLocked) {
-                "project.classLoaderScope must be locked before querying the project schema"
-            }
-            projectSchemaProvider.schemaFor(project).takeIf { it.isNotEmpty() }
-        } else null
+    fun configuredProjectSchemaOf(project: Project): TypedProjectSchema? {
+        require(classLoaderScopeOf(project).isLocked) {
+            "project.classLoaderScope must be locked before querying the project schema"
+        }
+        return projectSchemaProvider.schemaFor(project).takeIf { it.isNotEmpty() }
+    }
 }
 
 
@@ -570,13 +569,6 @@ fun Hasher.putAll(entries: List<ProjectSchemaEntry<SchemaType>>) {
         putString(entry.type.kotlinString)
     }
 }
-
-
-private
-fun enabledJitAccessors(project: Project) =
-    project.findProperty("org.gradle.kotlin.dsl.accessors")?.let {
-        it != "false" && it != "off"
-    } ?: true
 
 
 internal

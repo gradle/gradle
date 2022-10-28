@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.file.archive.impl;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.AbstractIterator;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.internal.file.FileException;
+import org.gradle.internal.io.IoFunction;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -83,17 +83,7 @@ public class FileZipInput implements ZipInput {
                 if (!entries.hasMoreElements()) {
                     return endOfData();
                 }
-                final java.util.zip.ZipEntry zipEntry = entries.nextElement();
-                return new JdkZipEntry(zipEntry, new Supplier<InputStream>() {
-                    @Override
-                    public InputStream get() {
-                        try {
-                            return file.getInputStream(zipEntry);
-                        } catch (IOException e) {
-                            throw new FileException(e);
-                        }
-                    }
-                }, null);
+                return new FileZipEntry(entries.nextElement());
             }
         };
     }
@@ -101,5 +91,34 @@ public class FileZipInput implements ZipInput {
     @Override
     public void close() throws IOException {
         file.close();
+    }
+
+    private class FileZipEntry extends AbstractZipEntry {
+        public FileZipEntry(java.util.zip.ZipEntry entry) {
+            super(entry);
+        }
+
+        @Override
+        public <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException {
+            InputStream inputStream = getInputStream();
+            try {
+                return action.apply(inputStream);
+            } finally {
+                inputStream.close();
+            }
+        }
+
+        private InputStream getInputStream() {
+            try {
+                return file.getInputStream(getEntry());
+            } catch (IOException e) {
+                throw new FileException(e);
+            }
+        }
+
+        @Override
+        public boolean canReopen() {
+            return true;
+        }
     }
 }

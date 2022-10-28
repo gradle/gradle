@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 /**
  * Represents something that can be resolved.
@@ -30,7 +30,7 @@ public interface ResolveContext {
 
     ResolutionStrategyInternal getResolutionStrategy();
 
-    ComponentResolveMetadata toRootComponentMetaData();
+    LocalComponentMetadata toRootComponentMetaData();
 
     AttributeContainer getAttributes();
 
