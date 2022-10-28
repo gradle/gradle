@@ -444,6 +444,9 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun onProjectReference(referrer: ProjectState, target: ProjectState) {
+        if (referrer.identityPath == target.identityPath)
+            return
+
         if (host.cacheIntermediateModels) {
             val dependency = ProjectSpecificFingerprint.CoupledProjects(referrer.identityPath, target.identityPath)
             if (projectDependencies.add(dependency)) {
