@@ -48,9 +48,10 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         }
     }
 
-    @RunFor([]) //TODO (#19570), re-enable:
-        // @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeGroovyMultiProject", "largeMonolithicJavaProject", "largeMonolithicGroovyProject"], iterationMatcher = "assemble for non-abi change")
-        // @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = "largeJavaMultiProject")
+    @RunFor([
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeGroovyMultiProject", "largeMonolithicGroovyProject"], iterationMatcher = "assemble for non-abi change"),
+        @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, WINDOWS, MAC_OS], testProjects = "largeJavaMultiProject")
+    ])
     def "assemble for non-abi change#configurationCaching"() {
         given:
         runner.tasksToRun = ['assemble']
