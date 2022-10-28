@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.properties.annotations;
 
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -24,12 +25,25 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.reflect.problems.ValidationProblemId.INVALID_USE_OF_TYPE_ANNOTATION;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
-public class TypeAnnotationHandlerSupport {
+public abstract class AbstractTypeAnnotationHandler implements TypeAnnotationHandler {
 
-    public static void reportInvalidUseOfTypeAnnotation(Class<?> classWithAnnotationAttached,
-                                                        TypeValidationContext visitor,
-                                                        Class<? extends Annotation> annotationType,
-                                                        Class<?>... appliesOnlyTo) {
+    protected AbstractTypeAnnotationHandler(Class<? extends Annotation> annotationType) {
+        this.annotationType = annotationType;
+    }
+
+    private final Class<? extends Annotation> annotationType;
+
+    @Override
+    public Class<? extends Annotation> getAnnotationType() {
+        return annotationType;
+    }
+
+    protected static void reportInvalidUseOfTypeAnnotation(
+        Class<?> classWithAnnotationAttached,
+        TypeValidationContext visitor,
+        Class<? extends Annotation> annotationType,
+        Class<?>... appliesOnlyTo
+    ) {
         visitor.visitTypeProblem(problem ->
             problem.forType(classWithAnnotationAttached)
                 .reportAs(ERROR)

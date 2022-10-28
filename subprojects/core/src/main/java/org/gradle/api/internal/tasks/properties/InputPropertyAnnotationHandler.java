@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.properties.annotations;
+package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -24,6 +24,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -31,13 +32,12 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.io.File;
 
-import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.OPTIONAL;
-import static org.gradle.internal.properties.annotations.PropertyAnnotationHandlerSupport.validateUnsupportedPropertyValueTypes;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
-public class InputPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
+public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
     public InputPropertyAnnotationHandler() {
-        super(Input.class, Kind.INPUT, ModifierAnnotationCategory.annotationsOf(OPTIONAL));
+        super(Input.class, ModifierAnnotationCategory.annotationsOf(OPTIONAL));
     }
 
     @Override
@@ -52,7 +52,7 @@ public class InputPropertyAnnotationHandler extends AbstractPropertyAnnotationHa
 
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
-        validateUnsupportedPropertyValueTypes(propertyMetadata, validationContext, getAnnotationType());
+        validateUnsupportedInputPropertyValueTypes(propertyMetadata, validationContext, getAnnotationType());
         Class<?> valueType = propertyMetadata.getGetterMethod().getReturnType();
         validateNotDirectoryType(propertyMetadata, validationContext, valueType);
         validateNotFileType(propertyMetadata, validationContext, valueType);
