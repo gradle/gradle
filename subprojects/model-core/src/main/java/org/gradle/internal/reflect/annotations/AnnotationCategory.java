@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect;
+package org.gradle.internal.reflect.annotations;
 
 import org.gradle.api.Describable;
 

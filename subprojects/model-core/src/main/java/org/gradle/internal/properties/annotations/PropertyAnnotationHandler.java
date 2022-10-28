@@ -18,8 +18,7 @@ package org.gradle.internal.properties.annotations;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.reflect.AnnotationCategory;
-import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;

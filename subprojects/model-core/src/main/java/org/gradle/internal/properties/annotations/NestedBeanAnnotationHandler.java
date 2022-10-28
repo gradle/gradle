@@ -24,13 +24,12 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.reflect.AnnotationCategory;
-import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
-import static org.gradle.internal.properties.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.OPTIONAL;
 
 public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
     @Override

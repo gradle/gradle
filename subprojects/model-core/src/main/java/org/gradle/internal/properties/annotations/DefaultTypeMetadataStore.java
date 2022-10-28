@@ -25,8 +25,7 @@ import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.internal.reflect.AnnotationCategory;
-import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
@@ -45,8 +44,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.properties.ModifierAnnotationCategory.NORMALIZATION;
-import static org.gradle.internal.reflect.AnnotationCategory.TYPE;
+import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class DefaultTypeMetadataStore implements TypeMetadataStore {

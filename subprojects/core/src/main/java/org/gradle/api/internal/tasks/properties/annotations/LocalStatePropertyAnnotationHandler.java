@@ -20,12 +20,12 @@ import org.gradle.api.tasks.LocalState;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
-import org.gradle.internal.reflect.AnnotationCategory;
-import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.internal.properties.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.OPTIONAL;
 
 public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override

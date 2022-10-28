@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.properties;
+package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -24,7 +24,7 @@ import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
-import org.gradle.internal.reflect.AnnotationCategory;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 

@@ -30,7 +30,7 @@ import javax.inject.Inject
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 
-import static org.gradle.internal.reflect.AnnotationCategory.TYPE
+import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE
 
 class InspectionSchemeFactoryTest extends Specification {
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
