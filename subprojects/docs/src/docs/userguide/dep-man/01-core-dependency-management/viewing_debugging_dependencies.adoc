@@ -5,7 +5,11 @@
 Gradle provides tooling to navigate dependency graphs and mitigate link:https://en.wikipedia.org/wiki/Dependency_hell[dependency hell].
 Users can render the full graph of dependencies as well as identify the selection reason and origin for a dependency.
 Dependencies can originate through build script declared dependencies or transitive dependencies.
-You can visualize dependencies with the built-in Gradle CLI `dependencies` task or with link:https://scans.gradle.com/[build scans].
+You can visualize dependencies with:
+
+- the built-in Gradle CLI `dependencies` task
+- the built-in Gradle CLI `dependencyInsight` task
+- link:https://scans.gradle.com/[build scans]
 
 [[sec:listing_dependencies]]
 == List Project Dependencies
@@ -81,7 +85,7 @@ image::dependency-management-dependency-insight-report-build-scan.png[]
 === Dependency Insights
 
 Gradle provides the built-in `dependencyInsight` task to render a  _dependency insight report_ from the command line.
-Dependency insights only provide information about a single project at a time.
+Dependency insights provide information about a single <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configuration>> within a single <<command_line_interface#executing_tasks_in_multi_project_builds,project>>.
 Given a dependency, you can identify the selection reason and origin.
 
 `dependencyInsight` accepts the following parameters:
@@ -95,6 +99,8 @@ The dependency configuration from which to supply the dependency information.
 This parameter is optional for projects that use the <<java_plugin#java_plugin, Java plugin>>, since the plugin provides a default value of `compileClasspath`.
 `--single-path` (optional)::
 Render only a single path to the dependency.
+
+The following code snippet demonstrates how to run a dependency insight report for a all paths to a dependency named "commons-codec" within the "scm" configuration:
 
 ----
 > gradle -q dependencyInsight --dependency commons-codec --configuration scm
