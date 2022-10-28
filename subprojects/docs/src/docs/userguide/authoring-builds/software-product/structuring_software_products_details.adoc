@@ -27,8 +27,8 @@ The umbrella build is a good place to define cross-build  <<more_about_tasks.ado
 For example, you can define a `checkFeatures` task for conveniently running all checks in selected components by adding a `build.gradle(.kts)` file to your umbrella build.
 
 ====
-include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="build.gradle"]
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="build.gradle.kts"]
+include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="build.gradle"]
 ====
 
 In your IDE, you can import the umbrella build and then will have all Gradle builds as projects/modules visible in the workspace.

@@ -25,8 +25,8 @@ This plugin is applied automatically by the `java` plugin but can be additionall
 
 .Applying the JVM Test Suite plugin
 ====
-include::sample[dir="snippets/testing/test-suite-plugin/groovy",files="build.gradle[tags=apply-jvm-test-suite]"]
 include::sample[dir="snippets/testing/test-suite-plugin/kotlin",files="build.gradle.kts[tags=apply-jvm-test-suite]"]
+include::sample[dir="snippets/testing/test-suite-plugin/groovy",files="build.gradle[tags=apply-jvm-test-suite]"]
 ====
 
 The plugins adds the following objects to the project:
@@ -97,8 +97,8 @@ Here are several examples to illustrate the configurability of test suites.
 
 == Declare an additional test suite
 ====
-include::sample[dir="snippets/testing/test-suite-plugin/groovy",files="build.gradle[tags=configure-testing-extension]"]
 include::sample[dir="snippets/testing/test-suite-plugin/kotlin",files="build.gradle.kts[tags=configure-testing-extension]"]
+include::sample[dir="snippets/testing/test-suite-plugin/groovy",files="build.gradle[tags=configure-testing-extension]"]
 ====
 
 <1> Configure all test suites for this project.
@@ -121,8 +121,8 @@ Note that the `integrationTest` test suite does not run until after the `test` t
 [[sec:configuring_the_built_in_test_suite]]
 == Configure the built-in `test` suite
 ====
-include::sample[dir="snippets/testing/test-suite-configure-default-suite/groovy",files="build.gradle[tags=configure-default-suite]"]
 include::sample[dir="snippets/testing/test-suite-configure-default-suite/kotlin",files="build.gradle.kts[tags=configure-default-suite]"]
+include::sample[dir="snippets/testing/test-suite-configure-default-suite/groovy",files="build.gradle[tags=configure-default-suite]"]
 ====
 
 // TODO test with `./gradlew :docs:docsTest --tests "*test-suite-configure-default-suite*"`
@@ -133,8 +133,8 @@ include::sample[dir="snippets/testing/test-suite-configure-default-suite/kotlin"
 
 == Configure dependencies of a test suite
 ====
-include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies/groovy",files="build.gradle[tags=configure-suite-dependencies]"]
 include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies/kotlin",files="build.gradle.kts[tags=configure-suite-dependencies]"]
+include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies/groovy",files="build.gradle[tags=configure-suite-dependencies]"]
 ====
 
 // TODO test with `./gradlew :docs:docsTest --tests "*test-suite-configure-suite-dependencies*"`
@@ -155,8 +155,8 @@ Though it is discouraged, as suggested by the comment in the snippet above, you 
 
 == Configure source directories of a test suite
 ====
-include::sample[dir="snippets/testing/test-suite-configure-source-dir/groovy",files="build.gradle[tags=configure-source-dir]"]
 include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",files="build.gradle.kts[tags=configure-source-dir]"]
+include::sample[dir="snippets/testing/test-suite-configure-source-dir/groovy",files="build.gradle[tags=configure-source-dir]"]
 ====
 
 // TODO test with `./gradlew :docs:docsTest --tests "*test-suite-configure-source-dir*"`
@@ -168,16 +168,16 @@ include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",fi
 == Configure the type of a test suite
 
 ====
-include::sample[dir="snippets/testing/test-suite-configure-type/groovy",files="build.gradle[tags=configure-type]"]
 include::sample[dir="snippets/testing/test-suite-configure-type/kotlin",files="build.gradle.kts[tags=configure-type]"]
+include::sample[dir="snippets/testing/test-suite-configure-type/groovy",files="build.gradle[tags=configure-type]"]
 ====
 
 <1> This suite would use a type value of 'secondary-test' by default.  This explicitly sets the type to 'integration-test'.
 
 == Configure the `Test` task for a test suite
 ====
-include::sample[dir="snippets/testing/test-suite-configure-source-dir/groovy",files="build.gradle[tags=configure-test-task]"]
 include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",files="build.gradle.kts[tags=configure-test-task]"]
+include::sample[dir="snippets/testing/test-suite-configure-source-dir/groovy",files="build.gradle[tags=configure-test-task]"]
 ====
 
 <1> Configure the `integrationTest` task created by declaring a suite of the same name.

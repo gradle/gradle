@@ -55,8 +55,8 @@ Once you have the API key you can publish as many plugins as you like.
 Add the {publishplugin} to the `plugins` block.
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugins_block]"]
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugins_block]"]
+include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugins_block]"]
 ====
 <1> Use the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>, which comes with the Gradle distribution, to author your Gradle plugin.
 <2> Use the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>> to generate the published metadata for your plugin
@@ -68,8 +68,8 @@ Create a `pluginBundle` block in `build.gradle` and specify global information r
 This helps other people browsing the portal find more information about your plugin and learn how to contribute to its development.
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugin_bundle]"]
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugin_bundle]"]
+include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugin_bundle]"]
 ====
 <1> Set the website for your plugin's project.
 <2> Provide the source repository URI so that others can find it if they want to contribute.
@@ -89,8 +89,8 @@ You can use the below example ID for the Greeting Plugin project, but substitute
 plugin that you actually want published.
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=gradle-plugin]"]
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=gradle-plugin]"]
+include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=gradle-plugin]"]
 ====
 <1> Make sure your project has a `group` set which is used for the artifacts (jar and metadata) you publish in the repository of the {portal}
     and which is descriptive of the plugin author or the organization the plugin belongs too.
@@ -203,8 +203,8 @@ For that, you only need to <<publishing_maven.adoc#publishing_maven:repositories
 Then you can run the `publish` task to publish your plugin to all repositories you have defined (but not the {portal}).
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=local_repository]"]
 include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=local_repository]"]
+include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=local_repository]"]
 ====
 
 To use the repository in another build, you have to add it to <<plugins.adoc#sec:custom_plugin_repositories,the repositories of the `pluginManagement {}` block>> in your `settings.gradle(.kts)` file.

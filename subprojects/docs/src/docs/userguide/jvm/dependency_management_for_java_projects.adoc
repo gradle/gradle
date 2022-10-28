@@ -26,8 +26,8 @@ It applies the <<java_library_plugin.adoc#java_library_plugin,Java Library plugi
 
 .Dependency declarations for a JVM-based project
 ====
-include::sample[dir="snippets/artifacts/dependencyBasics/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/artifacts/dependencyBasics/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/artifacts/dependencyBasics/groovy",files="build.gradle[]"]
 ====
 
 The link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:dependencies(groovy.lang.Closure)[Project.dependencies{}] code block declares that Hibernate core 3.6.7.Final is required to compile the project's production source code. It also states that junit &gt;= 4.0 is required to compile the project's tests. All dependencies are supposed to be looked up in the Maven Central repository as defined by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[Project.repositories{}]. The following sections explain each aspect in more detail.
@@ -44,8 +44,8 @@ To define an module dependency, you add it to a <<#sec:configurations_java_tutor
 
 .Definition of a module dependency
 ====
-include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=define-dependency]"]
 include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=define-dependency]"]
+include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=define-dependency]"]
 ====
 
 To find out more about defining dependencies, have a look at <<declaring_dependencies.adoc#declaring-dependencies,Declaring Dependencies>>.
@@ -86,16 +86,16 @@ By default, Gradle does not define any repositories. You need to define at least
 
 .Usage of Maven central repository
 ====
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-central]"]
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-central]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-central]"]
 ====
 
 You can also have repositories on the local file system. This works for both Maven and Ivy repositories.
 
 .Usage of a local Ivy directory
 ====
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=local-ivy-repo]"]
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=local-ivy-repo]"]
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=local-ivy-repo]"]
 ====
 
 A project can have multiple repositories. Gradle will look for a dependency in each repository in the order they are specified, stopping at the first repository that contains the requested module.

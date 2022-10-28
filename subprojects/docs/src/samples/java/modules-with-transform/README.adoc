@@ -11,8 +11,8 @@ It also utilises `commons-lang3` (an automatic module) and `commons-beanutils` (
 By configuring our own `extra-java-module-info` plugin, we add information to turn the legacy libraries into modules.
 
 ====
-include::sample[dir="groovy",files="application/build.gradle[tags=extraModuleInfo]"]
 include::sample[dir="kotlin",files="application/build.gradle.kts[tags=extraModuleInfo]"]
+include::sample[dir="groovy",files="application/build.gradle[tags=extraModuleInfo]"]
 ====
 
 You can run the example application like this:

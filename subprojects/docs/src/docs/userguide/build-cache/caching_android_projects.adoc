@@ -53,8 +53,8 @@ However, if you are using annotation processors (such as Dagger2 or Butterknife)
 https://blog.jetbrains.com/kotlin/2018/01/kotlin-1-2-20-is-out/[You can opt into it] (which is recommended) by adding the following to build scripts:
 
 ====
-include::sample[dir="snippets/buildCache/caching-android-projects/groovy",files="build.gradle[tags=cacheKapt]"]
 include::sample[dir="snippets/buildCache/caching-android-projects/kotlin",files="build.gradle.kts[tags=cacheKapt]"]
+include::sample[dir="snippets/buildCache/caching-android-projects/groovy",files="build.gradle[tags=cacheKapt]"]
 ====
 
 == Unit test execution

@@ -33,8 +33,8 @@ In fact, almost all top-level properties and blocks in a build script are part o
 
 .Accessing property of the Project object
 ====
-include::sample[dir="snippets/tutorial/projectApi/groovy",files="build.gradle[tags=project-name]"]
 include::sample[dir="snippets/tutorial/projectApi/kotlin",files="build.gradle.kts[tags=project-name]"]
+include::sample[dir="snippets/tutorial/projectApi/groovy",files="build.gradle[tags=project-name]"]
 
 .Output of **`gradle -q check`**
 ----
@@ -122,8 +122,8 @@ Local variables are declared with the `val` keyword. They are only visible in th
 
 .Using local variables
 ====
-include::sample[dir="snippets/tutorial/localVariables/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/localVariables/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/localVariables/groovy",files="build.gradle[]"]
 ====
 
 [[sec:extra_properties]]
@@ -139,8 +139,8 @@ Extra properties can be added, read and set via the owning object's `extra` prop
 
 .Using extra properties
 ====
-include::sample[dir="snippets/tutorial/extraProperties/groovy",files="build.gradle[tags=extraProperties]"]
 include::sample[dir="snippets/tutorial/extraProperties/kotlin",files="build.gradle.kts[tags=extraProperties]"]
+include::sample[dir="snippets/tutorial/extraProperties/groovy",files="build.gradle[tags=extraProperties]"]
 
 .Output of **`gradle -q printProperties`**
 ----
@@ -166,8 +166,8 @@ You can configure arbitrary objects in the following very readable way.
 
 .Configuring arbitrary objects
 ====
-include::sample[dir="snippets/tutorial/configureObject/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/configureObject/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/configureObject/groovy",files="build.gradle[]"]
 
 .Output of **`gradle -q configure`**
 ----

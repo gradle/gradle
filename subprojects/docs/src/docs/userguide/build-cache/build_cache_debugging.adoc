@@ -273,8 +273,8 @@ Looking deeper into this, we actually see that the inputs for the task `processR
 Finally, we find this in our build file:
 
 ====
-include::sample[dir="snippets/buildCache/normalization/groovy",files="build.gradle[tags=versionInfo]"]
 include::sample[dir="snippets/buildCache/normalization/kotlin",files="build.gradle.kts[tags=versionInfo]"]
+include::sample[dir="snippets/buildCache/normalization/groovy",files="build.gradle[tags=versionInfo]"]
 ====
 
 Since properties files stored by Java's `Properties.store` method contain a timestamp, this will cause a change to the runtime classpath every time the build runs.

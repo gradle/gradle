@@ -18,8 +18,8 @@ The script can be executed without Gradle - it will mimic a tool that requires a
 
 Gradle build file registers two tasks - one performs a login and the other one depends on the login having succeeded:
 ====
-include::sample[dir="groovy",files="build.gradle[]"]
 include::sample[dir="kotlin",files="build.gradle.kts[]"]
+include::sample[dir="groovy",files="build.gradle[]"]
 ====
 
 The `login` task declares an input property and connects it with a credentials provider.

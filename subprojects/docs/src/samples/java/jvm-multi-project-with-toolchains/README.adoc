@@ -7,15 +7,15 @@ Using toolchains, it is very simple to set the required java version while Gradl
 Concretely, we add a _convention plugin_ in `buildSrc` to share the setup between multiple subprojects:
 
 ====
-include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=toolchain]"]
 include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=toolchain]"]
+include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=toolchain]"]
 ====
 
 While most modules are fine with the defaults, the `list` subproject overrides the defaults as it has more specific requirements.
 
 ====
-include::sample[dir="groovy",files="list/build.gradle[tags=customToolchain]"]
 include::sample[dir="kotlin",files="list/build.gradle.kts[tags=customToolchain]"]
+include::sample[dir="groovy",files="list/build.gradle[tags=customToolchain]"]
 ====
 
 [listing.terminal.sample-command]

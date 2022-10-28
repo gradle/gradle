@@ -24,16 +24,16 @@ To use the TestKit, include the following in your plugin's build:
 
 .Declaring the TestKit dependency
 ====
-include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradle[tags=declare-gradle-testkit-dependency]"]
 include::sample[dir="snippets/testKit/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-gradle-testkit-dependency]"]
+include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradle[tags=declare-gradle-testkit-dependency]"]
 ====
 
 The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<third_party_integration.adoc#embedding,Gradle Tooling API client>>. It does not include a version of https://junit.org[JUnit], https://testng.org[TestNG], or any other test execution framework. Such a dependency must be explicitly declared.
 
 .Declaring the JUnit dependency
 ====
-include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradle[tags=declare-junit-dependency]"]
 include::sample[dir="snippets/testKit/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-junit-dependency]"]
+include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradle[tags=declare-junit-dependency]"]
 ====
 
 [[sec:functional_testing_with_the_gradle_runner]]
@@ -103,8 +103,8 @@ The following Groovy-based sample demonstrates how to automatically inject the p
 
 .Using the Java Gradle Development plugin for generating the plugin metadata
 ====
-include::sample[dir="snippets/testKit/automaticClasspathInjectionQuickstart/groovy",files="build.gradle[tags=automatic-classpath]"]
 include::sample[dir="snippets/testKit/automaticClasspathInjectionQuickstart/kotlin",files="build.gradle.kts[tags=automatic-classpath]"]
+include::sample[dir="snippets/testKit/automaticClasspathInjectionQuickstart/groovy",files="build.gradle[tags=automatic-classpath]"]
 ====
 
 
@@ -125,8 +125,8 @@ A new configuration DSL for modeling the below `functionalTest` suite is availab
 
 .Reconfiguring the classpath generation conventions of the Java Gradle Development plugin
 ====
-include::sample[dir="snippets/testKit/automaticClasspathInjectionCustomTestSourceSet/groovy",files="build.gradle[tags=custom-test-source-set]"]
 include::sample[dir="snippets/testKit/automaticClasspathInjectionCustomTestSourceSet/kotlin",files="build.gradle.kts[tags=custom-test-source-set]"]
+include::sample[dir="snippets/testKit/automaticClasspathInjectionCustomTestSourceSet/groovy",files="build.gradle[tags=custom-test-source-set]"]
 ====
 
 

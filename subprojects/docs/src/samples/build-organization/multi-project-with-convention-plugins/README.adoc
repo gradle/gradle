@@ -99,14 +99,14 @@ It applies `java-library` and `maven-publish` plugins as well as the `myproject.
 
 The internal library subproject applies `myproject.java-conventions` plugin:
 ====
-include::sample[dir="groovy",files="internal-module/build.gradle[]"]
 include::sample[dir="kotlin",files="internal-module/build.gradle.kts[]"]
+include::sample[dir="groovy",files="internal-module/build.gradle[]"]
 ====
 
 The two public library subprojects apply `myproject.library-conventions` plugin.
 ====
-include::sample[dir="groovy",files="library-a/build.gradle[];library-b/build.gradle[]"]
 include::sample[dir="kotlin",files="library-a/build.gradle.kts[];library-b/build.gradle.kts[]"]
+include::sample[dir="groovy",files="library-a/build.gradle[];library-b/build.gradle[]"]
 ====
 
 Note how applying a convention plugin to a subproject effectively declares its type.
@@ -134,8 +134,8 @@ in its `build.gradle.kts` file:
 
 .Enabling precompiled script plugins
 ====
-include::sample[dir="groovy",files="buildSrc/build.gradle[tags=apply]"]
 include::sample[dir="kotlin",files="buildSrc/build.gradle.kts[tags=apply]"]
+include::sample[dir="groovy",files="buildSrc/build.gradle[tags=apply]"]
 ====
 
 
@@ -147,8 +147,8 @@ The `myproject.java-conventions` plugin uses SpotBugs plugin to perform static c
 
 SpotBugs is an external plugin - external plugins link:{userManualPath}/custom_plugins.html#applying_external_plugins_in_precompiled_script_plugins[need to be added as implementation dependencies] before they can be applied in a precompiled script plugin:
 ====
-include::sample[dir="groovy",files="buildSrc/build.gradle[tags=repositories-and-dependencies]"]
 include::sample[dir="kotlin",files="buildSrc/build.gradle.kts[tags=repositories-and-dependencies]"]
+include::sample[dir="groovy",files="buildSrc/build.gradle[tags=repositories-and-dependencies]"]
 ====
 
 * The dependency artifact coordinates (GAV) for a plugin can be different from the plugin id.
@@ -157,8 +157,8 @@ include::sample[dir="kotlin",files="buildSrc/build.gradle.kts[tags=repositories-
 
 Once the dependency is added, the external plugin can be applied in precompiled script plugin by id:
 ====
-include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=apply-external-plugin]"]
 include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=apply-external-plugin]"]
+include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=apply-external-plugin]"]
 ====
 
 === Applying other precompiled script plugins
@@ -167,8 +167,8 @@ Precompiled script plugins can apply other precompiled script plugins.
 
 The `myproject.library-conventions` plugin applies the `myproject.java-conventions` plugin:
 ====
-include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.library-conventions.gradle[tags=plugins]"]
 include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/myproject.library-conventions.gradle.kts[tags=plugins]"]
+include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.library-conventions.gradle[tags=plugins]"]
 ====
 
 === Using classes from the main source set
@@ -177,8 +177,8 @@ Precompiled script plugins can use classes defined in the main source set of the
 
 In this sample, `myproject.library-conventions` plugin uses a custom task class from `buildSrc/src/main/java` to configure library README checks:
 ====
-include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.library-conventions.gradle[tags=use-java-class]"]
 include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/myproject.library-conventions.gradle.kts[tags=use-java-class]"]
+include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.library-conventions.gradle[tags=use-java-class]"]
 ====
 
 For more details on authoring custom Gradle plugins, consult the link:{userManualPath}/custom_plugins.html[user manual].

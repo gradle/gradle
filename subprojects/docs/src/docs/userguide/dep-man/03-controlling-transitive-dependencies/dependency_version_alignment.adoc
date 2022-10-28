@@ -12,8 +12,8 @@ For example, your project may depend on the `jackson-databind` and `vert.x` libr
 
 .Declaring dependencies
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=dependencies]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 Because `vert.x` depends on `jackson-core`, we would actually resolve the following dependency versions:
@@ -49,16 +49,16 @@ We can fix this by adding a new module in our project, a _platform_, that will a
 
 .The platform module
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/groovy/platform",files="build.gradle[tags=platform]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/kotlin/platform",files="build.gradle.kts[tags=platform]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/groovy/platform",files="build.gradle[tags=platform]"]
 ====
 
 Once this is done, we need to make sure that all modules now _depend on the platform_, like this:
 
 .Declaring a dependency on the platform
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/groovy/core",files="build.gradle[tags=dependencies]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/kotlin/core",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/groovy/core",files="build.gradle[tags=dependencies]"]
 ====
 
 It is important that the platform contains a constraint on all the components, but also that each component has a dependency on the platform.
@@ -91,8 +91,8 @@ To provide the missing information to Gradle, you can define <<component_metadat
 
 .A dependency version alignment rule
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=bom-alignment-rule]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/kotlin",files="build.gradle.kts[tags=bom-alignment-rule]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=bom-alignment-rule]"]
 ====
 
 By using the `belongsTo` with `false` (**not** virtual), we declare that all modules belong to the same _published platform_.
@@ -100,8 +100,8 @@ In this case, the platform is `com.fasterxml.jackson:jackson-bom` and Gradle wil
 
 .Making use of a dependency version alignment rule
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=use_bom_rule]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/kotlin",files="build.gradle.kts[tags=use_bom_rule]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=use_bom_rule]"]
 ====
 
 Using the rule, the versions in the example above align to whatever the selected version of `com.fasterxml.jackson:jackson-bom` defines.
@@ -119,8 +119,8 @@ NOTE: This behavior is working reliable since Gradle 6.1. Effectively, it is sim
 
 .A dependency version alignment rule
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=alignment-rule]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/kotlin",files="build.gradle.kts[tags=alignment-rule]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=alignment-rule]"]
 ====
 
 By using the `belongsTo` keyword without further parameter (platform **is** virtual), we declare that all modules belong to the same _virtual platform_, which is treated specially by the engine.
@@ -130,8 +130,8 @@ The "content" of the platform is then created by Gradle on the fly by collecting
 
 .Making use of a dependency version alignment rule
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=use_rule]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/kotlin",files="build.gradle.kts[tags=use_rule]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=use_rule]"]
 ====
 
 Using the rule, all versions in the example above would align to `2.9.5`.
@@ -141,7 +141,7 @@ For both published and virtual platforms, Gradle lets you override the version c
 
 .Forceful platform downgrade
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=enforced_platform]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/kotlin",files="build.gradle.kts[tags=enforced_platform]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=enforced_platform]"]
 ====
 

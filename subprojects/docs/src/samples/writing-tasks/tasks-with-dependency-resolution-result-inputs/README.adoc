@@ -4,8 +4,8 @@ This sample shows how to create a plugin with tasks that have dependency resolut
 The plugin is packaged via an included build and is demonstrated on a multi-project build for a Java application.
 
 ====
-include::sample[dir="groovy",files="settings.gradle[tag=includes];list/build.gradle[];utilities/build.gradle[];build.gradle[]"]
 include::sample[dir="kotlin",files="settings.gradle.kts[tag=includes];list/build.gradle.kts[];utilities/build.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="groovy",files="settings.gradle[tag=includes];list/build.gradle[];utilities/build.gradle[];build.gradle[]"]
 ====
 
 To execute the sample tasks:

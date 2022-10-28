@@ -30,8 +30,8 @@ Compile tasks may use `javac` as their compiler, test and exec tasks may use the
 A build can globally define what toolchain it targets by stating the Java Language version it needs and optionally the vendor:
 
 ====
-include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=toolchain]"]
 include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin/",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=toolchain]"]
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=toolchain]"]
 ====
 
 Executing the build (e.g. using `gradle check`) will now handle several things for you and others running your build
@@ -56,8 +56,8 @@ link:{javadocPath}/org/gradle/jvm/toolchain/JvmVendorSpec.html[`JvmVendorSpec`] 
 The advantage is that Gradle can handle any inconsistencies across JDK versions in how exactly the JVM encodes the vendor information.
 
 ====
-include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-known-vendor]"]
 include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-known-vendor]"]
+include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-known-vendor]"]
 ====
 
 If the vendor you want to target is not a known vendor, you can still restrict the toolchain to those matching the `java.vendor` system property of the available toolchains.
@@ -65,8 +65,8 @@ If the vendor you want to target is not a known vendor, you can still restrict t
 Given the snippet below, only toolchain are taken into accounts whose `java.vendor` property contains the given match string. Matching is done case-insensitive.
 
 ====
-include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-vendor]"]
 include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-matching-vendor]"]
+include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-vendor]"]
 ====
 
 === Selecting toolchains by their virtual machine implementation
@@ -83,8 +83,8 @@ For example, to use an https://www.eclipse.org/openj9/[IBM Semeru] JVM, distribu
 you can specify the filter as shown in the example below.
 
 ====
-include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-implementation]"]
 include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-matching-implementation]"]
+include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-implementation]"]
 ====
 
 [NOTE]
@@ -103,15 +103,15 @@ In the example below, we configure all java compilation tasks to use JDK8.
 Additionally, we introduce a new `Test` task that is going to run our unit tests but using a JDK 14.
 
 ====
-include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="list/build.gradle[tags=customToolchain]"]
 include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin",files="list/build.gradle.kts[tags=customToolchain]"]
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="list/build.gradle[tags=customToolchain]"]
 ====
 
 In addition, in the `application` subproject, we add another Java execution task to run our application with JDK 14.
 
 ====
-include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="application/build.gradle[tags=customExec]"]
 include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin",files="application/build.gradle.kts[tags=customExec]"]
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="application/build.gradle[tags=customExec]"]
 ====
 
 Depending on the task, a JRE might be enough while for other tasks (e.g. compilation), a JDK is required.
@@ -134,8 +134,8 @@ While you will not be able to wire a toolchain tool directly, they all have meta
 For example, you can configure the executable for a Kotlin compile tasks as follows:
 
 ====
-include::sample[dir="snippets/java/toolchain-kotlin/groovy/",files="build.gradle[tags=compiler-kotlin]"]
 include::sample[dir="snippets/java/toolchain-kotlin/kotlin/",files="build.gradle.kts[tags=compiler-kotlin]"]
+include::sample[dir="snippets/java/toolchain-kotlin/groovy/",files="build.gradle[tags=compiler-kotlin]"]
 ====
 
 Similarly, doing `compiler.get().executablePath` would give you the full path to `javac` for the given toolchain.
@@ -352,8 +352,8 @@ By injecting the `JavaToolchainService` in the plugin or task, it is also possib
 The example below showcases how to use the default toolchain as convention while allowing users to individually configure the toolchain per task.
 
 ====
-include::sample[dir="snippets/java/toolchain-task/groovy/",files="build.gradle"]
 include::sample[dir="snippets/java/toolchain-task/kotlin/",files="build.gradle.kts"]
+include::sample[dir="snippets/java/toolchain-task/groovy/",files="build.gradle"]
 ====
 
 [NOTE]

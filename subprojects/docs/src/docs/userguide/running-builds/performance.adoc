@@ -224,8 +224,8 @@ However, imagine you’re doing some debugging and want to display the files tha
 One way you can do this is by injecting a print statement:
 
 ====
-include::sample[dir="snippets/performance/resolveAtConfigurationTime/groovy",files="build.gradle[tags=copy]"]
 include::sample[dir="snippets/performance/resolveAtConfigurationTime/kotlin",files="build.gradle.kts[tags=copy]"]
+include::sample[dir="snippets/performance/resolveAtConfigurationTime/groovy",files="build.gradle[tags=copy]"]
 ====
 
 The `files` property will force Gradle to resolve the dependencies, and in this example that’s happening during the configuration phase.
@@ -233,8 +233,8 @@ Now every time you run the build, no matter what tasks you execute, you'll take 
 It would be better to add this in a `doFirst()` action.
 
 ====
-include::sample[dir="snippets/performance/resolveAtBuildTime/groovy",files="build.gradle[tags=copy]"]
 include::sample[dir="snippets/performance/resolveAtBuildTime/kotlin",files="build.gradle.kts[tags=copy]"]
+include::sample[dir="snippets/performance/resolveAtBuildTime/groovy",files="build.gradle[tags=copy]"]
 ====
 
 Note that the `from()` declaration doesn’t resolve the dependencies because you’re using the <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configuration>> itself as an argument, not its files.
@@ -424,15 +424,15 @@ Gradle will happily run multiple test cases in parallel, which is useful when yo
 To enable this feature, just use the following configuration setting on the relevant `Test` task(s):
 
 ====
-include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=parallel-4]"]
 include::sample[dir="snippets/performance/parallelTestExecution/kotlin",files="build.gradle.kts[tags=parallel-4]"]
+include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=parallel-4]"]
 ====
 
 The normal approach is to use some number less than or equal to the number of CPU cores you have, such as this algorithm:
 
 ====
-include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=parallel-calculated]"]
 include::sample[dir="snippets/performance/parallelTestExecution/kotlin",files="build.gradle.kts[tags=parallel-calculated]"]
+include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=parallel-calculated]"]
 ====
 
 Note that if you do run the tests in parallel, you will have to ensure that they are independent, i.e. don’t share resources, be that files, databases or something else.
@@ -448,8 +448,8 @@ Another option is to fork a new test VM after a certain number of tests have run
 You can do this with the `forkEvery` setting:
 
 ====
-include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=fork-every]"]
 include::sample[dir="snippets/performance/parallelTestExecution/kotlin",files="build.gradle.kts[tags=fork-every]"]
+include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=fork-every]"]
 ====
 
 Just be aware that forking a VM is a relatively expensive operation, so a small value here will severely handicap the performance of your tests.
@@ -464,8 +464,8 @@ Also, if you're using build scans, you don't need to generate reports locally.
 To disable the test reports, simply add this configuration:
 
 ====
-include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=disable-reports]"]
 include::sample[dir="snippets/performance/parallelTestExecution/kotlin",files="build.gradle.kts[tags=disable-reports]"]
+include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=disable-reports]"]
 ====
 
 This example applies to the default `Test` task added by the Java plugin, but you can also apply the configuration to any other `Test` tasks you have.
@@ -521,8 +521,8 @@ The Gradle Java plugin allows you to run the compiler as a separate process by u
 or, more commonly, to apply the configuration to _all_ Java compilation tasks:
 
 ====
-include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=fork-java]"]
 include::sample[dir="snippets/performance/parallelTestExecution/kotlin",files="build.gradle.kts[tags=fork-java]"]
+include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=fork-java]"]
 ====
 
 This process is reused for the duration of a build, so the forking overhead is minimal.

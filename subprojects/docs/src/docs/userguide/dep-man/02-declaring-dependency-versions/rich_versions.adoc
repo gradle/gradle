@@ -143,6 +143,6 @@ Rich version declaration is accessed through the `version` DSL method on a depen
 
 .Rich version declaration
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=rich-version]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=rich-version]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=rich-version]"]
 ====

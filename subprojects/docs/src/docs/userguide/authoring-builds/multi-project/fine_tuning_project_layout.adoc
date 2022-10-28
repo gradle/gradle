@@ -35,8 +35,8 @@ In the settings file you can use the `include` method to build the project tree.
 
 .Project layout
 ====
-include::sample[dir="snippets/multiproject/standardLayouts/groovy",files="settings.gradle[tags=hierarchical-layout]"]
 include::sample[dir="snippets/multiproject/standardLayouts/kotlin",files="settings.gradle.kts[tags=hierarchical-layout]"]
+include::sample[dir="snippets/multiproject/standardLayouts/groovy",files="settings.gradle[tags=hierarchical-layout]"]
 ====
 
 The `include` method takes project paths as arguments.
@@ -56,16 +56,16 @@ To access a descriptor you can do:
 
 .Lookup of elements of the project tree
 ====
-include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=lookup-project]"]
 include::sample[dir="snippets/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=lookup-project]"]
+include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=lookup-project]"]
 ====
 
 Using this descriptor you can change the name, project directory and build file of a project.
 
 .Modification of elements of the project tree
 ====
-include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=change-project]"]
 include::sample[dir="snippets/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=change-project]"]
+include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=change-project]"]
 ====
 
 Look at the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.html[ProjectDescriptor] class in the API documentation for more information.
