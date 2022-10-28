@@ -16,6 +16,7 @@
 
 package org.gradle.internal.deprecation;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.gradle.internal.featurelifecycle.FeatureUsage;
 
@@ -47,6 +48,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         this.documentation = Preconditions.checkNotNull(documentation);
     }
 
+    @VisibleForTesting
     DeprecatedFeatureUsage(DeprecatedFeatureUsage usage, Exception traceException) {
         super(usage.getSummary(), usage.getCalledFrom(), traceException);
         this.removalDetails = usage.removalDetails;

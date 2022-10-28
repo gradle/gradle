@@ -21,8 +21,9 @@ configurations.all {
 // end::substitution_rule[]
 
 tasks.register("resolve") {
-    inputs.files(configurations.runtimeClasspath)
+    val classpath: FileCollection = configurations.runtimeClasspath.get()
+    inputs.files(classpath)
     doLast {
-        println(configurations.runtimeClasspath.files.map { it.name })
+        println(classpath.files.map { it.name })
     }
 }

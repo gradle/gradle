@@ -87,7 +87,7 @@ abstract class FileContentGenerator {
                     """
                     includeBuild("project$it") {
                         dependencySubstitution {
-                            substitute(module("org.gradle.test.performance:project${it}")).with(project(":"))
+                            substitute(module("org.gradle.test.performance:project${it}")).using(project(":"))
                         }
                     }
                     """

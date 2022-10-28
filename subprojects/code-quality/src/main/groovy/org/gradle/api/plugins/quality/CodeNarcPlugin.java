@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality;
 
+import groovy.lang.GroovySystem;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ProjectLayout;
@@ -27,7 +28,13 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
+import org.gradle.util.internal.VersionNumber;
 
+import javax.inject.Inject;
 import java.io.File;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
@@ -37,9 +44,9 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/codenarc_plugin.html">CodeNarc plugin reference</a>
  */
-public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
+public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
-    public static final String DEFAULT_CODENARC_VERSION = "2.0.0";
+    public static final String DEFAULT_CODENARC_VERSION = appropriateCodeNarcVersion();
     private CodeNarcExtension extension;
 
     @Override
@@ -50,6 +57,11 @@ public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
     @Override
     protected Class<CodeNarc> getTaskType() {
         return CodeNarc.class;
+    }
+
+    @Inject
+    protected JavaToolchainService getToolchainService() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -79,6 +91,7 @@ public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
         Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
+        configureToolchains(task);
     }
 
     private void configureDefaultDependencies(Configuration configuration) {
@@ -111,10 +124,24 @@ public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
         }));
     }
 
+    private void configureToolchains(CodeNarc task) {
+        Provider<JavaLauncher> javaLauncherProvider = getToolchainService().launcherFor(new CurrentJvmToolchainSpec(project.getObjects()));
+        task.getJavaLauncher().convention(javaLauncherProvider);
+        project.getPluginManager().withPlugin("java-base", p -> {
+            JavaToolchainSpec toolchain = getJavaPluginExtension().getToolchain();
+            task.getJavaLauncher().convention(getToolchainService().launcherFor(toolchain).orElse(javaLauncherProvider));
+        });
+    }
+
     @Override
     protected void configureForSourceSet(final SourceSet sourceSet, CodeNarc task) {
         task.setDescription("Run CodeNarc analysis for " + sourceSet.getName() + " classes");
         SourceDirectorySet groovySourceSet =  sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
         task.setSource(groovySourceSet.matching(filter -> filter.include("**/*.groovy")));
+    }
+
+    private static String appropriateCodeNarcVersion() {
+        int groovyMajorVersion = VersionNumber.parse(GroovySystem.getVersion()).getMajor();
+        return groovyMajorVersion < 4 ? "3.1.0" : "3.1.0-groovy-4.0";
     }
 }

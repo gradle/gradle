@@ -79,16 +79,11 @@ public class CompilationSourceDirs {
 
     private static class SourceRoots implements FileCollectionStructureVisitor {
         private boolean canInferSourceRoots = true;
-        private List<File> sourceRoots = Lists.newArrayList();
+        private final List<File> sourceRoots = Lists.newArrayList();
 
         @Override
         public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
             cannotInferSourceRoots(contents);
-        }
-
-        @Override
-        public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-            cannotInferSourceRoots(fileTree);
         }
 
         @Override
@@ -98,7 +93,7 @@ public class CompilationSourceDirs {
 
         @Override
         public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-            // We need to add missing files as source roots, since the package name for deleted files provided by IncrementalTaskInputs also need to be determined.
+            // We need to add missing files as source roots, since the package name for deleted files provided by InputChanges also need to be determined.
             if (!root.exists() || root.isDirectory()) {
                 sourceRoots.add(root);
             } else {

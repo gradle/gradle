@@ -211,6 +211,18 @@ fun publishNormalizedToLocalRepository() {
             builtBy(localPublish)
         }
     }
+
+    if (signArtifacts) {
+        // Otherwise we get
+        // ask ':tooling-api:publishGradleDistributionPublicationToRemoteRepository' uses this output of task ':tooling-api:signLocalPublication'
+        // without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed.
+        tasks.named("publishGradleDistributionPublicationToRemoteRepository") {
+            dependsOn("signLocalPublication")
+        }
+        tasks.named("publishLocalPublicationToLocalRepository") {
+            dependsOn("signGradleDistributionPublication")
+        }
+    }
 }
 
 /**

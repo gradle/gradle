@@ -351,7 +351,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         executer.beforeExecute {
             inDirectory(consumer)
         }
-        file("consumer/gradle.properties") << "systemProp.${VirtualFileSystemServices.MAX_HIERARCHIES_TO_WATCH_PROPERTY}=1"
+        file("consumer/gradle.properties") << "systemProp.${VirtualFileSystemServices.MAX_HIERARCHIES_TO_WATCH_PROPERTY.systemPropertyName}=1"
 
         when:
         withWatchFs().run "assemble", "--info"

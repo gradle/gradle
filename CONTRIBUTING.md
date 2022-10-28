@@ -106,7 +106,7 @@ It's also a good idea to run `./gradlew sanityCheck` before submitting your chan
 
 After you submit your pull request, a Gradle developer will review it. It is normal for this to take several iterations, so don't get discouraged by change requests. They ensure the high quality that we all enjoy.
 
-If you need to check on [CI](http://builds.gradle.org/) status as an external contributor, you can login as "guest".
+If you need to check on [CI](http://builds.gradle.org/) status as an external contributor, you can click "Log in as guest".
 
 ## Useful tips
 
@@ -152,7 +152,7 @@ To disable the configuration cache, run the build with `--no-configuration-cache
 
 Tasks known to have problems are listed in the build logic. You can find this list at:
 
-    build-logic-settings/cc-experiment-plugin/src/main/kotlin/gradlebuild.internal.cc-experiment.settings.gradle.kts
+    build-logic-settings/build-logic-settings-plugin/src/main/kotlin/gradlebuild.internal.cc-experiment.settings.gradle.kts
 
 If you discover a task that doesn't work with the configuration but it not in this list, please add it.
 

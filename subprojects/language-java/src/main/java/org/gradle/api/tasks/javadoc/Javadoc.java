@@ -38,7 +38,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.javadoc.internal.JavadocGenerator;
+import org.gradle.api.tasks.javadoc.internal.JavadocExecutableUtils;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
@@ -50,7 +50,6 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
-import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -59,7 +58,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import static org.gradle.util.internal.GUtil.isTrue;
@@ -104,7 +102,7 @@ import static org.gradle.util.internal.GUtil.isTrue;
  * </pre>
  */
 @CacheableTask
-public class Javadoc extends SourceTask {
+public abstract class Javadoc extends SourceTask {
 
     private File destinationDir;
 
@@ -159,24 +157,14 @@ public class Javadoc extends SourceTask {
         }
 
         String maxMemory = getMaxMemory();
-        if (maxMemory != null) {
-            final List<String> jFlags = options.getJFlags();
-            final Iterator<String> jFlagsIt = jFlags.iterator();
-            boolean containsXmx = false;
-            while (!containsXmx && jFlagsIt.hasNext()) {
-                final String jFlag = jFlagsIt.next();
-                if (jFlag.startsWith("-Xmx")) {
-                    containsXmx = true;
-                }
-            }
-            if (!containsXmx) {
-                options.jFlags("-Xmx" + maxMemory);
-            }
+        if (maxMemory != null && options.getJFlags().stream().noneMatch(flag -> flag.startsWith("-Xmx"))) {
+            options.jFlags("-Xmx" + maxMemory);
         }
 
         options.setSourceNames(sourceNames());
 
-        executeExternalJavadoc(options);
+        JavadocSpec spec = createJavadocSpec(options);
+        getJavadocToolAdapter().execute(spec);
     }
 
     private boolean isModule() {
@@ -192,32 +180,28 @@ public class Javadoc extends SourceTask {
         return sourceNames;
     }
 
-    private void executeExternalJavadoc(StandardJavadocDocletOptions options) {
+    private JavadocSpec createJavadocSpec(StandardJavadocDocletOptions options) {
         JavadocSpec spec = new JavadocSpec();
-        spec.setExecutable(getExecutable());
         spec.setOptions(options);
         spec.setIgnoreFailures(!isFailOnError());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setOptionsFile(getOptionsFile());
 
-        if (spec.getExecutable() != null) {
-            new JavadocGenerator(getExecActionFactory()).execute(spec);
-        } else {
-            getJavadocToolAdapter().execute(spec);
-        }
+        JavadocToolAdapter javadocToolAdapter = getJavadocToolAdapter();
+        spec.setExecutable(javadocToolAdapter.getExecutablePath().toString());
+
+        return spec;
     }
 
     private JavadocToolAdapter getJavadocToolAdapter() {
-        if (javadocTool.isPresent()) {
+        if (getExecutable() == null && javadocTool.isPresent()) {
             return (JavadocToolAdapter) this.javadocTool.get();
         }
-        JavaToolchainSpec explicitToolchain = new CurrentJvmToolchainSpec(getObjectFactory());
-        return (JavadocToolAdapter) getJavaToolchainService().javadocToolFor(explicitToolchain).get();
-    }
-
-    @Inject
-    protected JavaToolchainService getJavaToolchainService() {
-        throw new UnsupportedOperationException();
+        JavaToolchainSpec toolchain = JavadocExecutableUtils.getExecutableOverrideToolchainSpec(this, getObjectFactory());
+        if (toolchain == null) {
+            toolchain = new CurrentJvmToolchainSpec(getObjectFactory());
+        }
+        return (JavadocToolAdapter) getJavaToolchainService().javadocToolFor(toolchain).get();
     }
 
     /**
@@ -441,7 +425,7 @@ public class Javadoc extends SourceTask {
     }
 
     @Inject
-    protected ExecActionFactory getExecActionFactory() {
+    protected JavaToolchainService getJavaToolchainService() {
         throw new UnsupportedOperationException();
     }
 }

@@ -62,6 +62,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         '''
         executer.expectDocumentedDeprecationWarning(
             "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
+                "This behavior has been deprecated. " +
                 "This will fail with an error in Gradle 8.0. " +
                 "Declare the association between the task and the build service using 'Task#usesService'. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
@@ -813,13 +814,12 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         fails("first", "second")
 
         then:
-        // TODO - improve the error handling so as to report both failures as top level failures
-        // This documents existing behaviour, not desired behaviour
-        failure.assertHasDescription("Failed to notify build listener")
-        failure.assertHasCause("Failed to stop service 'counter1'.")
-        failure.assertHasCause("broken")
-        failure.assertHasCause("Failed to stop service 'counter2'.")
-        failure.assertHasCause("broken")
+        failure.assertHasFailure("Failed to stop service 'counter1'.") {
+            it.assertHasCause("broken")
+        }
+        failure.assertHasFailure("Failed to stop service 'counter2'.") {
+            it.assertHasCause("broken")
+        }
     }
 
     def serviceImplementation() {

@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -45,7 +46,7 @@ import java.util.Set;
 /**
  * The TestNG specific test options.
  */
-public class TestNGOptions extends TestFrameworkOptions {
+public abstract class TestNGOptions extends TestFrameworkOptions {
     public static final String DEFAULT_CONFIG_FAILURE_POLICY = "skip";
     private static final String DEFAULT_PARALLEL_MODE = null;
     private static final int DEFAULT_THREAD_COUNT = -1;
@@ -85,6 +86,33 @@ public class TestNGOptions extends TestFrameworkOptions {
     @Inject
     public TestNGOptions(ProjectLayout projectLayout) {
         this.projectDir = projectLayout.getProjectDirectory().getAsFile();
+    }
+
+    /**
+     * Copies the options from the source options into the current one.
+     * @since 8.0
+     */
+    public void copyFrom(TestNGOptions other) {
+        this.outputDirectory = other.outputDirectory;
+        replace(this.includeGroups, other.includeGroups);
+        replace(this.excludeGroups, other.excludeGroups);
+        this.configFailurePolicy = other.configFailurePolicy;
+        replace(this.listeners, other.listeners);
+        this.parallel = other.parallel;
+        this.threadCount = other.threadCount;
+        this.useDefaultListeners = other.useDefaultListeners;
+        this.suiteName = other.suiteName;
+        this.testName = other.testName;
+        replace(this.suiteXmlFiles, other.suiteXmlFiles);
+        this.preserveOrder = other.preserveOrder;
+        this.groupByInstances = other.groupByInstances;
+        // not copying suiteXmlWriter as it is transient
+        // not copying suiteXmlBuilder as it is transient
+    }
+
+    private static <T> void replace(Collection<T> target, Collection<T> source) {
+        target.clear();
+        target.addAll(source);
     }
 
     public MarkupBuilder suiteXmlBuilder() {

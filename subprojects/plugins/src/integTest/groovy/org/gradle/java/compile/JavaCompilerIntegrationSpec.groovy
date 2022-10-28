@@ -18,12 +18,13 @@ package org.gradle.java.compile
 import spock.lang.Issue
 
 abstract class JavaCompilerIntegrationSpec extends BasicJavaCompilerIntegrationSpec {
+
     def setup() {
         buildFile << """
-        tasks.withType(JavaCompile) {
-            options.compilerArgs << '-Xlint:all' << '-Werror'
-        }
-"""
+            tasks.withType(JavaCompile) {
+                options.compilerArgs << '-Xlint:all' << '-Werror'
+            }
+        """
     }
 
     def compileWithLongClasspath() {

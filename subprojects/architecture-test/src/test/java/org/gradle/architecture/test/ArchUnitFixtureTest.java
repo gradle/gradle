@@ -98,6 +98,43 @@ public class ArchUnitFixtureTest {
         Assertions.assertThrows(AssertionError.class, () -> assertHasViolation(event, File.class));
     }
 
+    @Test
+    public void accepts_interfaces_as_abstract_classes() {
+        ConditionEvent event = checkClassCondition(ArchUnitFixture.beAbstract(), Interface.class);
+        assertNoViolation(event);
+    }
+
+    @Test
+    public void accepts_abstract_classes() {
+        ConditionEvent event = checkClassCondition(ArchUnitFixture.beAbstract(), AbstractClass.class);
+        assertNoViolation(event);
+    }
+
+    @Test
+    public void reports_non_abstract_classes() {
+        ConditionEvent event = checkClassCondition(ArchUnitFixture.beAbstract(), ConcreteClass.class);
+        assertThat(event.isViolation()).isTrue();
+        assertThat(String.join(" ", event.getDescriptionLines())).isEqualTo("org.gradle.architecture.test.ArchUnitFixtureTest$ConcreteClass is not abstract");
+    }
+
+    private ConditionEvent checkClassCondition(ArchCondition<JavaClass> archCondition, Class<?> clazz) {
+        JavaClass javaClass = new ClassFileImporter().importClass(clazz);
+        CollectingConditionEvents events = new CollectingConditionEvents();
+        archCondition.check(javaClass, events);
+        assertThat(events.getAllEvents()).hasSize(1);
+        return events.getAllEvents().iterator().next();
+    }
+
+    interface Interface {
+
+    }
+    static abstract class AbstractClass {
+
+    }
+    static class ConcreteClass {
+
+    }
+
     @SuppressWarnings({ "unused", "checkstyle:LeftCurly" })
     static class AllowedMethodTypesClass {
         public void validMethod(String arg1, String arg2) {}

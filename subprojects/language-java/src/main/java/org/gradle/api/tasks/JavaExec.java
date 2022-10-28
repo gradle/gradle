@@ -21,19 +21,19 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -112,7 +112,7 @@ import java.util.Map;
  * </pre>
  */
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
-public class JavaExec extends ConventionTask implements JavaExecSpec {
+public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     private final DefaultJavaExecSpec javaExecSpec;
     private final Property<String> mainModule;
     private final Property<String> mainClass;
@@ -128,32 +128,10 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         execResult = objectFactory.property(ExecResult.class);
 
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
-        javaExecSpec.getMainClass().convention(
-            getMainClass().orElse(
-                Providers.changing(
-                    // go through 'main' to keep this compatible with existing convention mappings
-                    () -> DeprecationLogger.whileDisabled(this::getMain)
-                )
-            )
-        );
+        javaExecSpec.getMainClass().convention(mainClass);
         javaExecSpec.getMainModule().convention(mainModule);
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
         javaLauncher = objectFactory.property(JavaLauncher.class);
-    }
-
-    @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ExecActionFactory getExecActionFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ProviderFactory getProviderFactory() {
-        throw new UnsupportedOperationException();
     }
 
     @TaskAction
@@ -396,38 +374,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     public Property<String> getMainClass() {
         return mainClass;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Deprecated
-    @ReplacedBy("mainClass")
-    public String getMain() {
-        DeprecationLogger.deprecateProperty(JavaExec.class, "main")
-            .replaceWith("mainClass")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        return getMainClass().getOrNull();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Deprecated
-    public JavaExec setMain(String mainClassName) {
-        DeprecationLogger.deprecateProperty(JavaExec.class, "main")
-            .replaceWith("mainClass")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        getMainClass().set(mainClassName);
-        return this;
     }
 
     /**
@@ -785,11 +731,31 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         if (javaLauncher.isPresent()) {
             return javaLauncher.get().getExecutablePath().toString();
         }
-        final String executable = getExecutable();
-        if (executable != null) {
-            return executable;
+
+        JavaToolchainSpec toolchain = JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(this, getObjectFactory());
+        if (toolchain == null) {
+            toolchain = new CurrentJvmToolchainSpec(getObjectFactory());
         }
-        return Jvm.current().getJavaExecutable().getAbsolutePath();
+        return getJavaToolchainService().launcherFor(toolchain).get().getExecutablePath().toString();
     }
 
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ExecActionFactory getExecActionFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaToolchainService getJavaToolchainService() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ProviderFactory getProviderFactory() {
+        throw new UnsupportedOperationException();
+    }
 }

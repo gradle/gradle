@@ -60,9 +60,10 @@ class DependencyConstraintsBugsIntegrationTest extends AbstractHttpDependencyRes
             }
 
             task resolve {
-                inputs.files(configurations.testRuntimeClasspath)
+                def files = configurations.testRuntimeClasspath
+                inputs.files(files)
                 doLast {
-                    configurations.testRuntimeClasspath.files.name.each {
+                    files*.name.each {
                         println(it)
                     }
                 }

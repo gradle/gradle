@@ -47,7 +47,7 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDe
  *
  * @since 4.5
  */
-public class CppApplicationPlugin implements Plugin<Project> {
+public abstract class CppApplicationPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final ImmutableAttributesFactory attributesFactory;
@@ -84,7 +84,7 @@ public class CppApplicationPlugin implements Plugin<Project> {
                     .map(CppExecutable.class::cast)
                     .filter(binary -> !binary.isOptimized() && Architectures.forInput(binary.getTargetMachine().getArchitecture().getName()).equals(DefaultNativePlatform.host().getArchitecture()))
                     .findFirst()
-                    .orElse(application.getBinaries().get().stream()
+                    .orElseGet(() -> application.getBinaries().get().stream()
                             .filter(CppExecutable.class::isInstance)
                             .map(CppExecutable.class::cast)
                             .filter(binary -> !binary.isOptimized())

@@ -34,7 +34,6 @@ import org.gradle.api.plugins.internal.DefaultWarPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -45,7 +44,7 @@ import java.util.concurrent.Callable;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/war_plugin.html">WAR plugin reference</a>
  */
-public class WarPlugin implements Plugin<Project> {
+public abstract class WarPlugin implements Plugin<Project> {
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
     public static final String WAR_TASK_NAME = "war";
@@ -63,7 +62,7 @@ public class WarPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
-        final WarPluginConvention pluginConvention = new DefaultWarPluginConvention(project);
+        final WarPluginConvention pluginConvention = objectFactory.newInstance(DefaultWarPluginConvention.class, project);
         project.getConvention().getPlugins().put("war", pluginConvention);
 
         project.getTasks().withType(War.class).configureEach(task -> {
@@ -96,23 +95,17 @@ public class WarPlugin implements Plugin<Project> {
     public void configureConfigurations(ConfigurationContainer configurationContainer) {
         Configuration providedCompileConfiguration = configurationContainer.create(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
             setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
-        deprecateForConsumption(providedCompileConfiguration);
+        providedCompileConfiguration.setCanBeConsumed(false);
 
         Configuration providedRuntimeConfiguration = configurationContainer.create(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
             extendsFrom(providedCompileConfiguration).
             setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
-        deprecateForConsumption(providedRuntimeConfiguration);
+        providedRuntimeConfiguration.setCanBeConsumed(false);
 
         configurationContainer.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME).extendsFrom(providedCompileConfiguration);
         configurationContainer.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
         configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
         configurationContainer.getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
-    }
-
-    private static void deprecateForConsumption(Configuration configuration) {
-        ((DeprecatableConfiguration) configuration).deprecateForConsumption(deprecation -> deprecation
-            .willBecomeAnErrorInGradle8()
-            .withUpgradeGuideSection(7, "plugin_configuration_consumption"));
     }
 
     private void configureComponent(Project project, PublishArtifact warArtifact) {

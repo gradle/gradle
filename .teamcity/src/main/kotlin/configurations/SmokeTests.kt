@@ -33,7 +33,6 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
         timeout = 120,
         extraParameters = buildScanTag("SmokeTests") +
             " -PtestJavaVersion=${testJava.version.major}" +
-            " -PtestJavaVendor=${testJava.vendor.name}" +
-            " -Porg.gradle.java.installations.auto-download=false"
+            " -PtestJavaVendor=${testJava.vendor.name}"
     )
 })

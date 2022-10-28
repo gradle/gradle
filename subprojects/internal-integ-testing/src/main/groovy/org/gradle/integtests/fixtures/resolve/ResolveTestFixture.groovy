@@ -19,18 +19,23 @@ package org.gradle.integtests.fixtures.resolve
 import com.google.common.base.Joiner
 import groovy.transform.Canonical
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.result.ComponentSelectionCause
+import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.AttributeContainer
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.gradle.configurationcache.problems.DisableConfigurationCacheFieldTypeCheck
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.ComparisonFailure
@@ -41,10 +46,12 @@ import org.junit.ComparisonFailure
  */
 class ResolveTestFixture {
     final TestFile buildFile
-    final String config
+    String config
     private String defaultConfig = "default"
     private boolean buildArtifacts = true
     private boolean strictReasonsCheck
+
+    private boolean configurationCacheEnabled = GradleContextualExecuter.configCache
 
     ResolveTestFixture(TestFile buildFile, String config = "runtimeClasspath") {
         this.config = config
@@ -76,8 +83,27 @@ class ResolveTestFixture {
         if (start >= 0) {
             existingScript = existingScript.substring(0, start) + existingScript.substring(end, existingScript.length())
         }
+        def content
         def inputs = buildArtifacts ? "it.inputs.files configurations." + config : ""
-        buildFile.text = existingScript + """//RESOLVE_TEST_FIXTURE_START
+        if (configurationCacheEnabled) {
+            content = """
+buildscript {
+    dependencies.classpath files("${ClasspathUtil.getClasspathForClass(GenerateGraphTask).toURI()}")
+}
+$additionalContent
+allprojects {
+    tasks.register("checkDeps", ${ConfigurationCacheCompatibleGenerateGraphTask.name}) {
+        it.outputFile = rootProject.file("\${rootProject.buildDir}/${config}.txt")
+        it.rootComponent = configurations.${config}.incoming.resolutionResult.rootComponent
+        it.files.from(configurations.${config})
+        it.artifacts = configurations.${config}.incoming.artifacts
+        it.buildArtifacts = ${buildArtifacts}
+        ${inputs}
+    }
+}
+"""
+        } else {
+            content = """
 buildscript {
     dependencies.classpath files("${ClasspathUtil.getClasspathForClass(GenerateGraphTask).toURI()}")
 }
@@ -89,7 +115,12 @@ allprojects {
         it.buildArtifacts = ${buildArtifacts}
         ${inputs}
     }
-}//RESOLVE_TEST_FIXTURE_END
+}
+"""
+        }
+        buildFile.text = existingScript + """//RESOLVE_TEST_FIXTURE_START
+$content
+//RESOLVE_TEST_FIXTURE_END
 """
     }
 
@@ -101,7 +132,7 @@ allprojects {
      * Verifies the result of executing the task injected by {@link #prepare()}. The closure delegates to a {@link GraphBuilder} instance.
      */
     void expectGraph(@DelegatesTo(GraphBuilder) Closure closure) {
-        def graph = new GraphBuilder(defaultConfig)
+        def graph = new GraphBuilder()
         closure.resolveStrategy = Closure.DELEGATE_ONLY
         closure.delegate = graph
         closure.call()
@@ -116,6 +147,42 @@ allprojects {
         def actualRoot = findLines(configDetails, 'root').first()
         def expectedRoot = "[id:${graph.root.id}][mv:${graph.root.moduleVersionId}][reason:${graph.root.reason}]".toString()
         assert actualRoot.startsWith(expectedRoot)
+
+        def actualComponents = findLines(configDetails, 'component')
+        def expectedComponents = graph.nodes.collect { baseNode ->
+            def variantDetails = ''
+            def variants = baseNode.variants.collect { variant ->
+                "variant:name:${variant.name} attributes:${variant.attributes}"
+            }
+            if (variants) {
+                variantDetails = "[${variants.join('@@')}]"
+            }
+            "[id:${baseNode.id}][mv:${baseNode.moduleVersionId}][reason:${baseNode.reason}]$variantDetails"
+        }
+        compareNodes("components in graph", parseNodes(actualComponents), parseNodes(expectedComponents))
+
+        def actualEdges = findLines(configDetails, 'dependency')
+        def expectedEdges = graph.edges.collect { "${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
+        compare("edges in graph", actualEdges, expectedEdges)
+
+        def expectedFiles = graph.root.files + graph.artifactNodes.collect { it.fileName }
+
+        if (buildArtifacts) {
+            def actualFiles = findLines(configDetails, 'file')
+            compare("files", actualFiles, expectedFiles)
+
+            actualFiles = findLines(configDetails, 'file-artifact-incoming')
+            compare("incoming.artifacts", actualFiles, expectedFiles)
+        }
+
+        def expectedArtifacts = graph.artifactNodes.collect { "${it.versionedArtifactName} (${it.componentId})" } + graph.files
+
+        def actualArtifacts = findLines(configDetails, 'artifact-incoming')
+        compare("artifacts", actualArtifacts, expectedArtifacts)
+
+        if (configurationCacheEnabled) {
+            return
+        }
 
         def expectedFirstLevel = graph.root.deps.findAll { !it.constraint }.collect { d ->
             def configs = d.selected.firstLevelConfigurations.collect {
@@ -143,45 +210,20 @@ allprojects {
         def expectedConfigurations = graph.nodesWithoutRoot.collect { "[${it.moduleVersionId}]".toString() } - graph.virtualConfigurations.collect { "[${it}]".toString() } as Set
         compare("configurations in graph", actualConfigurations, expectedConfigurations)
 
-        def actualComponents = findLines(configDetails, 'component')
-        def expectedComponents = graph.nodes.collect { baseNode ->
-            def variantDetails = ''
-            def variants = baseNode.variants.collect { variant ->
-                "variant:name:${variant.name} attributes:${variant.attributes}"
-            }
-            if (variants) {
-                variantDetails = "[${variants.join('@@')}]"
-            }
-            "[id:${baseNode.id}][mv:${baseNode.moduleVersionId}][reason:${baseNode.reason}]$variantDetails"
-        }
-        compareNodes("components in graph", parseNodes(actualComponents), parseNodes(expectedComponents))
+        def expectedLegacyArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.artifactName}]" }
 
-        def actualEdges = findLines(configDetails, 'dependency')
-        def expectedEdges = graph.edges.collect { "${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
-        compare("edges in graph", actualEdges, expectedEdges)
-
-        def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.artifactName}]" }
-
-        def actualArtifacts = findLines(configDetails, 'artifact')
-        compare("artifacts", actualArtifacts, expectedArtifacts)
+        actualArtifacts = findLines(configDetails, 'artifact')
+        compare("artifacts", actualArtifacts, expectedLegacyArtifacts)
 
         actualArtifacts = findLines(configDetails, 'lenient-artifact')
-        compare("lenient artifacts", actualArtifacts, expectedArtifacts)
+        compare("lenient artifacts", actualArtifacts, expectedLegacyArtifacts)
 
         actualArtifacts = findLines(configDetails, 'filtered-lenient-artifact')
-        compare("filtered lenient artifacts", actualArtifacts, expectedArtifacts)
+        compare("filtered lenient artifacts", actualArtifacts, expectedLegacyArtifacts)
 
         if (buildArtifacts) {
-            def expectedFiles = graph.root.files + graph.artifactNodes.collect { it.fileName }
-
-            def actualFiles = findLines(configDetails, 'file')
-            compare("files", actualFiles, expectedFiles)
-
-            actualFiles = findLines(configDetails, 'file-incoming')
+            def actualFiles = findLines(configDetails, 'file-incoming')
             compare("incoming.files", actualFiles, expectedFiles)
-
-            actualFiles = findLines(configDetails, 'file-artifact-incoming')
-            compare("incoming.artifacts", actualFiles, expectedFiles)
 
             actualFiles = findLines(configDetails, 'file-filtered')
             compare("filtered files", actualFiles, expectedFiles)
@@ -255,9 +297,9 @@ allprojects {
                 idx = line.indexOf(']', start) // attributes:
             }
             Map<String, String> attributes = line.substring(start, idx)
-                    .split(',') // attributes are separated by commas
-                    .findAll() // only keep non empty entries (thank you, split!)
-                    .collectEntries { it.split('=') as List }
+                .split(',') // attributes are separated by commas
+                .findAll() // only keep non empty entries (thank you, split!)
+                .collectEntries { it.split('=') as List }
             start = idx + 15 // '@@'
             variants << new Variant(name: variant, attributes: attributes)
         }
@@ -348,24 +390,18 @@ allprojects {
                 equals &= actualSorted.get(i).startsWith(expectedSorted.get(i))
             }
         }
-        def actualFormatted = Joiner.on("\n").join(actualSorted)
-        def expectedFormatted = Joiner.on("\n").join(expectedSorted)
         if (!equals) {
+            def actualFormatted = Joiner.on("\n").join(actualSorted)
+            def expectedFormatted = Joiner.on("\n").join(expectedSorted)
             throw new ComparisonFailure("Result contains unexpected $compType", expectedFormatted, actualFormatted);
         }
-
     }
 
     static class GraphBuilder {
         private final Map<String, NodeBuilder> nodes = [:]
         private NodeBuilder root
-        private String defaultConfig
 
         final Set<String> virtualConfigurations = []
-
-        GraphBuilder(String defaultConfig) {
-            this.defaultConfig = defaultConfig
-        }
 
         Collection<NodeBuilder> getNodes() {
             return nodes.values()
@@ -373,7 +409,7 @@ allprojects {
 
         Collection<NodeBuilder> getNodesWithoutRoot() {
             def nodes = new HashSet<>()
-            visitDeps(root.deps, nodes, new HashSet<>())
+            visitDeps(this.root.deps, nodes, new HashSet<>())
             return nodes
         }
 
@@ -397,6 +433,13 @@ allprojects {
             return result.collect { it.artifacts }.flatten()
         }
 
+        Set<String> getFiles() {
+            Set<NodeBuilder> result = new LinkedHashSet()
+            result.add(root)
+            visitNodes(root, result)
+            return result.collect { node -> node.files }.flatten()
+        }
+
         private void visitNodes(NodeBuilder node, Set<NodeBuilder> result) {
             Set<NodeBuilder> nodesToVisit = []
             for (EdgeBuilder edge : node.deps) {
@@ -413,7 +456,7 @@ allprojects {
         private getEdges() {
             Set<EdgeBuilder> result = new LinkedHashSet<>()
             Set<NodeBuilder> seen = []
-            visitEdges(root, seen, result)
+            visitEdges(this.root, seen, result)
             return result
         }
 
@@ -430,14 +473,14 @@ allprojects {
          * Defines the root node of the graph. The closure delegates to a {@link NodeBuilder} instance that represents the root node.
          */
         def root(String value, @DelegatesTo(NodeBuilder) Closure cl) {
-            if (root != null) {
+            if (this.root != null) {
                 throw new IllegalStateException("Root node is already defined")
             }
-            root = node(value, value)
+            this.root = node(value, value)
             cl.resolveStrategy = Closure.DELEGATE_ONLY
-            cl.delegate = root
+            cl.delegate = this.root
             cl.call()
-            return root
+            return this.root
         }
 
         /**
@@ -447,14 +490,14 @@ allprojects {
          * @param moduleVersion The module version for this project.
          */
         def root(String projectPath, String moduleVersion, @DelegatesTo(NodeBuilder) Closure cl) {
-            if (root != null) {
+            if (this.root != null) {
                 throw new IllegalStateException("Root node is already defined")
             }
-            root = node("project $projectPath", moduleVersion)
+            this.root = node("project $projectPath", moduleVersion)
             cl.resolveStrategy = Closure.DELEGATE_ONLY
-            cl.delegate = root
+            cl.delegate = this.root
             cl.call()
-            return root
+            return this.root
         }
 
         def node(Map attrs) {
@@ -518,6 +561,7 @@ allprojects {
     }
 
     static class ExpectedArtifact {
+        String componentId
         String group
         String module
         String version
@@ -540,6 +584,17 @@ allprojects {
 
         String getArtifactName() {
             return "${getName()}${classifier ? '-' + classifier : ''}${noType ? '' : '.' + getType()}"
+        }
+
+        String getVersionedArtifactName() {
+            def baseName = "${getName()}${classifier ? '-' + classifier : ''}"
+            if (noType) {
+                return baseName
+            } else if (componentId.startsWith("project :")) {
+                return "${baseName}.${getType()}"
+            } else {
+                return "${getName()}${version ? '-' + version : ''}${classifier ? '-' + classifier : ''}.${getType()}"
+            }
         }
 
         String getFileName() {
@@ -591,7 +646,7 @@ allprojects {
         }
 
         Set<ExpectedArtifact> getArtifacts() {
-            return artifacts.empty && implicitArtifact ? [new ExpectedArtifact(group: group, module: module, version: version)] : artifacts
+            return artifacts.empty && implicitArtifact ? [new ExpectedArtifact(componentId: id, group: group, module: module, version: version)] : artifacts
         }
 
         String getReason() {
@@ -639,7 +694,7 @@ allprojects {
         /**
          * Defines a dependency on the given project. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
-        NodeBuilder project(String path, String value, @DelegatesTo(NodeBuilder) Closure cl) {
+        NodeBuilder project(String path, String value, @DelegatesTo(NodeBuilder) Closure cl = {}) {
             def node = addNode("project $path", value)
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = node
@@ -725,7 +780,7 @@ allprojects {
          * Specifies an artifact for this node. A default is assumed when none specified
          */
         NodeBuilder artifact(Map attributes) {
-            def artifact = new ExpectedArtifact(group: group, module: module, version: version, name: attributes.name, classifier: attributes.classifier, type: attributes.type, noType: attributes.noType?:false)
+            def artifact = new ExpectedArtifact(componentId: id, group: group, module: module, version: version, name: attributes.name, classifier: attributes.classifier, type: attributes.type, noType: attributes.noType ?: false)
             artifacts << artifact
             return this
         }
@@ -862,18 +917,118 @@ allprojects {
     }
 }
 
-class GenerateGraphTask extends DefaultTask {
+class AbstractGenerateGraphTask extends DefaultTask {
     @Internal
     File outputFile
-    @Internal
-    @DisableConfigurationCacheFieldTypeCheck
-    Configuration configuration
+
     @Internal
     boolean buildArtifacts
 
-    GenerateGraphTask() {
+    AbstractGenerateGraphTask() {
         outputs.upToDateWhen { false }
     }
+
+    void writeResolutionResult(PrintWriter writer, ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
+        writer.println("root:${formatComponent(root)}")
+        components.each {
+            writer.println("component:${formatComponent(it)}")
+        }
+        dependencies.each {
+            writer.println("dependency:${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]")
+        }
+    }
+
+    String formatComponent(ResolvedComponentResult result) {
+        String variants = result.variants.collect { variant ->
+            "variant:${formatVariant(variant)}"
+        }.join('@@')
+        "[id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}][$variants]"
+    }
+
+    String formatVariant(ResolvedVariantResult variant) {
+        return "name:${variant.displayName} attributes:${formatAttributes(variant.attributes)}"
+    }
+
+    String formatAttributes(AttributeContainer attributes) {
+        attributes.keySet().collect {
+            "$it.name=${attributes.getAttribute(it)}"
+        }.sort().join(',')
+    }
+
+    String formatReason(ComponentSelectionReasonInternal reason) {
+        def reasons = reason.descriptions.collect {
+            def message
+            if (it.hasCustomDescription() && it.cause != ComponentSelectionCause.REQUESTED) {
+                message = "${it.cause.defaultReason}: ${it.description}"
+            } else {
+                message = it.description
+            }
+            message.readLines().join(" ")
+        }.join('!!')
+        return reasons
+    }
+
+}
+
+abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGenerateGraphTask {
+    @Internal
+    abstract Property<ResolvedComponentResult> getRootComponent()
+
+    @Internal
+    abstract ConfigurableFileCollection getFiles()
+
+    @Internal
+    ArtifactCollection artifacts
+
+    @TaskAction
+    def generateOutput() {
+        outputFile.parentFile.mkdirs()
+        outputFile.withPrintWriter { writer ->
+            def root = rootComponent.get()
+
+            def components = new LinkedHashSet()
+            def dependencies = new LinkedHashSet()
+            collectAllComponentsAndEdges(root, components, dependencies)
+
+            writeResolutionResult(writer, root, components, dependencies)
+
+            if (buildArtifacts) {
+                files.each {
+                    writer.println("file:${it.name}")
+                }
+                artifacts.artifacts.each {
+                    writer.println("file-artifact-incoming:${it.file.name}")
+                }
+            }
+
+            artifacts.artifacts.each {
+                writer.println("artifact-incoming:${it.id}")
+            }
+        }
+    }
+
+    void collectAllComponentsAndEdges(ResolvedComponentResult root, Collection<ResolvedComponentResult> components, Collection<DependencyResult> dependencies) {
+        def queue = [root]
+        def seen = new HashSet()
+
+        while (!queue.isEmpty()) {
+            def node = queue.remove(0)
+            if (seen.add(node)) {
+                components.add(node)
+                for (final def dep in node.getDependencies()) {
+                    dependencies.add(dep)
+                    if (dep instanceof ResolvedDependencyResult) {
+                        queue.add(dep.selected)
+                    }
+                }
+            } // else, already seen
+        }
+    }
+}
+
+class GenerateGraphTask extends AbstractGenerateGraphTask {
+    @Internal
+    Configuration configuration
 
     @TaskAction
     def generateOutput() {
@@ -894,14 +1049,10 @@ class GenerateGraphTask extends DefaultTask {
             }
             visitNodes(configuration.resolvedConfiguration.firstLevelModuleDependencies, writer, new HashSet<>())
 
-            def root = configuration.incoming.resolutionResult.root
-            writer.println("root:${formatComponent(root)}")
-            configuration.incoming.resolutionResult.allComponents.each {
-                writer.println("component:${formatComponent(it)}")
-            }
-            configuration.incoming.resolutionResult.allDependencies.each {
-                writer.println("dependency:${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]")
-            }
+
+            def resolutionResult = configuration.incoming.resolutionResult
+            writeResolutionResult(writer, resolutionResult.root, resolutionResult.allComponents, resolutionResult.allDependencies)
+
             if (buildArtifacts) {
                 configuration.files.each {
                     writer.println("file:${it.name}")
@@ -941,14 +1092,17 @@ class GenerateGraphTask extends DefaultTask {
                 }
             }
 
+            configuration.incoming.artifacts.artifacts.each {
+                writer.println("artifact-incoming:${it.id}")
+            }
             configuration.resolvedConfiguration.resolvedArtifacts.each {
-                writer.println("artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}${it.extension?'.' + it.extension : ''}]")
+                writer.println("artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}${it.extension ? '.' + it.extension : ''}]")
             }
             configuration.resolvedConfiguration.lenientConfiguration.artifacts.each {
-                writer.println("lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}${it.extension?'.' + it.extension : ''}]")
+                writer.println("lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}${it.extension ? '.' + it.extension : ''}]")
             }
             configuration.resolvedConfiguration.lenientConfiguration.getArtifacts { true }.each {
-                writer.println("filtered-lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}${it.extension?'.' + it.extension : ''}]")
+                writer.println("filtered-lenient-artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}${it.extension ? '.' + it.extension : ''}]")
             }
         }
     }
@@ -961,35 +1115,5 @@ class GenerateGraphTask extends DefaultTask {
             writer.println("configuration:[${node.moduleGroup}:${node.moduleName}:${node.moduleVersion}]")
             visitNodes(node.children, writer, visited)
         }
-    }
-
-    def formatComponent(ResolvedComponentResult result) {
-        String variants = result.variants.collect { variant ->
-            "variant:${formatVariant(variant)}"
-        }.join('@@')
-        "[id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}][$variants]"
-    }
-
-    def formatVariant(ResolvedVariantResult variant) {
-        return "name:${variant.displayName} attributes:${formatAttributes(variant.attributes)}"
-    }
-
-    def formatAttributes(AttributeContainer attributes) {
-        attributes.keySet().collect {
-            "$it.name=${attributes.getAttribute(it)}"
-        }.sort().join(',')
-    }
-
-    def formatReason(ComponentSelectionReasonInternal reason) {
-        def reasons = reason.descriptions.collect {
-            def message
-            if (it.hasCustomDescription() && it.cause != ComponentSelectionCause.REQUESTED) {
-                message = "${it.cause.defaultReason}: ${it.description}"
-            } else {
-                message = it.description
-            }
-            message.readLines().join(" ")
-        }.join('!!')
-        return reasons
     }
 }

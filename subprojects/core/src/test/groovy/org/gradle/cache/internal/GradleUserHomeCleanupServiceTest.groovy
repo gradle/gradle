@@ -46,13 +46,17 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
         getUsedGradleVersions() >> ([] as SortedSet)
     }
     def progressLoggerFactory = Stub(ProgressLoggerFactory)
+    def cleanupActionDecorator = Stub(MonitoredCleanupActionDecorator) {
+        decorate(_) >> { args -> args[0] }
+    }
 
     @Subject def cleanupService = new GradleUserHomeCleanupService(
-        TestFiles.deleter(),
-        userHomeDirProvider,
-        globalScopedCache,
-        usedGradleVersions,
-        progressLoggerFactory
+            TestFiles.deleter(),
+            userHomeDirProvider,
+            globalScopedCache,
+            usedGradleVersions,
+            progressLoggerFactory,
+            cleanupActionDecorator
     )
 
     def "cleans up unused version-specific cache directories and deletes distributions for unused versions"() {
@@ -85,6 +89,26 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
         then:
         oldCacheDir.assertExists()
         oldDist.assertExists()
+    }
+
+    def "skips cleanup of version-specific caches and distributions if cleanup has been disabled"() {
+        given:
+        def oldVersion = GradleVersion.version("2.3.4")
+        def oldCacheDir = createVersionSpecificCacheDir(oldVersion, NOT_USED_WITHIN_30_DAYS)
+        def oldDist = createDistributionChecksumDir(oldVersion).parentFile
+        def currentDist = createDistributionChecksumDir(currentVersion).parentFile
+
+        when:
+        cleanupService.stop()
+
+        then:
+        cleanupActionDecorator.decorate(_) >> Stub(MonitoredCleanupAction)
+
+        and:
+        oldCacheDir.assertExists()
+        oldDist.assertExists()
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
     }
 
     @Override

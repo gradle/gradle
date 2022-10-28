@@ -21,7 +21,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
@@ -36,12 +35,12 @@ import javax.inject.Inject;
 
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
-class MavenPluginPublishPlugin implements Plugin<Project> {
-    private final FeaturePreviews featurePreviews;
+abstract class MavenPluginPublishPlugin implements Plugin<Project> {
 
     @Inject
-    MavenPluginPublishPlugin(FeaturePreviews featurePreviews) {
-        this.featurePreviews = featurePreviews;
+    public MavenPluginPublishPlugin() {
+        // This class is not visible outside of this package.
+        // To instantiate this plugin, we need a protected constructor.
     }
 
     @Override

@@ -37,6 +37,8 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import javax.annotation.Nullable
+
 @UsesNativeServices
 class DefaultFileContentCacheFactoryTest extends Specification {
     @Rule
@@ -97,7 +99,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemAccess.readRegularFileContentHash(file.absolutePath, _) >> Optional.empty()
+        1 * fileSystemAccess.readRegularFileContentHash(file.absolutePath) >> Optional.empty()
         1 * calculator.calculate(file, false) >> 12
         0 * _
 
@@ -209,7 +211,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath(), _) >> Optional.empty()
+        1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath()) >> Optional.empty()
         1 * calculator.calculate(file, false) >> 12
         0 * _
 
@@ -221,7 +223,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 10
 
         and:
-        1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath(), _) >> Optional.empty()
+        1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath()) >> Optional.empty()
         1 * calculator.calculate(file, false) >> 10
         0 * _
     }
@@ -258,9 +260,9 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         0 * _
     }
 
-    def snapshotRegularFile(File file, HashCode hashCode = TestHashCodes.hashCodeFrom(123)) {
-        1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath(), _) >> { location, function ->
-            return Optional.ofNullable(function.apply(hashCode))
+    def snapshotRegularFile(File file, @Nullable HashCode hashCode = TestHashCodes.hashCodeFrom(123)) {
+        1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath()) >> { location ->
+            return Optional.ofNullable(hashCode)
         }
     }
 }

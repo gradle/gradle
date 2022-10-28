@@ -27,14 +27,6 @@ class FunctionalTest(
     this.id(id)
     val testTasks = getTestTaskName(testCoverage, subprojects)
 
-    if (name.contains("(configuration-cache)")) {
-        requirements {
-            doesNotContain("teamcity.agent.name", "ec2")
-            // US region agents have name "EC2-XXX"
-            doesNotContain("teamcity.agent.name", "EC2")
-        }
-    }
-
     applyTestDefaults(
         model, this, testTasks,
         dependsOnQuickFeedbackLinux = !testCoverage.withoutDependencies && stage.stageName > StageName.PULL_REQUEST_FEEDBACK,
@@ -56,6 +48,7 @@ class FunctionalTest(
         // JavaExecDebugIntegrationTest.debug session fails without debugger might cause JVM crash
         // Some soak tests produce OOM exceptions
         // There are also random worker crashes for some tests.
+        // We have test-retry to handle the crash in tests
         javaCrash = false
     }
 })
@@ -72,6 +65,7 @@ fun getTestTaskName(testCoverage: TestCoverage, subprojects: List<String>): Stri
         subprojects.isEmpty() -> {
             testTaskName
         }
+
         else -> {
             subprojects.joinToString(" ") { "$it:$testTaskName" }
         }

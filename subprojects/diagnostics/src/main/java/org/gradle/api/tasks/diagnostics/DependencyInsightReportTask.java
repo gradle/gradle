@@ -57,7 +57,6 @@ import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReport
 import org.gradle.api.tasks.diagnostics.internal.text.StyledTable;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -115,7 +114,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  * {@link #setShowSinglePathToDependency(boolean)}, and {@link #getShowingAllVariants()}.
  */
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
-public class DependencyInsightReportTask extends DefaultTask {
+public abstract class DependencyInsightReportTask extends DefaultTask {
 
     private Spec<DependencyResult> dependencySpec;
     private boolean showSinglePathToDependency;
@@ -246,23 +245,6 @@ public class DependencyInsightReportTask extends DefaultTask {
      */
     @Option(option = "single-path", description = "Show at most one path to each dependency")
     public void setShowSinglePathToDependency(boolean showSinglePathToDependency) {
-        this.showSinglePathToDependency = showSinglePathToDependency;
-    }
-
-    /**
-     * Legacy option name for {@link #setShowSinglePathToDependency(boolean)}. This is not considered API, and should not be used.
-     *
-     * @since 7.5
-     * @deprecated should not be used, call {@link #setShowSinglePathToDependency(boolean)} instead
-     */
-    @Deprecated
-    @Option(option = "singlepath", description = "Show at most one path to each dependency")
-    public void setLegacyShowSinglePathToDependency(boolean showSinglePathToDependency) {
-        DeprecationLogger.deprecate("--singlepath")
-            .withAdvice("Use --single-path instead.")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "dependencyinsight_singlepath")
-            .nagUser();
         this.showSinglePathToDependency = showSinglePathToDependency;
     }
 

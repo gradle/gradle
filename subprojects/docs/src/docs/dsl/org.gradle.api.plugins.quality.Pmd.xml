@@ -71,6 +71,10 @@
                     <literal>1</literal>
                 </td>
             </tr>
+            <tr>
+                <td>javaLauncher</td>
+                <td></td>
+            </tr>
         </table>
     </section>
     <section>

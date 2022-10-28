@@ -290,7 +290,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/main')
         task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
         task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/main')
-        task.destinationDir == project.sourceSets.main.java.destinationDirectory.get().asFile
+        task.destinationDirectory.get().asFile == project.sourceSets.main.java.destinationDirectory.get().asFile
         task.source.files == project.sourceSets.main.java.files
 
         when:
@@ -320,7 +320,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/test')
         task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
         task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/test')
-        task.destinationDir == project.sourceSets.test.java.destinationDirectory.get().asFile
+        task.destinationDirectory.get().asFile == project.sourceSets.test.java.destinationDirectory.get().asFile
         task.source.files == project.sourceSets.test.java.files
 
         when:
@@ -538,7 +538,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         compileJava.targetCompatibility == "1.8"
         compileJava.sourceCompatibility == "1.8"
-        testCompileJava.targetCompatibility == "1.9"
-        testCompileJava.sourceCompatibility == "1.9"
+        testCompileJava.targetCompatibility == "9"
+        testCompileJava.sourceCompatibility == "9"
     }
 }

@@ -142,11 +142,6 @@ _Depends on_: all tasks that generate the artifacts attached to the named — _
 +
 Assembles the artifacts for the specified configuration. This rule is added by the Base Plugin.
 
-`upload__ConfigName__` — _task rule_, type: link:{groovyDslPath}/org.gradle.api.tasks.Upload.html[Upload]::
-_Depends on_: all tasks that generate the artifacts attached to the named — _ConfigName_ — configuration
-+
-Assembles and uploads the artifacts in the specified configuration. This rule is added by the Base Plugin.
-
 The following diagram shows the relationships between these tasks.
 
 .Java plugin - tasks

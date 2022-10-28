@@ -119,7 +119,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             // TODO: This is ugly
             task.setConfig(project.getResources().getText().fromFile(checkstyle.getConfigDirectory().file("checkstyle-api.xml")));
             task.setClasspath(layout.files());
-            task.getReports().getXml().setDestination(new File(checkstyle.getReportsDir(), "checkstyle-api.xml"));
+            task.getReports().getXml().getOutputLocation().set(new File(checkstyle.getReportsDir(), "checkstyle-api.xml"));
         });
     }
 }

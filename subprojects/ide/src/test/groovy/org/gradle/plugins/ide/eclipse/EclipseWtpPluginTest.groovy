@@ -22,6 +22,7 @@ import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import org.gradle.plugins.ide.eclipse.model.WbProperty
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 import spock.lang.Issue
 
 class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
@@ -29,7 +30,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
     private EclipseWtpPlugin wtpPlugin
 
     def setup() {
-        wtpPlugin = new EclipseWtpPlugin(project.services.get(Instantiator))
+        wtpPlugin = TestUtil.newInstance(EclipseWtpPlugin, project.services.get(Instantiator))
     }
 
     def "has description"() {
@@ -298,7 +299,28 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
                 new Facet(FacetType.installed, "jst.java", "1.4")])
     }
 
-    @Issue(['GRADLE-2186', 'GRADLE-2221'])
+    @Issue('gradle/gradle#17681')
+    def "add 'jst.ejb' facet should remove incompatible 'jst.utility' facet"() {
+        when:
+        project.apply(plugin: 'java')
+        project.apply(plugin: 'eclipse-wtp')
+        project.sourceCompatibility = 1.8
+
+        project.eclipse.wtp {
+            facet {
+                facet name: 'jst.ejb', version: '3.2'
+            }
+        }
+
+        then:
+        checkEclipseWtpFacet([
+                new Facet(FacetType.fixed, "jst.java", null),
+                new Facet(FacetType.fixed, "jst.ejb", null),
+                new Facet(FacetType.installed, "jst.ejb", "3.2"),
+                new Facet(FacetType.installed, "jst.java", "1.8")])
+    }
+
+    @Issue(['GRADLE-2186', 'GRADLE-2221', 'gradle/gradle#17681'])
     def "can change WTP components and add facets when java plugin is applied"() {
         when:
         project.apply(plugin: 'java')
@@ -319,7 +341,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         project.eclipse.wtp.component.deployName == 'ejb-jar'
         project.eclipse.wtp.component.properties == [new WbProperty('mood', ':-D')]
         checkEclipseWtpFacet([new Facet(FacetType.fixed, 'jst.java', null),
-                              new Facet(FacetType.installed, 'jst.utility', '1.0'),
+                              new Facet(FacetType.fixed, "jst.ejb", null),
                               new Facet(FacetType.installed, 'jst.java', '1.7'),
                               new Facet(FacetType.installed, 'jst.ejb', '3.0')])
     }
@@ -346,7 +368,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         assert project.tasks.eclipseWtp.taskDependencies.getDependencies(project.tasks.eclipseWtp).contains(eclipseWtpFacet)
         assert eclipseWtpFacet.inputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert eclipseWtpFacet.outputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
-        assert wtp.facets.sort() == expectedFacets.sort()
+        assert wtp.replaceInconsistentFacets(wtp.facets).sort() == expectedFacets.sort()
     }
 
     private void checkEclipseWtpComponentForJava() {

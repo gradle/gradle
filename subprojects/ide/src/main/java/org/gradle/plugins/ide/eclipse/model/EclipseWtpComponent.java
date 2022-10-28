@@ -136,7 +136,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * }
  * </pre>
  */
-public class EclipseWtpComponent {
+public abstract class EclipseWtpComponent {
 
     private final Project project;
     private final XmlFileContentMerger file;

@@ -22,12 +22,13 @@ import org.gradle.api.tasks.diagnostics.DependencyReportTask
 import org.gradle.api.tasks.diagnostics.PropertyReportTask
 import org.gradle.api.tasks.diagnostics.TaskReportTask
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.CoreMatchers.instanceOf
 
 class ProjectReportsPluginTest extends AbstractProjectBuilderSpec {
-    private final ProjectReportsPlugin plugin = new ProjectReportsPlugin()
+    private final ProjectReportsPlugin plugin = TestUtil.newInstance(ProjectReportsPlugin.class)
 
     def appliesBaseReportingPluginAndAddsConventionObject() {
         when:

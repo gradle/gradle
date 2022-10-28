@@ -22,9 +22,9 @@ import org.gradle.api.internal.ExternalProcessStartedListener
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.credentials.CredentialListener
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.credentials.CredentialListener
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configuration.internal.UserCodeApplicationContext
@@ -38,6 +38,7 @@ import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
+import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
@@ -52,7 +53,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private val userCodeApplicationContext: UserCodeApplicationContext,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val taskExecutionTracker: TaskExecutionTracker,
-    private val featurePreviews: FeaturePreviews,
+    private val featureFlags: FeatureFlags,
     private val inputTrackingState: InputTrackingState,
 ) : ConfigurationCacheProblemsListener {
 
@@ -178,7 +179,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
 
     private
-    fun isStableConfigurationCacheEnabled() = featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
+    fun isStableConfigurationCacheEnabled() = featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
 
     private
     fun isExecutingTask() = taskExecutionTracker.currentTask.isPresent

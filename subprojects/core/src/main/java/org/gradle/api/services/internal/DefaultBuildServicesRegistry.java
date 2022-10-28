@@ -28,6 +28,7 @@ import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceSpec;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -50,11 +51,11 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 public class DefaultBuildServicesRegistry implements BuildServiceRegistryInternal {
 
     private final BuildIdentifier buildIdentifier;
-    private final NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations;
     private final Lock registrationsLock = new ReentrantLock();
+    private NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations;
+    private final DomainObjectCollectionFactory collectionFactory;
     private final InstantiatorFactory instantiatorFactory;
     private final ServiceRegistry services;
-    private final ListenerManager listenerManager;
     private final IsolatableFactory isolatableFactory;
     private final SharedResourceLeaseRegistry leaseRegistry;
     private final IsolationScheme<BuildService, BuildServiceParameters> isolationScheme = new IsolationScheme<>(BuildService.class, BuildServiceParameters.class, BuildServiceParameters.None.class);
@@ -64,7 +65,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     public DefaultBuildServicesRegistry(
         BuildIdentifier buildIdentifier,
-        DomainObjectCollectionFactory factory,
+        DomainObjectCollectionFactory collectionFactory,
         InstantiatorFactory instantiatorFactory,
         ServiceRegistry services,
         ListenerManager listenerManager,
@@ -73,15 +74,16 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         BuildServiceProvider.Listener listener
     ) {
         this.buildIdentifier = buildIdentifier;
-        this.registrations = uncheckedCast(factory.newNamedDomainObjectSet(BuildServiceRegistration.class));
+        this.registrations = uncheckedCast(collectionFactory.newNamedDomainObjectSet(BuildServiceRegistration.class));
+        this.collectionFactory = collectionFactory;
         this.instantiatorFactory = instantiatorFactory;
         this.services = services;
-        this.listenerManager = listenerManager;
         this.isolatableFactory = isolatableFactory;
         this.leaseRegistry = leaseRegistry;
         this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
         this.specInstantiator = instantiatorFactory.decorateLenientScheme().withServices(services).instantiator();
         this.listener = listener;
+        listenerManager.addListener(new ServiceCleanupListener());
     }
 
     private <U> U withRegistrations(Function<NamedDomainObjectSet<BuildServiceRegistration<?, ?>>, U> function) {
@@ -189,8 +191,23 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
         // TODO - should stop the service after last usage (ie after the last task that uses it) instead of at the end of the build
         // TODO - should reuse service across build invocations, until the parameters change (which contradicts the previous item)
-        listenerManager.addListener(new ServiceCleanupListener(provider));
         return provider;
+    }
+
+    @Override
+    public void discardAll() {
+        withRegistrations(registrations -> {
+            try {
+                ExecutionResult.forEach(registrations, registration -> {
+                    ((DefaultServiceRegistration<?, ?>) registration).provider.maybeStop();
+                }).rethrow();
+            } finally {
+                // Replace the entire container, rather than clear it, to discard all the service instances and because it may contain configuration actions and
+                // other state that can affect the service instances when they are registered again
+                this.registrations = uncheckedCast(collectionFactory.newNamedDomainObjectSet(BuildServiceRegistration.class));
+            }
+            return null;
+        });
     }
 
     private static class ServiceBackedSharedResource implements SharedResource {
@@ -269,17 +286,11 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         }
     }
 
-    private static class ServiceCleanupListener extends BuildAdapter {
-        private final BuildServiceProvider<?, ?> provider;
-
-        ServiceCleanupListener(BuildServiceProvider<?, ?> provider) {
-            this.provider = provider;
-        }
-
+    private class ServiceCleanupListener extends BuildAdapter {
         @SuppressWarnings("deprecation")
         @Override
         public void buildFinished(BuildResult result) {
-            provider.maybeStop();
+            discardAll();
         }
     }
 }

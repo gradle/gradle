@@ -2466,7 +2466,7 @@ The value of this provider is derived from:
         def value = property.calculateExecutionTimeValue()
         value.hasFixedValue()
         !value.hasChangingContent()
-        value.fixedValue == someValue()
+        value.getFixedValue() == someValue()
     }
 
     def "can attach a producer task to property"() {
@@ -2528,7 +2528,7 @@ The value of this provider is derived from:
         def value = property.calculateExecutionTimeValue()
         value.hasFixedValue()
         value.hasChangingContent()
-        value.fixedValue == someValue()
+        value.getFixedValue() == someValue()
     }
 
     def "has producer task and changing execution time value when value is provider with producer task and changing value"() {
@@ -2542,8 +2542,8 @@ The value of this provider is derived from:
         def value = property.calculateExecutionTimeValue()
         value.isChangingValue()
         value.hasChangingContent()
-        value.changingValue.get() == someValue()
-        value.changingValue.get() == someOtherValue()
+        value.getChangingValue().get() == someValue()
+        value.getChangingValue().get() == someOtherValue()
     }
 
     def "can calculate execution time value without finalizing when finalize on read is enabled"() {
@@ -2587,7 +2587,7 @@ The value of this provider is derived from:
         assertHasProducer(mapped, task)
         def value2 = mapped.calculateExecutionTimeValue()
         value2.isChangingValue()
-        value2.changingValue.get() == someOtherValue()
+        value2.getChangingValue().get() == someOtherValue()
     }
 
     def "mapped value has no execution time value when producer task attached to original property with no value"() {
@@ -2623,7 +2623,7 @@ The value of this provider is derived from:
         assertHasProducer(mapped, task)
         def value2 = mapped.calculateExecutionTimeValue()
         value2.isChangingValue()
-        value2.changingValue.get() == someOtherValue()
+        value2.getChangingValue().get() == someOtherValue()
     }
 
     def "mapped value has value producer when value is provider with content producer"() {
@@ -2638,7 +2638,7 @@ The value of this provider is derived from:
         assertHasProducer(mapped, task)
         def value = mapped.calculateExecutionTimeValue()
         value.isChangingValue()
-        value.changingValue.get() == someOtherValue()
+        value.getChangingValue().get() == someOtherValue()
     }
 
     def "fails when property has multiple producers attached"() {
