@@ -102,39 +102,28 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "uses #what toolchain #when (with application plugin)"() {
-        Jvm jdkCurrent = Jvm.current()
-        Jvm jdk1 = AvailableJavaHomes.differentVersion
-        Jvm jdk2 = AvailableJavaHomes.getDifferentVersion(jdk1.javaVersion)
+        Jvm currentJdk = Jvm.current()
+        Jvm otherJdk = AvailableJavaHomes.differentVersion
+        def selectJdk = { it == "other" ? otherJdk : it == "current" ? currentJdk : null }
 
-        // When at least one toolchain is used for configuration, expect the first toolchain to be the target.
-        // Otherwise, expect the current toolchain as a fallback
-        Jvm targetJdk = jdkCurrent
-        def useJdk = {
-            if (targetJdk === jdkCurrent) {
-                targetJdk = jdk1
-                return jdk1
-            } else {
-                return jdk2
-            }
-        }
+        def compileWithVersion = [currentJdk, otherJdk].collect { it.javaVersion }.min()
 
-        // Compile with the minimum version to make sure the runtime can execute the compiled class
-        def compileWithVersion = [jdkCurrent, jdk1, jdk2].collect { it.javaVersion }.min()
         configureProjectWithApplicationPlugin(compileWithVersion)
 
-        // Order of if's is important as it denotes toolchain priority
-        if (withTool) {
-            configureLauncher(useJdk())
+        if (withTool != null) {
+            configureLauncher(selectJdk(withTool))
         }
-        if (withExecutable) {
-            configureExecutable(useJdk())
+        if (withExecutable != null) {
+            configureExecutable(selectJdk(withExecutable))
         }
-        if (withJavaExtension) {
-            configureJavaExtension(useJdk())
+        if (withJavaExtension != null) {
+            configureJavaExtension(selectJdk(withJavaExtension))
         }
 
+        def targetJdk = selectJdk(target)
+
         when:
-        withInstallations(jdkCurrent, jdk1, jdk2).run(":run")
+        withInstallations(currentJdk, otherJdk).run(":run")
 
         then:
         executedAndNotSkipped(":run")
@@ -142,44 +131,33 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         // Some cases are skipped, because the executable (when configured) must match the resulting toolchain, otherwise the build fails
-        what             | when                                 | withTool | withExecutable | withJavaExtension
-        "current JVM"    | "when toolchains are not configured" | false    | false          | false
-        "java extension" | "when configured"                    | false    | false          | true
-        "executable"     | "when configured"                    | false    | true           | false
-        "assigned tool"  | "when configured"                    | true     | false          | false
-        "executable"     | "over java extension"                | false    | true           | true
-        "assigned tool"  | "over everything else"               | true     | false          | true
+        what             | when                                 | withTool | withExecutable | withJavaExtension | target
+        "current JVM"    | "when toolchains are not configured" | null     | null           | null              | "current"
+        "java extension" | "when configured"                    | null     | null           | "other"           | "other"
+        "executable"     | "when configured"                    | null     | "other"        | null              | "other"
+        "assigned tool"  | "when configured"                    | "other"  | null           | null              | "other"
+        "executable"     | "over java extension"                | null     | "other"        | "current"         | "other"
+        "assigned tool"  | "over java extension"                | "other"  | null           | "current"         | "other"
     }
 
     def "uses #what toolchain #when (without application plugin)"() {
-        Jvm jdkCurrent = Jvm.current()
-        Jvm jdk1 = AvailableJavaHomes.differentVersion
-        Jvm jdk2 = AvailableJavaHomes.getDifferentVersion(jdk1.javaVersion)
-
-        // When at least one toolchain is used for configuration, expect the first toolchain to be the target.
-        // Otherwise, expect the current toolchain as a fallback
-        Jvm targetJdk = jdkCurrent
-        def useJdk = {
-            if (targetJdk === jdkCurrent) {
-                targetJdk = jdk1
-                return jdk1
-            } else {
-                return jdk2
-            }
-        }
+        Jvm currentJdk = Jvm.current()
+        Jvm otherJdk = AvailableJavaHomes.differentVersion
+        def selectJdk = { it == "other" ? otherJdk : it == "current" ? currentJdk : null }
 
         configureProjectWithoutApplicationPlugin()
 
-        // Order of if's is important as it denotes toolchain priority
-        if (withTool) {
-            configureLauncher(useJdk())
+        if (withTool != null) {
+            configureLauncher(selectJdk(withTool))
         }
-        if (withExecutable) {
-            configureExecutable(useJdk())
+        if (withExecutable != null) {
+            configureExecutable(selectJdk(withExecutable))
         }
 
+        def targetJdk = selectJdk(target)
+
         when:
-        withInstallations(jdkCurrent, jdk1, jdk2).run(":run", "--info")
+        withInstallations(currentJdk, otherJdk).run(":run", "--info")
 
         then:
         executedAndNotSkipped(":run")
@@ -187,10 +165,10 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         // Some cases are skipped, because the executable (when configured) must match the resulting toolchain, otherwise the build fails
-        what            | when                                 | withTool | withExecutable
-        "current JVM"   | "when toolchains are not configured" | false    | false
-        "executable"    | "when configured"                    | false    | true
-        "assigned tool" | "when configured"                    | true     | false
+        what            | when                                 | withTool | withExecutable | target
+        "current JVM"   | "when toolchains are not configured" | null     | null           | "current"
+        "executable"    | "when configured"                    | null     | "other"        | "other"
+        "assigned tool" | "when configured"                    | "other"  | null           | "other"
     }
 
     private TestFile configureProjectWithApplicationPlugin(JavaVersion compileWithVersion) {

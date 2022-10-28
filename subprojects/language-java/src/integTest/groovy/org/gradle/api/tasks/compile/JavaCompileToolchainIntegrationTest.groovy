@@ -117,37 +117,26 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
     def "uses #what toolchain #when (with java plugin)"() {
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.differentVersion
-
-        // Stateful function to return target JDK first, and another for every subsequent call
-        def usedJdk = false
-        def useJdk = {
-            if (!usedJdk) {
-                usedJdk = true
-                return otherJdk
-            } else {
-                return currentJdk
-            }
-        }
+        def selectJdk = { it == "other" ? otherJdk : it == "current" ? currentJdk : null }
 
         buildFile << """
             apply plugin: "java"
         """
 
-        // Order is important because it corresponds to toolchain priority
-        if (withTool) {
-            configureTool(useJdk())
+        if (withTool != null) {
+            configureTool(selectJdk(withTool))
         }
-        if (withJavaHome) {
-            configureForkOptionsJavaHome(useJdk())
+        if (withJavaHome != null) {
+            configureForkOptionsJavaHome(selectJdk(withJavaHome))
         }
-        if (withExecutable) {
-            configureForkOptionsExecutable(useJdk())
+        if (withExecutable != null) {
+            configureForkOptionsExecutable(selectJdk(withExecutable))
         }
-        if (withJavaExtension) {
-            configureJavaExtension(useJdk())
+        if (withJavaExtension != null) {
+            configureJavaExtension(selectJdk(withJavaExtension))
         }
 
-        def targetJdk = usedJdk ? otherJdk : currentJdk
+        def targetJdk = selectJdk(target)
 
         when:
         withInstallations(currentJdk, otherJdk).run(":compileJava", "--info")
@@ -159,31 +148,21 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         // Some cases are skipped, because forkOptions (when configured) must match the resulting toolchain, otherwise the build fails
-        what             | when                         | withTool | withJavaHome | withExecutable | withJavaExtension
-        "current JVM"    | "when nothing is configured" | false    | false        | false          | false
-        "java extension" | "when configured"            | false    | false        | false          | true
-        "executable"     | "when configured"            | false    | false        | true           | false
-        "java home"      | "when configured"            | false    | true         | false          | false
-        "assigned tool"  | "when configured"            | true     | false        | false          | false
-        "executable"     | "over java extension"        | false    | false        | true           | true
-        "java home"      | "over java extension"        | false    | true         | false          | true
-        "assigned tool"  | "over java extension"        | true     | false        | false          | true
+        what             | when                         | withTool | withJavaHome | withExecutable | withJavaExtension | target
+        "current JVM"    | "when nothing is configured" | null     | null         | null           | null              | "current"
+        "java extension" | "when configured"            | null     | null         | null           | "other"           | "other"
+        "executable"     | "when configured"            | null     | null         | "other"        | null              | "other"
+        "java home"      | "when configured"            | null     | "other"      | null           | null              | "other"
+        "assigned tool"  | "when configured"            | "other"  | null         | null           | null              | "other"
+        "executable"     | "over java extension"        | null     | null         | "other"        | "current"         | "other"
+        "java home"      | "over java extension"        | null     | "other"      | null           | "current"         | "other"
+        "assigned tool"  | "over java extension"        | "other"  | null         | null           | "current"         | "other"
     }
 
     def "uses #what toolchain #when (without java base plugin)"() {
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.differentVersion
-
-        // Stateful function to return target JDK first, and another for every subsequent call
-        def usedJdk = false
-        def useJdk = {
-            if (!usedJdk) {
-                usedJdk = true
-                return otherJdk
-            } else {
-                return currentJdk
-            }
-        }
+        def selectJdk = { it == "other" ? otherJdk : it == "current" ? currentJdk : null }
 
         def compileWithVersion = [currentJdk, otherJdk].collect { it.javaVersion }.min()
 
@@ -201,18 +180,17 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        // Order of if's is important as it denotes toolchain priority
-        if (withTool) {
-            configureTool(useJdk())
+        if (withTool != null) {
+            configureTool(selectJdk(withTool))
         }
-        if (withJavaHome) {
-            configureForkOptionsJavaHome(useJdk())
+        if (withJavaHome != null) {
+            configureForkOptionsJavaHome(selectJdk(withJavaHome))
         }
-        if (withExecutable) {
-            configureForkOptionsExecutable(useJdk())
+        if (withExecutable != null) {
+            configureForkOptionsExecutable(selectJdk(withExecutable))
         }
 
-        def targetJdk = usedJdk ? otherJdk : currentJdk
+        def targetJdk = selectJdk(target)
 
         when:
         withInstallations(currentJdk, otherJdk).run(":compileJava", "--info")
@@ -223,11 +201,11 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         // Some cases are skipped, because forkOptions (when configured) must match the resulting toolchain, otherwise the build fails
-        what            | when                                 | withTool | withJavaHome | withExecutable
-        "current JVM"   | "when toolchains are not configured" | false    | false        | false
-        "executable"    | "when configured"                    | false    | false        | true
-        "java home"     | "when configured"                    | false    | true         | false
-        "assigned tool" | "when configured"                    | true     | false        | false
+        what            | when                                 | withTool | withJavaHome | withExecutable | target
+        "current JVM"   | "when toolchains are not configured" | null     | null         | null           | "current"
+        "executable"    | "when configured"                    | null     | null         | "other"        | "other"
+        "java home"     | "when configured"                    | null     | "other"      | null           | "other"
+        "assigned tool" | "when configured"                    | "other"  | null         | null           | "other"
     }
 
     def "uses toolchain from forkOptions #forkOption when it points outside of installations"() {
