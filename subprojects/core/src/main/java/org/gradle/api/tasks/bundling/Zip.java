@@ -15,7 +15,7 @@
  */
 package org.gradle.api.tasks.bundling;
 
-import org.apache.tools.zip.ZipOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
@@ -51,9 +51,9 @@ public abstract class Zip extends AbstractArchiveTask {
     protected ZipCompressor getCompressor() {
         switch (entryCompression) {
             case DEFLATED:
-                return new DefaultZipCompressor(allowZip64, ZipOutputStream.DEFLATED);
+                return new DefaultZipCompressor(allowZip64, ZipArchiveOutputStream.DEFLATED);
             case STORED:
-                return new DefaultZipCompressor(allowZip64, ZipOutputStream.STORED);
+                return new DefaultZipCompressor(allowZip64, ZipArchiveOutputStream.STORED);
             default:
                 throw new IllegalArgumentException(String.format("Unknown Compression type %s", entryCompression));
         }
