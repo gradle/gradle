@@ -32,7 +32,7 @@ import javax.inject.Inject;
  * At this moment nearly all configuration is done via {@link EclipseWtpComponent}.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
+public abstract class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
 
     private EclipseWtpComponent component;
 

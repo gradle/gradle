@@ -60,7 +60,7 @@ import java.util.Map;
  * Runs Checkstyle against some source files.
  */
 @CacheableTask
-public class Checkstyle extends SourceTask implements VerificationTask, Reporting<CheckstyleReports> {
+public abstract class Checkstyle extends SourceTask implements VerificationTask, Reporting<CheckstyleReports> {
 
     private FileCollection checkstyleClasspath;
     private FileCollection classpath;

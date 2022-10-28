@@ -68,7 +68,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * @since 1.4
  * @see <a href="https://docs.gradle.org/current/userguide/publishing_maven.html">Maven Publishing reference</a>
  */
-public class MavenPublishPlugin implements Plugin<Project> {
+public abstract class MavenPublishPlugin implements Plugin<Project> {
 
     public static final String PUBLISH_LOCAL_LIFECYCLE_TASK_NAME = "publishToMavenLocal";
 

@@ -50,7 +50,7 @@ import java.util.Map;
 /**
  * Main options for Java compilation.
  */
-public class CompileOptions extends AbstractOptions {
+public abstract class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
     private boolean failOnError = true;
@@ -67,11 +67,11 @@ public class CompileOptions extends AbstractOptions {
 
     private boolean debug = true;
 
-    private DebugOptions debugOptions = new DebugOptions();
+    private DebugOptions debugOptions;
 
     private boolean fork;
 
-    private ForkOptions forkOptions = new ForkOptions();
+    private ForkOptions forkOptions;
 
     private FileCollection bootstrapClasspath;
 
@@ -103,6 +103,8 @@ public class CompileOptions extends AbstractOptions {
         this.headerOutputDirectory = objectFactory.directoryProperty();
         this.release = objectFactory.property(Integer.class);
         this.incrementalAfterFailure = objectFactory.property(Boolean.class);
+        this.forkOptions = objectFactory.newInstance(ForkOptions.class);
+        this.debugOptions = new DebugOptions();
     }
 
     /**

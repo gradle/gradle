@@ -26,9 +26,9 @@ import java.util.Set;
 /**
  * Configuration options for the CodeNarc plugin.
  *
- * @see CodeNarc
+ * @see CodeNarcPlugin
  */
-public class CodeNarcExtension extends CodeQualityExtension {
+public abstract class CodeNarcExtension extends CodeQualityExtension {
 
     private static final Set<String> REPORT_FORMATS = Sets.newHashSet("xml", "html", "console", "text");
 

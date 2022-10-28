@@ -57,7 +57,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * </pre>
  */
-public class EclipseWtp {
+public abstract class EclipseWtp {
     private EclipseWtpComponent component;
     private EclipseWtpFacet facet;
 

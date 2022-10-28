@@ -15,13 +15,14 @@
  */
 package org.gradle.api.internal.plugins
 
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.artifacts.PublishArtifact
 
 class DefaultArtifactPublicationSetTest extends Specification {
     final PublishArtifactSet publications = Mock()
-    final DefaultArtifactPublicationSet publication = new DefaultArtifactPublicationSet(publications)
+    final DefaultArtifactPublicationSet publication = TestUtil.newInstance(DefaultArtifactPublicationSet, publications)
 
     def "adds provider to artifact set"() {
         when:
