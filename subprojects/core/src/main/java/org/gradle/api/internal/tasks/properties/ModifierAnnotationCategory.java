@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.properties.annotations;
+package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;

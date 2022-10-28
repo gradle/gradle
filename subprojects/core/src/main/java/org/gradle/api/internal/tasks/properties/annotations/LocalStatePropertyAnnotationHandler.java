@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal.tasks.properties.annotations;
 
+import org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
-import org.gradle.internal.properties.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 
 public class LocalStatePropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public LocalStatePropertyAnnotationHandler() {

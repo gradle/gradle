@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.instantiation.InstantiationScheme;
-import org.gradle.internal.properties.annotations.DefaultPropertyTypeResolver;
 import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore;
 import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;

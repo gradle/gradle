@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Optional;
@@ -23,7 +24,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
-import org.gradle.internal.properties.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
@@ -33,7 +33,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {

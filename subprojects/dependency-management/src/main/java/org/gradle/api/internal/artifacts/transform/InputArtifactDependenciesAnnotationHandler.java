@@ -17,12 +17,12 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
+import org.gradle.api.internal.tasks.properties.AbstractInputFilePropertyAnnotationHandler;
+import org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.properties.InputFilePropertyType;
-import org.gradle.internal.properties.annotations.AbstractInputFilePropertyAnnotationHandler;
-import org.gradle.internal.properties.annotations.ModifierAnnotationCategory;
 
-import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
 
 public class InputArtifactDependenciesAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler implements InjectAnnotationHandler {
     public InputArtifactDependenciesAnnotationHandler() {

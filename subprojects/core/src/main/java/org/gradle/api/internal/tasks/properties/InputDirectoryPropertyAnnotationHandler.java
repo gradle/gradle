@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.properties.annotations;
+package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.properties.InputFilePropertyType;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
-import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.INCREMENTAL;
-import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.NORMALIZATION;
-import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.NORMALIZE_LINE_ENDINGS;
-import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.INCREMENTAL;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZE_LINE_ENDINGS;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 
 public class InputDirectoryPropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
     public InputDirectoryPropertyAnnotationHandler() {

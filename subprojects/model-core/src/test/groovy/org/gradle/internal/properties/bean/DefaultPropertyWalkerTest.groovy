@@ -23,6 +23,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory
 import org.gradle.api.internal.tasks.properties.bean.TestImplementationIdentifier
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Destroys
@@ -42,7 +43,6 @@ import org.gradle.internal.properties.InputFilePropertyType
 import org.gradle.internal.properties.OutputFilePropertyType
 import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
-import org.gradle.internal.properties.annotations.ModifierAnnotationCategory
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.TestPropertyTypeResolver
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore

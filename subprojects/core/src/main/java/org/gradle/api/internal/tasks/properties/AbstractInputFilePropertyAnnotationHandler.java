@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.properties.annotations;
+package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.Classpath;
@@ -33,6 +33,7 @@ import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.NormalizationUtil;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -41,15 +42,14 @@ import org.gradle.work.NormalizeLineEndings;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.NORMALIZATION;
-import static org.gradle.internal.properties.annotations.PropertyAnnotationHandlerSupport.validateUnsupportedPropertyValueTypes;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
 
-public abstract class AbstractInputFilePropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
+public abstract class AbstractInputFilePropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
 
     private final InputFilePropertyType filePropertyType;
 
     public AbstractInputFilePropertyAnnotationHandler(Class<? extends Annotation> annotationType, InputFilePropertyType filePropertyType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
-        super(annotationType, Kind.INPUT, allowedModifiers);
+        super(annotationType, allowedModifiers);
         this.filePropertyType = filePropertyType;
     }
 
@@ -108,7 +108,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
 
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
-        validateUnsupportedPropertyValueTypes(propertyMetadata, validationContext, getAnnotationType());
+        validateUnsupportedInputPropertyValueTypes(propertyMetadata, validationContext, getAnnotationType());
         if (!propertyMetadata.hasAnnotationForCategory(NORMALIZATION)) {
             validationContext.visitPropertyProblem(problem -> {
                 String propertyName = propertyMetadata.getPropertyName();
