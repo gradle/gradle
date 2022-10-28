@@ -22,8 +22,8 @@ import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.reflect.AnnotationCategory
 import org.gradle.internal.reflect.DefaultTypeValidationContext
+import org.gradle.internal.reflect.annotations.AnnotationCategory
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
@@ -38,7 +38,7 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 import java.lang.reflect.Method
 
-import static org.gradle.internal.reflect.AnnotationCategory.TYPE
+import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 

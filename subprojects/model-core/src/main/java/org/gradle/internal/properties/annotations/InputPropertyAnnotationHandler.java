@@ -25,9 +25,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.model.internal.type.ModelType;
@@ -35,7 +34,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.io.File;
 import java.lang.annotation.Annotation;
 
-import static org.gradle.internal.properties.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.properties.annotations.PropertyAnnotationHandlerSupport.validateUnsupportedPropertyValueTypes;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 

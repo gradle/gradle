@@ -21,11 +21,11 @@ import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.annotations.AbstractInputFilePropertyAnnotationHandler;
-import org.gradle.internal.reflect.AnnotationCategory;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.internal.properties.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.NORMALIZATION;
 
 public class InputArtifactDependenciesAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler implements InjectAnnotationHandler {
     @Override

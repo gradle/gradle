@@ -46,10 +46,8 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.properties.CustomCacheable
-import org.gradle.internal.properties.ModifierAnnotationCategory
 import org.gradle.internal.properties.SearchPath
 import org.gradle.internal.reflect.DefaultTypeValidationContext
-import org.gradle.internal.reflect.PropertyMetadata
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.TypeValidationContext
@@ -65,7 +63,7 @@ import spock.lang.Specification
 import javax.inject.Inject
 import java.lang.annotation.Annotation
 
-import static org.gradle.internal.properties.ModifierAnnotationCategory.NORMALIZATION
+import static ModifierAnnotationCategory.NORMALIZATION
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
