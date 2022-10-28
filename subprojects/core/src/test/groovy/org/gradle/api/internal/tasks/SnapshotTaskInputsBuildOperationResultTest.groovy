@@ -37,13 +37,13 @@ import org.gradle.api.internal.tasks.properties.InputFilePropertySpec
 import org.gradle.caching.BuildCacheKey
 import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.BeforeExecutionState
+import org.gradle.internal.execution.model.InputNormalizer
+import org.gradle.internal.execution.model.OutputNormalizer
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
-import org.gradle.internal.fingerprint.InputNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.Normalizer
-import org.gradle.internal.fingerprint.OutputNormalizer
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.TestSnapshotFixture

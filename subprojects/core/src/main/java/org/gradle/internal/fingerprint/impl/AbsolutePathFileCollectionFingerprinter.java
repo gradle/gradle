@@ -17,8 +17,8 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.internal.execution.FileCollectionSnapshotter;
+import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.InputNormalizer;
 import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.service.scopes.Scopes;
