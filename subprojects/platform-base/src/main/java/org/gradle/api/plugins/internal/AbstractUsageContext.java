@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package org.gradle.api.plugins.internal;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.UsageContext;
 
@@ -30,11 +29,6 @@ public abstract class AbstractUsageContext implements UsageContext {
     public AbstractUsageContext(ImmutableAttributes attributes, Set<PublishArtifact> artifacts) {
         this.attributes = attributes;
         this.artifacts = artifacts;
-    }
-
-    @Override
-    public Usage getUsage() {
-        throw new UnsupportedOperationException("This method has been deprecated, should never be called");
     }
 
     @Override

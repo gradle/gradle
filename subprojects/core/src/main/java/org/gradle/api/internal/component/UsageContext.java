@@ -20,6 +20,11 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.SoftwareComponentVariant;
 
 public interface UsageContext extends SoftwareComponentVariant {
+
+    // kept for backwards compatibility of plugins (like kotlin-multiplatform) using internal APIs
     @Deprecated
-    Usage getUsage(); // kept for backwards compatibility of plugins (like kotlin-multiplatform) using internal APIs
+    default Usage getUsage(){
+        throw new UnsupportedOperationException("This method has been deprecated, should never be called");
+    }
+
 }
