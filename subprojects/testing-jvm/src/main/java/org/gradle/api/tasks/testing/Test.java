@@ -160,7 +160,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  */
 @NonNullApi
 @CacheableTask
-public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
+public abstract class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;

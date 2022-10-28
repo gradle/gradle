@@ -38,7 +38,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * }
  * </pre>
  */
-public class IdeaWorkspace {
+public abstract class IdeaWorkspace {
 
     private XmlFileContentMerger iws;
 

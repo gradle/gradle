@@ -37,7 +37,6 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
@@ -47,6 +46,7 @@ import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.internal.snapshot.impl.ImplementationValue
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TestUtil
 import org.gradle.work.InputChanges
 
 import java.util.concurrent.Callable
@@ -927,9 +927,15 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         T task = AbstractTask.injectIntoNewInstance(project, TaskIdentity.create(name, type, project), new Callable<T>() {
             T call() throws Exception {
                 if (params.length > 0) {
+                    // TODO: This should be using objectFactory too because that more closely matches what the production code does.
+                    // The test code is more lenient because this just assumes the first constructor is the correct one.
+                    // This allows us to pass null to the constructor scenarios where the production code would not allow it.
+                    // To switch to objectFactory, we would need to rewrite the tests to no longer pass null as a parameter.
+                    // return TestUtil.newInstance(type, params)
+                    assert type.constructors.size() == 1
                     return type.cast(type.constructors[0].newInstance(params))
                 } else {
-                    return JavaReflectionUtil.newInstance(type)
+                    return TestUtil.newInstance(type)
                 }
             }
         })

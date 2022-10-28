@@ -37,7 +37,7 @@ import java.io.File;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/antlr_plugin.html">ANTLR plugin reference</a>
  */
-public class AntlrPlugin implements Plugin<Project> {
+public abstract class AntlrPlugin implements Plugin<Project> {
     public static final String ANTLR_CONFIGURATION_NAME = "antlr";
     private final ObjectFactory objectFactory;
 
@@ -111,7 +111,7 @@ public class AntlrPlugin implements Plugin<Project> {
     private static AntlrSourceDirectorySet createAntlrSourceDirectorySet(String parentDisplayName, ObjectFactory objectFactory) {
         String name = parentDisplayName + ".antlr";
         String displayName = parentDisplayName + " Antlr source";
-        AntlrSourceDirectorySet antlrSourceSet = new DefaultAntlrSourceDirectorySet(objectFactory.sourceDirectorySet(name, displayName));
+        AntlrSourceDirectorySet antlrSourceSet = objectFactory.newInstance(DefaultAntlrSourceDirectorySet.class, objectFactory.sourceDirectorySet(name, displayName));
         antlrSourceSet.getFilter().include("**/*.g");
         antlrSourceSet.getFilter().include("**/*.g4");
         return antlrSourceSet;

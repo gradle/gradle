@@ -41,7 +41,7 @@ import java.io.File;
  */
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class PrefixHeaderFileGenerateTask extends DefaultTask {
+public abstract class PrefixHeaderFileGenerateTask extends DefaultTask {
     private String header;
     private File prefixHeaderFile;
     private final WorkerExecutor workerExecutor;

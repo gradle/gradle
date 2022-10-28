@@ -43,7 +43,7 @@ import java.util.concurrent.Callable;
  */
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> {
+public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjectFile> {
     private DefaultVisualStudioProject visualStudioProject;
     private String gradleExe;
     private String gradleArgs;

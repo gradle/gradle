@@ -43,7 +43,7 @@ import org.gradle.process.internal.ExecActionFactory;
  */
 @Incubating
 @NonNullApi
-public class GccCompilerPlugin implements Plugin<Project> {
+public abstract class GccCompilerPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {

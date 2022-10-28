@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
  *
  * @see PrecompiledScriptPluginsSupport
  */
-class PrecompiledScriptPlugins : Plugin<Project> {
+abstract class PrecompiledScriptPlugins : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 

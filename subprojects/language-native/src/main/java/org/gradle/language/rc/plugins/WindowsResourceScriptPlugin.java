@@ -42,7 +42,7 @@ import java.util.Map;
  * Adds core language support for Windows resource script files.
  */
 @Incubating
-public class WindowsResourceScriptPlugin implements Plugin<Project> {
+public abstract class WindowsResourceScriptPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {

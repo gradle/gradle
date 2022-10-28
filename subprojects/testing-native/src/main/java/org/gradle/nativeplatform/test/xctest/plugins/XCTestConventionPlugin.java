@@ -79,7 +79,7 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDe
  *
  * @since 4.2
  */
-public class XCTestConventionPlugin implements Plugin<Project> {
+public abstract class XCTestConventionPlugin implements Plugin<Project> {
     private final MacOSSdkPlatformPathLocator sdkPlatformPathLocator;
     private final ToolChainSelector toolChainSelector;
     private final NativeComponentFactory componentFactory;

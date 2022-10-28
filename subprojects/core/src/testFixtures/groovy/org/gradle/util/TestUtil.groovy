@@ -101,6 +101,10 @@ class TestUtil {
         return services().get(PropertyFactory)
     }
 
+    static <T> T newInstance(Class<T> clazz, Object... params) {
+        return objectFactory().newInstance(clazz, params)
+    }
+
     static ObjectFactory objectFactory() {
         return services().get(ObjectFactory)
     }

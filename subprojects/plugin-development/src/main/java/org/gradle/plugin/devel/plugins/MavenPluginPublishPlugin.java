@@ -31,9 +31,18 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import javax.inject.Inject;
+
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.PLUGIN_MARKER_SUFFIX;
 
-class MavenPluginPublishPlugin implements Plugin<Project> {
+abstract class MavenPluginPublishPlugin implements Plugin<Project> {
+
+    @Inject
+    public MavenPluginPublishPlugin() {
+        // This class is not visible outside of this package.
+        // To instantiate this plugin, we need a protected constructor.
+    }
+
     @Override
     public void apply(Project project) {
         project.afterEvaluate(new Action<Project>() {
