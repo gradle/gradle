@@ -31,7 +31,7 @@ import static org.gradle.api.reflect.TypeOf.typeOf
 class DefaultGroovySourceSetTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    def sourceSet = new DefaultGroovySourceSet("<name>", "<display-name>", TestUtil.objectFactory(tmpDir.testDirectory), TestFiles.taskDependencyFactory())
+    def sourceSet = TestUtil.newInstance(DefaultGroovySourceSet, "<name>", "<display-name>", TestUtil.objectFactory(tmpDir.testDirectory), TestFiles.taskDependencyFactory())
 
     void defaultValues() {
         expect:
@@ -45,7 +45,7 @@ class DefaultGroovySourceSetTest extends Specification {
 
         sourceSet.allGroovy.isEmpty()
         sourceSet.allGroovy.displayName =='<display-name> Groovy source'
-        sourceSet.allGroovy.source.contains(sourceSet.groovy)
+        sourceSet.allGroovy.srcDirs.containsAll(sourceSet.groovy.files)
         sourceSet.allGroovy.filter.includes.containsAll(['**/*.groovy'])
         sourceSet.allGroovy.filter.excludes.isEmpty()
     }

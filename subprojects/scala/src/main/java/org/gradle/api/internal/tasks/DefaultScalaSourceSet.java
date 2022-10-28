@@ -23,14 +23,17 @@ import org.gradle.api.tasks.ScalaSourceDirectorySet;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 
+import javax.inject.Inject;
+
 import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
 @Deprecated
-public class DefaultScalaSourceSet implements org.gradle.api.tasks.ScalaSourceSet, HasPublicType {
+public abstract class DefaultScalaSourceSet implements org.gradle.api.tasks.ScalaSourceSet, HasPublicType {
     private final ScalaSourceDirectorySet scala;
     private final SourceDirectorySet allScala;
 
+    @Inject
     public DefaultScalaSourceSet(String displayName, ObjectFactory objectFactory, TaskDependencyFactory taskDependencyFactory) {
         scala = createScalaSourceDirectorySet("scala", displayName + " Scala source", objectFactory, taskDependencyFactory);
         allScala = objectFactory.sourceDirectorySet("allscala", displayName + " Scala source");
@@ -39,7 +42,7 @@ public class DefaultScalaSourceSet implements org.gradle.api.tasks.ScalaSourceSe
     }
 
     private static ScalaSourceDirectorySet createScalaSourceDirectorySet(String name, String displayName, ObjectFactory objectFactory, TaskDependencyFactory taskDependencyFactory) {
-        ScalaSourceDirectorySet scalaSourceDirectorySet = new DefaultScalaSourceDirectorySet(objectFactory.sourceDirectorySet(name, displayName), taskDependencyFactory);
+        ScalaSourceDirectorySet scalaSourceDirectorySet = objectFactory.newInstance(DefaultScalaSourceDirectorySet.class, objectFactory.sourceDirectorySet(name, displayName), taskDependencyFactory);
         scalaSourceDirectorySet.getFilter().include("**/*.java", "**/*.scala");
         return scalaSourceDirectorySet;
     }

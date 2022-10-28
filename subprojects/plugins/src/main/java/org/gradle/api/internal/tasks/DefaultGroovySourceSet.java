@@ -25,15 +25,17 @@ import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.GroovySourceSet;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 
 import static org.gradle.api.reflect.TypeOf.typeOf;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
 @Deprecated
-public class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
+public abstract class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
     private final GroovySourceDirectorySet groovy;
     private final SourceDirectorySet allGroovy;
 
+    @Inject
     public DefaultGroovySourceSet(String name, String displayName, ObjectFactory objectFactory, TaskDependencyFactory taskDependencyFactory) {
         this.groovy = createGroovySourceDirectorySet(name, displayName, objectFactory, taskDependencyFactory);
         allGroovy = objectFactory.sourceDirectorySet("all" + name, displayName + " Groovy source");
@@ -42,7 +44,7 @@ public class DefaultGroovySourceSet implements GroovySourceSet, HasPublicType {
     }
 
     private static GroovySourceDirectorySet createGroovySourceDirectorySet(String name, String displayName, ObjectFactory objectFactory, TaskDependencyFactory taskDependencyFactory) {
-        GroovySourceDirectorySet groovySourceDirectorySet = new DefaultGroovySourceDirectorySet(objectFactory.sourceDirectorySet(name, displayName + " Groovy source"), taskDependencyFactory);
+        GroovySourceDirectorySet groovySourceDirectorySet = objectFactory.newInstance(DefaultGroovySourceDirectorySet.class, objectFactory.sourceDirectorySet(name, displayName + " Groovy source"), taskDependencyFactory);
         groovySourceDirectorySet.getFilter().include("**/*.java", "**/*.groovy");
         return groovySourceDirectorySet;
     }

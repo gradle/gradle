@@ -65,7 +65,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * More examples in docs for {@link EclipseProject}, {@link EclipseClasspath}, {@link EclipseWtp}
  */
-public class EclipseModel {
+public abstract class EclipseModel {
 
     private EclipseProject project;
 
@@ -89,6 +89,7 @@ public class EclipseModel {
      *
      * @since 5.4
      */
+    @Inject
     public EclipseModel(Project project) {
         TaskDependencyFactory taskDependencyFactory = ((ProjectInternal) project).getTaskDependencyFactory();
         this.synchronizationTasks = taskDependencyFactory.configurableDependency();

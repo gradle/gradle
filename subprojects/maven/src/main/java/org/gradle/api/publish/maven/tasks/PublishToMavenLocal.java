@@ -32,7 +32,7 @@ import org.gradle.work.DisableCachingByDefault;
  * @since 1.4
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class PublishToMavenLocal extends AbstractPublishToMaven {
+public abstract class PublishToMavenLocal extends AbstractPublishToMaven {
     private final Cached<MavenNormalizedPublication> normalizedPublication = Cached.of(this::computeNormalizedPublication);
 
     private MavenNormalizedPublication computeNormalizedPublication() {

@@ -105,6 +105,12 @@ In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension 
 
 === Potential breaking changes
 
+=== Plugins, tasks and extension classes are now abstract
+
+Most public classes for plugins, tasks and extensions have been made abstract. This was done to make it easier to remove boilerplate from Gradle's implementation.
+
+Plugins extending these classes should be made abstract too. Gradle uses runtime class decoration to implement abstract methods. Those methods should not be directly implemented.
+
 === Wrapper task configuration
 If `gradle-wrapper.properties` contains the `distributionSha256Sum` property, you must specify a sum. You can specify a sum in the wrapped task configuration or with the `--gradle-distribution-sha256-sum` task option.
 

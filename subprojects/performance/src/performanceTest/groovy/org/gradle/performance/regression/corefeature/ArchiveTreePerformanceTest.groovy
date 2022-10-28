@@ -40,9 +40,7 @@ class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    @RunFor(
-        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["archivePerformanceProject"])
-    )
+    @RunFor([]) //TODO (#19570), re-enable: @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["archivePerformanceProject"])
     def "visiting tar trees"() {
         given:
         runner.tasksToRun = ['visitTar']

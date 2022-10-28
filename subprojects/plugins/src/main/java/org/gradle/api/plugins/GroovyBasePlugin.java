@@ -54,7 +54,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/groovy_plugin.html">Groovy plugin reference</a>
  */
-public class GroovyBasePlugin implements Plugin<Project> {
+public abstract class GroovyBasePlugin implements Plugin<Project> {
     public static final String GROOVY_RUNTIME_EXTENSION_NAME = "groovyRuntime";
 
     private final ObjectFactory objectFactory;
@@ -106,7 +106,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     @SuppressWarnings("deprecation")
     private void configureSourceSetDefaults() {
         javaPluginExtension().getSourceSets().all(sourceSet -> {
-            final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory, taskDependencyFactory);
+            final DefaultGroovySourceSet groovySourceSet = objectFactory.newInstance(DefaultGroovySourceSet.class, "groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory, taskDependencyFactory);
             addSourceSetExtension(sourceSet, groovySourceSet);
 
             final SourceDirectorySet groovySource = groovySourceSet.getGroovy();

@@ -35,7 +35,7 @@ import org.gradle.language.base.plugins.LifecycleBasePlugin;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/base_plugin.html">Base plugin reference</a>
  */
-public class BasePlugin implements Plugin<Project> {
+public abstract class BasePlugin implements Plugin<Project> {
     public static final String CLEAN_TASK_NAME = LifecycleBasePlugin.CLEAN_TASK_NAME;
     public static final String ASSEMBLE_TASK_NAME = LifecycleBasePlugin.ASSEMBLE_TASK_NAME;
     public static final String BUILD_GROUP = LifecycleBasePlugin.BUILD_GROUP;
@@ -45,7 +45,7 @@ public class BasePlugin implements Plugin<Project> {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
         BasePluginExtension baseExtension = project.getExtensions().create(BasePluginExtension.class, "base", DefaultBasePluginExtension.class, project);
-        BasePluginConvention convention = new DefaultBasePluginConvention(baseExtension);
+        BasePluginConvention convention = project.getObjects().newInstance(DefaultBasePluginConvention.class, baseExtension);
 
         project.getConvention().getPlugins().put("base", convention);
 

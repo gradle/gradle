@@ -26,9 +26,9 @@ import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.instantiation.DeserializationInstantiator
 import org.gradle.internal.instantiation.InstanceGenerator
 import org.gradle.internal.instantiation.InstantiationScheme
-import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 
 class TaskFactoryTest extends AbstractProjectBuilderSpec {
     def instantiationScheme = Mock(InstantiationScheme)
@@ -40,7 +40,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         taskFactory = new TaskFactory().createChild(project, instantiationScheme)
         _ * instantiationScheme.instantiator() >> instantiator
         _ * instantiationScheme.deserializationInstantiator() >> deserializeInstantiator
-        _ * instantiator.newInstanceWithDisplayName(_, _, _) >> { args -> JavaReflectionUtil.newInstance(args[0]) }
+        _ * instantiator.newInstanceWithDisplayName(_, _, _) >> { args -> TestUtil.newInstance(args[0]) }
     }
 
     void injectsProjectAndNameIntoTask() {
