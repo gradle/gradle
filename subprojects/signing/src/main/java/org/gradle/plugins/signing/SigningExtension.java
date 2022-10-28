@@ -389,26 +389,25 @@ public class SigningExtension {
         final String signTaskName = determineSignTaskNameForPublication(publicationToSign);
         if (project.getTasks().getNames().contains(signTaskName)) {
             return project.getTasks().named(signTaskName, Sign.class).get();
-        } else {
-            final Sign signTask = project.getTasks().create(signTaskName, Sign.class, task -> {
-                task.setDescription("Signs all artifacts in the '" + publicationToSign.getName() + "' publication.");
-                task.sign(publicationToSign);
-            });
-            final Map<Signature, T> artifacts = new HashMap<>();
-            signTask.getSignatures().all(signature -> {
-                final T artifact = publicationToSign.addDerivedArtifact(
-                    Cast.uncheckedNonnullCast(signature.getSource()),
-                    new DefaultDerivedArtifactFile(signature, signTask)
-                );
-                artifact.builtBy(signTask);
-                artifacts.put(signature, artifact);
-            });
-            signTask.getSignatures().whenObjectRemoved(signature -> {
-                final T artifact = artifacts.remove(signature);
-                publicationToSign.removeDerivedArtifact(artifact);
-            });
-            return signTask;
         }
+        final Sign signTask = project.getTasks().create(signTaskName, Sign.class, task -> {
+            task.setDescription("Signs all artifacts in the '" + publicationToSign.getName() + "' publication.");
+            task.sign(publicationToSign);
+        });
+        final Map<Signature, T> artifacts = new HashMap<>();
+        signTask.getSignatures().all(signature -> {
+            final T artifact = publicationToSign.addDerivedArtifact(
+                Cast.uncheckedNonnullCast(signature.getSource()),
+                new DefaultDerivedArtifactFile(signature, signTask)
+            );
+            artifact.builtBy(signTask);
+            artifacts.put(signature, artifact);
+        });
+        signTask.getSignatures().whenObjectRemoved(signature -> {
+            final T artifact = artifacts.remove(signature);
+            publicationToSign.removeDerivedArtifact(artifact);
+        });
+        return signTask;
     }
 
     private String determineSignTaskNameForPublication(Publication publication) {
@@ -419,11 +418,10 @@ public class SigningExtension {
         final String signTaskName = "sign" + capitalize(name);
         if (project.getTasks().getNames().contains(signTaskName)) {
             return project.getTasks().named(signTaskName, Sign.class).get();
-        } else {
-            final Sign signTask = project.getTasks().create(signTaskName, Sign.class, taskConfiguration);
-            addSignaturesToConfiguration(signTask, getConfiguration());
-            return signTask;
         }
+        final Sign signTask = project.getTasks().create(signTaskName, Sign.class, taskConfiguration);
+        addSignaturesToConfiguration(signTask, getConfiguration());
+        return signTask;
     }
 
     protected Object addSignaturesToConfiguration(Sign task, final Configuration configuration) {
