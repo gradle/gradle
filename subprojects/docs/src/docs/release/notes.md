@@ -243,7 +243,7 @@ For more information about Maven conversions, see the [Build Init Plugin](usergu
 #### Introduced flag for individual task `rerun`
 
 All tasks can now use the `--rerun` option. This option works like `--rerun-tasks`,
-except `--rerun` only effects a single task. For example, you can force tests to
+except `--rerun` only affects a single task. For example, you can force tests to
 ignore up-to-date checks like this:
 
 ```
@@ -401,7 +401,7 @@ gradle myCustomTask --integer-option=123
 <a name="ide"></a>
 ### IDE Integration
 
-This improvements are for IDE integrators and are not directly for end-users until their specific IDE implements the integration. 
+These improvements are for IDE integrators and are not directly for end-users until their specific IDE implements the integration. 
 
 #### Enhanced test events to distinguish between assertion and framework failures
 
