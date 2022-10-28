@@ -93,7 +93,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private final ImmutableSet<Equivalence.Wrapper<Method>> globallyIgnoredMethods;
     private final ImmutableSet<Class<?>> mutableNonFinalClasses;
     private final ImmutableSet<Class<? extends Annotation>> ignoredMethodAnnotations;
-    private final ImmutableSet<Class<? extends Annotation>> propertyTypeAnnotations;
     private final Predicate<? super Method> generatedMethodDetector;
 
     /**
@@ -104,8 +103,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
      * @param ignoredPackagePrefixes Packages to ignore. Types from ignored packages are considered having no type annotations nor any annotated properties.
      * @param ignoredSuperTypes Super-types to ignore. Ignored super-types are considered having no type annotations nor any annotated properties.
      * @param ignoreMethodsFromTypes Methods to ignore: any methods declared by these types are ignored even when overridden by a given type. This is to avoid detecting methods like {@code Object.equals()} or {@code GroovyObject.getMetaClass()}.
-     * @param ignoredMethodAnnotations Annotations to use to explicitly ignore a method/property from up-to-date checks.
-     * @param propertyTypeAnnotations Annotations that mark task properties (such as inputs, outputs, service references).
+     * @param ignoredMethodAnnotations Annotations to use to explicitly ignore a method/property.
      * @param generatedMethodDetector Predicate to test if a method was generated (vs. being provided explicitly by the user).
      * @param mutableNonFinalClasses Mutable classes that shouldn't need explicit setters
      * @param cacheFactory A factory to create cross-build in-memory caches.
@@ -118,7 +116,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         Collection<Class<?>> ignoreMethodsFromTypes,
         Collection<Class<?>> mutableNonFinalClasses,
         Collection<Class<? extends Annotation>> ignoredMethodAnnotations,
-        Collection<Class<? extends Annotation>> propertyTypeAnnotations,
         Predicate<? super Method> generatedMethodDetector,
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
@@ -130,7 +127,6 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         this.globallyIgnoredMethods = allMethodsOf(ignoreMethodsFromTypes);
         this.mutableNonFinalClasses = ImmutableSet.copyOf(mutableNonFinalClasses);
         this.ignoredMethodAnnotations = ImmutableSet.copyOf(ignoredMethodAnnotations);
-        this.propertyTypeAnnotations = ImmutableSet.copyOf(propertyTypeAnnotations);
         this.generatedMethodDetector = generatedMethodDetector;
     }
 
@@ -149,10 +145,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         builder.putAll(propertyAnnotationCategories);
         builder.put(Inject.class, TYPE);
         for (Class<? extends Annotation> ignoredMethodAnnotation : ignoredMethodAnnotations) {
-            // avoid duplicates, some property annotation types are also ignored for up-to-date checks
-            if (!propertyAnnotationCategories.containsKey(ignoredMethodAnnotation)) {
-                builder.put(ignoredMethodAnnotation, TYPE);
-            }
+            builder.put(ignoredMethodAnnotation, TYPE);
         }
         return builder.build();
     }
@@ -576,7 +569,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             List<Annotation> declaredTypes = declaredAnnotations.get(TYPE);
             for (Annotation declaredType : declaredTypes) {
                 Class<? extends Annotation> ignoredMethodAnnotation = declaredType.annotationType();
-                if (ignoredMethodAnnotations.contains(ignoredMethodAnnotation) && !propertyTypeAnnotations.contains(ignoredMethodAnnotation)) {
+                if (ignoredMethodAnnotations.contains(ignoredMethodAnnotation)) {
                     if (declaredAnnotations.values().size() > 1) {
                         visitPropertyProblem(problem ->
                             problem.withId(ValidationProblemId.IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED)

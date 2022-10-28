@@ -118,14 +118,10 @@ public class ExecutionGlobalServices {
         ServiceReference.class
     );
 
-    /**
-     * Annotations that are not relevant for up-to-date checking.
-     */
     @VisibleForTesting
     public static final ImmutableSet<Class<? extends Annotation>> IGNORED_METHOD_ANNOTATIONS = ImmutableSet.of(
         Internal.class,
-        ReplacedBy.class,
-        ServiceReference.class
+        ReplacedBy.class
     );
 
     TaskExecutionTracker createTaskExecutionTracker(BuildOperationAncestryTracker ancestryTracker, BuildOperationListenerManager operationListenerManager) {
@@ -172,7 +168,6 @@ public class ExecutionGlobalServices {
                 Property.class
             ),
             IGNORED_METHOD_ANNOTATIONS,
-            PROPERTY_TYPE_ANNOTATIONS,
             method -> method.isAnnotationPresent(Generated.class),
             cacheFactory);
     }

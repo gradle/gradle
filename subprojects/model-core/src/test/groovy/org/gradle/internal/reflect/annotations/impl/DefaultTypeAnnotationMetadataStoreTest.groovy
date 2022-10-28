@@ -43,7 +43,16 @@ import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class DefaultTypeAnnotationMetadataStoreTest extends Specification implements ValidationMessageChecker {
-    private static final COLOR = { "color" } as AnnotationCategory
+    private static final COLOR = new AnnotationCategory() {
+        @Override
+        String getDisplayName() {
+            return "color"
+        }
+        @Override
+        String toString() {
+            return displayName
+        }
+    }
 
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 
