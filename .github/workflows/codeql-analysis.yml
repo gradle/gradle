@@ -29,7 +29,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       # Checkout must run before the caching key is computed using the `hashFiles` method
 
     - name: Cache Gradle Modules
