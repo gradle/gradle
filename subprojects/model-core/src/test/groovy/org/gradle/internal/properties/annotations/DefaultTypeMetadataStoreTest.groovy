@@ -92,7 +92,8 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         { false },
         cacheFactory
     )
-    def metadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [Classpath, CompileClasspath], typeAnnotationMetadataStore, cacheFactory)
+    def propertyTypeResolver = new DefaultPropertyTypeResolver()
+    def metadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [Classpath, CompileClasspath], typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory)
 
     def setupSpec() {
         groovyClassLoader = new GroovyClassLoader(getClass().classLoader)
@@ -111,7 +112,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * annotationHandler.propertyRelevant >> true
         _ * annotationHandler.annotationType >> SearchPath
 
-        def metadataStore = new DefaultTypeMetadataStore([], [annotationHandler], [], typeAnnotationMetadataStore, cacheFactory)
+        def metadataStore = new DefaultTypeMetadataStore([], [annotationHandler], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
@@ -141,7 +142,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             }
         }
 
-        def metadataStore = new DefaultTypeMetadataStore([], [annotationHandler], [], typeAnnotationMetadataStore, cacheFactory)
+        def metadataStore = new DefaultTypeMetadataStore([], [annotationHandler], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
@@ -169,7 +170,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             }
         }
 
-        def metadataStore = new DefaultTypeMetadataStore([], [annotationHandler], [], typeAnnotationMetadataStore, cacheFactory)
+        def metadataStore = new DefaultTypeMetadataStore([], [annotationHandler], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
 
         when:
         def typeMetadata = metadataStore.getTypeMetadata(TaskWithCustomAnnotation)
@@ -193,7 +194,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
             }
         }
 
-        def metadataStore = new DefaultTypeMetadataStore([typeAnnotationHandler], [], [], typeAnnotationMetadataStore, cacheFactory)
+        def metadataStore = new DefaultTypeMetadataStore([typeAnnotationHandler], [], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
 
         when:
         def taskMetadata = metadataStore.getTypeMetadata(DefaultTask)
