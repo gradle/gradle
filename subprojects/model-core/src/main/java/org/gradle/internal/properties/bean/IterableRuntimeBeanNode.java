@@ -18,15 +18,14 @@ package org.gradle.internal.properties.bean;
 
 import org.gradle.api.Named;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import javax.annotation.Nullable;
 import java.util.Queue;
 
 class IterableRuntimeBeanNode extends RuntimeBeanNode<Iterable<?>> {
-    public IterableRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Iterable<?> iterable, TypeMetadata typeMetadata) {
-        super(parentNode, propertyName, iterable, typeMetadata);
+    public IterableRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Iterable<?> iterable) {
+        super(parentNode, propertyName, iterable);
     }
 
     private static String determinePropertyName(@Nullable Object input, int count) {
