@@ -35,6 +35,7 @@ import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
 import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler
+import org.gradle.internal.properties.annotations.TestPropertyTypeResolver
 import org.gradle.internal.properties.bean.DefaultPropertyWalker
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.test.fixtures.file.TestFile
@@ -82,7 +83,7 @@ class DefaultTaskInputsTest extends Specification {
         { false },
         cacheFactory
     )
-    def typeMetadataStore = new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, cacheFactory)
+    def typeMetadataStore = new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
     def walker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationIdentifier())
     private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, taskDependencyFactory, fileCollectionFactory)
 

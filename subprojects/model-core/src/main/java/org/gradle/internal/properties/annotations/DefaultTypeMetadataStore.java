@@ -20,9 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.CompileClasspath;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
@@ -44,7 +41,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
@@ -54,6 +50,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final ImmutableSet<Class<? extends Annotation>> allowedPropertyModifiers;
     private final CrossBuildInMemoryCache<Class<?>, TypeMetadata> cache;
     private final TypeAnnotationMetadataStore typeAnnotationMetadataStore;
+    private final PropertyTypeResolver propertyTypeResolver;
     private final String displayName;
     private final Function<Class<?>, TypeMetadata> typeMetadataFactory = this::createTypeMetadata;
 
@@ -62,6 +59,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         Collection<? extends PropertyAnnotationHandler> propertyAnnotationHandlers,
         Collection<Class<? extends Annotation>> allowedPropertyModifiers,
         TypeAnnotationMetadataStore typeAnnotationMetadataStore,
+        PropertyTypeResolver propertyTypeResolver,
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
         this.typeAnnotationHandlers = ImmutableSet.copyOf(typeAnnotationHandlers);
@@ -69,6 +67,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         this.allowedPropertyModifiers = ImmutableSet.copyOf(allowedPropertyModifiers);
         this.typeAnnotationMetadataStore = typeAnnotationMetadataStore;
         this.displayName = calculateDisplayName(propertyAnnotationHandlers);
+        this.propertyTypeResolver = propertyTypeResolver;
         this.cache = cacheFactory.newClassCache();
     }
 
@@ -100,9 +99,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(annotationMetadata.getPropertiesAnnotationMetadata().size());
         for (PropertyAnnotationMetadata propertyAnnotationMetadata : annotationMetadata.getPropertiesAnnotationMetadata()) {
             Map<AnnotationCategory, Annotation> propertyAnnotations = propertyAnnotationMetadata.getAnnotations();
-            Annotation typeAnnotation = propertyAnnotations.get(TYPE);
-            Annotation normalizationAnnotation = propertyAnnotations.get(NORMALIZATION);
-            Class<? extends Annotation> propertyType = determinePropertyType(typeAnnotation, normalizationAnnotation);
+            Class<? extends Annotation> propertyType = propertyTypeResolver.resolveAnnotationType(propertyAnnotations);
             if (propertyType == null) {
                 validationContext.visitPropertyProblem(problem ->
                     problem.withId(ValidationProblemId.MISSING_ANNOTATION)
@@ -179,19 +176,6 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             .map(s -> "@" + s)
             .sorted()
             .collect(forDisplay());
-    }
-
-    @Nullable
-    private Class<? extends Annotation> determinePropertyType(@Nullable Annotation typeAnnotation, @Nullable Annotation normalizationAnnotation) {
-        if (typeAnnotation != null) {
-            return typeAnnotation.annotationType();
-        } else if (normalizationAnnotation != null) {
-            if (normalizationAnnotation.annotationType().equals(Classpath.class)
-                || normalizationAnnotation.annotationType().equals(CompileClasspath.class)) {
-                return InputFiles.class;
-            }
-        }
-        return null;
     }
 
     private static class DefaultTypeMetadata implements TypeMetadata {
