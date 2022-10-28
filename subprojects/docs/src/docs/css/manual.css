@@ -1666,7 +1666,6 @@ div.screenshot {
 }
 
 .docs-navigation a.active {
-    text-decoration: underline;
     color: #06A0CE; 
     outline: 0;
     border: none;
