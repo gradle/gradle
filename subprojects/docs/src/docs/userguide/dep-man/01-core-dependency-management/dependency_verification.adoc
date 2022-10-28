@@ -570,6 +570,18 @@ If you use git and use the binary version, make sure to make it treat this file 
 ----
 *.gpg           binary
 ----
+
+====
+
+You can also ask Gradle to export all trusted keys without updating the verification metadata file:
+
+----
+./gradlew --export-keys
+----
+
+[NOTE]
+====
+This command disables signature verification, similar to `--write-verification-metadata`.
 ====
 
 [[sec:bootstrapping-signature-verification]]

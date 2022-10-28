@@ -165,7 +165,10 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
                             throw new DefaultLenientConfiguration.ArtifactResolveException("artifacts", transformationStep.getDisplayName(), "artifact transform", Collections.singleton(e));
                         }
 
-                        return transformationStep.createInvocation(initialArtifactTransformationSubject, upstreamDependencies, context).invoke().get();
+                        return transformationStep
+                            .createInvocation(initialArtifactTransformationSubject, upstreamDependencies, context)
+                            .completeAndGet()
+                            .get();
                     }
 
                     @Override
@@ -228,8 +231,11 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
                 return buildOperationExecutor.call(new ArtifactTransformationStepBuildOperation() {
                     @Override
                     protected TransformationSubject transform() {
-                        return previousTransformationNode.getTransformedSubject().flatMap(transformedSubject ->
-                            transformationStep.createInvocation(transformedSubject, upstreamDependencies, context).invoke()).get();
+                        return previousTransformationNode.getTransformedSubject()
+                            .flatMap(transformedSubject -> transformationStep
+                                .createInvocation(transformedSubject, upstreamDependencies, context)
+                                .completeAndGet())
+                            .get();
                     }
 
                     @Override

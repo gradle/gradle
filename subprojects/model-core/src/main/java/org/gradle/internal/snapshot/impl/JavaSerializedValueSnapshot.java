@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.base.Objects;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
@@ -53,38 +52,10 @@ public class JavaSerializedValueSnapshot implements ValueSnapshot {
     @Override
     public ValueSnapshot snapshot(Object value, ValueSnapshotter snapshotter) {
         ValueSnapshot snapshot = snapshotter.snapshot(value);
-        if (hasSameSerializedValue(value, snapshot)) {
+        if (equals(snapshot)) {
             return this;
         }
         return snapshot;
-    }
-
-    private boolean hasSameSerializedValue(Object value, ValueSnapshot snapshot) {
-        if (snapshot instanceof JavaSerializedValueSnapshot) {
-            JavaSerializedValueSnapshot newSnapshot = (JavaSerializedValueSnapshot) snapshot;
-            if (!Objects.equal(implementationHash, newSnapshot.implementationHash)) {
-                // Different implementation - assume value has changed
-                return false;
-            }
-            if (Arrays.equals(serializedValue, newSnapshot.serializedValue)) {
-                // Same serialized content - value has not changed
-                return true;
-            }
-
-            // Deserialize the old value and use the equals() implementation. This will be removed at some point
-            Object oldValue = populateClass(value.getClass());
-            if (oldValue.equals(value)) {
-                DeprecationLogger.deprecateIndirectUsage("Using objects as inputs that have a different serialized form but are equal")
-                    .withContext("Type '" + value.getClass().getName() + "' has a custom implementation for equals().")
-                    .withAdvice("Declare the property as @Nested instead to expose its properties as inputs.")
-                    .willBeRemovedInGradle8()
-                    .withUserManual("upgrading_version_7", "equals_up_to_date_deprecation")
-                    .nagUser();
-                // Same value
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override

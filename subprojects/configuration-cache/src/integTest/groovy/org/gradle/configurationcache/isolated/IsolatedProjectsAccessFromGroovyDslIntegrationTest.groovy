@@ -68,9 +68,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
 
         where:
-        block         | _
-        "allprojects" | _
-        "subprojects" | _
+        block                               | _
+        "allprojects"                       | _
+        "subprojects"                       | _
+        "configure(childProjects.values())" | _
     }
 
     def "reports problem when build script uses #property property to apply plugins to another project"() {
@@ -95,9 +96,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
 
         where:
-        property      | _
-        "allprojects" | _
-        "subprojects" | _
+        property                 | _
+        "allprojects"            | _
+        "subprojects"            | _
+        "childProjects.values()" | _
     }
 
     def "reports problem when build script uses project() block to apply plugins to another project"() {
@@ -256,6 +258,144 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         chain                           | _
         "project(':').allprojects"      | _
         "project(':').allprojects.each" | _
+    }
+
+    def "reports cross-project model access in Gradle.#invocation"() {
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        file("a/build.gradle") << """
+            configure(gradle) {
+                ${invocation} { println(it.buildDir) }
+            }
+        """
+
+        when:
+        configurationCacheFails(":a:help", ":b:help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a", ":b")
+            accessedProjects.each {
+                problem("Build file 'a/build.gradle': Cannot access project '$it' from project ':a'")
+            }
+        }
+
+        where:
+        invocation               | accessedProjects
+        "configure(rootProject)" | [":"]
+        "rootProject"            | [":"]
+        "allprojects"            | [":", ":b"]
+        "beforeProject"          | [":b"]
+        "afterProject"           | [":b"]
+    }
+
+    def "reports cross-project model access in composite build access to Gradle.#invocation"() {
+        settingsFile << """
+            include("a")
+            includeBuild("include")
+        """
+        file("include/build.gradle") << """
+            gradle.${invocation}.allprojects { if (it.path == ":") println(it.buildDir) }
+        """
+
+        when:
+        configurationCacheFails(":include:help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":include")
+            problem("Build file 'include/build.gradle': Cannot access project ':' from project ':include'")
+        }
+
+        where:
+        invocation | _
+        "parent"   | _
+        "root"     | _
+    }
+
+    def "reports cross-project model access from a listener added to Gradle.projectsEvaluated"() {
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        file("a/build.gradle") << """
+            gradle.projectsEvaluated {
+                it.allprojects { println it.buildDir }
+            }
+        """
+
+        when:
+        configurationCacheFails(":a:help", ":b:help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'a/build.gradle': Cannot access project ':' from project ':a'")
+            problem("Build file 'a/build.gradle': Cannot access project ':b' from project ':a'")
+        }
+    }
+
+    def "reports cross-project model from ProjectEvaluationListener registered in Gradle.#invocation"() {
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        file("a/build.gradle") << """
+            class MyListener implements ProjectEvaluationListener {
+                void beforeEvaluate(Project project) { }
+                void afterEvaluate(Project project, ProjectState projectState) {
+                    println project.buildDir
+                }
+            }
+            gradle.$invocation(new MyListener())
+        """
+
+        when:
+        configurationCacheFails(":a:help", ":b:help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'a/build.gradle': Cannot access project ':b' from project ':a'")
+        }
+
+        where:
+        invocation                     | _
+        "addListener"                  | _
+        "addProjectEvaluationListener" | _
+    }
+
+    def "listener removal works properly in Gradle.#add + Gradle.#remove"() {
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        file("a/build.gradle") << """
+            class MyListener implements ProjectEvaluationListener {
+                void beforeEvaluate(Project project) { }
+                void afterEvaluate(Project project, ProjectState projectState) {
+                    println project.buildDir
+                }
+            }
+            def listener = new MyListener()
+            gradle.$add(listener)
+            gradle.$remove(listener)
+        """
+
+        when:
+        configurationCacheRun(":a:help", ":b:help")
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a", ":b")
+        }
+
+        where:
+        add                            | remove
+        "addListener"                  | "removeListener"
+        "addProjectEvaluationListener" | "removeProjectEvaluationListener"
     }
 
     def "build script can query basic details of projects in allprojects block"() {

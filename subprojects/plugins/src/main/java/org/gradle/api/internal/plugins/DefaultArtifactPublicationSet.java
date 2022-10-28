@@ -25,15 +25,17 @@ import org.gradle.api.internal.provider.ChangingValueHandler;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.Set;
 
 /**
  * The policy for which artifacts should be published by default when none are explicitly declared.
  */
-public class DefaultArtifactPublicationSet {
+public abstract class DefaultArtifactPublicationSet {
     private final PublishArtifactSet artifactContainer;
     private DefaultArtifactProvider defaultArtifactProvider;
 
+    @Inject
     public DefaultArtifactPublicationSet(PublishArtifactSet artifactContainer) {
         this.artifactContainer = artifactContainer;
     }
@@ -44,6 +46,10 @@ public class DefaultArtifactPublicationSet {
             artifactContainer.addAllLater(defaultArtifactProvider);
         }
         defaultArtifactProvider.addArtifact(artifact);
+    }
+
+    DefaultArtifactProvider getDefaultArtifactProvider() {
+        return defaultArtifactProvider;
     }
 
     private static class DefaultArtifactProvider extends AbstractMinimalProvider<Set<PublishArtifact>> implements CollectionProviderInternal<PublishArtifact, Set<PublishArtifact>>, ChangingValue<Set<PublishArtifact>> {

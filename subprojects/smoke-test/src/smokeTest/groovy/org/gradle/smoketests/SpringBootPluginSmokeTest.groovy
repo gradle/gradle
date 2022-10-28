@@ -21,18 +21,16 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import spock.lang.Issue
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
-import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
-
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
     def 'spring boot plugin'() {
         given:
         buildFile << """
             plugins {
                 id "application"
-                id "org.springframework.boot" version "${TestedVersions.springBoot}"
+                id "org.springframework.boot" version "${TestedVersions.springBoot}" // TODO:Finalize Upload Removal - Issue #21439
                 id "io.spring.dependency-management" version "${TestedVersions.springDependencyManagement}"
             }
 
@@ -102,28 +100,12 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         validatePlugins {
             onPlugin(pluginId) {
-                // This is not a problem, since this task type is only used for Gradle versions < 6.4.
-                // See https://github.com/spring-projects/spring-boot/blob/038ae9340644f0128ed6f29d9e5eb7e6c359f291/spring-boot-project/spring-boot-tools/spring-boot-gradle-plugin/src/main/java/org/springframework/boot/gradle/plugin/ApplicationPluginAction.java#L85
-                messages[incompatibleAnnotations {
-                    type'org.springframework.boot.gradle.tasks.application.CreateBootStartScripts'
-                    property 'mainClassName'
-                    annotatedWith 'Optional'
-                    incompatibleWith 'ReplacedBy'
-                    includeLink()
-                }] = ERROR
-
                 messages[incorrectUseOfInputAnnotation {
                     type'org.springframework.boot.gradle.tasks.bundling.BootBuildImage'
                     property 'archiveFile'
                     propertyType 'RegularFileProperty'
                     includeLink()
-                }] = WARNING
-                messages[incorrectUseOfInputAnnotation {
-                    type'org.springframework.boot.gradle.tasks.bundling.BootBuildImage'
-                    property 'jar'
-                    propertyType 'RegularFileProperty'
-                    includeLink()
-                }] = WARNING
+                }] = ERROR
 
                 failsWith messages
             }

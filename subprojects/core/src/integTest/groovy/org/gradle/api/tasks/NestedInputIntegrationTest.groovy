@@ -20,8 +20,6 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
@@ -29,7 +27,7 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
-class NestedInputIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker, ExecutionOptimizationDeprecationFixture {
+class NestedInputIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
 
     def setup() {
         expectReindentedValidationMessage()
@@ -774,28 +772,19 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     @ValidationTestFor(
         ValidationProblemId.UNKNOWN_IMPLEMENTATION
     )
-    @ToBeFixedForConfigurationCache(because = "uses custom GroovyClassLoader")
     def "task with nested bean loaded with custom classloader disables execution optimizations"() {
         file("input.txt").text = "data"
         buildFile << taskWithNestedBeanFromCustomClassLoader()
 
         when:
-        expectImplementationUnknownDeprecation {
-            nestedProperty('bean')
-            unknownClassloader('NestedBean')
-        }
-        run "customTask"
+        fails "customTask"
         then:
         executedAndNotSkipped ":customTask"
-
-        when:
-        expectImplementationUnknownDeprecation {
+        failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'TaskWithNestedProperty').")
+        failureDescriptionContains(implementationUnknown {
             nestedProperty('bean')
             unknownClassloader('NestedBean')
-        }
-        run "customTask"
-        then:
-        executedAndNotSkipped ":customTask"
+        })
     }
 
     def "changes to nested domain object container are tracked"() {

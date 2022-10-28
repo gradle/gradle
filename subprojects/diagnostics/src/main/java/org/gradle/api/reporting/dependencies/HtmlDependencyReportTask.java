@@ -18,7 +18,6 @@ package org.gradle.api.reporting.dependencies;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -61,12 +60,12 @@ import java.util.Set;
  * This can also be changed by setting the <code>reports.html.destination</code> property:
  * <pre>
  * htmlDependencyReport {
- *     reports.html.destination = file("build/reports/project/dependencies")
+ *     reports.html.outputLocation = file("build/reports/project/dependencies")
  * }
  * </pre>
  */
 @UntrackedTask(because = "We can't describe the dependency tree of all projects as input")
-public class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
+public abstract class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
     private Set<Project> projects;
     private final DirectoryProperty reportDir;
     private final DependencyReportContainer reports;
@@ -85,7 +84,6 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
      * @since 7.1
      */
     @Internal
-    @Incubating
     public DirectoryProperty getProjectReportDirectory() {
         return reportDir;
     }

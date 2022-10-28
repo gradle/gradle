@@ -15,27 +15,31 @@
  */
 package org.gradle.api.tasks.compile
 
+import org.gradle.util.TestUtil
 import org.junit.Before
 import org.junit.Test
 
 import static org.junit.Assert.*
 
-public class GroovyForkOptionsTest {
+class GroovyForkOptionsTest {
     static final Map PROPS = [memoryInitialSize: 'memoryInitialSize', memoryMaximumSize: 'memoryMaximumSize']
 
     GroovyForkOptions forkOptions
 
-    @Before public void setUp()  {
-        forkOptions = new GroovyForkOptions()
+    @Before
+    void setUp()  {
+        forkOptions = TestUtil.newInstance(GroovyForkOptions.class)
     }
 
-    @Test public void testCompileOptions() {
+    @Test
+    void testCompileOptions() {
         assertNull(forkOptions.memoryInitialSize)
         assertNull(forkOptions.memoryMaximumSize)
         assertTrue(forkOptions.jvmArgs.empty)
     }
 
-    @Test public void testDefine() {
+    @Test
+    void testDefine() {
         forkOptions.define(PROPS.keySet().inject([:]) { Map map, String prop ->
             map[prop] = "${prop}Value" as String
             map

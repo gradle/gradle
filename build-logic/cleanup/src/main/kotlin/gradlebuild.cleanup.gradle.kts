@@ -16,16 +16,7 @@
 
 import gradlebuild.basics.repoRoot
 import gradlebuild.cleanup.services.DaemonTracker
-import org.gradle.api.DefaultTask
-
-plugins {
-    base
-}
 
 gradle.sharedServices.registerIfAbsent("daemonTracker", DaemonTracker::class) {
     parameters.rootProjectDir.set(repoRoot())
-}
-
-tasks.register<DefaultTask>("killExistingProcessesStartedByGradle") {
-    // this is a dummy task to avoid failures in TeamCity Parallel Test
 }

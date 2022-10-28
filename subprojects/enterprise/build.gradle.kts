@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":build-option"))
     implementation(project(":core"))
     implementation(project(":core-api"))
+    implementation(project(":execution"))
     implementation(project(":configuration-cache"))
     implementation(project(":file-collections"))
     implementation(project(":jvm-services"))

@@ -28,7 +28,7 @@ import javax.inject.Inject;
  *
  * This is not sent to the compiler daemon as options.
  */
-public class IncrementalCompileOptions {
+public abstract class IncrementalCompileOptions {
     private final RegularFileProperty analysisFile;
     private final RegularFileProperty classfileBackupDir;
     private final RegularFileProperty publishedCode;

@@ -30,7 +30,6 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
         settingsFile << "rootProject.name = 'test'"
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses the module metadata when configured as source and pom is not present"() {
         mavenRepo.module("test", "a", "1.2").withNoPom().withModuleMetadata().publish()
 

@@ -41,10 +41,6 @@
                 <td>classesDirectory</td>
                 <td><literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
             </tr>
-            <tr>
-                <td>outputDir</td>
-                <td><literal><replaceable>${project.buildDir}</replaceable>/classes/<replaceable>${sourceDirectorySet.name}</replaceable>/<replaceable>${sourceSet.name}</replaceable></literal></td>
-            </tr>
         </table>
     </section>
     <section>

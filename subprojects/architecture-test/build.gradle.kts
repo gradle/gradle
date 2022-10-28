@@ -1,6 +1,6 @@
-import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.PublicApi
+import gradlebuild.basics.flakyTestStrategy
 
 plugins {
     id("gradlebuild.internal.java")
@@ -27,6 +27,20 @@ dependencies {
     testRuntimeOnly(project(":distributions-full"))
 }
 
+val acceptedApiChangesFile = layout.projectDirectory.file("src/changes/accepted-public-api-changes.json")
+
+val verifyAcceptedApiChangesOrdering = tasks.register<gradlebuild.binarycompatibility.AlphabeticalAcceptedApiChangesTask>("verifyAcceptedApiChangesOrdering") {
+    group = "verification"
+    description = "Ensures the accepted api changes file is kept alphabetically ordered to make merging changes to it easier"
+    apiChangesFile.set(acceptedApiChangesFile)
+}
+
+val sortAcceptedApiChanges = tasks.register<gradlebuild.binarycompatibility.SortAcceptedApiChangesTask>("sortAcceptedApiChanges") {
+    group = "verification"
+    description = "Sort the accepted api changes file alphabetically"
+    apiChangesFile.set(acceptedApiChangesFile)
+}
+
 tasks.test {
     // Looks like loading all the classes requires more than the default 512M
     maxHeapSize = "900M"
@@ -41,7 +55,13 @@ tasks.test {
         providers.gradleProperty("archunitRefreeze").map { true })
     )
 
+    dependsOn(verifyAcceptedApiChangesOrdering)
     enabled = flakyTestStrategy !=  FlakyTestStrategy.ONLY
+
+    predictiveSelection {
+        // PTS doesn't work well with architecture tests which scan all classes
+        enabled.set(false)
+    }
 }
 
 class ArchUnitFreezeConfiguration(

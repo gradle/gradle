@@ -17,23 +17,24 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.internal.JavaToolchain
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultJavaCompileSpecFactoryTest extends Specification {
 
     def "produces correct spec with fork=#fork, executable=#executable, toolchain=#toolchainHome"() {
-        CompileOptions options = new CompileOptions(Mock(ObjectFactory))
+        CompileOptions options = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
         options.fork = fork
         options.forkOptions.executable = executable
         def toolchain = null
         if (toolchainHome != null) {
             toolchain = Mock(JavaToolchain)
             toolchain.installationPath >> TestFiles.fileFactory().dir(toolchainHome)
+            toolchain.isCurrentJvm() >> (Jvm.current().javaHome == toolchainHome)
             toolchain.languageVersion >> JavaLanguageVersion.of(8)
         }
         DefaultJavaCompileSpecFactory factory = new DefaultJavaCompileSpecFactory(options, toolchain)
@@ -51,7 +52,7 @@ class DefaultJavaCompileSpecFactoryTest extends Specification {
         false | null       | false             | false                 | null
         true  | null       | true              | false                 | null
         true  | "X"        | false             | true                  | null
-        true | "X" | true | false | File.createTempDir()
+        true  | "X"        | true              | false                 | File.createTempDir()
         false | null       | false             | false                 | Jvm.current().javaHome
     }
 

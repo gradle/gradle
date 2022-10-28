@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
@@ -61,7 +60,7 @@ import java.util.Map;
  * Runs Checkstyle against some source files.
  */
 @CacheableTask
-public class Checkstyle extends SourceTask implements VerificationTask, Reporting<CheckstyleReports> {
+public abstract class Checkstyle extends SourceTask implements VerificationTask, Reporting<CheckstyleReports> {
 
     private FileCollection checkstyleClasspath;
     private FileCollection classpath;
@@ -86,12 +85,12 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
         this.enableExternalDtdLoad = getObjectFactory().property(Boolean.class).convention(false);
         // Set default JavaLauncher to current JVM in case
         // CheckstylePlugin that sets Java launcher convention is not applied
-        this.javaLauncher = getCurrentJvmLauncher();
+        this.javaLauncher = configureFromCurrentJvmLauncher(getToolchainService(), getObjectFactory());
     }
 
-    private Property<JavaLauncher> getCurrentJvmLauncher() {
-        Provider<JavaLauncher> currentJvmLauncherProvider = getToolchainService().launcherFor(new CurrentJvmToolchainSpec(getObjectFactory()));
-        return getObjectFactory().property(JavaLauncher.class).convention(currentJvmLauncherProvider);
+    private static Property<JavaLauncher> configureFromCurrentJvmLauncher(JavaToolchainService toolchainService, ObjectFactory objectFactory) {
+        Provider<JavaLauncher> currentJvmLauncherProvider = toolchainService.launcherFor(new CurrentJvmToolchainSpec(objectFactory));
+        return objectFactory.property(JavaLauncher.class).convention(currentJvmLauncherProvider);
     }
 
     /**
@@ -116,12 +115,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
 
     @Inject
     protected JavaToolchainService getToolchainService() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    @Deprecated
-    public IsolatedAntBuilder getAntBuilder() {
         throw new UnsupportedOperationException();
     }
 
@@ -184,7 +177,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      *
      * @since 7.5
      */
-    @Incubating
     @Nested
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
@@ -428,7 +420,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      *
      * @since 7.5
      */
-    @Incubating
     @Optional
     @Input
     public Property<String> getMinHeapSize() {
@@ -443,7 +434,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      *
      * @since 7.5
      */
-    @Incubating
     @Optional
     @Input
     public Property<String> getMaxHeapSize() {

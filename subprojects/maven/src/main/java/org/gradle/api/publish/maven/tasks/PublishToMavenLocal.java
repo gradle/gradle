@@ -32,7 +32,7 @@ import org.gradle.work.DisableCachingByDefault;
  * @since 1.4
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class PublishToMavenLocal extends AbstractPublishToMaven {
+public abstract class PublishToMavenLocal extends AbstractPublishToMaven {
     private final Cached<MavenNormalizedPublication> normalizedPublication = Cached.of(this::computeNormalizedPublication);
 
     private MavenNormalizedPublication computeNormalizedPublication() {
@@ -41,13 +41,13 @@ public class PublishToMavenLocal extends AbstractPublishToMaven {
             throw new InvalidUserDataException("The 'publication' property is required");
         }
 
-        getDuplicatePublicationTracker().checkCanPublishToMavenLocal(publicationInternal);
         return publicationInternal.asNormalisedPublication();
     }
 
     @TaskAction
     public void publish() {
         MavenNormalizedPublication normalizedPublication = this.normalizedPublication.get();
+        getDuplicatePublicationTracker().checkCanPublishToMavenLocal(normalizedPublication);
         doPublish(normalizedPublication);
     }
 

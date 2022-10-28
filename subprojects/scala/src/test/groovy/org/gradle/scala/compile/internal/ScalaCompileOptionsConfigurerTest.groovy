@@ -35,7 +35,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
     def 'configuring target jvm for JVM #javaVersion and Scala #scalaLibraryVersion results in #expectedTarget'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = TestUtil.objectFactory().newInstance(ScalaCompileOptions)
+        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
         File scalaLibrary = new File("scala-library-${scalaLibraryVersion}.jar")
         Set<File> classpath = [scalaLibrary]
 
@@ -70,7 +70,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
     def 'does not configure target jvm if toolchain is not present'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = TestUtil.objectFactory().newInstance(ScalaCompileOptions)
+        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
         File scalaLibrary = new File("scala-library-2.11.0.jar")
         Set<File> classpath = [scalaLibrary]
 
@@ -83,7 +83,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
     def 'does not configure target jvm if scala library is not present or invalid'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = TestUtil.objectFactory().newInstance(ScalaCompileOptions)
+        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
         File scalaLibrary = new File("scala-invalid-2.11.0.jar")
         Set<File> classpath = [scalaLibrary]
 
@@ -102,7 +102,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
     def 'does not configure target jvm if scala compiler already has a target'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = TestUtil.objectFactory().newInstance(ScalaCompileOptions)
+        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
         scalaCompileOptions.additionalParameters = ['-target:8']
         Set<File> classpath = [new File("scala-library-2.13.1.jar")]
 
@@ -133,6 +133,9 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
             @Override
             Directory getInstallationPath() { return null }
+
+            @Override
+            boolean isCurrentJvm() { return false }
         }
     }
 }

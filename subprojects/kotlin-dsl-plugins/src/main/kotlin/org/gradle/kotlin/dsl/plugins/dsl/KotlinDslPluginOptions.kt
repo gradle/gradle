@@ -17,9 +17,7 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.Project
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.internal.deprecation.DeprecationLogger.deprecateProperty
 
 import org.gradle.kotlin.dsl.*
 
@@ -29,7 +27,7 @@ import org.gradle.kotlin.dsl.*
  *
  * @see KotlinDslPlugin
  */
-class KotlinDslPluginOptions internal constructor(objects: ObjectFactory) {
+abstract class KotlinDslPluginOptions {
 
     /**
      * Kotlin compilation JVM target.
@@ -38,36 +36,8 @@ class KotlinDslPluginOptions internal constructor(objects: ObjectFactory) {
      *
      * @see [org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions.jvmTarget]
      */
-    val jvmTarget = objects.property<String>().apply {
-        set("1.8")
-    }
-
-    /**
-     * Flag has no effect since `kotlin-dsl` no longer relies on experimental features.
-     */
-    @Deprecated(deprecationMessage)
-    val experimentalWarning: Property<Boolean>
-        get() {
-            nagUserAboutExperimentalWarning()
-            return experimentalWarningProperty
-        }
-
-    private
-    val experimentalWarningProperty = objects.property<Boolean>()
-
-    private
-    fun nagUserAboutExperimentalWarning() {
-        deprecateProperty(KotlinDslPluginOptions::class.java, "experimentalWarning")
-            .withContext(deprecationMessage)
-            .willBeRemovedInGradle8()
-            .undocumented()
-            .nagUser()
-    }
+    abstract val jvmTarget: Property<String>
 }
-
-
-private
-const val deprecationMessage = "Flag has no effect since `kotlin-dsl` no longer relies on experimental features."
 
 
 internal

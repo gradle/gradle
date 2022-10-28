@@ -104,7 +104,7 @@ public class StartParameterResolutionOverride {
                                                                          BuildCommencedTimeProvider timeProvider,
                                                                          Factory<GradleProperties> gradlePropertiesFactory) {
         List<String> checksums = startParameter.getWriteDependencyVerifications();
-        if (!checksums.isEmpty()) {
+        if (!checksums.isEmpty() || startParameter.isExportKeys()) {
             File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
             return DisablingVerificationOverride.of(
                 new WriteDependencyVerificationFile(verificationsFile, keyRing.get(), buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys())

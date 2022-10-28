@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
@@ -38,16 +39,45 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
+import java.util.Collections;
 import java.util.List;
 
 @UsedByScanPlugin("test-retry")
 public class JUnitPlatformTestFramework implements TestFramework {
     private final JUnitPlatformOptions options;
     private final DefaultTestFilter filter;
+    private final boolean useImplementationDependencies;
 
+    // Used by org.gradle.test-retry plugin.
+    // TODO: Update plugin to pass in correct value for useImplementationDependencies when copying the framework
+    // Or better yet, make it so the plugin doesn't need to access internal APIs.
+    @Deprecated
+    @SuppressWarnings("unused")
     public JUnitPlatformTestFramework(DefaultTestFilter filter) {
+        this(filter, true);
+    }
+
+    public JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies) {
+        this(filter, useImplementationDependencies, new JUnitPlatformOptions());
+    }
+
+    private JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies, JUnitPlatformOptions options) {
         this.filter = filter;
-        this.options = new JUnitPlatformOptions();
+        this.useImplementationDependencies = useImplementationDependencies;
+        this.options = options;
+    }
+
+    @UsedByScanPlugin("test-retry")
+    @Override
+    public TestFramework copyWithFilters(TestFilter newTestFilters) {
+        JUnitPlatformOptions copiedOptions = new JUnitPlatformOptions();
+        copiedOptions.copyFrom(options);
+
+        return new JUnitPlatformTestFramework(
+            (DefaultTestFilter) newTestFilters,
+            useImplementationDependencies,
+            copiedOptions
+        );
     }
 
     @Override
@@ -71,8 +101,18 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     @Override
+    public List<String> getTestWorkerImplementationClasses() {
+        return Collections.emptyList();
+    }
+
+    @Override
     public List<String> getTestWorkerImplementationModules() {
         return ImmutableList.of("junit-platform-engine", "junit-platform-launcher", "junit-platform-commons");
+    }
+
+    @Override
+    public boolean getUseImplementationDependencies() {
+        return useImplementationDependencies;
     }
 
     @Override

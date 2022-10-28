@@ -32,7 +32,7 @@ import org.gradle.api.tasks.TaskProvider;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/build_dashboard_plugin.html">Build Dashboard plugin reference</a>
  */
-public class BuildDashboardPlugin implements Plugin<Project> {
+public abstract class BuildDashboardPlugin implements Plugin<Project> {
 
     public static final String BUILD_DASHBOARD_TASK_NAME = "buildDashboard";
 

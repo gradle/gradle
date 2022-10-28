@@ -31,6 +31,7 @@ import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -157,7 +158,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * </pre>
  */
-public class IdeaModule {
+public abstract class IdeaModule {
 
     private String name;
     private Set<File> sourceDirs;
@@ -193,6 +194,7 @@ public class IdeaModule {
     private boolean offline;
     private Map<String, Iterable<File>> singleEntryLibraries;
 
+    @Inject
     public IdeaModule(Project project, IdeaModuleIml iml) {
         this.project = project;
         this.iml = iml;
@@ -200,7 +202,7 @@ public class IdeaModule {
         this.testSources = project.getObjects().fileCollection();
         this.testResources = project.getObjects().fileCollection();
 
-        // TODO: remove this whileDisabled wrapping for Gradle 8
+        // TODO: remove this whileDisabled wrapping for Gradle 8.1
         testSources.from(project.provider(() -> DeprecationLogger.whileDisabled(() -> getTestSourceDirs())));
         testResources.from(project.provider(() -> DeprecationLogger.whileDisabled(() -> getTestResourceDirs())));
     }

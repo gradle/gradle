@@ -19,6 +19,7 @@ dependencies {
     implementation(project(":file-collections"))
 
     implementation(libs.groovy)
+    implementation(libs.groovyAnt)
     implementation(libs.groovyXml)
     implementation(libs.guava)
     implementation(libs.inject)
@@ -36,6 +37,8 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+
+    integTestImplementation(testFixtures(project(":language-groovy")))
 }
 
 packageCycles {

@@ -17,11 +17,9 @@ package org.gradle.kotlin.dsl.plugins.precompiled
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.tasks.TaskProvider
 
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
@@ -36,7 +34,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
  *
  * @see PrecompiledScriptPluginsSupport
  */
-class PrecompiledScriptPlugins : Plugin<Project> {
+abstract class PrecompiledScriptPlugins : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
@@ -54,14 +52,6 @@ class PrecompiledScriptPlugins : Plugin<Project> {
 
         override val kotlinSourceDirectorySet: SourceDirectorySet
             get() = project.sourceSets["main"].kotlin
-
-        @Deprecated("No longer used.", ReplaceWith(""))
-        override val kotlinCompileTask: TaskProvider<out Task>
-            get() = error("No longer used")
-
-        @Deprecated("No longer used.", ReplaceWith(""))
-        override fun applyKotlinCompilerArgs(args: List<String>) =
-            error("No longer used.")
     }
 }
 

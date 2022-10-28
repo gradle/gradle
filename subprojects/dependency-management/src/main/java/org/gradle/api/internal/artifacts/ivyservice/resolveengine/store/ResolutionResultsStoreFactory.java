@@ -42,7 +42,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
     private CachedStoreFactory<TransientConfigurationResults> oldModelCache;
     private CachedStoreFactory<ResolvedComponentResult> newModelCache;
 
-    private final AtomicInteger storeSetBaseId = new AtomicInteger(0);
+    private final AtomicInteger storeSetBaseId = new AtomicInteger();
 
     public ResolutionResultsStoreFactory(TemporaryFileProvider temp) {
         this(temp, DEFAULT_MAX_SIZE);

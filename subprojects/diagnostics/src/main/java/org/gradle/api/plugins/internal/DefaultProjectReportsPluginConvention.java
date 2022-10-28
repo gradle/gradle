@@ -23,6 +23,7 @@ import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.util.internal.WrapUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
 
@@ -30,10 +31,11 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 
 @Deprecated
 @NonNullApi
-public class DefaultProjectReportsPluginConvention extends org.gradle.api.plugins.ProjectReportsPluginConvention implements HasPublicType {
+public abstract class DefaultProjectReportsPluginConvention extends org.gradle.api.plugins.ProjectReportsPluginConvention implements HasPublicType {
     private String projectReportDirName = "project";
     private final Project project;
 
+    @Inject
     public DefaultProjectReportsPluginConvention(Project project) {
         this.project = project;
     }
