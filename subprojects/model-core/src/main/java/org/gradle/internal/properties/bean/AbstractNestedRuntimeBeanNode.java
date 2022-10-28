@@ -48,17 +48,15 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         typeMetadata.visitValidationFailures(getPropertyName(), validationContext);
         for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyAnnotationHandler annotationHandler = typeMetadata.getAnnotationHandlerFor(propertyMetadata);
-            if (annotationHandler.shouldVisit(visitor)) {
-                String propertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
-                PropertyValue value = new BeanPropertyValue(getBean(), propertyMetadata.getGetterMethod());
-                annotationHandler.visitPropertyValue(
-                    propertyName,
-                    value,
-                    propertyMetadata,
-                    visitor,
-                    childBean -> queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, propertyName, childBean))
-                );
-            }
+            String propertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
+            PropertyValue value = new BeanPropertyValue(getBean(), propertyMetadata.getGetterMethod());
+            annotationHandler.visitPropertyValue(
+                propertyName,
+                value,
+                propertyMetadata,
+                visitor,
+                childBean -> queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, propertyName, childBean))
+            );
         }
     }
 

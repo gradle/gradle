@@ -53,11 +53,6 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
     }
 
     @Override
-    public boolean shouldVisit(PropertyVisitor visitor) {
-        return true;
-    }
-
-    @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
         Object nested;
         try {

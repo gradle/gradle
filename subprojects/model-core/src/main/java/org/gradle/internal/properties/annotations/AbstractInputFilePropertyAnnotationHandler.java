@@ -55,11 +55,6 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
     }
 
     @Override
-    public boolean shouldVisit(PropertyVisitor visitor) {
-        return true;
-    }
-
-    @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
         Annotation fileNormalization = propertyMetadata.getAnnotationForCategory(NORMALIZATION);
         Normalizer normalizer;
