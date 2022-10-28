@@ -253,23 +253,29 @@ In Java projects, these tools will use the same version of Java required by the 
 
 #### Run `buildSrc` tasks
 #### Improvements for `buildSrc`
+#### Improvements for `buildSrc` builds
+This release includes several improvements for [`buildSrc`](userguide/organizing_gradle_projects#sec:build_sources) builds to make them behave similarly to an [included build](userguide/composite_builds#composite_build_intro).
 
-TODO - The `buildSrc` build now behaves similarly to an implicit 'plugins' build
+##### Run `buildSrc` tasks directly
+It is now possible to run the tasks of `buildSrc` from the command-line, using the same syntax used for the tasks of included builds.
+For example, you can use `gradle buildSrc:build` to run the `build` task in the `buildSrc` build.
 
-#### Run `buildSrc` tasks directly
-TODO - Can now run the tasks of `buildSrc` from the command-line, using the same syntax as tasks of included builds, eg `gradle buildSrc:build`.
+TODO - link to running included build tasks
 
 #### `buildSrc` can include other builds
-TODO - can include builds in `buildSrc` - via `pluginsManagement { includeBuild(path) }` or `includeBuild(path)`
+The `buildSrc` build can now include other builds by declaring them in `buildSrc/settings.gradle.kts` or `buildSrc/settings.gradle`.
+You can use `pluginsManagement { includeBuild(someDir) }` or `includeBuild(someDir)` in this settings script to make other builds available for `buildSrc`
 
-#### Tests for `buildSrc` are not automatically run
-TODO - 
+TODO - link to declaring included builds
+
+#### Tests for `buildSrc` are no longer automatically run
+When Gradle builds the output of `buildSrc` it only runs the tasks that produce that output. It no longer runs the `build` task.
+In particular, this means that the tests of `buildSrc` and its subprojects are not built and executed when they are not needed.
+
+TODO - you can run these tasks from the command-line or edit buildSrc to restore the old behaviour; link to upgrade guide 
 
 #### Init scripts are applied to `buildSrc`
-TODO - init scripts are applied to `buildSrc`, which is the same for included builds.
-
-#### Consistent dependency resolution for included builds and `buildSrc`
-TODO - 
+Init scripts specified on the command-line using `--init-script` are now applied to `buildSrc`, in addition to the main build and all included builds.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
