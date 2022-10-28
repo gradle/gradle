@@ -20,31 +20,17 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.reflect.annotations.AnnotationCategory;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
+import java.util.Collection;
 
-import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.OPTIONAL;
-
-public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
-    @Override
-    public Kind getKind() {
-        return Kind.OTHER;
-    }
-
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return Nested.class;
-    }
-
-    @Override
-    public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
-        return ImmutableSet.of(OPTIONAL);
+public class NestedBeanAnnotationHandler extends AbstractPropertyAnnotationHandler {
+    public NestedBeanAnnotationHandler(Collection<Class<? extends Annotation>> allowedModifiers) {
+        super(Nested.class, Kind.OTHER, ImmutableSet.copyOf(allowedModifiers));
     }
 
     @Override
@@ -63,7 +49,7 @@ public class NestedBeanAnnotationHandler implements PropertyAnnotationHandler {
         }
         if (nested != null) {
             context.addNested(nested);
-        } else if (!propertyMetadata.isAnnotationPresent(Optional.class)) {
+        } else if (getAllowedModifiers().stream().noneMatch(propertyMetadata::isAnnotationPresent)) {
             visitor.visitInputProperty(propertyName, PropertyValue.ABSENT, false);
         }
     }

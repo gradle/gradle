@@ -19,35 +19,16 @@ package org.gradle.internal.properties.annotations;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.reflect.annotations.AnnotationCategory;
 
 import java.lang.annotation.Annotation;
 
-public class NoOpPropertyAnnotationHandler implements PropertyAnnotationHandler {
-    private final Class<? extends Annotation> annotationType;
-
+public class NoOpPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public NoOpPropertyAnnotationHandler(Class<? extends Annotation> annotationType) {
-        this.annotationType = annotationType;
+        super(annotationType, Kind.OTHER, ImmutableSet.of());
     }
-
-    @Override
-    public Kind getKind() {
-        return Kind.OTHER;
-    }
-
-    @Override
-    public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
-        return ImmutableSet.of();
-    }
-
     @Override
     public boolean isPropertyRelevant() {
         return false;
-    }
-
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return annotationType;
     }
 
     @Override

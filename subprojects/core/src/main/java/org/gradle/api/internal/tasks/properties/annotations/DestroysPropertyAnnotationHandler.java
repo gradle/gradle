@@ -16,32 +16,18 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.Destroys;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
+import org.gradle.internal.properties.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
-import org.gradle.internal.reflect.annotations.AnnotationCategory;
-
-import java.lang.annotation.Annotation;
 
 import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.OPTIONAL;
 
-public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHandler {
-    @Override
-    public Kind getKind() {
-        return Kind.OTHER;
-    }
-
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return Destroys.class;
-    }
-
-    @Override
-    public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
-        return ImmutableSet.of(OPTIONAL);
+public class DestroysPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
+    public DestroysPropertyAnnotationHandler() {
+        super(Destroys.class, Kind.OTHER, ModifierAnnotationCategory.annotationsOf(OPTIONAL));
     }
 
     @Override
