@@ -41,10 +41,10 @@ public class RuntimeBeanNodeFactory {
         TypeMetadata typeMetadata = metadataStore.getTypeMetadata(bean.getClass());
         if (!typeMetadata.hasAnnotatedProperties()) {
             if (bean instanceof Map<?, ?>) {
-                return new MapRuntimeBeanNode(parentNode, propertyName, (Map<?, ?>) bean, typeMetadata);
+                return new MapRuntimeBeanNode(parentNode, propertyName, (Map<?, ?>) bean);
             }
             if (bean instanceof Iterable<?>) {
-                return new IterableRuntimeBeanNode(parentNode, propertyName, (Iterable<?>) bean, typeMetadata);
+                return new IterableRuntimeBeanNode(parentNode, propertyName, (Iterable<?>) bean);
             }
         }
         ImplementationValue implementation = implementationIdentifier.identify(bean);

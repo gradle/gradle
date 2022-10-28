@@ -18,15 +18,14 @@ package org.gradle.internal.properties.bean;
 
 import com.google.common.base.Preconditions;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.Map;
 import java.util.Queue;
 
 class MapRuntimeBeanNode extends RuntimeBeanNode<Map<?, ?>> {
-    public MapRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Map<?, ?> map, TypeMetadata typeMetadata) {
-        super(parentNode, propertyName, map, typeMetadata);
+    public MapRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Map<?, ?> map) {
+        super(parentNode, propertyName, map);
     }
 
     @Override

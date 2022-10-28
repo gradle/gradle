@@ -137,10 +137,10 @@ public class PropertyValidationAccess {
             TypeMetadata typeMetadata = metadataStore.getTypeMetadata(rawType);
             if (!typeMetadata.hasAnnotatedProperties()) {
                 if (Map.class.isAssignableFrom(rawType)) {
-                    return new MapBeanTypeNode(parentNode, propertyName, Cast.uncheckedNonnullCast(beanType), typeMetadata);
+                    return new MapBeanTypeNode(parentNode, propertyName, Cast.uncheckedNonnullCast(beanType));
                 }
                 if (Iterable.class.isAssignableFrom(rawType)) {
-                    return new IterableBeanTypeNode(parentNode, propertyName, Cast.uncheckedNonnullCast(beanType), typeMetadata);
+                    return new IterableBeanTypeNode(parentNode, propertyName, Cast.uncheckedNonnullCast(beanType));
                 }
             }
             return new NestedBeanTypeNode(parentNode, propertyName, beanType, typeMetadata);
@@ -149,8 +149,8 @@ public class PropertyValidationAccess {
 
     private abstract static class BeanTypeNode<T> extends AbstractPropertyNode<TypeToken<?>> {
 
-        protected BeanTypeNode(@Nullable BeanTypeNode<?> parentNode, @Nullable String propertyName, TypeToken<? extends T> beanType, TypeMetadata typeMetadata) {
-            super(parentNode, propertyName, typeMetadata);
+        protected BeanTypeNode(@Nullable BeanTypeNode<?> parentNode, @Nullable String propertyName, TypeToken<? extends T> beanType) {
+            super(parentNode, propertyName);
             this.beanType = beanType;
         }
 
@@ -174,13 +174,15 @@ public class PropertyValidationAccess {
 
     private static class NestedBeanTypeNode extends BeanTypeNode<Object> {
 
+        private final TypeMetadata typeMetadata;
+
         public NestedBeanTypeNode(@Nullable BeanTypeNode<?> parentNode, @Nullable String parentPropertyName, TypeToken<?> beanType, TypeMetadata typeMetadata) {
-            super(parentNode, parentPropertyName, beanType, typeMetadata);
+            super(parentNode, parentPropertyName, beanType);
+            this.typeMetadata = typeMetadata;
         }
 
         @Override
         public void visit(Class<?> topLevelBean, TypeValidationContext validationContext, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
-            TypeMetadata typeMetadata = getTypeMetadata();
             typeMetadata.visitValidationFailures(getPropertyName(), validationContext);
             for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
                 String qualifiedPropertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
@@ -203,8 +205,8 @@ public class PropertyValidationAccess {
 
     private static class IterableBeanTypeNode extends BeanTypeNode<Iterable<?>> {
 
-        public IterableBeanTypeNode(@Nullable BeanTypeNode<?> parentNode, @Nullable String parentPropertyName, TypeToken<Iterable<?>> iterableType, TypeMetadata typeMetadata) {
-            super(parentNode, parentPropertyName, iterableType, typeMetadata);
+        public IterableBeanTypeNode(@Nullable BeanTypeNode<?> parentNode, @Nullable String parentPropertyName, TypeToken<Iterable<?>> iterableType) {
+            super(parentNode, parentPropertyName, iterableType);
         }
 
         private String determinePropertyName(TypeToken<?> nestedType) {
@@ -222,8 +224,8 @@ public class PropertyValidationAccess {
 
     private static class MapBeanTypeNode extends BeanTypeNode<Map<?, ?>> {
 
-        public MapBeanTypeNode(@Nullable BeanTypeNode<?> parentNode, @Nullable String parentPropertyName, TypeToken<Map<?, ?>> mapType, TypeMetadata typeMetadata) {
-            super(parentNode, parentPropertyName, mapType, typeMetadata);
+        public MapBeanTypeNode(@Nullable BeanTypeNode<?> parentNode, @Nullable String parentPropertyName, TypeToken<Map<?, ?>> mapType) {
+            super(parentNode, parentPropertyName, mapType);
         }
 
         @Override
