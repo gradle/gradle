@@ -16,17 +16,17 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
+import org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.properties.OutputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
-import org.gradle.internal.properties.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 
 public abstract class AbstractOutputPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     private final OutputFilePropertyType filePropertyType;

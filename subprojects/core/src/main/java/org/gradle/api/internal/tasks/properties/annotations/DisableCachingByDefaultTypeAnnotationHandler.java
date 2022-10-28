@@ -18,18 +18,13 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.transform.TransformAction;
-import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
+import org.gradle.internal.properties.annotations.AbstractTypeAnnotationHandler;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.work.DisableCachingByDefault;
 
-import java.lang.annotation.Annotation;
-
-import static org.gradle.internal.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfTypeAnnotation;
-
-public class DisableCachingByDefaultTypeAnnotationHandler implements TypeAnnotationHandler {
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return DisableCachingByDefault.class;
+public class DisableCachingByDefaultTypeAnnotationHandler extends AbstractTypeAnnotationHandler {
+    public DisableCachingByDefaultTypeAnnotationHandler() {
+        super(DisableCachingByDefault.class);
     }
 
     @Override

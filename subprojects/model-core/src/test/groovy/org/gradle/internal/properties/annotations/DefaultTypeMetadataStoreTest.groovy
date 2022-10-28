@@ -26,6 +26,8 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.internal.IConventionAware
+import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
+import org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Property
@@ -61,7 +63,7 @@ import spock.lang.Specification
 import javax.inject.Inject
 import java.lang.annotation.Annotation
 
-import static ModifierAnnotationCategory.NORMALIZATION
+import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 

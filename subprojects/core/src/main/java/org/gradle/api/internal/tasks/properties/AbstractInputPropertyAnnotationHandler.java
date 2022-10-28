@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.properties.annotations;
+package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
@@ -29,9 +32,12 @@ import java.util.List;
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
-class PropertyAnnotationHandlerSupport {
+abstract class AbstractInputPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
+    protected AbstractInputPropertyAnnotationHandler(Class<? extends Annotation> annotationType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
+        super(annotationType, Kind.INPUT, allowedModifiers);
+    }
 
-    static void validateUnsupportedPropertyValueTypes(
+    protected static void validateUnsupportedInputPropertyValueTypes(
         PropertyMetadata propertyMetadata,
         TypeValidationContext validationContext,
         Class<? extends Annotation> annotationType
@@ -82,8 +88,5 @@ class PropertyAnnotationHandlerSupport {
             unpackedValueTypes.add(returnType);
         }
         return unpackedValueTypes;
-    }
-
-    private PropertyAnnotationHandlerSupport() {
     }
 }
