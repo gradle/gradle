@@ -28,7 +28,7 @@ class DefaultCompositeFileTreeTest extends WorkspaceTest {
 
     def "can be empty"() {
         when:
-        def ft = newCompositeFileTree()
+        def ft = newCompositeFileTree([])
 
         then:
         ft.files.isEmpty()
