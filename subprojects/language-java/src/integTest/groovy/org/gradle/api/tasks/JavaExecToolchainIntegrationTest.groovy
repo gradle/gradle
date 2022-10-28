@@ -65,7 +65,7 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec {
         'current'      | Jvm.current()                   | 'jvm-toolchains'
     }
 
-    def "fails on toolchain and executable mismatch"() {
+    def "fails on toolchain and executable mismatch (with application plugin)"() {
         def jdkCurrent = Jvm.current()
         def jdkOther = AvailableJavaHomes.differentVersion
 
@@ -80,6 +80,7 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec {
         withInstallations(jdkCurrent, jdkOther).runAndFail(":run")
 
         then:
+        failureDescriptionStartsWith("Execution failed for task ':run'.")
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javaLauncher` property")
     }
 
@@ -96,10 +97,11 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec {
         withInstallations(jdkCurrent, jdkOther).runAndFail(":run")
 
         then:
+        failureDescriptionStartsWith("Execution failed for task ':run'.")
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javaLauncher` property")
     }
 
-    def "uses #what toolchain #when"() {
+    def "uses #what toolchain #when (with application plugin)"() {
         Jvm jdkCurrent = Jvm.current()
         Jvm jdk1 = AvailableJavaHomes.differentVersion
         Jvm jdk2 = AvailableJavaHomes.getDifferentVersion(jdk1.javaVersion)

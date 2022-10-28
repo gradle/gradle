@@ -78,7 +78,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
         skipped(":javadoc")
     }
 
-    def "fails on toolchain and executable mismatch"() {
+    def "fails on toolchain and executable mismatch (with java plugin)"() {
         def jdkCurrent = Jvm.current()
         def jdkOther = AvailableJavaHomes.differentVersion
 
@@ -91,6 +91,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
         withInstallations(jdkCurrent, jdkOther).runAndFail(":javadoc")
 
         then:
+        failureDescriptionStartsWith("Execution failed for task ':javadoc'.")
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javadocTool` property")
     }
 
@@ -107,10 +108,11 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
         withInstallations(jdkCurrent, jdkOther).runAndFail(":javadoc")
 
         then:
+        failureDescriptionStartsWith("Execution failed for task ':javadoc'.")
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javadocTool` property")
     }
 
-    def "uses #what toolchain #when"() {
+    def "uses #what toolchain #when (with java plugin)"() {
         def jdkCurrent = Jvm.current()
         def jdk1 = AvailableJavaHomes.differentVersion
         def jdk2 = AvailableJavaHomes.getDifferentVersion(jdk1.javaVersion)

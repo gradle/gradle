@@ -58,6 +58,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
         withInstallations(currentJdk, otherJdk).runAndFail(":compileJava")
 
         then:
+        failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
         failureHasCause("Toolchain from `${errorFor}` property on `ForkOptions` does not match toolchain from `javaCompiler` property")
 
         where:
@@ -102,6 +103,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
         withInstallations(currentJdk, otherJdk).runAndFail(":compileJava")
 
         then:
+        failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
         failureHasCause("Toolchain from `${errorForProperty}` property on `ForkOptions` does not match toolchain from `javaCompiler` property")
 
         where:
@@ -112,7 +114,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
         "tool disagrees with "                | "other" | "current" | "current"  | "javaHome"
     }
 
-    def "uses #uses toolchain #when"() {
+    def "uses #what toolchain #when (with java plugin)"() {
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.differentVersion
 
@@ -157,7 +159,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         // Some cases are skipped, because forkOptions (when configured) must match the resulting toolchain, otherwise the build fails
-        uses             | when                         | withTool | withJavaHome | withExecutable | withJavaExtension
+        what             | when                         | withTool | withJavaHome | withExecutable | withJavaExtension
         "current JVM"    | "when nothing is configured" | false    | false        | false          | false
         "java extension" | "when configured"            | false    | false        | false          | true
         "executable"     | "when configured"            | false    | false        | true           | false
@@ -168,7 +170,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
         "assigned tool"  | "over java extension"        | true     | false        | false          | true
     }
 
-    def "uses #uses toolchain #when (without java base plugin)"() {
+    def "uses #what toolchain #when (without java base plugin)"() {
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.differentVersion
 
@@ -221,7 +223,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         // Some cases are skipped, because forkOptions (when configured) must match the resulting toolchain, otherwise the build fails
-        uses            | when                                 | withTool | withJavaHome | withExecutable
+        what            | when                                 | withTool | withJavaHome | withExecutable
         "current JVM"   | "when toolchains are not configured" | false    | false        | false
         "executable"    | "when configured"                    | false    | false        | true
         "java home"     | "when configured"                    | false    | true         | false

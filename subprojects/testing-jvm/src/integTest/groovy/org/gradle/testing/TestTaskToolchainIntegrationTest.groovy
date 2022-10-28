@@ -54,6 +54,7 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec {
         withInstallations(jdkCurrent, jdkOther).runAndFail(":test")
 
         then:
+        failureDescriptionStartsWith("Execution failed for task ':test'.")
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javaLauncher` property")
     }
 
@@ -72,10 +73,11 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec {
         withInstallations(jdkCurrent, jdkOther).runAndFail(":test")
 
         then:
+        failureDescriptionStartsWith("Execution failed for task ':test'.")
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javaLauncher` property")
     }
 
-    def "uses #what toolchain #when"() {
+    def "uses #what toolchain #when (with java plugin)"() {
         Jvm jdkCurrent = Jvm.current()
         Jvm jdk1 = AvailableJavaHomes.differentVersion
         Jvm jdk2 = AvailableJavaHomes.getDifferentVersion(jdk1.javaVersion)
