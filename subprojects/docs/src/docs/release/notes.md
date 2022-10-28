@@ -401,7 +401,7 @@ gradle myCustomTask --integer-option=123
 <a name="ide"></a>
 ### IDE Integration
 
-This improvements are for IDE integrators and are not directly for end-users until their specific IDE implments the integration. 
+This improvements are for IDE integrators and are not directly for end-users until their specific IDE implements the integration. 
 
 #### Enhanced test events to distinguish between assertion and framework failures
 
