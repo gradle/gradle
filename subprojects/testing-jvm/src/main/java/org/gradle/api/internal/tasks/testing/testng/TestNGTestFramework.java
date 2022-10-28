@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.tasks.testing.DistributionModule;
 import org.gradle.api.internal.tasks.testing.TestClassLoaderFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
@@ -39,7 +40,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 @UsedByScanPlugin("test-retry")
@@ -203,13 +203,13 @@ public class TestNGTestFramework implements TestFramework {
     }
 
     @Override
-    public Set<? extends DistributionModule> getTestWorkerApplicationClasses() {
-        return Collections.emptySet();
+    public List<? extends DistributionModule> getTestWorkerApplicationClasses() {
+        return Collections.emptyList();
     }
 
     @Override
-    public Set<? extends DistributionModule> getTestWorkerApplicationModules() {
-        return Collections.emptySet();
+    public List<? extends DistributionModule> getTestWorkerApplicationModules() {
+        return Collections.emptyList();
     }
 
     @Override

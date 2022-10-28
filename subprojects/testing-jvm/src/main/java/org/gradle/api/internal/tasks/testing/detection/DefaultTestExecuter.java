@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.tasks.testing.DistributionModule;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -42,10 +43,9 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 
 /**
  * The default test class scanner factory.
@@ -93,25 +93,25 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         // behavior entirely and rely on the tests to always provide their implementation
         // dependencies.
 
-        final Set<File> classpath;
-        final Set<File> modulePath;
+        final List<File> classpath;
+        final List<File> modulePath;
         if (testFramework.getUseDistributionDependencies()) {
             if (testExecutionSpec.getTestIsModule()) {
                 classpath = pathWithAdditionalJars(testExecutionSpec.getClasspath(), testFramework.getTestWorkerApplicationClasses());
                 modulePath = pathWithAdditionalJars(testExecutionSpec.getModulePath(), testFramework.getTestWorkerApplicationModules());
             } else {
                 // For non-module tests, add all additional distribution jars to the classpath.
-                Set<? extends TestFramework.DistributionModule> additionalClasspath = ImmutableSet.<TestFramework.DistributionModule>builder()
+                List<? extends DistributionModule> additionalClasspath = ImmutableList.<DistributionModule>builder()
                     .addAll(testFramework.getTestWorkerApplicationClasses())
                     .addAll(testFramework.getTestWorkerApplicationModules())
                     .build();
 
                 classpath = pathWithAdditionalJars(testExecutionSpec.getClasspath(), additionalClasspath);
-                modulePath = ImmutableSet.copyOf(testExecutionSpec.getModulePath());
+                modulePath = ImmutableList.copyOf(testExecutionSpec.getModulePath());
             }
         } else {
-            classpath = ImmutableSet.copyOf(testExecutionSpec.getClasspath());
-            modulePath = ImmutableSet.copyOf(testExecutionSpec.getModulePath());
+            classpath = ImmutableList.copyOf(testExecutionSpec.getClasspath());
+            modulePath = ImmutableList.copyOf(testExecutionSpec.getModulePath());
         }
 
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
@@ -137,7 +137,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         Runnable detector;
         if (testExecutionSpec.isScanForTestClasses() && testFramework.getDetector() != null) {
             TestFrameworkDetector testFrameworkDetector = testFramework.getDetector();
-            testFrameworkDetector.setTestClasses(testExecutionSpec.getTestClassesDirs().getFiles());
+            testFrameworkDetector.setTestClasses(new ArrayList<File>(testExecutionSpec.getTestClassesDirs().getFiles()));
             testFrameworkDetector.setTestClasspath(classpath);
             detector = new DefaultTestClassScanner(testClassFiles, testFrameworkDetector, processor);
         } else {
@@ -164,7 +164,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     }
 
     /**
-     * Create a classpath or modulePath, as a set of files, given both the files provided by the test spec and a set of
+     * Create a classpath or modulePath, as a list of files, given both the files provided by the test spec and a list of
      * modules to potentially load from the Gradle distribution. For each additional module to load, we check if the
      * test files contains a jar which satisfies the module-to-load. If the test files do not contain a satisfactory
      * jar, the given additional module is loaded from the Gradle distribution.
@@ -178,16 +178,16 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
      *
      * @return A set of files representing the constructed classpath or modulePath.
      */
-    private Set<File> pathWithAdditionalJars(Iterable<? extends File> testFiles, Set<? extends TestFramework.DistributionModule> additionalModules) {
-        Set<File> outputFiles = new LinkedHashSet<File>();
+    private List<File> pathWithAdditionalJars(Iterable<? extends File> testFiles, List<? extends DistributionModule> additionalModules) {
+        List<File> outputFiles = new ArrayList<File>();
 
-        Set<? extends TestFramework.DistributionModule> mutableAdditionalModules = new HashSet<TestFramework.DistributionModule>(additionalModules);
+        List<? extends DistributionModule> mutableAdditionalModules = new ArrayList<DistributionModule>(additionalModules);
         for (File f : testFiles) {
             // Loop through each additional jar from the distribution. If the test classpath provides
             // this jar, don't load it from the distribution.
-            Iterator<? extends TestFramework.DistributionModule> it = mutableAdditionalModules.iterator();
+            Iterator<? extends DistributionModule> it = mutableAdditionalModules.iterator();
             while (it.hasNext()) {
-                TestFramework.DistributionModule module = it.next();
+                DistributionModule module = it.next();
                 if (module.getFileNameMatcher().matcher(f.getName()).matches()) {
                     // The test classpath provides this jar.
                     it.remove();
@@ -196,7 +196,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             outputFiles.add(f);
         }
 
-        Set<? extends TestFramework.DistributionModule> toLoad = mutableAdditionalModules;
+        List<? extends DistributionModule> toLoad = mutableAdditionalModules;
         int numMutableModules = mutableAdditionalModules.size();
         if (numMutableModules > 0 && numMutableModules < additionalModules.size()) {
             // The test classpath only provides some of the additional modules. So,
@@ -206,7 +206,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         }
 
         // For any modules not provided by the test, load them from the distribution.
-        for (TestFramework.DistributionModule module : toLoad) {
+        for (DistributionModule module : toLoad) {
             outputFiles.addAll(moduleRegistry.getExternalModule(module.getModuleName()).getImplementationClasspath().getAsFiles());
 
             // TODO: The user is relying on dependencies from the Gradle distribution. Emit a deprecation warning.

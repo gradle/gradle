@@ -26,8 +26,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.Closeable;
-import java.util.Set;
-import java.util.regex.Pattern;
+import java.util.List;
 
 @UsedByScanPlugin("test-retry")
 public interface TestFramework extends Closeable {
@@ -74,7 +73,7 @@ public interface TestFramework extends Closeable {
      * @see #getUseDistributionDependencies()
      */
     @Internal
-    Set<? extends DistributionModule> getTestWorkerApplicationClasses();
+    List<? extends DistributionModule> getTestWorkerApplicationClasses();
 
     /**
      * Returns a list of modules the test worker requires on the modulepath if it runs as a module.
@@ -83,7 +82,7 @@ public interface TestFramework extends Closeable {
      * @see #getUseDistributionDependencies()
      */
     @Internal
-    Set<? extends DistributionModule> getTestWorkerApplicationModules();
+    List<? extends DistributionModule> getTestWorkerApplicationModules();
 
     /**
      * Whether the legacy behavior of loading test framework dependencies from the Gradle distribution
@@ -99,63 +98,4 @@ public interface TestFramework extends Closeable {
     @Internal
     boolean getUseDistributionDependencies();
 
-    /**
-     * A third-party module which may be loaded from the Gradle distribution.
-     */
-    interface DistributionModule {
-        /**
-         * The name of the module to load.
-         */
-        String getModuleName();
-
-        /**
-         * A pattern which matches jars provided by the module. Used to determine
-         * if this module already exists on the classpath.
-         */
-        Pattern getFileNameMatcher();
-    }
-
-    class DefaultDistributionModule implements DistributionModule {
-        private final String moduleName;
-        private final Pattern fileNameMatcher;
-
-        public DefaultDistributionModule(String moduleName, Pattern fileNameMatcher) {
-            this.moduleName = moduleName;
-            this.fileNameMatcher = fileNameMatcher;
-        }
-
-        @Override
-        public String getModuleName() {
-            return moduleName;
-        }
-
-        @Override
-        public Pattern getFileNameMatcher() {
-            return fileNameMatcher;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            DefaultDistributionModule that = (DefaultDistributionModule) o;
-
-            if (!moduleName.equals(that.moduleName)) {
-                return false;
-            }
-            return fileNameMatcher.equals(that.fileNameMatcher);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = moduleName.hashCode();
-            result = 31 * result + fileNameMatcher.hashCode();
-            return result;
-        }
-    }
 }
