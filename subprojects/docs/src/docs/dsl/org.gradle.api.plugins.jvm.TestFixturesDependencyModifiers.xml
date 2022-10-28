@@ -7,6 +7,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>testFixtures</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -17,12 +20,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>platform</td>
-            </tr>
-            <tr>
-                <td>enforcedPlatform</td>
-            </tr>
         </table>
     </section>
 </section>
