@@ -22,6 +22,7 @@ import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 import org.gradle.plugins.ide.eclipse.model.WbProperty
 import org.gradle.plugins.ide.eclipse.model.WbResource
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 import spock.lang.Issue
 
 class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
@@ -29,7 +30,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
     private EclipseWtpPlugin wtpPlugin
 
     def setup() {
-        wtpPlugin = new EclipseWtpPlugin(project.services.get(Instantiator))
+        wtpPlugin = TestUtil.newInstance(EclipseWtpPlugin, project.services.get(Instantiator))
     }
 
     def "has description"() {

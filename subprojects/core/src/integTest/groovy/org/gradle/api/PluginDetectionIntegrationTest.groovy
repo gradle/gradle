@@ -48,7 +48,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
             assert pluginManager.hasPlugin("$detectedBy")
             assert pluginManager.findPlugin("$detectedBy").id == "$detectedBy"
 
-            task verify { doLast { assert operations == ['applying', 'withId for JavaPlugin', 'withPlugin', 'applied'] } }
+            task verify { doLast { assert operations == ['applying', 'withId for JavaPlugin\$Inject', 'withPlugin', 'applied'] } }
         """
 
         expect:

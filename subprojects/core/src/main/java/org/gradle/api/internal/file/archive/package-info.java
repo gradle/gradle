@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+@NonNullApi
+package org.gradle.api.internal.file.archive;
 
-import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.file.DefaultSourceDirectorySet;
-import org.gradle.api.tasks.ScalaSourceDirectorySet;
-
-import javax.inject.Inject;
-
-public abstract class DefaultScalaSourceDirectorySet extends DefaultSourceDirectorySet implements ScalaSourceDirectorySet {
-    @Inject
-    public DefaultScalaSourceDirectorySet(SourceDirectorySet sourceDirectorySet) {
-        super(sourceDirectorySet);
-    }
-}
+import org.gradle.api.NonNullApi;

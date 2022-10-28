@@ -32,7 +32,7 @@ import java.util.List;
  *
  * @see PmdPlugin
  */
-public class PmdExtension extends CodeQualityExtension {
+public abstract class PmdExtension extends CodeQualityExtension {
 
     private final Project project;
 

@@ -16,8 +16,8 @@
 
 package org.gradle.test.fixtures.archive
 
+import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.io.IOUtils
-import org.apache.tools.zip.ZipFile
 import org.gradle.test.fixtures.file.ClassFile
 
 import java.util.jar.JarEntry
@@ -50,7 +50,7 @@ class JarTestFixture extends ZipTestFixture {
         def zipFile = new ZipFile(file, metadataCharset)
         try {
             def entries = zipFile.getEntries()
-            def zipEntry = entries.nextElement();
+            def zipEntry = entries.nextElement()
             if(zipEntry.getName().equalsIgnoreCase('META-INF/')) {
                 zipEntry = entries.nextElement()
             }
