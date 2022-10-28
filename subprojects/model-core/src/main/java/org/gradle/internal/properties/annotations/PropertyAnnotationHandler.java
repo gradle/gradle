@@ -47,11 +47,6 @@ public interface PropertyAnnotationHandler {
     boolean isPropertyRelevant();
 
     /**
-     * Is the given visitor interested in this annotation?
-     */
-    boolean shouldVisit(PropertyVisitor visitor);
-
-    /**
      * Visit the value of a property with this annotation attached.
      */
     void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context);

@@ -50,11 +50,6 @@ class ValidationProblemPropertyAnnotationHandler implements PropertyAnnotationHa
     }
 
     @Override
-    public boolean shouldVisit(PropertyVisitor visitor) {
-        return true;
-    }
-
-    @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
     }
 
