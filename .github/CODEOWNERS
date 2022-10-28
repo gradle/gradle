@@ -36,6 +36,8 @@ subprojects/testing-jvm/            @gradle/bt-jvm @gradle/ge-testing
 
 # Software platform
 subprojects/build-init/             @gradle/bt-jvm
+subprojects/dependency-management/  @gradle/bt-jvm
+subprojects/diagnostics/            @gradle/bt-jvm
 subprojects/ivy/                    @gradle/bt-jvm
 subprojects/maven/                  @gradle/bt-jvm
 subprojects/platform-base/          @gradle/bt-jvm
