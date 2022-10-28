@@ -142,8 +142,9 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
 
     static String check(String moduleName, String declaredDependencyId, String confName, String winner) { """
         task check${moduleName}_${confName} {
+            def result = configurations.${confName}.incoming.resolutionResult.rootComponent
             doLast {
-                def deps = configurations.${confName}.incoming.resolutionResult.allDependencies as List
+                def deps = result.get().dependencies as List
                 def projectDependency = deps.find {
                     it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
                         it.requested.matchesStrictly($declaredDependencyId)
