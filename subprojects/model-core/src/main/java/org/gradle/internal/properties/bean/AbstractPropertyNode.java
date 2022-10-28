@@ -17,19 +17,16 @@
 package org.gradle.internal.properties.bean;
 
 import com.google.common.base.Equivalence;
-import org.gradle.internal.properties.annotations.TypeMetadata;
 
 import javax.annotation.Nullable;
 
 public abstract class AbstractPropertyNode<T> {
     private final String propertyName;
     private final AbstractPropertyNode<T> parentNode;
-    private final TypeMetadata typeMetadata;
 
-    public AbstractPropertyNode(@Nullable AbstractPropertyNode<T> parentNode, @Nullable String propertyName, TypeMetadata typeMetadata) {
+    public AbstractPropertyNode(@Nullable AbstractPropertyNode<T> parentNode, @Nullable String propertyName) {
         this.propertyName = propertyName;
         this.parentNode = parentNode;
-        this.typeMetadata = typeMetadata;
     }
 
     protected String getQualifiedPropertyName(String childPropertyName) {
@@ -39,10 +36,6 @@ public abstract class AbstractPropertyNode<T> {
     @Nullable
     public String getPropertyName() {
         return propertyName;
-    }
-
-    public TypeMetadata getTypeMetadata() {
-        return typeMetadata;
     }
 
     @Nullable

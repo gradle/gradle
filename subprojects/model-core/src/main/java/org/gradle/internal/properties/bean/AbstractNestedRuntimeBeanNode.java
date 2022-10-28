@@ -39,12 +39,14 @@ import java.lang.reflect.Method;
 import java.util.Queue;
 
 public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Object> {
+    private final TypeMetadata typeMetadata;
+
     protected AbstractNestedRuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, Object bean, TypeMetadata typeMetadata) {
-        super(parentNode, propertyName, bean, typeMetadata);
+        super(parentNode, propertyName, bean);
+        this.typeMetadata = typeMetadata;
     }
 
     protected void visitProperties(PropertyVisitor visitor, final Queue<RuntimeBeanNode<?>> queue, final RuntimeBeanNodeFactory nodeFactory, TypeValidationContext validationContext) {
-        TypeMetadata typeMetadata = getTypeMetadata();
         typeMetadata.visitValidationFailures(getPropertyName(), validationContext);
         for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
             PropertyAnnotationHandler annotationHandler = typeMetadata.getAnnotationHandlerFor(propertyMetadata);
