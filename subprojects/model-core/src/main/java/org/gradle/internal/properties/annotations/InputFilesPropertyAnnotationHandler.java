@@ -15,12 +15,8 @@
  */
 package org.gradle.internal.properties.annotations;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.internal.properties.InputFilePropertyType;
-import org.gradle.internal.reflect.annotations.AnnotationCategory;
-
-import java.lang.annotation.Annotation;
 
 import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
 import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.INCREMENTAL;
@@ -29,18 +25,11 @@ import static org.gradle.internal.properties.annotations.ModifierAnnotationCateg
 import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.OPTIONAL;
 
 public class InputFilesPropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return InputFiles.class;
-    }
-
-    @Override
-    public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
-        return ImmutableSet.of(INCREMENTAL, NORMALIZATION, OPTIONAL, IGNORE_EMPTY_DIRECTORIES, NORMALIZE_LINE_ENDINGS);
-    }
-
-    @Override
-    protected InputFilePropertyType getFilePropertyType() {
-        return InputFilePropertyType.FILES;
+    public InputFilesPropertyAnnotationHandler() {
+        super(
+            InputFiles.class,
+            InputFilePropertyType.FILES,
+            ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, OPTIONAL, IGNORE_EMPTY_DIRECTORIES, NORMALIZE_LINE_ENDINGS)
+        );
     }
 }

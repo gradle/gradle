@@ -20,7 +20,6 @@ import org.gradle.api.Action
 import org.gradle.api.internal.tasks.properties.DefaultValidatingProperty
 import org.gradle.api.internal.tasks.properties.PropertyValidationContext
 import org.gradle.api.internal.tasks.properties.ValidationActions
-import org.gradle.api.tasks.Optional
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -35,6 +34,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
     def propertyVisitor = Mock(PropertyVisitor)
     def context = Mock(BeanPropertyContext)
     def propertyMetadata = Mock(PropertyMetadata)
+    private NestedBeanAnnotationHandler handler = new NestedBeanAnnotationHandler([TestOptional])
 
     @ValidationTestFor(
         ValidationProblemId.VALUE_NOT_SET
@@ -44,11 +44,11 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         def validationContext = Mock(PropertyValidationContext)
 
         when:
-        new NestedBeanAnnotationHandler().visitPropertyValue("name", value, propertyMetadata, propertyVisitor, context)
+        handler.visitPropertyValue("name", value, propertyMetadata, propertyVisitor, context)
 
         then:
         1 * value.call() >> null
-        1 * propertyMetadata.isAnnotationPresent(Optional) >> false
+        1 * propertyMetadata.isAnnotationPresent(TestOptional) >> false
         1 * propertyVisitor.visitInputProperty("name", _, false) >> { arguments ->
             validatingValue = arguments[1]
         }
@@ -66,11 +66,11 @@ class NestedBeanAnnotationHandlerTest extends Specification {
 
     def "absent optional nested property is ignored"() {
         when:
-        new NestedBeanAnnotationHandler().visitPropertyValue("name", value, propertyMetadata, propertyVisitor, context)
+        handler.visitPropertyValue("name", value, propertyMetadata, propertyVisitor, context)
 
         then:
         1 * value.call() >> null
-        1 * propertyMetadata.isAnnotationPresent(Optional) >> true
+        1 * propertyMetadata.isAnnotationPresent(TestOptional) >> true
         0 * _
     }
 
@@ -79,7 +79,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         def exception = new RuntimeException("BOOM!")
 
         when:
-        new NestedBeanAnnotationHandler().visitPropertyValue("name", value, propertyMetadata, propertyVisitor, context)
+        handler.visitPropertyValue("name", value, propertyMetadata, propertyVisitor, context)
 
         then:
         1 * value.call() >> {
@@ -104,7 +104,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         def nestedPropertyName = "someProperty"
 
         when:
-        new NestedBeanAnnotationHandler().visitPropertyValue(nestedPropertyName, value, propertyMetadata, propertyVisitor, context)
+        handler.visitPropertyValue(nestedPropertyName, value, propertyMetadata, propertyVisitor, context)
 
         then:
         1 * value.call() >> nestedBean
@@ -112,3 +112,5 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         0 * _
     }
 }
+
+@interface TestOptional {}

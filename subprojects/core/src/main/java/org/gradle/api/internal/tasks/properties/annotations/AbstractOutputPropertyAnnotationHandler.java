@@ -16,29 +16,25 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.properties.OutputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
+import org.gradle.internal.properties.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
-import org.gradle.internal.reflect.annotations.AnnotationCategory;
+
+import java.lang.annotation.Annotation;
 
 import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.OPTIONAL;
 
-public abstract class AbstractOutputPropertyAnnotationHandler implements PropertyAnnotationHandler {
-    @Override
-    public Kind getKind() {
-        return Kind.OUTPUT;
-    }
+public abstract class AbstractOutputPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
+    private final OutputFilePropertyType filePropertyType;
 
-    @Override
-    public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
-        return ImmutableSet.of(OPTIONAL);
+    public AbstractOutputPropertyAnnotationHandler(Class<? extends Annotation> annotationType, OutputFilePropertyType filePropertyType) {
+        super(annotationType, Kind.OUTPUT, ModifierAnnotationCategory.annotationsOf(OPTIONAL));
+        this.filePropertyType = filePropertyType;
     }
-
-    protected abstract OutputFilePropertyType getFilePropertyType();
 
     @Override
     public boolean isPropertyRelevant() {
@@ -47,6 +43,6 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        visitor.visitOutputFileProperty(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, getFilePropertyType());
+        visitor.visitOutputFileProperty(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, filePropertyType);
     }
 }

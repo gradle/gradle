@@ -29,6 +29,7 @@ import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
@@ -60,6 +61,14 @@ public enum ModifierAnnotationCategory implements AnnotationCategory {
     ModifierAnnotationCategory(String displayName, Class<? extends Annotation>... annotations) {
         this.displayName = displayName;
         this.annotations = ImmutableSet.copyOf(annotations);
+    }
+
+    public static ImmutableSet<Class<? extends Annotation>> annotationsOf(ModifierAnnotationCategory... categories) {
+        ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
+        Arrays.stream(categories)
+            .map(category -> category.annotations)
+            .forEach(builder::addAll);
+        return builder.build();
     }
 
     @Override

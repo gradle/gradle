@@ -15,12 +15,8 @@
  */
 package org.gradle.internal.properties.annotations;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.internal.properties.InputFilePropertyType;
-import org.gradle.internal.reflect.annotations.AnnotationCategory;
-
-import java.lang.annotation.Annotation;
 
 import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.INCREMENTAL;
 import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.NORMALIZATION;
@@ -28,18 +24,11 @@ import static org.gradle.internal.properties.annotations.ModifierAnnotationCateg
 import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.OPTIONAL;
 
 public class InputFilePropertyAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler {
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return InputFile.class;
-    }
-
-    @Override
-    public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
-        return ImmutableSet.of(INCREMENTAL, NORMALIZATION, OPTIONAL, NORMALIZE_LINE_ENDINGS);
-    }
-
-    @Override
-    protected InputFilePropertyType getFilePropertyType() {
-        return InputFilePropertyType.FILE;
+    public InputFilePropertyAnnotationHandler() {
+        super(
+            InputFile.class,
+            InputFilePropertyType.FILE,
+            ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, OPTIONAL, NORMALIZE_LINE_ENDINGS)
+        );
     }
 }
