@@ -30,8 +30,8 @@ import org.gradle.api.artifacts.dsl.GradleDependencies;
  *     <li><code>annotationProcessor</code> dependencies are used only at compilation for the annotation processor classpath</li>
  * </ul>
  *
- * This API is <strong>incubating</strong> and is likely to change until it's made stable.
- * These methods are not intended to be implemented by end users or plugin authors.
+ * @apiNote This API is <strong>incubating</strong> and is likely to change until it's made stable.
+ * @implSpec These methods are not intended to be implemented by end users or plugin authors.
  *
  * @see org.gradle.api.artifacts.dsl.DependencyHandler For more information.
  * @since 7.3

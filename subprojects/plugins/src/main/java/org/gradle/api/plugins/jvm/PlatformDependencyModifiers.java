@@ -31,8 +31,8 @@ import javax.inject.Inject;
 /**
  * Dependency modifier APIs available that can find platform and enforced platforms in other modules for {@code dependencies} blocks.
  *
- * This API is <strong>incubating</strong> and is likely to change until it's made stable.
- * These methods are not intended to be implemented by end users or plugin authors.
+ * @apiNote This API is <strong>incubating</strong> and is likely to change until it's made stable.
+ * @implSpec These methods are not intended to be implemented by end users or plugin authors.
  *
  * @since 8.0
  */
@@ -44,7 +44,7 @@ public interface PlatformDependencyModifiers {
      * @return the dependency modifier
      *
      * @see PlatformDependencyModifiers.PlatformDependencyModifier#modify(ModuleDependency)
-     * Do not implement this method.
+     * @implSpec Do not implement this method.
      */
     @Nested
     PlatformDependencyModifier getPlatform();
@@ -79,7 +79,7 @@ public interface PlatformDependencyModifiers {
      * @return the dependency modifier
      *
      * @see PlatformDependencyModifiers.EnforcedPlatformDependencyModifier#modify(ModuleDependency)
-     * Do not implement this method.
+     * @implSpec Do not implement this method.
      */
     @Nested
     EnforcedPlatformDependencyModifier getEnforcedPlatform();
