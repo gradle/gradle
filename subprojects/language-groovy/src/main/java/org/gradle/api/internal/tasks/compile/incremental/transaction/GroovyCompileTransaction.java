@@ -27,6 +27,9 @@ import org.gradle.internal.file.Deleter;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
+
+import static org.gradle.internal.FileUtils.hasExtension;
 
 public class GroovyCompileTransaction extends AbstractCompileTransaction {
 
@@ -48,7 +51,7 @@ public class GroovyCompileTransaction extends AbstractCompileTransaction {
 
     @Override
     void doStashFiles(List<StashedFile> stashedFiles) {
-        if (hasAnyJavaSource()) {
+        if (isGroovyJavaJointCompilation()) {
             // For Groovy/Java joint compilation we have to stash files from Groovy compiler, so all previous classes can be discovered when analysing code.
             // Issue: https://github.com/gradle/gradle/issues/22531
             BeforeJavaCompilationStashRunnable stashRunnable = new BeforeJavaCompilationStashRunnable(stashedFiles);
@@ -58,8 +61,20 @@ public class GroovyCompileTransaction extends AbstractCompileTransaction {
         }
     }
 
-    private boolean hasAnyJavaSource() {
-        return spec instanceof GroovyJavaJointCompileSpec && recompilationSpec.getSourcePaths().stream().anyMatch(path -> path.endsWith(".java"));
+    private boolean isGroovyJavaJointCompilation() {
+        return spec instanceof GroovyJavaJointCompileSpec
+            && isJavaFileCompilationEnabled((GroovyJavaJointCompileSpec) spec)
+            && hasAnyJavaSource((GroovyJavaJointCompileSpec) spec);
+    }
+
+    private boolean isJavaFileCompilationEnabled(GroovyJavaJointCompileSpec spec) {
+        return spec.getGroovyCompileOptions().getFileExtensions()
+            .stream().anyMatch(extension -> extension.equals("java") || extension.equals(".java"));
+    }
+
+    private boolean hasAnyJavaSource(GroovyJavaJointCompileSpec spec) {
+        return StreamSupport.stream(spec.getSourceFiles().spliterator(), false)
+            .anyMatch(file -> hasExtension(file, ".java"));
     }
 
     private static class BeforeJavaCompilationStashRunnable implements Runnable, Serializable {
