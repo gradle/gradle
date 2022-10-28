@@ -34,15 +34,15 @@ public abstract class DefaultScalaSourceSet implements org.gradle.api.tasks.Scal
     private final SourceDirectorySet allScala;
 
     @Inject
-    public DefaultScalaSourceSet(String displayName, ObjectFactory objectFactory, TaskDependencyFactory taskDependencyFactory) {
-        scala = createScalaSourceDirectorySet("scala", displayName + " Scala source", objectFactory, taskDependencyFactory);
+    public DefaultScalaSourceSet(String displayName, ObjectFactory objectFactory) {
+        scala = createScalaSourceDirectorySet("scala", displayName + " Scala source", objectFactory);
         allScala = objectFactory.sourceDirectorySet("allscala", displayName + " Scala source");
         allScala.getFilter().include("**/*.scala");
         allScala.source(scala);
     }
 
-    private static ScalaSourceDirectorySet createScalaSourceDirectorySet(String name, String displayName, ObjectFactory objectFactory, TaskDependencyFactory taskDependencyFactory) {
-        ScalaSourceDirectorySet scalaSourceDirectorySet = objectFactory.newInstance(DefaultScalaSourceDirectorySet.class, objectFactory.sourceDirectorySet(name, displayName), taskDependencyFactory);
+    private static ScalaSourceDirectorySet createScalaSourceDirectorySet(String name, String displayName, ObjectFactory objectFactory) {
+        ScalaSourceDirectorySet scalaSourceDirectorySet = objectFactory.newInstance(DefaultScalaSourceDirectorySet.class, objectFactory.sourceDirectorySet(name, displayName));
         scalaSourceDirectorySet.getFilter().include("**/*.java", "**/*.scala");
         return scalaSourceDirectorySet;
     }
