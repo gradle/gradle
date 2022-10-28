@@ -33,6 +33,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.NodeExecutionContext
+import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
@@ -98,7 +99,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         taskExecutionListeners,
         listenerRegistrationListener,
         Stub(ServiceRegistry) {
-            get(_) >> TestFiles.taskDependencyFactory()
+            get(TaskDependencyFactory) >> TestFiles.taskDependencyFactory()
         }
     )
     WorkerLeaseRegistry.WorkerLeaseCompletion parentWorkerLease

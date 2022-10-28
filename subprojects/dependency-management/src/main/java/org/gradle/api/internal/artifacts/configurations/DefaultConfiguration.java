@@ -1469,7 +1469,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 boolean allowNoMatchingVariants,
                 boolean selectFromAllVariants,
                 ResolutionHost resolutionHost,
-            TaskDependencyFactory taskDependencyFactory
+                TaskDependencyFactory taskDependencyFactory
         ) {
             super(taskDependencyFactory);
             this.resultProvider = resultProvider;
