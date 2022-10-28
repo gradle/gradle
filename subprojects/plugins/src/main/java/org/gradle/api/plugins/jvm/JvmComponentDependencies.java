@@ -29,10 +29,9 @@ import org.gradle.api.artifacts.dsl.GradleDependencies;
  *     <li><code>runtimeOnly</code> dependencies are not available at compilation and are used only at runtime.</li>
  *     <li><code>annotationProcessor</code> dependencies are used only at compilation for the annotation processor classpath</li>
  * </ul>
- * <br>
- * <p>
- * Most of these methods are not intended to be implemented by end users or plugin authors.
- * </p>
+ *
+ * This API is <strong>incubating</strong> and is likely to change until it's made stable.
+ * These methods are not intended to be implemented by end users or plugin authors.
  *
  * @see org.gradle.api.artifacts.dsl.DependencyHandler For more information.
  * @since 7.3

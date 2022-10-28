@@ -27,13 +27,8 @@ import javax.inject.Inject;
 /**
  * Universal APIs that are available for all {@code dependencies} blocks.
  *
- * <p>
- * NOTE: This API is <strong>incubating</strong> and is likely to change until it's made stable.
- * </p>
- * <br>
- * <p>
+ * This API is <strong>incubating</strong> and is likely to change until it's made stable.
  * These methods are not intended to be implemented by end users or plugin authors.
- * </p>
  * @since 7.6
  */
 @Incubating
