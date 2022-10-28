@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.fingerprint;
+package org.gradle.internal.execution.model;
+
+import org.gradle.internal.fingerprint.Normalizer;
 
 /**
  * {@link Normalizer} used for output files.

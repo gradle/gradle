@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.internal.fingerprint.InputNormalizer;
+import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.properties.InputFilePropertyType;
 
