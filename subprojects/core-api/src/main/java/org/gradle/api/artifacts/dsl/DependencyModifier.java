@@ -29,8 +29,8 @@ import javax.inject.Inject;
 /**
  * Universal APIs that are available for all {@code dependencies} blocks.
  *
- * This API is <strong>incubating</strong> and is likely to change until it's made stable.
- * These methods are not intended to be implemented by end users or plugin authors.
+ * @apiNote This API is <strong>incubating</strong> and is likely to change until it's made stable.
+ * @implSpec These methods are not intended to be implemented by end users or plugin authors.
  *
  * @since 8.0
  */
@@ -42,7 +42,7 @@ public interface DependencyModifier {
      *
      * @return a dependency factory
      * @see DependencyFactory
-     * Do not implement this method.
+     * @implSpec Do not implement this method.
      */
     @Inject
     DependencyFactory getDependencyFactory();
@@ -53,7 +53,7 @@ public interface DependencyModifier {
      * @param dependencyNotation the dependency notation
      * @return the modified dependency
      * @see DependencyFactory#create(CharSequence)
-     * Do not implement this method.
+     * @implSpec Do not implement this method.
      */
     default ExternalModuleDependency modify(CharSequence dependencyNotation) {
         return modify(getDependencyFactory().create(dependencyNotation));
@@ -64,7 +64,7 @@ public interface DependencyModifier {
      *
      * @param providerConvertibleToDependency the provider
      * @return a provider to the modified dependency
-     * Do not implement this method.
+     * @implSpec Do not implement this method.
      */
     default Provider<? extends MinimalExternalModuleDependency> modify(ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
         return providerConvertibleToDependency.asProvider().map(this::modify);
@@ -75,7 +75,7 @@ public interface DependencyModifier {
      *
      * @param providerToDependency the provider
      * @return a provider to the modified dependency
-     * Do not implement this method.
+     * @implSpec Do not implement this method.
      */
     default <D extends ModuleDependency> Provider<D> modify(Provider<D> providerToDependency) {
         return providerToDependency.map(this::modify);
@@ -88,7 +88,7 @@ public interface DependencyModifier {
      * @param dependency the dependency to modify
      * @return the modified dependency
      * @param <D> the type of the {@link ModuleDependency}
-     * Implement this method.
+     * @implSpec Implement this method.
      */
     <D extends ModuleDependency> D modify(D dependency);
 }

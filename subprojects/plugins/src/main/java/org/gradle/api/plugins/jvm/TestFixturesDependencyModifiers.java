@@ -30,8 +30,8 @@ import org.gradle.internal.component.external.model.TestFixturesSupport;
 /**
  * Dependency modifier APIs available that can find test fixtures in other modules for {@code dependencies} blocks.
  *
- * This API is <strong>incubating</strong> and is likely to change until it's made stable.
- * These methods are not intended to be implemented by end users or plugin authors.
+ * @apiNote This API is <strong>incubating</strong> and is likely to change until it's made stable.
+ * @implSpec These methods are not intended to be implemented by end users or plugin authors.
  *
  * @since 8.0
  */
@@ -43,7 +43,7 @@ public interface TestFixturesDependencyModifiers {
      * @return the dependency modifier
      *
      * @see TestFixturesDependencyModifier#modify(ModuleDependency)
-     * Do not implement this method.
+     * @implSpec Do not implement this method.
      */
     @Nested
     TestFixturesDependencyModifier getTestFixtures();

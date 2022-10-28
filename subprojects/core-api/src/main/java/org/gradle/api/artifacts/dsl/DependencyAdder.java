@@ -30,7 +30,7 @@ import org.gradle.api.provider.ProviderConvertible;
 /**
  * <p>A {@code DependencyAdder} is used to add dependencies to a specific configuration.</p>
  *
- * These methods are not intended to be implemented by end users or plugin authors.
+ * @implSpec These methods are not intended to be implemented by end users or plugin authors.
  * @since 7.6
  */
 @Incubating
