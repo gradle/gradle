@@ -34,7 +34,7 @@ jobs:
       - id: setup-matrix
         run: echo "::set-output name=matrix::$(jq -c -f .github/workflows/extract-unit-test-split.jq .teamcity/subprojects.json)"
       - name: setup java
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 11
@@ -73,7 +73,7 @@ jobs:
       - name: git clone
         uses: actions/checkout@v3
       - name: setup java
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 11
@@ -104,7 +104,7 @@ jobs:
       - name: git clone
         uses: actions/checkout@v3
       - name: setup java
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 11
