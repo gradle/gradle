@@ -53,7 +53,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     }
 
     @Override
-    protected CompileTransaction newCompileTransaction(JavaCompileSpec spec, RecompilationSpec recompilationSpec, PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete, FileOperations fileOperations, Deleter deleter) {
-        return new GroovyCompileTransaction(spec, recompilationSpec, classesToDelete, resourcesToDelete, fileOperations, deleter);
+    protected CompileTransaction newCompileTransaction(JavaCompileSpec spec, PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete, FileOperations fileOperations, Deleter deleter) {
+        return new GroovyCompileTransaction(spec, classesToDelete, resourcesToDelete, fileOperations, deleter);
     }
 }

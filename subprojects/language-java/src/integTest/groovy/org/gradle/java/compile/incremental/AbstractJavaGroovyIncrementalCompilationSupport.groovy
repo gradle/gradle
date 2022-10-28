@@ -31,12 +31,20 @@ abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractI
     }
 
     File sourceForProject(String project, String... classBodies) {
-        return sourceWithFileSuffixForProject(language.name, project, classBodies)
+        return sourceForLanguageWithSuffixForProject(language, language.name, project, classBodies)
     }
 
     File sourceWithFileSuffixForProject(String suffix, String project, String... classBodies) {
+        return sourceForLanguageWithSuffixForProject(language, suffix, project, classBodies)
+    }
+
+    File sourceForLanguageForProject(CompiledLanguage language, String project, String... classBodies) {
+        return sourceForLanguageWithSuffixForProject(language, language.name, project, classBodies)
+    }
+
+    private File sourceForLanguageWithSuffixForProject(CompiledLanguage language, String suffix, String project, String... classBodies) {
         File out = null
-        def basePath = project.isEmpty() ? "src/main/${language.name}" : "$project/src/main/${language.name}"
+        def basePath = project.isEmpty() ? "src/main/$language.name" : "$project/src/main/$language.name"
         for (String body : classBodies) {
             def packageGroup = (body =~ "\\s*package ([\\w.]+).*")
             String packageName = packageGroup.size() > 0 ? packageGroup[0][1] : ""

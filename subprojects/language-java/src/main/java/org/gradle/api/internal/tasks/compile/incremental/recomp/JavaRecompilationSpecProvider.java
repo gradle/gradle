@@ -53,7 +53,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     }
 
     @Override
-    protected CompileTransaction newCompileTransaction(JavaCompileSpec spec, RecompilationSpec recompilationSpec, PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete, FileOperations fileOperations, Deleter deleter) {
+    protected CompileTransaction newCompileTransaction(JavaCompileSpec spec, PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete, FileOperations fileOperations, Deleter deleter) {
         return new JavaCompileTransaction(spec, classesToDelete, resourcesToDelete, fileOperations, deleter);
     }
 }

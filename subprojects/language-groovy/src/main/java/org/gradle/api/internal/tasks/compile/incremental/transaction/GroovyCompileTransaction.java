@@ -20,7 +20,6 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
 
@@ -34,11 +33,9 @@ import static org.gradle.internal.FileUtils.hasExtension;
 public class GroovyCompileTransaction extends AbstractCompileTransaction {
 
     private final JavaCompileSpec spec;
-    private final RecompilationSpec recompilationSpec;
 
     public GroovyCompileTransaction(
         JavaCompileSpec spec,
-        RecompilationSpec recompilationSpec,
         PatternSet classesToDelete,
         Map<GeneratedResource.Location, PatternSet> resourcesToDelete,
         FileOperations fileOperations,
@@ -46,7 +43,6 @@ public class GroovyCompileTransaction extends AbstractCompileTransaction {
     ) {
         super(spec, classesToDelete, resourcesToDelete, fileOperations, deleter);
         this.spec = spec;
-        this.recompilationSpec = recompilationSpec;
     }
 
     @Override
@@ -64,7 +60,7 @@ public class GroovyCompileTransaction extends AbstractCompileTransaction {
     private boolean isGroovyJavaJointCompilation() {
         return spec instanceof GroovyJavaJointCompileSpec
             && isJavaFileCompilationEnabled((GroovyJavaJointCompileSpec) spec)
-            && hasAnyJavaSource((GroovyJavaJointCompileSpec) spec);
+            && hasAnyJavaSourceToCompile((GroovyJavaJointCompileSpec) spec);
     }
 
     private boolean isJavaFileCompilationEnabled(GroovyJavaJointCompileSpec spec) {
@@ -72,7 +68,7 @@ public class GroovyCompileTransaction extends AbstractCompileTransaction {
             .stream().anyMatch(extension -> extension.equals("java") || extension.equals(".java"));
     }
 
-    private boolean hasAnyJavaSource(GroovyJavaJointCompileSpec spec) {
+    private boolean hasAnyJavaSourceToCompile(GroovyJavaJointCompileSpec spec) {
         return StreamSupport.stream(spec.getSourceFiles().spliterator(), false)
             .anyMatch(file -> hasExtension(file, ".java"));
     }

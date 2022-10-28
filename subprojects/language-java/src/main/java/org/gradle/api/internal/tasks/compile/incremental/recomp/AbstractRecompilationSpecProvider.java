@@ -194,7 +194,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         if (!recompilationSpec.isBuildNeeded()) {
             spec.setSourceFiles(ImmutableSet.of());
             spec.setClasses(Collections.emptySet());
-            return newCompileTransaction(spec, recompilationSpec, fileOperations.patternSet(), ImmutableMap.of(), fileOperations, deleter);
+            return newCompileTransaction(spec, fileOperations.patternSet(), ImmutableMap.of(), fileOperations, deleter);
         }
 
         PatternSet classesToDelete = fileOperations.patternSet();
@@ -205,10 +205,10 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
         Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
-        return newCompileTransaction(spec, recompilationSpec, classesToDelete, resourcesToDelete, fileOperations, deleter);
+        return newCompileTransaction(spec, classesToDelete, resourcesToDelete, fileOperations, deleter);
     }
 
-    protected abstract CompileTransaction newCompileTransaction(JavaCompileSpec spec, RecompilationSpec recompilationSpec, PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete, FileOperations fileOperations, Deleter deleter);
+    protected abstract CompileTransaction newCompileTransaction(JavaCompileSpec spec, PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete, FileOperations fileOperations, Deleter deleter);
 
     private static Iterable<File> narrowDownSourcesToCompile(FileTree sourceTree, PatternSet sourceToCompile) {
         return sourceTree.matching(sourceToCompile);

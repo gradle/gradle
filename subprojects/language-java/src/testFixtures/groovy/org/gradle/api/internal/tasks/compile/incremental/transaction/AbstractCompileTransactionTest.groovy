@@ -17,11 +17,9 @@
 package org.gradle.api.internal.tasks.compile.incremental.transaction
 
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
-import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource
 import org.gradle.api.tasks.WorkResults
-import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.util.PatternSet
 import spock.lang.Specification
 import spock.lang.TempDir

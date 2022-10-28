@@ -28,27 +28,33 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22531")
-    def 'incremental compilation does not fail when Java class in api is changed and affected Java class in impl is referenced through a property of a Groovy class'() {
+    def 'inc. compilation does not fail on api change referenced via static property when affected class is #bCompileStatic #bSuffix'() {
         given:
         // A is a private dependency of B and B is referenced in E.isCacheEnabled through inheritance
-        sourceWithFileSuffixForProject("java", "api", "class A { void m1() {}; }")
-        sourceWithFileSuffixForProject("java", "impl", "class B { void m1() { new A().m1(); }; }")
+        File aClass = sourceForLanguageForProject(CompiledLanguage.JAVA, "api", "class A { void m1() {}; }")
+        sourceWithFileSuffixForProject(bSuffix, "impl", "$bCompileStatic class B { void m1() { new A().m1(); }; }")
         sourceWithFileSuffixForProject("java", "impl", "class C extends B {}")
         sourceWithFileSuffixForProject("java", "impl", "class D extends C { static boolean getCache() { return true; } }")
-        sourceWithFileSuffixForProject("groovy", "impl", "class E { boolean isCacheEnabled = D.cache }")
+        File eClass = sourceWithFileSuffixForProject("groovy", "impl", "class E { boolean isCacheEnabled = D.cache }")
         run ":impl:compileGroovy"
 
         when:
-        sourceWithFileSuffixForProject("java", "api", "class A { void m1() {}; void m2() {}; }")
-        sourceWithFileSuffixForProject("groovy", "impl", "class E { boolean isCacheEnabled = D.cache; int a = 0; }")
+        aClass.text = "class A { void m1() {}; void m2() {}; }"
+        eClass.text = "class E { boolean isCacheEnabled = D.cache; int a = 0; }"
         impl.snapshot()
 
         then:
         run ":impl:compileGroovy"
-        impl.recompiledClasses("B", "E")
+        impl.recompiledClasses(*expectedRecompiledClass)
+
+        where:
+        bSuffix  | bCompileStatic                    | expectedRecompiledClass
+        "java"   | ""                                | ["B", "E"]
+        "groovy" | ""                                | ["E"]
+        "groovy" | "@groovy.transform.CompileStatic" | ["B", "E"]
     }
 
-    def 'incremental compilation does not fail when Java class in api is changed and we only compile Groovy extension'() {
+    def 'inc. compilation does not fail on api change when we compile only groovy and affected class is #bCompileStatic #bSuffix'() {
         given:
         buildFile << """
             allprojects {
@@ -59,46 +65,52 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
             }
         """
         // A is a private dependency of B and B is referenced in E.isCacheEnabled through inheritance
-        sourceWithFileSuffixForProject("java", "api", "class A { void m1() {}; }")
-        sourceWithFileSuffixForProject("java", "impl", "class B { void m1() { new A().m1(); }; }")
+        File aClass = sourceForLanguageForProject(CompiledLanguage.JAVA, "api", "class A { void m1() {}; }")
+        sourceWithFileSuffixForProject(bSuffix, "impl", "$bCompileStatic class B { void m1() { new A().m1(); }; }")
         sourceWithFileSuffixForProject("java", "impl", "class C extends B {}")
         sourceWithFileSuffixForProject("java", "impl", "class D extends C { static boolean getCache() { return true; } }")
-        sourceWithFileSuffixForProject("groovy", "impl", "class E { boolean isCacheEnabled = D.cache }")
+        File eClass = sourceWithFileSuffixForProject("groovy", "impl", "class E { boolean isCacheEnabled = D.cache }")
         run ":impl:compileGroovy"
 
         when:
-        sourceWithFileSuffixForProject("java", "api", "class A { void m1() {}; void m2() {}; }")
-        sourceWithFileSuffixForProject("groovy", "impl", "class E { boolean isCacheEnabled = D.cache; int a = 0; }")
+        aClass.text = "class A { void m1() {}; void m2() {}; }"
+        eClass.text = "class E { boolean isCacheEnabled = D.cache; int a = 0; }"
         impl.snapshot()
 
         then:
         run ":impl:compileGroovy"
-        impl.recompiledClasses("E")
+        impl.recompiledClasses(*expectedRecompiledClass)
+
+        where:
+        bSuffix  | bCompileStatic                    | expectedRecompiledClass
+        "java"   | ""                                | ["E"]
+        "groovy" | ""                                | ["E"]
+        "groovy" | "@groovy.transform.CompileStatic" | ["B", "E"]
     }
 
     def 'incremental compilation after a failure works on api dependency change'() {
         given:
-        sourceWithFileSuffixForProject("java", "api", "class A { void m1() {}; }")
+        File aClass = sourceForLanguageForProject(CompiledLanguage.JAVA, "api", "class A { void m1() {}; }")
         sourceWithFileSuffixForProject("java", "impl", "class B { void m1() { new A().m1(); }; }")
         sourceWithFileSuffixForProject("java", "impl", "class C extends B {}")
         sourceWithFileSuffixForProject("java", "impl", "class D extends C { static boolean getCache() { return true; } }")
-        sourceWithFileSuffixForProject("groovy", "impl", "class E { boolean isCacheEnabled = D.cache }")
+        File eClass = sourceWithFileSuffixForProject("groovy", "impl", "class E { boolean isCacheEnabled = D.cache }")
         run ":impl:compileGroovy"
 
         when:
-        sourceWithFileSuffixForProject("java", "api", "class A { void m1() {}; void m2() {}; }")
-        sourceWithFileSuffixForProject("groovy", "impl", "class E { garbage }")
+        aClass.text = "class A { void m1() {}; void m2() {}; }"
+        eClass.text = "class E { boolean isCacheEnabled = D.cache; garbage }"
 
         then:
-        runAndFail ":impl:compileGroovy", "--info"
+        runAndFail ":impl:compileGroovy"
 
         when:
-        sourceWithFileSuffixForProject("java", "api", "class A { void m1() {}; void m2() {}; }")
-        sourceWithFileSuffixForProject("groovy", "impl", "class E { boolean isCacheEnabled = D.cache }")
+        aClass.text = "class A { void m1() {}; void m2() {}; }"
+        eClass.text = "class E { boolean isCacheEnabled = D.cache; int i = 0; }"
         impl.snapshot()
 
         then:
         run ":impl:compileGroovy"
-        impl.recompiledClasses("B")
+        impl.recompiledClasses("B", "E")
     }
 }

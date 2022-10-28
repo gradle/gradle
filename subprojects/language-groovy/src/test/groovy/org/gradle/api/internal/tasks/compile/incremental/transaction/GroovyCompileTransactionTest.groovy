@@ -20,48 +20,45 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
+import org.gradle.api.internal.tasks.compile.MinimalGroovyCompileOptions
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource
-import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec
 import org.gradle.api.tasks.compile.CompileOptions
+import org.gradle.api.tasks.compile.GroovyCompileOptions
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.util.TestUtil
 
 class GroovyCompileTransactionTest extends AbstractCompileTransactionTest {
 
-    RecompilationSpec recompileSpec
-
-    def setup() {
-        recompileSpec = new RecompilationSpec()
-    }
-
     @Override
     JavaCompileSpec newCompileSpec() {
         JavaCompileSpec spec = new DefaultGroovyJavaJointCompileSpec()
         spec.setCompileOptions(TestUtil.newInstance(CompileOptions, TestUtil.objectFactory()))
+        spec.setGroovyCompileOptions(new MinimalGroovyCompileOptions(TestUtil.newInstance(GroovyCompileOptions)))
+        spec.setSourceFiles([])
         return spec
     }
 
     @Override
     CompileTransaction newCompileTransaction() {
-        return new GroovyCompileTransaction(spec, recompileSpec, new PatternSet(), Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
+        return new GroovyCompileTransaction(spec, new PatternSet(), Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
     }
 
     @Override
     CompileTransaction newCompileTransaction(PatternSet classesToDelete) {
-        return new GroovyCompileTransaction(spec, recompileSpec, classesToDelete, Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
+        return new GroovyCompileTransaction(spec, classesToDelete, Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
     }
 
     @Override
     CompileTransaction newCompileTransaction(PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete) {
-        return new GroovyCompileTransaction(spec, recompileSpec, classesToDelete, resourcesToDelete, TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
+        return new GroovyCompileTransaction(spec, classesToDelete, resourcesToDelete, TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
     }
 
     def "does not stash files automatically before execution when Java sources are included in the compilation"() {
         def destinationDir = spec.getDestinationDir()
         def javaSource = new File(destinationDir, "JavaClass.java")
         javaSource.createNewFile()
+        spec.setSourceFiles([javaSource])
         def filesToDelete = new PatternSet().include("**/*.java")
-        recompileSpec.addSourcePath(javaSource.absolutePath)
 
         when:
         newCompileTransaction(filesToDelete).execute {
@@ -72,6 +69,27 @@ class GroovyCompileTransactionTest extends AbstractCompileTransactionTest {
             // We can stashed file during action
             (spec as GroovyJavaJointCompileSpec).beforeJavaCompilationRunnable.run()
             assert stashDir.list() as Set ==~ ["JavaClass.java.uniqueId0"]
+            return DID_WORK
+        }
+
+        then:
+        isEmptyDirectory(destinationDir)
+    }
+
+    def "stashes files automatically before execution when Java sources are included but only groovy files are compiled"() {
+        def destinationDir = spec.getDestinationDir()
+        def javaSource = new File(destinationDir, "JavaClass.java")
+        javaSource.createNewFile()
+        spec.setSourceFiles([javaSource])
+        (spec as GroovyJavaJointCompileSpec).getGroovyCompileOptions().setFileExtensions(["groovy"])
+        def filesToDelete = new PatternSet().include("**/*.java")
+
+        when:
+        newCompileTransaction(filesToDelete).execute {
+            // File was stashed before
+            assert stashDir.list() as Set ==~ ["JavaClass.java.uniqueId0"]
+            assert isEmptyDirectory(destinationDir)
+            assert (spec as GroovyJavaJointCompileSpec).beforeJavaCompilationRunnable == null
             return DID_WORK
         }
 
