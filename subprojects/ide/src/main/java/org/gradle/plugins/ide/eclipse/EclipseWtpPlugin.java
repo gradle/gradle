@@ -55,7 +55,7 @@ import java.util.concurrent.Callable;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/eclipse_plugin.html">Eclipse plugin reference</a>
  */
-public class EclipseWtpPlugin extends IdePlugin {
+public abstract class EclipseWtpPlugin extends IdePlugin {
 
     public static final String ECLIPSE_WTP_COMPONENT_TASK_NAME = "eclipseWtpComponent";
     public static final String ECLIPSE_WTP_FACET_TASK_NAME = "eclipseWtpFacet";
