@@ -45,8 +45,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.properties.CustomCacheable
-import org.gradle.internal.properties.SearchPath
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.reflect.problems.ValidationProblemId

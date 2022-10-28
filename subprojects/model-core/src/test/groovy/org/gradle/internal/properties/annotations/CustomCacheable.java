@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.properties;
+package org.gradle.internal.properties.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
