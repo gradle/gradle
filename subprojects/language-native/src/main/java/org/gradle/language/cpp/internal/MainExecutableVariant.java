@@ -20,13 +20,13 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.internal.component.FinalizableSoftwareComponentInternal;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
 
 import java.util.Set;
 
-public class MainExecutableVariant extends FinalizableSoftwareComponentInternal implements ComponentWithVariants {
+public class MainExecutableVariant implements SoftwareComponentInternal, ComponentWithVariants {
     private final DomainObjectSet<SoftwareComponent> variants;
 
     public MainExecutableVariant(ObjectFactory objectFactory) {
@@ -44,7 +44,6 @@ public class MainExecutableVariant extends FinalizableSoftwareComponentInternal 
     }
 
     public void addVariant(SoftwareComponent variant) {
-        checkNotFinalized();
         variants.add(variant);
     }
 
