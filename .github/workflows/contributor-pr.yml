@@ -39,7 +39,7 @@ jobs:
           distribution: temurin
           java-version: 11
       - id: determine-sys-prop-args
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           script: |
             if (context.payload.pull_request && context.payload.pull_request.head.repo.fork) {
