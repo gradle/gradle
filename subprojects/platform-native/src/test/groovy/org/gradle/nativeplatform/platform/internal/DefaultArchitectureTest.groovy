@@ -35,6 +35,7 @@ class DefaultArchitectureTest extends Specification {
         arch.i386 == i386
         arch.amd64 == amd64
         arch.ia64 == ia64
+        arch.arm == arm || arm64
         arch.arm32 == arm
         arch.arm64 == arm64
 

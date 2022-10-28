@@ -91,7 +91,7 @@ public class LegacyWindowsSdkInstall implements WindowsSdkInstall {
         if (platform.getArchitecture().isIa64()) {
             return new LegacyPlatformWindowsSdk(BINPATHS_IA64, LIBPATHS_IA64);
         }
-        if (platform.getArchitecture().isArm32()) {
+        if (platform.getArchitecture().isArm()) {
             return new LegacyPlatformWindowsSdk(BINPATHS_ARM, LIBPATHS_ARM);
         }
         if (platform.getArchitecture().isI386()) {
