@@ -52,7 +52,8 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
                 for (IvyArtifact ivyArtifact : this) {
                     context.add(ivyArtifact);
                 }
-            }), new ArtifactsFileCollection()
+            }),
+            new ArtifactsFileCollection()
         );
     }
 
