@@ -161,7 +161,7 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":test")
-        outputContains("Command: ${targetJdk.javaHome.absolutePath}")
+        outputContains("Tests running with ${targetJdk.javaHome.absolutePath}")
 
         where:
         // Some cases are skipped, because the executable (when configured) must match the resulting toolchain, otherwise the build fails
