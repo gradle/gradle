@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.collections
 
 import org.gradle.api.Buildable
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
@@ -26,7 +27,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class FileTreeAdapterTest extends Specification {
     private FileTreeAdapter newFileTreeAdapter(MinimalFileTree tree) {
-        newFileTreeAdapter(tree)
+        return new FileTreeAdapter(tree, TestFiles.taskDependencyFactory(), TestFiles.patternSetFactory)
     }
 
     def toStringUsesDisplayName() {
