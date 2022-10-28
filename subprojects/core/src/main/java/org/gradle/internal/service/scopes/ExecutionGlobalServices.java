@@ -292,7 +292,7 @@ public class ExecutionGlobalServices {
     }
 
     PropertyAnnotationHandler createNestedBeanPropertyAnnotationHandler() {
-        return new NestedBeanAnnotationHandler();
+        return new NestedBeanAnnotationHandler(ImmutableSet.of(Optional.class));
     }
 
     WorkInputListeners createWorkInputListeners(ListenerManager listenerManager) {

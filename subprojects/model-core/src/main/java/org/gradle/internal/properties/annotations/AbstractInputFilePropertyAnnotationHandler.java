@@ -16,6 +16,7 @@
 
 package org.gradle.internal.properties.annotations;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -43,10 +44,13 @@ import java.lang.annotation.Annotation;
 import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.internal.properties.annotations.PropertyAnnotationHandlerSupport.validateUnsupportedPropertyValueTypes;
 
-public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
-    @Override
-    public Kind getKind() {
-        return Kind.INPUT;
+public abstract class AbstractInputFilePropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
+
+    private final InputFilePropertyType filePropertyType;
+
+    public AbstractInputFilePropertyAnnotationHandler(Class<? extends Annotation> annotationType, InputFilePropertyType filePropertyType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
+        super(annotationType, Kind.INPUT, allowedModifiers);
+        this.filePropertyType = filePropertyType;
     }
 
     @Override
@@ -78,7 +82,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             determineLineEndingSensitivity(propertyMetadata),
             normalizer,
             value,
-            getFilePropertyType()
+            filePropertyType
         );
     }
 
@@ -119,6 +123,4 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             });
         }
     }
-
-    protected abstract InputFilePropertyType getFilePropertyType();
 }

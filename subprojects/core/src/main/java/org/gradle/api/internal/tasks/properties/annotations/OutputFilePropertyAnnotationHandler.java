@@ -18,17 +18,8 @@ package org.gradle.api.internal.tasks.properties.annotations;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.internal.properties.OutputFilePropertyType;
 
-import java.lang.annotation.Annotation;
-
 public class OutputFilePropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
-
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return OutputFile.class;
-    }
-
-    @Override
-    protected OutputFilePropertyType getFilePropertyType() {
-        return OutputFilePropertyType.FILE;
+    public OutputFilePropertyAnnotationHandler() {
+        super(OutputFile.class, OutputFilePropertyType.FILE);
     }
 }

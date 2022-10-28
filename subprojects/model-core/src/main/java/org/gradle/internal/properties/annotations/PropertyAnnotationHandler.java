@@ -18,7 +18,6 @@ package org.gradle.internal.properties.annotations;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
@@ -37,7 +36,7 @@ public interface PropertyAnnotationHandler {
     /**
      * The modifier annotations allowed for the handled property type. This set can further be restricted by the actual work type.
      */
-    ImmutableSet<? extends AnnotationCategory> getAllowedModifiers();
+    ImmutableSet<Class<? extends Annotation>> getAllowedModifiers();
 
     /**
      * Does this handler do something useful with the properties that match it? Or can these properties be ignored?
