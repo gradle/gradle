@@ -22,10 +22,10 @@ import org.gradle.internal.properties.OutputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
-import org.gradle.internal.reflect.AnnotationCategory;
-import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
 
-import static org.gradle.internal.properties.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.OPTIONAL;
 
 public abstract class AbstractOutputPropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override

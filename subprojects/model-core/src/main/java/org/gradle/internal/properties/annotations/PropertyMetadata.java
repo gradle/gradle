@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect;
+package org.gradle.internal.properties.annotations;
+
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;

@@ -18,7 +18,7 @@ package org.gradle.internal.reflect.annotations.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.reflect.AnnotationCategory;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 
 import javax.annotation.Nonnull;

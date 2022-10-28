@@ -32,7 +32,6 @@ import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.NormalizationUtil;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -41,7 +40,7 @@ import org.gradle.work.NormalizeLineEndings;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.internal.properties.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.internal.properties.annotations.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.internal.properties.annotations.PropertyAnnotationHandlerSupport.validateUnsupportedPropertyValueTypes;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
