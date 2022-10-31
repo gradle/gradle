@@ -17,18 +17,13 @@
 package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.GradleException
-import org.gradle.api.file.Directory
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.tasks.testing.TestResult.ResultType
-import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.internal.actor.TestActorFactory
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -39,14 +34,12 @@ class TestNGTestClassProcessorTest extends Specification {
     @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider(getClass())
 
     def processor = Mock(TestResultProcessor)
-    def layout = Stub(ProjectLayout) {
-        getProjectDirectory() >> Stub(Directory) {
-            getAsFile() >> dir.testDirectory
-        }
-    }
-    def options = Spy(TestNGSpec, constructorArgs: [TestUtil.newInstance(TestNGOptions, layout), new DefaultTestFilter() ])
+    def spec = Spy(new TestNGSpec(
+        "Gradle suite", "Gradle test", null, -1, false,
+        [] as Set, [] as Set, [] as Set, [] as Set, [] as Set, [] as Set,
+        TestNGTestClassProcessor.DEFAULT_CONFIG_FAILURE_POLICY, false, false))
 
-    @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
+    @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, spec, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
     void process(Class... clazz) {
         process(clazz*.name)
@@ -87,7 +80,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "executes selected included method"() {
-        options.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another"]
+        spec.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another"]
 
         when: process(ATestNGClassWithManyMethods)
 
@@ -102,7 +95,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "executes multiple included methods"() {
-        options.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another", ATestNGClassWithManyMethods.name + ".yetAnother"]
+        spec.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another", ATestNGClassWithManyMethods.name + ".yetAnother"]
 
         when: process(ATestNGClassWithManyMethods)
 
@@ -115,7 +108,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "executes methods from multiple classes by pattern"() {
-        options.getIncludedTests() >> ["*Methods.ok*"]
+        spec.getIncludedTests() >> ["*Methods.ok*"]
 
         when: process(ATestNGClassWithManyMethods)
 
@@ -128,7 +121,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "executes no tests if none of the included test methods match"() {
-        options.getIncludedTests() >> [ATestNGClassWithManyMethods.name + "does not exist"]
+        spec.getIncludedTests() >> [ATestNGClassWithManyMethods.name + "does not exist"]
 
         when: process(ATestNGClassWithManyMethods)
 
@@ -190,8 +183,8 @@ class TestNGTestClassProcessorTest extends Specification {
 
     void "includes and excludes groups"() {
         given:
-        _ * options.getIncludeGroups() >> ['group1', 'group2']
-        _ * options.getExcludeGroups() >> ['group3']
+        _ * spec.getIncludeGroups() >> ['group1', 'group2']
+        _ * spec.getExcludeGroups() >> ['group3']
 
         when: process(ATestNGClassWithGroups)
 
@@ -230,7 +223,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "before and after methods are not triggered when all tests from a class are filtered"() {
-        options.getIncludedTests() >> [ATestNGClass.name]
+        spec.getIncludedTests() >> [ATestNGClass.name]
 
         when:
         process(ATestNGClass, ATestNGClassWithBeforeAndAfter) //the latter is not matched
@@ -246,7 +239,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "custom test listeners can change test status"() {
-        options.listeners << FailSkippedTestsListener.class.name
+        spec.listeners << FailSkippedTestsListener.class.name
 
         when: process(ATestNGClassWithSkippedTest)
 
@@ -263,7 +256,7 @@ class TestNGTestClassProcessorTest extends Specification {
     </classes>
   </test>
 </suite>"""
-        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite], new LongIdGenerator(), Time.clock(), new TestActorFactory())
+        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, spec, [suite], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
         when:
         classProcessor.startProcessing(processor)
@@ -307,7 +300,7 @@ class TestNGTestClassProcessorTest extends Specification {
     </classes>
   </test>
 </suite>"""
-        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [suite1, suite2], new LongIdGenerator(), Time.clock(), new TestActorFactory())
+        classProcessor = new TestNGTestClassProcessor(dir.testDirectory, spec, [suite1, suite2], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
         when:
         classProcessor.startProcessing(processor)

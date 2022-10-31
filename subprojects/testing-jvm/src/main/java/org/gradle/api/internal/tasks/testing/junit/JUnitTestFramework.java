@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
@@ -26,16 +25,11 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.internal.Factory;
-import org.gradle.internal.actor.ActorFactory;
-import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.scan.UsedByScanPlugin;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
@@ -75,7 +69,7 @@ public class JUnitTestFramework implements TestFramework {
 
     @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
-        return new TestClassProcessorFactoryImpl(new JUnitSpec(
+        return new JUnitTestClassProcessorFactory(new JUnitSpec(
             options.getIncludeCategories(), options.getExcludeCategories(),
             filter.getIncludePatterns(), filter.getExcludePatterns(),
             filter.getCommandLineIncludePatterns()));
@@ -129,16 +123,4 @@ public class JUnitTestFramework implements TestFramework {
         detector = null;
     }
 
-    private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
-        private final JUnitSpec spec;
-
-        public TestClassProcessorFactoryImpl(JUnitSpec spec) {
-            this.spec = spec;
-        }
-
-        @Override
-        public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            return new JUnitTestClassProcessor(spec, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), serviceRegistry.get(Clock.class));
-        }
-    }
 }
