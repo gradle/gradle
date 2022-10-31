@@ -34,7 +34,7 @@ class DefaultCacheConfigurationsTest extends Specification {
         noExceptionThrown()
 
         when:
-        cacheConfigurations.finalizeAllValues()
+        cacheConfigurations.finalizeConfigurations()
 
         and:
         cacheConfigurations.createdResources.removeUnusedEntriesAfterDays.set(1)
