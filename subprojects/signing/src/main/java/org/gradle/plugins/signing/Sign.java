@@ -58,7 +58,7 @@ import static java.util.stream.Collectors.toMap;
  * tasks signatory and signature type.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class Sign extends DefaultTask implements SignatureSpec {
+public abstract class Sign extends DefaultTask implements SignatureSpec {
 
     private SignatureType signatureType;
     private Signatory signatory;

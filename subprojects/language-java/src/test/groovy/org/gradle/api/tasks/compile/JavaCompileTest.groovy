@@ -18,22 +18,16 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
+import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec
+import org.gradle.api.internal.tasks.compile.ForkingJavaCompileSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaCompiler
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
 
-@SuppressWarnings('GrDeprecatedAPIUsage')
 class JavaCompileTest extends AbstractProjectBuilderSpec {
-
-    def setup() {
-        def toolchainService = Mock(JavaToolchainService)
-        project.extensions.add("javaToolchains", toolchainService)
-    }
 
     def "disallow using custom java_home with compiler present"() {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
@@ -63,16 +57,18 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
 
     def "fails if custom executable does not exist"() {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
-        def invalidjavac = "invalidjavac"
+        javaCompile.destinationDirectory.fileValue(new File('somewhere'))
+        def invalidExecutable = "invalidExecutable"
 
         when:
-        javaCompile.options.forkOptions.executable = invalidjavac
+        javaCompile.options.fork = true
+        javaCompile.options.forkOptions.executable = invalidExecutable
         javaCompile.createSpec()
 
         then:
         def e = thrown(InvalidUserDataException)
         e.message.contains("The configured executable does not exist")
-        e.message.contains(invalidjavac)
+        e.message.contains(invalidExecutable)
     }
 
     def 'uses release property combined with toolchain compiler'() {
@@ -97,7 +93,8 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         spec.release == 9
         spec.getSourceCompatibility() == null
         spec.getTargetCompatibility() == null
-        spec.compileOptions.forkOptions.javaHome == javaHome
+        spec.compileOptions.forkOptions.javaHome == null
+        (spec as ForkingJavaCompileSpec).javaHome == javaHome
     }
 
     def 'uses custom source and target compatibility combined with toolchain compiler'() {
@@ -122,12 +119,13 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         then:
         spec.getSourceCompatibility() == '11'
         spec.getTargetCompatibility() == '14'
-        spec.compileOptions.forkOptions.javaHome == javaHome
+        spec.compileOptions.forkOptions.javaHome == null
+        (spec as ForkingJavaCompileSpec).javaHome == javaHome
     }
 
     def "spec is configured using the toolchain compiler in-process using the current jvm as toolchain and sets release"() {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
-        javaCompile.destinationDirectory = new File("tmp")
+        javaCompile.destinationDirectory.set(new File("tmp"))
         def javaHome = Jvm.current().javaHome
         def metadata = Mock(JavaInstallationMetadata)
         def compiler = Mock(JavaCompiler)
@@ -141,17 +139,17 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def spec = javaCompile.createSpec()
 
         then:
-        spec instanceof DefaultJavaCompileSpec
-        spec.compileOptions.forkOptions.javaHome == javaHome
-        spec.getSourceCompatibility() == null
-        spec.getTargetCompatibility() == null
-        spec.release == 12
+        spec.getSourceCompatibility() == "12"
+        spec.getTargetCompatibility() == "12"
+        spec.release == null
+        spec.compileOptions.forkOptions.javaHome == null
+        (spec as ForkingJavaCompileSpec).javaHome == javaHome
     }
 
     @Issue('https://bugs.openjdk.java.net/browse/JDK-8139607')
     def "spec is configured using the toolchain compiler in-process using the current jvm as toolchain and does not set release for Java 9"() {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
-        javaCompile.destinationDirectory = new File("tmp")
+        javaCompile.destinationDirectory.set(new File("tmp"))
         def javaHome = Jvm.current().javaHome
         def metadata = Mock(JavaInstallationMetadata)
         def compiler = Mock(JavaCompiler)
@@ -165,16 +163,16 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def spec = javaCompile.createSpec()
 
         then:
-        spec instanceof DefaultJavaCompileSpec
-        spec.compileOptions.forkOptions.javaHome == javaHome
         spec.getSourceCompatibility() == '9'
         spec.getTargetCompatibility() == '9'
         spec.release == null
+        spec.compileOptions.forkOptions.javaHome == null
+        (spec as ForkingJavaCompileSpec).javaHome == javaHome
     }
 
     def "spec is configured using the toolchain compiler in-process using the current jvm as toolchain and set source and target compatibility"() {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
-        javaCompile.destinationDirectory = new File("tmp")
+        javaCompile.destinationDirectory.set(new File("tmp"))
         def javaHome = Jvm.current().javaHome
         def metadata = Mock(JavaInstallationMetadata)
         def compiler = Mock(JavaCompiler)
@@ -188,11 +186,11 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def spec = javaCompile.createSpec()
 
         then:
-        spec instanceof DefaultJavaCompileSpec
-        spec.compileOptions.forkOptions.javaHome == javaHome
         spec.getSourceCompatibility() == '8'
         spec.getTargetCompatibility() == '8'
         spec.release == null
+        spec.compileOptions.forkOptions.javaHome == null
+        (spec as ForkingJavaCompileSpec).javaHome == javaHome
     }
 
     def "incremental compilation is enabled by default"() {
@@ -201,5 +199,53 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         expect:
         javaCompile.options.incremental
         javaCompile.options.incrementalAfterFailure.get() == true
+    }
+
+    def "command line compiler spec is selected when forking and executable is set"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.destinationDirectory.set(new File("tmp"))
+        def executable = Jvm.current().javacExecutable.absolutePath
+
+        when:
+        javaCompile.options.fork = true
+        javaCompile.options.forkOptions.executable = executable
+        def spec = javaCompile.createSpec()
+
+        then:
+        spec instanceof CommandLineJavaCompileSpec
+        spec.executable.absolutePath == executable
+    }
+
+    def "command line compiler spec is selected when forking and java home is set"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.destinationDirectory.set(new File("tmp"))
+        def jvm = Jvm.current()
+        def javaHome = jvm.javaHome
+
+        when:
+        javaCompile.options.fork = true
+        javaCompile.options.forkOptions.javaHome = javaHome
+        def spec = javaCompile.createSpec()
+
+        then:
+        spec instanceof CommandLineJavaCompileSpec
+        spec.executable.absolutePath == jvm.javacExecutable.absolutePath
+    }
+
+    def "java home takes precedence over executable when forking"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.destinationDirectory.set(new File("tmp"))
+        def jvm = Jvm.current()
+        def javaHome = jvm.javaHome
+
+        when:
+        javaCompile.options.fork = true
+        javaCompile.options.forkOptions.executable = "/custom/executable/path"
+        javaCompile.options.forkOptions.javaHome = javaHome
+        def spec = javaCompile.createSpec()
+
+        then:
+        spec instanceof CommandLineJavaCompileSpec
+        spec.executable.absolutePath == jvm.javacExecutable.absolutePath
     }
 }

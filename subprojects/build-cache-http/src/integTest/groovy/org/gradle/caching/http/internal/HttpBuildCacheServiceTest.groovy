@@ -32,6 +32,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpResourceInteraction
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -81,7 +82,7 @@ class HttpBuildCacheServiceTest extends Specification {
             return getHashCode()
         }
     }
-    private config = new HttpBuildCache()
+    private config = TestUtil.newInstance(HttpBuildCache.class)
 
     HttpBuildCacheService cacheRef
 

@@ -16,6 +16,9 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.process.ShellScript
+import spock.lang.Issue
+
 class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "value source without parameters can be used as task input"() {
@@ -291,5 +294,77 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
             withInput("Build file 'build.gradle': system property 'some.property'")
             ignoringUnexpectedInputs()
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22305")
+    def "evaluating a value source parameter does not enable input tracking inside the value source"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile.text = """
+
+            import org.gradle.api.provider.*
+
+            abstract class MySource implements ValueSource<String, Parameters> {
+                interface Parameters extends ValueSourceParameters {
+                    Property<String> getValue()
+                }
+                @Override String obtain() {
+                    def suffix = parameters.value.orElse("").get()
+                    return System.getProperty("my.property") + suffix
+                }
+            }
+
+            def someProp = providers.systemProperty("some.property")
+
+            def vsResult = providers.of(MySource) {
+                parameters.value = someProp
+            }
+
+            println("ValueSource result = \${vsResult.get()}")
+        """
+
+        when:
+        configurationCacheRun("-Dsome.property=1", "-Dmy.property=value")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("result = value1")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': system property 'some.property'")
+            withInput("Build file 'build.gradle': value from custom source 'MySource'")
+        }
+    }
+
+    def "value source can use standard process API"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        ShellScript testScript = ShellScript.builder().printText("Hello, world").writeTo(testDirectory, "script")
+
+        settingsFile("""
+            enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
+        """)
+        buildFile.text = """
+            import ${ByteArrayOutputStream.name}
+            import org.gradle.api.provider.*
+
+            abstract class ProcessSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Override String obtain() {
+                    def baos = new ByteArrayOutputStream()
+                    def process = ${ShellScript.cmdToStringLiteral(testScript.getRelativeCommandLine(testDirectory))}.execute()
+                    process.waitForProcessOutput(baos, System.err)
+                    return baos.toString().trim()
+                }
+            }
+
+            def vsResult = providers.of(ProcessSource) {}
+            println("ValueSource result = \${vsResult.get()}")
+        """
+
+        when:
+        configurationCacheRun()
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("ValueSource result = Hello, world")
     }
 }

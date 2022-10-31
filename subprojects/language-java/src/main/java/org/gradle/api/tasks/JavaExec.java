@@ -26,11 +26,14 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.DefaultModularitySpec;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -109,7 +112,7 @@ import java.util.Map;
  * </pre>
  */
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
-public class JavaExec extends ConventionTask implements JavaExecSpec {
+public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     private final DefaultJavaExecSpec javaExecSpec;
     private final Property<String> mainModule;
     private final Property<String> mainClass;
@@ -129,21 +132,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         javaExecSpec.getMainModule().convention(mainModule);
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
         javaLauncher = objectFactory.property(JavaLauncher.class);
-    }
-
-    @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ExecActionFactory getExecActionFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ProviderFactory getProviderFactory() {
-        throw new UnsupportedOperationException();
     }
 
     @TaskAction
@@ -743,11 +731,31 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         if (javaLauncher.isPresent()) {
             return javaLauncher.get().getExecutablePath().toString();
         }
-        final String executable = getExecutable();
-        if (executable != null) {
-            return executable;
+
+        JavaToolchainSpec toolchain = JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(this, getObjectFactory());
+        if (toolchain == null) {
+            toolchain = new CurrentJvmToolchainSpec(getObjectFactory());
         }
-        return Jvm.current().getJavaExecutable().getAbsolutePath();
+        return getJavaToolchainService().launcherFor(toolchain).get().getExecutablePath().toString();
     }
 
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ExecActionFactory getExecActionFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaToolchainService getJavaToolchainService() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ProviderFactory getProviderFactory() {
+        throw new UnsupportedOperationException();
+    }
 }

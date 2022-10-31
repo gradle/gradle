@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -60,7 +59,7 @@ import java.util.Set;
  * @see org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  * @since 2.13
  */
-public class GradlePluginDevelopmentExtension {
+public abstract class GradlePluginDevelopmentExtension {
 
     private final Property<String> website;
 
@@ -181,10 +180,7 @@ public class GradlePluginDevelopmentExtension {
     /**
      * Whether the plugin should automatically configure the publications for the plugins.
      * @return true if publishing should be automated, false otherwise
-     *
-     * @deprecated non-automatic publishing of plugins will no longer be supported
      */
-    @Deprecated
     public boolean isAutomatedPublishing() {
         return automatedPublishing;
     }
@@ -192,16 +188,8 @@ public class GradlePluginDevelopmentExtension {
     /**
      * Configures whether the plugin should automatically configure the publications for the plugins.
      * @param automatedPublishing whether to automated publication
-     *
-     * @deprecated non-automatic publishing of plugins will no longer be supported
      */
-    @Deprecated
     public void setAutomatedPublishing(boolean automatedPublishing) {
-        DeprecationLogger.deprecateMethod(GradlePluginDevelopmentExtension.class, "setAutomatedPublishing")
-                .withAdvice("Please stop using this method. It is relevant only in the context of the Plugin Publish Plugin and recent versions of that, from 1.0 onwards, only allow automated publishing.")
-                .willBeRemovedInGradle8()
-                .undocumented()
-                .nagUser();
         this.automatedPublishing = automatedPublishing;
     }
 }

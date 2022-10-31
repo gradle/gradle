@@ -34,7 +34,7 @@ import org.gradle.api.tasks.testing.AbstractTestTask;
  *
  * @since 4.4
  */
-public class TestingBasePlugin implements Plugin<Project> {
+public abstract class TestingBasePlugin implements Plugin<Project> {
     public static final String TEST_RESULTS_DIR_NAME = "test-results";
     public static final String TESTS_DIR_NAME = "tests";
 

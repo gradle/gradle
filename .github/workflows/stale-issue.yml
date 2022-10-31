@@ -14,7 +14,7 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v5
+      - uses: actions/stale@v6
         with:
           # GLOBAL ------------------------------------------------------------
           operations-per-run: 30
@@ -58,7 +58,7 @@ jobs:
   stale-community-pr:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v5
+      - uses: actions/stale@v6
         with:
           # GLOBAL ------------------------------------------------------------
           operations-per-run: 30
