@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
+import org.gradle.api.internal.tasks.compile.daemon.DaemonCompilerWorkerFactory;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.jvm.Jvm;
@@ -28,7 +29,6 @@ import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
 import org.gradle.workers.internal.FlatClassLoaderStructure;
 import org.gradle.workers.internal.KeepAliveMode;
-import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
 
@@ -39,7 +39,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
     private final File daemonWorkingDir;
     private final ClassPathRegistry classPathRegistry;
 
-    public DaemonJavaCompiler(File daemonWorkingDir, Class<? extends Compiler<JavaCompileSpec>> compilerClass, Object[] compilerConstructorArguments, WorkerDaemonFactory workerDaemonFactory, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+    public DaemonJavaCompiler(File daemonWorkingDir, Class<? extends Compiler<JavaCompileSpec>> compilerClass, Object[] compilerConstructorArguments, DaemonCompilerWorkerFactory workerDaemonFactory, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         super(workerDaemonFactory, actionExecutionSpecFactory);
         this.compilerClass = compilerClass;
         this.compilerConstructorArguments = compilerConstructorArguments;
