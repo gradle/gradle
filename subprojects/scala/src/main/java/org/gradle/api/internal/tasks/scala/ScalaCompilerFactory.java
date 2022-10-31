@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.tasks.compile.daemon.DaemonCompilerWorkerFactory;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -25,13 +26,12 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
-import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
 import java.util.Set;
 
 public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompileSpec> {
-    private final WorkerDaemonFactory workerDaemonFactory;
+    private final DaemonCompilerWorkerFactory workerDaemonFactory;
     private final FileCollection scalaClasspath;
     private final FileCollection zincClasspath;
     private final File daemonWorkingDir;
@@ -42,7 +42,7 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
     private final ClasspathHasher classpathHasher;
 
     public ScalaCompilerFactory(
-        File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory, FileCollection scalaClasspath,
+        File daemonWorkingDir, DaemonCompilerWorkerFactory workerDaemonFactory, FileCollection scalaClasspath,
         FileCollection zincClasspath, JavaForkOptionsFactory forkOptionsFactory,
         ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory,
         ClasspathHasher classpathHasher) {

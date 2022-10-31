@@ -30,11 +30,8 @@ import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.BuildOperationAwareWorker;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
-import org.gradle.workers.internal.ForkedWorkerRequirement;
 import org.gradle.workers.internal.IsolatedClassLoaderWorkerRequirement;
-import org.gradle.workers.internal.IsolationMode;
 import org.gradle.workers.internal.ProvidesWorkResult;
-import org.gradle.workers.internal.WorkerFactory;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -44,17 +41,17 @@ import static org.gradle.process.internal.util.MergeOptionsUtil.mergeHeapSize;
 import static org.gradle.process.internal.util.MergeOptionsUtil.normalized;
 
 public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements Compiler<T> {
-    private final WorkerFactory workerFactory;
+    private final DaemonCompilerWorkerFactory workerFactory;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 
-    public AbstractDaemonCompiler(WorkerFactory workerFactory, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+    public AbstractDaemonCompiler(DaemonCompilerWorkerFactory workerFactory, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.workerFactory = workerFactory;
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
 
     @Override
     public WorkResult execute(T spec) {
-        IsolatedClassLoaderWorkerRequirement workerRequirement = getWorkerRequirement(workerFactory.getIsolationMode(), spec);
+        IsolatedClassLoaderWorkerRequirement workerRequirement = workerFactory.getWorkerRequirement(toDaemonForkOptions(spec));
         BuildOperationAwareWorker worker = workerFactory.getWorker(workerRequirement);
 
         CompilerParameters parameters = getCompilerParameters(spec);
@@ -63,18 +60,6 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
             return result;
         } else {
             throw UncheckedException.throwAsUncheckedException(result.getException());
-        }
-    }
-
-    private IsolatedClassLoaderWorkerRequirement getWorkerRequirement(IsolationMode isolationMode, T spec) {
-        DaemonForkOptions daemonForkOptions = toDaemonForkOptions(spec);
-        switch (isolationMode) {
-            case CLASSLOADER:
-                return new IsolatedClassLoaderWorkerRequirement(daemonForkOptions.getJavaForkOptions().getWorkingDir(), daemonForkOptions.getClassLoaderStructure());
-            case PROCESS:
-                return new ForkedWorkerRequirement(daemonForkOptions.getJavaForkOptions().getWorkingDir(), daemonForkOptions);
-            default:
-                throw new IllegalArgumentException("Received worker with unsupported isolation mode: " + isolationMode);
         }
     }
 
