@@ -36,6 +36,8 @@ subprojects/testing-jvm/            @gradle/bt-jvm @gradle/ge-testing
 
 # Software platform
 subprojects/build-init/             @gradle/bt-jvm
+subprojects/dependency-management/  @gradle/bt-jvm
+subprojects/diagnostics/            @gradle/bt-jvm
 subprojects/ivy/                    @gradle/bt-jvm
 subprojects/maven/                  @gradle/bt-jvm
 subprojects/platform-base/          @gradle/bt-jvm
@@ -54,18 +56,18 @@ subprojects/version-control/        @gradle/bt-jvm
 subprojects/docs/src/docs/release/notes.md @hythloda
 subprojects/docs/                          @nathan-contino
 
-subprojects/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/checkstyle_plugin.adoc           @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/codenarc_plugin.adoc             @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/distribution_plugin.adoc         @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/ear_plugin.adoc                  @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/jacoco_plugin.adoc               @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/java_gradle_plugin.adoc          @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/pmd_plugin.adoc                  @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/core-plugins/war_plugin.adoc                  @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/dep-man/                                      @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/jvm/                                          @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-jvm
-subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-jvm
+subprojects/docs/src/docs/userguide/core-plugins/base_plugin.adoc                 @gradle/bt-jvm @nathan-contino
+subprojects/docs/src/docs/userguide/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-jvm @nathan-contino
+subprojects/docs/src/docs/userguide/core-plugins/build_init_plugin.adoc           @gradle/bt-jvm @nathan-contino
+subprojects/docs/src/docs/userguide/core-plugins/checkstyle_plugin.adoc           @gradle/bt-jvm @nathan-contino
+subprojects/docs/src/docs/userguide/core-plugins/codenarc_plugin.adoc             @gradle/bt-jvm @nathan-contino
+subprojects/docs/src/docs/userguide/core-plugins/distribution_plugin.adoc         @gradle/bt-jvm @nathan-contino
+subprojects/docs/src/docs/userguide/core-plugins/ear_plugin.adoc                  @gradle/bt-jvm @nathan-contino
+subprojects/docs/src/docs/userguide/core-plugins/jacoco_plugin.adoc               @gradle/bt-jvm @nathan-contino
+subprojects/docs/src/docs/userguide/core-plugins/java_gradle_plugin.adoc          @gradle/bt-jvm @nathan-contino
+subprojects/docs/src/docs/userguide/core-plugins/pmd_plugin.adoc                  @gradle/bt-jvm @nathan-contino
+subprojects/docs/src/docs/userguide/core-plugins/war_plugin.adoc                  @gradle/bt-jvm @nathan-contino
+subprojects/docs/src/docs/userguide/dep-man/                                      @gradle/bt-jvm @nathan-contino
+subprojects/docs/src/docs/userguide/jvm/                                          @gradle/bt-jvm @nathan-contino
+subprojects/docs/src/docs/userguide/reference/directory_layout.adoc               @gradle/bt-jvm @nathan-contino
+subprojects/docs/src/docs/userguide/troubleshooting/version_catalog_problems.adoc @gradle/bt-jvm @nathan-contino
