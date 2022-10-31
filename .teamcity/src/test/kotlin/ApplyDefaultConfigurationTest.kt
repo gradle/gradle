@@ -1,5 +1,6 @@
 import common.Os
 import common.VersionedSettingsBranch
+import common.pluginPortalUrlOverride
 import configurations.BaseGradleBuildType
 import configurations.applyDefaults
 import configurations.applyTestDefaults
@@ -143,6 +144,6 @@ class ApplyDefaultConfigurationTest {
         val linuxPaths = "-Porg.gradle.java.installations.paths=%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java18.openjdk.64bit%,%linux.java8.openjdk.64bit%"
         val windowsPaths = "-Porg.gradle.java.installations.paths=%windows.java8.oracle.64bit%,%windows.java11.openjdk.64bit%,%windows.java17.openjdk.64bit%,%windows.java18.openjdk.64bit%,%windows.java8.openjdk.64bit%"
         val expectedInstallationPaths = if (os == Os.WINDOWS) windowsPaths else linuxPaths
-        return "-Dorg.gradle.workers.max=%maxParallelForks% -PmaxParallelForks=%maxParallelForks% -Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url% -s --no-configuration-cache %additional.gradle.parameters% $daemon --continue $extraParameters \"-Dscan.tag.Check\" \"-Dscan.tag.\" -PteamCityBuildId=%teamcity.build.id% \"$expectedInstallationPaths\" -Porg.gradle.java.installations.auto-download=false"
+        return "-Dorg.gradle.workers.max=%maxParallelForks% -PmaxParallelForks=%maxParallelForks% $pluginPortalUrlOverride -s --no-configuration-cache %additional.gradle.parameters% $daemon --continue $extraParameters \"-Dscan.tag.Check\" \"-Dscan.tag.\" -PteamCityBuildId=%teamcity.build.id% \"$expectedInstallationPaths\" -Porg.gradle.java.installations.auto-download=false"
     }
 }
