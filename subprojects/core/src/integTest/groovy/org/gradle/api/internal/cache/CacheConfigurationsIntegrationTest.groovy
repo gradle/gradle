@@ -25,8 +25,11 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
     private static final int MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES + 1
     private static final int MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1
 
-    def "can configure caches via init script and query from settings script"() {
+    def setup() {
         requireOwnGradleUserHomeDir()
+    }
+
+    def "can configure caches via init script and query from settings script"() {
         def initDir = new File(executer.gradleUserHomeDir, "init.d")
         initDir.mkdirs()
         new File(initDir, "cache-settings.gradle") << """

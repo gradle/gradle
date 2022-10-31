@@ -80,7 +80,7 @@ public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
     }
 
     @Override
-    public void finalizeAllValues() {
+    public void finalizeConfigurations() {
         releasedWrappersConfiguration.getRemoveUnusedEntriesAfterDays().finalizeValue();
         snapshotWrappersConfiguration.getRemoveUnusedEntriesAfterDays().finalizeValue();
         downloadedResourcesConfiguration.getRemoveUnusedEntriesAfterDays().finalizeValue();
