@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.tasks.testing.TestSuiteExecutionException;
-import org.junit.internal.runners.InitializationError;
 import org.junit.internal.runners.JUnit38ClassRunner;
-import org.junit.internal.runners.JUnit4ClassRunner;
 import org.junit.runner.Description;
 import org.junit.runner.Request;
 import org.junit.runner.RunWith;
@@ -61,7 +58,6 @@ public class IgnoredTestDescriptorProvider {
      *
      * @see <a href="https://github.com/junit-team/junit4/commit/67e3edf20613b1278f4be05353b31b5129e21882">The relevant commit</a>
      */
-    @VisibleForTesting
     @SuppressWarnings("deprecation")
     static Runner getRunnerLegacy(Class<?> testClass) throws Throwable {
         RunWith annotation = testClass.getAnnotation(RunWith.class);
@@ -71,7 +67,7 @@ public class IgnoredTestDescriptorProvider {
                 return runnerClass.getConstructor(Class.class).newInstance(testClass);
             } catch (NoSuchMethodException e) {
                 String simpleName = runnerClass.getSimpleName();
-                throw new InitializationError("Custom runner class " + simpleName +
+                throw new org.junit.internal.runners.InitializationError("Custom runner class " + simpleName +
                     " should have a public constructor with signature " + simpleName + "(Class testClass)");
             }
         } else if (hasSuiteMethod(testClass)) {
@@ -79,7 +75,7 @@ public class IgnoredTestDescriptorProvider {
         } else if (junit.framework.TestCase.class.isAssignableFrom(testClass)) {
             return new JUnit38ClassRunner(testClass);
         } else {
-            return new JUnit4ClassRunner(testClass);
+            return new org.junit.internal.runners.JUnit4ClassRunner(testClass);
         }
     }
 
