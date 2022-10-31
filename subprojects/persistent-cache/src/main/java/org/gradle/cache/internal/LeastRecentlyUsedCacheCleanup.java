@@ -33,8 +33,6 @@ import java.util.function.Supplier;
 public class LeastRecentlyUsedCacheCleanup extends AbstractCacheCleanup {
     private static final Logger LOGGER = LoggerFactory.getLogger(LeastRecentlyUsedCacheCleanup.class);
 
-    public static final long DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES = 7;
-
     private final FileAccessTimeJournal journal;
     private final Supplier<Integer> numberOfDays;
 
