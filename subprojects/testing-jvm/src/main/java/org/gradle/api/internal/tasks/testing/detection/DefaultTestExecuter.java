@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -203,6 +204,19 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             // load all of our modules so that we don't get version mismatches between our
             // own dependencies. (Eg junit-platform-launcher-1.9.0 and junit-platform-commons-1.6.0)
             toLoad = additionalModules;
+            LOGGER.info("Loading all additional modules from the distribution since the application classpath does " +
+                "not contain all requested modules. This may lead to duplicate test framework implementation classes " +
+                "on the classpath. To resolve this, either declare all requested modules explicitly as test dependencies, " +
+                "use test suites, or remove any already declared dependencies");
+        }
+
+        if (LOGGER.isDebugEnabled() && !toLoad.isEmpty()) {
+            ArrayList<String> names = new ArrayList<String>();
+            for (DistributionModule module : additionalModules) {
+                names.add(module.getModuleName());
+            }
+
+            LOGGER.debug("Loaded additional modules from the Gradle distribution: " + Joiner.on(",").join(names));
         }
 
         // For any modules not provided by the test, load them from the distribution.
