@@ -66,7 +66,7 @@ import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocT
  * @see <a href="https://docs.gradle.org/current/userguide/java_plugin.html">Java plugin reference</a>
  * @see <a href="https://docs.gradle.org/current/userguide/jvm_test_suite_plugin.html">JVM test suite plugin reference</a>
  */
-public class JavaPlugin implements Plugin<Project> {
+public abstract class JavaPlugin implements Plugin<Project> {
     /**
      * The name of the task that processes resources.
      */

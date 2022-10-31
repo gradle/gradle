@@ -740,10 +740,6 @@ tasks.named("docsTest") { task ->
                 "snippet-ear-ear-with-war_groovy_earWithWar.sample",
                 "snippet-ear-ear-with-war_kotlin_earWithWar.sample",
 
-                // TODO(https://github.com/gradle/gradle/issues/21714)
-                "snippet-groovy-compilation-avoidance_groovy_groovyCompilationAvoidance.sample",
-                "snippet-groovy-compilation-avoidance_kotlin_groovyCompilationAvoidance.sample",
-
                 // TODO(https://github.com/gradle/gradle/issues/13469) Ivy Publish plugin support
                 "snippet-ivy-publish-conditional-publishing_groovy_publishingIvyConditionally.sample",
                 "snippet-ivy-publish-descriptor-customization_groovy_publishingIvyGenerateDescriptor.sample",
@@ -759,10 +755,6 @@ tasks.named("docsTest") { task ->
                 // TODO(https://github.com/gradle/gradle/issues/21717)
                 "snippet-java-toolchain-filters_groovy_toolchainFilters.sample",
                 "snippet-java-toolchain-filters_kotlin_toolchainFilters.sample",
-
-                // TODO(https://github.com/gradle/gradle/issues/21640)
-                "snippet-maven-publish-conditional-publishing_groovy_publishingMavenConditionally.sample",
-                "snippet-maven-publish-conditional-publishing_kotlin_publishingMavenConditionally.sample",
 
                 // TODO(https://github.com/gradle/gradle/issues/13470) Signing plugin support
                 "snippet-signing-configurations_groovy_signingArchivesOutput.sample",

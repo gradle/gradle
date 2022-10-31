@@ -46,7 +46,7 @@ import java.util.Set;
 /**
  * The TestNG specific test options.
  */
-public class TestNGOptions extends TestFrameworkOptions {
+public abstract class TestNGOptions extends TestFrameworkOptions {
     public static final String DEFAULT_CONFIG_FAILURE_POLICY = "skip";
     private static final String DEFAULT_PARALLEL_MODE = null;
     private static final int DEFAULT_THREAD_COUNT = -1;

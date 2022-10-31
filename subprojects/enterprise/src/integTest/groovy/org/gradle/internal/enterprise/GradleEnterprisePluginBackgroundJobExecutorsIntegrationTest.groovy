@@ -19,10 +19,13 @@ package org.gradle.internal.enterprise
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.process.ShellScript
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
+import javax.inject.Inject
 import java.util.concurrent.CompletableFuture
 
 class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends AbstractIntegrationSpec {
@@ -279,11 +282,160 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
         succeeds("check", "-Dproperty=other")
 
         then:
-        outputDoesNotContain("backgroundJob.property = ")
         configurationCache.assertStateLoaded()
+    }
+
+    @IgnoreIf({ !GradleContextualExecuter.configCache })
+    @ToBeImplemented
+    def "value sources are not tracked for the job"() {
+        def configurationCache = new ConfigurationCacheFixture(this)
+
+        given:
+        buildFile << """
+            import ${CompletableFuture.name}
+
+            def executors = $executors
+            def propertyProvider = providers.systemProperty("property")
+            def future = CompletableFuture.runAsync({
+                println "backgroundJob.property = \${propertyProvider.get()}"
+            }, executors.userJobExecutor)
+
+            // Block until the job completes to ensure it run at the configuration time.
+            future.get()
+
+            task check {}
+        """
+
+        when:
+        succeeds("check", "-Dproperty=value")
+
+        then:
+        outputContains("backgroundJob.property = value")
+        configurationCache.assertStateStored()
+
+        when:
+        succeeds("check", "-Dproperty=other")
+
+        then:
+        // configurationCache.assertStateLoaded()
+        // TODO(mlopatkin) Accessing the value source in the background job should not make it an input,
+        //  so the configuration should be loaded from the cache. A naive solution of gating the input
+        //  recording will break the other test as only the first value source read is broadcasted to
+        //  listeners.
+        configurationCache.assertStateStored()
+        outputContains("backgroundJob.property = other")
+    }
+
+    @IgnoreIf({ !GradleContextualExecuter.configCache })
+    def "value sources are tracked if also accessed outside the job"() {
+        def configurationCache = new ConfigurationCacheFixture(this)
+
+        given:
+        buildFile << """
+            import ${CompletableFuture.name}
+
+            def executors = $executors
+            def propertyProvider = providers.systemProperty("property")
+            def future = CompletableFuture.runAsync({
+                println "backgroundJob.property = \${propertyProvider.get()}"
+            }, executors.userJobExecutor)
+
+            // Block until the job completes to ensure it run at the configuration time.
+            future.get()
+
+            println "buildscript.property = \${propertyProvider.get()}"
+
+            task check {}
+        """
+
+        when:
+        succeeds("check", "-Dproperty=value")
+
+        then:
+        outputContains("backgroundJob.property = value")
+        outputContains("buildscript.property = value")
+        configurationCache.assertStateStored()
+
+        when:
+        succeeds("check", "-Dproperty=other")
+
+        then:
+        outputContains("backgroundJob.property = other")
+        outputContains("buildscript.property = other")
+        configurationCache.assertStateStored()
+    }
+
+    def "background job can execute external process with process API at configuration time"() {
+        given:
+        ShellScript script = ShellScript.builder().printText("Hello, world").writeTo(testDirectory, "script")
+
+        withStableConfigurationCacheEnabled()
+
+        buildFile << """
+            import ${CompletableFuture.name}
+
+            def executors = $executors
+            def future = CompletableFuture.runAsync({
+                def process = ${ShellScript.cmdToStringLiteral(script.getRelativeCommandLine(testDirectory))}.execute()
+                process.waitForProcessOutput(System.out, System.err)
+            }, executors.userJobExecutor)
+
+            // Block until the job completes to ensure it run at the configuration time.
+            future.get()
+
+            task check {}
+        """
+
+        when:
+        succeeds("check")
+
+        then:
+        outputContains("Hello, world")
+    }
+
+    def "background job can execute external process with Gradle API at configuration time"() {
+        given:
+        ShellScript script = ShellScript.builder().printText("Hello, world").writeTo(testDirectory, "script")
+
+        withStableConfigurationCacheEnabled()
+
+        buildFile << """
+            import ${CompletableFuture.name}
+            import ${Inject.name}
+
+            interface ExecOperationsGetter {
+                @Inject ExecOperations getExecOps()
+            }
+
+            def execOperations = objects.newInstance(ExecOperationsGetter).execOps
+
+            def executors = $executors
+            def future = CompletableFuture.runAsync({
+                execOperations.exec {
+                    commandLine(${ShellScript.cmdToVarargLiterals(script.getRelativeCommandLine(testDirectory))})
+                }
+            }, executors.userJobExecutor)
+
+            // Block until the job completes to ensure it run at the configuration time.
+            future.get()
+
+            task check {}
+        """
+
+        when:
+        succeeds("check")
+
+        then:
+        outputContains("Hello, world")
     }
 
     private static String getExecutors() {
         return """(gradle.extensions.serviceRef.get()._requiredServices.backgroundJobExecutors)"""
+    }
+
+    private withStableConfigurationCacheEnabled() {
+        settingsFile("""
+            enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
+        """)
     }
 }

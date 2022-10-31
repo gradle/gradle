@@ -139,6 +139,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         def binaryAndSourcesInRepo = internalRepo.module("org.gradle.sample", artifactId, version).withModuleMetadata()
         def localRepo = maven(temporaryFolder.createDir("m2_repo"))
         def binaryAndSourcesLocal = localRepo.module("org.gradle.sample", artifactId, version).withModuleMetadata()
+
         when:
         args "-Dmaven.repo.local=${localRepo.rootDir.getAbsolutePath()}"
         succeeds "publish", "publishToMavenLocal"

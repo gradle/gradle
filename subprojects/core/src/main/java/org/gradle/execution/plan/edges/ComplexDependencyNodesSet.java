@@ -72,4 +72,12 @@ public class ComplexDependencyNodesSet implements DependencyNodesSet {
 
         return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
     }
+
+    @Override
+    public void healthDiagnostics(StringBuilder builder) {
+        delegate.healthDiagnostics(builder);
+        if (!orderedMustSuccessors.isEmpty()) {
+            builder.append(", must-run-after=").append(Node.formatNodes(orderedMustSuccessors));
+        }
+    }
 }

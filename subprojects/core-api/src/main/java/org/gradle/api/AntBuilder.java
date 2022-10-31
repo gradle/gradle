@@ -54,7 +54,6 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      *
      * @since 7.1
      */
-    @Incubating
     public abstract void importBuild(Object antBuildFile, String baseDirectory);
 
     /**
@@ -89,7 +88,6 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      *
      * @since 7.1
      */
-    @Incubating
     public abstract void importBuild(Object antBuildFile, String baseDirectory, Transformer<? extends String, ? super String> taskNamer);
 
     /**

@@ -21,12 +21,13 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.core.IsNot.not
 
 class GroovyPluginTest extends AbstractProjectBuilderSpec {
-    private final GroovyPlugin groovyPlugin = new GroovyPlugin()
+    private final GroovyPlugin groovyPlugin = TestUtil.newInstance(GroovyPlugin)
 
     def "applies the java plugin to the project"() {
         when:

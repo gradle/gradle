@@ -50,7 +50,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ShadowedCapability;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
+import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -199,11 +199,11 @@ public class NodeState implements DependencyGraphNode {
 
     @Override
     public Set<? extends LocalFileDependencyMetadata> getOutgoingFileEdges() {
-        if (metadata instanceof LocalConfigurationMetadata) {
+        if (metadata instanceof LocalConfigurationGraphResolveMetadata) {
             // Only when this node has a transitive incoming edge
             for (EdgeState incomingEdge : incomingEdges) {
                 if (incomingEdge.isTransitive()) {
-                    return ((LocalConfigurationMetadata) metadata).getFiles();
+                    return ((LocalConfigurationGraphResolveMetadata) metadata).getFiles();
                 }
             }
         }
@@ -598,7 +598,7 @@ public class NodeState implements DependencyGraphNode {
         }
         if (state == null) {
             // the platform doesn't exist, so we're building a lenient one
-            state = new LenientPlatformGraphResolveState(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
+            state = LenientPlatformGraphResolveState.of(platformComponentIdentifier, potentialEdge.toModuleVersionId, virtualPlatformState, this, resolveState);
             potentialEdge.component.setState(state);
             // And now let's make sure we do not have another version of that virtual platform missing its metadata
             potentialEdge.component.getModule().maybeCreateVirtualMetadata(resolveState);

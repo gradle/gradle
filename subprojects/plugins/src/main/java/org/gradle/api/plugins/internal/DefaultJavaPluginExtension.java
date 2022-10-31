@@ -77,6 +77,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private JavaVersion targetCompat;
     private boolean autoTargetJvm = true;
 
+    @Inject
     public DefaultJavaPluginExtension(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec, JvmPluginServices jvmPluginServices) {
         this.docsDir = project.getObjects().directoryProperty();
         this.testResultsDir = project.getObjects().directoryProperty();

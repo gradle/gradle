@@ -24,6 +24,8 @@ import com.tngtech.archunit.lang.ArchRule;
 import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.xml.MarkupBuilder;
+import org.gradle.api.Plugin;
+import org.gradle.api.Task;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -32,6 +34,7 @@ import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
 
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
@@ -43,6 +46,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.gradleInternalApi;
 import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
 import static org.gradle.architecture.test.ArchUnitFixture.haveDirectSuperclassOrInterfaceThatAre;
 import static org.gradle.architecture.test.ArchUnitFixture.haveOnlyArgumentsOrReturnTypesThatAre;
+import static org.gradle.architecture.test.ArchUnitFixture.beAbstract;
 import static org.gradle.architecture.test.ArchUnitFixture.primitive;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 
@@ -66,12 +70,19 @@ public class PublicApiAccessTest {
                 .or(type(Closure.class))
                 .as("Groovy classes")
             );
+    private static final DescribedPredicate<JavaClass> public_api_tasks_or_plugins =
+            gradlePublicApi().and(assignableTo(Task.class).or(assignableTo(Plugin.class)));
 
     @ArchTest
     public static final ArchRule public_api_methods_do_not_reference_internal_types_as_parameters = freeze(methods()
         .that(are(public_api_methods))
         .should(haveOnlyArgumentsOrReturnTypesThatAre(allowed_types_for_public_api))
     );
+
+    @ArchTest
+    public static final ArchRule public_api_tasks_and_plugins_are_abstract = classes()
+            .that(are(public_api_tasks_or_plugins))
+            .should(beAbstract());
 
     @ArchTest
     public static final ArchRule public_api_classes_do_not_extend_internal_types = freeze(classes()

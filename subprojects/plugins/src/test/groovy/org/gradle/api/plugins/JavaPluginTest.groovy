@@ -218,7 +218,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         mainSourceSet.annotationProcessorPath.is(project.configurations.annotationProcessor)
         mainSourceSet.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/main'))
         mainSourceSet.output.resourcesDir == new File(project.buildDir, 'resources/main')
-        mainSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME ]
+        mainSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == [ JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME ] as Set
         mainSourceSet.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/main'))
         mainSourceSet.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JavaPlugin.COMPILE_JAVA_TASK_NAME ]
         mainSourceSet.runtimeClasspath.sourceCollections.contains(project.configurations.runtimeClasspath)
@@ -235,7 +235,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         testSourceSet.annotationProcessorPath.is(project.configurations.testAnnotationProcessor)
         testSourceSet.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/test'))
         testSourceSet.output.resourcesDir == new File(project.buildDir, 'resources/test')
-        testSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME ]
+        testSourceSet.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == [ JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME ] as Set
         testSourceSet.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/test'))
         testSourceSet.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME ]
         testSourceSet.runtimeClasspath.sourceCollections.contains(project.configurations.testRuntimeClasspath)
@@ -256,7 +256,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.compileClasspath.is(project.configurations.customCompileClasspath)
         set.annotationProcessorPath.is(project.configurations.customAnnotationProcessor)
         set.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/custom'))
-        set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ 'customClasses', 'compileCustomJava' ]
+        set.getOutput().getBuildDependencies().getDependencies(null)*.name as Set == [ 'customClasses', 'compileCustomJava' ] as Set
         set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/custom'))
         set.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ 'compileCustomJava' ]
         assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntimeClasspath))
@@ -538,7 +538,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         compileJava.targetCompatibility == "1.8"
         compileJava.sourceCompatibility == "1.8"
-        testCompileJava.targetCompatibility == "1.9"
-        testCompileJava.sourceCompatibility == "1.9"
+        testCompileJava.targetCompatibility == "9"
+        testCompileJava.sourceCompatibility == "9"
     }
 }

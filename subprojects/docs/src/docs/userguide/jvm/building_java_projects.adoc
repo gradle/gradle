@@ -519,7 +519,7 @@ See the plugin's chapter for more details, but here's a quick summary of what yo
  * A `run` task that starts the application from the build (for easy testing)
  * Shell and Windows Batch scripts to start the application
 
-You can see a basic example of building a Java application in the corresponding link:../samples/building-java-applications.html[sample].
+You can see a basic example of building a Java application in the corresponding link:../samples/sample_building_java_applications.html[sample].
 
 
 [[sec:building_java_webapps]]

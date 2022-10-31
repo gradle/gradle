@@ -28,6 +28,7 @@ import org.gradle.internal.actor.TestActorFactory
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -43,7 +44,7 @@ class TestNGTestClassProcessorTest extends Specification {
             getAsFile() >> dir.testDirectory
         }
     }
-    def options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(layout), new DefaultTestFilter()])
+    def options = Spy(TestNGSpec, constructorArgs: [TestUtil.newInstance(TestNGOptions, layout), new DefaultTestFilter() ])
 
     @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 
