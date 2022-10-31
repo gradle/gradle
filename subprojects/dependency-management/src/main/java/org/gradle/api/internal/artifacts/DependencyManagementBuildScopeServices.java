@@ -74,11 +74,9 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.InMemoryModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ReadOnlyModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.TwoStageModuleVersionsCache;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
@@ -226,6 +224,7 @@ class DependencyManagementBuildScopeServices {
         registration.add(DefaultExternalResourceFileStore.Factory.class);
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
         registration.add(TransformationNodeDependencyResolver.class);
+        registration.add(DefaultProjectLocalComponentProvider.class);
     }
 
     DependencyResolutionManagementInternal createSharedDependencyResolutionServices(Instantiator instantiator,
@@ -587,13 +586,6 @@ class DependencyManagementBuildScopeServices {
 
     ProjectPublicationRegistry createProjectPublicationRegistry() {
         return new DefaultProjectPublicationRegistry();
-    }
-
-    LocalComponentProvider createProjectComponentProvider(
-        LocalComponentMetadataBuilder metaDataBuilder,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory
-    ) {
-        return new DefaultProjectLocalComponentProvider(metaDataBuilder, moduleIdentifierFactory);
     }
 
     ComponentSelectorConverter createModuleVersionSelectorFactory(ComponentIdentifierFactory componentIdentifierFactory, LocalComponentRegistry localComponentRegistry) {

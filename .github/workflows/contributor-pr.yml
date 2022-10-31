@@ -30,16 +30,16 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: git clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - id: setup-matrix
         run: echo "::set-output name=matrix::$(jq -c -f .github/workflows/extract-unit-test-split.jq .teamcity/subprojects.json)"
       - name: setup java
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 11
       - id: determine-sys-prop-args
-        uses: actions/github-script@v5
+        uses: actions/github-script@v6
         with:
           script: |
             if (context.payload.pull_request && context.payload.pull_request.head.repo.fork) {
@@ -57,7 +57,7 @@ jobs:
               --no-configuration-cache
               -DdisableLocalCache=true
               ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: build-receipt.properties
           path: subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
@@ -71,13 +71,13 @@ jobs:
     needs: build
     steps:
       - name: git clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: setup java
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 11
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
@@ -102,13 +102,13 @@ jobs:
       fail-fast: false
     steps:
       - name: git clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: setup java
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 11
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties

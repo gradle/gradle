@@ -21,12 +21,47 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Requires
+import org.gradle.util.internal.TextUtil
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import static org.junit.Assume.assumeNotNull
 
 class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec {
+
+    @Issue("https://github.com/gradle/gradle/issues/22398")
+    def "ignore #what in fork options if not forking"() {
+        def curJvm = Jvm.current()
+        def otherJvm = AvailableJavaHomes.differentVersion
+        def path = TextUtil.normaliseFileSeparators(otherJvm.javaHome.absolutePath + appendPath)
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        buildFile << """
+            apply plugin: "java"
+
+            compileJava {
+                ${configure.replace("<path>", path)}
+            }
+        """
+
+        when:
+        run(":compileJava", "--info")
+
+        then:
+        executedAndNotSkipped(":compileJava")
+        outputContains("Compiling with toolchain '${curJvm.javaHome.absolutePath}'")
+        outputContains("Compiling with JDK Java compiler API")
+        outputDoesNotContain("Compiling with Java command line compiler")
+        outputDoesNotContain("Started Gradle worker daemon")
+
+        where:
+        what         | configure                                       | appendPath
+        "java home"  | 'options.forkOptions.javaHome = file("<path>")' | ''
+        "executable" | 'options.forkOptions.executable = "<path>"'     | OperatingSystem.current().getExecutableName('/bin/javac')
+    }
 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "can manually set java compiler via #type toolchain on java compile task"() {
@@ -335,8 +370,8 @@ public class Foo {
 
         where:
         source | target | sourceOut | targetOut
-        '9'    | '10'   | '1.9'     | '1.10'
-        '9'    | 'none' | '1.9'     | '11'
+        '9'    | '10'   | '9'       | '10'
+        '9'    | 'none' | '9'       | '11'
         'none' | 'none' | '11'      | '11'
 
     }
@@ -380,9 +415,9 @@ public class Foo {
         ]
     }
 
-    /*
-    This test covers the case where in Java8 the class name becomes fully qualified in the deprecation message which is
-    somehow caused by invoking javacTask.getElements() in the IncrementalCompileTask of the incremental compiler plugin.
+    /**
+     * This test covers the case where in Java8 the class name becomes fully qualified in the deprecation message which is
+     * somehow caused by invoking javacTask.getElements() in the IncrementalCompileTask of the incremental compiler plugin.
      */
     def "Java deprecation messages with different JDKs"() {
         def jdk = AvailableJavaHomes.getJdk(javaVersion)

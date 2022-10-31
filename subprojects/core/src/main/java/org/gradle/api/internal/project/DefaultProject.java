@@ -143,6 +143,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
@@ -501,12 +502,22 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public Map<String, Project> getChildProjects() {
+    public Map<String, Project> getChildProjectsUnchecked() {
         Map<String, Project> childProjects = Maps.newTreeMap();
         for (ProjectState project : owner.getChildProjects()) {
             childProjects.put(project.getName(), project.getMutableModel());
         }
         return childProjects;
+    }
+
+    @Override
+    public Map<String, Project> getChildProjects() {
+        return getChildProjectsUnchecked().entrySet().stream().collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> getCrossProjectModelAccess().access(this, (ProjectInternal) entry.getValue())
+            )
+        );
     }
 
     @Override

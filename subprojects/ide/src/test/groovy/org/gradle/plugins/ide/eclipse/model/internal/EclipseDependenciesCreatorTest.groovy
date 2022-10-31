@@ -31,7 +31,7 @@ class EclipseDependenciesCreatorTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         childProject = TestUtil.createChildProject(project, "child", temporaryFolder.testDirectory.file("child"))
-        eclipseClasspath = new EclipseClasspath(project)
+        eclipseClasspath = TestUtil.newInstance(EclipseClasspath, project)
         dependenciesProvider = new EclipseDependenciesCreator(
             eclipseClasspath,
             project.services.get(IdeArtifactRegistry),

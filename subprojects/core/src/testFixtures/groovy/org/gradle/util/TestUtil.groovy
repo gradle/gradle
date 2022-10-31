@@ -101,6 +101,10 @@ class TestUtil {
         return services().get(PropertyFactory)
     }
 
+    static <T> T newInstance(Class<T> clazz, Object... params) {
+        return objectFactory().newInstance(clazz, params)
+    }
+
     static ObjectFactory objectFactory() {
         return services().get(ObjectFactory)
     }
@@ -265,6 +269,23 @@ class TestUtil {
 
     static ChecksumService getChecksumService() {
         services().get(ChecksumService)
+    }
+
+    static Throwable getRootCause(Throwable t) {
+        if (t == null) {
+            return null
+        }
+
+        def cause = t
+        while (true) {
+            def nextCause = cause.cause
+            if (nextCause == null || nextCause === cause) {
+                break
+            }
+            cause = nextCause
+        }
+
+        return cause
     }
 }
 

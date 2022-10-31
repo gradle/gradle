@@ -50,8 +50,8 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
     }
 
     @Override
-    public void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin) {
-        applyRules(pluginId, plugin.getClass());
+    public void applyImperativeRulesHybrid(@Nullable String pluginId, Plugin<?> plugin, Class<?> declaringClass) {
+        applyRules(pluginId, declaringClass);
     }
 
     @Override

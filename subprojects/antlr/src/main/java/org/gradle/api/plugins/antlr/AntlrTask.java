@@ -60,7 +60,7 @@ import java.util.concurrent.Callable;
  */
 @NonNullApi
 @CacheableTask
-public class AntlrTask extends SourceTask {
+public abstract class AntlrTask extends SourceTask {
 
     private boolean trace;
     private boolean traceLexer;

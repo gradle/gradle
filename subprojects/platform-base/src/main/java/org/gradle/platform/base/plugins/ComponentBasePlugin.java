@@ -50,7 +50,7 @@ import org.gradle.platform.base.internal.ComponentSpecInternal;
  * - Registers the infrastructure to support the base {@link ComponentSpec} type and extensions to this type.
  */
 @Incubating
-public class ComponentBasePlugin implements Plugin<Project> {
+public abstract class ComponentBasePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {

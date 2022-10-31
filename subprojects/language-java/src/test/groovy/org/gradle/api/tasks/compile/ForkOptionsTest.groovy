@@ -16,12 +16,13 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ForkOptionsTest extends Specification {
     static final List PROPS = ['executable', 'memoryInitialSize', 'memoryMaximumSize', 'tempDir']
 
-    ForkOptions forkOptions = new ForkOptions()
+    ForkOptions forkOptions = TestUtil.newInstance(ForkOptions)
 
     def 'initial values of forkOptions'() {
         expect:
