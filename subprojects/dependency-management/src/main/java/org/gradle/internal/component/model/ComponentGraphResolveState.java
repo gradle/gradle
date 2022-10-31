@@ -23,11 +23,11 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import javax.annotation.Nullable;
 
 /**
- * State for a component instance (ie version of a component) that is used to perform dependency graph resolution.
+ * State for a component instance (eg version of a component) that is used to perform dependency graph resolution.
  *
  * <p>Resolution happens in multiple steps. The first step is to calculate the dependency graph, which involves selecting component instances and one or more variants of each instance.
  * This type exposes only the information and operations required to do this. In particular, it does not expose any information about artifacts unless this is actually required for graph resolution,
- * which can happen only in certain specific cases (and something we should deprecate).</p>
+ * which is only required in certain specific cases (and something we should deprecate).</p>
  *
  * <p>The subsequent resolution steps, to select artifacts, are performed using the instance returned by {@link #prepareForArtifactResolution()}.</p>
  *
@@ -42,7 +42,7 @@ public interface ComponentGraphResolveState {
     ComponentGraphResolveMetadata getMetadata();
 
     /**
-     * When this component is a lenient platform, create a copy with the given ids.
+     * When this component is a lenient platform, create a copy with the given ids. Otherwise returns {@code null}.
      */
     @Nullable
     ComponentGraphResolveState maybeAsLenientPlatform(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier);
@@ -50,12 +50,15 @@ public interface ComponentGraphResolveState {
     /**
      * Determines the set of artifacts for the given variant of this component.
      *
-     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository, and should be avoided.
+     * <p>Note that this may be expensive, for example it may block waiting for access to the source project or for network or IO requests to the source repository, and should be used only when
+     * required.
      */
     VariantArtifactGraphResolveMetadata resolveArtifactsFor(VariantGraphResolveMetadata variant);
 
     /**
      * Creates the state that can be used for artifact resolution for this component instance.
+     *
+     * <p>Note that this may be expensive, and should be used only when required.</p>
      */
     ComponentArtifactResolveState prepareForArtifactResolution();
 }

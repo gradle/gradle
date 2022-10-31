@@ -45,7 +45,7 @@ import java.util.Map;
  * Adds core Objective-Cpp language support.
  */
 @Incubating
-public class ObjectiveCppLangPlugin implements Plugin<Project> {
+public abstract class ObjectiveCppLangPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);

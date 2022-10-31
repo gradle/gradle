@@ -16,7 +16,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
@@ -213,17 +212,18 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     }
 
     def "source and target compatibility are configured if toolchain is configured"() {
+        def currentVersion = Jvm.current().javaVersion
         given:
-        setupProjectWithToolchain(Jvm.current().javaVersion)
+        setupProjectWithToolchain(currentVersion)
 
         when:
         project.sourceSets.create('custom')
 
         then:
-        project.tasks.compileJava.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
-        project.tasks.compileJava.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
-        project.tasks.compileCustomJava.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
-        project.tasks.compileCustomJava.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileJava.getSourceCompatibility()) == currentVersion
+        JavaVersion.toVersion(project.tasks.compileJava.getTargetCompatibility()) == currentVersion
+        JavaVersion.toVersion(project.tasks.compileCustomJava.getSourceCompatibility()) == currentVersion
+        JavaVersion.toVersion(project.tasks.compileCustomJava.getTargetCompatibility()) == currentVersion
     }
 
     def "wires toolchain for test if toolchain is configured"() {
@@ -252,21 +252,19 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         configuredJavadocTool.isPresent()
     }
 
-    def 'cannot set java compile source compatibility if toolchain is configured'() {
+    def 'can set java compile source compatibility if toolchain is configured'() {
         given:
         def someJdk = Jvm.current()
         setupProjectWithToolchain(someJdk.javaVersion)
-        project.java.sourceCompatibility = JavaVersion.VERSION_1_1
+        def prevJavaVersion = JavaVersion.toVersion(someJdk.javaVersion.majorVersion.toInteger() - 1)
+        project.java.sourceCompatibility = prevJavaVersion
 
         when:
         def javaCompileTask = project.tasks.named("compileJava", JavaCompile).get()
 
-        javaCompileTask.sourceCompatibility // accessing the property throws
-
-
         then:
-        def error = thrown(InvalidUserDataException)
-        error.message == 'The new Java toolchain feature cannot be used at the project level in combination with source and/or target compatibility'
+        javaCompileTask.sourceCompatibility == prevJavaVersion.toString()
+        javaCompileTask.sourceCompatibility == prevJavaVersion.toString()
     }
 
     private void setupProjectWithToolchain(JavaVersion version) {
@@ -363,7 +361,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def compile = project.task('customCompile', type: JavaCompile)
-        compile.sourceCompatibility == project.sourceCompatibility.toString()
+        JavaVersion.toVersion(compile.sourceCompatibility) == project.sourceCompatibility
 
         def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir
@@ -423,16 +421,16 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         }
 
         where:
-        consumer                     | producer                     | compatible
-        Usage.JAVA_API               | Usage.JAVA_API               | true
-        Usage.JAVA_API               | Usage.JAVA_RUNTIME           | true
+        consumer           | producer                | compatible
+        Usage.JAVA_API     | Usage.JAVA_API          | true
+        Usage.JAVA_API     | Usage.JAVA_RUNTIME      | true
 
-        Usage.JAVA_RUNTIME           | Usage.JAVA_API               | false
-        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME           | true
+        Usage.JAVA_RUNTIME | Usage.JAVA_API          | false
+        Usage.JAVA_RUNTIME | Usage.JAVA_RUNTIME      | true
 
         // Temporary compatibility
-        Usage.JAVA_API               | Usage.JAVA_RUNTIME_JARS      | true
-        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_JARS      | true
+        Usage.JAVA_API     | Usage.JAVA_RUNTIME_JARS | true
+        Usage.JAVA_RUNTIME | Usage.JAVA_RUNTIME_JARS | true
 
     }
 
@@ -440,12 +438,12 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     def "check default disambiguation rules (consumer=#consumer, candidates=#candidates, selected=#preferred)"() {
         given:
         JavaEcosystemSupport.UsageDisambiguationRules rules = new JavaEcosystemSupport.UsageDisambiguationRules(
-                usage(Usage.JAVA_API),
-                usage(Usage.JAVA_API_JARS),
-                usage(Usage.JAVA_RUNTIME),
-                usage(Usage.JAVA_RUNTIME_JARS)
+            usage(Usage.JAVA_API),
+            usage(Usage.JAVA_API_JARS),
+            usage(Usage.JAVA_RUNTIME),
+            usage(Usage.JAVA_RUNTIME_JARS)
         )
-        MultipleCandidatesDetails details = new DefaultMultipleCandidateResult(usage(consumer), candidates.collect { usage(it)} as Set)
+        MultipleCandidatesDetails details = new DefaultMultipleCandidateResult(usage(consumer), candidates.collect { usage(it) } as Set)
 
         when:
         rules.execute(details)
@@ -458,17 +456,17 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         details
 
         where: // not exhaustive, tests pathological cases
-        consumer                | candidates                                     | preferred
-        Usage.JAVA_API          | [Usage.JAVA_API, Usage.JAVA_RUNTIME]           | Usage.JAVA_API
-        Usage.JAVA_RUNTIME      | [Usage.JAVA_RUNTIME, Usage.JAVA_API]           | Usage.JAVA_RUNTIME
+        consumer           | candidates                                                     | preferred
+        Usage.JAVA_API     | [Usage.JAVA_API, Usage.JAVA_RUNTIME]                           | Usage.JAVA_API
+        Usage.JAVA_RUNTIME | [Usage.JAVA_RUNTIME, Usage.JAVA_API]                           | Usage.JAVA_RUNTIME
 
         //Temporary compatibility
-        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
-        Usage.JAVA_RUNTIME      | [Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS]      | Usage.JAVA_RUNTIME_JARS
+        Usage.JAVA_API     | [Usage.JAVA_API_JARS, Usage.JAVA_RUNTIME_JARS]                 | Usage.JAVA_API_JARS
+        Usage.JAVA_RUNTIME | [Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS]                      | Usage.JAVA_RUNTIME_JARS
 
         // while unlikely that a candidate would expose both JAVA_API_JARS and JAVA_API,
         // this confirms that JAVA_API_JARS takes precedence, per JavaEcosystemSupport
-        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
+        Usage.JAVA_API     | [Usage.JAVA_API_JARS, Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
 
     }
 

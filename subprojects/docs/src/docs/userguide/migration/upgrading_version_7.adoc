@@ -105,6 +105,14 @@ In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension 
 
 === Potential breaking changes
 
+=== Plugins, tasks and extension classes are now abstract
+
+Most public classes for plugins, tasks and extensions have been made abstract. This was done to make it easier to remove boilerplate from Gradle's implementation.
+
+Plugins that are affected by this change should make their classes abstract as well.
+Gradle uses runtime class decoration to implement abstract methods as long as the object is instantiated via `ObjectFactory` or some other automatic mechanism (like <<custom_gradle_types.adoc#managed_properties,managed properties>>).
+Those methods should never be directly implemented.
+
 === Wrapper task configuration
 If `gradle-wrapper.properties` contains the `distributionSha256Sum` property, you must specify a sum. You can specify a sum in the wrapped task configuration or with the `--gradle-distribution-sha256-sum` task option.
 
@@ -179,6 +187,22 @@ Warnings that became errors:
 Previously Gradle used to detect if an input file collection annotated with `@SkipWhenEmpty` consisted only of file trees and then ignored directories automatically.
 To ignore directories in Gradle 8.0 and later, the input property needs to be explicitly annotated with `@IgnoreEmptyDirectories`.
 For more information see <<empty_directories_file_tree>>.
+
+==== Format of `JavaVersion` has changed for Java 9 and Java 10
+
+The string format of the `JavaVersion` has changed to match the official Java versioning.
+Starting from Java 9, the language version must not contain the `1.` prefix.
+This affects the format of the `sourceCompatiblity` and `targetCompatibility` properties on the `JavaCompile` task and `JavaExtension`.
+The old format is still supported when resolving the `JavaVersion` from a string.
+
+[cols="1,1"]
+|===
+| Gradle 7.6 | Gradle 8.0
+| `1.8` | `1.8`
+| `1.9` | `9`
+| `1.10`| `10`
+| `11`  | `11`
+|===
 
 [[strict-kotlin-dsl-precompiled-scripts-accessors-by-default]]
 === Precompiled script plugins use strict Kotlin DSL accessor generation by default
@@ -347,16 +371,17 @@ Replace usages with the now stable `getDestinationDirectory()` and `getTestResul
 These deprecated elements will be removed in a future version of Gradle.
 
 [[referencing_script_configure_method_from_container_configure_closure_deprecated]]
-==== Implicitly referencing outer scope methods in some configuration blocks in Groovy DSL is now deprecated
+==== Deprecated implicit references to outer scope methods in some configuration blocks
 
-Prior to Gradle 7.6, Groovy scripts would permit accessing root project-level configure methods from
-within named container configure methods, as long as that container configure method would otherwise
-fail with a `MissingMethodException`. Consider the following snippets for examples of this behavior:
+Prior to Gradle 7.6, Groovy scripts permitted access to root project configure methods
+within named container configure methods that throw `MissingMethodException`s.
+Consider the following snippets for examples of this behavior:
 
-Accessing the top-level `repositories` block from within the `configurations` block is permitted
-as long as the provided closure is otherwise an invalid configure closure for a Configuration.
-In this case, the `repositories` closure is executed as if it were called at the script-level, _and_
-an unconfigured `repositories` Configuration is created.
+Gradle permits access to the top-level `repositories` block from within the `configurations` block
+when the provided closure is otherwise an invalid configure closure for a Configuration.
+In this case, the `repositories` closure executes as if it were called at the script-level, and
+creates an unconfigured `repositories` Configuration:
+
 ```groovy
 configurations {
     repositories {
@@ -369,11 +394,12 @@ configurations {
 }
 ```
 
-The behavior also applies in closures which are not immediately executed. In this case, `afterResolve`
-is only executed when the `resolve` task runs. Regardless, the `distributions` closure is an otherwise
-invalid configure closure for a Configuration, though it is a valid top-level script closure. In this
-case, the `conf` Configuration is created immediately, and during the execution of the `resolve` task,
-the `distributions` block is executed as if it were declared at the script-level.
+The behavior also applies to closures which do not immediately execute.
+In this case, `afterResolve` only executes when the `resolve` task runs.
+The `distributions` closure is a valid top-level script closure.
+But it is an invalid configure closure for a Configuration.
+This example creates the `conf` Configuration immediately.
+During `resolve` task execution, the `distributions` block executed as if it were declared at the script-level:
 
 ```groovy
 configurations {
@@ -394,8 +420,10 @@ task resolve {
 }
 ```
 
-As of Gradle 7.6, this behavior is deprecated. Starting with Gradle 8.0, this behavior will be removed and instead
-the underlying `MissingMethodException` will be thrown. To mitigate this change, consider the following solutions:
+As of Gradle 7.6, this behavior is deprecated.
+Starting with Gradle 8.0, this behavior will be removed.
+Instead, Gradle will throw the underlying `MissingMethodException`.
+To mitigate this change, consider the following solutions:
 
 ```groovy
 configurations {
@@ -551,7 +579,7 @@ Due to that, if you use `zincVersion` setting it's advised to remove it and only
 
 Prior to Gradle 7.5, JDK modules `java.base/java.util` and `java.base/java.lang` were automatically opened in test workers on JDK9+ by passing `--add-opens` CLI arguments. This meant any tests were able to perform deep reflection on JDK internals without warning or failing. This caused tests to be unreliable by allowing code to pass when it would otherwise fail in a production environment.
 
-These implicit arguments have been removed and are no longer added by default. If your code or any of your dependencies are performing deep refection into JDK internals during test execution, you may see the following behavior changes:
+These implicit arguments have been removed and are no longer added by default. If your code or any of your dependencies are performing deep reflection into JDK internals during test execution, you may see the following behavior changes:
 
 Before Java 16, new build warnings are shown. These new warnings are printed to stderr and will not fail the build:
 ```
@@ -675,7 +703,7 @@ Moreover, Gradle will issue a deprecation warning to advise the user that the be
 To ignore directories in Gradle 8.0 and later, the input property needs to be annotated with `@IgnoreEmptyDirectories`.
 
 Finally, using `@link:{javadocPath}/org/gradle/api/tasks/InputDirectory.html[InputDirectory]` implies `@IgnoreEmptyDirectories`, so no changes are necessary when using this annotation.
-The same is true for `@link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#dir-java.lang.Object-[inputs.dir()]` when registering an input directory via the runtime API.
+The same is true for `link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#dir-java.lang.Object-[inputs.dir()]` when registering an input directory via the runtime API.
 
 [[lazypublishartifact_fileresolver]]
 ==== Using LazyPublishArtifact without a FileResolver is deprecated
@@ -699,7 +727,7 @@ This way, Gradle is able to apply optimizations like up-to-date checks instead o
 [[unique_attribute_sets]]
 ==== Unique attribute sets
 
-The set of link:{javadocPath}/org/gradle/api/attribute/Attribute.html[Attribute]s associated with a _consumable_ configuration within a project, must be unique across all other configurations within that project _which share the same set of link:{javadocPath}/org/gradle/api/capabilities/Capability.html[Capability]s.  This will be checked at the end of configuring variant configurations, as they are locked against further mutation.
+The set of link:{javadocPath}/org/gradle/api/attribute/Attribute.html[Attribute]s associated with a _consumable_ configuration within a project, must be unique across all other configurations within that project which share the same set of link:{javadocPath}/org/gradle/api/capabilities/Capability.html[Capability]s.  This will be checked at the end of configuring variant configurations, as they are locked against further mutation.
 
 If the set of attributes is shared across configurations, consider adding an additional attribute to one of the variants for the sole purpose of disambiguation.
 
@@ -752,7 +780,7 @@ See the <<configuration_cache#config_cache:requirements:build_listeners,configur
 these usages to APIs that are supported by the configuration cache.
 
 [[task_project]]
-==== Calling `Task#getProject()` from a task action
+==== Calling `Task.getProject()` from a task action
 
 Calling link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] from a task action at execution time is
 now deprecated and will be made an error in Gradle 8.0.
@@ -762,7 +790,7 @@ See the <<configuration_cache#config_cache:requirements:use_project_during_execu
 how to migrate these usages to APIs that are supported by the configuration cache.
 
 [[task_dependencies]]
-==== Calling `Task#getTaskDependencies()` from a task action
+==== Calling `Task.getTaskDependencies()` from a task action
 
 Calling link:{javadocPath}/org/gradle/api/Task.html#getTaskDependencies--[Task.getTaskDependencies()] from a task action at
 execution time is now deprecated and will be made an error in Gradle 8.0.
@@ -772,7 +800,7 @@ See the <<configuration_cache#config_cache:requirements:use_project_during_execu
 how to migrate these usages to APIs that are supported by the configuration cache.
 
 [[undeclared_build_service_usage]]
-==== Using a build service from a task without the corresponding `Task#usesService` declaration
+==== Using a build service from a task without the corresponding `Task.usesService` declaration
 
 Gradle needs the information so it can properly honor the build service lifecycle and its usage constraints.
 
@@ -845,7 +873,7 @@ scripts could be used for arbitrary code execution when an attacker is able to c
 
 You can use the latest version of Gradle to generate a `gradlew` script and use it to execute an older version of Gradle.
 
-This should be a transparent for most users; however, there may be changes for Gradle builds that rely on the environment variables `JAVA_OPTS` or `GRADLE_OPTS` to pass parameters with complicated quote escaping.
+This should be transparent for most users; however, there may be changes for Gradle builds that rely on the environment variables `JAVA_OPTS` or `GRADLE_OPTS` to pass parameters with complicated quote escaping.
 Contact us if you suspect something has broken your build and you cannot find a solution.
 
 ==== Updates to bundled Gradle dependencies
@@ -862,7 +890,7 @@ Contact us if you suspect something has broken your build and you cannot find a 
 [[java_lamdba_action]]
 ==== Using Java lambdas as task actions
 
-When using a Java lambda to implement a task action, Gradle cannot track the implementation and the task will never be up-to-date of from the build cache.
+When using a Java lambda to implement a task action, Gradle cannot track the implementation and the task will never be up-to-date or served from the build cache.
 Since it is easy to add such a task action, using task actions implemented by Java lambdas is now deprecated.
 See <<validation_problems.adoc#implementation_unknown,Validation problems>> for more details how to fix the issue.
 
@@ -872,7 +900,7 @@ See <<validation_problems.adoc#implementation_unknown,Validation problems>> for 
 When a task input is annotated with `@Input` and is not a type Gradle understand directly (like `String`), then Gradle uses the serialized form of the input for up-to-date checks and the build cache key.
 Historically, Gradle also loads the serialized value from the last execution and then uses `equals()` to compare it to the current value for up-to-date checks.
 Doing so is error prone, doesn't work with the build cache and has a performance impact, therefore it has been deprecated.
-Instead of using at `@Input` on a type Gradle doesn't understand directly, use `@Nested` and annotate the properties of the type accordingly.
+Instead of using `@Input` on a type Gradle doesn't understand directly, use `@Nested` and annotate the properties of the type accordingly.
 
 [[changes_7.1]]
 == Upgrading from 7.0 and earlier

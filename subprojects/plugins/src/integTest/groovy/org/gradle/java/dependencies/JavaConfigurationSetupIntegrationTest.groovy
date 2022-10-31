@@ -159,6 +159,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.withStacktraceEnabled()
         if (deprecated(alternatives)) {
             executer.expectDeprecationWarning()
         }
