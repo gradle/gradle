@@ -194,7 +194,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         variant.setDescription("Directories containing compiled class files for " + sourceSet.getName() + ".");
         variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
         variant.artifactsProvider(() ->  {
-            FileCollection classesDirs = ((DefaultSourceSetOutput) sourceSet.getOutput()).getClassesDirsInternal();
+            FileCollection classesDirs = sourceSet.getOutput().getClassesDirs();
             return classesDirs.getFiles().stream().map(file ->
                     new JvmPluginsHelper.ImmediateIntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs, file))
                 .collect(Collectors.toList());
