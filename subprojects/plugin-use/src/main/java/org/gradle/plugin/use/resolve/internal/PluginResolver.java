@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 
@@ -24,10 +23,6 @@ import org.gradle.plugin.management.internal.PluginRequestInternal;
  * A repository of plugins.
  */
 public interface PluginResolver {
-
-    default DependencyResolutionServices getResolutionServices() {
-        throw new UnsupportedOperationException();
-    }
 
     void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException;
 

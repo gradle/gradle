@@ -47,11 +47,6 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
     private final DependencyResolutionServices resolutionServices;
 
-    @Override
-    public DependencyResolutionServices getResolutionServices() {
-        return resolutionServices;
-    }
-
     public ArtifactRepositoriesPluginResolver(DependencyResolutionServices resolutionServices) {
         this.resolutionServices = resolutionServices;
 
@@ -59,7 +54,7 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         System.out.println("Additional plugin repository URL: " + pluginRepoUrl);
         if (pluginRepoUrl != null) {
             System.out.println("Added " + pluginRepoUrl);
-            RepositoryHandler repositories = getResolutionServices().getResolveRepositoryHandler();
+            RepositoryHandler repositories = resolutionServices.getResolveRepositoryHandler();
             repositories.mavenLocal(repo -> repo.setUrl(URI.create(pluginRepoUrl)));
             System.out.println("Repositories in "+ repositories.getClass().getName() + "@"+ System.identityHashCode(repositories) + " after local added: ");
             for (ArtifactRepository repo: repositories) {
