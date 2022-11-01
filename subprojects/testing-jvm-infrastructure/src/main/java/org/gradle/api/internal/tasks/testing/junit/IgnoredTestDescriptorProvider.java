@@ -49,6 +49,8 @@ public class IgnoredTestDescriptorProvider {
             return runner;
         } catch (NoClassDefFoundError e) {
             return getRunnerLegacy(testClass);
+        } catch (NoSuchMethodError e) {
+            return getRunnerLegacy(testClass);
         }
     }
 

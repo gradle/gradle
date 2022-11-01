@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.testing.detection;
 
-import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+package org.gradle.api.internal.tasks.testing;
 
-import java.io.File;
-import java.util.List;
+import java.util.regex.Pattern;
 
-public interface TestFrameworkDetector {
-    void startDetection(TestClassProcessor testClassProcessor);
+/**
+ * A third-party module which may be loaded from the Gradle distribution.
+ */
+public interface DistributionModule {
+    /**
+     * The name of the module to load.
+     */
+    String getModuleName();
 
-    boolean processTestClass(RelativeFile testClassFile);
-
-    void setTestClasses(List<File> testClasses);
-
-    void setTestClasspath(List<File> classpath);
+    /**
+     * A pattern which matches jars provided by the module. Used to determine
+     * if this module already exists on the classpath.
+     */
+    Pattern getFileNameMatcher();
 }
