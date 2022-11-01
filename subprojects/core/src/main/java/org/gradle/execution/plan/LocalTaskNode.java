@@ -16,6 +16,7 @@
 
 package org.gradle.execution.plan;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -214,6 +215,32 @@ public class LocalTaskNode extends TaskNode {
         super.cancelExecution(completionAction);
         if (resolveMutationsNode.isRequired()) {
             resolveMutationsNode.cancelExecution(completionAction);
+        }
+    }
+
+    @Override
+    public void createOrdinalRelationships(OrdinalNodeAccess ordinalNodeAccess, ImmutableList.Builder<Node> scheduleBuilder) {
+        OrdinalGroup ordinal = getOrdinal();
+        if (ordinal == null) {
+            return;
+        }
+
+        TaskProperties taskProperties;
+        try {
+            taskProperties = task.getTaskProperties();
+        } catch (TaskExecutionException e) {
+            task.getState().addFailure(e);
+            return;
+        }
+        // TODO This should use a `hasDeclaredLocalState()` method instead
+        boolean producer = taskProperties.hasDeclaredOutputs() || !taskProperties.getLocalStateFiles().isEmpty();
+        // TODO This should use a `hasDeclaredDestroyables()` method instead
+        boolean destroyer = !taskProperties.getDestroyableFiles().isEmpty();
+
+        if (destroyer) {
+            ordinalNodeAccess.addDestroyerNode(ordinal, this, scheduleBuilder::add);
+        } else if (producer) {
+            ordinalNodeAccess.addProducerNode(ordinal, this, scheduleBuilder::add);
         }
     }
 

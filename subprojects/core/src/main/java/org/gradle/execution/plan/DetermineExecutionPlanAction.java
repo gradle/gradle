@@ -22,8 +22,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -199,7 +197,7 @@ class DetermineExecutionPlanAction {
         ImmutableList.Builder<Node> scheduledNodes = ImmutableList.builderWithExpectedSize(nodeMapping.size());
         for (Node node : nodeMapping) {
             node.maybeUpdateOrdinalGroup();
-            createOrdinalRelationships(node, scheduledNodes);
+            node.createOrdinalRelationships(ordinalNodeAccess, scheduledNodes);
             scheduledNodes.add(node);
         }
 
@@ -313,32 +311,6 @@ class DetermineExecutionPlanAction {
         StringWriter writer = new StringWriter();
         graphRenderer.renderTo(cycle.get(0), writer);
         return writer;
-    }
-
-    private void createOrdinalRelationships(Node node, ImmutableList.Builder<Node> scheduleBuilder) {
-        if (!(node instanceof LocalTaskNode)) {
-            return;
-        }
-
-        OrdinalGroup ordinal = node.getOrdinal();
-        if (ordinal == null) {
-            return;
-        }
-
-        LocalTaskNode taskNode = (LocalTaskNode) node;
-        TaskInternal task = taskNode.getTask();
-
-        TaskProperties taskProperties = task.getTaskProperties();
-        // TODO This should use a `hasDeclaredLocalState()` method instead
-        boolean producer = taskProperties.hasDeclaredOutputs() || !taskProperties.getLocalStateFiles().isEmpty();
-        // TODO This should use a `hasDeclaredDestroyables()` method instead
-        boolean destroyer = !taskProperties.getDestroyableFiles().isEmpty();
-
-        if (destroyer) {
-            ordinalNodeAccess.addDestroyerNode(ordinal, taskNode, scheduleBuilder::add);
-        } else if (producer) {
-            ordinalNodeAccess.addProducerNode(ordinal, taskNode, scheduleBuilder::add);
-        }
     }
 
     private static class NodeInVisitingSegment {

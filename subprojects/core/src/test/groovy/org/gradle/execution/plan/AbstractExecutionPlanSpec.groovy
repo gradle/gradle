@@ -16,11 +16,13 @@
 
 package org.gradle.execution.plan
 
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
@@ -30,8 +32,10 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
+import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -97,6 +101,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         task.destroyables >> emptyTaskDestroys()
         task.localState >> emptyTaskLocalState()
         task.inputs >> emptyTaskInputs()
+        task.taskProperties >> { DefaultTaskProperties.resolve(project.services.get(PropertyWalker), project.services.get(FileCollectionFactory), task) }
         task.taskIdentity >> TaskIdentity.create(name, DefaultTask, project)
         return task
     }

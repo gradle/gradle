@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph
 
+import com.google.common.collect.ImmutableSortedSet
 import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
@@ -28,6 +29,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
@@ -35,6 +37,7 @@ import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.composite.internal.BuildTreeWorkGraphController
@@ -655,6 +658,17 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         _ * mock.localState >> Stub(TaskLocalStateInternal)
         _ * mock.path >> ":${name}"
         _ * mock.taskIdentity >> TaskIdentity.create(name, DefaultTask, project as ProjectInternal)
+        _ * mock.taskProperties >> emptyTaskProperties()
         return mock
+    }
+
+    private TaskProperties emptyTaskProperties() {
+        Stub(TaskProperties) {
+            getInputProperties() >> ImmutableSortedSet.of()
+            getInputFileProperties() >> ImmutableSortedSet.of()
+            getOutputFileProperties() >> ImmutableSortedSet.of()
+            getLocalStateFiles() >> FileCollectionFactory.empty()
+            getDestroyableFiles() >> FileCollectionFactory.empty()
+        }
     }
 }

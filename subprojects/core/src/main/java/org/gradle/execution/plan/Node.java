@@ -17,6 +17,7 @@
 package org.gradle.execution.plan;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.VerificationException;
@@ -560,6 +561,9 @@ public abstract class Node {
 
     public boolean hasPendingPreExecutionNodes() {
         return false;
+    }
+
+    public void createOrdinalRelationships(OrdinalNodeAccess ordinalNodeAccess, ImmutableList.Builder<Node> scheduleBuilder) {
     }
 
     /**
