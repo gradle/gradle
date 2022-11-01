@@ -18,8 +18,6 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.properties.bean.TestImplementationIdentifier
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
@@ -29,7 +27,6 @@ import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
 import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.TestPropertyTypeResolver
-import org.gradle.internal.properties.bean.DefaultPropertyWalker
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -57,7 +54,6 @@ class DefaultTaskOutputsTest extends Specification {
             return action.call()
         }
     }
-    private final fileCollectionFactory = TestFiles.fileCollectionFactory(temporaryFolder.testDirectory)
 
     def task = Mock(TaskInternal) {
         getName() >> "task"
@@ -81,8 +77,7 @@ class DefaultTaskOutputsTest extends Specification {
         cacheFactory
     )
     def typeMetadataStore = new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
-    def walker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationIdentifier())
-    def outputs = new DefaultTaskOutputs(task, taskStatusNagger, walker, fileCollectionFactory)
+    def outputs = new DefaultTaskOutputs(task, taskStatusNagger)
 
     void hasNoOutputsByDefault() {
         setup:

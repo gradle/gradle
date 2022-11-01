@@ -23,23 +23,18 @@ import org.gradle.api.internal.FilePropertyContainer;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.tasks.properties.FileParameterUtils;
-import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
-import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
+import org.gradle.api.internal.tasks.properties.FilePropertySpec;
+import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputPropertySpec;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.properties.bean.PropertyWalker;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -55,28 +50,22 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final FileCollection allSourceFiles;
     private final TaskInternal task;
     private final TaskMutator taskMutator;
-    private final PropertyWalker propertyWalker;
-    private final FileCollectionFactory fileCollectionFactory;
     private final List<TaskInputPropertyRegistration> registeredProperties = Lists.newArrayList();
     private final FilePropertyContainer<TaskInputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInputs deprecatedThis;
 
-    public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
+    public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator) {
         this.task = task;
         this.taskMutator = taskMutator;
-        this.propertyWalker = propertyWalker;
-        this.fileCollectionFactory = fileCollectionFactory;
         String taskDisplayName = task.toString();
-        this.allInputFiles = new TaskInputUnionFileCollection(taskDisplayName, "input", false, task, propertyWalker, fileCollectionFactory);
-        this.allSourceFiles = new TaskInputUnionFileCollection(taskDisplayName, "source", true, task, propertyWalker, fileCollectionFactory);
+        this.allInputFiles = new TaskInputUnionFileCollection(taskDisplayName, "input", false, task);
+        this.allSourceFiles = new TaskInputUnionFileCollection(taskDisplayName, "source", true, task);
         this.deprecatedThis = new TaskInputsDeprecationSupport();
     }
 
     @Override
     public boolean getHasInputs() {
-        HasInputsVisitor visitor = new HasInputsVisitor();
-        TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
-        return visitor.hasInputs();
+        return !task.getTaskProperties().getInputProperties().isEmpty() || !task.getTaskProperties().getInputFileProperties().isEmpty();
     }
 
     @Override
@@ -146,9 +135,9 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public boolean getHasSourceFiles() {
-        GetInputFilesVisitor visitor = new GetInputFilesVisitor(task.toString(), fileCollectionFactory);
-        TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
-        return visitor.hasSourceFiles();
+        return task.getTaskProperties().getInputFileProperties().stream()
+            .map(InputFilePropertySpec::getBehavior)
+            .anyMatch(InputBehavior::shouldSkipWhenEmpty);
     }
 
     @Override
@@ -158,10 +147,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public Map<String, Object> getProperties() {
-        GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor();
-        TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
         Map<String, Object> result = new HashMap<>();
-        for (InputPropertySpec inputProperty : visitor.getProperties()) {
+        for (InputPropertySpec inputProperty : task.getTaskProperties().getInputProperties()) {
             result.put(inputProperty.getPropertyName(), InputParameterUtils.prepareInputParameterValue(inputProperty, task));
         }
         return Collections.unmodifiableMap(result);
@@ -191,27 +178,14 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor() {
-            @Override
-            public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
-                context.add(value.getTaskDependencies());
-            }
-
-            @Override
-            public void visitInputFileProperty(
-                final String propertyName,
-                boolean optional,
-                InputBehavior behavior,
-                DirectorySensitivity directorySensitivity,
-                LineEndingSensitivity lineEndingSensitivity,
-                @Nullable Normalizer fileNormalizer,
-                PropertyValue value,
-                InputFilePropertyType filePropertyType
-            ) {
-                FileCollection actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
-                context.add(actualValue);
-            }
-        });
+        TaskProperties taskProperties = task.getTaskProperties();
+        taskProperties.getInputProperties().stream()
+            .map(InputPropertySpec::getValue)
+            .map(PropertyValue::getTaskDependencies)
+            .forEach(context::add);
+        taskProperties.getInputFileProperties().stream()
+            .map(FilePropertySpec::getPropertyFiles)
+            .forEach(context::add);
     }
 
     private static class TaskInputUnionFileCollection extends CompositeFileCollection implements Describable {
@@ -219,16 +193,12 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         private final String taskDisplayName;
         private final String type;
         private final TaskInternal task;
-        private final PropertyWalker propertyWalker;
-        private final FileCollectionFactory fileCollectionFactory;
 
-        TaskInputUnionFileCollection(String taskDisplayName, String type, boolean skipWhenEmptyOnly, TaskInternal task, PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
+        TaskInputUnionFileCollection(String taskDisplayName, String type, boolean skipWhenEmptyOnly, TaskInternal task) {
             this.taskDisplayName = taskDisplayName;
             this.type = type;
             this.skipWhenEmptyOnly = skipWhenEmptyOnly;
             this.task = task;
-            this.propertyWalker = propertyWalker;
-            this.fileCollectionFactory = fileCollectionFactory;
         }
 
         @Override
@@ -238,51 +208,10 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
         @Override
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-            TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor() {
-                @Override
-                public void visitInputFileProperty(
-                    final String propertyName,
-                    boolean optional,
-                    InputBehavior behavior,
-                    DirectorySensitivity directorySensitivity,
-                    LineEndingSensitivity lineEndingSensitivity,
-                    @Nullable Normalizer fileNormalizer,
-                    PropertyValue value, InputFilePropertyType filePropertyType
-                ) {
-                    if (!TaskInputUnionFileCollection.this.skipWhenEmptyOnly || behavior.shouldSkipWhenEmpty()) {
-                        FileCollectionInternal actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
-                        visitor.accept(new PropertyFileCollection(task.toString(), propertyName, "input", actualValue));
-                    }
-                }
-            });
+            task.getTaskProperties().getInputFileProperties().stream()
+                .filter(property -> !TaskInputUnionFileCollection.this.skipWhenEmptyOnly || property.getBehavior().shouldSkipWhenEmpty())
+                .map(FilePropertySpec::getPropertyFiles)
+                .forEach(visitor);
         }
     }
-
-    private static class HasInputsVisitor implements PropertyVisitor {
-        private boolean hasInputs;
-
-        public boolean hasInputs() {
-            return hasInputs;
-        }
-
-        @Override
-        public void visitInputFileProperty(
-            String propertyName,
-            boolean optional,
-            InputBehavior behavior,
-            DirectorySensitivity directorySensitivity,
-            LineEndingSensitivity lineEndingSensitivity,
-            @Nullable Normalizer fileNormalizer,
-            PropertyValue value,
-            InputFilePropertyType filePropertyType
-        ) {
-            hasInputs = true;
-        }
-
-        @Override
-        public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
-            hasInputs = true;
-        }
-    }
-
 }

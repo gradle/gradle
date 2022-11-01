@@ -52,6 +52,7 @@ public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
 
     @Override
     public FileCollection getRegisteredFiles() {
+        // TODO Do not recreate this
         return fileCollectionFactory.resolving("destroyables", registeredPaths);
     }
 }

@@ -46,6 +46,8 @@ import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener;
+import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
@@ -163,6 +165,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private Set<Provider<? extends BuildService<?>>> requiredServices;
 
+    private TaskProperties taskProperties;
+
     protected AbstractTask() {
         this(taskInfo());
     }
@@ -189,11 +193,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         this.services = project.getServices();
 
-        PropertyWalker propertyWalker = services.get(PropertyWalker.class);
         FileCollectionFactory fileCollectionFactory = services.get(FileCollectionFactory.class);
         taskMutator = new TaskMutator(this);
-        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, fileCollectionFactory);
-        taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, fileCollectionFactory);
+        taskInputs = new DefaultTaskInputs(this, taskMutator);
+        taskOutputs = new DefaultTaskOutputs(this, taskMutator);
         taskDestroyables = new DefaultTaskDestroyables(taskMutator, fileCollectionFactory);
         taskLocalState = new DefaultTaskLocalState(taskMutator, fileCollectionFactory);
 
@@ -1077,5 +1080,22 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private TaskExecutionAccessListener getTaskExecutionAccessBroadcaster() {
         return services.get(ListenerManager.class).getBroadcaster(TaskExecutionAccessListener.class);
+    }
+
+    @Override
+    public TaskProperties getTaskProperties() {
+        if (taskProperties == null) {
+            // TODO Do we need to synchornize here?
+            synchronized (this) {
+                if (taskProperties == null) {
+                    taskProperties = DefaultTaskProperties.resolve(
+                        services.get(PropertyWalker.class),
+                        services.get(FileCollectionFactory.class),
+                        this
+                    );
+                }
+            }
+        }
+        return taskProperties;
     }
 }

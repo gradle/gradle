@@ -18,17 +18,13 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.resources.ResourceLock;
-import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -225,12 +221,8 @@ public class LocalTaskNode extends TaskNode {
         final LocalTaskNode taskNode = this;
         final TaskInternal task = getTask();
         final MutationInfo mutations = getMutationInfo();
-        ProjectInternal project = (ProjectInternal) task.getProject();
-        ServiceRegistry serviceRegistry = project.getServices();
-        final FileCollectionFactory fileCollectionFactory = serviceRegistry.get(FileCollectionFactory.class);
-        PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
         try {
-            taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileCollectionFactory, task);
+            taskProperties = task.getTaskProperties();
 
             addOutputFilesToMutations(taskProperties.getOutputFileProperties());
             addLocalStateFilesToMutations(taskProperties.getLocalStateFiles());

@@ -23,17 +23,10 @@ import com.google.common.collect.Sets;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
-import org.gradle.api.internal.tasks.TaskLocalStateInternal;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.properties.OutputFilePropertyType;
-import org.gradle.internal.properties.PropertyValue;
-import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.properties.bean.PropertyWalker;
-import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.io.StringWriter;
 import java.util.ArrayDeque;
@@ -333,70 +326,18 @@ class DetermineExecutionPlanAction {
         }
 
         LocalTaskNode taskNode = (LocalTaskNode) node;
-        TaskClassifier taskClassifier = classifyTask(taskNode);
-
-        if (taskClassifier.isDestroyer()) {
-            ordinalNodeAccess.addDestroyerNode(ordinal, taskNode, scheduleBuilder::add);
-        } else if (taskClassifier.isProducer()) {
-            ordinalNodeAccess.addProducerNode(ordinal, taskNode, scheduleBuilder::add);
-        }
-    }
-
-    /**
-     * Walk the properties of the task to determine if it is a destroyer or a producer (or neither).
-     */
-    private TaskClassifier classifyTask(LocalTaskNode taskNode) {
-        TaskClassifier taskClassifier = new TaskClassifier();
         TaskInternal task = taskNode.getTask();
 
-        PropertyWalker propertyWalker = propertyWalkerOf(task);
-        propertyWalker.visitProperties(task, TypeValidationContext.NOOP, taskClassifier);
-        task.getOutputs().visitRegisteredProperties(taskClassifier);
-        if (taskClassifier.isDestroyer()) {
-            // avoid walking further properties after discovering the task is destroyer
-            return taskClassifier;
-        }
+        TaskProperties taskProperties = task.getTaskProperties();
+        // TODO This should use a `hasDeclaredLocalState()` method instead
+        boolean producer = taskProperties.hasDeclaredOutputs() || !taskProperties.getLocalStateFiles().isEmpty();
+        // TODO This should use a `hasDeclaredDestroyables()` method instead
+        boolean destroyer = !taskProperties.getDestroyableFiles().isEmpty();
 
-        ((TaskDestroyablesInternal) task.getDestroyables()).visitRegisteredProperties(taskClassifier);
-        if (taskClassifier.isDestroyer()) {
-            // avoid walking further properties after discovering the task is destroyer
-            return taskClassifier;
-        }
-
-        ((TaskLocalStateInternal) task.getLocalState()).visitRegisteredProperties(taskClassifier);
-
-        return taskClassifier;
-    }
-
-    private PropertyWalker propertyWalkerOf(TaskInternal task) {
-        return ((ProjectInternal) task.getProject()).getServices().get(PropertyWalker.class);
-    }
-
-    private static class TaskClassifier implements PropertyVisitor {
-        private boolean isProducer;
-        private boolean isDestroyer;
-
-        @Override
-        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-            isProducer = true;
-        }
-
-        @Override
-        public void visitDestroyableProperty(Object value) {
-            isDestroyer = true;
-        }
-
-        @Override
-        public void visitLocalStateProperty(Object value) {
-            isProducer = true;
-        }
-
-        public boolean isProducer() {
-            return isProducer;
-        }
-
-        public boolean isDestroyer() {
-            return isDestroyer;
+        if (destroyer) {
+            ordinalNodeAccess.addDestroyerNode(ordinal, taskNode, scheduleBuilder::add);
+        } else if (producer) {
+            ordinalNodeAccess.addProducerNode(ordinal, taskNode, scheduleBuilder::add);
         }
     }
 

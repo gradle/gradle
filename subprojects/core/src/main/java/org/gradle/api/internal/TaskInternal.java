@@ -22,6 +22,7 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
+import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.tasks.Internal;
@@ -124,4 +125,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
      */
     @Internal
     TaskDependency getLifecycleDependencies();
+
+    @Internal
+    TaskProperties getTaskProperties();
 }

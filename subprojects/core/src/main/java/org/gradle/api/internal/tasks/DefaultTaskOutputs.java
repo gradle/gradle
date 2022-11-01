@@ -26,19 +26,16 @@ import org.gradle.api.internal.FilePropertyContainer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
+import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.OutputFilesCollector;
-import org.gradle.api.internal.tasks.properties.OutputUnpacker;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.internal.properties.OutputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.properties.bean.PropertyWalker;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -51,8 +48,6 @@ import java.util.function.Consumer;
 @NonNullApi
 public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final FileCollection allOutputFiles;
-    private final PropertyWalker propertyWalker;
-    private final FileCollectionFactory fileCollectionFactory;
     private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
     private final List<SelfDescribingSpec<TaskInternal>> cacheIfSpecs = new LinkedList<>();
     private final List<SelfDescribingSpec<TaskInternal>> doNotCacheIfSpecs = new LinkedList<>();
@@ -61,12 +56,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
-    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
+    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.allOutputFiles = new TaskOutputUnionFileCollection(task);
-        this.propertyWalker = propertyWalker;
-        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
@@ -126,12 +119,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public boolean getHasOutput() {
-        if (!upToDateSpec.isEmpty()) {
-            return true;
-        }
-        HasDeclaredOutputsVisitor visitor = new HasDeclaredOutputsVisitor();
-        TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
-        return visitor.hasDeclaredOutputs();
+        return !upToDateSpec.isEmpty() || task.getTaskProperties().hasDeclaredOutputs();
     }
 
     @Override
@@ -140,9 +128,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public ImmutableSortedSet<OutputFilePropertySpec> getFileProperties() {
-        OutputFilesCollector collector = new OutputFilesCollector();
-        TaskPropertyUtils.visitProperties(propertyWalker, task, new OutputUnpacker(task.toString(), fileCollectionFactory, false, false, collector));
-        return collector.getFileProperties();
+        return FileParameterUtils.collectFileProperties("output", task.getTaskProperties().getOutputFileProperties().iterator());
     }
 
     @Override

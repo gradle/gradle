@@ -83,7 +83,7 @@ class DefaultTaskInputsTest extends Specification {
     )
     def typeMetadataStore = new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
     def walker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationIdentifier())
-    private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger, walker, fileCollectionFactory)
+    private final DefaultTaskInputs inputs = new DefaultTaskInputs(task, taskStatusNagger)
 
     def "default values"() {
         expect:
