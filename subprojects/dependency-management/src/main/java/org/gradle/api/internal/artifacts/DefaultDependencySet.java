@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.tasks.TaskDependency;
@@ -36,10 +37,10 @@ import java.util.List;
 
 public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> implements DependencySet {
     private final Describable displayName;
-    private final Configuration clientConfiguration;
+    private final ConfigurationInternal clientConfiguration;
     private final Action<? super ModuleDependency> mutationValidator;
 
-    public DefaultDependencySet(Describable displayName, final Configuration clientConfiguration, DomainObjectSet<Dependency> backingSet) {
+    public DefaultDependencySet(Describable displayName, final ConfigurationInternal clientConfiguration, DomainObjectSet<Dependency> backingSet) {
         super(backingSet);
         this.displayName = displayName;
         this.clientConfiguration = clientConfiguration;

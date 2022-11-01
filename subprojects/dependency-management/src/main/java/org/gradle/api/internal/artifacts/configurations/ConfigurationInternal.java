@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -128,6 +129,23 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     }
 
     /**
+     * Configures if a configuration can have dependencies declared upon it.
+     *
+     * @since 8.0
+     */
+    @Incubating
+    void setCanBeDeclaredAgainst(boolean allowed);
+
+    /**
+     * Returns true if it is allowed to declare dependencies upon this configuration.
+     * Defaults to true.
+     * @return true if this configuration can have dependencies declared
+     * @since 8.0
+     */
+    @Incubating
+    boolean isCanBeDeclaredAgainst();
+
+    /**
      * Test if the given configuration can either be declared against or extends another
      * configuration which can be declared against.
      * This method should probably be made {@code private} when upgrading to Java 9.
@@ -135,11 +153,13 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      * @param configuration the configuration to test
      * @return {@code true} if so; {@code false} otherwise
      */
-    static boolean isDeclarableAgainstByExtension(Configuration configuration) {
+    static boolean isDeclarableAgainstByExtension(ConfigurationInternal configuration) {
         if (configuration.isCanBeDeclaredAgainst()) {
             return true;
         } else {
-            return configuration.getExtendsFrom().stream().anyMatch(ConfigurationInternal::isDeclarableAgainstByExtension);
+            return configuration.getExtendsFrom().stream()
+                    .map(ConfigurationInternal.class::cast)
+                    .anyMatch(ci -> ci.isDeclarableAgainstByExtension());
         }
     }
 

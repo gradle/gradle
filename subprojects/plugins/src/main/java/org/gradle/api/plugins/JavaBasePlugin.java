@@ -280,7 +280,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
 
         compileClasspathConfiguration.setCanBeDeclaredAgainst(false);
-        runtimeClasspathConfiguration.setCanBeDeclaredAgainst(false);
+        ((ConfigurationInternal) runtimeClasspathConfiguration).setCanBeDeclaredAgainst(false);
     }
 
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {
