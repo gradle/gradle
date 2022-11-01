@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public enum ConfigurationRole {
     /**
      * An unrestricted configuration, which can be used for any purpose.
@@ -39,5 +42,23 @@ public enum ConfigurationRole {
 
     DEPRECATED_CONSUMABLE,
 
-    DEPRECATED_RESOLVABLE
+    DEPRECATED_RESOLVABLE;
+
+    public static String describeRole(ConfigurationInternal configuration) {
+        List<String> descriptions = new ArrayList<>();
+        if (configuration.isCanBeConsumed()) {
+            descriptions.add("\tConsumable - this configuration can be selected by another project as a dependency" + describeDeprecation(configuration.isDeprecatedForConsumption()));
+        }
+        if (configuration.isCanBeResolved()) {
+            descriptions.add("\tResolvable - this configuration can be resolved by this project to a set of files" + describeDeprecation(configuration.isDeprecatedForResolution()));
+        }
+        if (configuration.isCanBeDeclaredAgainst()) {
+            descriptions.add("\tDeclarable Against - this configuration can have dependencies added to it" + describeDeprecation(configuration.isDeprecatedForDeclarationAgainst()));
+        }
+        return String.join("\n", descriptions);
+    }
+
+    private static String describeDeprecation(boolean deprecated) {
+        return deprecated ? " (but this behavior is marked deprecated)" : "";
+    }
 }

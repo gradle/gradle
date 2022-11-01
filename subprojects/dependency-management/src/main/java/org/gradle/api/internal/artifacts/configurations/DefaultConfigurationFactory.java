@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -176,10 +178,54 @@ public class DefaultConfigurationFactory {
                 break;
 
             default:
-                throw new IllegalArgumentException("Unknown configuration role: " + role);
+                throwUnknownRole(configuration, role);
         }
 
         configuration.preventRoleMutation();
         return configuration;
+    }
+
+    @SuppressWarnings("fallthrough")
+    public static ConfigurationInternal assertInRole(ConfigurationInternal configuration, ConfigurationRole role) {
+        switch (role) {
+            case INTENDED_BUCKET:
+                if (configuration.isCanBeConsumed() || configuration.isCanBeResolved() || !configuration.isCanBeDeclaredAgainst()) {
+                    throwConfigurationNotInRole(configuration, role);
+                }
+                break;
+
+            case DEPRECATED_CONSUMABLE:
+                if (!configuration.isDeprecatedForConsumption()) {
+                    throwConfigurationNotInRole(configuration, role);
+                } // fall-through
+            case INTENDED_CONSUMABLE:
+                if (!configuration.isCanBeConsumed() || configuration.isCanBeResolved() || configuration.isCanBeDeclaredAgainst()) {
+                    throwConfigurationNotInRole(configuration, role);
+                }
+                break;
+
+            case DEPRECATED_RESOLVABLE:
+                if (!configuration.isDeprecatedForResolution()) {
+                    throwConfigurationNotInRole(configuration, role);
+                } // fall-through
+            case INTENDED_RESOLVABLE:
+                if (configuration.isCanBeConsumed() || !configuration.isCanBeResolved() || configuration.isCanBeDeclaredAgainst()) {
+                    throwConfigurationNotInRole(configuration, role);
+                }
+                break;
+
+            default:
+                throwUnknownRole(configuration, role);
+        }
+
+        return configuration;
+    }
+
+    private static void throwUnknownRole(ConfigurationInternal configuration, ConfigurationRole role) throws GradleException {
+        throw new GradleException("Configuration '" + configuration.getName() + "' is being assigned to or queried for an unknown role: " + role);
+    }
+
+    private static void throwConfigurationNotInRole(Configuration configuration, ConfigurationRole role) throws GradleException {
+        throw new GradleException("Configuration '" + configuration.getName() + "' is not in the " + role + " role.");
     }
 }
