@@ -27,7 +27,6 @@ import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
-import org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Property
@@ -47,6 +46,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -63,7 +63,7 @@ import spock.lang.Specification
 import javax.inject.Inject
 import java.lang.annotation.Annotation
 
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION
 import static org.gradle.internal.reflect.validation.Severity.WARNING
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
