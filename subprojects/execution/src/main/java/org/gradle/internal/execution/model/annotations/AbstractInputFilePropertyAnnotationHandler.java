@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.Classpath;
@@ -41,7 +41,7 @@ import org.gradle.work.NormalizeLineEndings;
 
 import java.lang.annotation.Annotation;
 
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
 
