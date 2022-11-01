@@ -31,6 +31,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -137,5 +138,48 @@ public class DefaultConfigurationFactory {
             calculatedValueContainerFactory,
             this
         );
+    }
+
+    /**
+     * Assigns a usage role to a configuration, by setting internal usage flags (e.g. {@link ConfigurationInternal#isCanBeResolved()})
+     * and/or marking such usages as deprecated.
+     *
+     * @return the given configuration; now configured for a role
+     */
+    @SuppressWarnings("fallthrough")
+    public static ConfigurationInternal assignRole(ConfigurationInternal configuration, ConfigurationRole role) {
+        switch (role) {
+            case INTENDED_BUCKET:
+                configuration.setCanBeConsumed(false);
+                configuration.setCanBeResolved(false);
+                configuration.setCanBeDeclaredAgainst(true);
+                break;
+
+            case INTENDED_CONSUMABLE:
+                configuration.setCanBeConsumed(true);
+                configuration.setCanBeResolved(false);
+                configuration.setCanBeDeclaredAgainst(false); // fall-through
+            case DEPRECATED_CONSUMABLE:
+                configuration.deprecateForConsumption(
+                        depSpec -> DeprecationLogger.deprecateConfiguration(configuration.getName())
+                            .forConsumption()
+                            .willBecomeAnErrorInGradle9()
+                            .withUserManual("dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations"));
+                break;
+
+            case INTENDED_RESOLVABLE:
+                configuration.setCanBeConsumed(false);
+                configuration.setCanBeResolved(true);
+                configuration.setCanBeDeclaredAgainst(false); // fall-through
+            case DEPRECATED_RESOLVABLE:
+                configuration.deprecateForResolution();
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unknown configuration role: " + role);
+        }
+
+        configuration.preventRoleMutation();
+        return configuration;
     }
 }
