@@ -44,9 +44,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.api.tasks.testing.testng.TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY;
-
 public class TestNGTestClassProcessor implements TestClassProcessor {
+
+    public static final String DEFAULT_CONFIG_FAILURE_POLICY = "skip";
+
     private final List<Class<?>> testClasses = new ArrayList<Class<?>>();
     private final File testReportDir;
     private final TestNGSpec options;
