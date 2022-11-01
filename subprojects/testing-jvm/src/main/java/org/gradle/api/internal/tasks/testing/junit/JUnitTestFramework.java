@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.DefaultDistributionModule;
+import org.gradle.api.internal.tasks.testing.DistributionModule;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
@@ -32,9 +34,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @UsedByScanPlugin("test-retry")
 public class JUnitTestFramework implements TestFramework {
+    private static final List<? extends DistributionModule> DISTRIBUTION_CLASSES = Collections.singletonList(
+        new DefaultDistributionModule("junit", Pattern.compile("junit-4.*\\.jar")));
+
     private JUnitOptions options;
     private JUnitDetector detector;
     private final DefaultTestFilter filter;
@@ -88,17 +94,17 @@ public class JUnitTestFramework implements TestFramework {
     }
 
     @Override
-    public List<String> getTestWorkerImplementationClasses() {
-        return Collections.singletonList("junit");
+    public List<? extends DistributionModule> getTestWorkerApplicationClasses() {
+        return DISTRIBUTION_CLASSES;
     }
 
     @Override
-    public List<String> getTestWorkerImplementationModules() {
+    public List<? extends DistributionModule> getTestWorkerApplicationModules() {
         return Collections.emptyList();
     }
 
     @Override
-    public boolean getUseImplementationDependencies() {
+    public boolean getUseDistributionDependencies() {
         return useImplementationDependencies;
     }
 

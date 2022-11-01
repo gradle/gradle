@@ -19,6 +19,8 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.tasks.testing.DefaultDistributionModule;
+import org.gradle.api.internal.tasks.testing.DistributionModule;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
@@ -33,9 +35,16 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @UsedByScanPlugin("test-retry")
 public class JUnitPlatformTestFramework implements TestFramework {
+    private static final List<? extends DistributionModule> DISTRIBUTION_MODULES = ImmutableList.of(
+        new DefaultDistributionModule("junit-platform-engine", Pattern.compile("junit-platform-engine-1.*\\.jar")),
+        new DefaultDistributionModule("junit-platform-launcher", Pattern.compile("junit-platform-launcher-1.*\\.jar")),
+        new DefaultDistributionModule("junit-platform-commons", Pattern.compile("junit-platform-commons-1.*\\.jar"))
+    );
+
     private final JUnitPlatformOptions options;
     private final DefaultTestFilter filter;
     private final boolean useImplementationDependencies;
@@ -96,17 +105,17 @@ public class JUnitPlatformTestFramework implements TestFramework {
     }
 
     @Override
-    public List<String> getTestWorkerImplementationClasses() {
+    public List<? extends DistributionModule> getTestWorkerApplicationClasses() {
         return Collections.emptyList();
     }
 
     @Override
-    public List<String> getTestWorkerImplementationModules() {
-        return ImmutableList.of("junit-platform-engine", "junit-platform-launcher", "junit-platform-commons");
+    public List<? extends DistributionModule> getTestWorkerApplicationModules() {
+        return DISTRIBUTION_MODULES;
     }
 
     @Override
-    public boolean getUseImplementationDependencies() {
+    public boolean getUseDistributionDependencies() {
         return useImplementationDependencies;
     }
 

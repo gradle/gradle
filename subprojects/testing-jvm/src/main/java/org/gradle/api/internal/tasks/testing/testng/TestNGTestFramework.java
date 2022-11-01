@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.tasks.testing.DistributionModule;
 import org.gradle.api.internal.tasks.testing.TestClassLoaderFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
@@ -202,17 +203,17 @@ public class TestNGTestFramework implements TestFramework {
     }
 
     @Override
-    public List<String> getTestWorkerImplementationClasses() {
+    public List<? extends DistributionModule> getTestWorkerApplicationClasses() {
         return Collections.emptyList();
     }
 
     @Override
-    public List<String> getTestWorkerImplementationModules() {
+    public List<? extends DistributionModule> getTestWorkerApplicationModules() {
         return Collections.emptyList();
     }
 
     @Override
-    public boolean getUseImplementationDependencies() {
+    public boolean getUseDistributionDependencies() {
         // We have no (default) implementation dependencies (see above).
         // The user must add their TestNG dependency to the test's runtimeClasspath themselves
         // or preferably use test suites where the dependencies are automatically managed.
