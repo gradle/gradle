@@ -15,6 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
@@ -24,4 +28,44 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
     ConfigurationInternal getByName(String name) throws UnknownConfigurationException;
     @Override
     ConfigurationInternal detachedConfiguration(Dependency... dependencies);
+
+    /**
+     * Creates a new configuration in the same manner as {@link #create(String)}, and then
+     * immediately assigns it a role by setting internal status flags to mark possible usage options
+     * for the configuration.
+     */
+    default ConfigurationInternal createWithRole(String name, ConfigurationRole role) {
+        ConfigurationInternal configuration = (ConfigurationInternal) create(name);
+        return DefaultConfigurationFactory.assignRole(configuration, role);
+    }
+
+    /**
+     * Creates a new configuration in the same manner as {@link #maybeCreate(String)}, and then
+     * immediately assigns it a role by setting internal status flags to mark possible usage options
+     * for the configuration.
+     */
+    default ConfigurationInternal maybeCreateWithRole(String name, ConfigurationRole role) {
+        ConfigurationInternal configuration = (ConfigurationInternal) maybeCreate(name);
+        return DefaultConfigurationFactory.assignRole(configuration, role);
+    }
+
+    /**
+     * Creates a new configuration in the same manner as {@link #create(String, Closure)}, and then
+     * immediately assigns it a role by setting internal status flags to mark possible usage options
+     * for the configuration.
+     */
+    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, Closure<? super Configuration> configureClosure) throws InvalidUserDataException {
+        ConfigurationInternal configuration = (ConfigurationInternal) create(name, configureClosure);
+        return DefaultConfigurationFactory.assignRole(configuration, role);
+    }
+
+    /**
+     * Creates a new configuration in the same manner as {@link #create(String, Action)}, and then
+     * immediately assigns it a role by setting internal status flags to mark possible usage options
+     * for the configuration.
+     */
+    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, Action<? super Configuration> configureAction) throws InvalidUserDataException {
+        ConfigurationInternal configuration = (ConfigurationInternal) create(name, configureAction);
+        return DefaultConfigurationFactory.assignRole(configuration, role);
+    }
 }

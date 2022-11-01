@@ -146,6 +146,13 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     boolean isCanBeDeclaredAgainst();
 
     /**
+     * Prevents any calls to methods that change this configuration's role (e.g. {@link #setCanBeConsumed(boolean)},
+     * {@link #setCanBeResolved(boolean)}, {@link #deprecateForResolution(String...)}) from succeeding; and causes them
+     * to throw an exception.
+     */
+    void preventRoleMutation();
+
+    /**
      * Test if the given configuration can either be declared against or extends another
      * configuration which can be declared against.
      * This method should probably be made {@code private} when upgrading to Java 9.

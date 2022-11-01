@@ -24,6 +24,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -137,6 +138,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -221,6 +223,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean canBeConsumed = true;
     private boolean canBeResolved = true;
     private boolean canBeDeclaredAgainst = true;
+    private boolean consumptionDeprecated = false;
+    private boolean resolutionDeprecated = false;
+    private boolean declarationDeprecated = false;
+    private boolean roleCanBeMutated = true;
 
     private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
@@ -1380,6 +1386,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
             assertIsDeclarableAgainst();
             return;
+        } else if (type == MutationType.ROLE) {
+            assertRoleIsChangeable();
         }
 
         InternalState resolvedState = currentResolveState.get().state;
@@ -1592,6 +1600,35 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
+    public void preventRoleMutation() {
+        roleCanBeMutated = false;
+    }
+
+    private void assertRoleIsChangeable() {
+        if (!roleCanBeMutated) {
+            throw new GradleException(String.format("Cannot change the role of %s, as it was locked upon creation to:\n%s\nIdeally, each configuration should have a single role.", getDisplayName(), describeRole()));
+        }
+    }
+
+    private String describeRole() {
+        List<String> descriptions = new ArrayList<>();
+        if (canBeConsumed) {
+            descriptions.add("\tConsumable - this configuration can be selected by another project as a dependency" + describeDeprecation(consumptionDeprecated));
+        }
+        if (canBeResolved) {
+            descriptions.add("\tResolvable - this configuration can be resolved by this project to a set of files" + describeDeprecation(resolutionDeprecated));
+        }
+        if (canBeDeclaredAgainst) {
+            descriptions.add("\tDeclarable Against - this configuration can have dependencies added to it" + describeDeprecation(declarationDeprecated));
+        }
+        return String.join("\n", descriptions);
+    }
+
+    private String describeDeprecation(boolean deprecated) {
+        return deprecated ? " (but this behavior is marked deprecated)" : "";
+    }
+
+    @Override
     public boolean isCanBeConsumed() {
         return canBeConsumed;
     }
@@ -1649,19 +1686,25 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DeprecatableConfiguration deprecateForDeclaration(String... alternativesForDeclaring) {
+        validateMutation(MutationType.ROLE);
         this.declarationAlternatives = ImmutableList.copyOf(alternativesForDeclaring);
+        declarationDeprecated = true;
         return this;
     }
 
     @Override
     public DeprecatableConfiguration deprecateForConsumption(Function<DeprecationMessageBuilder.DeprecateConfiguration, DeprecationMessageBuilder.WithDocumentation> deprecation) {
+        validateMutation(MutationType.ROLE);
         this.consumptionDeprecation = deprecation.apply(DeprecationLogger.deprecateConfiguration(name).forConsumption());
+        consumptionDeprecated = true;
         return this;
     }
 
     @Override
     public DeprecatableConfiguration deprecateForResolution(String... alternativesForResolving) {
+        validateMutation(MutationType.ROLE);
         this.resolutionAlternatives = ImmutableList.copyOf(alternativesForResolving);
+        resolutionDeprecated = true;
         return this;
     }
 
