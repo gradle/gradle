@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.testng;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.internal.actor.Actor;
@@ -42,7 +43,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 public class TestNGTestClassProcessor implements TestClassProcessor {
 
@@ -50,7 +50,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
 
     private final List<Class<?>> testClasses = new ArrayList<Class<?>>();
     private final File testReportDir;
-    private final TestNGSpec options;
+    private final TestNGSpec spec;
     private final List<File> suiteFiles;
     private final IdGenerator<?> idGenerator;
     private final Clock clock;
@@ -59,9 +59,9 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     private Actor resultProcessorActor;
     private TestResultProcessor resultProcessor;
 
-    public TestNGTestClassProcessor(File testReportDir, TestNGSpec options, List<File> suiteFiles, IdGenerator<?> idGenerator, Clock clock, ActorFactory actorFactory) {
+    public TestNGTestClassProcessor(File testReportDir, TestNGSpec spec, List<File> suiteFiles, IdGenerator<?> idGenerator, Clock clock, ActorFactory actorFactory) {
         this.testReportDir = testReportDir;
-        this.options = options;
+        this.spec = spec;
         this.suiteFiles = suiteFiles;
         this.idGenerator = idGenerator;
         this.clock = clock;
@@ -103,29 +103,29 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     private void runTests() {
         TestNG testNg = new TestNG();
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());
-        testNg.setDefaultSuiteName(options.getDefaultSuiteName());
-        testNg.setDefaultTestName(options.getDefaultTestName());
-        if (options.getParallel() != null) {
-            testNg.setParallel(options.getParallel());
+        testNg.setDefaultSuiteName(spec.getDefaultSuiteName());
+        testNg.setDefaultTestName(spec.getDefaultTestName());
+        if (spec.getParallel() != null) {
+            testNg.setParallel(spec.getParallel());
         }
-        if (options.getThreadCount() > 0) {
-            testNg.setThreadCount(options.getThreadCount());
+        if (spec.getThreadCount() > 0) {
+            testNg.setThreadCount(spec.getThreadCount());
         }
 
         Class<?> configFailurePolicyArgType = getConfigFailurePolicyArgType(testNg);
         Object configFailurePolicyArgValue = getConfigFailurePolicyArgValue(testNg);
 
         invokeVerifiedMethod(testNg, "setConfigFailurePolicy", configFailurePolicyArgType, configFailurePolicyArgValue, DEFAULT_CONFIG_FAILURE_POLICY);
-        invokeVerifiedMethod(testNg, "setPreserveOrder", boolean.class, options.getPreserveOrder(), false);
-        invokeVerifiedMethod(testNg, "setGroupByInstances", boolean.class, options.getGroupByInstances(), false);
-        testNg.setUseDefaultListeners(options.getUseDefaultListeners());
+        invokeVerifiedMethod(testNg, "setPreserveOrder", boolean.class, spec.getPreserveOrder(), false);
+        invokeVerifiedMethod(testNg, "setGroupByInstances", boolean.class, spec.getGroupByInstances(), false);
+        testNg.setUseDefaultListeners(spec.getUseDefaultListeners());
         testNg.setVerbose(0);
-        testNg.setGroups(CollectionUtils.join(",", options.getIncludeGroups()));
-        testNg.setExcludedGroups(CollectionUtils.join(",", options.getExcludeGroups()));
+        testNg.setGroups(CollectionUtils.join(",", spec.getIncludeGroups()));
+        testNg.setExcludedGroups(CollectionUtils.join(",", spec.getExcludeGroups()));
 
         //adding custom test listeners before Gradle's listeners.
         //this way, custom listeners are more powerful and, for example, they can change test status.
-        for (String listenerClass : options.getListeners()) {
+        for (String listenerClass : spec.getListeners()) {
             try {
                 testNg.addListener(JavaReflectionUtil.newInstance(applicationClassLoader.loadClass(listenerClass)));
             } catch (Throwable e) {
@@ -133,9 +133,9 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             }
         }
 
-        if (!options.getIncludedTests().isEmpty() || !options.getIncludedTestsCommandLine().isEmpty() || !options.getExcludedTests().isEmpty()) {
-            testNg.addListener(new SelectedTestsFilter(options.getIncludedTests(),
-                options.getExcludedTests(), options.getIncludedTestsCommandLine()));
+        TestFilterSpec filter = spec.getFilter();
+        if (!filter.getIncludedTests().isEmpty() || !filter.getIncludedTestsCommandLine().isEmpty() || !filter.getExcludedTests().isEmpty()) {
+            testNg.addListener(new SelectedTestsFilter(filter));
         }
 
         if (!suiteFiles.isEmpty()) {
@@ -185,10 +185,10 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         try {
             Class<?> failurePolicy = Class.forName("org.testng.xml.XmlSuite$FailurePolicy", false, testNg.getClass().getClassLoader());
             Method getValidPolicy = failurePolicy.getMethod("getValidPolicy", String.class);
-            configFailurePolicyArgValue = getValidPolicy.invoke(null, options.getConfigFailurePolicy());
+            configFailurePolicyArgValue = getValidPolicy.invoke(null, spec.getConfigFailurePolicy());
         } catch (Exception e) {
             // unable to invoke new API method; fallback to legacy String value
-            configFailurePolicyArgValue = options.getConfigFailurePolicy();
+            configFailurePolicyArgValue = spec.getConfigFailurePolicy();
         }
         return configFailurePolicyArgValue;
     }
@@ -213,9 +213,8 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
 
         private final TestSelectionMatcher matcher;
 
-        public SelectedTestsFilter(Set<String> includedTests, Set<String> excludedTests,
-            Set<String> includedTestsCommandLine) {
-            matcher = new TestSelectionMatcher(includedTests, excludedTests, includedTestsCommandLine);
+        public SelectedTestsFilter(TestFilterSpec filter) {
+            matcher = new TestSelectionMatcher(filter);
         }
 
         @Override
