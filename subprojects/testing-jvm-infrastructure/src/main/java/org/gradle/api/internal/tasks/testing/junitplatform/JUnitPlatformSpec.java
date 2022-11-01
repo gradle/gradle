@@ -16,7 +16,6 @@
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitSpec;
-import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,13 +27,20 @@ public class JUnitPlatformSpec extends AbstractJUnitSpec {
     private final Set<String> includeTags;
     private final Set<String> excludeTags;
 
-    public JUnitPlatformSpec(JUnitPlatformOptions options, Set<String> includedTests,
-                             Set<String> excludedTests, Set<String> includedTestsCommandLine) {
+    public JUnitPlatformSpec(
+        Set<String> includedTests,
+        Set<String> excludedTests,
+        Set<String> includedTestsCommandLine,
+        Set<String> includeEngines,
+        Set<String> excludeEngines,
+        Set<String> includeTags,
+        Set<String> excludeTags
+    ) {
         super(includedTests, excludedTests, includedTestsCommandLine);
-        this.includeEngines = options.getIncludeEngines();
-        this.excludeEngines = options.getExcludeEngines();
-        this.includeTags = options.getIncludeTags();
-        this.excludeTags = options.getExcludeTags();
+        this.includeEngines = includeEngines;
+        this.excludeEngines = excludeEngines;
+        this.includeTags = includeTags;
+        this.excludeTags = excludeTags;
     }
 
     public List<String> getIncludeEngines() {
