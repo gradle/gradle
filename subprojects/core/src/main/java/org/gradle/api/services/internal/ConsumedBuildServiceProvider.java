@@ -30,7 +30,6 @@ import javax.annotation.Nullable;
  * A build service that is consumed.
  */
 public class ConsumedBuildServiceProvider<T extends BuildService<BuildServiceParameters>> extends BuildServiceProvider<T, BuildServiceParameters> {
-
     protected final ServiceRegistry internalServices;
     private final String serviceName;
     private final Class<T> serviceType;
@@ -41,7 +40,8 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
         BuildIdentifier buildIdentifier,
         String serviceName,
         Class<T> serviceType,
-        ServiceRegistry internalServices) {
+        ServiceRegistry internalServices
+    ) {
         this.buildIdentifier = buildIdentifier;
         this.serviceName = serviceName;
         this.serviceType = serviceType;

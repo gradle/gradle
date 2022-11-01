@@ -1762,7 +1762,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
     @Nullable
     private static String getBuildServiceName(PropertyMetadata property) {
-        ServiceReference annotation = property.getAnnotation(ServiceReference.class);
+        ServiceReference annotation = property.findAnnotation(ServiceReference.class);
         if (annotation != null) {
             return StringUtils.trimToNull(annotation.value());
         }
