@@ -226,11 +226,11 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     }
 
     /**
-     * Returns signatures mapped by their key with duplicated and non-existing inputs removed.
+     * Returns signatures mapped by their key with duplicated inputs removed.
      */
     private Map<String, Signature> sanitizedSignatures() {
-        return signatures.matching(signature -> signature.getToSign().exists())
-            .stream()
+        // TODO How can we improve this?
+        return signatures.stream()
             .collect(
                 toMap(
                     signature -> signature.getToSign().toPath().toAbsolutePath().toString(),
