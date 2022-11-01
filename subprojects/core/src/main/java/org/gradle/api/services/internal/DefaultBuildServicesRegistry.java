@@ -327,13 +327,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         }
     }
 
-    private static class ServiceCleanupListener extends BuildAdapter {
-        private final RegisteredBuildServiceProvider<?, ?> provider;
-
-        ServiceCleanupListener(RegisteredBuildServiceProvider<?, ?> provider) {
-            this.provider = provider;
-        }
-
+    private class ServiceCleanupListener extends BuildAdapter {
         @SuppressWarnings("deprecation")
         @Override
         public void buildFinished(BuildResult result) {
