@@ -29,7 +29,9 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
@@ -150,7 +152,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
             ConfigurationContainer configurations = project.getConfigurations();
 
-            defineConfigurationsForSourceSet(sourceSet, configurations);
+            defineConfigurationsForSourceSet(sourceSet, (ConfigurationContainerInternal) configurations);
             definePathsForSourceSet(sourceSet, outputConventionMapping, project);
 
             createProcessResourcesTask(sourceSet, sourceSet.getResources(), project);
@@ -224,7 +226,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         sourceSet.getResources().srcDir("src/" + sourceSet.getName() + "/resources");
     }
 
-    private void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
+    private void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainerInternal configurations) {
         String implementationConfigurationName = sourceSet.getImplementationConfigurationName();
         String runtimeOnlyConfigurationName = sourceSet.getRuntimeOnlyConfigurationName();
         String compileOnlyConfigurationName = sourceSet.getCompileOnlyConfigurationName();
@@ -233,44 +235,31 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String sourceSetName = sourceSet.toString();
 
-        Configuration implementationConfiguration = configurations.maybeCreate(implementationConfigurationName);
+        Configuration implementationConfiguration = configurations.maybeCreateWithRole(implementationConfigurationName, ConfigurationRole.INTENDED_BUCKET);
         implementationConfiguration.setVisible(false);
         implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
-        implementationConfiguration.setCanBeConsumed(false);
-        implementationConfiguration.setCanBeResolved(false);
 
-        Configuration compileOnlyConfiguration = configurations.maybeCreate(compileOnlyConfigurationName);
+        Configuration compileOnlyConfiguration = configurations.maybeCreateWithRole(compileOnlyConfigurationName, ConfigurationRole.INTENDED_BUCKET);
         compileOnlyConfiguration.setVisible(false);
-        compileOnlyConfiguration.setCanBeConsumed(false);
-        compileOnlyConfiguration.setCanBeResolved(false);
         compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
-        ConfigurationInternal compileClasspathConfiguration = (ConfigurationInternal) configurations.maybeCreate(compileClasspathConfigurationName);
+        ConfigurationInternal compileClasspathConfiguration = configurations.maybeCreateWithRole(compileClasspathConfigurationName, ConfigurationRole.INTENDED_RESOLVABLE);
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
-        compileClasspathConfiguration.setCanBeConsumed(false);
-
         jvmPluginServices.configureAsCompileClasspath(compileClasspathConfiguration);
 
-        ConfigurationInternal annotationProcessorConfiguration = (ConfigurationInternal) configurations.maybeCreate(annotationProcessorConfigurationName);
+        ConfigurationInternal annotationProcessorConfiguration = configurations.maybeCreateWithRole(annotationProcessorConfigurationName, ConfigurationRole.INTENDED_RESOLVABLE);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
-        annotationProcessorConfiguration.setCanBeConsumed(false);
-        annotationProcessorConfiguration.setCanBeResolved(true);
-
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
 
-        Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyConfigurationName);
+        Configuration runtimeOnlyConfiguration = configurations.maybeCreateWithRole(runtimeOnlyConfigurationName, ConfigurationRole.INTENDED_BUCKET);
         runtimeOnlyConfiguration.setVisible(false);
-        runtimeOnlyConfiguration.setCanBeConsumed(false);
-        runtimeOnlyConfiguration.setCanBeResolved(false);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(runtimeClasspathConfigurationName);
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreateWithRole(runtimeClasspathConfigurationName, ConfigurationRole.INTENDED_RESOLVABLE);
         runtimeClasspathConfiguration.setVisible(false);
-        runtimeClasspathConfiguration.setCanBeConsumed(false);
-        runtimeClasspathConfiguration.setCanBeResolved(true);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);
         jvmPluginServices.configureAsRuntimeClasspath(runtimeClasspathConfiguration);
@@ -278,9 +267,6 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
         sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
-
-        compileClasspathConfiguration.setCanBeDeclaredAgainst(false);
-        ((ConfigurationInternal) runtimeClasspathConfiguration).setCanBeDeclaredAgainst(false);
     }
 
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {
