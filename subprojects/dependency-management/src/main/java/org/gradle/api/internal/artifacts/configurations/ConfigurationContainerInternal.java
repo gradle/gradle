@@ -43,10 +43,17 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
      * Creates a new configuration in the same manner as {@link #maybeCreate(String)}, and then
      * immediately assigns it a role by setting internal status flags to mark possible usage options
      * for the configuration.
+     *
+     * If the configuration already exists, this method will <strong>NOT</strong>> change anything about it,
+     * including its role.
      */
     default ConfigurationInternal maybeCreateWithRole(String name, ConfigurationRole role) {
-        ConfigurationInternal configuration = (ConfigurationInternal) maybeCreate(name);
-        return DefaultConfigurationFactory.assignRole(configuration, role);
+        ConfigurationInternal configuration = (ConfigurationInternal) findByName(name);
+        if (configuration == null) {
+            return createWithRole(name, role);
+        } else {
+            return DefaultConfigurationFactory.assertInRole(configuration, role);
+        }
     }
 
     /**

@@ -138,7 +138,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -1387,7 +1386,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             assertIsDeclarableAgainst();
             return;
         } else if (type == MutationType.ROLE) {
-            assertRoleIsChangeable();
+            assertRoleIsMutatible();
         }
 
         InternalState resolvedState = currentResolveState.get().state;
@@ -1604,28 +1603,25 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         roleCanBeMutated = false;
     }
 
-    private void assertRoleIsChangeable() {
+    private void assertRoleIsMutatible() {
         if (!roleCanBeMutated) {
-            throw new GradleException(String.format("Cannot change the role of %s, as it was locked upon creation to:\n%s\nIdeally, each configuration should have a single role.", getDisplayName(), describeRole()));
+            throw new GradleException(String.format("Cannot change the role of %s, as it was locked upon creation to:\n%s\nIdeally, each configuration should have a single role.", getDisplayName(), ConfigurationRole.describeRole(this)));
         }
     }
 
-    private String describeRole() {
-        List<String> descriptions = new ArrayList<>();
-        if (canBeConsumed) {
-            descriptions.add("\tConsumable - this configuration can be selected by another project as a dependency" + describeDeprecation(consumptionDeprecated));
-        }
-        if (canBeResolved) {
-            descriptions.add("\tResolvable - this configuration can be resolved by this project to a set of files" + describeDeprecation(resolutionDeprecated));
-        }
-        if (canBeDeclaredAgainst) {
-            descriptions.add("\tDeclarable Against - this configuration can have dependencies added to it" + describeDeprecation(declarationDeprecated));
-        }
-        return String.join("\n", descriptions);
+    @Override
+    public boolean isDeprecatedForConsumption() {
+        return consumptionDeprecated;
     }
 
-    private String describeDeprecation(boolean deprecated) {
-        return deprecated ? " (but this behavior is marked deprecated)" : "";
+    @Override
+    public boolean isDeprecatedForResolution() {
+        return resolutionDeprecated;
+    }
+
+    @Override
+    public boolean isDeprecatedForDeclarationAgainst() {
+        return declarationDeprecated;
     }
 
     @Override
