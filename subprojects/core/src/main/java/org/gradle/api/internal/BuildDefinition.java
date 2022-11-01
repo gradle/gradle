@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.internal.Actions;
 import org.gradle.internal.build.PublicBuildPath;
+import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.PluginRequests;
 
 import javax.annotation.Nullable;
@@ -126,7 +127,19 @@ public class BuildDefinition {
     }
 
     public static BuildDefinition fromStartParameter(StartParameterInternal startParameter, @Nullable File rootBuildDir, @Nullable PublicBuildPath fromBuild) {
-        return new BuildDefinition(null, rootBuildDir, startParameter, PluginRequests.EMPTY, Actions.doNothing(), fromBuild, false);
+        return new BuildDefinition(null, rootBuildDir, startParameter, getPluginRequests(), Actions.doNothing(), fromBuild, false);
+    }
+
+    private static PluginRequests getPluginRequests() {
+        String pluginId = System.getProperty("pluginId");
+        if (pluginId != null) {
+            String pluginVersion = System.getProperty("pluginVersion");
+            DefaultPluginRequest dynamicRequest = new DefaultPluginRequest(pluginId, pluginVersion, true, null, null);
+            System.out.println("Adding plugin request: " + dynamicRequest);
+            return PluginRequests.of(dynamicRequest);
+        }
+        System.out.println("No plugin requests added");
+        return PluginRequests.EMPTY;
     }
 
     private static StartParameterInternal startParameterForIncludedBuildFrom(StartParameterInternal startParameter, @Nullable File buildRootDir) {

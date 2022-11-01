@@ -19,6 +19,7 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":platform-native"))
     implementation(project(":plugins"))
+    implementation(project(":plugin-use"))
     implementation(project(":resources"))
     implementation(project(":workers"))
     implementation(project(":wrapper"))
