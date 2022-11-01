@@ -69,8 +69,6 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         given:
         def dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
-        def reportsDir = dslDir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
 
         when:
         succeeds('copyReport3')
