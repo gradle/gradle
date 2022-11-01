@@ -155,24 +155,24 @@ public class DefaultConfigurationFactory {
                 configuration.setCanBeDeclaredAgainst(true);
                 break;
 
+            case DEPRECATED_CONSUMABLE:
+                configuration.deprecateForConsumption(
+                    depSpec -> DeprecationLogger.deprecateConfiguration(configuration.getName())
+                        .forConsumption()
+                        .willBecomeAnErrorInGradle9()
+                        .withUserManual("dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")); // fall-through
             case INTENDED_CONSUMABLE:
                 configuration.setCanBeConsumed(true);
                 configuration.setCanBeResolved(false);
-                configuration.setCanBeDeclaredAgainst(false); // fall-through
-            case DEPRECATED_CONSUMABLE:
-                configuration.deprecateForConsumption(
-                        depSpec -> DeprecationLogger.deprecateConfiguration(configuration.getName())
-                            .forConsumption()
-                            .willBecomeAnErrorInGradle9()
-                            .withUserManual("dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations"));
+                configuration.setCanBeDeclaredAgainst(false);
                 break;
 
+            case DEPRECATED_RESOLVABLE:
+                configuration.deprecateForResolution(); // fall-through
             case INTENDED_RESOLVABLE:
                 configuration.setCanBeConsumed(false);
                 configuration.setCanBeResolved(true);
-                configuration.setCanBeDeclaredAgainst(false); // fall-through
-            case DEPRECATED_RESOLVABLE:
-                configuration.deprecateForResolution();
+                configuration.setCanBeDeclaredAgainst(false);
                 break;
 
             default:
