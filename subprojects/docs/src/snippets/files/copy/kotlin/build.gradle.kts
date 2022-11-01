@@ -161,6 +161,12 @@ tasks.register<Copy>("anotherCopyTask") {
 }
 // end::copy-task-2[]
 
+tasks.named<Copy>("anotherCopyTask") {
+    // The task uses many sources that produce overlapping outputs.
+    // This isn't a part of any snippet, but is necessary to make the build work.
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 fun getDestDir() = file("some-dir")
 
 // tag::copy-method[]
@@ -216,7 +222,6 @@ tasks.register<Copy>("filter") {
     into(layout.buildDirectory.dir("explodedWar"))
     // Substitute property tokens in files
     expand("copyright" to "2009", "version" to "2.3.1")
-    expand(project.properties)
     // Use some of the filters provided by Ant
     filter(FixCrLfFilter::class)
     filter(ReplaceTokens::class, "tokens" to mapOf("copyright" to "2009", "version" to "2.3.1"))
