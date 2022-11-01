@@ -1635,8 +1635,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void setCanBeConsumed(boolean allowed) {
-        validateMutation(MutationType.ROLE);
-        canBeConsumed = allowed;
+        if (canBeConsumed != allowed) {
+            validateMutation(MutationType.ROLE);
+            canBeConsumed = allowed;
+        }
     }
 
     @Override
@@ -1646,8 +1648,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void setCanBeResolved(boolean allowed) {
-        validateMutation(MutationType.ROLE);
-        canBeResolved = allowed;
+        if (canBeResolved != allowed) {
+            validateMutation(MutationType.ROLE);
+            canBeResolved = allowed;
+        }
     }
 
     @Override
@@ -1657,8 +1661,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void setCanBeDeclaredAgainst(boolean allowed) {
-        validateMutation(MutationType.ROLE);
-        canBeDeclaredAgainst = allowed;
+        if (canBeDeclaredAgainst != allowed) {
+            validateMutation(MutationType.ROLE);
+            canBeDeclaredAgainst = allowed;
+        }
     }
 
     @VisibleForTesting
