@@ -16,19 +16,19 @@
 
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import org.gradle.workers.internal.BuildOperationAwareWorker;
+import org.gradle.workers.internal.ActionExecutionSpecFactory;
+import org.gradle.workers.internal.DaemonForkOptions;
+import org.gradle.workers.internal.ForkedWorkerRequirement;
+import org.gradle.workers.internal.IsolatedClassLoaderWorkerRequirement;
 import org.gradle.workers.internal.WorkerFactory;
-import org.gradle.workers.internal.WorkerRequirement;
 
-abstract public class AbstractDelegatingDaemonCompilerWorkerFactory implements DaemonCompilerWorkerFactory {
-    private final WorkerFactory delegate;
-
-    public AbstractDelegatingDaemonCompilerWorkerFactory(WorkerFactory delegate) {
-        this.delegate = delegate;
+public class ProcessIsolatedCompilerWorkerExecutor extends AbstractCompilerWorkerExecutor {
+    public ProcessIsolatedCompilerWorkerExecutor(WorkerFactory delegate, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+        super(delegate, actionExecutionSpecFactory);
     }
 
     @Override
-    public BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement) {
-        return delegate.getWorker(workerRequirement);
+    public IsolatedClassLoaderWorkerRequirement getWorkerRequirement(DaemonForkOptions daemonForkOptions) {
+        return new ForkedWorkerRequirement(daemonForkOptions.getJavaForkOptions().getWorkingDir(), daemonForkOptions);
     }
 }

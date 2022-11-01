@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile.daemon;
 
+import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.IsolatedClassLoaderWorkerRequirement;
 import org.gradle.workers.internal.WorkerFactory;
 
-public class IsolatedClassloaderDaemonCompilerWorkerFactory extends AbstractDelegatingDaemonCompilerWorkerFactory {
-    public IsolatedClassloaderDaemonCompilerWorkerFactory(WorkerFactory delegate) {
-        super(delegate);
+public class IsolatedClassloaderCompilerWorkerExecutor extends AbstractCompilerWorkerExecutor {
+    public IsolatedClassloaderCompilerWorkerExecutor(WorkerFactory delegate, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+        super(delegate, actionExecutionSpecFactory);
     }
 
     @Override
