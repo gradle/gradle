@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.DependencyConstraintSet;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
@@ -30,9 +30,9 @@ import java.util.List;
 
 public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<DependencyConstraint> implements DependencyConstraintSet {
     private final Describable displayName;
-    private final Configuration clientConfiguration;
+    private final ConfigurationInternal clientConfiguration;
 
-    public DefaultDependencyConstraintSet(Describable displayName, Configuration clientConfiguration, DomainObjectSet<DependencyConstraint> backingSet) {
+    public DefaultDependencyConstraintSet(Describable displayName, ConfigurationInternal clientConfiguration, DomainObjectSet<DependencyConstraint> backingSet) {
         super(backingSet);
         this.displayName = displayName;
         this.clientConfiguration = clientConfiguration;

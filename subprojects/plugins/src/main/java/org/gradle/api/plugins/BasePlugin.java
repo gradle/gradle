@@ -21,6 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -89,7 +90,7 @@ public abstract class BasePlugin implements Plugin<Project> {
         final Configuration archivesConfiguration = configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
             setDescription("Configuration for archive artifacts.");
 
-        final Configuration defaultConfiguration = configurations.maybeCreate(Dependency.DEFAULT_CONFIGURATION).
+        final Configuration defaultConfiguration =  configurations.maybeCreate(Dependency.DEFAULT_CONFIGURATION).
             setDescription("Configuration for default artifacts.");
 
         final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(
@@ -98,8 +99,8 @@ public abstract class BasePlugin implements Plugin<Project> {
 
         archivesConfiguration.setCanBeResolved(false);
         defaultConfiguration.setCanBeResolved(false);
-        archivesConfiguration.setCanBeDeclaredAgainst(false);
-        defaultConfiguration.setCanBeDeclaredAgainst(false);
+        ((ConfigurationInternal) archivesConfiguration).setCanBeDeclaredAgainst(false);
+        ((ConfigurationInternal) defaultConfiguration).setCanBeDeclaredAgainst(false);
 
         configurations.all(configuration -> {
             if (!configuration.equals(archivesConfiguration)) {
