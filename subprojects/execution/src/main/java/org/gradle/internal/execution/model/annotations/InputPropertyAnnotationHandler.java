@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.internal.execution.model.annotations;
 
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -32,7 +32,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.io.File;
 
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {

@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.properties.annotations;
+package org.gradle.internal.execution.model.annotations;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Optional;
@@ -33,7 +32,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
@@ -58,7 +57,7 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         Method getter = propertyMetadata.getGetterMethod();
-        ModelType propertyType = ModelType.returnType(getter);
+        ModelType<?> propertyType = ModelType.returnType(getter);
         List<ModelType<?>> typeVariables = Cast.uncheckedNonnullCast(propertyType.getTypeVariables());
         if (typeVariables.size() != 1 || !BuildService.class.isAssignableFrom(typeVariables.get(0).getRawClass())) {
             validationContext.visitPropertyProblem(problem ->

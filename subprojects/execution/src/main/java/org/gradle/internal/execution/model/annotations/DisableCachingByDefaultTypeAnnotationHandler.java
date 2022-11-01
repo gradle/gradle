@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties.annotations;
+package org.gradle.internal.execution.model.annotations;
 
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.transform.TransformAction;

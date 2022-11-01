@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.properties.annotations.PropertyTypeResolver;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 
