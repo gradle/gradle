@@ -14,13 +14,18 @@ tasks.register('copyReport2', Copy) {
 }
 // end::copy-single-file-example-without-file-method[]
 
-tasks.register('myReportTask') {
-    ext.outputFile = file("$buildDir/reports/my-report.pdf")
+abstract class MyReportTask extends DefaultTask {
+    @OutputFile
+    abstract RegularFileProperty getOutputFile()
 
-    outputs.files outputFile
-    doLast {
-        outputFile.touch()
+    @TaskAction
+    def createFile() {
+        outputFile.get().asFile.text = "Report contents"
     }
+}
+
+tasks.register('myReportTask', MyReportTask) {
+    outputFile = file("$buildDir/reports/my-report.pdf")
 }
 
 tasks.register('archiveReportsTask') {

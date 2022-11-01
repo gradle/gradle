@@ -19,26 +19,33 @@ tasks.register<Copy>("copyReport2") {
 }
 // end::copy-single-file-example-without-file-method[]
 
-val myReportTask by tasks.registering {
-    val outputFile by extra { file("$buildDir/reports/my-report.pdf") }
+abstract class MyReportTask : DefaultTask() {
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
 
-    outputs.files(outputFile)
-    doLast {
-        outputFile.setLastModified(System.currentTimeMillis())
+    @TaskAction
+    fun createFile() {
+        outputFile.get().asFile.writeText("Report contents")
     }
 }
 
-val archiveReportsTask by tasks.registering {
-    val dirToArchive by extra { file("$buildDir/toArchive") }
-    inputs.dir(dirToArchive)
+val myReportTask by tasks.registering(MyReportTask::class) {
+    outputFile.set(file("$buildDir/reports/my-report.pdf"))
+}
+
+abstract class MyArchiveTask : DefaultTask() {
+    @get:InputDirectory
+    abstract val dirToArchive: DirectoryProperty
+}
+
+val archiveReportsTask by tasks.registering(MyArchiveTask::class) {
+    dirToArchive.set(file("$buildDir/toArchive"))
 }
 
 // tag::copy-single-file-example-with-task-properties[]
 tasks.register<Copy>("copyReport3") {
-    val outputFile: File by myReportTask.get().extra
-    val dirToArchive: File by archiveReportsTask.get().extra
-    from(outputFile)
-    into(dirToArchive)
+    from(myReportTask.get().outputFile)
+    into(archiveReportsTask.get().dirToArchive)
 }
 // end::copy-single-file-example-with-task-properties[]
 
