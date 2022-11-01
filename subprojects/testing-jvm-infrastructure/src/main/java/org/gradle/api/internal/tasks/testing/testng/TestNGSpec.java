@@ -16,12 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
+import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
+
 import java.io.Serializable;
 import java.util.Set;
 
 public class TestNGSpec implements Serializable {
     private static final long serialVersionUID = 1;
 
+    private final TestFilterSpec filter;
     private final String defaultSuiteName;
     private final String defaultTestName;
     private final String parallel;
@@ -30,14 +33,12 @@ public class TestNGSpec implements Serializable {
     private final Set<String> includeGroups;
     private final Set<String> excludeGroups;
     private final Set<String> listeners;
-    private final Set<String> includedTests;
-    private final Set<String> excludedTests;
-    private final Set<String> includedTestsCommandLine;
     private final String configFailurePolicy;
     private final boolean preserveOrder;
     private final boolean groupByInstances;
 
     public TestNGSpec(
+        TestFilterSpec filter,
         String defaultSuiteName,
         String defaultTestName,
         String parallel,
@@ -46,13 +47,11 @@ public class TestNGSpec implements Serializable {
         Set<String> includeGroups,
         Set<String> excludeGroups,
         Set<String> listeners,
-        Set<String> includedTests,
-        Set<String> excludedTests,
-        Set<String> includedTestsCommandLine,
         String configFailurePolicy,
         boolean preserveOrder,
         boolean groupByInstances
     ) {
+        this.filter = filter;
         this.defaultSuiteName = defaultSuiteName;
         this.defaultTestName = defaultTestName;
         this.parallel = parallel;
@@ -61,12 +60,13 @@ public class TestNGSpec implements Serializable {
         this.includeGroups = includeGroups;
         this.excludeGroups = excludeGroups;
         this.listeners = listeners;
-        this.includedTests = includedTests;
-        this.excludedTests = excludedTests;
-        this.includedTestsCommandLine = includedTestsCommandLine;
         this.configFailurePolicy = configFailurePolicy;
         this.preserveOrder = preserveOrder;
         this.groupByInstances = groupByInstances;
+    }
+
+    public TestFilterSpec getFilter() {
+        return filter;
     }
 
     public Set<String> getListeners() {
@@ -99,18 +99,6 @@ public class TestNGSpec implements Serializable {
 
     public String getDefaultSuiteName() {
         return defaultSuiteName;
-    }
-
-    public Set<String> getIncludedTests() {
-        return includedTests;
-    }
-
-    public Set<String> getExcludedTests() {
-        return excludedTests;
-    }
-
-    public Set<String> getIncludedTestsCommandLine() {
-        return includedTestsCommandLine;
     }
 
     public String getConfigFailurePolicy() {

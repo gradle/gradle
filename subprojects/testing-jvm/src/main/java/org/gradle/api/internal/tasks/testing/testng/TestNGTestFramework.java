@@ -115,9 +115,9 @@ public class TestNGTestFramework implements TestFramework {
     }
 
     private static TestNGSpec toSpec(TestNGOptions options, DefaultTestFilter filter) {
-        return new TestNGSpec(options.getSuiteName(), options.getTestName(), options.getParallel(), options.getThreadCount(),
+        return new TestNGSpec(filter.toSpec(),
+            options.getSuiteName(), options.getTestName(), options.getParallel(), options.getThreadCount(),
             options.getUseDefaultListeners(), options.getIncludeGroups(), options.getExcludeGroups(), options.getListeners(),
-            filter.getIncludePatterns(), filter.getExcludePatterns(), filter.getCommandLineIncludePatterns(),
             options.getConfigFailurePolicy(), options.getPreserveOrder(), options.getGroupByInstances()
         );
     }
