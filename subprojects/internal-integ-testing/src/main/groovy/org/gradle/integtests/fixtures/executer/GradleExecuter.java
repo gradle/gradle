@@ -77,7 +77,6 @@ public interface GradleExecuter extends Stoppable {
      */
     GradleExecuter withEnvironmentVars(Map<String, ?> environment);
 
-
     @Deprecated
     GradleExecuter usingSettingsFile(File settingsFile);
 
