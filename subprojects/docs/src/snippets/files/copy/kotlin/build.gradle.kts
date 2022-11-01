@@ -193,13 +193,13 @@ configurations { "runtime" }
 tasks.register<Copy>("rename") {
     from("src/main/webapp")
     into(layout.buildDirectory.dir("explodedWar"))
+    // Use a regular expression to map the file name
+    rename("(.+)-staging(.+)", "$1$2")
+    rename("(.+)-staging(.+)".toRegex().pattern, "$1$2")
     // Use a closure to convert all file names to upper case
     rename { fileName: String ->
         fileName.toUpperCase()
     }
-    // Use a regular expression to map the file name
-    rename("(.+)-staging-(.+)", "$1$2")
-    rename("(.+)-staging-(.+)".toRegex().pattern, "$1$2")
 }
 // end::rename-files[]
 

@@ -19,7 +19,9 @@ package org.gradle.integtests.samples.files
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -235,6 +237,28 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dslDir.file('build/toArchive/my-repor~13').isFile()
         dslDir.file('build/toArchive/metrics/plot.pdf').isFile()
         dslDir.file('build/toArchive/numbers-~16').isFile()
+
+        where:
+        dsl << ['groovy', 'kotlin']
+    }
+
+    @UsesSample("files/copy")
+    @IgnoreIf({ TestPrecondition.CASE_INSENSITIVE_FS.fulfilled })
+    def "can use copy task with rename with #dsl dsl"() {
+        given:
+        def dslDir = sample.dir.file(dsl)
+        executer.inDirectory(dslDir)
+
+        when:
+        succeeds('rename')
+
+        then:
+        def outputDir = dslDir.file("build/explodedWar")
+        outputDir.file('WEB.XML').isFile()
+        outputDir.file('index.html').assertDoesNotExist()
+        outputDir.file('index-staging.html').assertDoesNotExist()
+        outputDir.file('INDEX-STAGING.HTML').assertDoesNotExist()
+        outputDir.file('INDEX.HTML').isFile()
 
         where:
         dsl << ['groovy', 'kotlin']
