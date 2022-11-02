@@ -68,16 +68,16 @@ allprojects {
         ${builder.producerConfigOverrides}
     }
     artifacts {
-        implementation producer.output
+        other producer.output
     }
     task resolve (type: ShowFileCollection) {
-        def view = configurations.implementation.incoming.artifactView {
+        def view = configurations.other.incoming.artifactView {
             attributes.attribute(color, 'green')
         }.files
         files.from(view)
     }
     task resolveArtifacts(type: ShowArtifactCollection) {
-        collection = configurations.implementation.incoming.artifactView {
+        collection = configurations.other.incoming.artifactView {
             attributes.attribute(color, 'green')
         }.artifacts
     }
