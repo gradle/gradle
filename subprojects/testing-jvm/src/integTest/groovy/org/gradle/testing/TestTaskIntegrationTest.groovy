@@ -282,11 +282,12 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         extraArgs << [[], ["--tests", "MyTest"]]
     }
 
-    def "options cannot be set prior to setting same test framework"() {
+    def "options can be set prior to setting same test framework for the default test task"() {
         ignoreWhenJUnitPlatform()
 
         given:
         file('src/test/java/MyTest.java') << standaloneTestClass()
+        file("src/test/java/Slow.java") << """public interface Slow {}"""
 
         settingsFile << "rootProject.name = 'Sample'"
         buildFile << """apply plugin: 'java'
@@ -305,15 +306,14 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         """.stripIndent()
 
         expect:
-        fails("test")
-        failure.assertHasCause("The value for task ':test' property 'testFrameworkProperty' is final and cannot be changed any further.")
+        succeeds("test")
     }
 
     def "options cannot be set prior to changing test framework for the default test task"() {
         ignoreWhenJUnitPlatform()
 
         given:
-        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
+        testDirectory.file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
 
         settingsFile << "rootProject.name = 'Sample'"
         buildFile << """apply plugin: 'java'
@@ -337,6 +337,33 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         expect:
         fails("test")
         failure.assertHasCause("The value for task ':test' property 'testFrameworkProperty' is final and cannot be changed any further.")
+    }
+
+    def "options can be set prior to setting same test framework for a custom test task"() {
+        ignoreWhenJUnitPlatform()
+
+        given:
+        file('src/test/java/MyTest.java') << standaloneTestClass()
+        file("src/test/java/Slow.java") << """public interface Slow {}"""
+
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
+            }
+
+            tasks.create('customTest', Test) {
+                options {
+                    excludeCategories = ["Slow"]
+                }
+                useJUnit()
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds("customTest")
     }
 
     def "options cannot be set prior to changing test framework for a custom test task"() {
