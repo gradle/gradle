@@ -32,10 +32,10 @@ import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransfor
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
-import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
@@ -355,7 +355,7 @@ class CompileKotlinScript(
         visitor.visitOutputProperty(
             "classesDir",
             TreeType.DIRECTORY,
-            OutputFileValueSupplier(classesDir, fileCollectionFactory.fixed(classesDir))
+            OutputFileValueSupplier.fromStatic(classesDir, fileCollectionFactory.fixed(classesDir))
         )
     }
 
