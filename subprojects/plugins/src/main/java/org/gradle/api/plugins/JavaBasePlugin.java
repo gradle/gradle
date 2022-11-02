@@ -249,7 +249,11 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         jvmPluginServices.configureAsCompileClasspath(compileClasspathConfiguration);
 
-        ConfigurationInternal annotationProcessorConfiguration = configurations.maybeCreateWithRole(annotationProcessorConfigurationName, ConfigurationRole.LEGACY); // Need to be able to declare against and resolve this
+        // Need to be able to declare against and resolve this; but NOT consume it - this is NOT a standard role
+        ConfigurationInternal annotationProcessorConfiguration = (ConfigurationInternal) configurations.maybeCreate(annotationProcessorConfigurationName);
+        annotationProcessorConfiguration.setCanBeDeclaredAgainst(true);
+        annotationProcessorConfiguration.setCanBeResolved(true);
+        annotationProcessorConfiguration.preventRoleMutation();
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
