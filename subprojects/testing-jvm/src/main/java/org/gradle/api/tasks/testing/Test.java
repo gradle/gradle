@@ -1050,8 +1050,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     void useTestFramework(TestFramework testFramework) {
         if (((DefaultProperty<?>) this.testFramework).isFinalized()) {
-            Class<?> currentFramework = testFramework.getClass();
-            Class<?> newFramework = this.testFramework.get().getClass();
+            Class<?> currentFramework = this.testFramework.get().getClass();
+            Class<?> newFramework = testFramework.getClass();
             if (currentFramework == newFramework) {
                 // We are setting a finalized framework to its existing value, no-op so as not to trigger a failure here.
                 // We need to allow this especially for the default test task, so that existing builds that configure options and
