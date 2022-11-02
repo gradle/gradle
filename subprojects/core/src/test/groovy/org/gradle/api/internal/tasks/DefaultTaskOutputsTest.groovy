@@ -19,13 +19,11 @@ import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.internal.properties.OutputFilePropertyType
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
-import org.gradle.util.UsesNativeServices
 import spock.lang.Issue
 
 import static org.gradle.internal.file.TreeType.DIRECTORY
 import static org.gradle.internal.file.TreeType.FILE
 
-@UsesNativeServices
 class DefaultTaskOutputsTest extends AbstractTaskInputsAndOutputsTest {
 
     def "has no output by default"() {

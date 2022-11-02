@@ -20,7 +20,6 @@ import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
 import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.internal.tasks.properties.bean.TestImplementationIdentifier
@@ -39,18 +38,12 @@ import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.TestPropertyTypeResolver
 import org.gradle.internal.properties.bean.DefaultPropertyWalker
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.ProjectBuilder
-import org.junit.Rule
-import spock.lang.Specification
 
 import javax.annotation.Nullable
 
-class AbstractTaskInputsAndOutputsTest extends Specification {
-
-    @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+class AbstractTaskInputsAndOutputsTest extends AbstractProjectBuilderSpec {
 
     final fileCollectionFactory = TestFiles.fileCollectionFactory(temporaryFolder.testDirectory)
 
@@ -69,17 +62,13 @@ class AbstractTaskInputsAndOutputsTest extends Specification {
     def typeMetadataStore = new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
     def walker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationIdentifier())
 
-    ProjectInternal project
     TaskInternal task
     TaskInputsInternal inputs
     TaskOutputsInternal outputs
 
+    @SuppressWarnings('ConfigurationAvoidance')
     def setup() {
-        def builder = ProjectBuilder.builder()
-            .withProjectDir(temporaryFolder.createDir("root"))
-            .build()
-        project = builder.project
-        task = builder.project.tasks.create("test")
+        task = project.tasks.create("test") as TaskInternal
         inputs = task.inputs
         outputs = task.outputs
     }
