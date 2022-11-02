@@ -30,6 +30,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -1048,6 +1049,17 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     void useTestFramework(TestFramework testFramework) {
+        if (((DefaultProperty<?>) this.testFramework).isFinalized()) {
+            Class<?> currentFramework = testFramework.getClass();
+            Class<?> newFramework = this.testFramework.get().getClass();
+            if (currentFramework == newFramework) {
+                // We are setting a finalized framework to its existing value, no-op so as not to trigger a failure here.
+                // We need to allow this especially for the default test task, so that existing builds that configure options and
+                // then call useJunit() afterwards don't fail
+                return;
+            }
+        }
+
         this.testFramework.set(testFramework);
     }
 
