@@ -127,7 +127,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
             configureExecutable(selectJdk(withExecutable))
         }
         if (withJavaExtension != null) {
-            configureJavaExtension(selectJdk(withJavaExtension))
+            configureJavaPluginToolchainVersion(selectJdk(withJavaExtension))
         }
 
         def targetJdk = selectJdk(target)
@@ -206,16 +206,6 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
 
             javadoc {
                 options.jFlags("-version")
-            }
-        """
-    }
-
-    private TestFile configureJavaExtension(Jvm jdk) {
-        buildFile << """
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
-                }
             }
         """
     }
