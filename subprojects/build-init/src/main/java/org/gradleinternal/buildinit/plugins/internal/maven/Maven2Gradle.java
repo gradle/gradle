@@ -422,9 +422,15 @@ public class Maven2Gradle {
             }
         }
 
-        builder.propertyAssignment(null, "java.sourceCompatibility", JavaVersion.toVersion(source));
+        builder.propertyAssignment(
+            null, "java.sourceCompatibility",
+            builder.methodInvocationExpression("JavaVersion.of", JavaVersion.toVersion(source).asInt())
+        );
         if (!target.equals(source)) {
-            builder.propertyAssignment(null, "java.targetCompatibility", JavaVersion.toVersion(target));
+            builder.propertyAssignment(
+                null, "java.targetCompatibility",
+                builder.methodInvocationExpression("JavaVersion.of", JavaVersion.toVersion(target).asInt())
+            );
         }
 
         String encoding = (String) project.getProperties().get("project.build.sourceEncoding");

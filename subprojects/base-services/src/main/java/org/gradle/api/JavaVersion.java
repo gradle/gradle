@@ -16,14 +16,15 @@
 package org.gradle.api;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
-/**
+/**B
  * An enumeration of Java versions.
  * <a href="https://www.oracle.com/java/technologies/javase/versioning-naming.html">Version numbers before Java 9.</a>
  * <a href="https://openjdk.org/jeps/223">Version numbers after Java 9.</a>
@@ -32,7 +33,9 @@ import java.util.List;
  * This interface is not intended for implementation by build script or plugin authors.
  * </p>
  */
-public final class JavaVersion implements Comparable<JavaVersion> {
+public final class JavaVersion implements Comparable<JavaVersion>, Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private static final int LOWER_CACHED_VERSION = 4;
     private static final int HIGHER_CACHED_VERSION = 19;
@@ -240,33 +243,36 @@ public final class JavaVersion implements Comparable<JavaVersion> {
     @Deprecated
     public static final JavaVersion VERSION_HIGHER = of(25);
 
-    private static final BiMap<String, JavaVersion> VERSION_BY_NAME = new ImmutableBiMap.Builder<String, JavaVersion>()
-        .put("VERSION_1_1", VERSION_1_1)
-        .put("VERSION_1_2", VERSION_1_2)
-        .put("VERSION_1_3", VERSION_1_3)
-        .put("VERSION_1_4", VERSION_1_4)
-        .put("VERSION_1_5", VERSION_1_5)
-        .put("VERSION_1_6", VERSION_1_6)
-        .put("VERSION_1_7", VERSION_1_7)
-        .put("VERSION_1_8", VERSION_1_8)
-        .put("VERSION_1_9", VERSION_1_9)
-        .put("VERSION_1_10", VERSION_1_10)
-        .put("VERSION_11", VERSION_11)
-        .put("VERSION_12", VERSION_12)
-        .put("VERSION_13", VERSION_13)
-        .put("VERSION_14", VERSION_14)
-        .put("VERSION_15", VERSION_15)
-        .put("VERSION_16", VERSION_16)
-        .put("VERSION_17", VERSION_17)
-        .put("VERSION_18", VERSION_18)
-        .put("VERSION_19", VERSION_19)
-        .put("VERSION_20", VERSION_20)
-        .put("VERSION_21", VERSION_21)
-        .put("VERSION_22", VERSION_22)
-        .put("VERSION_23", VERSION_23)
-        .put("VERSION_24", VERSION_24)
-        .put("VERSION_HIGHER", VERSION_HIGHER)
-        .buildOrThrow();
+    private static final Map<String, JavaVersion> VERSION_BY_NAME;
+
+    static {
+        VERSION_BY_NAME = new LinkedHashMap<String, JavaVersion>();
+        VERSION_BY_NAME.put("VERSION_1_1", VERSION_1_1);
+        VERSION_BY_NAME.put("VERSION_1_2", VERSION_1_2);
+        VERSION_BY_NAME.put("VERSION_1_3", VERSION_1_3);
+        VERSION_BY_NAME.put("VERSION_1_4", VERSION_1_4);
+        VERSION_BY_NAME.put("VERSION_1_5", VERSION_1_5);
+        VERSION_BY_NAME.put("VERSION_1_6", VERSION_1_6);
+        VERSION_BY_NAME.put("VERSION_1_7", VERSION_1_7);
+        VERSION_BY_NAME.put("VERSION_1_8", VERSION_1_8);
+        VERSION_BY_NAME.put("VERSION_1_9", VERSION_1_9);
+        VERSION_BY_NAME.put("VERSION_1_10", VERSION_1_10);
+        VERSION_BY_NAME.put("VERSION_11", VERSION_11);
+        VERSION_BY_NAME.put("VERSION_12", VERSION_12);
+        VERSION_BY_NAME.put("VERSION_13", VERSION_13);
+        VERSION_BY_NAME.put("VERSION_14", VERSION_14);
+        VERSION_BY_NAME.put("VERSION_15", VERSION_15);
+        VERSION_BY_NAME.put("VERSION_16", VERSION_16);
+        VERSION_BY_NAME.put("VERSION_17", VERSION_17);
+        VERSION_BY_NAME.put("VERSION_18", VERSION_18);
+        VERSION_BY_NAME.put("VERSION_19", VERSION_19);
+        VERSION_BY_NAME.put("VERSION_20", VERSION_20);
+        VERSION_BY_NAME.put("VERSION_21", VERSION_21);
+        VERSION_BY_NAME.put("VERSION_22", VERSION_22);
+        VERSION_BY_NAME.put("VERSION_23", VERSION_23);
+        VERSION_BY_NAME.put("VERSION_24", VERSION_24);
+        VERSION_BY_NAME.put("VERSION_HIGHER", VERSION_HIGHER);
+    }
 
     /**
      * Gets a JavaVersion instance by field name, e.g. {@code "VERSION_1_1"} gives {@link #VERSION_1_1}.
@@ -541,12 +547,10 @@ public final class JavaVersion implements Comparable<JavaVersion> {
     @Incubating
     @Deprecated
     public String name() {
-        String name = VERSION_BY_NAME.inverse().get(this);
-        if (name == null) {
-            // We can easily calculate a fake one for these.
-            name = "VERSION_" + version;
+        if (version <= 10) {
+            return "VERSION_1_" + version;
         }
-        return name;
+        return "VERSION_" + version;
     }
 
     /**
