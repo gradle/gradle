@@ -212,6 +212,6 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             return null;
         }
         String languageLevel = ideaLanguageLevel.getLevel();
-        return JavaVersion.valueOf(languageLevel.replaceFirst("JDK", "VERSION"));
+        return JavaVersion.toVersion(languageLevel.substring("JDK_".length()).replace('_', '.'));
     }
 }

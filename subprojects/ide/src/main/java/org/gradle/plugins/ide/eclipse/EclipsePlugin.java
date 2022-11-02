@@ -61,7 +61,6 @@ import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
 import org.gradle.plugins.ide.eclipse.model.Link;
-import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
@@ -432,14 +431,14 @@ public abstract class EclipsePlugin extends IdePlugin {
     private static String eclipseJavaRuntimeNameFor(JavaVersion version) {
         // Default Eclipse JRE paths:
         // https://github.com/eclipse/eclipse.jdt.debug/blob/master/org.eclipse.jdt.launching/plugin.xml#L241-L303
-        String eclipseJavaVersion = EclipseJavaVersionMapper.toEclipseJavaVersion(version);
-        switch (version) {
-            case VERSION_1_1:
+        String eclipseJavaVersion = version.toString();
+        switch (version.asInt()) {
+            case 1:
                 return "JRE-1.1";
-            case VERSION_1_2:
-            case VERSION_1_3:
-            case VERSION_1_4:
-            case VERSION_1_5:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
                 return "J2SE-" + eclipseJavaVersion;
             default:
                 return "JavaSE-" + eclipseJavaVersion;

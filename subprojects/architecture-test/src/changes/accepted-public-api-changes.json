@@ -25,6 +25,31 @@
             ]
         },
         {
+            "type": "org.gradle.api.JavaVersion",
+            "member": "Class org.gradle.api.JavaVersion",
+            "acceptation": "Changing JavaVersion away from an enum is intentional",
+            "changes": [
+                "Class type changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.JavaVersion",
+            "member": "Method org.gradle.api.JavaVersion.toVersion(java.lang.Object)",
+            "acceptation": "This was always nullable, but the annotation was missing",
+            "changes": [
+                "From non-null returning to null returning breaking change",
+                "Parameter 0 nullability changed from non-nullable to nullable"
+            ]
+        },
+        {
+            "type": "org.gradle.api.JavaVersion",
+            "member": "Superclass [removed]",
+            "acceptation": "Changing JavaVersion away from an enum is intentional",
+            "changes": [
+                "Superclass has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.ArtifactIdentifier",
             "member": "Method org.gradle.api.artifacts.ArtifactIdentifier.getClassifier()",
             "acceptation": "Method always could return null",

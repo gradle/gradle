@@ -26,11 +26,18 @@ public class IdeaLanguageLevel {
     private String level;
 
     public IdeaLanguageLevel(Object version) {
-        if (version != null && version instanceof String && ((String) version).startsWith("JDK_")) {
+        if (version == null) {
+            level = null;
+        } else if (version instanceof String && ((String) version).startsWith("JDK_")) {
             level = (String) version;
-            return;
+        } else {
+            int versionInt = JavaVersion.toVersion(version).asInt();
+            if (versionInt <= 10) {
+                level = "JDK_1_" + versionInt;
+            } else {
+                level = "JDK_" + versionInt;
+            }
         }
-        level = JavaVersion.toVersion(version).name().replaceFirst("VERSION", "JDK");
     }
 
     public String getLevel() {

@@ -297,7 +297,7 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
     }
 
     private JavaVersion toJavaVersion(ideaLanguageLevel) {
-        JavaVersion.valueOf(ideaLanguageLevel.level.replaceFirst("JDK", "VERSION"));
+        JavaVersion.toVersion(ideaLanguageLevel.level.substring("JDK_".length()).replace('_', '.'))
     }
 
     private JavaVersion getDefaultIdeaPluginLanguageLevelForNonJavaProjects() {

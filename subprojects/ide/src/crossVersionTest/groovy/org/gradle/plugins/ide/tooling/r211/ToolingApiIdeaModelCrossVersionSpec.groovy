@@ -301,7 +301,7 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
     }
 
     private JavaVersion toJavaVersion(ideaLanguageLevel) {
-        JavaVersion.valueOf(ideaLanguageLevel.level.replaceFirst("JDK", "VERSION"));
+        JavaVersion.toVersion(ideaLanguageLevel.level.substring("JDK_".length()).replace('_', '.'))
     }
 
     private JavaVersion getDefaultIdeaPluginLanguageLevelForNonJavaProjects() {

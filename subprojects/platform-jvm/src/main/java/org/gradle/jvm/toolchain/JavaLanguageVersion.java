@@ -22,7 +22,9 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
  * Represents a Java Language version
  *
  * @since 6.7
+ * @deprecated Use {@link org.gradle.api.JavaVersion} instead.
  */
+@Deprecated
 public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
 
     static JavaLanguageVersion of(int version) {

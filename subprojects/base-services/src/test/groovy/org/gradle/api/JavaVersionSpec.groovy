@@ -97,7 +97,7 @@ class JavaVersionSpec extends Specification {
         JavaVersion.toVersion("15-ea") == JavaVersion.VERSION_15
         JavaVersion.toVersion("16-ea") == JavaVersion.VERSION_16
         JavaVersion.toVersion("17-ea") == JavaVersion.VERSION_17
-        JavaVersion.toVersion("999-ea") == JavaVersion.VERSION_HIGHER
+        JavaVersion.toVersion("999-ea") == JavaVersion.of(999)
     }
 
     def convertClassVersionToJavaVersion() {
@@ -127,6 +127,7 @@ class JavaVersionSpec extends Specification {
         JavaVersion.forClassVersion(67) == JavaVersion.VERSION_23
         JavaVersion.forClassVersion(68) == JavaVersion.VERSION_24
         JavaVersion.forClassVersion(999) == JavaVersion.VERSION_HIGHER
+        JavaVersion.forClassVersion(999) == JavaVersion.of(999 - 44)
     }
 
     def failsToConvertStringToVersionForUnknownVersion() {
@@ -221,7 +222,7 @@ class JavaVersionSpec extends Specification {
         '11-ea'       | JavaVersion.VERSION_11     | false   | false   | false   | false   | false    | true     | false    | true              | true              | true              | true              | true               | true               | false
         '12-ea'       | JavaVersion.VERSION_12     | false   | false   | false   | false   | false    | false    | true     | true              | true              | true              | true              | true               | true               | true
         '12'          | JavaVersion.VERSION_12     | false   | false   | false   | false   | false    | false    | true     | true              | true              | true              | true              | true               | true               | true
-        '999'         | JavaVersion.VERSION_HIGHER | false   | false   | false   | false   | false    | false    | false    | true              | true              | true              | true              | true               | true               | true
+        '999'         | JavaVersion.of(999)        | false   | false   | false   | false   | false    | false    | false    | true              | true              | true              | true              | true               | true               | true
     }
 
     def "isCompatibleWith works as expected"() {
@@ -249,9 +250,9 @@ class JavaVersionSpec extends Specification {
         JavaVersion.toVersion('9.0.1') == JavaVersion.VERSION_1_9
         JavaVersion.toVersion('9.0.0.1') == JavaVersion.VERSION_1_9
         JavaVersion.toVersion('9.0.0.0.1') == JavaVersion.VERSION_1_9
-        JavaVersion.toVersion('404.1.2') == JavaVersion.VERSION_HIGHER
+        JavaVersion.toVersion('404.1.2') == JavaVersion.of(404)
         JavaVersion.toVersion('9.1.2.3') == JavaVersion.VERSION_1_9
-        JavaVersion.toVersion('1000.0.0.0.0.0.99999999') == JavaVersion.VERSION_HIGHER
+        JavaVersion.toVersion('1000.0.0.0.0.0.99999999') == JavaVersion.of(1000)
     }
 
     def 'can recognize version with $pre'() {
@@ -275,7 +276,7 @@ class JavaVersionSpec extends Specification {
         expect:
         JavaVersion.toVersion('9+-foo') == JavaVersion.VERSION_1_9
         JavaVersion.toVersion('9-pre-opt') == JavaVersion.VERSION_1_9
-        JavaVersion.toVersion('42+---bar') == JavaVersion.VERSION_HIGHER
+        JavaVersion.toVersion('42+---bar') == JavaVersion.of(42)
         JavaVersion.toVersion('2.91+-8061493-') == JavaVersion.VERSION_1_2
         JavaVersion.toVersion('999+-foo.bar') == JavaVersion.VERSION_HIGHER
         JavaVersion.toVersion('9-ribbit+17-...') == JavaVersion.VERSION_1_9

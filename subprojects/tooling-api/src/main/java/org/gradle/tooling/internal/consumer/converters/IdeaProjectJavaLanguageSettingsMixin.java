@@ -40,7 +40,7 @@ public class IdeaProjectJavaLanguageSettingsMixin {
         }
 
         public JavaVersion getLanguageLevel() {
-            return JavaVersion.valueOf(ideaProject.getLanguageLevel().getLevel().replaceFirst("JDK", "VERSION"));
+            return JavaVersion.toVersion(ideaProject.getLanguageLevel().getLevel().substring("JDK_".length()).replace('_', '.'));
         }
     }
 }

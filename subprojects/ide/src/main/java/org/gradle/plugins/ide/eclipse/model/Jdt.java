@@ -15,12 +15,11 @@
  */
 package org.gradle.plugins.ide.eclipse.model;
 
-import java.util.Properties;
-
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.PropertiesTransformer;
-import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
 import org.gradle.plugins.ide.internal.generator.PropertiesPersistableConfigurationObject;
+
+import java.util.Properties;
 
 /**
  * Represents the Eclipse JDT settings.
@@ -58,8 +57,8 @@ public class Jdt extends PropertiesPersistableConfigurationObject {
 
     @Override
     protected void store(Properties properties) {
-        String sourceVersion = EclipseJavaVersionMapper.toEclipseJavaVersion(sourceCompatibility);
-        String targetVersion = EclipseJavaVersionMapper.toEclipseJavaVersion(targetCompatibility);
+        String sourceVersion = sourceCompatibility.toString();
+        String targetVersion = sourceCompatibility.toString();
 
         properties.put("org.eclipse.jdt.core.compiler.compliance", sourceVersion);
         properties.put("org.eclipse.jdt.core.compiler.source", sourceVersion);
