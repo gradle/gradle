@@ -73,7 +73,7 @@ public interface TestFramework extends Closeable {
      * @see #getUseDistributionDependencies()
      */
     @Internal
-    List<? extends DistributionModule> getTestWorkerApplicationClasses();
+    List<String> getTestWorkerApplicationClasses();
 
     /**
      * Returns a list of modules the test worker requires on the modulepath if it runs as a module.
@@ -82,7 +82,7 @@ public interface TestFramework extends Closeable {
      * @see #getUseDistributionDependencies()
      */
     @Internal
-    List<? extends DistributionModule> getTestWorkerApplicationModules();
+    List<String> getTestWorkerApplicationModules();
 
     /**
      * Whether the legacy behavior of loading test framework dependencies from the Gradle distribution

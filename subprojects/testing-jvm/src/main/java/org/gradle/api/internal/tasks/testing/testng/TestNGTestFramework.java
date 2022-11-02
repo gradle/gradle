@@ -21,7 +21,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.tasks.testing.DistributionModule;
 import org.gradle.api.internal.tasks.testing.TestClassLoaderFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
@@ -194,21 +193,16 @@ public class TestNGTestFramework implements TestFramework {
 
     @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
-        return new Action<WorkerProcessBuilder>() {
-            @Override
-            public void execute(WorkerProcessBuilder workerProcessBuilder) {
-                workerProcessBuilder.sharedPackages("org.testng");
-            }
-        };
+        return workerProcessBuilder -> workerProcessBuilder.sharedPackages("org.testng");
     }
 
     @Override
-    public List<? extends DistributionModule> getTestWorkerApplicationClasses() {
+    public List<String> getTestWorkerApplicationClasses() {
         return Collections.emptyList();
     }
 
     @Override
-    public List<? extends DistributionModule> getTestWorkerApplicationModules() {
+    public List<String> getTestWorkerApplicationModules() {
         return Collections.emptyList();
     }
 
