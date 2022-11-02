@@ -313,7 +313,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         ignoreWhenJUnitPlatform()
 
         given:
-        testDirectory.file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
+        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
 
         settingsFile << "rootProject.name = 'Sample'"
         buildFile << """apply plugin: 'java'
