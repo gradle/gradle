@@ -251,6 +251,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
         // Need to be able to declare against and resolve this; but NOT consume it - this is NOT a standard role
         ConfigurationInternal annotationProcessorConfiguration = (ConfigurationInternal) configurations.maybeCreate(annotationProcessorConfigurationName);
+        annotationProcessorConfiguration.setCanBeConsumed(false);
         annotationProcessorConfiguration.setCanBeDeclaredAgainst(true);
         annotationProcessorConfiguration.setCanBeResolved(true);
         annotationProcessorConfiguration.preventRoleMutation();
