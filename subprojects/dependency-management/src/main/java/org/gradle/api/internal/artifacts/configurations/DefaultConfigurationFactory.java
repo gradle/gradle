@@ -148,9 +148,15 @@ public class DefaultConfigurationFactory {
      *
      * @return the given configuration; now configured for a role
      */
-    @SuppressWarnings("fallthrough")
+    @SuppressWarnings({"fallthrough", "deprecation"})
     public static ConfigurationInternal assignRole(ConfigurationInternal configuration, ConfigurationRole role) {
         switch (role) {
+            case LEGACY:
+                configuration.setCanBeConsumed(true);
+                configuration.setCanBeResolved(true);
+                configuration.setCanBeDeclaredAgainst(true);
+                break;
+
             case INTENDED_BUCKET:
                 configuration.setCanBeConsumed(false);
                 configuration.setCanBeResolved(false);
@@ -185,9 +191,15 @@ public class DefaultConfigurationFactory {
         return configuration;
     }
 
-    @SuppressWarnings("fallthrough")
+    @SuppressWarnings({"fallthrough", "deprecation"})
     public static ConfigurationInternal assertInRole(ConfigurationInternal configuration, ConfigurationRole role) {
         switch (role) {
+            case LEGACY:
+                if (!configuration.isCanBeConsumed() || !configuration.isCanBeResolved() || !configuration.isCanBeDeclaredAgainst()) {
+                    throwConfigurationNotInRole(configuration, role);
+                }
+                break;
+
             case INTENDED_BUCKET:
                 if (configuration.isCanBeConsumed() || configuration.isCanBeResolved() || !configuration.isCanBeDeclaredAgainst()) {
                     throwConfigurationNotInRole(configuration, role);
