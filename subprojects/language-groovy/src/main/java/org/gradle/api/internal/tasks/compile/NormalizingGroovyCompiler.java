@@ -16,8 +16,10 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import org.gradle.api.Transformer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
@@ -26,9 +28,7 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -45,53 +45,33 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
 
     @Override
     public WorkResult execute(GroovyJavaJointCompileSpec spec) {
-        return withResolvedClasspath(spec, specWithExtraClasspath -> {
-            resolveAndFilterSourceFiles(specWithExtraClasspath);
-            resolveNonStringsInCompilerArgs(specWithExtraClasspath);
-            logSourceFiles(specWithExtraClasspath);
-            logCompilerArguments(specWithExtraClasspath);
-            return delegateAndHandleErrors(specWithExtraClasspath);
-        });
-    }
-
-    private WorkResult withResolvedClasspath(GroovyJavaJointCompileSpec spec, Function<GroovyJavaJointCompileSpec, WorkResult> function) {
-        List<File> originalClasspath = spec.getCompileClasspath();
-        resolveClasspath(spec);
-        WorkResult result = function.apply(spec);
-        restoreClasspath(spec, originalClasspath);
-        return result;
+        resolveAndFilterSourceFiles(spec);
+        resolveNonStringsInCompilerArgs(spec);
+        logSourceFiles(spec);
+        logCompilerArguments(spec);
+        return delegateAndHandleErrors(spec);
     }
 
     private void resolveAndFilterSourceFiles(final GroovyJavaJointCompileSpec spec) {
-        final List<String> fileExtensions = CollectionUtils.collect(spec.getGroovyCompileOptions().getFileExtensions(), extension -> '.' + extension);
-        Iterable<File> filtered = Iterables.filter(spec.getSourceFiles(), element -> {
-            for (String fileExtension : fileExtensions) {
-                if (hasExtension(element, fileExtension)) {
-                    return true;
-                }
+        final List<String> fileExtensions = CollectionUtils.collect(spec.getGroovyCompileOptions().getFileExtensions(), new Transformer<String, String>() {
+            @Override
+            public String transform(String extension) {
+                return '.' + extension;
             }
-            return false;
+        });
+        Iterable<File> filtered = Iterables.filter(spec.getSourceFiles(), new Predicate<File>() {
+            @Override
+            public boolean apply(File element) {
+                for (String fileExtension : fileExtensions) {
+                    if (hasExtension(element, fileExtension)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
         });
 
         spec.setSourceFiles(ImmutableSet.copyOf(filtered));
-    }
-
-    private void resolveClasspath(GroovyJavaJointCompileSpec spec) {
-        // Necessary for Groovy compilation to pick up output of regular and joint Java compilation.
-        // Related issue: https://github.com/gradle/gradle/issues/22531
-        List<File> classPath = new ArrayList<>(spec.getCompileClasspath());
-        if (spec.getDestinationDir().equals(spec.getOriginalDestinationDir())) {
-            classPath.add(spec.getDestinationDir());
-        } else {
-            classPath.add(spec.getOriginalDestinationDir());
-            classPath.add(spec.getDestinationDir());
-        }
-        spec.setCompileClasspath(classPath);
-    }
-
-    private void restoreClasspath(GroovyJavaJointCompileSpec spec, List<File> originalClasspath) {
-        // inverse process of resolveClasspath to make sure IncrementalResultStoringCompiler stores correct result
-        spec.setCompileClasspath(originalClasspath);
     }
 
     private void resolveNonStringsInCompilerArgs(GroovyJavaJointCompileSpec spec) {
