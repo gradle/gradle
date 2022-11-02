@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
 import java.util.function.Function;
 
 /**
- * A {@link PropertyValue} backed by a fixed value.
+ * A {@link PropertyValue} that is calculated form another.
  */
 public class ResolvingValue implements PropertyValue {
     private final PropertyValue delegate;
