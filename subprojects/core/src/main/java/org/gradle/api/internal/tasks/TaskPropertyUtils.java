@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.properties.PropertyVisitor;
@@ -28,6 +29,8 @@ public class TaskPropertyUtils {
      * Visits both properties declared via annotations on the properties of the task type as well as
      * properties declared via the runtime API ({@link org.gradle.api.tasks.TaskInputs} etc.).
      */
+    // TODO Move this to some test fixture like TaskPropertyTestUtils
+    @VisibleForTesting
     public static void visitProperties(PropertyWalker propertyWalker, TaskInternal task, PropertyVisitor visitor) {
         visitProperties(propertyWalker, task, TypeValidationContext.NOOP, visitor);
     }
