@@ -56,16 +56,16 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
                 maven { url = uri('${remoteRepo.uri}') }
             }
             configurations {
-                other
+                implementation
             }
             task additionalFile(type: FileProducer) {
                 output = file("b.thing")
             }
             dependencies {
-                other project(':a')
-                other project(':b')
-                other "group:lib1:6500"
-                other files('a.thing', additionalFile.output)
+                implementation project(':a')
+                implementation project(':b')
+                implementation "group:lib1:6500"
+                implementation files('a.thing', additionalFile.output)
             }
         """
     }
@@ -77,7 +77,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         taskTypeLogsInputFileCollectionContent()
         buildFile << """
             task resolve(type: ShowFilesTask) {
-                inFiles.from(configurations.other)
+                inFiles.from(configurations.implementation)
             }
         """
 
@@ -119,7 +119,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
 
         buildFile << """
             task resolve(type: ShowArtifactCollection) {
-                collection = configurations.other.incoming.artifacts
+                collection = configurations.implementation.incoming.artifacts
             }
         """
 
@@ -178,14 +178,14 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
                 configurations.default.outgoing.artifact(producer.output)
             }
             configurations {
-                other
+                implementation
             }
             dependencies {
-                other project(':a')
-                other project(':b')
+                implementation project(':a')
+                implementation project(':b')
             }
             task resolve(type: InputTask) {
-                inValue = configurations.other.elements.map { files -> files.collect { it.asFile.text.toInteger() } }
+                inValue = configurations.implementation.elements.map { files -> files.collect { it.asFile.text.toInteger() } }
                 outFile = file('out.txt')
             }
         """
@@ -231,8 +231,8 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
 
         buildFile << """
             dependencies {
-                other project(':a')
-                other project(':b')
+                implementation project(':a')
+                implementation project(':b')
             }
         """
     }
@@ -342,8 +342,8 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
                 }
             }
             dependencies {
-                other "group:thing1:1.2"
-                other "group:thing2:1.2"
+                implementation "group:thing1:1.2"
+                implementation "group:thing2:1.2"
             }
         """
     }
@@ -405,7 +405,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         buildFile << """
             for (i in 0..5) {
                 task "resolve\$i" {
-                    def view = configurations.other.incoming.artifactView {
+                    def view = configurations.implementation.incoming.artifactView {
                         attributes.attribute(color, 'green')
                     }.files
                     inputs.files view
@@ -448,7 +448,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
                 }
             }
             dependencies {
-                other files('root.blue')
+                implementation files('root.blue')
             }
         """
         file('root.blue') << 'root'
@@ -530,12 +530,12 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
                 }
             }
             dependencies {
-                other files(tasks.additionalFile.output, 'root.blue')
-                other project(':a')
+                implementation files(tasks.additionalFile.output, 'root.blue')
+                implementation project(':a')
             }
             project(':a') {
                 dependencies {
-                    other files(tasks.additionalFile.output)
+                    implementation files(tasks.additionalFile.output)
                 }
             }
         """
@@ -611,8 +611,8 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         setupBuildWithChainedColorTransform()
         buildFile << """
             dependencies {
-                other project(':a')
-                other project(':b')
+                implementation project(':a')
+                implementation project(':b')
             }
         """
 
@@ -657,8 +657,8 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         setupBuildWithColorTransformWithAnotherTransformOutputAsInput()
         buildFile << """
             dependencies {
-                other project(':a')
-                other project(':b')
+                implementation project(':a')
+                implementation project(':b')
                 transform project(':a')
             }
         """
@@ -710,12 +710,12 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         setupBuildWithColorTransformThatTakesUpstreamArtifacts()
         buildFile << """
             dependencies {
-                other project(':a')
+                implementation project(':a')
             }
             project(':a') {
                 dependencies {
-                    other project(':b')
-                    other project(':c')
+                    implementation project(':b')
+                    implementation project(':c')
                 }
             }
         """
@@ -822,7 +822,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         setupBuildWithColorTransformThatTakesUpstreamArtifacts()
         buildFile << """
             dependencies {
-                other 'group:thing3:1.2'
+                implementation 'group:thing3:1.2'
             }
 
             repositories {
@@ -842,12 +842,12 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
 
         buildFile << """
             dependencies {
-                other project(':a')
+                implementation project(':a')
             }
             project(':a') {
                 dependencies {
-                    other project(':b')
-                    other project(':c')
+                    implementation project(':b')
+                    implementation project(':c')
                 }
             }
         """
@@ -910,7 +910,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
 
         buildFile << """
             dependencies {
-                other 'group:thing3:1.2'
+                implementation 'group:thing3:1.2'
             }
             repositories {
                 maven { url = '${remoteRepo.uri}' }
@@ -972,7 +972,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
                 transformed
             }
 
-            def intermediateFiles = configurations.other.incoming.artifactView {
+            def intermediateFiles = configurations.implementation.incoming.artifactView {
                 attributes.attribute(color, 'green')
             }.files
 
@@ -1030,9 +1030,9 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
                     }
                 }
             }
-            dependencies { other project(':producer') }
-            dependencies { other files('thing.blue') }
-            dependencies { other 'test:test:12' }
+            dependencies { implementation project(':producer') }
+            dependencies { implementation files('thing.blue') }
+            dependencies { implementation 'test:test:12' }
             jar.dependsOn(resolve)
         """
 
@@ -1081,12 +1081,12 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
                 }
             }
             dependencies {
-                other files('root.blue')
-                other project(':a')
+                implementation files('root.blue')
+                implementation project(':a')
             }
             project(':a') {
                 dependencies {
-                    other files('a.blue')
+                    implementation files('a.blue')
                 }
             }
         """
@@ -1143,8 +1143,8 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
             }
 
             dependencies {
-                other project(':a')
-                other project(':b')
+                implementation project(':a')
+                implementation project(':b')
             }
         """
 
@@ -1201,8 +1201,8 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
             }
 
             dependencies {
-                other 'group:thing1:1.2'
-                other 'group:thing2:1.2'
+                implementation 'group:thing1:1.2'
+                implementation 'group:thing2:1.2'
             }
         """
 
