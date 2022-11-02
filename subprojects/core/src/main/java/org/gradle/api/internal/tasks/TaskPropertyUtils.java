@@ -45,16 +45,4 @@ public class TaskPropertyUtils {
         ((TaskDestroyablesInternal) task.getDestroyables()).visitRegisteredProperties(visitor);
         ((TaskLocalStateInternal) task.getLocalState()).visitRegisteredProperties(visitor);
     }
-
-    /**
-     * Checks if the given string can be used as a property name.
-     *
-     * @throws IllegalArgumentException if given name is an empty string.
-     */
-    public static String checkPropertyName(String propertyName) {
-        if (propertyName.isEmpty()) {
-            throw new IllegalArgumentException("Property name must not be empty string");
-        }
-        return propertyName;
-    }
 }
