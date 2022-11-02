@@ -42,6 +42,7 @@ import java.util.List;
 @NonNullApi
 public class DefaultTaskProperties implements TaskProperties {
 
+    private final ResolutionState resolutionState;
     private final ImmutableSortedSet<InputPropertySpec> inputProperties;
     private final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties;
     private final ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties;
@@ -51,7 +52,7 @@ public class DefaultTaskProperties implements TaskProperties {
     private final FileCollection destroyableFiles;
     private final List<ValidatingProperty> validatingProperties;
 
-    public static TaskProperties resolve(PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory, TaskInternal task) {
+    public static TaskProperties resolve(TaskInternal task, ResolutionState resolutionState, PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
         String beanName = task.toString();
         GetInputPropertiesVisitor inputPropertiesVisitor = new GetInputPropertiesVisitor();
         GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName, fileCollectionFactory);
@@ -60,8 +61,8 @@ public class DefaultTaskProperties implements TaskProperties {
         OutputUnpacker outputUnpacker = new OutputUnpacker(
             beanName,
             fileCollectionFactory,
-            true,
-            true,
+            resolutionState.isIgnoreBuildDependencies(),
+            resolutionState.isFinalized(),
             OutputUnpacker.UnpackedOutputConsumer.composite(outputFilesCollector, validationVisitor)
         );
         GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, fileCollectionFactory);
@@ -81,6 +82,7 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         return new DefaultTaskProperties(
+            resolutionState,
             inputPropertiesVisitor.getProperties(),
             inputFilesVisitor.getFileProperties(),
             outputFilesCollector.getFileProperties(),
@@ -92,6 +94,7 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     private DefaultTaskProperties(
+        ResolutionState resolutionState,
         ImmutableSortedSet<InputPropertySpec> inputProperties,
         ImmutableSortedSet<InputFilePropertySpec> inputFileProperties,
         ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties,
@@ -101,6 +104,7 @@ public class DefaultTaskProperties implements TaskProperties {
         List<ValidatingProperty> validatingProperties,
         ReplayingTypeValidationContext validationProblems
     ) {
+        this.resolutionState = resolutionState;
         this.validatingProperties = validatingProperties;
         this.validationProblems = validationProblems;
 
@@ -110,6 +114,11 @@ public class DefaultTaskProperties implements TaskProperties {
         this.hasDeclaredOutputs = hasDeclaredOutputs;
         this.localStateFiles = localStateFiles;
         this.destroyableFiles = destroyableFiles;
+    }
+
+    @Override
+    public ResolutionState getResolutionState() {
+        return resolutionState;
     }
 
     @Override

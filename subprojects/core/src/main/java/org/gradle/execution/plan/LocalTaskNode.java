@@ -34,6 +34,9 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static org.gradle.api.internal.tasks.properties.TaskProperties.ResolutionState.FINALIZED;
+import static org.gradle.api.internal.tasks.properties.TaskProperties.ResolutionState.IDENTITIES;
+
 /**
  * A {@link TaskNode} implementation for a task in the current build.
  */
@@ -227,7 +230,7 @@ public class LocalTaskNode extends TaskNode {
 
         TaskProperties taskProperties;
         try {
-            taskProperties = task.getTaskProperties();
+            taskProperties = task.getTaskProperties(IDENTITIES);
         } catch (TaskExecutionException e) {
             task.getState().addFailure(e);
             return;
@@ -249,7 +252,7 @@ public class LocalTaskNode extends TaskNode {
         final TaskInternal task = getTask();
         final MutationInfo mutations = getMutationInfo();
         try {
-            taskProperties = task.getTaskProperties();
+            taskProperties = task.getTaskProperties(FINALIZED);
 
             addOutputFilesToMutations(taskProperties.getOutputFileProperties());
             addLocalStateFilesToMutations(taskProperties.getLocalStateFiles());

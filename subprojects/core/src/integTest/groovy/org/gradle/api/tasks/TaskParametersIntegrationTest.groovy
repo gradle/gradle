@@ -978,26 +978,26 @@ task someTask(type: SomeTask) {
         succeeds("printCounts")
         then:
         executedAndNotSkipped(':myTask')
-        outputContains("outputFileCount = 2, inputFileCount = 3, inputValueCount = 1, nestedInputCount = 3, nestedInputValueCount = 1")
+        outputContains("outputFileCount = 2, inputFileCount = 3, inputValueCount = 1, nestedInputCount = 2, nestedInputValueCount = 1")
 
         when:
         inputFile.text = "changed"
         withBuildCache().succeeds("printCounts")
         then:
         executedAndNotSkipped(':myTask')
-        outputContains("outputFileCount = 2, inputFileCount = 3, inputValueCount = 1, nestedInputCount = 3, nestedInputValueCount = 1")
+        outputContains("outputFileCount = 2, inputFileCount = 3, inputValueCount = 1, nestedInputCount = 2, nestedInputValueCount = 1")
 
         when:
         succeeds("printCounts")
         then:
         skipped(':myTask')
-        outputContains("outputFileCount = 1, inputFileCount = 2, inputValueCount = 1, nestedInputCount = 3, nestedInputValueCount = 1")
+        outputContains("outputFileCount = 1, inputFileCount = 2, inputValueCount = 1, nestedInputCount = 2, nestedInputValueCount = 1")
 
         when:
         file('build').deleteDir()
         withBuildCache().succeeds("printCounts")
         then:
         skipped(':myTask')
-        outputContains("outputFileCount = 1, inputFileCount = 2, inputValueCount = 1, nestedInputCount = 3, nestedInputValueCount = 1")
+        outputContains("outputFileCount = 1, inputFileCount = 2, inputValueCount = 1, nestedInputCount = 2, nestedInputValueCount = 1")
     }
 }

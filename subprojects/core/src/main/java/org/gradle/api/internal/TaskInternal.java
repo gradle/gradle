@@ -121,11 +121,12 @@ public interface TaskInternal extends Task, Configurable<Task> {
     /**
      * "Lifecycle dependencies" are dependencies of this task declared via an explicit {@link Task#dependsOn(Object...)} call,
      * as opposed to the recommended approach of connecting producer tasks' outputs to consumer tasks' inputs.
+     *
      * @return the dependencies of this task declared via an explicit {@link Task#dependsOn(Object...)}
      */
     @Internal
     TaskDependency getLifecycleDependencies();
 
     @Internal
-    TaskProperties getTaskProperties();
+    TaskProperties getTaskProperties(TaskProperties.ResolutionState requestedState);
 }

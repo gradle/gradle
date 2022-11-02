@@ -43,6 +43,8 @@ import javax.inject.Inject;
 import java.util.Set;
 import java.util.function.Function;
 
+import static org.gradle.api.internal.tasks.properties.TaskProperties.ResolutionState.FINALIZED;
+
 public class DefaultTestTaskPropertiesService implements TestTaskPropertiesService {
 
     private final JavaForkOptionsFactory forkOptionsFactory;
@@ -62,7 +64,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
 
     @Override
     public TestTaskProperties collectProperties(Test task) {
-        TaskProperties taskProperties = task.getTaskProperties();
+        TaskProperties taskProperties = task.getTaskProperties(FINALIZED);
 
         ImmutableList<InputFileProperty> inputFileProperties = taskProperties.getInputFileProperties().stream()
             .map(inputFileProperty -> new DefaultInputFileProperty(inputFileProperty.getPropertyName(), inputFileProperty.getPropertyFiles()))

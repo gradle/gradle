@@ -658,7 +658,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         _ * mock.localState >> Stub(TaskLocalStateInternal)
         _ * mock.path >> ":${name}"
         _ * mock.taskIdentity >> TaskIdentity.create(name, DefaultTask, project as ProjectInternal)
-        _ * mock.taskProperties >> emptyTaskProperties()
+        _ * mock.taskProperties(_) >> emptyTaskProperties()
         return mock
     }
 

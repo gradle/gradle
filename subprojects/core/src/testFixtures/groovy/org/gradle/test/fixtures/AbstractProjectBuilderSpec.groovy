@@ -39,6 +39,8 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.api.internal.tasks.properties.TaskProperties.ResolutionState.FINALIZED
+
 /**
  * An abstract class for writing tests using ProjectBuilder.
  * The fixture automatically takes care of deleting files creating in the temporary project directory used by the Project instance.
@@ -85,7 +87,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
     void execute(Task task) {
         def taskExecutionContext = new DefaultTaskExecutionContext(
             null,
-            DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal),
+            DefaultTaskProperties.resolve(task as TaskInternal, FINALIZED, executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory)),
             new DefaultWorkValidationContext(documentationRegistry, WorkValidationContext.TypeOriginInspector.NO_OP),
             { context -> }
         )

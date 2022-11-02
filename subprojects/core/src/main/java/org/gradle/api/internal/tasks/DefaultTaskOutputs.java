@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedSet;
 import groovy.lang.Closure;
 import org.gradle.api.Describable;
@@ -28,13 +29,12 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
-import org.gradle.api.internal.tasks.properties.FileParameterUtils;
+import org.gradle.api.internal.tasks.properties.FilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.internal.properties.OutputFilePropertyType;
-import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 
 import javax.annotation.Nullable;
@@ -44,6 +44,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
+
+import static org.gradle.api.internal.tasks.properties.TaskProperties.ResolutionState.IDENTITIES;
+import static org.gradle.api.internal.tasks.properties.TaskProperties.ResolutionState.LOCATIONS;
 
 @NonNullApi
 public class DefaultTaskOutputs implements TaskOutputsInternal {
@@ -119,7 +122,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public boolean getHasOutput() {
-        return !upToDateSpec.isEmpty() || task.getTaskProperties().hasDeclaredOutputs();
+        return !upToDateSpec.isEmpty()
+            || task.getTaskProperties(IDENTITIES).hasDeclaredOutputs();
     }
 
     @Override
@@ -127,8 +131,9 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return allOutputFiles;
     }
 
-    public ImmutableSortedSet<OutputFilePropertySpec> getFileProperties() {
-        return FileParameterUtils.collectFileProperties("output", task.getTaskProperties().getOutputFileProperties().iterator());
+    @VisibleForTesting
+    ImmutableSortedSet<OutputFilePropertySpec> getFileProperties() {
+        return task.getTaskProperties(LOCATIONS).getOutputFileProperties();
     }
 
     @Override
@@ -191,24 +196,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return previousOutputFiles.getFiles();
     }
 
-    private static class HasDeclaredOutputsVisitor implements PropertyVisitor {
-        boolean hasDeclaredOutputs;
+    private static class TaskOutputUnionFileCollection extends CompositeFileCollection implements Describable {
+        private final TaskInternal task;
 
-        @Override
-        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-            hasDeclaredOutputs = true;
-        }
-
-        public boolean hasDeclaredOutputs() {
-            return hasDeclaredOutputs;
-        }
-    }
-
-    private class TaskOutputUnionFileCollection extends CompositeFileCollection implements Describable {
-        private final TaskInternal buildDependencies;
-
-        public TaskOutputUnionFileCollection(TaskInternal buildDependencies) {
-            this.buildDependencies = buildDependencies;
+        public TaskOutputUnionFileCollection(TaskInternal task) {
+            this.task = task;
         }
 
         @Override
@@ -218,14 +210,14 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
         @Override
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-            for (OutputFilePropertySpec propertySpec : getFileProperties()) {
-                visitor.accept(propertySpec.getPropertyFiles());
-            }
+            task.getTaskProperties(LOCATIONS).getOutputFileProperties().stream()
+                .map(FilePropertySpec::getPropertyFiles)
+                .forEach(visitor);
         }
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(buildDependencies);
+            context.add(task);
             super.visitDependencies(context);
         }
     }

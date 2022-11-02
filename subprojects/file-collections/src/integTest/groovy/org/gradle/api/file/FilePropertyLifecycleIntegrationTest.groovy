@@ -243,7 +243,7 @@ task thing {
         """
 
         expect:
-        succeeds("after")
+        succeeds("after", "--info")
         outputContains("get failed: Cannot query the value of task ':producer' property 'output' because configuration of root project 'broken' has not completed yet.")
         outputContains("get from task failed: Cannot query the value of task ':producer' property 'output' because task ':producer' has not completed yet.")
         outputContains("set failed: The value for task ':producer' property 'output' is final and cannot be changed any further.")

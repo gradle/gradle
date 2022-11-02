@@ -33,6 +33,7 @@ import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
+import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
 import org.gradle.internal.properties.bean.PropertyWalker
@@ -101,7 +102,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         task.destroyables >> emptyTaskDestroys()
         task.localState >> emptyTaskLocalState()
         task.inputs >> emptyTaskInputs()
-        task.taskProperties >> { DefaultTaskProperties.resolve(project.services.get(PropertyWalker), project.services.get(FileCollectionFactory), task) }
+        task.getTaskProperties(_ as TaskProperties.ResolutionState) >> { requestedState -> DefaultTaskProperties.resolve(task, requestedState, project.services.get(PropertyWalker), project.services.get(FileCollectionFactory)) }
         task.taskIdentity >> TaskIdentity.create(name, DefaultTask, project)
         return task
     }

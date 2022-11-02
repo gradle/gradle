@@ -31,7 +31,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
  *
  * Once created, the view is immutable and registering additional or changing existing task properties will not be detected.
  *
- * Created by {@link DefaultTaskProperties#resolve(PropertyWalker, FileCollectionFactory, TaskInternal)}.
+ * Created by {@link DefaultTaskProperties#resolve(TaskInternal, ResolutionState, PropertyWalker, FileCollectionFactory)}.
  */
 @NonNullApi
 public interface TaskProperties {
@@ -83,4 +83,49 @@ public interface TaskProperties {
      * Validations for the properties.
      */
     void validate(PropertyValidationContext validationContext);
+
+    ResolutionState getResolutionState();
+
+    enum ResolutionState {
+        /**
+         * The identity of the properties are resolved, but not locations or dependencies.
+         */
+        IDENTITIES(true, false),
+
+        /**
+         * Identities and locations are resolved, but not dependencies.
+         */
+        LOCATIONS(true, false),
+
+        /**
+         * Identities, locations and dependencies are all resolved.
+         */
+        DEPENDENCIES(false, false),
+
+        /**
+         * Identities, locations and dependencies are all resolved, values are finalized.
+         */
+        FINALIZED(false, true);
+
+        private final boolean ignoreBuildDependencies;
+        private final boolean finalized;
+
+        ResolutionState(boolean ignoreBuildDependencies, boolean finalized) {
+            this.ignoreBuildDependencies = ignoreBuildDependencies;
+            this.finalized = finalized;
+        }
+
+        public boolean isIgnoreBuildDependencies() {
+            return ignoreBuildDependencies;
+        }
+
+        public boolean isFinalized() {
+            return finalized;
+        }
+
+        public boolean needsReResolvingFor(ResolutionState other) {
+            return other.compareTo(this) > 0
+                && (this.ignoreBuildDependencies != other.ignoreBuildDependencies || this.finalized != other.finalized);
+        }
+    }
 }

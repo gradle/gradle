@@ -165,7 +165,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private Set<Provider<? extends BuildService<?>>> requiredServices;
 
-    private TaskProperties taskProperties;
+    private volatile TaskProperties taskProperties;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -1083,16 +1083,18 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public TaskProperties getTaskProperties() {
-        if (taskProperties == null) {
+    public TaskProperties getTaskProperties(TaskProperties.ResolutionState requestedState) {
+        TaskProperties currentValue = taskProperties;
+        if (currentValue == null || currentValue.getResolutionState().needsReResolvingFor(requestedState)) {
             // TODO Do we need to synchornize here?
             synchronized (this) {
-                if (taskProperties == null) {
+                currentValue = taskProperties;
+                if (currentValue == null || currentValue.getResolutionState().needsReResolvingFor(requestedState)) {
                     taskProperties = DefaultTaskProperties.resolve(
+                        this,
+                        requestedState,
                         services.get(PropertyWalker.class),
-                        services.get(FileCollectionFactory.class),
-                        this
-                    );
+                        services.get(FileCollectionFactory.class));
                 }
             }
         }

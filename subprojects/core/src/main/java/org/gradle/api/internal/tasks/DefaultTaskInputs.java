@@ -44,6 +44,10 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
+import static org.gradle.api.internal.tasks.properties.TaskProperties.ResolutionState.DEPENDENCIES;
+import static org.gradle.api.internal.tasks.properties.TaskProperties.ResolutionState.FINALIZED;
+import static org.gradle.api.internal.tasks.properties.TaskProperties.ResolutionState.IDENTITIES;
+
 @NonNullApi
 public class DefaultTaskInputs implements TaskInputsInternal {
     private final FileCollection allInputFiles;
@@ -65,7 +69,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public boolean getHasInputs() {
-        return !task.getTaskProperties().getInputProperties().isEmpty() || !task.getTaskProperties().getInputFileProperties().isEmpty();
+        TaskProperties taskProperties = task.getTaskProperties(IDENTITIES);
+        return !taskProperties.getInputProperties().isEmpty() || !taskProperties.getInputFileProperties().isEmpty();
     }
 
     @Override
@@ -135,7 +140,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public boolean getHasSourceFiles() {
-        return task.getTaskProperties().getInputFileProperties().stream()
+        return task.getTaskProperties(IDENTITIES).getInputFileProperties().stream()
             .map(InputFilePropertySpec::getBehavior)
             .anyMatch(InputBehavior::shouldSkipWhenEmpty);
     }
@@ -148,7 +153,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     @Override
     public Map<String, Object> getProperties() {
         Map<String, Object> result = new HashMap<>();
-        for (InputPropertySpec inputProperty : task.getTaskProperties().getInputProperties()) {
+        for (InputPropertySpec inputProperty : task.getTaskProperties(FINALIZED).getInputProperties()) {
             result.put(inputProperty.getPropertyName(), InputParameterUtils.prepareInputParameterValue(inputProperty, task));
         }
         return Collections.unmodifiableMap(result);
@@ -178,7 +183,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        TaskProperties taskProperties = task.getTaskProperties();
+        TaskProperties taskProperties = task.getTaskProperties(DEPENDENCIES);
         taskProperties.getInputProperties().stream()
             .map(InputPropertySpec::getValue)
             .map(PropertyValue::getTaskDependencies)
@@ -208,7 +213,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
         @Override
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-            task.getTaskProperties().getInputFileProperties().stream()
+            task.getTaskProperties(FINALIZED).getInputFileProperties().stream()
                 .filter(property -> !TaskInputUnionFileCollection.this.skipWhenEmptyOnly || property.getBehavior().shouldSkipWhenEmpty())
                 .map(FilePropertySpec::getPropertyFiles)
                 .forEach(visitor);
