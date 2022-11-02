@@ -19,8 +19,6 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.tasks.testing.DefaultDistributionModule;
-import org.gradle.api.internal.tasks.testing.DistributionModule;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
@@ -31,20 +29,12 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @UsedByScanPlugin("test-retry")
 public class JUnitPlatformTestFramework implements TestFramework {
-    private static final List<? extends DistributionModule> DISTRIBUTION_MODULES = ImmutableList.of(
-        new DefaultDistributionModule("junit-platform-engine", Pattern.compile("junit-platform-engine-1.*\\.jar")),
-        new DefaultDistributionModule("junit-platform-launcher", Pattern.compile("junit-platform-launcher-1.*\\.jar")),
-        new DefaultDistributionModule("junit-platform-commons", Pattern.compile("junit-platform-commons-1.*\\.jar"))
-    );
-
     private final JUnitPlatformOptions options;
     private final DefaultTestFilter filter;
     private final boolean useImplementationDependencies;
@@ -96,22 +86,17 @@ public class JUnitPlatformTestFramework implements TestFramework {
 
     @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
-        return new Action<WorkerProcessBuilder>() {
-            @Override
-            public void execute(@Nonnull WorkerProcessBuilder workerProcessBuilder) {
-                workerProcessBuilder.sharedPackages("org.junit");
-            }
-        };
+        return workerProcessBuilder -> workerProcessBuilder.sharedPackages("org.junit");
     }
 
     @Override
-    public List<? extends DistributionModule> getTestWorkerApplicationClasses() {
+    public List<String> getTestWorkerApplicationClasses() {
         return Collections.emptyList();
     }
 
     @Override
-    public List<? extends DistributionModule> getTestWorkerApplicationModules() {
-        return DISTRIBUTION_MODULES;
+    public List<String> getTestWorkerApplicationModules() {
+        return ImmutableList.of("junit-platform-engine", "junit-platform-launcher", "junit-platform-commons");
     }
 
     @Override

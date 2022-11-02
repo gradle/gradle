@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.tasks.testing.DistributionModule;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -45,7 +44,6 @@ import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -87,9 +85,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
 
         // TODO: Loading jars from the Gradle distribution can lead confusion in regards
         // to which test framework dependencies actually end up on the classpath, and can
-        // even lead to multiple different versions on the classpath at once. We do our
-        // best to detect these duplicates if the test itself provides the dependencies,
-        // but this process is not perfect.
+        // lead to multiple different versions on the classpath at once.
         // Once test suites are de-incubated, we should deprecate this distribution-loading
         // behavior entirely and rely on the tests to always provide their implementation
         // dependencies.
@@ -102,7 +98,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
                 modulePath = pathWithAdditionalJars(testExecutionSpec.getModulePath(), testFramework.getTestWorkerApplicationModules());
             } else {
                 // For non-module tests, add all additional distribution jars to the classpath.
-                List<? extends DistributionModule> additionalClasspath = ImmutableList.<DistributionModule>builder()
+                List<String> additionalClasspath = ImmutableList.<String>builder()
                     .addAll(testFramework.getTestWorkerApplicationClasses())
                     .addAll(testFramework.getTestWorkerApplicationModules())
                     .build();
@@ -166,62 +162,22 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
 
     /**
      * Create a classpath or modulePath, as a list of files, given both the files provided by the test spec and a list of
-     * modules to potentially load from the Gradle distribution. For each additional module to load, we check if the
-     * test files contains a jar which satisfies the module-to-load. If the test files do not contain a satisfactory
-     * jar, the given additional module is loaded from the Gradle distribution.
-     *
-     * TODO: This process is performed on a best-effort basis by matching against test file jar names. In the future
-     * may want to consider updating this code to take dependency-management into account, which can provide
-     * a more accurate view of {@code testFiles} that does not depend on string regex matching.
+     * modules to load from the Gradle distribution.
      *
      * @param testFiles A set of jars, as given from a {@link JvmTestExecutionSpec}'s classpath or modulePath.
-     * @param additionalModules The names of any additional modules to potentially load from the Gradle distribution.
+     * @param additionalModules The names of any additional modules to load from the Gradle distribution.
      *
      * @return A set of files representing the constructed classpath or modulePath.
      */
-    private List<File> pathWithAdditionalJars(Iterable<? extends File> testFiles, List<? extends DistributionModule> additionalModules) {
-        List<File> outputFiles = new ArrayList<File>();
+    private List<File> pathWithAdditionalJars(Iterable<? extends File> testFiles, List<String> additionalModules) {
+        ImmutableList.Builder<File> outputFiles = ImmutableList.<File>builder().addAll(testFiles);
 
-        List<? extends DistributionModule> mutableAdditionalModules = new ArrayList<DistributionModule>(additionalModules);
-        for (File f : testFiles) {
-            // Loop through each additional jar from the distribution. If the test classpath provides
-            // this jar, don't load it from the distribution.
-            Iterator<? extends DistributionModule> it = mutableAdditionalModules.iterator();
-            while (it.hasNext()) {
-                DistributionModule module = it.next();
-                if (module.getFileNameMatcher().matcher(f.getName()).matches()) {
-                    // The test classpath provides this jar.
-                    it.remove();
-                }
-            }
-            outputFiles.add(f);
+        if (LOGGER.isDebugEnabled() && !additionalModules.isEmpty()) {
+            LOGGER.debug("Loaded additional modules from the Gradle distribution: " + Joiner.on(",").join(additionalModules));
         }
 
-        List<? extends DistributionModule> toLoad = mutableAdditionalModules;
-        int numMutableModules = mutableAdditionalModules.size();
-        if (numMutableModules > 0 && numMutableModules < additionalModules.size()) {
-            // The test classpath only provides some of the additional modules. So,
-            // load all of our modules so that we don't get version mismatches between our
-            // own dependencies. (Eg junit-platform-launcher-1.9.0 and junit-platform-commons-1.6.0)
-            toLoad = additionalModules;
-            LOGGER.info("Loading all additional modules from the distribution since the application classpath does " +
-                "not contain all requested modules. This may lead to duplicate test framework implementation classes " +
-                "on the classpath. To resolve this, either declare all requested modules explicitly as test dependencies, " +
-                "use test suites, or remove any already declared dependencies");
-        }
-
-        if (LOGGER.isDebugEnabled() && !toLoad.isEmpty()) {
-            ArrayList<String> names = new ArrayList<String>();
-            for (DistributionModule module : additionalModules) {
-                names.add(module.getModuleName());
-            }
-
-            LOGGER.debug("Loaded additional modules from the Gradle distribution: " + Joiner.on(",").join(names));
-        }
-
-        // For any modules not provided by the test, load them from the distribution.
-        for (DistributionModule module : toLoad) {
-            outputFiles.addAll(moduleRegistry.getExternalModule(module.getModuleName()).getImplementationClasspath().getAsFiles());
+        for (String module : additionalModules) {
+            outputFiles.addAll(moduleRegistry.getExternalModule(module).getImplementationClasspath().getAsFiles());
 
             // TODO: The user is relying on dependencies from the Gradle distribution. Emit a deprecation warning.
             // We may want to wait for test-suites to be de-incubated here. If users are using the `test.useJUnitPlatform`
@@ -231,6 +187,6 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             // requirement in the future.
         }
 
-        return outputFiles;
+        return outputFiles.build();
     }
 }
