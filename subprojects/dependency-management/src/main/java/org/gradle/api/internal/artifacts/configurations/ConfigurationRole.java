@@ -55,6 +55,9 @@ public enum ConfigurationRole {
         if (configuration.isCanBeDeclaredAgainst()) {
             descriptions.add("\tDeclarable Against - this configuration can have dependencies added to it" + describeDeprecation(configuration.isDeprecatedForDeclarationAgainst()));
         }
+        if (descriptions.isEmpty()) {
+            descriptions.add("\tUnusable - this configuration cannot be used for any purpose");
+        }
         return String.join("\n", descriptions);
     }
 
