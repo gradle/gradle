@@ -17,8 +17,6 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.testing.DefaultDistributionModule;
-import org.gradle.api.internal.tasks.testing.DistributionModule;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
@@ -34,13 +32,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @UsedByScanPlugin("test-retry")
 public class JUnitTestFramework implements TestFramework {
-    private static final List<? extends DistributionModule> DISTRIBUTION_CLASSES = Collections.singletonList(
-        new DefaultDistributionModule("junit", Pattern.compile("junit-4.*\\.jar")));
-
     private JUnitOptions options;
     private JUnitDetector detector;
     private final DefaultTestFilter filter;
@@ -83,23 +77,20 @@ public class JUnitTestFramework implements TestFramework {
 
     @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
-        return new Action<WorkerProcessBuilder>() {
-            @Override
-            public void execute(WorkerProcessBuilder workerProcessBuilder) {
-                workerProcessBuilder.sharedPackages("junit.framework");
-                workerProcessBuilder.sharedPackages("junit.extensions");
-                workerProcessBuilder.sharedPackages("org.junit");
-            }
+        return workerProcessBuilder -> {
+            workerProcessBuilder.sharedPackages("junit.framework");
+            workerProcessBuilder.sharedPackages("junit.extensions");
+            workerProcessBuilder.sharedPackages("org.junit");
         };
     }
 
     @Override
-    public List<? extends DistributionModule> getTestWorkerApplicationClasses() {
-        return DISTRIBUTION_CLASSES;
+    public List<String> getTestWorkerApplicationClasses() {
+        return Collections.singletonList("junit");
     }
 
     @Override
-    public List<? extends DistributionModule> getTestWorkerApplicationModules() {
+    public List<String> getTestWorkerApplicationModules() {
         return Collections.emptyList();
     }
 
