@@ -102,6 +102,42 @@ public enum JavaVersion {
     VERSION_20,
 
     /**
+     * Java 21 major version.
+     * Not officially supported by Gradle. Use at your own risk.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    VERSION_21,
+
+    /**
+     * Java 22 major version.
+     * Not officially supported by Gradle. Use at your own risk.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    VERSION_22,
+
+    /**
+     * Java 23 major version.
+     * Not officially supported by Gradle. Use at your own risk.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    VERSION_23,
+
+    /**
+     * Java 24 major version.
+     * Not officially supported by Gradle. Use at your own risk.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    VERSION_24,
+
+    /**
      * Higher version of Java.
      * @since 4.7
      */
