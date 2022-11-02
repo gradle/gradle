@@ -61,10 +61,7 @@ fun Task.isCompileCacheMissMonitoredTask() = isMonitoredCompileTask() && !projec
 
 fun Project.isAsciidoctorCacheMissTask() = isMonitoredAsciidoctorTask() && !isExpectedAsciidoctorCacheMiss()
 
-fun Task.isMonitoredCompileTask() = (this is AbstractCompile || this.isClasspathManifest()) && !isKotlinJsIrLink() && !isOnM1Mac()
-
-// vendor is an input of GroovyCompile, so GroovyCompile on M1 mac is definitely a cache miss
-fun Task.isOnM1Mac() = OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64"
+fun Task.isMonitoredCompileTask() = (this is AbstractCompile || this.isClasspathManifest()) && !isKotlinJsIrLink() 
 
 fun Task.isClasspathManifest() = this.javaClass.simpleName.startsWith("ClasspathManifest")
 
