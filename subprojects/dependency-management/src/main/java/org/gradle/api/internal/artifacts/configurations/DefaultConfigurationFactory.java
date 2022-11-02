@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -237,7 +236,7 @@ public class DefaultConfigurationFactory {
         throw new GradleException("Configuration '" + configuration.getName() + "' is being assigned to or queried for an unknown role: " + role);
     }
 
-    private static void throwConfigurationNotInRole(Configuration configuration, ConfigurationRole role) throws GradleException {
-        throw new GradleException("Configuration '" + configuration.getName() + "' is not in the " + role + " role.");
+    private static void throwConfigurationNotInRole(ConfigurationInternal configuration, ConfigurationRole role) throws GradleException {
+        throw new GradleException("Configuration '" + configuration.getName() + "' is not in the " + role + " role.  This configuration is:\n" + ConfigurationRole.describeRole(configuration));
     }
 }
