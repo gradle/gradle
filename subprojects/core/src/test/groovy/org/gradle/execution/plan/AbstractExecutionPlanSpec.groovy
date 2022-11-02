@@ -85,7 +85,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         return project
     }
 
-    protected TaskInternal createTask(final String name, ProjectInternal project = this.project, Class type = TaskInternal) {
+    protected TaskInternal createTask(final String name, ProjectInternal project = this.project, Class<? extends TaskInternal> type = TaskInternal) {
         def path = project.identityPath.child(name)
         TaskInternal task = Mock(type, name: name)
         TaskStateInternal state = Mock()
@@ -102,7 +102,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         task.destroyables >> emptyTaskDestroys()
         task.localState >> emptyTaskLocalState()
         task.inputs >> emptyTaskInputs()
-        task.getTaskProperties(_ as TaskProperties.ResolutionState) >> { requestedState -> DefaultTaskProperties.resolve(task, requestedState, project.services.get(PropertyWalker), project.services.get(FileCollectionFactory)) }
+        task.getTaskProperties(_ as TaskProperties.ResolutionState) >> { TaskProperties.ResolutionState requestedState -> DefaultTaskProperties.resolve(task, requestedState, project.services.get(PropertyWalker), project.services.get(FileCollectionFactory)) }
         task.taskIdentity >> TaskIdentity.create(name, DefaultTask, project)
         return task
     }
