@@ -27,7 +27,7 @@ trait VariantAwareDependencyResolutionTestFixture extends TasksWithInputsAndOutp
             def color = Attribute.of('color', String)
             allprojects {
                 configurations {
-                    implementation {
+                    other {
                         canBeResolved = true
                         attributes.attribute(color, 'blue')
                     }
