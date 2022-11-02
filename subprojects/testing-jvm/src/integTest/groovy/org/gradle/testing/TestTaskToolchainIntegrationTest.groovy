@@ -94,7 +94,7 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec implement
             configureExecutable(selectJdk(withExecutable))
         }
         if (withJavaExtension != null) {
-            configureJavaExtension(selectJdk(withJavaExtension))
+            configureJavaPluginToolchainVersion(selectJdk(withJavaExtension))
         }
 
         def targetJdk = selectJdk(target)
@@ -203,16 +203,6 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec implement
             }
 
             test.dependsOn compileJava
-        """
-    }
-
-    private TestFile configureJavaExtension(Jvm jdk) {
-        buildFile << """
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
-                }
-            }
         """
     }
 

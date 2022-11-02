@@ -20,12 +20,39 @@ import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.test.fixtures.file.TestFile
 
 /**
  * Introduces helper methods to write integration tests using Java toolchains.
  */
 @SelfType(AbstractIntegrationSpec)
 trait JavaToolchainFixture {
+
+    TestFile configureJavaPluginToolchainVersion(Jvm jvm) {
+        buildFile << javaPluginToolchainVersion(jvm)
+    }
+
+    TestFile configureJavaPluginToolchainVersion(JvmInstallationMetadata installationMetadata) {
+        buildFile << javaPluginToolchainVersion(installationMetadata)
+    }
+
+    String javaPluginToolchainVersion(Jvm jvm) {
+        return javaPluginToolchainVersion(jvm.javaVersion.majorVersion.toInteger())
+    }
+
+    String javaPluginToolchainVersion(JvmInstallationMetadata installationMetadata) {
+        return javaPluginToolchainVersion(installationMetadata.languageVersion.majorVersion.toInteger())
+    }
+
+    String javaPluginToolchainVersion(Integer majorVersion) {
+        """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${majorVersion})
+                }
+            }
+        """
+    }
 
     /**
      * Usage:
@@ -38,7 +65,11 @@ trait JavaToolchainFixture {
      * </pre>
      */
     AbstractIntegrationSpec withInstallations(Jvm jvm, Jvm... rest) {
-        def installationPaths = ([jvm] + rest.toList()).collect { it.javaHome.absolutePath }.join(",")
+        return withInstallations([jvm] + rest.toList())
+    }
+
+    AbstractIntegrationSpec withInstallations(List<Jvm> jvms) {
+        def installationPaths = jvms.collect { it.javaHome.absolutePath }.join(",")
         executer
             .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
         this as AbstractIntegrationSpec
@@ -54,8 +85,8 @@ trait JavaToolchainFixture {
      *     withInstallations(jdk1, jdk2).run(":task")
      * </pre>
      */
-    AbstractIntegrationSpec withInstallations(JvmInstallationMetadata jvmMetadata, JvmInstallationMetadata... rest) {
-        def installationPaths = ([jvmMetadata] + rest.toList()).collect { it.javaHome.toAbsolutePath().toString() }.join(",")
+    AbstractIntegrationSpec withInstallations(JvmInstallationMetadata installationMetadata, JvmInstallationMetadata... rest) {
+        def installationPaths = ([installationMetadata] + rest.toList()).collect { it.javaHome.toAbsolutePath().toString() }.join(",")
         executer
             .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
         this as AbstractIntegrationSpec

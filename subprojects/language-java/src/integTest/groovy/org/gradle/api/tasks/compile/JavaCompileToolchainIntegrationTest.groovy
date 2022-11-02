@@ -134,7 +134,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
             configureForkOptionsExecutable(selectJdk(withExecutable))
         }
         if (withJavaExtension != null) {
-            configureJavaExtension(selectJdk(withJavaExtension))
+            configureJavaPluginToolchainVersion(selectJdk(withJavaExtension))
         }
 
         def targetJdk = selectJdk(target)
@@ -658,16 +658,6 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         javaVersion             | deprecationMessage
         JavaVersion.VERSION_1_8 | "[deprecation] foo() in com.example.Foo has been deprecated"
         JavaVersion.current()   | "[deprecation] foo() in Foo has been deprecated"
-    }
-
-    private TestFile configureJavaExtension(Jvm jdk) {
-        buildFile << """
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
-                }
-            }
-        """
     }
 
     private TestFile configureForkOptionsExecutable(Jvm jdk) {
