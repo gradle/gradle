@@ -93,7 +93,7 @@ Given a dependency, you can identify the selection reason and origin.
 `dependencyInsight` accepts the following parameters:
 
 `--dependency <dependency>` (mandatory)::
-The dependency to generate an insight report for.
+The dependency to investigate.
 You can supply a complete `group:name`, or part of it.
 If multiple dependencies match, Gradle generates a report covering all matching dependencies.
 `--configuration <name>` (mandatory)::
