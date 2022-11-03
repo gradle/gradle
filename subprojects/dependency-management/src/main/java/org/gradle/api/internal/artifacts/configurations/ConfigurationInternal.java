@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -133,7 +132,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      *
      * @since 8.0
      */
-    @Incubating
     void setCanBeDeclaredAgainst(boolean allowed);
 
     /**
@@ -142,7 +140,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      * @return true if this configuration can have dependencies declared
      * @since 8.0
      */
-    @Incubating
     boolean isCanBeDeclaredAgainst();
 
     /**
