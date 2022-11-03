@@ -19,12 +19,16 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.internal.file.Deleter;
 import org.gradle.work.FileChange;
 
 import java.util.Set;
 
 public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
+
+    private static final Set<String> SUPPORTED_FILE_EXTENSIONS = ImmutableSet.of(".java", ".groovy");
 
     public GroovyRecompilationSpecProvider(
         Deleter deleter,
@@ -37,8 +41,13 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     }
 
     @Override
+    protected boolean supportsGroovyJavaJointCompilation(JavaCompileSpec spec) {
+        return spec instanceof GroovyJavaJointCompileSpec && ((GroovyJavaJointCompileSpec) spec).getGroovyCompileOptions().getFileExtensions().contains("java");
+    }
+
+    @Override
     protected Set<String> getFileExtensions() {
-        return ImmutableSet.of(".java", ".groovy");
+        return SUPPORTED_FILE_EXTENSIONS;
     }
 
     @Override

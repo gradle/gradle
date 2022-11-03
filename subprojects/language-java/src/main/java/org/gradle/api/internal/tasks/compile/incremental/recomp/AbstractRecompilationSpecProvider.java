@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 abstract class AbstractRecompilationSpecProvider implements RecompilationSpecProvider {
     private final Deleter deleter;
@@ -63,20 +64,21 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     @Override
-    public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
-        RecompilationSpec spec = new RecompilationSpec();
+    public RecompilationSpec provideRecompilationSpec(JavaCompileSpec spec, CurrentCompilation current, PreviousCompilation previous) {
+        RecompilationSpec recompilationSpec = new RecompilationSpec();
         SourceFileClassNameConverter sourceFileClassNameConverter = new FileNameDerivingClassNameConverter(previous.getSourceToClassConverter(), getFileExtensions());
 
-        processClasspathChanges(current, previous, spec);
+        processClasspathChanges(current, previous, recompilationSpec);
 
         SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
-        processSourceChanges(current, sourceFileChangeProcessor, spec, sourceFileClassNameConverter);
-        collectAllSourcePathsAndIndependentClasses(sourceFileChangeProcessor, spec, sourceFileClassNameConverter);
+        processSourceChanges(current, sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
+        processGroovyJavaJointCompilationAdditionalDependencies(spec, recompilationSpec, sourceFileChangeProcessor, sourceFileClassNameConverter);
+        collectAllSourcePathsAndIndependentClasses(sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
 
-        Set<String> typesToReprocess = previous.getTypesToReprocess(spec.getClassesToCompile());
-        processTypesToReprocess(typesToReprocess, spec, sourceFileClassNameConverter);
+        Set<String> typesToReprocess = previous.getTypesToReprocess(recompilationSpec.getClassesToCompile());
+        processTypesToReprocess(typesToReprocess, recompilationSpec, sourceFileClassNameConverter);
 
-        return spec;
+        return recompilationSpec;
     }
 
     protected abstract Set<String> getFileExtensions();
@@ -116,6 +118,29 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     private String rebuildClauseForChangedNonSourceFile(FileChange fileChange) {
         return String.format("%s '%s' has been %s", "resource", fileChange.getFile().getName(), fileChange.getChangeType().name().toLowerCase(Locale.US));
     }
+
+    /**
+     * For Groovy/Java joint compilation we treat recompilation of affected classes from Java source as an ABI change.
+     * This means we recompile all class dependencies, even if there was just a private change that affects class.
+     * This is because Groovy compiler tries to load these classes in some cases.
+     *
+     * Fix for issue <a href="https://github.com/gradle/gradle/issues/22531">#22531</a>.
+     */
+    private void processGroovyJavaJointCompilationAdditionalDependencies(JavaCompileSpec spec, RecompilationSpec recompilationSpec, SourceFileChangeProcessor sourceFileChangeProcessor, SourceFileClassNameConverter sourceFileClassNameConverter) {
+        if (!supportsGroovyJavaJointCompilation(spec)) {
+            return;
+        }
+        Set<String> classesWithJavaSource = recompilationSpec.getClassesToCompile().stream()
+            .flatMap(classToCompile -> sourceFileClassNameConverter.getRelativeSourcePaths(classToCompile).stream())
+            .filter(sourcePath -> sourcePath.endsWith(".java"))
+            .flatMap(sourcePath -> sourceFileClassNameConverter.getClassNames(sourcePath).stream())
+            .collect(Collectors.toSet());
+        if (!classesWithJavaSource.isEmpty()) {
+            sourceFileChangeProcessor.processChange(classesWithJavaSource, recompilationSpec);
+        }
+    }
+
+    protected abstract boolean supportsGroovyJavaJointCompilation(JavaCompileSpec javaCompileSpec);
 
     protected abstract boolean isIncrementalOnResourceChanges(CurrentCompilation currentCompilation);
 
