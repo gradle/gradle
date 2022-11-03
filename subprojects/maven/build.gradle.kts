@@ -16,7 +16,10 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":model-core"))
     implementation(project(":plugin-use"))
-    implementation(project(":plugins"))
+    implementation(project(":plugins")) {
+        because("For JavaPlatformPlugin")
+    }
+    implementation(project(":platform-jvm"))
     implementation(project(":publish"))
     implementation(project(":resources"))
 
