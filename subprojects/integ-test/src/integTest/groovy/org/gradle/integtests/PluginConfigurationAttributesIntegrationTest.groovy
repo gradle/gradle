@@ -29,34 +29,6 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         """
     }
 
-    def "plugin runtime configuration can not be consumed"() {
-        given:
-        file("producer/build.gradle") << """
-            plugins {
-                id("$plugin")
-            }
-        """
-
-        when:
-        file("consumer/build.gradle") << """
-            plugins {
-                id("java-library")
-            }
-            dependencies {
-                implementation(project(path: ":producer", configuration: "$configuration"))
-            }
-        """
-
-        then:
-        fails("Selected configuration 'zinc' on 'project :producer' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
-
-        where:
-        plugin       | configuration
-        'scala'      | 'zinc'
-        'war'        | 'providedRuntime'
-        'war'        | 'providedCompile'
-    }
-
     def "plugin runtime configuration is not consumable"() {
         given:
         file("producer/build.gradle") << """
@@ -77,7 +49,7 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
 
         then:
         fails("test")
-        result.hasErrorOutput("Selected configuration '$configuration' on 'project :producer' but it can't be used as a project dependency because it isn't intended for consumption by other components")
+        result.assertHasErrorOutput("Selected configuration '$configuration' on 'project :producer' but it can't be used as a project dependency because it isn't intended for consumption by other components")
 
         where:
         plugin       | configuration
@@ -87,6 +59,9 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         'jacoco'     | 'jacocoAnt'
         'pmd'        | 'pmd'
         'checkstyle' | 'checkstyle'
+        'scala'      | 'zinc'
+        'war'        | 'providedRuntime'
+        'war'        | 'providedCompile'
     }
 
     def "plugin runtime configuration can be extended and consumed without deprecation"() {
