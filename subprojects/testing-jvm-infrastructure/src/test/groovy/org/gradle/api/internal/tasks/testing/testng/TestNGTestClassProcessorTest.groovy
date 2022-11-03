@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.testng
 import org.gradle.api.GradleException
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
+import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.internal.actor.TestActorFactory
 import org.gradle.internal.id.LongIdGenerator
@@ -34,9 +35,11 @@ class TestNGTestClassProcessorTest extends Specification {
     @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider(getClass())
 
     def processor = Mock(TestResultProcessor)
+    def filterSpec = Spy(new TestFilterSpec([] as Set, [] as Set, [] as Set))
     def spec = Spy(new TestNGSpec(
+        filterSpec,
         "Gradle suite", "Gradle test", null, -1, false,
-        [] as Set, [] as Set, [] as Set, [] as Set, [] as Set, [] as Set,
+        [] as Set, [] as Set, [] as Set,
         TestNGTestClassProcessor.DEFAULT_CONFIG_FAILURE_POLICY, false, false))
 
     @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, spec, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
@@ -80,7 +83,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "executes selected included method"() {
-        spec.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another"]
+        filterSpec.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another"]
 
         when: process(ATestNGClassWithManyMethods)
 
@@ -95,7 +98,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "executes multiple included methods"() {
-        spec.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another", ATestNGClassWithManyMethods.name + ".yetAnother"]
+        filterSpec.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another", ATestNGClassWithManyMethods.name + ".yetAnother"]
 
         when: process(ATestNGClassWithManyMethods)
 
@@ -108,7 +111,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "executes methods from multiple classes by pattern"() {
-        spec.getIncludedTests() >> ["*Methods.ok*"]
+        filterSpec.getIncludedTests() >> ["*Methods.ok*"]
 
         when: process(ATestNGClassWithManyMethods)
 
@@ -121,7 +124,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "executes no tests if none of the included test methods match"() {
-        spec.getIncludedTests() >> [ATestNGClassWithManyMethods.name + "does not exist"]
+        filterSpec.getIncludedTests() >> [ATestNGClassWithManyMethods.name + "does not exist"]
 
         when: process(ATestNGClassWithManyMethods)
 
@@ -223,7 +226,7 @@ class TestNGTestClassProcessorTest extends Specification {
     }
 
     void "before and after methods are not triggered when all tests from a class are filtered"() {
-        spec.getIncludedTests() >> [ATestNGClass.name]
+        filterSpec.getIncludedTests() >> [ATestNGClass.name]
 
         when:
         process(ATestNGClass, ATestNGClassWithBeforeAndAfter) //the latter is not matched

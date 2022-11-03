@@ -77,9 +77,7 @@ public class JUnitPlatformTestFramework implements TestFramework {
             throw new UnsupportedJavaRuntimeException("Running JUnit Platform requires Java 8+, please configure your test java executable with Java 8 or higher.");
         }
         return new JUnitPlatformTestClassProcessorFactory(new JUnitPlatformSpec(
-            filter.getIncludePatterns(), filter.getExcludePatterns(),
-            filter.getCommandLineIncludePatterns(),
-            options.getIncludeEngines(), options.getExcludeEngines(),
+            filter.toSpec(), options.getIncludeEngines(), options.getExcludeEngines(),
             options.getIncludeTags(), options.getExcludeTags()
         ));
     }
