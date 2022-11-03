@@ -46,11 +46,6 @@ public interface DeprecatableConfiguration extends Configuration {
     List<String> getResolutionAlternatives();
 
     /**
-     * @return true, if all functionality of the configuration is either disabled or deprecated
-     */
-    boolean isFullyDeprecated();
-
-    /**
      * Allows plugins to deprecate a configuration that will be removed in the next major Gradle version.
      *
      * @param alternativesForDeclaring alternative configurations that can be used to declare dependencies
