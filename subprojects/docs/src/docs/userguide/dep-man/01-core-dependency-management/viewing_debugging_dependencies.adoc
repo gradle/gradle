@@ -125,7 +125,7 @@ Have a look at the table below to understand the meaning of the different terms 
 | No reason other than a reference, direct or transitive, was present.
 
 | Was requested : <text>
-| The dependency appears and the inclusion came with a <<declaring_dependencies#sec:documenting-dependencies, `because` text>>.
+| The dependency appears in the graph, and the inclusion came with a <<declaring_dependencies#sec:documenting-dependencies, `because` text>>.
 
 | Was requested : didn't match versions <versions>
 | The dependency appears with a <<dynamic_versions#sub:declaring_dependency_with_dynamic_version, dynamic version>> which did not include the listed versions.
