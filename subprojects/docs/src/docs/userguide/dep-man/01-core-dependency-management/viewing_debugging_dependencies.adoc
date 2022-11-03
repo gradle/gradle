@@ -19,11 +19,14 @@ By default, the dependency tree renders dependencies for all <<declaring_depende
 The dependency tree indicates the selected version of each dependency.
 It also displays information about dependency conflict resolution.
 
+The `dependencies` task can be especially helpful for issues related to transitive dependencies.
+Your build file lists direct dependencies, but the `dependencies` task can help you understand which transitive dependencies resolve during your build.
+
 === Output Annotations
 
 The `dependencies` task marks dependency trees with the following annotations:
 
-- `(*)`: Repeat occurrence of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
+- `(*)`: Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
 - `(c)`: This element is a <<dependency_constraints.adoc#sec:direct-vs-transitive-deps,dependency constraint>>, not a dependency. Look for the matching dependency elsewhere in the tree.
 - `(n)`: A dependency or dependency configuration that <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,cannot be resolved>>.
 
