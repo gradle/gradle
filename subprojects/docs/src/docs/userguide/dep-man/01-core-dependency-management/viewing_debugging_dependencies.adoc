@@ -190,7 +190,7 @@ For example:
 
 Gradle produces a deprecation warning for each unsafe access.
 Unsafe access can cause indeterminate errors.
-You should fix unsafe access warnings in your build.
+You should <<command_line_interface.adoc#sec:command_line_warnings,fix unsafe access warnings>> in your build.
 
 In most cases, you can resolve unsafe accesses by creating a cross-project dependency on the other project.
 See the documentation for <<cross_project_publications.adoc#cross_project_publications, sharing outputs between projects>> for more information.
