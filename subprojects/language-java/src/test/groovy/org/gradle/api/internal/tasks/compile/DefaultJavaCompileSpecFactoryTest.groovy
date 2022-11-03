@@ -26,20 +26,22 @@ import spock.lang.Specification
 
 class DefaultJavaCompileSpecFactoryTest extends Specification {
 
-    def "produces correct spec with fork=#fork, executable=#executable, toolchain=#toolchainHome"() {
+    def "produces correct spec with fork=#fork, executable=#executable, toolchain=#toolchain"() {
         CompileOptions options = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
         options.fork = fork
         options.forkOptions.executable = executable
-        def toolchain = null
-        if (toolchainHome != null) {
-            toolchain = Mock(JavaToolchain)
-            toolchain.installationPath >> TestFiles.fileFactory().dir(toolchainHome)
-            toolchain.isCurrentJvm() >> (Jvm.current().javaHome == toolchainHome)
-            toolchain.languageVersion >> JavaLanguageVersion.of(8)
+
+        def javaToolchain = null
+        if (toolchain != null) {
+            def isCurrent = toolchain == "current"
+            javaToolchain = Mock(JavaToolchain)
+            javaToolchain.installationPath >> TestFiles.fileFactory().dir(Jvm.current().javaHome)
+            javaToolchain.isCurrentJvm() >> isCurrent
+            javaToolchain.languageVersion >> JavaLanguageVersion.of(isCurrent ? "8" : toolchain)
         }
-        DefaultJavaCompileSpecFactory factory = new DefaultJavaCompileSpecFactory(options, toolchain)
 
         when:
+        DefaultJavaCompileSpecFactory factory = new DefaultJavaCompileSpecFactory(options, javaToolchain)
         def spec = factory.create()
 
         then:
@@ -48,12 +50,17 @@ class DefaultJavaCompileSpecFactoryTest extends Specification {
         CommandLineJavaCompileSpec.isAssignableFrom(spec.getClass()) == implementsCommandLine
 
         where:
-        fork  | executable | implementsForking | implementsCommandLine | toolchainHome
-        false | null       | false             | false                 | null
-        true  | null       | true              | false                 | null
-        true  | "X"        | false             | true                  | null
-        true  | "X"        | true              | false                 | File.createTempDir()
-        false | null       | false             | false                 | Jvm.current().javaHome
+        fork  | executable | toolchain | implementsForking | implementsCommandLine
+        false | null       | null      | false             | false
+        false | null       | "current" | false             | false
+        false | null       | "11"      | true              | false
+        // Below Java 8 toolchain compiler always runs via command-line
+        false | null       | "7"       | false             | true
+
+        true  | null       | null      | true              | false
+        true  | "X"        | null      | false             | true
+        true  | "X"        | "current" | false             | true
+        true  | "X"        | "11"      | false             | true
     }
 
 }
