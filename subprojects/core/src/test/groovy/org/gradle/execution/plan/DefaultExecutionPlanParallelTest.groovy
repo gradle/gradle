@@ -2109,46 +2109,46 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         temporaryFolder.file(path)
     }
 
-    static class Async extends DefaultTask {}
+    static abstract class Async extends DefaultTask {}
 
-    static class AsyncWithOutputFile extends Async {
+    static abstract class AsyncWithOutputFile extends Async {
         @OutputFile
         File outputFile
     }
 
-    static class AsyncWithOutputDirectory extends Async {
+    static abstract class AsyncWithOutputDirectory extends Async {
         @OutputDirectory
         File outputDirectory
     }
 
-    static class AsyncWithDestroysFile extends Async {
+    static abstract class AsyncWithDestroysFile extends Async {
         @Destroys
         File destroysFile
     }
 
-    static class AsyncWithLocalState extends Async {
+    static abstract class AsyncWithLocalState extends Async {
         @LocalState
         File localStateFile
     }
 
-    static class AsyncWithInputFile extends Async {
+    static abstract class AsyncWithInputFile extends Async {
         @InputFile
         File inputFile
     }
 
-    static class AsyncWithInputDirectory extends Async {
+    static abstract class AsyncWithInputDirectory extends Async {
         @InputDirectory
         File inputDirectory
     }
 
-    static class BrokenTask extends DefaultTask {
+    static abstract class BrokenTask extends DefaultTask {
         @OutputFiles
         FileCollection getOutputFiles() {
             throw new Exception("BOOM!")
         }
     }
 
-    static class FailingTask extends DefaultTask {
+    static abstract class FailingTask extends DefaultTask {
         @TaskAction
         void execute() {
             throw new RuntimeException("BOOM!")

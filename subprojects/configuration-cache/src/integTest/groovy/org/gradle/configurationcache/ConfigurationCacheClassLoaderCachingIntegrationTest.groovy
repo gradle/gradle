@@ -33,7 +33,7 @@ class ConfigurationCacheClassLoaderCachingIntegrationTest extends PersistentBuil
                 import org.gradle.api.tasks.*;
                 import java.util.concurrent.atomic.AtomicInteger;
 
-                public class StaticData extends DefaultTask {
+                public abstract class StaticData extends DefaultTask {
 
                     private static final AtomicInteger value = new AtomicInteger();
 

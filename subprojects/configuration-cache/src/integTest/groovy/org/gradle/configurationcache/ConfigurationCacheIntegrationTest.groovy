@@ -308,7 +308,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         buildFile << """
             println "running build script"
 
-            class SomeTask extends DefaultTask {
+            abstract class SomeTask extends DefaultTask {
                 SomeTask() {
                     println("create task")
                 }
@@ -384,7 +384,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
     def "captures changes applied in task graph whenReady listener"() {
         buildFile << """
-            class SomeTask extends DefaultTask {
+            abstract class SomeTask extends DefaultTask {
                 @Internal
                 String value
 

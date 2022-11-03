@@ -148,7 +148,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
                 }
             }
 
-            class BrokenTaskType extends DefaultTask {
+            abstract class BrokenTaskType extends DefaultTask {
                 final prop = new BrokenSerializable()
             }
 
@@ -201,7 +201,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
                 }
             }
 
-            class BrokenTaskType extends DefaultTask {
+            abstract class BrokenTaskType extends DefaultTask {
                 final prop = new BrokenSerializable()
             }
 
@@ -259,7 +259,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         def configurationCache = newConfigurationCacheFixture()
 
         buildFile << """
-            class BrokenTaskType extends DefaultTask {
+            abstract class BrokenTaskType extends DefaultTask {
                 @Internal final prop = project
                 @Internal final anotherProp = project.configurations
             }
@@ -517,7 +517,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         def configurationCache = newConfigurationCacheFixture()
 
         buildFile << """
-            class BrokenTask extends DefaultTask {
+            abstract class BrokenTask extends DefaultTask {
                 @Internal
                 final broken = project
 
@@ -607,7 +607,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         def configurationCache = newConfigurationCacheFixture()
 
         buildFile << """
-            class BrokenTask extends DefaultTask {
+            abstract class BrokenTask extends DefaultTask {
                 @Internal
                 final broken = project
 
@@ -874,7 +874,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
                 Project project
             }
 
-            class SomeTask extends DefaultTask {
+            abstract class SomeTask extends DefaultTask {
                 private final bean = new SomeBean()
 
                 SomeTask() {
@@ -916,7 +916,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         buildFile << """
             class Bean { Project p1 }
 
-            class FooTask extends DefaultTask {
+            abstract class FooTask extends DefaultTask {
                 private final bean = new Bean()
                 FooTask() { bean.p1 = project }
                 @TaskAction void run() {}

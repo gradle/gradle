@@ -161,7 +161,7 @@ class CommandLineTaskConfigurerSpec extends Specification {
         ex.cause.message.contains("Unknown command-line option '-c'")
     }
 
-    public static class SomeTask extends DefaultTask {
+    public static abstract class SomeTask extends DefaultTask {
         String content = 'default content'
 
         @Option(option = "content", description = "Some content.")
@@ -199,7 +199,7 @@ class CommandLineTaskConfigurerSpec extends Specification {
         public void dummy() {}
     }
 
-    public static class SomeOtherTask extends DefaultTask {
+    public static abstract class SomeOtherTask extends DefaultTask {
         boolean someFlag = false
         String stuff
 

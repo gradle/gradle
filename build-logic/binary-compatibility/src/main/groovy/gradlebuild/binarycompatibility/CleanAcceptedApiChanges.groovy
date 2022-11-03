@@ -27,7 +27,7 @@ import org.gradle.work.DisableCachingByDefault
  * A task used for cleaning up all accepted API changes. The functionality is called whenever the release process initiates "branching".
  */
 @DisableCachingByDefault(because = "Not worth caching")
-class CleanAcceptedApiChanges extends DefaultTask {
+abstract class CleanAcceptedApiChanges extends DefaultTask {
 
     @PathSensitive(PathSensitivity.ABSOLUTE)
     @InputFile

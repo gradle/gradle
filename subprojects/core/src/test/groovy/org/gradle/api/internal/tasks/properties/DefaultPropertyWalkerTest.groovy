@@ -77,7 +77,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         0 * _
     }
 
-    static class MyTask extends DefaultTask {
+    static abstract class MyTask extends DefaultTask {
 
         @Input
         String myProperty = "myValue"
@@ -224,7 +224,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         }
     }
 
-    static class TaskWithNestedObject extends DefaultTask {
+    static abstract class TaskWithNestedObject extends DefaultTask {
         @Nested
         Object nested
     }

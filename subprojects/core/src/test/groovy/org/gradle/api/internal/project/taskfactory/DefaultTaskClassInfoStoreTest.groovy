@@ -25,14 +25,14 @@ class DefaultTaskClassInfoStoreTest extends Specification {
     def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
 
     @CacheableTask
-    private static class MyCacheableTask extends DefaultTask {}
+    private static abstract class MyCacheableTask extends DefaultTask {}
 
     def "cacheable tasks are detected"() {
         expect:
         taskClassInfoStore.getTaskClassInfo(MyCacheableTask).cacheable
     }
 
-    private static class MyNonCacheableTask extends MyCacheableTask {}
+    private static abstract class MyNonCacheableTask extends MyCacheableTask {}
 
     def "cacheability is not inherited"() {
         expect:
@@ -40,7 +40,7 @@ class DefaultTaskClassInfoStoreTest extends Specification {
     }
 
 
-    private static class NonAnnotatedTask extends DefaultTask {
+    private static abstract class NonAnnotatedTask extends DefaultTask {
         File inputFile
 
         @SuppressWarnings("GrMethodMayBeStatic")

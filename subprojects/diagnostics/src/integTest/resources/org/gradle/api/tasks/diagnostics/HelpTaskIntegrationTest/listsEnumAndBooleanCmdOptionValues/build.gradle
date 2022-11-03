@@ -4,7 +4,7 @@ allprojects{
     task hello(type: CustomTask)
 }
 
-class CustomTask extends DefaultTask {
+abstract class CustomTask extends DefaultTask {
     @TaskAction
     void doSomething() {
     }

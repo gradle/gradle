@@ -216,7 +216,7 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
 
     private addTasksWithProblems(String brokenFieldValue = 'project.configurations') {
         buildFile """
-            class Broken extends DefaultTask {
+            abstract class Broken extends DefaultTask {
                 // Serialization time problem
                 private final brokenField = $brokenFieldValue
 

@@ -36,7 +36,7 @@ class ConfigurationCacheBuildSrcIntegrationTest extends AbstractConfigurationCac
             import ${Internal.name};
             import ${Property.name};
 
-            public class CustomTask extends DefaultTask {
+            public abstract class CustomTask extends DefaultTask {
                 private final Property<String> greeting = getProject().getObjects().property(String.class);
 
                 @Internal

@@ -2,7 +2,7 @@ import org.gradle.api.tasks.options.Option
 
 task hello(type: CustomTask)
 
-class CustomTask extends DefaultTask {
+abstract class CustomTask extends DefaultTask {
 
     @TaskAction
     void doSomething() {

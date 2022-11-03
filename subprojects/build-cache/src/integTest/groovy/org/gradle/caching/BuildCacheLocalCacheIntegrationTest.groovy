@@ -36,7 +36,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
             @CacheableTask
-            class CustomTask extends DefaultTask {
+            abstract class CustomTask extends DefaultTask {
 
                 @Input
                 String val = "foo"

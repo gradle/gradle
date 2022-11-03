@@ -917,7 +917,7 @@ $content
     }
 }
 
-class AbstractGenerateGraphTask extends DefaultTask {
+abstract class AbstractGenerateGraphTask extends DefaultTask {
     @Internal
     File outputFile
 
@@ -1026,7 +1026,7 @@ abstract class ConfigurationCacheCompatibleGenerateGraphTask extends AbstractGen
     }
 }
 
-class GenerateGraphTask extends AbstractGenerateGraphTask {
+abstract class GenerateGraphTask extends AbstractGenerateGraphTask {
     @Internal
     Configuration configuration
 

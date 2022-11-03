@@ -40,7 +40,7 @@ class ConfigurationCacheJavaSerializationIntegrationTest extends AbstractConfigu
                 OtherBean value
             }
 
-            class SomeTask extends DefaultTask {
+            abstract class SomeTask extends DefaultTask {
                 private final SomeBean bean = new SomeBean()
                 private final OtherBean value
 
@@ -79,7 +79,7 @@ class ConfigurationCacheJavaSerializationIntegrationTest extends AbstractConfigu
                 }
             }
 
-            class SomeTask extends DefaultTask {
+            abstract class SomeTask extends DefaultTask {
                 private final SomeBean bean = new SomeBean()
 
                 @TaskAction

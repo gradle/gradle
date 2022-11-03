@@ -36,7 +36,7 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
             include 'a', 'b', 'c'
         """
         buildFile << """
-            class SlowTask extends DefaultTask {
+            abstract class SlowTask extends DefaultTask {
 
                 private final String projectName = project.name
 
@@ -81,7 +81,7 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
 
         given:
         buildFile << """
-            class SlowTask extends DefaultTask {
+            abstract class SlowTask extends DefaultTask {
                 @TaskAction
                 def go() {
                     ${server.callFromBuildUsingExpression("name")}
@@ -128,7 +128,7 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
             include 'finalized', 'finalizer'
         """
         buildFile << """
-            class SlowTask extends DefaultTask {
+            abstract class SlowTask extends DefaultTask {
                 @TaskAction
                 def go() {
                     ${server.callFromBuildUsingExpression("path")}
@@ -187,7 +187,7 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
         given:
         def configurationCache = newConfigurationCacheFixture()
         buildFile << """
-            class SlowTask extends DefaultTask {
+            abstract class SlowTask extends DefaultTask {
                 @TaskAction
                 def go() {
                     ${server.callFromBuildUsingExpression("name")}

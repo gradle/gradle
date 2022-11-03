@@ -38,7 +38,7 @@ class TaskReportContainerTest extends Specification {
         file("a")
     }
 
-    static class TestTask extends DefaultTask {
+    static abstract class TestTask extends DefaultTask {
         @Nested
         TaskReportContainer<Report> reports
     }

@@ -30,7 +30,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
             apply plugin: 'base'
 
             @CacheableTask
-            class CustomTask extends DefaultTask {
+            abstract class CustomTask extends DefaultTask {
                 @Input
                 Long fileSize = 1024
 

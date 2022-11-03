@@ -280,7 +280,7 @@ $errorLines
         return new InstallationLocation(new File(javaHomePath), "TestSource");
     }
 
-    static class TestShowToolchainsTask extends ShowToolchainsTask {
+    static abstract class TestShowToolchainsTask extends ShowToolchainsTask {
         def installationRegistry
         def metadataDetector
         def outputFactory

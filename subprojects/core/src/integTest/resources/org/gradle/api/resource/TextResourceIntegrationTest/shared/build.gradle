@@ -1,4 +1,4 @@
-class MyTask extends DefaultTask {
+abstract class MyTask extends DefaultTask {
     @Nested
     TextResource config
 

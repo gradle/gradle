@@ -51,7 +51,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
@@ -88,7 +87,6 @@ import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -135,8 +133,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private String description;
 
     private String group;
-
-    private final Property<Duration> timeout;
 
     private DescribingAndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
 
@@ -198,8 +194,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskLocalState = new DefaultTaskLocalState(taskMutator, fileCollectionFactory);
 
         this.dependencies = new DefaultTaskDependency(tasks, ImmutableSet.of(taskInputs, lifecycleDependencies));
-
-        this.timeout = project.getObjects().property(Duration.class);
     }
 
     private void assertDynamicObject() {
@@ -1022,13 +1016,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     public boolean isHasCustomActions() {
         return hasCustomActions;
     }
-
-    @Internal
-    @Override
-    public Property<Duration> getTimeout() {
-        return timeout;
-    }
-
     @Override
     public void usesService(Provider<? extends BuildService<?>> service) {
         taskMutator.mutate("Task.usesService(Provider)", () -> {

@@ -99,7 +99,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         groovyClassLoader = new GroovyClassLoader(getClass().classLoader)
     }
 
-    static class TaskWithCustomAnnotation extends DefaultTask {
+    static abstract class TaskWithCustomAnnotation extends DefaultTask {
         @SearchPath FileCollection searchPath
     }
 
@@ -294,13 +294,13 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         [processedAnnotation, unprocessedAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
     }
 
-    class ClasspathPropertyTask extends DefaultTask {
+    abstract class ClasspathPropertyTask extends DefaultTask {
         @Classpath FileCollection classpathOnly
         @Classpath @InputFiles FileCollection classpathInputFiles
         @InputFiles @Classpath FileCollection inputFilesClasspath
     }
 
-    class CompileClasspathPropertyTask extends DefaultTask {
+    abstract class CompileClasspathPropertyTask extends DefaultTask {
         @CompileClasspath FileCollection classpathOnly
         @CompileClasspath @InputFiles FileCollection classpathInputFiles
         @InputFiles @CompileClasspath FileCollection inputFilesClasspath
@@ -337,7 +337,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     }
 
     @SuppressWarnings("GrDeprecatedAPIUsage")
-    static class SimpleTask extends DefaultTask {
+    static abstract class SimpleTask extends DefaultTask {
         @Input String inputString
         @InputFile File inputFile
         @InputDirectory File inputDirectory
@@ -362,7 +362,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         properties.propertyName.sort() == ["destroys", "inputDirectory", "inputFile", "inputFiles", "inputString", "outputDirectories", "outputDirectory", "outputFile", "outputFiles", "someCache"]
     }
 
-    static class TypeWithUnannotatedProperties extends DefaultTask {
+    static abstract class TypeWithUnannotatedProperties extends DefaultTask {
         String bad1
         File bad2
         @Input String useful
@@ -383,7 +383,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         ]
     }
 
-    static class TypeWithNonRelevantProperties extends DefaultTask {
+    static abstract class TypeWithNonRelevantProperties extends DefaultTask {
         @ReplacedBy("notUseful2") String notUseful1
         @Console String notUseful2
         @Input String useful
@@ -399,7 +399,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     }
 
     @SuppressWarnings("GroovyUnusedDeclaration")
-    private static class IsGetterTask extends DefaultTask {
+    private static abstract class IsGetterTask extends DefaultTask {
         @Input
         private boolean feature1
         private boolean feature2

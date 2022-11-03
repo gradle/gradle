@@ -76,7 +76,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', null, Path.path(':task'), null, 12), (Object[]) null)
 
         then:
-        1 * deserializeInstantiator.newInstance(TestDefaultTask, AbstractTask) >> { new TestDefaultTask() }
+        1 * deserializeInstantiator.newInstance(TestDefaultTask, AbstractTask) >> { TestUtil.newInstance(TestDefaultTask) }
         task instanceof TestDefaultTask
     }
 
@@ -125,15 +125,15 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         _ * instantiator.newInstanceWithDisplayName(TestDefaultTask, _, _) >> { throw new ObjectInstantiationException(TestDefaultTask, failure) }
     }
 
-    static class TestDefaultTask extends DefaultTask {
+    static abstract class TestDefaultTask extends DefaultTask {
     }
 
-    static class DecoratedTask extends TestDefaultTask {
+    static abstract class DecoratedTask extends TestDefaultTask {
     }
 
     static class NotATask {
     }
 
-    static class ExtendsAbstractTask extends AbstractTask {
+    static abstract class ExtendsAbstractTask extends AbstractTask {
     }
 }

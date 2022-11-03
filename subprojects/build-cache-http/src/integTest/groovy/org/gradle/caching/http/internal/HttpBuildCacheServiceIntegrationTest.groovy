@@ -130,7 +130,7 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
     def "non-cacheable task with cache enabled gets cached"() {
         file("input.txt") << "data"
         buildFile << """
-            class NonCacheableTask extends DefaultTask {
+            abstract class NonCacheableTask extends DefaultTask {
                 @InputFile inputFile
                 @OutputFile outputFile
 

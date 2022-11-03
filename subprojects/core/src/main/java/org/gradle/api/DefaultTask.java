@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.specs.Spec;
@@ -35,7 +34,6 @@ import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
-import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 
@@ -257,11 +255,6 @@ public abstract class DefaultTask extends org.gradle.api.internal.AbstractTask i
     @Override
     public TaskDependency getShouldRunAfter() {
         return super.getShouldRunAfter();
-    }
-
-    @Override
-    public Property<Duration> getTimeout() {
-        return super.getTimeout();
     }
 
     @Override

@@ -169,7 +169,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
                 group = 'org.test'
                 version = '1.0'
 
-                class CustomTask extends DefaultTask {
+                abstract class CustomTask extends DefaultTask {
                     @TaskAction def act() {
                         println 'custom task...'
                     }

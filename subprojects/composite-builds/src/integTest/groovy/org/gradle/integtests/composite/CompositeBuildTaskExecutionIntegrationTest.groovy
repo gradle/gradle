@@ -115,7 +115,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractCompositeBuildT
         file('other-build/build.gradle') << """
             tasks.register('doSomething', MyTask)
 
-            class MyTask extends DefaultTask {
+            abstract class MyTask extends DefaultTask {
                 private String content = 'default content'
 
                 @Option(option = "content", description = "Message to print")

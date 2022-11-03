@@ -1464,9 +1464,9 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     SomeTask c = factory.create("c", SomeTask)
     SomeOtherTask d = factory.create("d", SomeOtherTask)
 
-    static class SomeTask extends DefaultTask {}
+    static abstract class SomeTask extends DefaultTask {}
 
-    static class SomeOtherTask extends DefaultTask {}
+    static abstract class SomeOtherTask extends DefaultTask {}
 
     Class<SomeTask> type = SomeTask
     Class<SomeOtherTask> otherType = SomeOtherTask

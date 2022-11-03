@@ -101,7 +101,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
     String cacheableTask() {
         """
             @CacheableTask
-            class CustomTask extends DefaultTask {
+            abstract class CustomTask extends DefaultTask {
 
                 @Input
                 String val = "foo"

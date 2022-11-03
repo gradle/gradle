@@ -19,7 +19,7 @@ package org.gradle.util
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.Internal
 
-class TestTask extends ConventionTask  {
+abstract class TestTask extends ConventionTask  {
     @Internal
     TestTask self
     @Internal
