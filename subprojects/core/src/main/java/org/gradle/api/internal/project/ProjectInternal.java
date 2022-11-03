@@ -48,6 +48,7 @@ import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.util.Path;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
@@ -181,6 +182,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      * Returns a unique path for this project within its containing build.
      */
     @Override
+    @Nonnull
     Path getProjectPath();
 
     /**
