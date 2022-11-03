@@ -42,7 +42,9 @@ Both of the following examples show dependencies in the `testRuntimeClasspath` d
 > gradle -q dependencies --configuration tRC
 ----
 
-To see a list of all the pre-defined configurations added by the `java` plugin, see <<java_plugin.adoc#sec:java_plugin_and_dependency_management,the documentation for the Java Plugin>>.
+To see a list of all the configurations available in a project, including those added by any plugins, you can run a `resolvableConfigurations` report.
+
+For more info, see that plugin's documentation (for instance, the Java Plugin is documented <<java_plugin.adoc#sec:java_plugin_and_dependency_management,here>>).
 
 === Example
 
