@@ -102,7 +102,7 @@ This parameter is optional for projects that use the <<java_plugin#java_plugin, 
 `--single-path` (optional)::
 Render only a single path to the dependency.
 
-The following code snippet demonstrates how to run a dependency insight report for a all paths to a dependency named "commons-codec" within the "scm" configuration:
+The following code snippet demonstrates how to run a dependency insight report for all paths to a dependency named "commons-codec" within the "scm" configuration:
 
 ----
 > gradle -q dependencyInsight --dependency commons-codec --configuration scm
