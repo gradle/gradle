@@ -87,7 +87,7 @@ image::dependency-management-dependency-insight-report-build-scan.png[]
 === Dependency Insights
 
 Gradle provides the built-in `dependencyInsight` task to render a  _dependency insight report_ from the command line.
-Dependency insights provide information about a single <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configuration>> within a single <<command_line_interface#executing_tasks_in_multi_project_builds,project>>.
+Dependency insights provide information about a single dependency within a single <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configuration>>.
 Given a dependency, you can identify the selection reason and origin.
 
 `dependencyInsight` accepts the following parameters:
