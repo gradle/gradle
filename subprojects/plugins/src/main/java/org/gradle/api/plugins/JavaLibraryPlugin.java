@@ -23,7 +23,6 @@ import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import javax.inject.Inject;
 
@@ -58,32 +57,11 @@ public abstract class JavaLibraryPlugin implements Plugin<Project> {
 
         Configuration apiElements = configurations.getByName(sourceSet.getApiElementsConfigurationName());
         jvmEcosystemUtilities.configureClassesDirectoryVariant(apiElements, sourceSet);
-        deprecateConfigurationsForDeclaration(sourceSets, configurations);
     }
 
     private void makeCompileOnlyApiVisibleToTests(ConfigurationContainer configurations) {
         Configuration testCompileOnly = configurations.getByName(TEST_COMPILE_ONLY_CONFIGURATION_NAME);
         Configuration compileOnlyApi = configurations.getByName(COMPILE_ONLY_API_CONFIGURATION_NAME);
         testCompileOnly.extendsFrom(compileOnlyApi);
-    }
-
-    private void deprecateConfigurationsForDeclaration(SourceSetContainer sourceSets, ConfigurationContainer configurations) {
-        SourceSet sourceSet = sourceSets.getByName("main");
-
-        DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getApiElementsConfigurationName());
-        DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getRuntimeElementsConfigurationName());
-        DeprecatableConfiguration compileClasspathConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
-        DeprecatableConfiguration runtimeClasspathConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
-
-        String implementationConfigurationName = sourceSet.getImplementationConfigurationName();
-        String compileOnlyConfigurationName = sourceSet.getCompileOnlyConfigurationName();
-        String runtimeOnlyConfigurationName = sourceSet.getRuntimeOnlyConfigurationName();
-        String apiConfigurationName = sourceSet.getApiConfigurationName();
-
-        apiElementsConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName);
-        runtimeElementsConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
-
-        compileClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName);
-        runtimeClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
     }
 }

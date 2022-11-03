@@ -1029,9 +1029,7 @@ compileClasspath - Compile classpath for source set 'main'.
 """
     }
 
-    def "excludes fully deprecated configurations"() {
-        executer.expectDeprecationWarning()
-
+    def "adding declarations to deprecated configurations for declaration will warn"() {
         given:
         file("settings.gradle") << "include 'a', 'b'"
 
@@ -1039,10 +1037,6 @@ compileClasspath - Compile classpath for source set 'main'.
             subprojects {
                 configurations {
                     compile.deprecateForDeclaration('implementation')
-                    compile.deprecateForConsumption { builder ->
-                        builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
-                    }
-                    compile.deprecateForResolution('compileClasspath')
                     'default' { extendsFrom compile }
                 }
                 group = "group"
@@ -1053,12 +1047,34 @@ compileClasspath - Compile classpath for source set 'main'.
             }
         """
 
-        when:
-        run ":a:dependencies"
+        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use the implementation configuration instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
 
-        then:
-        !output.contains("\ncompile\n")
+        expect:
+        succeeds ':a:dependencies'
     }
+
+    def "adding declarations to invalid configurations for declaration will fail"() {
+        given:
+        file("settings.gradle") << "include 'a', 'b'"
+
+        buildFile << """
+            subprojects {
+                configurations {
+                    compile.canBeDeclaredAgainst = false
+                    'default' { extendsFrom compile }
+                }
+                group = "group"
+                version = 1.0
+            }
+            project(":a") {
+                dependencies { compile project(":b") }
+            }
+        """
+        expect:
+        fails ':a:dependencies'
+        result.assertHasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
+    }
+
 
     void "treats a configuration that is deprecated for resolving as not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
