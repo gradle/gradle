@@ -756,6 +756,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "testing-jvm-infrastructure",
+    "name": "testing-jvm-infrastructure",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "testing-native",
     "name": "testing-native",
     "unitTests": true,

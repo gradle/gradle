@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal
-
-
-import org.gradle.test.fixtures.file.TestFile
-
-
-trait CacheCleanupEnablementFixture {
-
-    void disableCacheCleanup() {
-        gradleUserHomeDir.mkdirs()
-        new File(gradleUserHomeDir, 'gradle.properties') << """
-            ${GradleUserHomeCacheCleanupActionDecorator.CACHE_CLEANUP_PROPERTY}=false
-        """.stripIndent()
-    }
-
-    abstract TestFile getGradleUserHomeDir()
-}
+/**
+ * Classes for configuring cache-related components.
+ */
+package org.gradle.api.cache;
