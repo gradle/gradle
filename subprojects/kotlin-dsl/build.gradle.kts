@@ -74,7 +74,10 @@ dependencies {
     testImplementation(project(":platform-native")) {
         because("BuildType from platform-native is used in ProjectAccessorsClassPathTest")
     }
-    testImplementation(project(":plugins"))
+    testImplementation(project(":plugins")) {
+        because("For JavaPluginConvention and ApplicationPluginConvention")
+    }
+    testImplementation(project(":platform-jvm"))
     testImplementation(project(":version-control"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.ant)

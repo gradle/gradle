@@ -15,6 +15,9 @@ dependencies {
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
     implementation(project(":plugins"))
+    implementation(project(":platform-jvm")) {
+        because("For JvmTestSuitePlugin")
+    }
     implementation(project(":reporting"))
     implementation(project(":file-collections"))
 
