@@ -27,19 +27,17 @@ import org.gradle.internal.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractJUnitTestClassProcessor<T extends AbstractJUnitSpec> implements TestClassProcessor {
+public abstract class AbstractJUnitTestClassProcessor implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractJUnitTestClassProcessor.class);
 
-    protected final T spec;
     protected final IdGenerator<?> idGenerator;
     protected final Clock clock;
     private final ActorFactory actorFactory;
     private Actor resultProcessorActor;
     private Action<String> executor;
 
-    public AbstractJUnitTestClassProcessor(T spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
+    public AbstractJUnitTestClassProcessor(IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         this.idGenerator = idGenerator;
-        this.spec = spec;
         this.actorFactory = actorFactory;
         this.clock = clock;
     }

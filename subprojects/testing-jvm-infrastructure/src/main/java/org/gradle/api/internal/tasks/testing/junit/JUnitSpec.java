@@ -15,22 +15,28 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
+
+import java.io.Serializable;
 import java.util.Set;
 
-public class JUnitSpec extends AbstractJUnitSpec {
+public class JUnitSpec implements Serializable {
+    private final TestFilterSpec filter;
     private final Set<String> includeCategories;
     private final Set<String> excludeCategories;
 
     public JUnitSpec(
+        TestFilterSpec filter,
         Set<String> includeCategories,
-        Set<String> excludeCategories,
-        Set<String> includedTests,
-        Set<String> excludedTests,
-        Set<String> includedTestsCommandLine
+        Set<String> excludeCategories
     ) {
-        super(includedTests, excludedTests, includedTestsCommandLine);
+        this.filter = filter;
         this.includeCategories = includeCategories;
         this.excludeCategories = excludeCategories;
+    }
+
+    public TestFilterSpec getFilter() {
+        return filter;
     }
 
     public Set<String> getIncludeCategories() {
