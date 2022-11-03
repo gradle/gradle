@@ -97,7 +97,7 @@ The dependency to investigate.
 You can supply a complete `group:name`, or part of it.
 If multiple dependencies match, Gradle generates a report covering all matching dependencies.
 `--configuration <name>` (mandatory)::
-The dependency configuration from which to supply the dependency information.
+The dependency configuration which resolves the given dependency.
 This parameter is optional for projects that use the <<java_plugin#java_plugin, Java plugin>>, since the plugin provides a default value of `compileClasspath`.
 `--single-path` (optional)::
 Render only a single path to the dependency.
