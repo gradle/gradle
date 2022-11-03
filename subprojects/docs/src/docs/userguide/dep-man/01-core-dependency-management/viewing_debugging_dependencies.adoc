@@ -15,7 +15,7 @@ You can visualize dependencies with:
 == List Project Dependencies
 
 Gradle provides the built-in `dependencies` task to render a dependency tree from the command line.
-By default, the dependency tree renders dependencies for all <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configurations>>, but only a <<command_line_interface#executing_tasks_in_multi_project_builds,single project>>.
+By default, the dependency tree renders dependencies for all <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configurations>> within a <<command_line_interface#executing_tasks_in_multi_project_builds,single project>>.
 The dependency tree indicates the selected version of each dependency.
 It also displays information about dependency conflict resolution.
 
