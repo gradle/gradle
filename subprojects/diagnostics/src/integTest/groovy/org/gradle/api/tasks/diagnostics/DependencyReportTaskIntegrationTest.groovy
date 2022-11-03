@@ -59,7 +59,7 @@ compile
      |    \\--- project :c (*)
      \\--- project :c (*)
 """
-        output.contains '(*) - Repeat occurrence of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.'
+        output.contains '(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.'
     }
 
     def "marks project dependency that can't be resolved as 'FAILED'"() {
@@ -393,7 +393,7 @@ conf
         run "dependencies"
 
         then:
-        output.contains """(*) - Repeat occurrence of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
+        output.contains """(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
 
 A web-based, searchable dependency report is available by adding the --scan option."""
     }
@@ -1025,7 +1025,7 @@ compileClasspath - Compile classpath for source set 'main'.
      \\--- group:moduleB:1.0
           \\--- group:moduleC:1.0
 
-(c) - This element is a dependency constraint, not a dependency. Look for the matching dependency elsewhere in the tree.
+(c) - A dependency constraint, not a dependency. The dependency affected by the constraint occurs elsewhere in the tree.
 """
     }
 

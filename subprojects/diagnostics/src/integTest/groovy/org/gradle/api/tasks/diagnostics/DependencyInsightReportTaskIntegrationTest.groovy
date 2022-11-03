@@ -2706,7 +2706,7 @@ org:leaf2:1.0
 |         \\--- conf
 \\--- org:top:1.0 (*)
 
-(*) - Repeat occurrence of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
+(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
 
 A web-based, searchable dependency report is available by adding the --scan option.
 """
