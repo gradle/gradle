@@ -21,8 +21,8 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.internal.deprecation.DeprecatableConfiguration
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -33,12 +33,13 @@ class DefaultArtifactHandlerTest extends Specification {
 
     private ConfigurationContainer configurationContainerStub = Mock()
     private NotationParser<Object, PublishArtifact> artifactFactoryStub = Mock()
-    private DeprecatableConfiguration configurationMock = Mock()
+    private ConfigurationInternal configurationMock = Mock()
     private PublishArtifactSet artifactsMock = Mock()
 
     private DefaultArtifactHandler artifactHandler = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultArtifactHandler, configurationContainerStub, artifactFactoryStub)
 
     void setup() {
+        configurationMock.isDeclarableAgainstByExtension() >> true
         configurationContainerStub.findByName(TEST_CONF_NAME) >> configurationMock
         configurationContainerStub.getByName(TEST_CONF_NAME) >> configurationMock
         configurationMock.artifacts >> artifactsMock

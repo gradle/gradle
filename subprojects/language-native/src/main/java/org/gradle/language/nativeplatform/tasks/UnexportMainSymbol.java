@@ -47,7 +47,7 @@ import java.io.IOException;
  * @since 4.4
  */
 @CacheableTask
-public class UnexportMainSymbol extends DefaultTask {
+public abstract class UnexportMainSymbol extends DefaultTask {
     private final ConfigurableFileCollection source = getProject().files();
     private final DirectoryProperty outputDirectory = getProject().getObjects().directoryProperty();
 
