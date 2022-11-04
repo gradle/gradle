@@ -27,7 +27,7 @@ import java.io.File;
  * A task which executes an Ant target.
  */
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
-public class AntTarget extends ConventionTask {
+public abstract class AntTarget extends ConventionTask {
 
     private Target target;
     private File baseDir;

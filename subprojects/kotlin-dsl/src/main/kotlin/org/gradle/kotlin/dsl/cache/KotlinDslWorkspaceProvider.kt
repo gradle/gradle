@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.cache
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.cache.internal.CleanupActionDecorator
+import org.gradle.api.cache.CacheConfigurations
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.internal.execution.workspace.WorkspaceProvider
@@ -33,7 +34,8 @@ class KotlinDslWorkspaceProvider(
     inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
     stringInterner: StringInterner,
     classLoaderHasher: ClassLoaderHierarchyHasher,
-    cleanupActionDecorator: CleanupActionDecorator
+    cleanupActionDecorator: CleanupActionDecorator,
+    cacheConfigurations: CacheConfigurations
 ) : Closeable {
 
     private
@@ -46,7 +48,8 @@ class KotlinDslWorkspaceProvider(
         stringInterner,
         classLoaderHasher,
         2, // scripts and accessors caches sit below the root directory
-        cleanupActionDecorator
+        cleanupActionDecorator,
+        cacheConfigurations
     )
 
     val accessors = subWorkspace("accessors")

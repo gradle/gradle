@@ -42,7 +42,7 @@ import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProj
  *
  * @see <a href="https://gradle.org/help/">Getting additional help with Gradle</a>
  */
-public class HelpTasksPlugin implements Plugin<Project> {
+public abstract class HelpTasksPlugin implements Plugin<Project> {
 
     public static final String HELP_GROUP = "help";
     public static final String PROPERTIES_TASK = "properties";

@@ -19,10 +19,10 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 
-class JavaToolchainIntegrationTest extends AbstractIntegrationSpec {
+class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     def "fails when using an invalid toolchain spec when #description"() {
         buildScript """
@@ -159,12 +159,5 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause("The value for property 'languageVersion' is final and cannot be changed any further")
-    }
-
-    private withInstallations(JvmInstallationMetadata... jdkMetadata) {
-        def installationPaths = jdkMetadata.collect { it.javaHome.toAbsolutePath().toString() }.join(",")
-        executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
-        this
     }
 }

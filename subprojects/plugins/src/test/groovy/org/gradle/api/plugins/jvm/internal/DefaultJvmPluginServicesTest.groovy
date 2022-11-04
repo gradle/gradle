@@ -177,7 +177,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         }
         1 * variant.setDescription(_)
         _ * sourceSet.getOutput() >> output
-        1 * output.getClassesDirs() >> classes
+        1 * output.getClassesDirsInternal() >> classes
         1 * sourceSet.getName()
         0 * _
     }

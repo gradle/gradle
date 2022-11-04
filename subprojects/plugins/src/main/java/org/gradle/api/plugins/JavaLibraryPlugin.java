@@ -37,7 +37,7 @@ import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_
  * @since 3.4
  * @see <a href="https://docs.gradle.org/current/userguide/java_library_plugin.html">Java Library plugin reference</a>
  */
-public class JavaLibraryPlugin implements Plugin<Project> {
+public abstract class JavaLibraryPlugin implements Plugin<Project> {
 
     private final JvmEcosystemUtilities jvmEcosystemUtilities;
 
