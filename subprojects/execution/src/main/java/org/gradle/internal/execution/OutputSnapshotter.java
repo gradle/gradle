@@ -24,6 +24,8 @@ import java.io.File;
 public interface OutputSnapshotter {
     /**
      * Takes a snapshot of the outputs of a work.
+     *
+     * Snapshots of empty outputs are omitted from the returned map.
      */
     ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork work, File workspace)
         throws OutputFileSnapshottingException;

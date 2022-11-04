@@ -112,7 +112,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                 throw new InputFingerprintingException(
                     propertyName,
                     String.format("value '%s' cannot be serialized",
-                    value.getValue()),
+                    actualValue),
                     e);
             }
         }

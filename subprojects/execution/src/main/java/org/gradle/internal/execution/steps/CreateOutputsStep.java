@@ -21,6 +21,7 @@ import org.gradle.internal.file.TreeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 import static org.gradle.util.internal.GFileUtils.mkdirs;
@@ -50,7 +51,11 @@ public class CreateOutputsStep<C extends ChangingOutputsContext, R extends Resul
         return delegate.execute(work, context);
     }
 
-    private static void ensureOutput(String name, File outputRoot, TreeType type) {
+    private static void ensureOutput(String name, @Nullable File outputRoot, TreeType type) {
+        if (outputRoot == null) {
+            LOGGER.debug("Ignoring null output for property {} at {}", name, outputRoot);
+            return;
+        }
         switch (type) {
             case DIRECTORY:
                 LOGGER.debug("Ensuring directory exists for property {} at {}", name, outputRoot);

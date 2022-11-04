@@ -33,6 +33,16 @@ public interface FileSystemSnapshot {
         public SnapshotVisitResult accept(RelativePathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
             return SnapshotVisitResult.CONTINUE;
         }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return "EMPTY";
+        }
     };
 
     /**
@@ -48,4 +58,9 @@ public interface FileSystemSnapshot {
      * The walk is depth first.
      */
     SnapshotVisitResult accept(RelativePathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor);
+
+    /**
+     * Returns whether the snapshot is empty.
+     */
+    boolean isEmpty();
 }

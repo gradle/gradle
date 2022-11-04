@@ -30,8 +30,10 @@ import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.TreeType;
 import org.gradle.util.internal.DeferredUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -107,6 +109,23 @@ public class OutputUnpacker extends PropertyVisitor.Adapter {
         boolean locationOnly,
         Consumer<OutputFilePropertySpec> consumer
     ) {
+        if (filePropertyType == OutputFilePropertyType.DIRECTORIES || filePropertyType == OutputFilePropertyType.FILES) {
+            // Eagerly unpack the value, because we need to create one property per root
+            Object unpackedValue = unpackValue(value, locationOnly);
+            if (unpackedValue == null) {
+                return;
+            }
+            resolveCompositeOutputFilePropertySpecs(ownerDisplayName, propertyName, unpackedValue, filePropertyType.getOutputType(), fileCollectionFactory, consumer);
+        } else {
+            FileCollectionInternal outputFiles = fileCollectionFactory.resolving((Callable<Object>) () -> unpackValue(value, locationOnly));
+            DefaultCacheableOutputFilePropertySpec filePropertySpec = new DefaultCacheableOutputFilePropertySpec(propertyName, null, outputFiles, filePropertyType.getOutputType());
+            consumer.accept(filePropertySpec);
+        }
+    }
+
+    @Nullable
+    // From here on, we already unpacked providers, so we can fail if any of the file collections contains a provider which is not present.
+    private static Object unpackValue(PropertyValue value, boolean locationOnly) {
         Object unpackedValue = value.call();
         unpackedValue = DeferredUtil.unpackNestableDeferred(unpackedValue);
         if (locationOnly && unpackedValue instanceof FileSystemLocationProperty) {
@@ -115,17 +134,7 @@ public class OutputUnpacker extends PropertyVisitor.Adapter {
         if (unpackedValue instanceof Provider) {
             unpackedValue = ((Provider<?>) unpackedValue).getOrNull();
         }
-        if (unpackedValue == null) {
-            return;
-        }
-        // From here on, we already unpacked providers, so we can fail if any of the file collections contains a provider which is not present.
-        if (filePropertyType == OutputFilePropertyType.DIRECTORIES || filePropertyType == OutputFilePropertyType.FILES) {
-            resolveCompositeOutputFilePropertySpecs(ownerDisplayName, propertyName, unpackedValue, filePropertyType.getOutputType(), fileCollectionFactory, consumer);
-        } else {
-            FileCollectionInternal outputFiles = fileCollectionFactory.resolving(unpackedValue);
-            DefaultCacheableOutputFilePropertySpec filePropertySpec = new DefaultCacheableOutputFilePropertySpec(propertyName, null, outputFiles, filePropertyType.getOutputType());
-            consumer.accept(filePropertySpec);
-        }
+        return unpackedValue;
     }
 
     private static void resolveCompositeOutputFilePropertySpecs(final String ownerDisplayName, final String propertyName, Object unpackedValue, final TreeType outputType, FileCollectionFactory fileCollectionFactory, Consumer<OutputFilePropertySpec> consumer) {

@@ -61,6 +61,12 @@ public class CompositeFileSystemSnapshot implements FileSystemSnapshot {
         return SnapshotVisitResult.CONTINUE;
     }
 
+    @Override
+    public boolean isEmpty() {
+        return snapshots.stream()
+            .allMatch(FileSystemSnapshot::isEmpty);
+    }
+
     public boolean equals(Object o) {
         if (this == o) {
             return true;

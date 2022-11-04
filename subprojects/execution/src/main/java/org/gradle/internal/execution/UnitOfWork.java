@@ -33,7 +33,6 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
@@ -330,7 +329,6 @@ public interface UnitOfWork extends Describable {
 
         public static OutputFileValueSupplier fromStatic(File root, FileCollection fileCollection) {
             return new OutputFileValueSupplier(fileCollection) {
-                @Nonnull
                 @Override
                 public File getValue() {
                     return root;
@@ -340,7 +338,6 @@ public interface UnitOfWork extends Describable {
 
         public static OutputFileValueSupplier fromSupplier(Supplier<File> root, FileCollection fileCollection) {
             return new OutputFileValueSupplier(fileCollection) {
-                @Nonnull
                 @Override
                 public File getValue() {
                     return root.get();
@@ -348,7 +345,6 @@ public interface UnitOfWork extends Describable {
             };
         }
 
-        @Nonnull
         @Override
         abstract public File getValue();
 

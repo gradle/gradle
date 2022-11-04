@@ -74,6 +74,9 @@ public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R exten
                 @Override
                 public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
                     File root = value.getValue();
+                    if (root == null) {
+                        return;
+                    }
                     switch (type) {
                         case FILE:
                             File parentFile = root.getParentFile();
@@ -111,7 +114,7 @@ public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R exten
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
                 File root = value.getValue();
-                if (root.exists()) {
+                if (root != null && root.exists()) {
                     try {
                         switch (type) {
                             case FILE:

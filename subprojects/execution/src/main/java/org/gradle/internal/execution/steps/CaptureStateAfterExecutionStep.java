@@ -81,7 +81,10 @@ public class CaptureStateAfterExecutionStep<C extends InputChangesContext> exten
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
             public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
-                builder.add(value.getValue().getAbsolutePath());
+                File root = value.getValue();
+                if (root != null) {
+                    builder.add(root.getAbsolutePath());
+                }
             }
 
             @Override
