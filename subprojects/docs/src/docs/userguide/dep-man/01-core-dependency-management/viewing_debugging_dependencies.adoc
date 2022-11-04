@@ -178,6 +178,9 @@ This can also be followed by a `because` text.
 
 | Rejection: version <version>: <attributes information>
 | The dependency has a dynamic version, and some versions did not match the <<variant_model#sec:variant-aware-matching, requested attributes>>.
+
+| Forced
+| The build <<dependency_downgrade_and_exclude#forced_dependencies_vs_strict_dependencies, enforces>> the version of the dependency.
 |===
 
 Note that if multiple selection reasons exist in the graph, they will all be listed.
