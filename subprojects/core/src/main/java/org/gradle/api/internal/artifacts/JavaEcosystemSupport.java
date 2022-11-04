@@ -39,11 +39,28 @@ import org.gradle.api.internal.attributes.DescribableAttributesSchema;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
 public abstract class JavaEcosystemSupport {
+    /**
+     * The Java API of a library, packaged as a JAR only. Must not include classes directories.
+     *
+     * Available for compatibility with previously published modules.  Should <strong>NOT</strong> be used for new publishing.
+     * No plans for permanent removal.
+     */
+    @Deprecated
+    private static final String DEPRECATED_JAVA_API_JARS = "java-api-jars";
+
+    /**
+     * The Java runtime of a component, packaged as JAR only. Must not include classes directories.
+     *
+     * Available for compatibility with previously published modules.  Should <strong>NOT</strong> be used for new publishing.
+     * No plans for permanent removal.
+     */
+    @Deprecated
+    private static final String DEPRECATED_JAVA_RUNTIME_JARS = "java-runtime-jars";
+
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         configureUsage(attributesSchema, objectFactory);
         configureLibraryElements(attributesSchema, objectFactory);
@@ -98,7 +115,9 @@ public abstract class JavaEcosystemSupport {
             @Override
             public void execute(ActionConfiguration actionConfiguration) {
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API));
+                actionConfiguration.params(objectFactory.named(Usage.class, DEPRECATED_JAVA_API_JARS));
                 actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+                actionConfiguration.params(objectFactory.named(Usage.class, DEPRECATED_JAVA_RUNTIME_JARS));
             }
         });
     }
@@ -113,19 +132,24 @@ public abstract class JavaEcosystemSupport {
 
     @VisibleForTesting
     public static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
-        private final Usage javaApi;
-        private final Usage javaRuntime;
+        final Usage javaApi;
+        final Usage javaRuntime;
+        final Usage javaApiJars;
+        final Usage javaRuntimeJars;
 
-        private final Set<Usage> apiVariants;
-        private final Set<Usage> runtimeVariants;
+        final ImmutableSet<Usage> apiVariants;
+        final ImmutableSet<Usage> runtimeVariants;
 
         @Inject
         UsageDisambiguationRules(Usage javaApi,
-                                 Usage javaRuntime) {
+                                 Usage javaRuntime,
+                                 ObjectFactory objectFactory) {
             this.javaApi = javaApi;
-            this.apiVariants = Collections.singleton(javaApi);
+            this.javaApiJars = objectFactory.named(Usage.class, DEPRECATED_JAVA_API_JARS);
+            this.apiVariants = ImmutableSet.of(javaApi, javaApiJars);
             this.javaRuntime = javaRuntime;
-            this.runtimeVariants = Collections.singleton(javaRuntime);
+            this.javaRuntimeJars = objectFactory.named(Usage.class, DEPRECATED_JAVA_RUNTIME_JARS);
+            this.runtimeVariants = ImmutableSet.of(javaRuntime, javaRuntimeJars);
         }
 
         @Override
@@ -133,18 +157,29 @@ public abstract class JavaEcosystemSupport {
             Set<Usage> candidateValues = details.getCandidateValues();
             Usage consumerValue = details.getConsumerValue();
             if (consumerValue == null) {
-                if (candidateValues.contains(javaRuntime)) {
+                if (candidateValues.contains(javaRuntimeJars)) {
+                    // Use the Jars when nothing has been requested
+                    details.closestMatch(javaRuntimeJars);
+                } else if (candidateValues.contains(javaRuntime)) {
                     // Use the runtime when nothing has been requested
                     details.closestMatch(javaRuntime);
                 }
             } else {
                 if (javaRuntime.equals(consumerValue)) {
-                    if (candidateValues.contains(javaRuntime)) {
+                    // we're asking for a runtime variant, prefer -jars first
+                    if (candidateValues.contains(javaRuntimeJars)) {
+                        details.closestMatch(javaRuntimeJars);
+                    } else if (candidateValues.contains(javaRuntime)) {
                         details.closestMatch(javaRuntime);
                     }
                 } else if (javaApi.equals(consumerValue)) {
-                    if (candidateValues.contains(javaApi)) {
+                    // we're asking for an API variant, prefer -jars first for runtime
+                    if (candidateValues.contains(javaApiJars)) {
+                        details.closestMatch(javaApiJars);
+                    } else if (candidateValues.contains(javaApi)) {
                         details.closestMatch(javaApi);
+                    } else if (candidateValues.contains(javaRuntimeJars)) {
+                        details.closestMatch(javaRuntimeJars);
                     } else if (candidateValues.contains(javaRuntime)) {
                         details.closestMatch(javaRuntime);
                     }
@@ -157,7 +192,11 @@ public abstract class JavaEcosystemSupport {
 
     @VisibleForTesting
     public static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage>, ReusableAction {
-        private static final Set<String> COMPATIBLE_WITH_JAVA_API = Collections.singleton(Usage.JAVA_RUNTIME);
+        private static final Set<String> COMPATIBLE_WITH_JAVA_API = ImmutableSet.of(
+                DEPRECATED_JAVA_API_JARS,
+                DEPRECATED_JAVA_RUNTIME_JARS,
+                Usage.JAVA_RUNTIME
+        );
         @Override
         public void execute(CompatibilityCheckDetails<Usage> details) {
             String consumerValue = details.getConsumerValue().getName();
@@ -166,6 +205,10 @@ public abstract class JavaEcosystemSupport {
                 if (COMPATIBLE_WITH_JAVA_API.contains(producerValue)) {
                     details.compatible();
                 }
+                return;
+            }
+            if (consumerValue.equals(Usage.JAVA_RUNTIME) && producerValue.equals(DEPRECATED_JAVA_RUNTIME_JARS)) {
+                details.compatible();
                 return;
             }
         }
