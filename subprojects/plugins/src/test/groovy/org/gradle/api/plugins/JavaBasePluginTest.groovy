@@ -436,7 +436,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         given:
         JavaEcosystemSupport.UsageDisambiguationRules rules = new JavaEcosystemSupport.UsageDisambiguationRules(
                 usage(Usage.JAVA_API),
-                usage(Usage.JAVA_RUNTIME)
+                usage(Usage.JAVA_RUNTIME),
+                TestUtil.objectFactory()
         )
         MultipleCandidatesDetails details = new DefaultMultipleCandidateResult(usage(consumer), candidates.collect { usage(it)} as Set)
 
