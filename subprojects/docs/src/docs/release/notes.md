@@ -81,7 +81,10 @@ In Java projects, these tools will use the same version of Java required by the 
 
 #### CodeNarc Plugin automatically detects appropriate version for current Groovy runtime
 
-The [CodeNarc](https://codenarc.org/) project now publishes separate versions for use with Groovy 4.  Although Gradle still currently ships with Groovy 3, to ensure future compatibility the [CodeNarcPlugin](userguide/codenarc_plugin.html) will now by default automatically detect the appropriate version of CodeNarc to use for the current Groovy runtime.  The `toolVersion` property on the [CodeNarcExtension](current/dsl/org.gradle.api.plugins.quality.CodeNarcExtension.html#org.gradle.api.plugins.quality.CodeNarcExtension) can still be used to explicitly specify the version of CodeNarc to use.
+The [CodeNarc](https://codenarc.org/) project now publishes separate versions for use with Groovy 4.
+Gradle still currently ships with Groovy 3.
+To ensure future compatibility, the [CodeNarcPlugin](userguide/codenarc_plugin.html) now automatically detects the appropriate version of CodeNarc for the current Groovy runtime.
+You can still explicitly specify a CodeNarc version with the `toolVersion` property on the [CodeNarcExtension](current/dsl/org.gradle.api.plugins.quality.CodeNarcExtension.html#org.gradle.api.plugins.quality.CodeNarcExtension).
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
