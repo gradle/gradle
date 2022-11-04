@@ -16,7 +16,6 @@
 
 package org.gradle.testing
 
-import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.HtmlTestExecutionResult
 
@@ -379,8 +378,26 @@ public class SomeIntegTestClass {
                includeTags 'fast'
            }
         }
-        
-        assert integTest.options instanceof JUnitPlatformOptions 
+
+        assert integTest.options instanceof JUnitPlatformOptions
+        """.stripMargin()
+
+        expect:
+        succeeds "help"
+    }
+
+    def "can set built-in test task to use the same framework it was using after setting options"() {
+        given:
+        buildFile << """
+        test {
+           useJUnit()
+           options {
+               includeCategories 'fast'
+           }
+           useJUnit()
+        }
+
+        assert test.options instanceof JUnitOptions
         """.stripMargin()
 
         expect:

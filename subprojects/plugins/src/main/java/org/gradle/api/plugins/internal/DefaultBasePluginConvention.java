@@ -22,11 +22,14 @@ import org.gradle.api.plugins.BasePluginExtension;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 
+import javax.inject.Inject;
+
 @Deprecated
-public class DefaultBasePluginConvention extends BasePluginConvention implements HasPublicType {
+public abstract class DefaultBasePluginConvention extends BasePluginConvention implements HasPublicType {
 
     private BasePluginExtension extension;
 
+    @Inject
     public DefaultBasePluginConvention(BasePluginExtension extension) {
         this.extension = extension;
     }

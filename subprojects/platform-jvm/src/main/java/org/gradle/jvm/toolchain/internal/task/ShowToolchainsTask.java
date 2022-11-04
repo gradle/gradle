@@ -42,7 +42,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 @UntrackedTask(because = "Produces only non-cacheable console output")
-public class ShowToolchainsTask extends DefaultTask {
+public abstract class ShowToolchainsTask extends DefaultTask {
 
     private static final Comparator<ReportableToolchain> TOOLCHAIN_COMPARATOR = Comparator
         .<ReportableToolchain, String>comparing(t -> t.metadata.getDisplayName())

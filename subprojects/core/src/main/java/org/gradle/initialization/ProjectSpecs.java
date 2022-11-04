@@ -24,12 +24,12 @@ import java.io.File;
 class ProjectSpecs {
 
     static ProjectSpec forStartParameter(StartParameter startParameter, SettingsInternal settings) {
-        File explicitProjectDir = startParameter.getProjectDir();
         @SuppressWarnings("deprecation")
         File explicitBuildFile = startParameter.getBuildFile();
         if (explicitBuildFile != null) {
             return new BuildFileProjectSpec(explicitBuildFile);
         }
+        File explicitProjectDir = startParameter.getProjectDir();
         if (explicitProjectDir != null) {
             return new ProjectDirectoryProjectSpec(explicitProjectDir);
         }

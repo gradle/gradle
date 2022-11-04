@@ -19,13 +19,13 @@ package org.gradle.api.internal.tasks.scala
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec
 import org.gradle.api.internal.tasks.compile.ForkingJavaCompileSpec
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
@@ -51,7 +51,7 @@ class DefaultScalaJavaJointCompileSpecFactoryTest extends Specification {
         metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
         metadata.isCurrentJvm() >> (Jvm.current().javaHome == javaHome)
 
-        CompileOptions options = new CompileOptions(Mock(ObjectFactory))
+        CompileOptions options = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
         options.fork = fork
         DefaultScalaJavaJointCompileSpecFactory factory = new DefaultScalaJavaJointCompileSpecFactory(options, metadata)
 
