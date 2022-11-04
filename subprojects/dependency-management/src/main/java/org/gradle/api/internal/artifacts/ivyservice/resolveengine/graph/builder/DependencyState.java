@@ -146,7 +146,6 @@ class DependencyState {
         if (!ruleDescriptors.isEmpty()) {
             addRuleDescriptors(reasons);
         }
-
         if (isDependencyForced()) {
             maybeAddReason(reasons, FORCED);
         }
