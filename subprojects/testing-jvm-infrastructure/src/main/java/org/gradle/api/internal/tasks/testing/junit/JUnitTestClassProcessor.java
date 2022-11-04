@@ -24,10 +24,13 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 
-public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor<JUnitSpec> {
+public class JUnitTestClassProcessor extends AbstractJUnitTestClassProcessor {
+
+    private final JUnitSpec spec;
 
     public JUnitTestClassProcessor(JUnitSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
-        super(spec, idGenerator, actorFactory, clock);
+        super(idGenerator, actorFactory, clock);
+        this.spec = spec;
     }
 
     @Override
