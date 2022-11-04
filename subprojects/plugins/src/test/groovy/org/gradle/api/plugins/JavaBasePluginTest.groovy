@@ -18,7 +18,6 @@ package org.gradle.api.plugins
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
-import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
@@ -37,7 +36,6 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Issue
 

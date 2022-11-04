@@ -70,9 +70,7 @@ public class JUnitTestFramework implements TestFramework {
     @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         return new JUnitTestClassProcessorFactory(new JUnitSpec(
-            options.getIncludeCategories(), options.getExcludeCategories(),
-            filter.getIncludePatterns(), filter.getExcludePatterns(),
-            filter.getCommandLineIncludePatterns()));
+            filter.toSpec(), options.getIncludeCategories(), options.getExcludeCategories()));
     }
 
     @Override

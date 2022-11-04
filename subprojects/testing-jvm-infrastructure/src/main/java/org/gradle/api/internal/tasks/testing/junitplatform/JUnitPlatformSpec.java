@@ -15,32 +15,36 @@
  */
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
-import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitSpec;
+import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class JUnitPlatformSpec extends AbstractJUnitSpec {
+public class JUnitPlatformSpec implements Serializable {
+    private final TestFilterSpec filter;
     private final Set<String> includeEngines;
     private final Set<String> excludeEngines;
     private final Set<String> includeTags;
     private final Set<String> excludeTags;
 
     public JUnitPlatformSpec(
-        Set<String> includedTests,
-        Set<String> excludedTests,
-        Set<String> includedTestsCommandLine,
+        TestFilterSpec filter,
         Set<String> includeEngines,
         Set<String> excludeEngines,
         Set<String> includeTags,
         Set<String> excludeTags
     ) {
-        super(includedTests, excludedTests, includedTestsCommandLine);
+        this.filter = filter;
         this.includeEngines = includeEngines;
         this.excludeEngines = excludeEngines;
         this.includeTags = includeTags;
         this.excludeTags = excludeTags;
+    }
+
+    public TestFilterSpec getFilter() {
+        return filter;
     }
 
     public List<String> getIncludeEngines() {
