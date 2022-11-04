@@ -53,7 +53,7 @@ public class PmdExtension extends CodeQualityExtension {
         this.incrementalAnalysis = project.getObjects().property(Boolean.class).convention(true);
         this.maxFailures = project.getObjects().property(Integer.class).convention(0);
         this.threads = project.getObjects().property(Integer.class).convention(1);
-        this.languageName = project.getObjects().property(String.class).convention("java");
+        this.languageName = project.getObjects().property(String.class);
         this.languageVersion = project.getObjects().property(String.class);
     }
 
@@ -252,7 +252,7 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * The language name used by PMD.
      *
-     * @since 7.7
+     * @since 8.0
      */
     @Incubating
     public Property<String> getLanguageName() {
@@ -262,7 +262,7 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * The language version used by PMD.
      *
-     * @since 7.7
+     * @since 8.0
      */
     @Incubating
     public Property<String> getLanguageVersion() {

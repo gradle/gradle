@@ -335,33 +335,68 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         failure.assertHasFailures(2)
     }
 
-    def "only defining a language name does nothing"() {
+    def "gets reasonable message when only languageName is specified from extension"() {
         given:
         goodCode()
         buildFile << """
             pmd {
-                languageName = "unsupportedLanguageName"
+                languageName = "languageNameExample"
             }
         """
 
         expect:
-        succeeds("check")
+        // Use --continue so that when executing in parallel mode a deterministic set of tests run
+        // without --continue, sometimes both pmd tasks are run and sometimes only the only one task is run
+        fails("check", "--continue")
+        failure.assertHasCause("Invalid language declaration.  Both 'languageName' and 'languageVersion' should be specified.")
+        // pmdMain and pmdTest
+        failure.assertHasFailures(2)
     }
 
-    def "only defining a language version uses 'java' as default language name"() {
+    def "gets reasonable message when only languageName is specified from task"() {
         given:
         goodCode()
         buildFile << """
-            pmd {
-                languageVersion = "unsupportedLanguageVersion"
+            pmdMain {
+                languageName = "languageNameExample"
             }
         """
 
         expect:
         fails("check")
-        failure.assertHasCause("The following language is not supported:<sourceLanguage name=\"java\" version=\"unsupportedLanguageVersion\" />.")
+        failure.assertHasCause("Invalid language declaration.  Both 'languageName' and 'languageVersion' should be specified.")
+    }
+
+    def "gets reasonable message when only languageVersion is specified from extension"() {
+        given:
+        goodCode()
+        buildFile << """
+            pmd {
+                languageVersion = "languageVersionExample"
+            }
+        """
+
+        expect:
+        // Use --continue so that when executing in parallel mode a deterministic set of tests run
+        // without --continue, sometimes both pmd tasks are run and sometimes only the only one task is run
+        fails("check", "--continue")
+        failure.assertHasCause("Invalid language declaration.  Both 'languageName' and 'languageVersion' should be specified.")
         // pmdMain and pmdTest
         failure.assertHasFailures(2)
+    }
+
+    def "gets reasonable message when only languageVersion is specified from task"() {
+        given:
+        goodCode()
+        buildFile << """
+            pmdMain {
+                languageVersion = "languageVersionExample"
+            }
+        """
+
+        expect:
+        fails("check")
+        failure.assertHasCause("Invalid language declaration.  Both 'languageName' and 'languageVersion' should be specified.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")

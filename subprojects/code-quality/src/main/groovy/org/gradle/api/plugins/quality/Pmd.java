@@ -140,8 +140,12 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     public void run() {
         validate(rulesMinimumPriority.get());
         validateThreads(threads.get());
+        validateLanguageIsCorrectlyConfigured();
 
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
+            if (languageRequiresPreviewFeatures()) {
+                spec.getForkOptions().jvmArgs("--enable-preview");
+            }
             spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
             spec.getClasspath().from(getPmdClasspath());
         });
@@ -228,6 +232,24 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
         if (value < 0) {
             throw new InvalidUserDataException(String.format("Invalid number of threads '%d'.  Number should not be negative.", value));
         }
+    }
+
+    /**
+     * Validates that both the PMD language name and version are set.
+     */
+    private void validateLanguageIsCorrectlyConfigured() {
+        if (languageName.isPresent() != languageVersion.isPresent()) {
+            throw new InvalidUserDataException("Invalid language declaration.  Both 'languageName' and 'languageVersion' should be specified.");
+        }
+    }
+
+    /**
+     * Checks if the language version is a preview version.
+     */
+    private boolean languageRequiresPreviewFeatures() {
+        return languageVersion
+            .map(version -> version.contains("-preview"))
+            .getOrElse(false);
     }
 
     /**
@@ -496,9 +518,10 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * Specifies the language name used by PMD.
      *
      * @see PmdExtension#getLanguageName()
-     * @since 7.7
+     * @since 8.0
      */
     @Input
+    @Optional
     @Incubating
     public Property<String> getLanguageName() {
         return languageName;
@@ -508,7 +531,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * Specifies the language version used by PMD.
      *
      * @see PmdExtension#getLanguageVersion()
-     * @since 7.7
+     * @since 8.0
      */
     @Input
     @Optional
