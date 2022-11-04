@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
+import org.gradle.api.attributes.CompileView;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.internal.Cast;
@@ -80,6 +81,13 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
     @Override
     public ProjectDependency project() {
         return getDependencyFactory().create(getCurrentProject());
+    }
+
+    @Override
+    public ProjectDependency projectInternalView() {
+        return (ProjectDependency) project().attributes(attrs -> {
+            attrs.attribute(CompileView.VIEW_ATTRIBUTE, getObjectFactory().named(CompileView.class, CompileView.JAVA_INTERNAL));
+        });
     }
 
     @Override
