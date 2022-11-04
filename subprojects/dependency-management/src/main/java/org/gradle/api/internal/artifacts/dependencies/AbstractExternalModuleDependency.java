@@ -135,6 +135,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
      * @return this
      */
     public AbstractExternalModuleDependency setForceForEnforcedPlatform(boolean force) {
+        validateMutation(this.force, force);
         this.force = force;
         return this;
     }
