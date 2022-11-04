@@ -77,9 +77,7 @@
             </tr>
             <tr>
                 <td>languageName</td>
-                <td>
-                    <literal>"java"</literal>
-                </td>
+                <td></td>
             </tr>
             <tr>
                 <td>languageVersion</td>
