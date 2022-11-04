@@ -27,7 +27,7 @@ import javax.inject.Inject;
  * Makes sure no stale resources remain in the target directory.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class ProcessResources extends Copy {
+public abstract class ProcessResources extends Copy {
 
     @Override
     protected void copy() {

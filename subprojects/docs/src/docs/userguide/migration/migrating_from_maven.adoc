@@ -15,7 +15,7 @@
 [[migrating_from_maven]]
 = Migrating Builds From Apache Maven
 
-TIP: Suffering from slow Maven builds? https://gradle.com/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up Maven builds by up to 90%.
+TIP: Suffering from slow Maven builds? https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up Maven builds by up to 90%.
 
 https://maven.apache.org[Apache Maven] is a build tool for Java and other JVM-based projects that's in widespread use, and so people that want to use Gradle often have to migrate an existing Maven build.
 This guide will help with such a migration by explaining the differences and similarities between the two tools' models and providing steps that you can follow to ease the process.

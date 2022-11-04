@@ -337,7 +337,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         private void visitOutputDir(OutputVisitor visitor, File workspace, String propertyName) {
             File dir = new File(workspace, propertyName);
-            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, new OutputFileValueSupplier(dir, fileCollectionFactory.fixed(dir)));
+            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, OutputFileValueSupplier.fromStatic(dir, fileCollectionFactory.fixed(dir)));
         }
     }
 

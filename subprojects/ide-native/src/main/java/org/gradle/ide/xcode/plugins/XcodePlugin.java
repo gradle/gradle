@@ -81,7 +81,7 @@ import java.io.File;
  *
  * @since 4.2
  */
-public class XcodePlugin extends IdePlugin {
+public abstract class XcodePlugin extends IdePlugin {
     private final GidGenerator gidGenerator;
     private final ObjectFactory objectFactory;
     private final IdeArtifactRegistry artifactRegistry;

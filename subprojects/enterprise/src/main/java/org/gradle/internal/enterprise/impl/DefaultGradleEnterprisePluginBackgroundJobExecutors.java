@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise.impl;
 
-import org.gradle.internal.classpath.Instrumented;
+import org.gradle.configurationcache.InputTrackingState;
 import org.gradle.internal.concurrent.ExecutorPolicy;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.ManagedExecutorImpl;
@@ -25,6 +25,7 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nonnull;
+import javax.inject.Inject;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -35,6 +36,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @ServiceScope(Scopes.Gradle.class)
 public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements GradleEnterprisePluginBackgroundJobExecutors {
     private final ManagedExecutor executorService = createExecutor();
+    private final InputTrackingState inputTrackingState;
 
     private static ManagedExecutor createExecutor() {
         ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(
@@ -48,21 +50,26 @@ public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements Grad
         return new ManagedExecutorImpl(poolExecutor, new ExecutorPolicy.CatchAndRecordFailures());
     }
 
+    @Inject
+    public DefaultGradleEnterprisePluginBackgroundJobExecutors(InputTrackingState inputTrackingState) {
+        this.inputTrackingState = inputTrackingState;
+    }
+
     @Override
     public Executor getUserJobExecutor() {
         return this::executeUserJob;
     }
 
     private void executeUserJob(Runnable job) {
-        executorService.execute(() -> executeWithoutConfigurationInputTracking(job));
+        executorService.execute(() -> runWithInputTrackingDisabled(job));
     }
 
-    private static void executeWithoutConfigurationInputTracking(Runnable job) {
-        Instrumented.disableListenerForCurrentThread();
+    private void runWithInputTrackingDisabled(Runnable job) {
+        inputTrackingState.disableForCurrentThread();
         try {
             job.run();
         } finally {
-            Instrumented.restoreListenerForCurrentThread();
+            inputTrackingState.restoreForCurrentThread();
         }
     }
 

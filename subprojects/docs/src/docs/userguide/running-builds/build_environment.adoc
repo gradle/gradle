@@ -15,7 +15,7 @@
 [[build_environment]]
 = Build Environment
 
-TIP: Interested in configuring your Build Cache to speed up builds? https://gradle.com/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn some of the tips and tricks top engineering teams are using to increase build speed.
+TIP: Interested in configuring your Build Cache to speed up builds? https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn some of the tips and tricks top engineering teams are using to increase build speed.
 
 [.lead]
 Gradle provides multiple mechanisms for configuring behavior of Gradle itself and specific projects. The following is a reference for using these mechanisms.

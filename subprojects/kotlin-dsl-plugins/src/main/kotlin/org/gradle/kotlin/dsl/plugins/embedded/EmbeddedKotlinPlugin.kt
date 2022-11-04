@@ -37,7 +37,7 @@ import javax.inject.Inject
  * Applies the `org.jetbrains.kotlin.jvm` plugin,
  * adds compile only and test implementation dependencies on `kotlin-stdlib` and `kotlin-reflect`.
  */
-class EmbeddedKotlinPlugin @Inject internal constructor(
+abstract class EmbeddedKotlinPlugin @Inject internal constructor(
     private val embeddedKotlin: EmbeddedKotlinProvider
 ) : Plugin<Project> {
 

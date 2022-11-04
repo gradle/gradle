@@ -39,8 +39,10 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.api.tasks.javadoc.GroovydocAccess;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.JavaToolchain;
 
 import javax.inject.Inject;
 import java.util.function.BiFunction;
@@ -53,7 +55,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/groovy_plugin.html">Groovy plugin reference</a>
  */
-public class GroovyBasePlugin implements Plugin<Project> {
+public abstract class GroovyBasePlugin implements Plugin<Project> {
     public static final String GROOVY_RUNTIME_EXTENSION_NAME = "groovyRuntime";
 
     private final ObjectFactory objectFactory;
@@ -102,7 +104,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     @SuppressWarnings("deprecation")
     private void configureSourceSetDefaults() {
         javaPluginExtension().getSourceSets().all(sourceSet -> {
-            final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
+            final DefaultGroovySourceSet groovySourceSet = objectFactory.newInstance(DefaultGroovySourceSet.class, "groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
             addSourceSetExtension(sourceSet, groovySourceSet);
 
             final SourceDirectorySet groovySource = groovySourceSet.getGroovy();
@@ -120,7 +122,9 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 JvmPluginsHelper.configureForSourceSet(sourceSet, groovySource, compile, compile.getOptions(), project);
                 compile.setDescription("Compiles the " + sourceSet.getName() + " Groovy source.");
                 compile.setSource(groovySource);
-                compile.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
+                Provider<JavaLauncher> javaLauncherConvention = getToolchainTool(project, JavaToolchainService::launcherFor)
+                    .map(it -> ((JavaToolchain) it.getMetadata()).isFallbackToolchain() ? null : it);
+                compile.getJavaLauncher().convention(javaLauncherConvention);
                 compile.getGroovyOptions().getDisabledGlobalASTTransformations().convention(Sets.newHashSet("groovy.grape.GrabAnnotationTransformation"));
             });
 
