@@ -33,19 +33,36 @@ public class OkTest {
         assertSame(ClassLoader.getSystemClassLoader(), getClass().getClassLoader());
         assertSame(getClass().getClassLoader(), Thread.currentThread().getContextClassLoader());
         boolean isJava9 = Boolean.parseBoolean(System.getProperty("isJava9"));
-        String classPathString = System.getProperty("java.class.path");
-        String expectedClassPathString = System.getProperty("expectedClassPath");
+        String[] splitTestRuntimeClasspath = splitClasspath(System.getProperty("testRuntimeClasspath"));
         if (isJava9) {
-            String[] splitClasspath = splitClasspath(classPathString);
-            String workerJar = splitClasspath[0];
-            String[] classpathWithoutWorkerJar = Arrays.copyOfRange(splitClasspath, 1, splitClasspath.length);
+            String[] splitCliClasspath = splitClasspath(System.getProperty("java.class.path"));
+
+            // The worker jar is first on the classpath.
+            String workerJar = splitCliClasspath[0];
             assertTrue(workerJar + " is the worker jar", workerJar.contains("gradle-worker.jar"));
-            assertEquals(splitClasspath(expectedClassPathString), classpathWithoutWorkerJar);
+
+            // In between, we expect the test runtime classpath.
+            String[] filteredCliClasspath = Arrays.copyOfRange(splitCliClasspath, 1, splitCliClasspath.length - 1);
+            assertEquals(splitTestRuntimeClasspath, filteredCliClasspath);
+
+            // We inject our own junit jar from the distribution on the end of the classpath.
+            String distributionJUnitJar = splitCliClasspath[splitCliClasspath.length - 1];
+            assertTrue(distributionJUnitJar + " is the injected junit jar", distributionJUnitJar.endsWith("junit-4.13.2.jar"));
         } else {
-            assertEquals(expectedClassPathString, classPathString);
-            List<URL> expectedClassPath = buildExpectedClassPath(expectedClassPathString);
-            List<URL> actualClassPath = buildActualClassPath();
-            assertEquals(expectedClassPath, actualClassPath);
+            List<URL> systemClasspath = Arrays.asList(((URLClassLoader) ClassLoader.getSystemClassLoader()).getURLs());
+
+            // The worker jar is first on the classpath.
+            String workerJar = systemClasspath.get(0).getPath();
+            assertTrue(workerJar + " is the worker jar", workerJar.endsWith("gradle-worker.jar"));
+
+            // In between, we expect the test runtime classpath.
+            List<URL> filteredSystemClasspath = systemClasspath.subList(1, systemClasspath.size() - 1);
+            List<URL> testRuntimeClasspath = getTestRuntimeClasspath(splitTestRuntimeClasspath);
+            assertEquals(testRuntimeClasspath, filteredSystemClasspath);
+
+            // We inject our own junit jar from the distribution on the end of the classpath.
+            String distributionJUnitJar = systemClasspath.get(systemClasspath.size() - 1).getPath();
+            assertTrue(distributionJUnitJar + " is the injected junit jar", distributionJUnitJar.endsWith("junit-4.13.2.jar"));
         }
 
         // check Gradle and impl classes not visible
@@ -75,15 +92,9 @@ public class OkTest {
         });
     }
 
-    private List<URL> buildActualClassPath() {
-        List<URL> urls = Arrays.asList(((URLClassLoader) ClassLoader.getSystemClassLoader()).getURLs());
-        return urls.subList(1, urls.size());
-    }
-
-    private List<URL> buildExpectedClassPath(String expectedClassPath) throws MalformedURLException {
-        String[] paths = splitClasspath(expectedClassPath);
+    public List<URL> getTestRuntimeClasspath(String[] splitTestRuntimeClasspath) throws MalformedURLException {
         List<URL> urls = new ArrayList<URL>();
-        for (String path : paths) {
+        for (String path : splitTestRuntimeClasspath) {
             urls.add(new File(path).toURI().toURL());
         }
         return urls;

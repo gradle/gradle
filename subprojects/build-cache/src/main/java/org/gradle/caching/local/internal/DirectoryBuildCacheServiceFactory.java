@@ -99,7 +99,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     }
 
     private LeastRecentlyUsedCacheCleanup createCleanupAction(int removeUnusedEntriesAfterDays) {
-        return new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, removeUnusedEntriesAfterDays);
+        return new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, () -> removeUnusedEntriesAfterDays);
     }
 
     private static void checkDirectory(File directory) {

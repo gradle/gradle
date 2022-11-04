@@ -55,7 +55,7 @@ import static org.gradle.internal.serialization.Transient.varOf;
  * @since 1.4
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class PublishToMavenRepository extends AbstractPublishToMaven {
+public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
     private final Transient.Var<DefaultMavenArtifactRepository> repository = varOf();
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
     private final Property<Credentials> credentials = getProject().getObjects().property(Credentials.class);

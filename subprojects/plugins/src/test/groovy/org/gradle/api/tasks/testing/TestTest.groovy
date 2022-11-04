@@ -36,7 +36,6 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
-import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher
 import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
 import org.gradle.jvm.toolchain.internal.JavaToolchain
@@ -237,7 +236,7 @@ class TestTest extends AbstractConventionTaskTest {
         metadata.getLanguageVersion() >> Jvm.current().javaVersion
         metadata.getCapabilities() >> Collections.emptySet()
         metadata.getJavaHome() >> Jvm.current().javaHome.toPath()
-        def toolchain = new JavaToolchain(metadata, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory), TestFiles.fileFactory(), Mock(JavaToolchainInput), Stub(BuildOperationProgressEventEmitter))
+        def toolchain = new JavaToolchain(metadata, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory), TestFiles.fileFactory(), Mock(JavaToolchainInput), false, Stub(BuildOperationProgressEventEmitter))
         def launcher = new DefaultToolchainJavaLauncher(toolchain)
 
         when:
@@ -245,17 +244,6 @@ class TestTest extends AbstractConventionTaskTest {
 
         then:
         test.getJavaVersion() == Jvm.current().javaVersion
-    }
-
-    def "cannot set executable and toolchain launcher at the same time"() {
-        when:
-        test.javaLauncher.set(Mock(JavaLauncher))
-        test.executable = "something"
-        test.createTestExecutionSpec()
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == "Must not use `executable` property on `Test` together with `javaLauncher` property"
     }
 
     private void assertIsDirectoryTree(FileTreeInternal classFiles, Set<String> includes, Set<String> excludes) {
