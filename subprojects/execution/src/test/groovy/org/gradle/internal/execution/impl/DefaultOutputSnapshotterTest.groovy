@@ -39,7 +39,7 @@ class DefaultOutputSnapshotterTest extends Specification {
     def root = workspace.file("root")
 
     def "snapshots outputs"() {
-        def outputSnapshot = Mock(FileSystemSnapshot)
+        def outputSnapshot = Stub(FileSystemSnapshot)
 
         when:
         def result = outputSnapshotter.snapshotOutputs(work, workspace)
