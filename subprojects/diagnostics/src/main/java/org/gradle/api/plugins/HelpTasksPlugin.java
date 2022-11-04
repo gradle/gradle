@@ -25,6 +25,7 @@ import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask;
 import org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
@@ -78,6 +79,11 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
         tasks.register(PROPERTIES_TASK, PropertyReportTask.class, new PropertyReportTaskAction(projectName));
         tasks.register(DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask.class, new DependencyInsightReportTaskAction(projectName));
         tasks.register(DEPENDENCIES_TASK, DependencyReportTask.class, new DependencyReportTaskAction(projectName));
+
+        tasks.withType(AbstractDependencyReportTask.class).configureEach(task -> {
+            task.getShowDeclared().convention(false);
+        });
+
         tasks.register(BuildEnvironmentReportTask.TASK_NAME, BuildEnvironmentReportTask.class, new BuildEnvironmentReportTaskAction(projectName));
         registerDeprecatedTasks(tasks, projectName);
         tasks.register(OUTGOING_VARIANTS_TASK, OutgoingVariantsReportTask.class, task -> {

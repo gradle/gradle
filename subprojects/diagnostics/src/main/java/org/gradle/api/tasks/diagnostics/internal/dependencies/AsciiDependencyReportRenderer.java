@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.dependencies;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
@@ -58,7 +59,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
     void prepareVisit() {
         hasConfigs = false;
         renderer = new GraphRenderer(getTextOutput());
-        dependencyGraphRenderer = new DependencyGraphsRenderer(getTextOutput(), renderer, NodeRenderer.NO_OP, new SimpleNodeRenderer());
+        dependencyGraphRenderer = new DependencyGraphsRenderer(getTextOutput(), renderer, NodeRenderer.NO_OP, new SimpleNodeRenderer(), false);
     }
 
     @Override
@@ -96,7 +97,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
 
     void renderNow(RenderableDependency root) {
         if (root.getChildren().isEmpty()) {
-            getTextOutput().withStyle(Info).text("No dependencies");
+            getTextOutput().text("No dependencies");
             getTextOutput().println();
             return;
         }
@@ -110,10 +111,16 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
             dependencyGraphRenderer.complete();
         }
 
-        getTextOutput().println();
-        getTextOutput().text("A web-based, searchable dependency report is available by adding the ");
-        getTextOutput().withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
-        getTextOutput().println(" option.");
+        StyledTextOutput output = getTextOutput();
+        output.println();
+        DocumentationRegistry documentationRegistry = new DocumentationRegistry(); // TODO: Inject this
+        output.append("For more details on viewing and debugging your project's dependencies, see ");
+        output.withStyle(UserInput).append(documentationRegistry.getDocumentationFor("viewing_debugging_dependencies"));
+        output.println();
+        output.println();
+        output.text("A web-based, searchable dependency report is available by adding the ");
+        output.withStyle(UserInput).format("--%s", StartParameterBuildOptions.BuildScanOption.LONG_OPTION);
+        output.println(" option.");
 
         super.complete();
     }
@@ -130,9 +137,6 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
         public void execute(StyledTextOutput styledTextOutput) {
             getTextOutput().withStyle(Identifier).text(configuration.getName());
             getTextOutput().withStyle(Description).text(getDescription(configuration));
-            if (!configuration.isCanBeResolved()) {
-                getTextOutput().withStyle(Info).text(" (n)");
-            }
         }
 
         private String getDescription(ConfigurationDetails configuration) {

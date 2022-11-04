@@ -44,7 +44,7 @@ public abstract class AbstractRenderableDependency implements RenderableDependen
 
     @Override
     public ResolutionState getResolutionState() {
-        return ResolutionState.UNRESOLVED;
+        return ResolutionState.DECLARED;
     }
 
     @Override

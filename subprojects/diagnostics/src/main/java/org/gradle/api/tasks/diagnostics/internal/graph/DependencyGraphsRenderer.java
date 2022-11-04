@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics.internal.graph;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
-import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
@@ -37,21 +36,14 @@ public class DependencyGraphsRenderer {
     private final NodeRenderer rootRenderer;
     private final NodeRenderer dependenciesRenderer;
     private final LegendRenderer legendRenderer;
-    private boolean showSinglePath;
+    private final boolean showSinglePath;
 
-    public DependencyGraphsRenderer(StyledTextOutput output, GraphRenderer renderer, NodeRenderer rootRenderer, NodeRenderer dependenciesRenderer) {
+    public DependencyGraphsRenderer(StyledTextOutput output, GraphRenderer renderer, NodeRenderer rootRenderer, NodeRenderer dependenciesRenderer, boolean showSinglePath) {
         this.output = output;
         this.renderer = renderer;
         this.rootRenderer = rootRenderer;
         this.dependenciesRenderer = dependenciesRenderer;
         this.legendRenderer = new LegendRenderer(output);
-    }
-
-    public boolean isShowSinglePath() {
-        return showSinglePath;
-    }
-
-    public void setShowSinglePath(boolean showSinglePath) {
         this.showSinglePath = showSinglePath;
     }
 
@@ -68,9 +60,6 @@ public class DependencyGraphsRenderer {
     }
 
     private void renderRoot(final RenderableDependency root) {
-        if (root instanceof UnresolvableConfigurationResult) {
-            legendRenderer.setHasUnresolvableConfigurations(true);
-        }
         if (rootRenderer != NodeRenderer.NO_OP) {
             renderNode(root, true, false, rootRenderer);
         }
@@ -100,22 +89,16 @@ public class DependencyGraphsRenderer {
         // Do a shallow render of any constraint edges, and do not mark the node as visited.
         if (node.getResolutionState() == RenderableDependency.ResolutionState.RESOLVED_CONSTRAINT) {
             renderNode(node, last, false, dependenciesRenderer);
-            legendRenderer.setHasConstraints(true);
             return;
         }
 
         final boolean alreadyRendered = !visited.add(node.getId());
-        if (alreadyRendered) {
-            legendRenderer.setHasCyclicDependencies(true);
-        }
-
         renderNode(node, last, alreadyRendered, dependenciesRenderer);
 
         if (!alreadyRendered) {
             Set<? extends RenderableDependency> children = node.getChildren();
             renderChildren(children, visited);
         }
-
     }
 
     private void renderNode(final RenderableDependency node, final boolean isLast, final boolean isDuplicate, final NodeRenderer dependenciesRenderer) {

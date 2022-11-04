@@ -25,7 +25,7 @@ class DependencyGraphRendererSpec extends Specification {
 
     private textOutput = new TestStyledTextOutput().ignoreStyle()
     private graphRenderer = new GraphRenderer(textOutput)
-    private renderer = new DependencyGraphsRenderer(textOutput, graphRenderer, NodeRenderer.NO_OP, new SimpleNodeRenderer())
+    private renderer = new DependencyGraphsRenderer(textOutput, graphRenderer, NodeRenderer.NO_OP, new SimpleNodeRenderer(), showSinglePath)
 
     def "renders graph"() {
         def root = new SimpleDependency("root")

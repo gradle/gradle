@@ -42,6 +42,6 @@ public interface RenderableDependency {
         FAILED,
         RESOLVED,
         RESOLVED_CONSTRAINT,
-        UNRESOLVED
+        DECLARED
     }
 }

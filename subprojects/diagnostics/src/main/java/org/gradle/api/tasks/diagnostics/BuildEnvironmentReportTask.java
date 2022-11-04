@@ -68,7 +68,7 @@ public abstract class BuildEnvironmentReportTask extends DefaultTask {
     private BuildEnvironmentReportModel calculateReportModel() {
         return new BuildEnvironmentReportModel(
             ProjectDetails.of(getProject()),
-            ConfigurationDetails.of(classpathConfiguration())
+            ConfigurationDetails.of(classpathConfiguration(), false)
         );
     }
 

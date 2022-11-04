@@ -26,8 +26,8 @@ import javax.annotation.Nullable;
 
 public class ConfigurationDetails {
 
-    public static ConfigurationDetails of(Configuration configuration) {
-        boolean canBeResolved = canBeResolved(configuration);
+    public static ConfigurationDetails of(Configuration configuration, boolean onlyDeclared) {
+        boolean canBeResolved = !onlyDeclared && canBeResolved(configuration);
         return new ConfigurationDetails(
             configuration.getName(),
             configuration.getDescription(),

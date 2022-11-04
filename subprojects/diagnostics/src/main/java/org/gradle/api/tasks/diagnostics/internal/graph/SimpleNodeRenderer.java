@@ -25,21 +25,24 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 public class SimpleNodeRenderer implements NodeRenderer {
     @Override
     public void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered) {
-        output.text(node.getName());
         switch (node.getResolutionState()) {
             case FAILED:
+                output.text(node.getName());
                 output.withStyle(Failure).text(" FAILED");
                 break;
             case RESOLVED:
+                output.text(node.getName());
                 if (alreadyRendered && !node.getChildren().isEmpty()) {
                     output.withStyle(Info).text(" (*)");
                 }
                 break;
             case RESOLVED_CONSTRAINT:
-                output.withStyle(Info).text(" (c)");
+                output.withStyle(Info).text("constraint ");
+                output.text(node.getName());
                 break;
-            case UNRESOLVED:
-                output.withStyle(Info).text(" (n)");
+            case DECLARED:
+                output.withStyle(Info).text("declared ");
+                output.text(node.getName());
                 break;
         }
     }

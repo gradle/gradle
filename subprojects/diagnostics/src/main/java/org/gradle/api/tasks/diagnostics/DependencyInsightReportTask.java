@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ResolvableDependenciesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
@@ -289,6 +290,9 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected abstract DocumentationRegistry getDocumentationRegistry();
+
     /**
      * An injected {@link ImmutableAttributesFactory}.
      *
@@ -313,6 +317,12 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
         }
         errorHandler.renderErrors(output);
         renderSelectedDependencies(output, selectedDependencies);
+
+        output.append("For more details on viewing and debugging your project's dependencies, see ");
+        output.withStyle(UserInput).append(getDocumentationRegistry().getDocumentationFor("viewing_debugging_dependencies"));
+        output.println();
+        output.println();
+
         renderBuildScanHint(output);
     }
 
@@ -322,8 +332,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
         Collection<RenderableDependency> itemsToRender = reporter.convertToRenderableItems(selectedDependencies, isShowSinglePathToDependency());
         RootDependencyRenderer rootRenderer = new RootDependencyRenderer(this, configurationAttributes, getAttributesFactory());
         ReplaceProjectWithConfigurationNameRenderer dependenciesRenderer = new ReplaceProjectWithConfigurationNameRenderer(configurationName);
-        DependencyGraphsRenderer dependencyGraphRenderer = new DependencyGraphsRenderer(output, renderer, rootRenderer, dependenciesRenderer);
-        dependencyGraphRenderer.setShowSinglePath(showSinglePathToDependency);
+        DependencyGraphsRenderer dependencyGraphRenderer = new DependencyGraphsRenderer(output, renderer, rootRenderer, dependenciesRenderer, showSinglePathToDependency);
         dependencyGraphRenderer.render(itemsToRender);
         dependencyGraphRenderer.complete();
     }
@@ -421,9 +430,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
                     break;
                 case RESOLVED:
                 case RESOLVED_CONSTRAINT:
-                    break;
-                case UNRESOLVED:
-                    out.withStyle(Failure).text(" (n)");
+                case DECLARED:
                     break;
             }
             printVariantDetails(out, dependency);

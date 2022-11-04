@@ -20,6 +20,8 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.ConfigurationFinder;
@@ -82,7 +84,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
         sortedConfigurations.addAll(getReportConfigurations());
         List<ConfigurationDetails> configurationDetails = new ArrayList<>(sortedConfigurations.size());
         for (Configuration configuration : sortedConfigurations) {
-            configurationDetails.add(ConfigurationDetails.of(configuration));
+            configurationDetails.add(ConfigurationDetails.of(configuration, getShowDeclared().get()));
         }
         return new DependencyReportModel(configurationDetails);
     }
@@ -130,11 +132,21 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
         this.configurations = Collections.singleton(ConfigurationFinder.find(getTaskConfigurations(), configurationName));
     }
 
+    @Input
+    @Option(option="show-declared", description="Shows only the declared dependencies")
+    public abstract Property<Boolean> getShowDeclared();
+
     private Set<Configuration> getNonDeprecatedTaskConfigurations() {
         Set<Configuration> filteredConfigurations = new HashSet<>();
         for (Configuration configuration : getTaskConfigurations()) {
-            if (((ConfigurationInternal)configuration).isDeclarableAgainstByExtension()) {
-                filteredConfigurations.add(configuration);
+            if (getShowDeclared().get()) {
+                if (((ConfigurationInternal)configuration).isDeclarableAgainstByExtension()) {
+                    filteredConfigurations.add(configuration);
+                }
+            } else {
+                if (configuration.isCanBeResolved()) {
+                    filteredConfigurations.add(configuration);
+                }
             }
         }
         return filteredConfigurations;
