@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray
 import com.alibaba.fastjson.JSONObject
 import common.Os
 import configurations.FunctionalTest
+import configurations.ParallelizationMethod
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
@@ -109,7 +110,7 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
             val firstAvailableBucketIndex = indexOfFirst { it is SmallSubprojectBucket }
             val firstSmallSubprojectsBucket = get(firstAvailableBucketIndex) as SmallSubprojectBucket
 
-            set(firstAvailableBucketIndex, SmallSubprojectBucket(firstSmallSubprojectsBucket.subprojects + unknownSubprojects, firstSmallSubprojectsBucket.enableTestDistribution))
+            set(firstAvailableBucketIndex, SmallSubprojectBucket(firstSmallSubprojectsBucket.subprojects + unknownSubprojects, firstSmallSubprojectsBucket.parallelizationMethod))
         }
 
     override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage): List<FunctionalTest> {
@@ -128,7 +129,7 @@ class GradleVersionRangeCrossVersionTestBucket(private val startInclusive: Strin
             "${testCoverage.asName()} for gradle ($startInclusive <= gradle <$endExclusive)",
             testCoverage,
             stage,
-            enableTestDistribution = testCoverage.os == Os.LINUX,
+            if (testCoverage.os == Os.LINUX) ParallelizationMethod.TestDistributionParallization else null,
             emptyList(),
             extraParameters = "-PonlyTestGradleVersion=$startInclusive-$endExclusive"
         )
@@ -167,7 +168,6 @@ class LargeSubprojectSplitBucket(
             testCoverage,
             stage,
             subprojects = listOf(subproject.name),
-            enableTestDistribution = false,
             extraParameters = if (include) "-PincludeTestClasses=true -x ${subproject.name}:test" else "-PexcludeTestClasses=true", // Only run unit test in last bucket
             preBuildSteps = prepareTestClassesStep(testCoverage.os)
         )
@@ -210,11 +210,10 @@ type test-splits\$action-test-classes.properties
     }
 }
 
-class SmallSubprojectBucket(
+data class SmallSubprojectBucket(
     val subprojects: List<GradleSubproject>,
-    val enableTestDistribution: Boolean
+    val parallelizationMethod: ParallelizationMethod?
 ) : BuildTypeBucket {
-    constructor(subproject: GradleSubproject, enableTestDistribution: Boolean) : this(listOf(subproject), enableTestDistribution)
 
     val name = truncateName(subprojects.joinToString(","))
 
@@ -234,7 +233,7 @@ class SmallSubprojectBucket(
             getDescription(testCoverage),
             testCoverage,
             stage,
-            enableTestDistribution,
+            parallelizationMethod,
             subprojects.map { it.name }
         )
 

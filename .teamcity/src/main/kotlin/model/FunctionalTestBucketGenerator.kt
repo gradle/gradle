@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject
 import com.alibaba.fastjson.serializer.SerializerFeature
 import common.Os
 import common.VersionedSettingsBranch
+import configurations.ParallelizationMethod
 import java.io.File
 import java.util.LinkedList
 
@@ -81,24 +82,27 @@ data class FunctionalTestBucketWithSplitClasses(
 
 data class MultipleSubprojectsFunctionalTestBucket(
     val subprojects: List<String>,
-    val enableTD: Boolean
+    val parallelizationMethod: ParallelizationMethod?
 ) : FunctionalTestBucket {
     constructor(jsonObject: JSONObject) : this(
         jsonObject.getJSONArray("subprojects").map { it.toString() },
-        jsonObject.getBoolean("enableTD")
+        when (jsonObject.getBoolean("enableTD")) {
+            true -> ParallelizationMethod.TestDistributionParallization
+            false -> null
+        }
     )
 
     override fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): BuildTypeBucket {
         return SmallSubprojectBucket(
             subprojects.map { gradleSubprojectProvider.getSubprojectByName(it)!! },
-            enableTD
+            parallelizationMethod
         )
     }
 }
 
 fun BuildTypeBucket.toJsonBucket(): FunctionalTestBucket {
     return when (this) {
-        is SmallSubprojectBucket -> MultipleSubprojectsFunctionalTestBucket(subprojects.map { it.name }, enableTestDistribution)
+        is SmallSubprojectBucket -> MultipleSubprojectsFunctionalTestBucket(subprojects.map { it.name }, parallelizationMethod)
         is LargeSubprojectSplitBucket -> FunctionalTestBucketWithSplitClasses(subproject.name, number, classes.map { it.toPropertiesLine() }, include)
         else -> throw IllegalStateException("Unsupported type: ${this.javaClass}")
     }
@@ -115,7 +119,7 @@ class SubprojectTestClassTime(
             listOf(
                 SmallSubprojectBucket(
                     listOf(subProject),
-                    enableTestDistribution
+
                 )
             )
         } else {
