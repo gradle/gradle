@@ -114,10 +114,10 @@ The JaCoCo Report Aggregation plugin adds the following dependency configuration
 | Consumes the project dependencies from the `jacocoAggregation` configuration to collect all `main-source` variants.  Prevents external libraries' classes from being included in the aggregated results.
 | `allCodeCoverageReportClassDirectories`
 | Consumes the project dependencies from the `jacocoAggregation` configuration to collect all classes directories.  Prevents external libraries' classes from being included in the aggregated results.
-| `__testReportName__ExecutionData`
+| `codeCoverageReportExecutionData`
 | Consumes the project dependencies from the `jacocoAggregation` configuration using <<variant_model#sec:variant-aware-matching,variant-aware matching>> to find the appropriate test suite type.
 |===
 
 It is not necessary to explicitly add dependencies to the `jacocoAggregation` configuration if the project also applies the `jvm-test-suite` plugin.
 
-Note the `__testReportName__ExecutionData` and `allCodeCoverageReport*Directories` configurations may display resolution errors for external dependencies, as these do not expose code coverage data.  This is expected behavior and does not affect the outcome of the build or code coverage aggregation process.
+Note the `codeCoverageReportExecutionData` and `allCodeCoverageReport*Directories` configurations may display resolution errors for external dependencies, as these do not expose code coverage data.  This is expected behavior and does not affect the outcome of the build or code coverage aggregation process.

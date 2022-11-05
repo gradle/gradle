@@ -359,18 +359,20 @@ Artifacts
                 visible = false
                 canBeResolved = true
                 canBeConsumed = false
-                extendsFrom(configurations.implementation)
-                attributes {
-                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
-                    attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType, VerificationType.TEST_RESULTS))
-                }
             }
+            testDataConfig.dependencies.add(project.dependencies.create(project))
+            project.services.get(org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities).configureAsRuntimeClasspath(testDataConfig)
 
             def testResolve = tasks.register('testResolve') {
                 doLast {
                     def artifactView = testDataConfig.incoming.artifactView { view ->
+                        view.withVariantReselection()
                         view.componentFilter { it in ProjectComponentIdentifier }
                         view.lenient = true
+                        view.attributes {
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
+                            attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType, VerificationType.TEST_RESULTS))
+                        }
                     }.files
                     assert artifactView.files.containsAll([project(':direct').tasks["test"].binaryResultsDirectory.get().asFile,
                                                            project(':transitive').tasks["test"].binaryResultsDirectory.get().asFile])
