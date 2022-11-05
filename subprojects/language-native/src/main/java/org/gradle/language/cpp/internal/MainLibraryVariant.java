@@ -24,8 +24,8 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
 
 import java.util.LinkedHashSet;
@@ -53,8 +53,8 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
     }
 
     @Override
-    public Set<? extends UsageContext> getUsages() {
-        return ImmutableSet.of(new DefaultUsageContext(name, attributeContainer, artifacts, dependencies));
+    public Set<SoftwareComponentVariant> getAllVariants() {
+        return ImmutableSet.of(new DefaultSoftwareComponentVariant(name, attributeContainer, artifacts, dependencies));
     }
 
     @Override

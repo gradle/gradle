@@ -21,11 +21,11 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.component.PublishableComponent
 import org.gradle.api.component.SoftwareComponent
+import org.gradle.api.component.SoftwareComponentVariant
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.component.SoftwareComponentInternal
-import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
@@ -411,22 +411,22 @@ class NativeBasePluginTest extends Specification {
     }
 
     def "adds Maven publications for component with main publication"() {
-        def usage1 = Stub(UsageContext)
+        def componentVariant1 = Stub(SoftwareComponentVariant)
         def artifact1 = Stub(PublishArtifact)
         artifact1.getFile() >> projectDir.file("artifact1")
-        usage1.artifacts >> [artifact1]
+        componentVariant1.artifacts >> [artifact1]
         def variant1 = Stub(PublishableVariant)
         variant1.name >> "debug"
-        variant1.usages >> [usage1]
+        variant1.allVariants >> [componentVariant1]
         variant1.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_debug", "1.2")
 
-        def usage2 = Stub(UsageContext)
+        def componentVariant2 = Stub(SoftwareComponentVariant)
         def artifact2 = Stub(PublishArtifact)
         artifact2.getFile() >> projectDir.file("artifact1")
-        usage2.artifacts >> [artifact2]
+        componentVariant2.artifacts >> [artifact2]
         def variant2 = Stub(PublishableVariant)
         variant2.name >> "release"
-        variant2.usages >> [usage2]
+        variant2.allVariants >> [componentVariant2]
         variant2.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_release", "1.2")
 
         def doNotPublish = Stub(SoftwareComponentInternal)

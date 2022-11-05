@@ -22,12 +22,12 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -113,24 +113,24 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
     }
 
     @Override
-    public Set<? extends UsageContext> getUsages() {
+    public Set<SoftwareComponentVariant> getAllVariants() {
         Configuration linkElements = getLinkElements().get();
         Configuration runtimeElements = getRuntimeElements().get();
         // TODO: Does a static library really have any runtime elements?
         return Sets.newHashSet(
-            new DefaultUsageContext(getIdentity().getLinkUsageContext(), linkElements.getAllArtifacts(), linkElements),
-            new DefaultUsageContext(getIdentity().getRuntimeUsageContext(), runtimeElements.getAllArtifacts(), runtimeElements)
+            new DefaultSoftwareComponentVariant(getIdentity().getLinkVariant(), linkElements.getAllArtifacts(), linkElements),
+            new DefaultSoftwareComponentVariant(getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements)
         );
     }
 
     @Override
     public AttributeContainer getLinkAttributes() {
-        return getIdentity().getLinkUsageContext().getAttributes();
+        return getIdentity().getLinkVariant().getAttributes();
     }
 
     @Override
     public AttributeContainer getRuntimeAttributes() {
-        return getIdentity().getRuntimeUsageContext().getAttributes();
+        return getIdentity().getRuntimeVariant().getAttributes();
     }
 
     @Override

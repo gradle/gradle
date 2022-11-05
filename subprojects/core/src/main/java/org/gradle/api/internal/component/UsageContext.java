@@ -19,7 +19,22 @@ package org.gradle.api.internal.component;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.SoftwareComponentVariant;
 
+/**
+ * Currently used by the kotlin plugins.
+ *
+ * @deprecated Use {@link SoftwareComponentVariant}. This class is scheduled for removal in Gradle 9.0.
+ */
+@Deprecated
 public interface UsageContext extends SoftwareComponentVariant {
+
+    /**
+     * Currently used by the kotlin plugins.
+     *
+     * @deprecated This class is scheduled for removal in Gradle 9.0.
+     */
     @Deprecated
-    Usage getUsage(); // kept for backwards compatibility of plugins (like kotlin-multiplatform) using internal APIs
+    default Usage getUsage(){
+        throw new UnsupportedOperationException("This method has been deprecated, should never be called");
+    }
+
 }

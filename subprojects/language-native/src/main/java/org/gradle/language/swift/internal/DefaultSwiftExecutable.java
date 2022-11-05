@@ -20,18 +20,18 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.language.cpp.internal.DefaultUsageContext;
+import org.gradle.language.cpp.internal.DefaultSoftwareComponentVariant;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
@@ -129,13 +129,13 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
     }
 
     @Override
-    public Set<? extends UsageContext> getUsages() {
+    public Set<SoftwareComponentVariant> getAllVariants() {
         Configuration runtimeElements = runtimeElementsProperty.get();
-        return Collections.singleton(new DefaultUsageContext(getIdentity().getRuntimeUsageContext(), runtimeElements.getAllArtifacts(), runtimeElements));
+        return Collections.singleton(new DefaultSoftwareComponentVariant(getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements));
     }
 
     @Override
     public AttributeContainer getRuntimeAttributes() {
-        return getIdentity().getRuntimeUsageContext().getAttributes();
+        return getIdentity().getRuntimeVariant().getAttributes();
     }
 }

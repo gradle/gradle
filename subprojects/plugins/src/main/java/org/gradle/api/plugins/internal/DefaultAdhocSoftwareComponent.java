@@ -18,13 +18,14 @@ package org.gradle.api.plugins.internal;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.ConfigurationVariantDetails;
+import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.java.usagecontext.ConfigurationVariantMapping;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -48,7 +49,11 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
 
     @Override
     public void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> spec) {
-        variants.put(outgoingConfiguration, new ConfigurationVariantMapping((ConfigurationInternal) outgoingConfiguration, spec, instantiator));
+        ConfigurationVariantMapping mapping = new ConfigurationVariantMapping((ConfigurationInternal) outgoingConfiguration, spec, instantiator);
+        if (variants.put(outgoingConfiguration, mapping) != null) {
+            throw new GradleException("Mapping for configuration '" + outgoingConfiguration.getName() +
+                "' already exists. Use 'withVariantsFromConfiguration' to modify this configuration's variants");
+        }
     }
 
     @Override
@@ -60,10 +65,10 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     }
 
     @Override
-    public Set<? extends UsageContext> getUsages() {
-        ImmutableSet.Builder<UsageContext> builder = new ImmutableSet.Builder<>();
+    public Set<SoftwareComponentVariant> getAllVariants() {
+        ImmutableSet.Builder<SoftwareComponentVariant> builder = new ImmutableSet.Builder<>();
         for (ConfigurationVariantMapping variant : variants.values()) {
-            variant.collectUsageContexts(builder);
+            variant.collectVariants(builder);
         }
         return builder.build();
     }

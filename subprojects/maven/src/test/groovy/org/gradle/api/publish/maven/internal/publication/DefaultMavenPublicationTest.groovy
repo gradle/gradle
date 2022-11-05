@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Category
 import org.gradle.api.component.ComponentWithVariants
+import org.gradle.api.component.SoftwareComponentVariant
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
@@ -35,7 +36,6 @@ import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
-import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.internal.PublicationArtifactInternal
 import org.gradle.api.publish.internal.PublicationInternal
@@ -223,12 +223,12 @@ class DefaultMavenPublicationTest extends Specification {
         artifact2.file >> artifactFile
         artifact2.classifier >> ""
         artifact2.extension >> "jar"
-        def usage1 = Stub(UsageContext) { getName() >> 'api' }
-        usage1.artifacts >> [artifact1]
-        def usage2 = Stub(UsageContext) { getName() >> 'runtime' }
-        usage2.artifacts >> [artifact2]
+        def variant1 = Stub(SoftwareComponentVariant) { getName() >> 'api' }
+        variant1.artifacts >> [artifact1]
+        def variant2 = Stub(SoftwareComponentVariant) { getName() >> 'runtime' }
+        variant2.artifacts >> [artifact2]
         def component = Stub(SoftwareComponentInternal)
-        component.usages >> [usage1, usage2]
+        component.allVariants >> [variant1, variant2]
         def mavenArtifact = Mock(MavenArtifact)
         mavenArtifact.file >> artifactFile
         notationParser.parseNotation(artifact1) >> mavenArtifact
@@ -594,13 +594,13 @@ class DefaultMavenPublicationTest extends Specification {
     }
 
     def createComponent(def artifacts, def dependencies, def scope) {
-        def usage = Stub(UsageContext) {
+        def variant = Stub(SoftwareComponentVariant) {
             getName() >> scope
             getArtifacts() >> artifacts
             getDependencies() >> dependencies
         }
         def component = Stub(SoftwareComponentInternal) {
-            getUsages() >> [usage]
+            getAllVariants() >> [variant]
         }
         return component
     }

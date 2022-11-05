@@ -22,17 +22,17 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.plugins.internal.AbstractUsageContext;
+import org.gradle.api.plugins.internal.AbstractSoftwareComponentVariant;
 
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.Set;
 
 public class WebApplication implements SoftwareComponentInternal {
-    private final UsageContext webArchiveUsage;
+    private final SoftwareComponentVariant variant;
     private final PublishArtifact warArtifact;
     private final String variantName;
 
@@ -40,7 +40,7 @@ public class WebApplication implements SoftwareComponentInternal {
     public WebApplication(PublishArtifact warArtifact, String variantName, AttributeContainer attributes) {
         this.warArtifact = warArtifact;
         this.variantName = variantName;
-        this.webArchiveUsage = new WebArchiveUsageContext(attributes);
+        this.variant = new WebArchiveVariant(attributes);
     }
 
     @Override
@@ -49,12 +49,12 @@ public class WebApplication implements SoftwareComponentInternal {
     }
 
     @Override
-    public Set<UsageContext> getUsages() {
-        return Collections.singleton(webArchiveUsage);
+    public Set<SoftwareComponentVariant> getAllVariants() {
+        return Collections.singleton(variant);
     }
 
-    private class WebArchiveUsageContext extends AbstractUsageContext {
-        public WebArchiveUsageContext(AttributeContainer attributes) {
+    private class WebArchiveVariant extends AbstractSoftwareComponentVariant {
+        public WebArchiveVariant(AttributeContainer attributes) {
             super(((AttributeContainerInternal)attributes).asImmutable(), Collections.singleton(warArtifact));
         }
 

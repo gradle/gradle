@@ -24,30 +24,30 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.plugins.internal.AbstractUsageContext;
+import org.gradle.api.plugins.internal.AbstractSoftwareComponentVariant;
 import org.gradle.internal.Cast;
 
 import java.util.Collections;
 import java.util.Set;
 
-public class DefaultUsageContext extends AbstractUsageContext implements Named {
+public class DefaultSoftwareComponentVariant extends AbstractSoftwareComponentVariant implements Named {
     private final String name;
     private final Set<? extends ModuleDependency> dependencies;
     private final Set<? extends DependencyConstraint> dependencyConstraints;
     private final Set<ExcludeRule> globalExcludes;
 
-    public DefaultUsageContext(UsageContext usageContext, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
-        this(usageContext.getName(), usageContext.getAttributes(), artifacts, configuration);
+    public DefaultSoftwareComponentVariant(SoftwareComponentVariant base, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
+        this(base.getName(), base.getAttributes(), artifacts, configuration);
     }
 
-    public DefaultUsageContext(String name, AttributeContainer attributes) {
+    public DefaultSoftwareComponentVariant(String name, AttributeContainer attributes) {
         this(name, attributes, null, null);
     }
 
-    public DefaultUsageContext(String name, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
+    public DefaultSoftwareComponentVariant(String name, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
         super(((AttributeContainerInternal)attributes).asImmutable(), Cast.uncheckedCast(artifacts));
         this.name = name;
         if (configuration != null) {

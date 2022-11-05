@@ -30,14 +30,14 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.Set;
 
-public abstract class AbstractConfigurationUsageContext extends AbstractUsageContext {
+public abstract class AbstractConfigurationVariant extends AbstractSoftwareComponentVariant {
     protected final String name;
     private DomainObjectSet<ModuleDependency> dependencies;
     private DomainObjectSet<DependencyConstraint> dependencyConstraints;
     private Set<? extends Capability> capabilities;
     private Set<ExcludeRule> excludeRules;
 
-    public AbstractConfigurationUsageContext(String name, ImmutableAttributes attributes, Set<PublishArtifact> artifacts) {
+    public AbstractConfigurationVariant(String name, ImmutableAttributes attributes, Set<PublishArtifact> artifacts) {
         super(attributes, artifacts);
         this.name = name;
     }
