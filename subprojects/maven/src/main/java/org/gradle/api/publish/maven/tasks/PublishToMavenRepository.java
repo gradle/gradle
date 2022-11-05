@@ -136,7 +136,14 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
         ProviderFactory providerFactory = getServices().get(ProviderFactory.class);
         Credentials referenceCredentials;
         try {
-            Provider<? extends Credentials> credentialsProvider = providerFactory.credentials(toCheck.getClass(), identity);
+            Provider<? extends Credentials> credentialsProvider;
+            try {
+                credentialsProvider = providerFactory.credentials(toCheck.getClass(), identity);
+            } catch (IllegalArgumentException e) {
+                // some possibilities are invalid repository names and invalid credential types
+                // either way, this is not the place to validate that
+                return false;
+            }
             referenceCredentials = credentialsProvider.get();
         } catch (MissingValueException e) {
             return false;
