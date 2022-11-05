@@ -149,7 +149,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "can aggregate jacoco execution data from subprojects"() {
+    def "can aggregate jacoco execution data from dependent projects"() {
         given:
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
@@ -460,64 +460,6 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         // verify that external dependencies are filtered
         report.assertDoesNotContainClass("org.apache.commons.io.IOUtils")
         report.assertDoesNotContainClass("org.codehaus.janino.Parser")
-    }
-
-    def 'can apply custom attributes to refine coverage results'() {
-        setup:
-        file('application/build.gradle') << '''
-            // add a additional Attribute to the execution data results for the application unit-test suite
-            configurations.coverageDataElementsForTest.attributes {
-              attribute(Attribute.of('customAttribute', String), 'foo')
-            }
-        '''
-        file('transitive/build.gradle') << '''
-            // add a additional Attribute to the execution data results for the transitive unit-test suite
-            configurations.coverageDataElementsForTest.attributes {
-              attribute(Attribute.of('customAttribute', String), 'bar')
-            }
-        '''
-        buildFile << '''
-            apply plugin: 'org.gradle.jacoco-report-aggregation'
-
-            dependencies {
-                jacocoAggregation project(":application")
-                jacocoAggregation project(":direct")
-            }
-
-            reporting {
-                reports {
-                    testCodeCoverageReport(JacocoCoverageReport) {
-                        testType = TestSuiteType.UNIT_TEST
-                    }
-                }
-            }
-
-            // add an Attribute to the configuration tasked with collecting results
-            // as a result, variant selection should exclude the transitive project
-            reporting {
-                reports.withType(JacocoCoverageReport).configureEach { report ->
-                    Configuration reportConf = configurations.getByName("${report.name}ExecutionData")
-                    reportConf.attributes {
-                        attribute(Attribute.of('customAttribute', String), 'foo')
-                    }
-                }
-            }
-        '''
-
-        when:
-        succeeds(":testCodeCoverageReport")
-
-        then:
-        file("transitive/build/jacoco/test.exec").assertDoesNotExist()
-        file("direct/build/jacoco/test.exec").assertExists()
-        file("application/build/jacoco/test.exec").assertExists()
-
-        file("build/reports/jacoco/testCodeCoverageReport/html/index.html").assertExists()
-
-        def report = new JacocoReportXmlFixture(file("build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
-        report.assertHasClassCoverage("application.Adder")
-        report.assertHasClassCoverage("direct.Multiplier")
-        report.assertHasClassButNoCoverage("transitive.Powerize") // the class is still in the results since we collect class dirs and source elements; but excluded binary execution data
     }
 
     def 'test verification failure prevents creation of aggregated report'() {

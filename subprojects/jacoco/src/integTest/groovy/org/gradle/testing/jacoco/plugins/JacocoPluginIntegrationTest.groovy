@@ -364,24 +364,25 @@ Artifacts
                 visible = false
                 canBeResolved = true
                 canBeConsumed = false
-                extendsFrom(configurations.implementation)
-                attributes {
+            }
+            coverageDataConfig.dependencies.add(project.dependencies.create(project))
+            project.services.get(org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities).configureAsRuntimeClasspath(coverageDataConfig)
+
+            // Extract the artifact view for cc compatibility by providing it as an explicit task input
+            def artifactView = coverageDataConfig.incoming.artifactView { view ->
+                view.withVariantReselection()
+                view.componentFilter { it in ProjectComponentIdentifier }
+                view.lenient = true
+                view.attributes {
                     attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.VERIFICATION))
                     attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS))
                 }
             }
 
-
-            // Extract the artifact view for cc compatibility by providing it as an explicit task input
-            def artifactView = coverageDataConfig.incoming.artifactView { view ->
-                                   view.componentFilter { it in ProjectComponentIdentifier }
-                                   view.lenient = true
-                               }
-
             def testResolve = tasks.register('testResolve') {
                 inputs.files(artifactView.files)
                 doLast {
-                    assert inputs.files*.name == ["direct.exec", "transitive.exec"]
+                    assert inputs.files*.name == ["test.exec", "direct.exec", "transitive.exec"]
                 }
             }
             """.stripIndent()
