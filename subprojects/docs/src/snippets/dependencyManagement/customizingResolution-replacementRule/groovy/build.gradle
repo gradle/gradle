@@ -2,6 +2,10 @@ plugins {
     id 'java'
 }
 
+repositories {
+    mavenCentral()
+}
+
 // tag::module_replacement_declaration[]
 dependencies {
     modules {
