@@ -19,6 +19,7 @@ package org.gradle.api.plugins.quality.checkstyle
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.hamcrest.Matcher
@@ -26,10 +27,9 @@ import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.CoreMatchers.containsString
-import static org.junit.Assume.assumeNotNull
 
 @TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
-class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationSpec {
+class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
 
     def setup() {
         executer.withArgument("--info")
@@ -181,70 +181,63 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
 
     Jvm setupExecutorForToolchains() {
         Jvm jdk = AvailableJavaHomes.getDifferentVersion()
-        assumeNotNull(jdk)
-        executer.withArgument("-Porg.gradle.java.installations.paths=${jdk.javaHome.absolutePath}")
+        withInstallations(jdk)
         return jdk
     }
 
     private void writeBuildFile() {
         buildFile << """
-    plugins {
-        id 'groovy'
-        id 'java'
-        id 'checkstyle'
-    }
+            plugins {
+                id 'groovy'
+                id 'java'
+                id 'checkstyle'
+            }
 
-    checkstyle {
-        toolVersion = '$version'
-    }
+            checkstyle {
+                toolVersion = '$version'
+            }
 
-    repositories {
-        ${mavenCentralRepository()}
-    }
+            repositories {
+                ${mavenCentralRepository()}
+            }
 
-    dependencies {
-        implementation localGroovy()
-    }
-"""
+            dependencies {
+                implementation localGroovy()
+            }
+        """
     }
 
     private void writeBuildFileWithoutApplyingCheckstylePlugin() {
         buildFile << """
-    plugins {
-        id 'groovy'
-        id 'java'
-    }
+            plugins {
+                id 'groovy'
+                id 'java'
+            }
 
-    repositories {
-        ${mavenCentralRepository()}
-    }
+            repositories {
+                ${mavenCentralRepository()}
+            }
 
-    dependencies {
-        implementation localGroovy()
-    }
-"""
+            dependencies {
+                implementation localGroovy()
+            }
+        """
     }
 
     private void writeBuildFileWithToolchainsFromJavaPlugin(Jvm jvm) {
         writeBuildFile()
-        buildFile << """
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
-        }
-    }
-"""
+        configureJavaPluginToolchainVersion(jvm)
     }
 
     private void writeBuildFileWithToolchainsFromCheckstyleTask(Jvm jvm) {
         writeBuildFile()
         buildFile << """
-    tasks.withType(Checkstyle) {
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
-        }
-    }
-"""
+            tasks.withType(Checkstyle) {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(${jvm.javaVersion.majorVersion})
+                }
+            }
+        """
     }
 
     private void writeDummyConfig() {

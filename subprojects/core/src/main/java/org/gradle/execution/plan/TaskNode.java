@@ -31,9 +31,6 @@ public abstract class TaskNode extends Node {
 
     @Override
     protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
-        if (!getMustSuccessors().isEmpty()) {
-            builder.append(", mustSuccessors=").append(formatNodes(getMustSuccessors()));
-        }
         if (!finalizingSuccessors.isEmpty()) {
             builder.append(", finalizes=").append(formatNodes(finalizingSuccessors));
         }

@@ -50,7 +50,7 @@ class AnnotationProcessorDetectorTest extends Specification {
 
         then:
         processors == [:]
-        1 * logger.warn({ it.contains("no annotation processors") }, { it.message.contains("archive is not a ZIP archive") })
+        1 * logger.warn({ it.contains("no annotation processors") }, { it.message.contains("Error on ZipFile") })
     }
 
     def "ignores comments and empty lines in processor declaration"() {

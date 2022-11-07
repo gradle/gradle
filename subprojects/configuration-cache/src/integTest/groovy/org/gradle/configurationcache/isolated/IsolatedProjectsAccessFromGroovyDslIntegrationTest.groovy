@@ -68,9 +68,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
 
         where:
-        block         | _
-        "allprojects" | _
-        "subprojects" | _
+        block                               | _
+        "allprojects"                       | _
+        "subprojects"                       | _
+        "configure(childProjects.values())" | _
     }
 
     def "reports problem when build script uses #property property to apply plugins to another project"() {
@@ -95,9 +96,10 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
 
         where:
-        property      | _
-        "allprojects" | _
-        "subprojects" | _
+        property                 | _
+        "allprojects"            | _
+        "subprojects"            | _
+        "childProjects.values()" | _
     }
 
     def "reports problem when build script uses project() block to apply plugins to another project"() {

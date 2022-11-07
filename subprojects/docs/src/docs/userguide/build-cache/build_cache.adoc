@@ -15,7 +15,7 @@
 [[build_cache]]
 = Build Cache
 
-TIP: Want to learn the tips and tricks top engineering teams use to keep builds fast and performant? https://gradle.com/training/#build-cache-deep-dive[Register here] for our Build Cache Training.
+TIP: Want to learn the tips and tricks top engineering teams use to keep builds fast and performant? https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache Training.
 
 [[sec:build_cache_intro]]
 == Overview

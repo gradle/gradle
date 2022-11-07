@@ -112,7 +112,7 @@ import java.util.stream.Collectors;
  * </pre>
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class CreateStartScripts extends ConventionTask {
+public abstract class CreateStartScripts extends ConventionTask {
 
     private File outputDir;
     private String executableDir = "bin";

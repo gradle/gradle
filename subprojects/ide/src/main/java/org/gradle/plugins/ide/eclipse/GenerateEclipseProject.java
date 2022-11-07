@@ -31,7 +31,7 @@ import javax.inject.Inject;
  * At this moment nearly all configuration is done via {@link EclipseProject}.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateEclipseProject extends XmlGeneratorTask<Project> {
+public abstract class GenerateEclipseProject extends XmlGeneratorTask<Project> {
 
     private EclipseProject projectModel;
 

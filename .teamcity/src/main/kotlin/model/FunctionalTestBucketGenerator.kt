@@ -17,6 +17,7 @@ const val MAX_PROJECT_NUMBER_IN_BUCKET = 11
  * Process test-class-data.json and generates test-buckets.json
  *
  * Usage: `mvn compile exec:java@update-test-buckets -DinputTestClassDataJson=/path/to/test-class-data.json`.
+ * You can get the JSON file as an artifacts of the "autoUpdateTestSplitJsonOnGradleMaster" pipeline in TeamCity.
  */
 fun main() {
     val model = CIBuildModel(

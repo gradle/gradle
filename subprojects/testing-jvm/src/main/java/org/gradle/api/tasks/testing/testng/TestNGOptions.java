@@ -20,6 +20,7 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.xml.MarkupBuilder;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.tasks.testing.testng.TestNGTestClassProcessor;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -46,8 +47,8 @@ import java.util.Set;
 /**
  * The TestNG specific test options.
  */
-public class TestNGOptions extends TestFrameworkOptions {
-    public static final String DEFAULT_CONFIG_FAILURE_POLICY = "skip";
+public abstract class TestNGOptions extends TestFrameworkOptions {
+    public static final String DEFAULT_CONFIG_FAILURE_POLICY = TestNGTestClassProcessor.DEFAULT_CONFIG_FAILURE_POLICY;
     private static final String DEFAULT_PARALLEL_MODE = null;
     private static final int DEFAULT_THREAD_COUNT = -1;
 

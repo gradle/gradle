@@ -48,7 +48,7 @@ import org.gradle.work.DisableCachingByDefault;
  * @since 4.5
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class StripSymbols extends DefaultTask {
+public abstract class StripSymbols extends DefaultTask {
     private final RegularFileProperty binaryFile;
     private final RegularFileProperty outputFile;
     private final Property<NativePlatform> targetPlatform;
