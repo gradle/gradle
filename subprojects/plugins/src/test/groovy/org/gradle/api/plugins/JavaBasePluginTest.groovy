@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
+import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
@@ -251,21 +252,19 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         configuredJavadocTool.isPresent()
     }
 
-    def 'cannot set java compile source compatibility if toolchain is configured'() {
+    def 'can set java compile source compatibility if toolchain is configured'() {
         given:
         def someJdk = Jvm.current()
         setupProjectWithToolchain(someJdk.javaVersion)
-        project.java.sourceCompatibility = JavaVersion.VERSION_1_1
+        def prevJavaVersion = JavaVersion.toVersion(someJdk.javaVersion.majorVersion.toInteger() - 1)
+        project.java.sourceCompatibility = prevJavaVersion
 
         when:
         def javaCompileTask = project.tasks.named("compileJava", JavaCompile).get()
 
-        javaCompileTask.sourceCompatibility // accessing the property throws
-
-
         then:
-        def error = thrown(InvalidUserDataException)
-        error.message == 'The new Java toolchain feature cannot be used at the project level in combination with source and/or target compatibility'
+        javaCompileTask.sourceCompatibility == prevJavaVersion.toString()
+        javaCompileTask.sourceCompatibility == prevJavaVersion.toString()
     }
 
     private void setupProjectWithToolchain(JavaVersion version) {
