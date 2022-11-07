@@ -64,6 +64,17 @@ For this reason, a good practice is that if you use _strict versions_, you shoul
 For example, `B` might say, instead of `strictly 1.0`, that it _strictly depends_ on the `[1.0, 2.0[` range, but _prefers_ `1.0`.
 Then if a consumer chooses 1.1 (or any other version in the range), the build will _no longer fail_ (constraints are resolved).
 
+[[forced_dependencies_vs_strict_dependencies]]
+=== Forced dependencies vs strict dependencies
+
+If the project requires a specific version of a dependency at the configuration-level this can be achieved by calling the method link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html#org.gradle.api.artifacts.ResolutionStrategy:force(java.lang.Object++[]++)[ResolutionStrategy.force(java.lang.Object++[]++)].
+
+.Enforcing a dependency version on the configuration-level
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForConfiguration/groovy",files="build.gradle[tags=force-per-configuration]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForConfiguration/kotlin",files="build.gradle.kts[tags=force-per-configuration]"]
+====
+
 [[sec:excluding-transitive-deps]]
 == Excluding transitive dependencies
 
