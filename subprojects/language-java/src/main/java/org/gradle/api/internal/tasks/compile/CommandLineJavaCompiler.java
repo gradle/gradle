@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
@@ -30,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 
 /**
- * Executes the Java command line compiler specified in {@code JavaCompileSpec.forkOptions.getExecutable()}.
+ * Executes the Java command line compiler executable.
  */
 public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandLineJavaCompiler.class);
@@ -44,8 +43,11 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
 
     @Override
     public WorkResult execute(JavaCompileSpec spec) {
-        final MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
-        String executable = forkOptions.getJavaHome() != null ? Jvm.forHome(forkOptions.getJavaHome()).getJavacExecutable().getAbsolutePath() : forkOptions.getExecutable();
+        if (!(spec instanceof CommandLineJavaCompileSpec)) {
+            throw new IllegalArgumentException(String.format("Expected a %s, but got %s", CommandLineJavaCompileSpec.class.getSimpleName(), spec.getClass().getSimpleName()));
+        }
+
+        String executable = ((CommandLineJavaCompileSpec) spec).getExecutable().toString();
         LOGGER.info("Compiling with Java command line compiler '{}'.", executable);
 
         ExecHandle handle = createCompilerHandle(executable, spec);

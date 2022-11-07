@@ -32,3 +32,7 @@ dependencies {
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
+
+strictCompile {
+    ignoreDeprecations()
+}

@@ -95,20 +95,7 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
     protected String getHostTargetMachineDefinition() {
         DefaultNativePlatform host = DefaultNativePlatform.host();
         assert !host.getOperatingSystem().isWindows();
-
-        String definition = "machines.";
-
-        if (host.getOperatingSystem().isMacOsX()) {
-            definition += "macOS";
-        } else if (host.getOperatingSystem().isLinux()) {
-            definition += "linux";
-        } else {
-            definition += "os('" + host.getOperatingSystem().toFamilyName() + "')";
-        }
-
-        definition += ".x86_64";
-
-        return definition;
+        return CppProjectInitDescriptor.buildNativeHostTargetDefinition(host);
     }
 
     protected void configureTargetMachineDefinition(ScriptBlockBuilder buildScriptBuilder) {

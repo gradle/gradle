@@ -32,9 +32,10 @@ import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransfor
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
+import org.gradle.internal.execution.UnitOfWork.InputVisitor
+import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
@@ -249,7 +250,7 @@ class StandardKotlinScriptEvaluator(
                     fileCollectionFactory,
                     inputFingerprinter
                 )
-            ).execute().executionResult.get().output as File
+            ).execute().execution.get().output as File
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
@@ -354,8 +355,7 @@ class CompileKotlinScript(
         visitor.visitOutputProperty(
             "classesDir",
             TreeType.DIRECTORY,
-            classesDir,
-            fileCollectionFactory.fixed(classesDir)
+            OutputFileValueSupplier.fromStatic(classesDir, fileCollectionFactory.fixed(classesDir))
         )
     }
 
@@ -382,13 +382,13 @@ class CompileKotlinScript(
     fun workOutputFor(workspace: File): UnitOfWork.WorkOutput =
         object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
-            override fun getOutput() = loadRestoredOutput(workspace)
+            override fun getOutput() = loadAlreadyProducedOutput(workspace)
         }
 
     override fun getDisplayName(): String =
         "Kotlin DSL script compilation ($templateId)"
 
-    override fun loadRestoredOutput(workspace: File): Any =
+    override fun loadAlreadyProducedOutput(workspace: File): Any =
         classesDir(workspace)
 
     override fun getWorkspaceProvider() = workspaceProvider.scripts

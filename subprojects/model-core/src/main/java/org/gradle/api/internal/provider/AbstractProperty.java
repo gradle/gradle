@@ -24,8 +24,8 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public abstract class AbstractProperty<T, S extends ValueSupplier> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
@@ -49,6 +49,15 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     protected void init(S initialValue) {
         init(initialValue, initialValue);
+    }
+
+    /**
+     * A simple getter that checks if this property has been finalized.
+     *
+     * @return {@code true} if this property has been finalized, {@code false} otherwise
+     */
+    public boolean isFinalized() {
+        return state instanceof FinalizedValue;
     }
 
     @Override
@@ -127,7 +136,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return doCalculateValue(consumer);
     }
 
-    @NotNull
+    @Nonnull
     private Value<? extends T> doCalculateValue(ValueConsumer consumer) {
         try {
             return calculateValueFrom(value, consumer);

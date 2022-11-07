@@ -287,5 +287,49 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
 
         expect:
         fails("helloWorld")
+        failure.assertHasDescription("Plugin [id: 'org.gradle.hello-world', version: '0.2'] was not found in any of the following sources:")
+    }
+
+    def "verify plugin portal is not used when defining pluginManagement repos in settings plugin"() {
+        settingsFile << """
+            pluginManagement {
+                includeBuild("settings-script")
+            }
+
+            plugins {
+                id 'settings-script'
+            }
+
+            pluginManagement.repositories.each { println it.url }
+        """
+
+        buildFile << """
+            plugins {
+                id "org.gradle.hello-world" version "0.2" //this exists in the plugin portal
+            }
+        """
+
+        def pluginRoot = file("settings-script")
+
+        pluginRoot.file("settings.gradle") << """
+            rootProject.name = "settings-script"
+        """
+        pluginRoot.file("build.gradle") << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+        pluginRoot.file("src/main/groovy/settings-script.settings.gradle") << """
+            pluginManagement {
+                repositories {
+                    maven {
+                        url '${mavenRepo.uri}'
+                    }
+                }
+            }
+        """
+
+        expect:
+        fails("helloWorld")
     }
 }

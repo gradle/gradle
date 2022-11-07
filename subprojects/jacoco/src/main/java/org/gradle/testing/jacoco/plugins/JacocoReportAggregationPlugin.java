@@ -23,8 +23,10 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.FileCollection;
@@ -86,6 +88,9 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         classDirectoriesConf.setVisible(false);
         classDirectoriesConf.setCanBeConsumed(false);
         classDirectoriesConf.setCanBeResolved(true);
+        classDirectoriesConf.attributes(attributes -> {
+            attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.class, LibraryElements.CLASSES));
+        });
 
         ArtifactView classDirectories = classDirectoriesConf.getIncoming().artifactView(view -> {
             view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
@@ -95,7 +100,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         reporting.getReports().registerBinding(JacocoCoverageReport.class, DefaultJacocoCoverageReport.class);
 
         // iterate and configure each user-specified report, creating a <reportName>ExecutionData configuration for each
-        reporting.getReports().withType(JacocoCoverageReport.class).configureEach(report -> {
+        reporting.getReports().withType(JacocoCoverageReport.class).all(report -> {
             // A resolvable configuration to collect JaCoCo coverage data; typically named "testCodeCoverageReportExecutionData"
             Configuration executionDataConf = project.getConfigurations().create(report.getName() + "ExecutionData");
             executionDataConf.extendsFrom(jacocoAggregation);
@@ -107,6 +112,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
                 attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
                 attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS));
+                attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.BINARY_DATA_TYPE);
             });
 
             report.getReportTask().configure(task -> {
@@ -127,7 +133,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
 
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
             ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
-            testSuites.withType(JvmTestSuite.class).configureEach(testSuite -> {
+            testSuites.withType(JvmTestSuite.class).all(testSuite -> {
                 reporting.getReports().create(testSuite.getName() + "CodeCoverageReport", JacocoCoverageReport.class, report -> {
                     report.getTestType().convention(testSuite.getTestType());
                 });

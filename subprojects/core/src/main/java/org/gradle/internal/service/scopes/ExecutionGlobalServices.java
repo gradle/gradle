@@ -24,14 +24,7 @@ import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.internal.DefaultDomainObjectCollection;
-import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.DefaultNamedDomainObjectCollection;
-import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
-import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
-import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -57,7 +50,6 @@ import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHa
 import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.UntrackedTaskTypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
-import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -82,8 +74,10 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.DefaultTaskExecutionTracker;
 import org.gradle.internal.execution.TaskExecutionTracker;
+import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
@@ -91,7 +85,6 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore;
 import org.gradle.internal.scripts.ScriptOrigin;
-import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.work.Incremental;
@@ -137,8 +130,6 @@ public class ExecutionGlobalServices {
     }
 
     TypeAnnotationMetadataStore createAnnotationMetadataStore(CrossBuildInMemoryCacheFactory cacheFactory, AnnotationHandlerRegistar annotationRegistry) {
-        @SuppressWarnings("deprecation")
-        Class<?> deprecatedHasConvention = org.gradle.api.internal.HasConvention.class;
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
         builder.addAll(PROPERTY_TYPE_ANNOTATIONS);
         annotationRegistry.registerPropertyTypeAnnotations(builder);
@@ -156,20 +147,13 @@ public class ExecutionGlobalServices {
                 "kotlin"
             ),
             ImmutableSet.of(
-                ClosureBackedAction.class,
+                // Used by a nested bean with action in a task, example:
+                // `NestedInputIntegrationTest.implementation of nested closure in decorated bean is tracked`
                 ConfigureUtil.WrappedConfigureAction.class,
-                Describable.class,
-                DefaultDomainObjectCollection.class,
-                DefaultDomainObjectSet.class,
-                DefaultNamedDomainObjectCollection.class,
-                DefaultNamedDomainObjectList.class,
+                // DefaultTestTaskReports used by AbstractTestTask extends this class
                 DefaultNamedDomainObjectSet.class,
-                DefaultPolymorphicDomainObjectContainer.class,
-                DynamicObjectAware.class,
-                ExtensionAware.class,
-                deprecatedHasConvention,
-                IConventionAware.class,
-                ScriptOrigin.class
+                // Used in gradle-base so it can't have annotations anyway
+                Describable.class
             ),
             ImmutableSet.of(
                 GroovyObject.class,
@@ -309,6 +293,10 @@ public class ExecutionGlobalServices {
 
     PropertyAnnotationHandler createNestedBeanPropertyAnnotationHandler() {
         return new NestedBeanAnnotationHandler();
+    }
+
+    WorkInputListeners createWorkInputListeners(ListenerManager listenerManager) {
+        return new DefaultWorkInputListeners(listenerManager);
     }
 
     public interface AnnotationHandlerRegistration {

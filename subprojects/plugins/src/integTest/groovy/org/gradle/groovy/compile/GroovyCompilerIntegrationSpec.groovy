@@ -18,6 +18,8 @@ import org.gradle.internal.jvm.Jvm
 import org.junit.Assume
 import spock.lang.Issue
 
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+
 /**
  * Tests in this class use on disk build files - see resources/org/gradle/groovy/compile/GroovyCompilerIntegrationSpec/**
  */
@@ -66,7 +68,7 @@ abstract class GroovyCompilerIntegrationSpec extends BasicGroovyCompilerIntegrat
             return
         }
 
-        buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-test:${version}' }"
+        buildFile << "dependencies { implementation '${groovyModuleDependency("groovy-test", versionNumber)}' }"
         when:
         run("test")
 

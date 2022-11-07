@@ -306,7 +306,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         then:
         _ * workerLeaseService.currentWorkerLease >> workerLease
         1 * workerLeaseService.runAsIsolatedTask(_) >> { Runnable runnable -> runnable.run() }
-        1 * workerLeaseService.withoutLocks([workerLease], _) >> { locks, Runnable runnable -> runnable.run() }
+        1 * workerLeaseService.withoutLock(workerLease, _) >> { locks, Runnable runnable -> runnable.run() }
         0 * workerLeaseService._
     }
 
@@ -337,7 +337,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         then:
         _ * workerLeaseService.currentWorkerLease >> workerLease
         1 * workerLeaseService.runAsIsolatedTask()
-        1 * workerLeaseService.withoutLocks([workerLease], _) >> { locks, Runnable runnable -> runnable.run() }
+        1 * workerLeaseService.withoutLock(workerLease, _) >> { locks, Runnable runnable -> runnable.run() }
         0 * workerLeaseService._
     }
 
@@ -367,7 +367,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
 
         then:
         _ * workerLeaseService.currentWorkerLease >> workerLease
-        1 * workerLeaseService.withoutLocks([workerLease], _) >> { locks, Runnable runnable -> runnable.run() }
+        1 * workerLeaseService.withoutLock(workerLease, _) >> { locks, Runnable runnable -> runnable.run() }
         0 * workerLeaseService._
     }
 
@@ -398,7 +398,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
 
         then:
         _ * workerLeaseService.currentWorkerLease >> workerLease
-        1 * workerLeaseService.withoutLocks([workerLease], _) >> { locks, Runnable runnable -> runnable.run() }
+        1 * workerLeaseService.withoutLock(workerLease, _) >> { locks, Runnable runnable -> runnable.run() }
         0 * workerLeaseService._
     }
 
@@ -417,7 +417,7 @@ class DefaultAsyncWorkTrackerTest extends ConcurrentSpec {
         then:
         _ * workerLeaseService.currentWorkerLease >> workerLease
         1 * workerLeaseService.runAsIsolatedTask()
-        1 * workerLeaseService.withoutLocks([workerLease], _) >> { locks, Runnable runnable -> runnable.run() }
+        1 * workerLeaseService.withoutLock(workerLease, _) >> { locks, Runnable runnable -> runnable.run() }
         0 * workerLeaseService._
     }
 

@@ -37,7 +37,7 @@ testing {
 
         val integrationTest by registering(JvmTestSuite::class) { // <4>
             dependencies {
-                implementation(project) // <5>
+                implementation(project()) // <5>
             }
 
             targets { // <6>

@@ -18,12 +18,10 @@ package org.gradle.api.tasks
 
 import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 class CachedImplementationIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache(because = "InMemoryBuildCache has not been registered.")
     def "can use full Java build cache service implementation"() {
         def pluginJar = file("plugin.jar")
         def pluginBuilder = new PluginBuilder(file("plugin"))

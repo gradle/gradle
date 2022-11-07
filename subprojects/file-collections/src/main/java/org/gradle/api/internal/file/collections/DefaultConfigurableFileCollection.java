@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.internal.AbstractTaskDependencyContainerVisitingContext;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -45,6 +46,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -67,6 +69,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private boolean disallowChanges;
     private boolean disallowUnsafeRead;
     private ValueCollector value = EMPTY_COLLECTOR;
+    private Predicate<Object> taskDependencyFilter = null;
 
     public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, TaskDependencyFactory dependencyFactory, Factory<PatternSet> patternSetFactory, PropertyHost host) {
         super(patternSetFactory);
@@ -248,11 +251,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             }
 
             @Override
-            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                builder.add(fileTree);
-            }
-
-            @Override
             public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                 builder.add(fileTree);
             }
@@ -284,10 +282,46 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         value.visitContents(visitor);
     }
 
+    /**
+     * Sets a filter which is applied to all build dependencies for this collection and any child file collections.
+     */
+    public DefaultConfigurableFileCollection setTaskDependencyFilter(@Nullable Predicate<Object> filter) {
+        this.taskDependencyFilter = filter;
+        return this;
+    }
+
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        context.add(buildDependency);
-        super.visitDependencies(context);
+        TaskDependencyResolveContext actual = context;
+        if (taskDependencyFilter != null) {
+            actual = new FilteringTaskDependencyResolveContext(context, taskDependencyFilter);
+        }
+
+        actual.add(buildDependency);
+        super.visitDependencies(actual);
+    }
+
+    /**
+     * A {@link TaskDependencyResolveContext} which wraps a delegate and only passes along dependencies which satisfy a given filter.
+     */
+    private static class FilteringTaskDependencyResolveContext extends AbstractTaskDependencyContainerVisitingContext {
+        private final Predicate<Object> filter;
+        public FilteringTaskDependencyResolveContext(TaskDependencyResolveContext delegate, Predicate<Object> filter) {
+            super(delegate);
+            this.filter = filter;
+        }
+
+        @Override
+        public void add(Object dependency) {
+            if (filter.test(dependency)) {
+                super.add(dependency);
+            }
+        }
+
+        @Override
+        public void visitFailure(Throwable failure) {
+            delegate.visitFailure(failure);
+        }
     }
 
     private interface ValueCollector {

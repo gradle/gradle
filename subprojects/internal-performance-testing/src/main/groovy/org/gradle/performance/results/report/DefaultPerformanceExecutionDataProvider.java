@@ -69,7 +69,7 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
             .map(PerformanceTestExecutionResult::getTeamCityBuildId)
             .filter(StringUtils::isNotBlank)
             .collect(toList());
-        PerformanceTestHistory history = resultsStore.getTestResults(teamCityExecutionsOfSameScenario.get(0).getPerformanceExperiment(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel(), teamcityBuildIds);
+        PerformanceTestHistory history = resultsStore.getTestResults(teamCityExecutionsOfSameScenario.get(0).getPerformanceExperiment(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannelPatterns(), teamcityBuildIds);
 
         List<PerformanceReportScenarioHistoryExecution> historyExecutions = removeEmptyExecution(history.getExecutions());
         return new PerformanceReportScenario(

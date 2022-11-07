@@ -31,6 +31,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.reflect.PropertyMetadata;
@@ -43,6 +44,7 @@ import org.gradle.work.NormalizeLineEndings;
 import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandlerSupport.validateUnsupportedPropertyValueTypes;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
@@ -74,25 +76,32 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
         visitor.visitInputFileProperty(
             propertyName,
             propertyMetadata.isAnnotationPresent(Optional.class),
-            propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class),
+            determineBehavior(propertyMetadata),
             determineDirectorySensitivity(propertyMetadata),
             propertyMetadata.isAnnotationPresent(NormalizeLineEndings.class) ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS : LineEndingSensitivity.DEFAULT,
-            propertyMetadata.isAnnotationPresent(Incremental.class),
             fileNormalizer,
             value,
             getFilePropertyType()
         );
     }
 
-    @SuppressWarnings("deprecation")
+    private static InputBehavior determineBehavior(PropertyMetadata propertyMetadata) {
+        return propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class)
+            ? InputBehavior.PRIMARY
+            : propertyMetadata.isAnnotationPresent(Incremental.class)
+            ? InputBehavior.INCREMENTAL
+            : InputBehavior.NON_INCREMENTAL;
+    }
+
     protected DirectorySensitivity determineDirectorySensitivity(PropertyMetadata propertyMetadata) {
         return propertyMetadata.isAnnotationPresent(IgnoreEmptyDirectories.class)
             ? DirectorySensitivity.IGNORE_DIRECTORIES
-            : DirectorySensitivity.UNSPECIFIED;
+            : DirectorySensitivity.DEFAULT;
     }
 
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
+        validateUnsupportedPropertyValueTypes(propertyMetadata, validationContext, getAnnotationType());
         if (!propertyMetadata.hasAnnotationForCategory(NORMALIZATION)) {
             validationContext.visitPropertyProblem(problem -> {
                 String propertyName = propertyMetadata.getPropertyName();

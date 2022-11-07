@@ -18,11 +18,10 @@ package org.gradle.internal.snapshot.impl
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.internal.MutableReference
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
@@ -58,9 +57,7 @@ class FileSystemSnapshotFilterTest extends Specification {
         def subdir = dir1.createDir("subdir")
         def subdirFile1 = subdir.createFile("subdirFile1")
 
-        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
-        fileSystemAccess.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet()), result.&set)
-        def unfiltered = result.get()
+        def unfiltered = fileSystemAccess.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet())).get()
 
         expect:
         filteredPaths(unfiltered, include("**/*2")) == [root, dir1, dirFile2, subdir, rootFile2] as Set
@@ -76,7 +73,7 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     def "root directory is always matched"() {
         def root = temporaryFolder.createFile("root")
-        def unfiltered = new DirectorySnapshot(root.absolutePath, root.name, AccessType.DIRECT, HashCode.fromInt(789), [])
+        def unfiltered = new DirectorySnapshot(root.absolutePath, root.name, AccessType.DIRECT, TestHashCodes.hashCodeFrom(789), [])
 
         expect:
         filteredPaths(unfiltered, include("different")) == [root] as Set
@@ -84,7 +81,7 @@ class FileSystemSnapshotFilterTest extends Specification {
 
     def "root file can be filtered"() {
         def root = temporaryFolder.createFile("root")
-        def regularFileSnapshot = new RegularFileSnapshot(root.absolutePath, root.name, HashCode.fromInt(1234), DefaultFileMetadata.file(5, 1234, AccessType.DIRECT))
+        def regularFileSnapshot = new RegularFileSnapshot(root.absolutePath, root.name, TestHashCodes.hashCodeFrom(1234), DefaultFileMetadata.file(5, 1234, AccessType.DIRECT))
 
         expect:
         filteredPaths(regularFileSnapshot, include("different")) == [] as Set
@@ -98,9 +95,7 @@ class FileSystemSnapshotFilterTest extends Specification {
         dir1.createFile("dirFile1")
         dir1.createFile("dirFile2")
 
-        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
-        fileSystemAccess.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet()), result.&set)
-        def unfiltered = result.get()
+        def unfiltered = fileSystemAccess.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet())).get()
 
         when:
         def filtered = FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(include("**/*File*")).asSnapshotPredicate, unfiltered)

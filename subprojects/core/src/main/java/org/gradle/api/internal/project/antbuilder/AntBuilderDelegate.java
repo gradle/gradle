@@ -47,7 +47,7 @@ public class AntBuilderDelegate extends BuilderSupport {
         return this;
     }
 
-    private void taskdef(Map<String, String> args) {
+    public void taskdef(Map<String, String> args) {
         Set<String> argNames = args.keySet();
         if (argNames.equals(ImmutableSet.of("name", "classname"))) {
             try {

@@ -49,7 +49,8 @@ javaComponent.withVariantsFromConfiguration(configurations["testFixturesRuntimeE
 // end::disable-test-fixtures-publishing[]
 
 tasks.create("usages") {
+    val javaComponentUsages = (components["java"] as SoftwareComponentInternal).usages.map { it.name }
     doLast {
-        (components["java"] as SoftwareComponentInternal).usages.forEach { println(it.name) }
+        javaComponentUsages.forEach { println(it) }
     }
 }

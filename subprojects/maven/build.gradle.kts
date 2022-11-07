@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":dependency-management"))
     implementation(project(":file-collections"))
     implementation(project(":logging"))
+    implementation(project(":messaging"))
     implementation(project(":model-core"))
     implementation(project(":plugin-use"))
     implementation(project(":plugins"))
@@ -62,7 +63,7 @@ strictCompile {
     ignoreRawTypes() // old 'maven' publishing mechanism: raw types used in public API
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/publication/maven/internal/**")
     excludePatterns.add("org/gradle/api/artifacts/maven/**")
 }

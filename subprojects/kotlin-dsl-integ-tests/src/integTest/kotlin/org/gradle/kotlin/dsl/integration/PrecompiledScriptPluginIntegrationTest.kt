@@ -4,7 +4,6 @@ import org.codehaus.groovy.runtime.StringGroovyMethods
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -30,7 +29,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             """
             plugins {
                 `kotlin-dsl`
-                id("org.gradle.kotlin-dsl.ktlint-convention") version "0.7.0"
+                id("org.gradle.kotlin-dsl.ktlint-convention") version "0.8.0"
             }
 
             $repositoriesBlock
@@ -64,7 +63,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `precompiled script plugins tasks are cached and relocatable`() {
 
         val firstLocation = "first-location"
@@ -127,7 +125,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "generateScriptPluginAdapters")
     fun `precompiled script plugins adapters generation clean stale outputs`() {
 
         withBuildScript(
@@ -245,7 +242,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors are available after registering plugin`() {
         withSettings(
             """
@@ -358,7 +354,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     inline fun <reified T> nameOf() = T::class.qualifiedName
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors are available after renaming precompiled script plugin from project dependency`() {
 
         withSettings(
@@ -639,7 +634,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
     // https://github.com/gradle/gradle/issues/15416
     @Test
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can apply a plugin from a repository in precompiled settings plugin`() {
         withFolders {
             "external-plugin" {
@@ -789,5 +783,31 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             "The precompiled plugin (${"src/main/kotlin/org/gradle/my-plugin.gradle.kts".replace("/", File.separator)}) cannot start with 'org.gradle' or be in the 'org.gradle' package.\n\n"
                 + "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/custom_plugins.html#sec:precompiled_plugins for more details."
         )
+    }
+
+    @Test
+    fun `should compile correctly with Kotlin explicit api mode`() {
+        assumeNonEmbeddedGradleExecuter()
+        withBuildScript(
+            """
+            plugins {
+                `kotlin-dsl`
+            }
+
+            $repositoriesBlock
+
+            kotlin {
+                explicitApi()
+            }
+            """
+        )
+        withPrecompiledKotlinScript(
+            "my-plugin.gradle.kts",
+            """
+            tasks.register("myTask") {}
+            """
+        )
+
+        compileKotlin()
     }
 }

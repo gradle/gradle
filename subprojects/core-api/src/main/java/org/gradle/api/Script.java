@@ -16,6 +16,7 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
@@ -313,7 +314,7 @@ public interface Script {
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
      */
-    ExecResult javaexec(Closure closure);
+    ExecResult javaexec(@DelegatesTo(JavaExecSpec.class) Closure closure);
 
     /**
      * Executes a Java main class.
@@ -329,7 +330,7 @@ public interface Script {
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
      */
-    ExecResult exec(Closure closure);
+    ExecResult exec(@DelegatesTo(ExecSpec.class) Closure closure);
 
     /**
      * Executes an external command.

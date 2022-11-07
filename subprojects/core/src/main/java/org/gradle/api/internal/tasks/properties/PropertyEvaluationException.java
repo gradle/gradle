@@ -23,6 +23,6 @@ import org.gradle.internal.exceptions.Contextual;
 public class PropertyEvaluationException extends GradleException {
 
     public PropertyEvaluationException(Object work, String propertyName, Throwable cause) {
-        super(String.format("Error while evaluating property '%s' of %s", propertyName, work), cause);
+        super(String.format("Error while evaluating property '%s' of %s.", propertyName, work), cause);
     }
 }

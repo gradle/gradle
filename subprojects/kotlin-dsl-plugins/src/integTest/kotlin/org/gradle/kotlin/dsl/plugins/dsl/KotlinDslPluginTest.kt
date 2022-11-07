@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
+import org.gradle.integtests.fixtures.jvm.JavaClassUtil
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
@@ -287,35 +288,43 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    fun `nags user about experimentalWarning deprecation`() {
+    fun `can use a different jvmTarget to compile kotlin-dsl plugins`() {
 
-        withBuildExercisingSamConversionForKotlinFunctions(
-            "kotlinDslPluginOptions.experimentalWarning.set(false)"
+        assumeJava11()
+
+        withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
+
+        withDefaultSettingsIn("buildSrc")
+        withKotlinDslPluginIn("buildSrc").appendText(
+            """
+                kotlinDslPluginOptions {
+                    jvmTarget.set("11")
+                }
+
+                dependencies {
+                    implementation(files("utils.jar"))
+                }
+            """.trimIndent()
         )
 
-        executer.expectDeprecationWarning(
-            "The KotlinDslPluginOptions.experimentalWarning property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 8.0. " +
-                "Flag has no effect since `kotlin-dsl` no longer relies on experimental features."
+        withFile(
+            "buildSrc/src/main/kotlin/some.gradle.kts",
+            """
+                import org.gradle.integtests.fixtures.jvm.JavaClassUtil
+
+                println("Java Class Major Version = ${'$'}{JavaClassUtil.getClassMajorVersion(this::class.java)}")
+            """.trimIndent()
+        )
+        withBuildScript(
+            """
+            plugins {
+                id("some")
+            }
+            """.trimIndent()
         )
 
-        build("test").apply {
-
-            assertThat(
-                output.also(::println),
-                containsMultiLineString(
-                    """
-                    STRING
-                    foo
-                    bar
-                    """
-                )
-            )
-
-            assertThat(
-                output,
-                not(containsString(samConversionForKotlinFunctions))
-            )
+        build("help").apply {
+            assertThat(output, containsString("Java Class Major Version = 55"))
         }
     }
 

@@ -27,7 +27,7 @@ import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
  * Versioned locations of global caches.
  *
  * The purpose of tracking previous versions is to help with cache cleanup.
- * E.g. when a the layout was changed in {@code version1}, and it gets changed
+ * E.g. when the layout was changed in {@code version1}, and it gets changed
  * in {@code version2} once again, we can delete the {@code version1} cache
  * when we detect that it is no longer used.
  *
@@ -71,6 +71,7 @@ public enum CacheLayout {
         .changedTo(95, "6.1-rc-1")
         .changedTo(96, "6.4-rc-1")
         .changedTo(97, "6.8-rc-1")
+        .changedTo(99, "7.5-rc-1")
     ),
 
     RESOURCES(ROOT, "resources", introducedIn("1.9-rc-1")),

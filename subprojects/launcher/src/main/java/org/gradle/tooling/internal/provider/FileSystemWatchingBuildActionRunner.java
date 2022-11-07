@@ -18,7 +18,9 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
+import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.file.StatStatistics;
@@ -40,28 +42,34 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
 
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final BuildLifecycleAwareVirtualFileSystem virtualFileSystem;
+    private final DeploymentRegistryInternal deploymentRegistry;
     private final StatStatistics.Collector statStatisticsCollector;
     private final FileHasherStatistics.Collector fileHasherStatisticsCollector;
     private final DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector;
     private final BuildOperationRunner buildOperationRunner;
     private final BuildActionRunner delegate;
+    private final InternalOptions options;
 
     public FileSystemWatchingBuildActionRunner(
         BuildOperationProgressEventEmitter eventEmitter,
         BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
+        DeploymentRegistryInternal deploymentRegistry,
         StatStatistics.Collector statStatisticsCollector,
         FileHasherStatistics.Collector fileHasherStatisticsCollector,
         DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector,
         BuildOperationRunner buildOperationRunner,
-        BuildActionRunner delegate
+        BuildActionRunner delegate,
+        InternalOptions options
     ) {
         this.eventEmitter = eventEmitter;
         this.virtualFileSystem = virtualFileSystem;
+        this.deploymentRegistry = deploymentRegistry;
         this.statStatisticsCollector = statStatisticsCollector;
         this.fileHasherStatisticsCollector = fileHasherStatisticsCollector;
         this.directorySnapshotterStatisticsCollector = directorySnapshotterStatisticsCollector;
         this.buildOperationRunner = buildOperationRunner;
         this.delegate = delegate;
+        this.options = options;
     }
 
     @Override
@@ -77,8 +85,15 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             : WatchLogging.NORMAL;
 
         LOGGER.info("Watching the file system is configured to be {}", watchFileSystemMode.getDescription());
+
+        boolean continuousBuild = startParameter.isContinuous() || !deploymentRegistry.getRunningDeployments().isEmpty();
+
+        if (continuousBuild && watchFileSystemMode == WatchMode.DEFAULT) {
+            // Try to watch as much as possible when using continuous build.
+            watchFileSystemMode = WatchMode.ENABLED;
+        }
         if (watchFileSystemMode.isEnabled()) {
-            dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
+            dropVirtualFileSystemIfRequested(options, virtualFileSystem);
         }
         if (verboseVfsLogging == VfsLogging.VERBOSE) {
             logVfsStatistics("since last build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
@@ -100,6 +115,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             }
         }
 
+        LOGGER.debug("Watching the file system computed to be {}", watchFileSystemMode.getDescription());
         boolean actuallyWatching = virtualFileSystem.afterBuildStarted(
             watchFileSystemMode,
             verboseVfsLogging,
@@ -114,7 +130,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
                 return actuallyWatching;
             }
         });
-        if (action.getStartParameter().isContinuous()) {
+        if (continuousBuild) {
             if (!actuallyWatching) {
                 throw new IllegalStateException("Continuous build does not work when file system watching is disabled");
             }
@@ -123,7 +139,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         try {
             return delegate.run(action, buildController);
         } finally {
-            int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(startParameter);
+            int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(options);
             virtualFileSystem.beforeBuildFinished(
                 watchFileSystemMode,
                 verboseVfsLogging,
@@ -149,8 +165,8 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         LOGGER.warn("VFS> > DirectorySnapshotter: {}", directorySnapshotterStatisticsCollector.collect());
     }
 
-    private static void dropVirtualFileSystemIfRequested(StartParameterInternal startParameter, BuildLifecycleAwareVirtualFileSystem virtualFileSystem) {
-        if (VirtualFileSystemServices.isDropVfs(startParameter)) {
+    private static void dropVirtualFileSystemIfRequested(InternalOptions options, BuildLifecycleAwareVirtualFileSystem virtualFileSystem) {
+        if (VirtualFileSystemServices.isDropVfs(options)) {
             virtualFileSystem.invalidateAll();
         }
     }

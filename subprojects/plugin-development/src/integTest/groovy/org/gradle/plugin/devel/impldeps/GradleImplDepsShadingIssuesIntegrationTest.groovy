@@ -54,7 +54,7 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
 
     private static String pluginTest() {
         """
-            class MyPluginTest extends groovy.util.GroovyTestCase {
+            class MyPluginTest extends groovy.test.GroovyTestCase {
 
                 void testCanUseProjectBuilder() {
                     def project = ${ProjectBuilder.name}.builder().build()
@@ -93,29 +93,6 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
 
         then:
         succeeds 'test'
-    }
-
-    def "can initialize Xerces bridge"() {
-        when:
-        buildFile << testablePluginProject()
-
-        file('src/main/groovy/MyPlugin.groovy') << '''
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-
-            class MyPlugin implements Plugin<Project> {
-
-                void apply(Project project) {
-                    Class xercesBridge = Class.forName('org.gradle.internal.impldep.org.cyberneko.html.xercesbridge.XercesBridge')
-                    assert xercesBridge.instance
-                }
-            }
-        '''
-        file('src/test/groovy/MyPluginTest.groovy') << pluginTest()
-
-        then:
-        succeeds 'test'
-
     }
 
     @Issue("GRADLE-3525")

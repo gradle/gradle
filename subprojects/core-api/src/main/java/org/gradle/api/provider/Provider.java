@@ -224,12 +224,12 @@ public interface Provider<T> {
      * </p>
      *
      * @param right the second provider to combine with
-     * @param combiner the combiner of values
-     * @param <B> the type of the second provider
+     * @param combiner the combiner of values. May return {@code null}, in which case the provider
+     * will have no value.
+     * @param <U> the type of the second provider
      * @param <R> the type of the result of the combiner
      * @return a combined provider
-     *
      * @since 6.6
      */
-    <B, R> Provider<R> zip(Provider<B> right, BiFunction<T, B, R> combiner);
+    <U, R> Provider<R> zip(Provider<U> right, BiFunction<? super T, ? super U, ? extends R> combiner);
 }

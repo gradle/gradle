@@ -26,6 +26,7 @@ abstract class AbstractConfigurationCacheProcessInstrumentationIntegrationTest e
 
     def setup() {
         testDirectory.createDir(pwd)
+        settingsFile("enableFeaturePreview('STABLE_CONFIGURATION_CACHE')")
     }
 
 

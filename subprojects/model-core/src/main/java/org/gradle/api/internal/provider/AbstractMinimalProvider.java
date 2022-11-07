@@ -24,7 +24,6 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.Managed;
-import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 
@@ -36,7 +35,8 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
-        return new TransformBackedProvider<>(transformer, this);
+        // Could do a better job of inferring the type
+        return new TransformBackedProvider<>(null, this, transformer);
     }
 
     @Override
@@ -69,6 +69,15 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     protected abstract ValueSupplier.Value<? extends T> calculateOwnValue(ValueConsumer consumer);
 
+    protected Value<? extends T> calculateOwnPresentValue() {
+        Value<? extends T> value = calculateOwnValue(ValueConsumer.IgnoreUnsafeRead);
+        if (value.isMissing()) {
+            throw new MissingValueException(cannotQueryValueOf(value));
+        }
+
+        return value;
+    }
+
     @Override
     public boolean isPresent() {
         return calculatePresence(ValueConsumer.IgnoreUnsafeRead);
@@ -81,11 +90,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public T get() {
-        Value<? extends T> value = calculateOwnValue(ValueConsumer.IgnoreUnsafeRead);
-        if (value.isMissing()) {
-            throw new MissingValueException(cannotQueryValueOf(value));
-        }
-        return value.get();
+        return calculateOwnPresentValue().get();
     }
 
     @Override
@@ -95,7 +100,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public T getOrElse(T defaultValue) {
-        return calculateOwnValue(ValueConsumer.IgnoreUnsafeRead).orElse(defaultValue);
+        return calculateOwnValue(ValueConsumer.IgnoreUnsafeRead).orElse(Cast.uncheckedNonnullCast(defaultValue));
     }
 
     @Override
@@ -162,7 +167,8 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     @Override
     public String toString() {
         // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
-        return String.format("provider(%s)", GUtil.elvis(getType(), "?"));
+        Class<?> type = getType();
+        return String.format("provider(%s)", type == null ? "?" : type.getName());
     }
 
     @Override

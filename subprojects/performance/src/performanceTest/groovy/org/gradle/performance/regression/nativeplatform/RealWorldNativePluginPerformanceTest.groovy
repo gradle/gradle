@@ -32,7 +32,6 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["7.4-20211214223504+0000"]
         runner.minimumBaseVersion = "4.0"
     }
 

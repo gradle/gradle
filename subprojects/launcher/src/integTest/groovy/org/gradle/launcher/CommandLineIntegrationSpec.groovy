@@ -20,7 +20,9 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
+import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.junit.Assume
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -97,6 +99,46 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
         cleanup:
         jdwpClient.close()
+    }
+
+    def "can debug with #hostKind host"() {
+        given:
+        executer.requireDaemon().requireIsolatedDaemons()
+
+        JDWPUtil jdwpClient = new JDWPUtil()
+
+        def address = nonLoopbackAddress()
+        Assume.assumeNotNull(address)
+        jdwpClient.host = address
+
+        when:
+        def gradle = executer.withArguments(
+            [
+                "-Dorg.gradle.debug=true",
+                "-Dorg.gradle.debug.port=" + jdwpClient.port
+            ] + (jdwpHost != null ? ["-Dorg.gradle.debug.host=" + jdwpHost] : [])
+        ).withTasks("help").start()
+
+        then:
+        ConcurrentTestUtil.poll() {
+            // Connect, resume threads, and disconnect from VM
+            jdwpClient.connect().dispose()
+        }
+        gradle.waitForFinish()
+
+        cleanup:
+        jdwpClient.close()
+
+        where:
+        jdwpHost << [Jvm.current().javaVersion.isJava9Compatible() ? "*" : null, nonLoopbackAddress()]
+        hostKind << [Jvm.current().javaVersion.isJava9Compatible() ? "star" : "default", "exact IP"]
+    }
+
+    private static String nonLoopbackAddress() {
+        Collections.list(NetworkInterface.getNetworkInterfaces())
+            .collectMany { it.isLoopback() ? [] : Collections.list(it.inetAddresses) }
+            .find { it instanceof Inet4Address && !it.isLoopbackAddress() }
+            .hostAddress
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18084')

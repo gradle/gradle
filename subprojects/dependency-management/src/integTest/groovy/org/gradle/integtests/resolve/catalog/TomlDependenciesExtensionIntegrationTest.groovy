@@ -85,7 +85,7 @@ bar = {group="org.gradle.test", name="bar", version="1.0"}
 
         then: "extension is not regenerated"
         !operations.hasOperation("Executing generation of dependency accessors for libs")
-        outputContains 'Type-safe dependency accessors is an incubating feature.'
+        outputDoesNotContain 'Type-safe dependency accessors is an incubating feature.'
     }
 
     def "can use the generated extension to declare a dependency"() {
@@ -164,6 +164,44 @@ myBundle = ["lib", "lib2"]
 
             dependencies {
                 implementation(libs.bundles.myBundle)
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+                module('org.gradle.test:lib2:1.0')
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22552")
+    void "can add several dependencies at once using a bundle with DependencyHandler#addProvider"() {
+        tomlFile << """[libraries]
+lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
+lib2.module = "org.gradle.test:lib2"
+lib2.version = "1.0"
+
+[bundles]
+myBundle = ["lib", "lib2"]
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                addProvider("implementation", libs.bundles.myBundle)
             }
         """
 
@@ -728,5 +766,187 @@ lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
 
     private GradleExecuter withConfigurationCache() {
         executer.withArgument("--configuration-cache")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20383")
+    def "should throw an error if 'from' is called with file collection containing more than one file"() {
+        file('gradle/a.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-a-lib = { group = "com.mycompany", name="myalib", version.ref="some" }
+"""
+        file('gradle/b.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-b-lib = { group = "com.mycompany", name="myblib", version.ref="some" }
+"""
+
+        settingsFile << """
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("testLibs") {
+            from(files("gradle/a.versions.toml", "gradle/b.versions.toml"))
+        }
+    }
+}
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyContains(failure.error, tooManyImportFiles {
+            inCatalog("testLibs")
+        })
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20383")
+    def "should throw an error if 'from' is called with an empty file collection"() {
+        settingsFile << """
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("testLibs") {
+            from(files())
+        }
+    }
+}
+"""
+
+        when:
+        fails 'help'
+
+        then:
+        verifyContains(failure.error, noImportFiles {
+            inCatalog("testLibs")
+        })
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20383")
+    def "should throw an error if 'from' is called multiple times"() {
+        file('gradle/a.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-a-lib = { group = "com.mycompany", name="myalib", version.ref="some" }
+"""
+        file('gradle/b.versions.toml') << """
+[versions]
+some = "1.4"
+
+[libraries]
+my-b-lib = { group = "com.mycompany", name="myblib", version.ref="some" }
+"""
+
+        settingsFile << """
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("testLibs") {
+            from(file("gradle/a.versions.toml"))
+            from(file("gradle/b.versions.toml"))
+        }
+    }
+}
+"""
+
+        when:
+        executer.withStacktraceEnabled()
+        fails 'help'
+
+        then:
+        verifyContains(failure.error, tooManyImportInvokation {
+            inCatalog("testLibs")
+        })
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20060")
+    def "no name conflicting of accessors"() {
+        def lib1 = mavenHttpRepo.module("com.company", "a", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("com.companylibs", "b", "1.0").publish()
+        def lib3 = mavenHttpRepo.module("com.companyLibs", "c", "1.0").publish()
+
+        def lib4 = mavenHttpRepo.module("com.company", "d", "1.0").publish()
+        def lib5 = mavenHttpRepo.module("com.company", "e", "1.0").publish()
+
+        tomlFile << """
+            [versions]
+            version-libs-v1 = "1.0"
+            versionLibs-v2 = "2.0"
+            versionlibs-v3 = "3.0"
+
+            [libraries]
+            com-company-libs-a = "com.company:a:1.0"
+            com-companylibs-b = "com.companylibs:b:1.0"
+            com-companyLibs-c = "com.companyLibs:c:1.0"
+
+            com-company-d = "com.company:d:1.0"
+            com-company-e = "com.company:e:1.0"
+
+            [bundles]
+            com-company-libs-bundle = ["com-company-d"]
+            com-companylibs-bundle = ["com-company-e"]
+
+            [plugins]
+            p-some-plugin-p1 = "plugin1:1.0"
+            p-somePlugin-p2 = "plugin2:1.0"
+        """
+
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.com.company.libs.a
+                implementation libs.com.companylibs.b
+                implementation libs.com.companyLibs.c
+
+                implementation libs.bundles.com.company.libs.bundle
+                implementation libs.bundles.com.companylibs.bundle
+            }
+
+            tasks.register('checkVersions') {
+                assert libs.versions.version.libs.v1.get() == '1.0'
+                assert libs.versions.versionLibs.v2.get() == '2.0'
+                assert libs.versions.versionlibs.v3.get() == '3.0'
+            }
+
+            tasks.register('checkPlugins') {
+                assert libs.plugins.p.some.plugin.p1.get().getPluginId() == 'plugin1'
+                assert libs.plugins.p.somePlugin.p2.get().getPluginId() == 'plugin2'
+            }
+        """
+
+        when:
+        lib1.pom.expectGet()
+        lib1.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+        lib3.pom.expectGet()
+        lib3.artifact.expectGet()
+
+        lib4.pom.expectGet()
+        lib4.artifact.expectGet()
+        lib5.pom.expectGet()
+        lib5.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+        run ':checkVersions'
+        run ':checkPlugins'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('com.company:a:1.0')
+                module('com.companylibs:b:1.0')
+                module('com.companyLibs:c:1.0')
+
+                module('com.company:d:1.0')
+                module('com.company:e:1.0')
+            }
+        }
     }
 }

@@ -17,11 +17,12 @@
 package org.gradle.launcher.continuous
 
 import groovy.transform.TupleConstructor
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.internal.filewatch.DefaultFileWatcherEventListener.SHOW_INDIVIDUAL_CHANGES_LIMIT
+import static org.gradle.tooling.internal.provider.continuous.FileEventCollector.SHOW_INDIVIDUAL_CHANGES_LIMIT
 
 class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIntegrationTest {
     TestFile inputDir
@@ -123,7 +124,10 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
 
     def "should report the changes when directories are created #changesCount"(changesCount) {
         given:
-        def inputDirectories = (1..changesCount).collect { inputDir.file("input${it}Directory") }
+        // We need to put these directories in subdirectories, since on Linux we'd stop watching a directory as soon as we
+        // received file changes for all the files inside.
+        def inputSubdirectories = (1..changesCount).collect { inputDir.createDir("subdir${it}")}
+        def inputDirectories = inputSubdirectories.collect { it.file("inputDirectory") }
         boolean expectMoreChanges = (changesCount > changesLimit)
 
         when:
@@ -214,6 +218,26 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         buildTriggeredAndSucceeded()
         sendEOT()
         assertReportsChanges([new ChangeEntry('new file', inputFile)])
+    }
+
+    def "can increase the quiet period"() {
+        given:
+        inputDir.createDir("input1")
+        inputDir.createDir("input2")
+        def inputFile1 = inputDir.file("input1/input.txt")
+        def inputFile2 = inputDir.file("input2/input.txt")
+
+        when:
+        succeeds("theTask", "-D${StartParameterBuildOptions.ContinuousBuildQuietPeriodOption.PROPERTY_NAME}=5000")
+        inputFile1.createFile()
+        // The regular 250ms quiet period would pick up two changes.
+        Thread.sleep(1000)
+        inputFile2.createFile()
+
+        then:
+        buildTriggeredAndSucceeded()
+        sendEOT()
+        assertReportsChanges([new ChangeEntry('new file', inputFile1), new ChangeEntry('new file', inputFile2)])
     }
 
     @TupleConstructor

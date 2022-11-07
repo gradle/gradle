@@ -47,7 +47,7 @@ import java.util.zip.ZipInputStream;
  * It is assumed that the layout of the directories follow the JVM conventions. This allows us to effectively skip opening the class files to determine the real package name.
  */
 @CacheableTask
-public class PackageListGenerator extends DefaultTask {
+public abstract class PackageListGenerator extends DefaultTask {
     public static final List<String> DEFAULT_EXCLUDES = Arrays.asList(
         "org/gradle",
         "java",

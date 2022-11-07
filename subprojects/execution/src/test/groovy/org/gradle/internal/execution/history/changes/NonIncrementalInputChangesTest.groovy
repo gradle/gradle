@@ -25,7 +25,7 @@ import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import spock.lang.Specification
 
@@ -33,7 +33,7 @@ class NonIncrementalInputChangesTest extends Specification {
 
     def "can iterate changes more than once"() {
         def fingerprint = DefaultCurrentFileCollectionFingerprint.from(
-            new RegularFileSnapshot("/some/where", "where", HashCode.fromInt(1234), DefaultFileMetadata.file(4, 5, AccessType.DIRECT)),
+            new RegularFileSnapshot("/some/where", "where", TestHashCodes.hashCodeFrom(1234), DefaultFileMetadata.file(4, 5, AccessType.DIRECT)),
             AbsolutePathFingerprintingStrategy.DEFAULT,
             null
         )

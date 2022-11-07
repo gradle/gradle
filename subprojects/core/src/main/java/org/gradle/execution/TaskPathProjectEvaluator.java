@@ -49,12 +49,4 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
             configure((ProjectInternal) sub);
         }
     }
-
-    @Override
-    public void configureHierarchyFully(ProjectInternal project) {
-        configureFully(project);
-        for (Project sub : project.getSubprojects()) {
-            configureFully((ProjectInternal) sub);
-        }
-    }
 }

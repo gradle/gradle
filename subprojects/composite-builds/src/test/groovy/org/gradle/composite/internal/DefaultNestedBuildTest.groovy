@@ -26,9 +26,10 @@ import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
+import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeState
-import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.util.Path
@@ -47,7 +48,9 @@ class DefaultNestedBuildTest extends Specification {
     def buildDefinition = Mock(BuildDefinition)
     def buildIdentifier = Mock(BuildIdentifier)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
-    def workGraph = Mock(BuildTreeWorkGraph)
+    def buildTreeController = Mock(BuildTreeLifecycleController)
+    def buildTreeControllerFactory = Mock(BuildTreeLifecycleControllerFactory)
+    BuildTreeFinishExecutor finishExecutor
 
     DefaultNestedBuild build() {
         _ * factory.servicesForBuild(buildDefinition, _, owner) >> Mock(BuildModelControllerServices.Supplier)
@@ -57,26 +60,19 @@ class DefaultNestedBuildTest extends Specification {
         services.add(Stub(BuildOperationExecutor))
         services.add(factory)
         services.add(exceptionAnalyzer)
-        services.add(new TestBuildTreeLifecycleControllerFactory(workGraph))
+        services.add(buildTreeControllerFactory)
         services.add(gradle)
         services.add(controller)
         services.add(Stub(DocumentationRegistry))
         services.add(Stub(BuildTreeWorkGraphController))
         _ * tree.services >> services
         _ * controller.gradle >> gradle
+        _ * buildTreeControllerFactory.createController(_, _, _) >> { build, workExecutor, finishExecutor ->
+            this.finishExecutor = finishExecutor
+            buildTreeController
+        }
 
         return new DefaultNestedBuild(buildIdentifier, Path.path(":a:b:c"), buildDefinition, owner, tree)
-    }
-
-    def "stops controller on stop"() {
-        services.add(Stub(BuildModelParameters))
-        def build = build()
-
-        when:
-        build.stop()
-
-        then:
-        1 * controller.stop()
     }
 
     def "runs action and finishes build when model is not required by root build"() {
@@ -95,7 +91,9 @@ class DefaultNestedBuildTest extends Specification {
             controller.scheduleAndRunTasks()
             '<result>'
         }
-        1 * workGraph.runWork() >> ExecutionResult.succeeded()
+        1 * buildTreeController.scheduleAndRunTasks() >> {
+            finishExecutor.finishBuildTree([])
+        }
         1 * controller.finishBuild(_) >> ExecutionResult.succeeded()
     }
 
@@ -115,7 +113,9 @@ class DefaultNestedBuildTest extends Specification {
             controller.scheduleAndRunTasks()
             '<result>'
         }
-        1 * workGraph.runWork() >> ExecutionResult.succeeded()
+        1 * buildTreeController.scheduleAndRunTasks() >> {
+            finishExecutor.finishBuildTree([])
+        }
         0 * controller.finishBuild(_, _)
     }
 

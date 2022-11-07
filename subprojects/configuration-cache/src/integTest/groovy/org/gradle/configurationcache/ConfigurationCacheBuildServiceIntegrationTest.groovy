@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.Project
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildService
@@ -28,11 +29,101 @@ import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import javax.inject.Inject
 import java.util.concurrent.atomic.AtomicInteger
 
 class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    @Issue('https://github.com/gradle/gradle/issues/20001')
+    def "build service from buildSrc is not restored"() {
+        given:
+        def onFinishMessage = "You won't see me!"
+        withListenerBuildServicePlugin onFinishMessage
+        createDir('buildSrc') {
+            file('settings.gradle') << """
+                pluginManagement {
+                    repositories {
+                        maven { url '$mavenRepo.uri' }
+                    }
+                }
+            """
+            file('build.gradle') << """
+                plugins { id 'listener-build-service-plugin' version '1.0' }
+            """
+        }
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun()
+        configurationCacheRun()
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputDoesNotContain onFinishMessage
+    }
+
+    private void withListenerBuildServicePlugin(String onFinishMessage) {
+        createDir('plugin') {
+            file("src/main/java/BuildServicePlugin.java") << """
+                import org.gradle.api.Plugin;
+
+                public abstract class BuildServicePlugin implements Plugin<$Project.name> {
+
+                    @$Inject.name protected abstract $BuildEventsListenerRegistry.name getListenerRegistry();
+
+                    @Override
+                    public void apply($Project.name project) {
+                        final String projectName = project.getName();
+                        final String uniqueServiceName = "listener of " + project.getName();
+                        getListenerRegistry().onTaskCompletion(
+                            project.getGradle().getSharedServices().registerIfAbsent(
+                                uniqueServiceName,
+                                ListenerBuildService.class,
+                                (spec) -> {}
+                            )
+                        );
+                    }
+                }
+
+                abstract class ListenerBuildService implements
+                    $BuildService.name<${BuildServiceParameters.name}.None>,
+                    $OperationCompletionListener.name {
+
+                    @$Inject.name
+                    public ListenerBuildService() {}
+
+                    @Override
+                    public void onFinish($FinishEvent.name event) {
+                        System.out.println("$onFinishMessage");
+                    }
+                }
+            """
+            file("build.gradle") << """
+                plugins {
+                    id("java-gradle-plugin")
+                    id("maven-publish")
+                }
+                group = "com.example"
+                version = "1.0"
+                publishing {
+                    repositories {
+                        maven { url '$mavenRepo.uri' }
+                    }
+                }
+                gradlePlugin {
+                    plugins {
+                        buildServicePlugin {
+                            id = 'listener-build-service-plugin'
+                            implementationClass = 'BuildServicePlugin'
+                        }
+                    }
+                }
+            """
+        }
+        executer.inDirectory(file("plugin")).withTasks("publish").run()
+    }
 
     @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
     def "build service from included build is loaded in reused classloader"() {

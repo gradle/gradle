@@ -163,3 +163,49 @@ This error indicates that an alias builder was created, but never registered wit
 you didn't call `.version()` or `.withoutVersion()` on the builder.
 
 The solution is to call whichever version method is appropriate.
+
+[[too_many_import_invocation]]
+== Too many import invocations
+
+This error indicates that an import statement (e.g. link:{javadocPath}/org/gradle/api/initialization/dsl/VersionCatalogBuilder.html#from-java.lang.Object-[from(Object notation)]) was called more than once.
+
+A version catalog can only be imported from a single source.
+To prevent the import of multiple sources, some methods will throw an exception when called more than once.
+
+A simple example could be the following, which triggers the error when building a version catalog:
+```kotlin
+create("testLibs") {
+    from(files("gradle/a.versions.toml"))
+    from(files("gradle/b.versions.toml"))
+}
+```
+
+When this happens, make sure that there is only a single import invocation per version catalog.
+
+[[no_import_files]]
+== No import files
+
+When an import statement receives a notation, which doesn't resolve to a file, an exception will be thrown.
+
+A simple example could be the following, which triggers the error when building a version catalog:
+```kotlin
+create("testLibs") {
+    from(files())
+}
+```
+
+The solution is to make sure that from is not called with empty files.
+
+[[too_many_import_files]]
+== Too many import files
+
+When an imported file doesn't resolve to a file, an exception will be thrown.
+
+A simple example could be the following, which triggers the error when building a version catalog:
+```kotlin
+create("testLibs") {
+    from(files("gradle/a.versions.toml", "gradle/b.versions.toml"))
+}
+```
+
+The solution is to make sure that from is not called with a notation, which resolves into multiple files.

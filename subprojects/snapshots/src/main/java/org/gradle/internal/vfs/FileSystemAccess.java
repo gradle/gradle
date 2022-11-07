@@ -21,8 +21,6 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Provides access to snapshots of the content and metadata of the file system.
@@ -38,19 +36,19 @@ public interface FileSystemAccess {
      *
      * @return the visitor function applied to the found snapshot.
      */
-    <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor);
+    Optional<HashCode> readRegularFileContentHash(String location);
 
     /**
-     * Visits the hierarchy of files at the given location.
+     * Reads the hierarchy of files at the given location.
      */
-    <T> T read(String location, Function<FileSystemLocationSnapshot, T> visitor);
+    FileSystemLocationSnapshot read(String location);
 
     /**
      * Visits the hierarchy of files which match the filter at the given location.
      *
-     * The consumer is only called if if something matches the filter.
+     * Returns empty {@link Optional} if filter doesn't match anything.
      */
-    void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor);
+    Optional<FileSystemLocationSnapshot> read(String location, SnapshottingFilter filter);
 
     /**
      * Runs an action which potentially writes to the given locations.

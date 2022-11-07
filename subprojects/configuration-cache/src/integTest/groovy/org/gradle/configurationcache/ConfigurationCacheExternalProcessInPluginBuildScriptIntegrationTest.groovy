@@ -25,17 +25,17 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stri
 class ConfigurationCacheExternalProcessInPluginBuildScriptIntegrationTest extends AbstractConfigurationCacheExternalProcessIntegrationTest {
     def "using #snippetsFactory.summary in included plugin settings #file is a problem"() {
         given:
+        settingsFileWithStableConfigurationCache("""
+            pluginManagement {
+                includeBuild('included')
+            }
+        """)
+
         def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file(file) << """
             ${snippets.imports}
             ${snippets.body}
         """
-
-        settingsFile("""
-            pluginManagement {
-                includeBuild('included')
-            }
-        """)
 
         when:
         configurationCacheFails(":help")
@@ -62,6 +62,12 @@ class ConfigurationCacheExternalProcessInPluginBuildScriptIntegrationTest extend
 
     def "using #snippetsFactory.summary in included plugin build #file is a problem"() {
         given:
+        settingsFileWithStableConfigurationCache("""
+            pluginManagement {
+                includeBuild('included')
+            }
+        """)
+
         def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         def includedBuildFile = testDirectory.file(file)
         includedBuildFile << """
@@ -74,12 +80,6 @@ class ConfigurationCacheExternalProcessInPluginBuildScriptIntegrationTest extend
         testDirectory.file("included/src/main/groovy/test-convention-plugin.gradle") << """
             println("Applied script plugin")
         """
-
-        settingsFile("""
-            pluginManagement {
-                includeBuild('included')
-            }
-        """)
 
         buildFile("""
             plugins {

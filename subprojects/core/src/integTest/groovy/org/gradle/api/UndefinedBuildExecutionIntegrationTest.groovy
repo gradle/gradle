@@ -34,6 +34,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Directory '$testDirectory' does not contain a Gradle build.")
         failure.assertHasResolutions(
             "Run gradle init to create a new Gradle build in this directory.",
+            "Run with --stacktrace option to get the stack trace.",
             "Run with --info or --debug option to get more log output.") // Don't suggest running with --scan for a missing build
 
         testDirectory.assertIsEmptyDir()
@@ -93,7 +94,34 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void assertNoProjectCaches(TestFile dir) {
-        assert !(dir.list()?.findAll { !(it in ["caches", "native"]) })
+        def dirContents = dir.list()
+        if (dirContents) {
+            printFileTree(dir)
+        }
+        // caches: Gradle user home caches, not present in project .gradle caches directory
+        // native: unpacked native platform libraries, not present in project .gradle caches directory
+        // .tmp: Temporary folder for worker classpath files and configuration caching report intermediate files, not present in project .gradle caches directory
+        def filteredContents = (dirContents?.findAll { !(it in ["caches", "native", ".tmp"]) })
+        assert !filteredContents
+
+        def tmpDir = dir.file(".tmp")
+        if (tmpDir.exists()) {
+            tmpDir.assertIsEmptyDir()
+        }
+    }
+
+    private void printFileTree(File dir) {
+        def list = []
+        if (dir.exists()) {
+            dir.eachFileRecurse { file ->
+                list << file
+            }
+        }
+
+        println "Contents of $dir.absolutePath:"
+        list.each {
+            println it.path
+        }
     }
 
     def "fails when user home directory is used and Gradle has not been run before"() {

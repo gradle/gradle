@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.component.BuildableJavaComponent;
@@ -30,15 +31,18 @@ import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask;
 import org.gradle.api.tasks.diagnostics.ProjectReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
+import org.gradle.api.tasks.diagnostics.ResolvableConfigurationsReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.configuration.Help;
+
+import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 
 /**
  * Adds various reporting tasks that provide information about the project.
  *
  * @see <a href="https://gradle.org/help/">Getting additional help with Gradle</a>
  */
-public class HelpTasksPlugin implements Plugin<Project> {
+public abstract class HelpTasksPlugin implements Plugin<Project> {
 
     public static final String HELP_GROUP = "help";
     public static final String PROPERTIES_TASK = "properties";
@@ -51,6 +55,14 @@ public class HelpTasksPlugin implements Plugin<Project> {
      * @since 6.0
      */
     public static final String OUTGOING_VARIANTS_TASK = "outgoingVariants";
+
+    /**
+     * The name of the requested configurations report task.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    public static final String RESOLVABLE_CONFIGURATIONS_TASK = "resolvableConfigurations";
     public static final String MODEL_TASK = "model";
     public static final String DEPENDENT_COMPONENTS_TASK = "dependentComponents";
 
@@ -62,7 +74,7 @@ public class HelpTasksPlugin implements Plugin<Project> {
         String projectName = project.toString();
         tasks.register(ProjectInternal.HELP_TASK, Help.class, new HelpAction());
         tasks.register(ProjectInternal.PROJECTS_TASK, ProjectReportTask.class, new ProjectReportTaskAction(projectName));
-        tasks.register(ProjectInternal.TASKS_TASK, TaskReportTask.class, new TaskReportTaskAction(projectName, project.getChildProjects().isEmpty()));
+        tasks.register(ProjectInternal.TASKS_TASK, TaskReportTask.class, new TaskReportTaskAction(projectName, getChildProjectsForInternalUse(project).isEmpty()));
         tasks.register(PROPERTIES_TASK, PropertyReportTask.class, new PropertyReportTaskAction(projectName));
         tasks.register(DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask.class, new DependencyInsightReportTaskAction(projectName));
         tasks.register(DEPENDENCIES_TASK, DependencyReportTask.class, new DependencyReportTaskAction(projectName));
@@ -72,6 +84,14 @@ public class HelpTasksPlugin implements Plugin<Project> {
             task.setDescription("Displays the outgoing variants of " + projectName + ".");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
+            task.getShowAll().convention(false);
+        });
+        tasks.register(RESOLVABLE_CONFIGURATIONS_TASK, ResolvableConfigurationsReportTask.class, task -> {
+            task.setDescription("Displays the configurations that can be resolved in " + projectName + ".");
+            task.setGroup(HELP_GROUP);
+            task.setImpliesSubProjects(true);
+            task.getShowAll().convention(false);
+            task.getRecursive().convention(false);
         });
         tasks.withType(TaskReportTask.class).configureEach(task -> {
             task.getShowTypes().convention(false);
@@ -159,6 +179,7 @@ public class HelpTasksPlugin implements Plugin<Project> {
             task.setDescription("Displays the insight into a specific dependency in " + projectName + ".");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
+            task.getShowingAllVariants().convention(false);
             ComponentRegistry componentRegistry = ((ProjectInternal) task.getProject()).getServices().get(ComponentRegistry.class);
             new DslObject(task).getConventionMapping().map("configuration", () -> {
                 BuildableJavaComponent javaProject = componentRegistry.getMainComponent();

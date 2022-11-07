@@ -36,6 +36,7 @@ import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import org.gradle.internal.component.model.ComponentAttributeMatcher
+import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.util.AttributeTestUtil
@@ -99,7 +100,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         def rule = Mock(Action)
 
         when:
-        metadata.getVariantMetadataRules().addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>({ true }, rule))
+        metadata.getVariantMetadataRules().addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>(null, rule))
         def variant = selectTargetConfigurationMetadata(metadata)
 
         then:
@@ -130,7 +131,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         def rule = Mock(Action)
 
         when:
-        metadata.getVariantMetadataRules().addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>({ false }, rule))
+        metadata.getVariantMetadataRules().addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>("wrong-name", rule))
         selectTargetConfigurationMetadata(metadata).artifacts
 
         then:
@@ -197,7 +198,7 @@ class VariantFilesMetadataRulesTest extends Specification {
 
         when:
         metadata.variantMetadataRules.addVariant('new-variant', 'runtime', false)
-        metadata.variantMetadataRules.addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>({ true }, rule))
+        metadata.variantMetadataRules.addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>(null, rule))
         def newVariant =  metadata.asImmutable().variantsForGraphTraversal.get().find { it.name == 'new-variant' }
 
         then:
@@ -246,7 +247,7 @@ class VariantFilesMetadataRulesTest extends Specification {
 
         when:
         metadata.getVariantMetadataRules().addVariant("new-variant", "not-exist", true)
-        metadata.variantMetadataRules.addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>({ true }, rule))
+        metadata.variantMetadataRules.addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>(null, rule))
         def immutableMetadata = metadata.asImmutable()
         def variants = immutableMetadata.variantsForGraphTraversal.get()
 
@@ -271,7 +272,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         }
 
         when:
-        metadata.getVariantMetadataRules().addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>({ true }, rule))
+        metadata.getVariantMetadataRules().addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>(null, rule))
         def artifacts = selectTargetConfigurationMetadata(metadata).artifacts
 
         then:
@@ -305,7 +306,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         }
 
         when:
-        metadata.getVariantMetadataRules().addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>({ true }, rule))
+        metadata.getVariantMetadataRules().addVariantFilesAction(new VariantMetadataRules.VariantAction<MutableVariantFilesMetadata>(null, rule))
         def artifacts = selectTargetConfigurationMetadata(metadata).artifacts
 
         then:
@@ -331,7 +332,9 @@ class VariantFilesMetadataRulesTest extends Specification {
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
         def componentSelector = newSelector(consumerIdentifier.module, new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
-
-        consumer.selectConfigurations(attributes, immutable, schema, [] as Set)[0]
+        def state = Stub(ComponentGraphResolveState) {
+            metadata >> immutable
+        }
+        consumer.selectVariants(attributes, state, schema, [] as Set).variants[0]
     }
 }

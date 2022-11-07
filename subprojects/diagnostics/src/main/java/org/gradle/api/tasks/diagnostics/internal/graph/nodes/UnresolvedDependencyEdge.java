@@ -78,6 +78,11 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
     }
 
     @Override
+    public List<ResolvedVariantResult> getAllVariants() {
+        return Collections.emptyList();
+    }
+
+    @Override
     public ComponentIdentifier getFrom() {
         return dependency.getFrom().getId();
     }

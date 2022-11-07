@@ -21,8 +21,6 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.PolymorphicDomainObjectContainer
 
-import org.gradle.internal.deprecation.DeprecationLogger
-
 import org.gradle.kotlin.dsl.support.delegates.NamedDomainObjectContainerDelegate
 
 import kotlin.reflect.KClass
@@ -40,26 +38,6 @@ inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
     configuration: Action<NamedDomainObjectContainerScope<T>>
 ): C = apply {
     configuration.execute(NamedDomainObjectContainerScope.of(this))
-}
-
-
-/**
- * Allows the container to be configured via an augmented DSL.
- *
- * @param configuration The expression to configure this container with
- * @return The container.
- */
-@Suppress("nothing_to_inline")
-@Deprecated(level = DeprecationLevel.HIDDEN, message = "For backward compatibility only")
-inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
-    configuration: NamedDomainObjectContainerScope<T>.() -> Unit
-): C = apply {
-    DeprecationLogger.deprecateInvocation("NamedDomainObjectContainer<T>.invoke(kotlin.Function1)")
-        .withAdvice("Recompile your plugin against Gradle >= 6.8")
-        .willBeRemovedInGradle8()
-        .withUpgradeGuideSection(6, "using_NamedDomainObjectContainer_invoke_kotlin_Function1")
-        .nagUser()
-    configuration(NamedDomainObjectContainerScope.of(this))
 }
 
 

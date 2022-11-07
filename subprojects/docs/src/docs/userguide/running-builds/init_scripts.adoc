@@ -49,10 +49,17 @@ If more than one init script is found they will all be executed, in the order sp
 [[sec:writing_an_init_script]]
 == Writing an init script
 
-Similar to a Gradle build script, an init script is a Groovy or Kotlin script. Each init script has a link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] instance associated with it. Any property reference and method call in the init script will delegate to this `Gradle` instance.
+Similar to a Gradle build script, an init script is a Groovy or Kotlin script.
+Each init script has a link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] instance associated with it.
+Any property reference and method call in the init script will delegate to this `Gradle` instance.
 
 Each init script also implements the link:{groovyDslPath}/org.gradle.api.Script.html[Script] interface.
 
+[NOTE]
+====
+When writing init scripts, pay attention to the scope of the reference you are trying to access.
+For example, properties loaded from `gradle.properties` are available on `Settings` or `Project` instances but not on the `Gradle` one.
+====
 
 [[sec:configuring_projects_from_an_init_script]]
 === Configuring projects from an init script

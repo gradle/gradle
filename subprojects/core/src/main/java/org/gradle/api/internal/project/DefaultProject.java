@@ -35,6 +35,7 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -45,6 +46,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.SyncSpec;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -142,6 +144,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
@@ -373,7 +376,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public GradleInternal getGradle() {
-        return gradle;
+        return getCrossProjectModelAccess().gradleInstanceForProject(this, gradle);
     }
 
     @Inject
@@ -494,12 +497,22 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public Map<String, Project> getChildProjects() {
+    public Map<String, Project> getChildProjectsUnchecked() {
         Map<String, Project> childProjects = Maps.newTreeMap();
         for (ProjectState project : owner.getChildProjects()) {
             childProjects.put(project.getName(), project.getMutableModel());
         }
         return childProjects;
+    }
+
+    @Override
+    public Map<String, Project> getChildProjects() {
+        return getChildProjectsUnchecked().entrySet().stream().collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> getCrossProjectModelAccess().access(this, (ProjectInternal) entry.getValue())
+            )
+        );
     }
 
     @Override
@@ -1027,6 +1040,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return dependencyHandler;
     }
 
+    @Override
+    @Inject
+    public abstract DependencyFactory getDependencyFactory();
+
     public void setDependencyHandler(DependencyHandler dependencyHandler) {
         this.dependencyHandler = dependencyHandler;
     }
@@ -1127,7 +1144,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public WorkResult sync(Action<? super CopySpec> action) {
+    public WorkResult sync(Action<? super SyncSpec> action) {
         return getFileOperations().sync(action);
     }
 

@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.plugins.precompiled
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers
@@ -27,8 +26,8 @@ import java.io.File
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorSettingEvaluationTest : AbstractPrecompiledScriptPluginTest() {
+
     @Test
-    @ToBeFixedForConfigurationCache
     fun `settings and init scripts are not evaluated when generating accessors`() {
         // given:
         val evaluationLog = file("evaluation.log")

@@ -11,12 +11,17 @@ val configurationCacheReportPath by configurations.creating {
     attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
 }
 
+// You can have a faster feedback loop by running `configuration-cache-report` as an included build
+// See https://github.com/gradle/configuration-cache-report#development-with-gradlegradle-and-composite-build
 dependencies {
-    configurationCacheReportPath(project(":configuration-cache-report"))
+    configurationCacheReportPath(libs.configurationCacheReport)
 }
 
 tasks.processResources {
-    from(configurationCacheReportPath) { into("org/gradle/configurationcache/problems") }
+    from(zipTree(provider { configurationCacheReportPath.files.first() })) {
+        into("org/gradle/configurationcache/problems")
+        exclude("META-INF/**")
+    }
 }
 
 // The integration tests in this project do not need to run in 'config cache' mode.
@@ -33,7 +38,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
         apiVersion = "1.5"
         languageVersion = "1.5"
         freeCompilerArgs += listOf(
-            "-Xopt-in=kotlin.contracts.ExperimentalContracts",
+            "-opt-in=kotlin.contracts.ExperimentalContracts",
             "-Xsam-conversions=class",
         )
     }
@@ -46,6 +51,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":core-api"))
     implementation(project(":dependency-management"))
+    implementation(project(":enterprise-operations"))
     implementation(project(":execution"))
     implementation(project(":file-collections"))
     implementation(project(":file-temp"))
@@ -75,6 +81,7 @@ dependencies {
     implementation(project(":build-option"))
 
     implementation(libs.capsule)
+    implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.groovyJson)
     implementation(libs.slf4jApi)
@@ -87,7 +94,6 @@ dependencies {
     testImplementation(libs.mockitoKotlin2)
     testImplementation(libs.kotlinCoroutinesDebug)
 
-    integTestImplementation(project(":enterprise-operations"))
     integTestImplementation(project(":jvm-services"))
     integTestImplementation(project(":tooling-api"))
     integTestImplementation(project(":platform-jvm"))
@@ -98,6 +104,7 @@ dependencies {
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
     integTestImplementation(libs.inject)
+    integTestImplementation("com.microsoft.playwright:playwright:1.20.1")
 
     integTestImplementation(testFixtures(project(":tooling-api")))
     integTestImplementation(testFixtures(project(":dependency-management")))
@@ -115,6 +122,6 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/configurationcache/**")
 }

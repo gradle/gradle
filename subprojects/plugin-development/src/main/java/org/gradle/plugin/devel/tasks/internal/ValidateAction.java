@@ -92,7 +92,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                     Class<?> clazz;
                     try {
                         clazz = classLoader.loadClass(className);
-                    } catch (IllegalAccessError | NoClassDefFoundError | VerifyError | ClassNotFoundException e) {
+                    } catch (IncompatibleClassChangeError | NoClassDefFoundError | VerifyError | ClassNotFoundException e) {
                         LOGGER.debug("Could not load class: " + className, e);
                         continue;
                     }

@@ -168,16 +168,20 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
 
     public void maybeStop() {
         synchronized (this) {
-            if (instance != null) {
-                instance.ifSuccessful(t -> {
-                    if (t instanceof AutoCloseable) {
-                        try {
-                            ((AutoCloseable) t).close();
-                        } catch (Exception e) {
-                            throw new ServiceLifecycleException("Failed to stop service '" + name + "'.", e);
+            try {
+                if (instance != null) {
+                    instance.ifSuccessful(t -> {
+                        if (t instanceof AutoCloseable) {
+                            try {
+                                ((AutoCloseable) t).close();
+                            } catch (Exception e) {
+                                throw new ServiceLifecycleException("Failed to stop service '" + name + "'.", e);
+                            }
                         }
-                    }
-                });
+                    });
+                }
+            } finally {
+                instance = null;
             }
         }
     }

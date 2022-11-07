@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
@@ -40,7 +39,7 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.classpath.Instrumented
-import org.gradle.internal.component.local.model.LocalComponentMetadata
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -61,7 +60,6 @@ class DefaultConfigurationCache internal constructor(
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val buildActionModelRequirements: BuildActionModelRequirements,
     private val buildStateRegistry: BuildStateRegistry,
-    private val projectStateRegistry: ProjectStateRegistry,
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationExecutor: BuildOperationExecutor,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController,
@@ -114,26 +112,28 @@ class DefaultConfigurationCache internal constructor(
 
     override fun initializeCacheEntry() {
         cacheAction = determineCacheAction()
-        problems.action(cacheAction) {
-            store.useForStore { layout ->
-                invalidateConfigurationCacheState(layout)
-            }
-        }
+        problems.action(cacheAction)
     }
 
     override fun attachRootBuild(host: Host) {
         this.host = host
     }
 
-    override fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> Unit) {
-        if (isLoaded) {
-            loadWorkGraph(graph)
+    override fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph): BuildTreeConfigurationCache.WorkGraphResult {
+        return if (isLoaded) {
+            val finalizedGraph = loadWorkGraph(graph)
+            BuildTreeConfigurationCache.WorkGraphResult(finalizedGraph, true, false)
         } else {
             runWorkThatContributesToCacheEntry {
-                scheduler(graph)
+                val finalizedGraph = scheduler(graph)
                 saveWorkGraph()
+                BuildTreeConfigurationCache.WorkGraphResult(finalizedGraph, false, problems.shouldDiscardEntry)
             }
         }
+    }
+
+    override fun loadRequestedTasks(graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
+        return loadWorkGraph(graph)
     }
 
     override fun maybePrepareModel(action: () -> Unit) {
@@ -160,12 +160,16 @@ class DefaultConfigurationCache internal constructor(
         return intermediateModels.value.loadOrCreateIntermediateModel(identityPath, modelName, creator)
     }
 
-    override fun loadOrCreateProjectMetadata(identityPath: Path, creator: () -> LocalComponentMetadata): LocalComponentMetadata {
+    override fun loadOrCreateProjectMetadata(identityPath: Path, creator: () -> LocalComponentGraphResolveState): LocalComponentGraphResolveState {
         return projectMetadata.value.loadOrCreateValue(identityPath, creator)
     }
 
     override fun finalizeCacheEntry() {
-        if (hasSavedValues) {
+        if (problems.shouldDiscardEntry) {
+            store.useForStore { layout ->
+                layout.fileFor(StateType.Entry).delete()
+            }
+        } else if (hasSavedValues) {
             val reusedProjects = mutableSetOf<Path>()
             val updatedProjects = mutableSetOf<Path>()
             intermediateModels.value.visitProjects(reusedProjects::add, updatedProjects::add)
@@ -185,6 +189,7 @@ class DefaultConfigurationCache internal constructor(
             logBootstrapSummary("Recreating configuration cache")
             ConfigurationCacheAction.STORE
         }
+
         startParameter.isRefreshDependencies -> {
             logBootstrapSummary(
                 "{} as configuration cache cannot be reused due to {}",
@@ -193,6 +198,7 @@ class DefaultConfigurationCache internal constructor(
             )
             ConfigurationCacheAction.STORE
         }
+
         startParameter.isWriteDependencyLocks -> {
             logBootstrapSummary(
                 "{} as configuration cache cannot be reused due to {}",
@@ -201,6 +207,7 @@ class DefaultConfigurationCache internal constructor(
             )
             ConfigurationCacheAction.STORE
         }
+
         startParameter.isUpdateDependencyLocks -> {
             logBootstrapSummary(
                 "{} as configuration cache cannot be reused due to {}",
@@ -209,6 +216,7 @@ class DefaultConfigurationCache internal constructor(
             )
             ConfigurationCacheAction.STORE
         }
+
         else -> {
             when (val checkedFingerprint = checkFingerprint()) {
                 is CheckedFingerprint.NotFound -> {
@@ -219,6 +227,7 @@ class DefaultConfigurationCache internal constructor(
                     )
                     ConfigurationCacheAction.STORE
                 }
+
                 is CheckedFingerprint.EntryInvalid -> {
                     logBootstrapSummary(
                         "{} as configuration cache cannot be reused because {}.",
@@ -227,6 +236,7 @@ class DefaultConfigurationCache internal constructor(
                     )
                     ConfigurationCacheAction.STORE
                 }
+
                 is CheckedFingerprint.ProjectsInvalid -> {
                     logBootstrapSummary(
                         "{} as configuration cache cannot be reused because {}.",
@@ -235,6 +245,7 @@ class DefaultConfigurationCache internal constructor(
                     )
                     ConfigurationCacheAction.UPDATE
                 }
+
                 is CheckedFingerprint.Valid -> {
                     logBootstrapSummary("Reusing configuration cache.")
                     ConfigurationCacheAction.LOAD
@@ -313,7 +324,7 @@ class DefaultConfigurationCache internal constructor(
         // can cause the provider value to incorrectly be treated as a task graph input
         Instrumented.discardListener()
 
-        buildOperationExecutor.withStoreOperation {
+        buildOperationExecutor.withStoreOperation(cacheKey.string) {
             store.useForStore { layout ->
                 try {
                     action(layout.fileFor(stateType))
@@ -339,8 +350,8 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun loadWorkGraph(graph: BuildTreeWorkGraph) {
-        loadFromCache(StateType.Work) { stateFile ->
+    fun loadWorkGraph(graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
+        return loadFromCache(StateType.Work) { stateFile ->
             cacheIO.readRootBuildStateFrom(stateFile, graph)
         }
     }
@@ -374,9 +385,9 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun writeConfigurationCacheState(stateFile: ConfigurationCacheStateFile) =
-        projectStateRegistry.withMutableStateOfAllProjects(
-            Factory { cacheIO.writeRootBuildStateTo(stateFile) }
-        )
+        host.currentBuild.gradle.owner.projects.withMutableStateOfAllProjects {
+            cacheIO.writeRootBuildStateTo(stateFile)
+        }
 
     private
     fun writeConfigurationCacheFingerprint(layout: ConfigurationCacheRepository.Layout, reusedProjects: Set<Path>) {
@@ -489,11 +500,6 @@ class DefaultConfigurationCache internal constructor(
     private
     fun unloadGradleProperties() {
         gradlePropertiesController.unloadGradleProperties()
-    }
-
-    private
-    fun invalidateConfigurationCacheState(layout: ConfigurationCacheRepository.Layout) {
-        layout.fileFor(StateType.Entry).delete()
     }
 
     private

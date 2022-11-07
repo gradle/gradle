@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.xml.XmlTransformer;
@@ -56,7 +57,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * </pre>
  */
-public class EclipseWtp {
+public abstract class EclipseWtp {
     private EclipseWtpComponent component;
     private EclipseWtpFacet facet;
 
@@ -88,7 +89,7 @@ public class EclipseWtp {
      * <p>
      * For examples see docs for {@link EclipseWtpComponent}
      */
-    public void component(Closure action) {
+    public void component(@DelegatesTo(EclipseWtpComponent.class) Closure action) {
         configure(action, component);
     }
 
@@ -126,7 +127,7 @@ public class EclipseWtp {
      * <p>
      * For examples see docs for {@link EclipseWtpFacet}
      */
-    public void facet(Closure action) {
+    public void facet(@DelegatesTo(EclipseWtpFacet.class) Closure action) {
         configure(action, getFacet());
     }
 

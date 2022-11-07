@@ -27,9 +27,9 @@ public class DefaultFailure implements Serializable, InternalFailure {
 
     private final String message;
     private final String description;
-    private final DefaultFailure cause;
+    private final InternalFailure cause;
 
-    public DefaultFailure(String message, String description, DefaultFailure cause) {
+    protected DefaultFailure(String message, String description, InternalFailure cause) {
         this.message = message;
         this.description = description;
         this.cause = cause;
@@ -47,16 +47,15 @@ public class DefaultFailure implements Serializable, InternalFailure {
 
     @Override
     public List<? extends InternalFailure> getCauses() {
-        return cause == null ? Collections.<InternalFailure>emptyList() : Collections.singletonList(cause);
+        return cause == null ? Collections.emptyList() : Collections.singletonList(cause);
     }
 
-    public static DefaultFailure fromThrowable(Throwable t) {
+    public static InternalFailure fromThrowable(Throwable t) {
         StringWriter out = new StringWriter();
         PrintWriter wrt = new PrintWriter(out);
         t.printStackTrace(wrt);
         Throwable cause = t.getCause();
-        DefaultFailure causeFailure = cause != null && cause != t ? fromThrowable(cause) : null;
+        InternalFailure causeFailure = cause != null && cause != t ? fromThrowable(cause) : null;
         return new DefaultFailure(t.getMessage(), out.toString(), causeFailure);
     }
-
 }

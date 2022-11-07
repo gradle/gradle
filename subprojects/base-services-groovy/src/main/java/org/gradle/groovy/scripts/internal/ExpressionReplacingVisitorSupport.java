@@ -381,7 +381,6 @@ public class ExpressionReplacingVisitorSupport extends StatementReplacingVisitor
             expr.isIgnoringAutoboxing()
         );
         result.setCoerce(expr.isCoerce());
-        result.setType(expr.getType());
         result.setSourcePosition(expr);
         replaceVisitedExpressionWith(result);
     }

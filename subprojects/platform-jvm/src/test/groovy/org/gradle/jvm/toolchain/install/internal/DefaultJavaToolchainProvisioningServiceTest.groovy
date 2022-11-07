@@ -18,107 +18,147 @@ package org.gradle.jvm.toolchain.install.internal
 
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.authentication.Authentication
 import org.gradle.cache.FileLock
+import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.resource.ExternalResource
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData
+import org.gradle.jvm.toolchain.JavaToolchainDownload
+import org.gradle.jvm.toolchain.JavaToolchainRequest
 import org.gradle.jvm.toolchain.JavaToolchainSpec
+import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal
+import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary
+import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService
+import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory
+import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
+import org.gradle.platform.BuildPlatform
 import spock.lang.Specification
 import spock.lang.TempDir
 
 class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
+    private static final String ARCHIVE_NAME = 'ibm-11-x64-hotspot-linux.zip'
+
+    private static final JavaToolchainDownload DOWNLOAD = JavaToolchainDownload.fromUri(URI.create('https://server/whatever'))
+
     @TempDir
     public File temporaryFolder
 
+    def binary = Mock(AdoptOpenJdkRemoteBinary)
+    def registry = Mock(JavaToolchainResolverRegistryInternal)
+    def downloader = Mock(SecureFileDownloader)
+    def cache = Mock(JdkCacheDirectory)
+    def archiveFileLock = Mock(FileLock)
+    def buildPlatform = Mock(BuildPlatform)
+
+    def setup() {
+        registry.requestedRepositories() >> Collections.emptyList()
+
+        ExternalResource downloadResource = Mock(ExternalResource)
+        downloader.getResourceFor(_ as URI, _ as Collection<Authentication>) >> downloadResource
+        ExternalResourceMetaData downloadResourceMetadata = Mock(ExternalResourceMetaData)
+        downloadResource.getMetaData() >> downloadResourceMetadata
+        downloadResourceMetadata.getFilename() >> ARCHIVE_NAME
+
+        cache.acquireWriteLock(_ as File, _ as String) >> archiveFileLock
+        cache.getDownloadLocation() >> temporaryFolder
+        cache.provisionFromArchive(_ as JavaToolchainSpec, _ as File, _ as URI) >> new File(temporaryFolder, "install_dir")
+    }
+
     def "cache is properly locked around provisioning a jdk"() {
-        def cache = Mock(JdkCacheDirectory)
-        def lock = Mock(FileLock)
-        def binary = Mock(AdoptOpenJdkRemoteBinary)
+        def spec = Mock(JavaToolchainSpec)
+
+        def operationExecutor = new TestBuildOperationExecutor()
+        def providerFactory = createProviderFactory("true")
+
+        given:
+        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD)
+
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, operationExecutor, buildPlatform)
+
+        when:
+        provisioningService.tryInstall(spec)
+
+        then:
+        1 * cache.acquireWriteLock(_, _) >> archiveFileLock
+
+        then:
+        1 * downloader.download(_, _, _)
+
+        then:
+        1 * archiveFileLock.close()
+
+
+        then:
+        List<BuildOperationDescriptor> descriptors = operationExecutor.log.getDescriptors()
+        descriptors.find {it.name == "Examining toolchain URI " + DOWNLOAD.getUri() }
+        descriptors.find {it.name == "Downloading toolchain from URI " + DOWNLOAD.getUri() }
+        descriptors.find {it.name == "Unpacking toolchain archive " + ARCHIVE_NAME }
+    }
+
+    def "skips downloading if already downloaded"() {
+        def spec = Mock(JavaToolchainSpec)
+        def providerFactory = createProviderFactory("true")
+
+        given:
+        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD)
+        new File(temporaryFolder, ARCHIVE_NAME).createNewFile()
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
+
+        when:
+        provisioningService.tryInstall(spec)
+
+        then:
+        0 * downloader.download(_, _, _)
+    }
+
+    def "skips downloading if cannot satisfy spec"() {
+        def spec = Mock(JavaToolchainSpec)
+        def providerFactory = createProviderFactory("true")
+
+        given:
+        binary.resolve(_ as JavaToolchainRequest) >> Optional.empty()
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
+
+        when:
+        def result = provisioningService.tryInstall(spec)
+
+        then:
+        !result.isPresent()
+        0 * downloader.download(_, _, _)
+    }
+
+    def "auto download can be disabled"() {
+        def spec = Mock(JavaToolchainSpec)
+        def providerFactory = createProviderFactory("false")
+
+        given:
+        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
+
+        when:
+        def result = provisioningService.tryInstall(spec)
+
+        then:
+        !result.isPresent()
+    }
+
+    def "downloads from url"() {
         def spec = Mock(JavaToolchainSpec)
         def operationExecutor = new TestBuildOperationExecutor()
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.canProvideMatchingJdk(spec) >> true
-        binary.toFilename(spec) >> 'jdk-123.zip'
-        def downloadLocation = Mock(File)
-        downloadLocation.name >> "filename.zip"
-        cache.getDownloadLocation(_ as String) >> downloadLocation
+        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD)
 
-        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, operationExecutor)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, operationExecutor, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
-        1 * cache.acquireWriteLock(downloadLocation, _) >> lock
-
-        then:
-        1 * binary.download(_, _) >> Optional.empty()
-
-        then:
-        1 * lock.close()
-
-        then:
-        operationExecutor.log.getDescriptors().find {it.displayName == "Provisioning toolchain filename.zip"}
-        operationExecutor.log.getDescriptors().find {it.displayName == "Unpacking toolchain archive"}
-    }
-
-    def "skips downloading if already downloaded"() {
-        def cache = Mock(JdkCacheDirectory)
-        def lock = Mock(FileLock)
-        def binary = Mock(AdoptOpenJdkRemoteBinary)
-        def spec = Mock(JavaToolchainSpec)
-        def providerFactory = createProviderFactory("true")
-
-        given:
-        binary.canProvideMatchingJdk(spec) >> true
-        cache.acquireWriteLock(_, _) >> lock
-        binary.toFilename(spec) >> 'jdk-123.zip'
-        def downloadLocation = new File(temporaryFolder, "jdk-archive.zip")
-        downloadLocation.createNewFile()
-        cache.getDownloadLocation(_ as String) >> downloadLocation
-        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor())
-
-        when:
-        provisioningService.tryInstall(spec)
-
-        then:
-        0 * binary.download(_, _)
-    }
-
-    def "skips downloading if cannot satisfy spec"() {
-        def cache = Mock(JdkCacheDirectory)
-        def binary = Mock(AdoptOpenJdkRemoteBinary)
-        def spec = Mock(JavaToolchainSpec)
-        def providerFactory = createProviderFactory("true")
-
-        given:
-        binary.canProvideMatchingJdk(spec) >> false
-        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor())
-
-        when:
-        def result = provisioningService.tryInstall(spec)
-
-        then:
-        !result.isPresent()
-        0 * binary.download(_, _)
-    }
-
-    def "auto download can be disabled"() {
-        def cache = Mock(JdkCacheDirectory)
-        def binary = Mock(AdoptOpenJdkRemoteBinary)
-        def spec = Mock(JavaToolchainSpec)
-        def providerFactory = createProviderFactory("false")
-
-        given:
-        binary.canProvideMatchingJdk(spec) >> true
-        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory, new TestBuildOperationExecutor())
-
-        when:
-        def result = provisioningService.tryInstall(spec)
-
-        then:
-        !result.isPresent()
+        1 * downloader.download(DOWNLOAD.getUri(), new File(temporaryFolder, ARCHIVE_NAME), _)
     }
 
     ProviderFactory createProviderFactory(String propertyValue) {

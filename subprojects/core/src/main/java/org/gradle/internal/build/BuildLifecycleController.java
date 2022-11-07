@@ -18,9 +18,9 @@ package org.gradle.internal.build;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.Node;
-import org.gradle.internal.concurrent.Stoppable;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.function.Function;
 /**
  * Controls the lifecycle of an individual build in the build tree.
  */
-public interface BuildLifecycleController extends Stoppable {
+public interface BuildLifecycleController {
     /**
      * Returns the current state of the mutable model for this build.
      *
@@ -70,7 +70,7 @@ public interface BuildLifecycleController extends Stoppable {
      * Configures the build, if not already done.
      * This may fail with an error, if this build is loaded from cache rather than configured.
      *
-     * Note: You should not use this method as no thread safety is applied to the return value.
+     * <p>Note: You should not use this method as no thread safety is applied to the return value.
      *
      * @return The configured Gradle build instance.
      */
@@ -82,8 +82,7 @@ public interface BuildLifecycleController extends Stoppable {
     void prepareToScheduleTasks();
 
     /**
-     * Creates a new work plan for this build.
-     * Must call {@link #prepareToScheduleTasks()} prior to calling this method. This method can be called multiple times to create multiple plans.
+     * Creates a new work plan for this build. This method can be called multiple times to create multiple plans.
      */
     BuildWorkPlan newWorkGraph();
 
@@ -122,11 +121,16 @@ public interface BuildLifecycleController extends Stoppable {
      */
     void addListener(Object listener);
 
+    /**
+     * Restarts the lifecycle of this build.
+     */
+    void resetState();
+
     interface WorkGraphBuilder {
         /**
          * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build.
          */
-        void addRequestedTasks();
+        void addRequestedTasks(@Nullable EntryTaskSelector selector);
 
         /**
          * Adds the given tasks and their dependencies to the work graph for this build.
@@ -134,8 +138,8 @@ public interface BuildLifecycleController extends Stoppable {
         void addEntryTasks(List<? extends Task> tasks);
 
         /**
-         * Adds the given nodes to the work graph for this build.
+         * Sets the set of scheduled node to the work graph for this build. Short-circuits dependency discovery and any sorting. Nodes must be restored in the same order they were scheduled.
          */
-        void addNodes(List<? extends Node> nodes);
+        void setScheduledNodes(List<? extends Node> nodes);
     }
 }

@@ -48,7 +48,7 @@ import java.util.Set;
  * Generates build dashboard report.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateBuildDashboard extends DefaultTask implements Reporting<BuildDashboardReports> {
+public abstract class GenerateBuildDashboard extends DefaultTask implements Reporting<BuildDashboardReports> {
     private final Set<Reporting<? extends ReportContainer<?>>> aggregated = new LinkedHashSet<Reporting<? extends ReportContainer<?>>>();
 
     private final BuildDashboardReports reports;
@@ -126,6 +126,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
      *
      * @param reportings an array of {@link Reporting} instances that are to be aggregated
      */
+    @SuppressWarnings("unchecked")
     public void aggregate(Reporting<? extends ReportContainer<?>>... reportings) {
         aggregated.addAll(Arrays.asList(reportings));
     }

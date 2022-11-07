@@ -22,6 +22,7 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMa
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheQuietOption
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.BuildOperationTreeFixture
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
@@ -35,7 +36,6 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.gradle.util.GradleVersion
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -62,42 +62,42 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaDependencyRecommender = "11.0.0"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "16.0.1"
+        static nebulaPluginPlugin = "17.1.0"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "17.2.3"
+        static nebulaLint = "17.7.0"
 
         // https://plugins.gradle.org/plugin/org.jetbrains.gradle.plugin.idea-ext
-        static ideaExt = "1.1"
+        static ideaExt = "1.1.6"
 
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
         // TODO: Re-add "8.8.x", "9.4.x" and "10.1.x" if fixed:
         //   https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/215
-        static nebulaDependencyLock = Versions.of("12.1.0")
+        static nebulaDependencyLock = Versions.of("12.6.1")
 
         // https://plugins.gradle.org/plugin/nebula.resolution-rules
         static nebulaResolutionRules = "9.0.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("4.0.4", "6.0.0", "6.1.0", "7.0.0", "7.1.0")
+        static shadow = Versions.of("6.0.0", "6.1.0", "7.0.0", "7.1.2")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
         static asciidoctor = Versions.of("3.3.2")
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
-        static spotbugs = "4.7.6"
+        static spotbugs = "5.0.12"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
-        static docker = "7.1.0"
+        static docker = "8.0.0"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.tomcat
         static tomcat = "2.7.0"
 
         // https://plugins.gradle.org/plugin/io.spring.dependency-management
-        static springDependencyManagement = "1.0.11.RELEASE"
+        static springDependencyManagement = "1.0.14.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "2.5.5"
+        static springBoot = "2.7.3"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "30.0.2"
@@ -112,15 +112,15 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = [
-            [version: "3.0.7", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
-            [version: "4.0.0", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
+            [version: "3.0.9", servletContainer: "jetty9.4", javaMinVersion: JavaVersion.VERSION_1_8],
+            [version: "4.0.3", servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
         ]
 
         // https://plugins.gradle.org/plugin/org.ajoberstar.grgit
-        static grgit = "4.1.0"
+        static grgit = "4.1.1"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
-        static gradleVersions = "0.39.0"
+        static gradleVersions = "0.42.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
         static playframework = "0.12"
@@ -129,49 +129,50 @@ abstract class AbstractSmokeTest extends Specification {
         static errorProne = "2.0.2"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
-        static protobufPlugin = "0.8.18"
-        static protobufTools = "3.17.1"
+        static protobufPlugin = "0.8.19"
+
+        static protobufTools = "3.21.5"
 
         // https://plugins.gradle.org/plugin/org.gradle.test-retry
-        static testRetryPlugin = "1.3.1"
+        static testRetryPlugin = "1.4.1"
 
         // https://plugins.gradle.org/plugin/com.jfrog.artifactory
-        static artifactoryPlugin = "4.24.20"
+        static artifactoryPlugin = "4.29.0"
         static artifactoryRepoOSSVersion = "6.16.0"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
-        static aspectj = "6.2.0"
+        static aspectj = "6.5.1"
 
         // https://plugins.gradle.org/plugin/de.undercouch.download
-        static undercouchDownload = Versions.of("4.1.2")
+        static undercouchDownload = Versions.of("5.1.2")
 
         // https://github.com/micronaut-projects/micronaut-gradle-plugin/releases
         static micronaut = Versions.of("2.0.6")
 
         // https://plugins.gradle.org/plugin/com.gorylenko.gradle-git-properties
-        static gradleGitProperties = Versions.of("2.3.1")
+        static gradleGitProperties = Versions.of("2.4.1")
 
         // https://plugins.gradle.org/plugin/org.flywaydb.flyway
-        static flyway = Versions.of("8.0.0")
+        static flyway = Versions.of("9.2.2")
 
         // https://plugins.gradle.org/plugin/net.ltgt.apt
         static apt = Versions.of("0.21")
 
         // https://plugins.gradle.org/plugin/io.gitlab.arturbosch.detekt
-        static detekt = Versions.of("1.18.1")
+        static detekt = Versions.of("1.21.0")
 
         // https://plugins.gradle.org/plugin/com.diffplug.spotless
-        static spotless = Versions.of("6.0.0")
+        static spotless = Versions.of("6.10.0")
 
         // https://plugins.gradle.org/plugin/com.google.cloud.tools.jib
-        static jib = Versions.of("3.1.4")
+        static jib = Versions.of("3.3.0")
 
         // https://plugins.gradle.org/plugin/io.freefair.lombok
-        static lombok = Versions.of("6.2.0")
+        static lombok = Versions.of("6.5.1")
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.4.21-2", "1.4.31", "1.5.31", "1.6.0", "1.6.10")
+        static kotlinPlugins = Versions.of("1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.20")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp
@@ -179,10 +180,19 @@ abstract class AbstractSmokeTest extends Specification {
         static node = Versions.of("1.3.1")
 
         // https://plugins.gradle.org/plugin/org.jlleitschuh.gradle.ktlint
-        static ktlint = Versions.of("10.2.0")
+        static ktlint = Versions.of("11.0.0")
 
         // https://plugins.gradle.org/plugin/com.github.node-gradle.node
-        static newNode = Versions.of("3.1.1")
+        static newNode = Versions.of("3.4.0")
+
+        // https://github.com/davidmc24/gradle-avro-plugin
+        static avro = Versions.of("1.3.0")
+
+        // https://plugins.gradle.org/plugin/io.spring.nohttp
+        static nohttp = Versions.of("0.0.10")
+
+        // https://plugins.gradle.org/plugin/org.jenkins-ci.jpi
+        static jenkinsJpi = Versions.of("0.44.0")
     }
 
     static class Versions implements Iterable<String> {
@@ -194,6 +204,15 @@ abstract class AbstractSmokeTest extends Specification {
 
         String latest() {
             versions.last()
+        }
+
+        String latestStable() {
+            versions.reverse().find { version ->
+                !version.containsIgnoreCase("rc") &&
+                !version.containsIgnoreCase("beta") &&
+                !version.containsIgnoreCase("alpha") &&
+                !version.containsIgnoreCase("milestone")
+            }
         }
 
         String latestStartsWith(String prefix) {
@@ -246,7 +265,7 @@ abstract class AbstractSmokeTest extends Specification {
             .withProjectDir(testProjectDir)
             .forwardOutput()
             .withArguments(
-                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters()
+                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters() + toolchainParameters()
             ) as DefaultGradleRunner
         gradleRunner.withJvmArguments(["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"])
         return new SmokeTestGradleRunner(gradleRunner)
@@ -282,6 +301,14 @@ abstract class AbstractSmokeTest extends Specification {
             '--init-script', mirrorInitScriptPath,
             "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
             "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
+        ]
+    }
+
+    private static List<String> toolchainParameters() {
+        return [
+            "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}" as String,
+            '-Porg.gradle.java.installations.auto-detect=false',
+            '-Porg.gradle.java.installations.auto-download=false',
         ]
     }
 
@@ -328,57 +355,6 @@ abstract class AbstractSmokeTest extends Specification {
             runner = runner.withJvmArguments('--add-opens', 'java.logging/java.util.logging=ALL-UNNAMED')
         }
         return runner.withArguments([runner.arguments, extraArgs].flatten())
-    }
-
-    protected static String deprecationOfFileTreeForEmptySources(String propertyName) {
-        return "Relying on FileTrees for ignoring empty directories when using @SkipWhenEmpty has been deprecated. " +
-            "This is scheduled to be removed in Gradle 8.0. " +
-            "Annotate the property ${propertyName} with @IgnoreEmptyDirectories or remove @SkipWhenEmpty. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#empty_directories_file_tree"
-    }
-
-    protected static SmokeTestGradleRunner expectAgpFileTreeDeprecations(String agpVersion, SmokeTestGradleRunner runner) {
-        if (agpVersion.startsWith("4.") || agpVersion.startsWith("7.0.") || agpVersion.startsWith("7.1.")) {
-            expectAgpFileTreeDeprecationWarnings(runner, "compileDebugAidl", "compileDebugRenderscript", "stripDebugDebugSymbols", "bundleLibResDebug")
-        }
-        if (agpVersion.startsWith("4.")) {
-            expectAgpFileTreeDeprecationWarnings(runner, "mergeDebugNativeLibs")
-        }
-        return runner
-    }
-
-    protected static void expectAgpFileTreeDeprecationWarnings(SmokeTestGradleRunner runner, String... tasks) {
-        tasks.each {
-            TASK_TO_FILE_TREE_PROPERTY_WARNING[it].addToRunner(runner)
-        }
-    }
-
-    private static final Map<String, FileTreeDeprecation> TASK_TO_FILE_TREE_PROPERTY_WARNING = [
-        "compileDebugAidl": fileTreeDeprecation("sourceFiles", "https://issuetracker.google.com/issues/205285261"),
-        "compileDebugRenderscript": fileTreeDeprecation("sourceDirs", "https://issuetracker.google.com/issues/205285261"),
-        "stripDebugDebugSymbols": fileTreeDeprecation("inputFiles", "https://issuetracker.google.com/issues/205285261"),
-        "bundleLibResDebug": fileTreeDeprecation("resources", "https://issuetracker.google.com/issues/204425803"),
-        "mergeDebugNativeLibs": legacyFileTreeDeprecation("projectNativeLibs"),
-    ]
-
-    static interface FileTreeDeprecation {
-        void addToRunner(SmokeTestGradleRunner runner)
-    }
-
-    private static FileTreeDeprecation legacyFileTreeDeprecation(String propertyName) {
-        return new FileTreeDeprecation() {
-            void addToRunner(SmokeTestGradleRunner runner) {
-                runner.expectLegacyDeprecationWarning(deprecationOfFileTreeForEmptySources(propertyName))
-            }
-        }
-    }
-
-    private static FileTreeDeprecation fileTreeDeprecation(String propertyName, String followup) {
-        return new FileTreeDeprecation() {
-            void addToRunner(SmokeTestGradleRunner runner) {
-                runner.expectDeprecationWarning(deprecationOfFileTreeForEmptySources(propertyName), followup)
-            }
-        }
     }
 
     protected void replaceVariablesInBuildFile(Map binding) {

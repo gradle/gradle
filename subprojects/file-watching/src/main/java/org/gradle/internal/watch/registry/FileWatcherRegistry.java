@@ -31,6 +31,8 @@ import java.util.Optional;
 
 public interface FileWatcherRegistry extends Closeable {
 
+    boolean isWatchingAnyLocations();
+
     interface ChangeHandler {
         void handleChange(Type type, Path path);
 

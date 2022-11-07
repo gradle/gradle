@@ -19,37 +19,61 @@ package org.gradle.testing.fixture
 import org.gradle.api.JavaVersion
 import org.gradle.util.internal.VersionNumber
 
+import javax.annotation.Nullable
+
 class GroovyCoverage {
-    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8']
+    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '3.0.13']
+    private static final String[] FUTURE = ['4.0.5']
 
-    static final List<String> SUPPORTED_BY_JDK
+    static final Set<String> SUPPORTED_BY_JDK
 
-    static final List<String> SUPPORTS_GROOVYDOC
-    static final List<String> SUPPORTS_TIMESTAMP
-    static final List<String> SUPPORTS_PARAMETERS
-    static final List<String> SUPPORTS_DISABLING_AST_TRANSFORMATIONS
+    static final Set<String> SUPPORTS_GROOVYDOC
+    static final Set<String> SUPPORTS_INDY
+    static final Set<String> SUPPORTS_TIMESTAMP
+    static final Set<String> SUPPORTS_PARAMETERS
+    static final Set<String> SUPPORTS_DISABLING_AST_TRANSFORMATIONS
+    static final Set<String> SINCE_3_0
+
+    /**
+     * The lowest working Groovy 3 version for the current JDK.
+     */
+    static final String MINIMAL_GROOVY_3
+
+    /**
+     * The current Groovy version if stable, otherwise the latest stable version before the current version.
+     */
+    static final String CURRENT_STABLE
 
     static {
         SUPPORTED_BY_JDK = groovyVersionsSupportedByJdk(JavaVersion.current())
         SUPPORTS_GROOVYDOC = versionsAbove(SUPPORTED_BY_JDK, "1.6.9")
+        // Indy compilation doesn't work in 2.2.2 and before
+        SUPPORTS_INDY = versionsAbove(SUPPORTED_BY_JDK, "2.3.0")
         SUPPORTS_TIMESTAMP = versionsAbove(SUPPORTED_BY_JDK, "2.4.6")
         SUPPORTS_PARAMETERS = versionsAbove(SUPPORTED_BY_JDK, "2.5.0")
         SUPPORTS_DISABLING_AST_TRANSFORMATIONS = versionsAbove(SUPPORTED_BY_JDK, "2.0.0")
+        SINCE_3_0 = versionsAbove(SUPPORTED_BY_JDK, "3.0.0")
+        CURRENT_STABLE = isCurrentGroovyVersionStable()
+            ? GroovySystem.version
+            : versionsBelow(SUPPORTED_BY_JDK, GroovySystem.version).last()
+        MINIMAL_GROOVY_3 = versionsBelow(SINCE_3_0, "4.0.0").first()
     }
 
     static boolean supportsJavaVersion(String groovyVersion, JavaVersion javaVersion) {
         return groovyVersionsSupportedByJdk(javaVersion).contains(groovyVersion)
     }
 
-    private static List<String> groovyVersionsSupportedByJdk(JavaVersion javaVersion) {
+    private static Set<String> groovyVersionsSupportedByJdk(JavaVersion javaVersion) {
         def allVersions = [*PREVIOUS]
 
         // Only test current Groovy version if it isn't a SNAPSHOT
-        if (!GroovySystem.version.endsWith("-SNAPSHOT")) {
+        if (isCurrentGroovyVersionStable()) {
             allVersions += GroovySystem.version
         }
 
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_16)) {
+        allVersions.addAll(FUTURE)
+
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {
             return versionsAbove(allVersions, '3.0.0')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_14)) {
             return versionsBetween(allVersions, '2.2.2', '2.5.10')
@@ -58,14 +82,32 @@ class GroovyCoverage {
         }
     }
 
-    private static List<String> versionsAbove(List<String> versionsToFilter, String threshold) {
-        versionsToFilter.findAll { VersionNumber.parse(it) >= VersionNumber.parse(threshold) }.asImmutable()
+    private static boolean isCurrentGroovyVersionStable() {
+        !GroovySystem.version.endsWith("-SNAPSHOT")
     }
 
-    private static List<String> versionsBetween(List<String> versionsToFilter, String lowerBound, String upperBound) {
+    private static Set<String> versionsAbove(Collection<String> versionsToFilter, String threshold) {
+        filterVersions(versionsToFilter, threshold, null)
+    }
+
+    private static Set<String> versionsBelow(Collection<String> versionsToFilter, String threshold) {
+        filterVersions(versionsToFilter, null, threshold)
+    }
+
+    private static Set<String> versionsBetween(Collection<String> versionsToFilter, String lowerBound, String upperBound) {
+        filterVersions(versionsToFilter, lowerBound, upperBound)
+    }
+
+    private static Set<String> filterVersions(Collection<String> versionsToFilter, @Nullable String lowerBound, @Nullable String upperBound) {
         versionsToFilter.findAll {
             def version = VersionNumber.parse(it)
-            version <= VersionNumber.parse(lowerBound) || version >= VersionNumber.parse(upperBound)
-        }.asImmutable()
+            if (lowerBound != null && version < VersionNumber.parse(lowerBound)) {
+                return false
+            }
+            if (upperBound != null && version > VersionNumber.parse(upperBound)) {
+                return false
+            }
+            return true
+        }.toSet().asImmutable()
     }
 }

@@ -60,7 +60,7 @@ tasks.withType<JavaCompile>().configureEach {
 
 integTest.usesJavadocCodeSnippets.set(true)
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/model/internal/core/**")
     excludePatterns.add("org/gradle/model/internal/inspect/**")
     excludePatterns.add("org/gradle/api/internal/tasks/**")

@@ -142,6 +142,12 @@ Root project 'basic-rule-source-plugin'
           | Creator: 	Project.<init>.tasks.properties()
           | Rules:
              ⤷ copyToTaskContainer
+    + resolvableConfigurations
+          | Type:   	org.gradle.api.tasks.diagnostics.ResolvableConfigurationsReportTask
+          | Value:  	task ':resolvableConfigurations'
+          | Creator: 	Project.<init>.tasks.resolvableConfigurations()
+          | Rules:
+             ⤷ copyToTaskContainer
     + tasks
           | Type:   	org.gradle.api.tasks.diagnostics.TaskReportTask
           | Value:  	task ':tasks'

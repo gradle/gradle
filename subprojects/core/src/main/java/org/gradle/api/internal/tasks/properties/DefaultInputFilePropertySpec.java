@@ -18,14 +18,14 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 
 import javax.annotation.Nullable;
 
 public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec implements InputFilePropertySpec {
-    private final boolean skipWhenEmpty;
-    private final boolean incremental;
+    private final InputBehavior behavior;
     private final DirectorySensitivity directorySensitivity;
     private final LineEndingSensitivity lineEndingSensitivity;
     private final PropertyValue value;
@@ -35,27 +35,20 @@ public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec imple
         Class<? extends FileNormalizer> normalizer,
         FileCollectionInternal files,
         PropertyValue value,
-        boolean skipWhenEmpty,
-        boolean incremental,
+        InputBehavior behavior,
         DirectorySensitivity directorySensitivity,
         LineEndingSensitivity lineEndingSensitivity
     ) {
         super(propertyName, normalizer, files);
-        this.skipWhenEmpty = skipWhenEmpty;
-        this.incremental = incremental;
+        this.behavior = behavior;
         this.directorySensitivity = directorySensitivity;
         this.lineEndingSensitivity = lineEndingSensitivity;
         this.value = value;
     }
 
     @Override
-    public boolean isSkipWhenEmpty() {
-        return skipWhenEmpty;
-    }
-
-    @Override
-    public boolean isIncremental() {
-        return incremental;
+    public InputBehavior getBehavior() {
+        return behavior;
     }
 
     @Override
@@ -71,6 +64,6 @@ public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec imple
     @Override
     @Nullable
     public Object getValue() {
-        return value.getUnprocessedValue();
+        return value.call();
     }
 }

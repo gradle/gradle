@@ -26,8 +26,8 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilat
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
+import org.gradle.api.internal.tasks.compile.incremental.transaction.CompileTransaction;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -38,6 +38,9 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Objects;
 
+/**
+ * A compiler that selects classes for compilation. It also handles restore of output state in case of a compile failure.
+ */
 class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.language.base.internal.compile.Compiler<T> {
     private static final Logger LOG = LoggerFactory.getLogger(SelectiveCompiler.class);
     private final CleaningJavaCompiler<T> cleaningCompiler;
@@ -88,20 +91,21 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
             return rebuildAllCompiler.execute(spec);
         }
 
-        boolean cleanedOutput = recompilationSpecProvider.initializeCompilation(spec, recompilationSpec);
-
-        if (Iterables.isEmpty(spec.getSourceFiles()) && spec.getClasses().isEmpty()) {
-            LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
-            return new RecompilationNotNecessary(previousCompilationData, recompilationSpec);
-        }
-
-        try {
-            WorkResult result = recompilationSpecProvider.decorateResult(recompilationSpec, previousCompilationData, cleaningCompiler.getCompiler().execute(spec));
-            return result.or(WorkResults.didWork(cleanedOutput));
-        } finally {
-            Collection<String> classesToCompile = recompilationSpec.getClassesToCompile();
-            LOG.info("Incremental compilation of {} classes completed in {}.", classesToCompile.size(), clock.getElapsed());
-            LOG.debug("Recompiled classes {}", classesToCompile);
-        }
+        CompileTransaction transaction = recompilationSpecProvider.initCompilationSpecAndTransaction(spec, recompilationSpec);
+        return transaction.execute(workResult -> {
+            if (Iterables.isEmpty(spec.getSourceFiles()) && spec.getClasses().isEmpty()) {
+                LOG.info("None of the classes needs to be compiled! Analysis took {}. ", clock.getElapsed());
+                return new RecompilationNotNecessary(previousCompilationData, recompilationSpec);
+            }
+            try {
+                WorkResult result = cleaningCompiler.getCompiler().execute(spec);
+                result = recompilationSpecProvider.decorateResult(recompilationSpec, previousCompilationData, result);
+                return result.or(workResult);
+            } finally {
+                Collection<String> classesToCompile = recompilationSpec.getClassesToCompile();
+                LOG.info("Incremental compilation of {} classes completed in {}.", classesToCompile.size(), clock.getElapsed());
+                LOG.debug("Recompiled classes {}", classesToCompile);
+            }
+        });
     }
 }

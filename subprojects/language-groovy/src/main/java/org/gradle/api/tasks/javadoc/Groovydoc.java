@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.AntGroovydoc;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -52,10 +53,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-// This import must be here due to a clash in Java 8 between this and java.util.Optional.
-// Be careful running “Optimize Imports” as it will wipe this out.
-// If there's no import below this comment, this has happened.
-
 /**
  * <p>Generates HTML API documentation for Groovy source, and optionally, Java source.
  *
@@ -64,7 +61,7 @@ import java.util.Set;
  * that is used, is the one from the Groovy dependency defined in the build script.
  */
 @CacheableTask
-public class Groovydoc extends SourceTask {
+public abstract class Groovydoc extends SourceTask {
     private FileCollection groovyClasspath;
 
     private FileCollection classpath;
@@ -91,7 +88,13 @@ public class Groovydoc extends SourceTask {
 
     private Set<Link> links = new LinkedHashSet<Link>();
 
-    boolean includePrivate;
+    private final Property<GroovydocAccess> access = getProject().getObjects().property(GroovydocAccess.class);
+
+    private final Property<Boolean> includeAuthor = getProject().getObjects().property(Boolean.class);
+
+    private final Property<Boolean> processScripts = getProject().getObjects().property(Boolean.class);
+
+    private final Property<Boolean> includeMainForScripts = getProject().getObjects().property(Boolean.class);
 
     public Groovydoc() {
         getLogging().captureStandardOutput(LogLevel.INFO);
@@ -108,9 +111,10 @@ public class Groovydoc extends SourceTask {
         }
         getAntGroovydoc().execute(
             getSource(), destinationDir, isUse(), isNoTimestamp(), isNoVersionStamp(),
-            getWindowTitle(), getDocTitle(), getHeader(), getFooter(), getPathToOverview(), isIncludePrivate(),
-            getLinks(), getGroovyClasspath(), getClasspath(),
-            getTemporaryDir(), getServices().get(FileSystemOperations.class)
+            getWindowTitle(), getDocTitle(), getHeader(), getFooter(), getPathToOverview(),
+            getAccess().get(), getLinks(), getGroovyClasspath(), getClasspath(),
+            getTemporaryDir(), getServices().get(FileSystemOperations.class),
+            getIncludeAuthor().get(), getProcessScripts().get(), getIncludeMainForScripts().get()
         );
     }
 
@@ -344,18 +348,48 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * Returns whether to include all classes and members (i.e. including private ones).
+     * The most restrictive access level to include in the Groovydoc.
+     *
+     * <p>
+     * For example, to include classes and members with package, protected, and public access, use {@link GroovydocAccess#PACKAGE}.
+     * </p>
+     *
+     * @return the access property
+     * @since 7.5
      */
     @Input
-    public boolean isIncludePrivate() {
-        return includePrivate;
+    public Property<GroovydocAccess> getAccess() {
+        return access;
     }
 
     /**
-     * Sets whether to include all classes and members (i.e. including private ones) if set to true.
+     * Whether to include author paragraphs.
+     *
+     * @since 7.5
      */
-    public void setIncludePrivate(boolean includePrivate) {
-        this.includePrivate = includePrivate;
+    @Input
+    public Property<Boolean> getIncludeAuthor() {
+        return includeAuthor;
+    }
+
+    /**
+     * Whether to process scripts.
+     *
+     * @since 7.5
+     */
+    @Input
+    public Property<Boolean> getProcessScripts() {
+        return processScripts;
+    }
+
+    /**
+     * Whether to include main method for scripts.
+     *
+     * @since 7.5
+     */
+    @Input
+    public Property<Boolean> getIncludeMainForScripts() {
+        return includeMainForScripts;
     }
 
     /**

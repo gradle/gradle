@@ -34,15 +34,12 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.model.ComponentArtifactMetadata
-import org.gradle.internal.component.model.ComponentArtifacts
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
-import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
+import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
-import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
 import org.gradle.util.internal.BuildCommencedTimeProvider
@@ -76,7 +73,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         }
 
         def file = new File("local")
-        def result = Stub(BuildableArtifactResolveResult) {
+        def result = Stub(BuildableArtifactFileResolveResult) {
             getFile() >> file
             getFailure() >> null
         }
@@ -139,21 +136,6 @@ class CachingModuleComponentRepositoryTest extends Specification {
         then:
         realLocalAccess.resolveArtifactsWithType(component, artifactType, result) >> {
             result.resolved([Mock(ComponentArtifactMetadata)])
-        }
-        0 * _
-    }
-
-    def "does not use cache when component artifacts can be determined locally"() {
-        def component = Mock(ComponentResolveMetadata)
-        def variant = Mock(ConfigurationMetadata)
-        def result = new DefaultBuildableComponentArtifactsResolveResult()
-
-        when:
-        repo.localAccess.resolveArtifacts(component, variant, result)
-
-        then:
-        realLocalAccess.resolveArtifacts(component, variant, result) >> {
-            result.resolved(Stub(ComponentArtifacts))
         }
         0 * _
     }

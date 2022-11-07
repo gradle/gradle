@@ -17,8 +17,11 @@
 package org.gradle.performance.results
 
 import groovy.transform.CompileStatic
+import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataSeries
 import org.gradle.performance.measure.Duration
+
+import java.util.function.BiPredicate
 
 import static PrettyCalculator.toMillis
 
@@ -33,6 +36,11 @@ import static PrettyCalculator.toMillis
 @CompileStatic
 class BaselineVersion implements VersionResults {
     private static final double MINIMUM_CONFIDENCE = 0.999
+    // 5 percent difference is something we can measure reliably
+    private static final double MINIMUM_RELATIVE_MEDIAN_DIFFERENCE = 0.05
+    // 20 percent difference is something where we should always fail
+    private static final double HIGH_RELATIVE_MEDIAN_DIFFERENCE = 0.2
+    private static final Amount<Duration> MINIMUM_DIFFERENCE_WE_CAN_MEASURE = Duration.millis(10)
 
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()
@@ -70,9 +78,24 @@ class BaselineVersion implements VersionResults {
     }
 
     boolean significantlyFasterThan(MeasuredOperationList other, double minConfidence = MINIMUM_CONFIDENCE) {
+        return significantlyFasterThanBy(other) { myTime, otherTime ->
+            differenceIsSignificant(myTime, otherTime, minConfidence)
+        }
+    }
+
+    boolean significantlyFasterByMedianThan(MeasuredOperationList other, double minRelativeMedianDifference = MINIMUM_RELATIVE_MEDIAN_DIFFERENCE) {
+        return significantlyFasterThanBy(other) { myTime, otherTime ->
+            differenceInMedianIsSignificant(myTime, otherTime, minRelativeMedianDifference)
+        }
+    }
+
+    private boolean significantlyFasterThanBy(
+        MeasuredOperationList other,
+        BiPredicate<DataSeries<Duration>, DataSeries<Duration>> differenceSignificantCheck
+    ) {
         def myTime = results.totalTime
         def otherTime = other.totalTime
-        myTime && myTime.median < otherTime.median && differenceIsSignificant(myTime, otherTime, minConfidence)
+        return myTime && myTime.median < otherTime.median && differenceSignificantCheck.test(myTime, otherTime)
     }
 
     boolean significantlySlowerThan(MeasuredOperationList other, double minConfidence = MINIMUM_CONFIDENCE) {
@@ -82,7 +105,16 @@ class BaselineVersion implements VersionResults {
     }
 
     private static boolean differenceIsSignificant(DataSeries<Duration> myTime, DataSeries<Duration> otherTime, double minConfidence) {
-        DataSeries.confidenceInDifference(myTime, otherTime) > minConfidence
+        return (myTime.median - otherTime.median).abs() > MINIMUM_DIFFERENCE_WE_CAN_MEASURE &&
+            (relativeDifferenceInMedianIsVeryHigh(myTime, otherTime) || DataSeries.confidenceInDifference(myTime, otherTime) > minConfidence)
     }
 
+    private static boolean differenceInMedianIsSignificant(DataSeries<Duration> myTime, DataSeries<Duration> otherTime, double minRelativeMedianDifference) {
+        def minimumMedian = [myTime.median, otherTime.median].min()
+        return ((myTime.median - otherTime.median) / minimumMedian).abs() > minRelativeMedianDifference
+    }
+
+    private static boolean relativeDifferenceInMedianIsVeryHigh(DataSeries<Duration> myTime, DataSeries<Duration> otherTime) {
+        return differenceInMedianIsSignificant(myTime, otherTime, HIGH_RELATIVE_MEDIAN_DIFFERENCE)
+    }
 }

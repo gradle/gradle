@@ -16,6 +16,7 @@
 package org.gradle.plugins.ear;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.provider.Property;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
@@ -79,7 +80,7 @@ public abstract class EarPluginConvention {
      * @param configureClosure The closure.
      * @return This.
      */
-    public abstract EarPluginConvention deploymentDescriptor(Closure configureClosure);
+    public abstract EarPluginConvention deploymentDescriptor(@DelegatesTo(DeploymentDescriptor.class) Closure configureClosure);
 
     /**
      * Configures the deployment descriptor for this EAR archive.

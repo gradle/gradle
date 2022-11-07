@@ -20,8 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
-import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.repositories.descriptor.FlatDirRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource;
@@ -57,7 +57,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArtifactRepository implements FlatDirectoryArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
+public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArtifactRepository implements FlatDirectoryArtifactRepository, ResolutionAwareRepository {
     private final FileCollectionFactory fileCollectionFactory;
     private final List<Object> dirs = new ArrayList<>();
     private final RepositoryTransportFactory transportFactory;
@@ -74,8 +74,10 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
                                             IvyMutableModuleMetadataFactory metadataFactory,
                                             InstantiatorFactory instantiatorFactory,
                                             ObjectFactory objectFactory,
-                                            ChecksumService checksumService) {
-        super(objectFactory);
+                                            ChecksumService checksumService,
+                                            VersionParser versionParser
+    ) {
+        super(objectFactory, versionParser);
         this.fileCollectionFactory = fileCollectionFactory;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
@@ -120,11 +122,6 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
     public void dirs(Object... dirs) {
         invalidateDescriptor();
         this.dirs.addAll(Arrays.asList(dirs));
-    }
-
-    @Override
-    public ModuleVersionPublisher createPublisher() {
-        return createRealResolver();
     }
 
     @Override

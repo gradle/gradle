@@ -28,7 +28,7 @@ import java.io.File;
  * Controls the lifecycle and book-keeping for file system watching.
  */
 @ServiceScope(Scopes.UserHome.class)
-public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem {
+public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem, FileSystemWatchingInformation {
 
     /**
      * Called when the build is started.

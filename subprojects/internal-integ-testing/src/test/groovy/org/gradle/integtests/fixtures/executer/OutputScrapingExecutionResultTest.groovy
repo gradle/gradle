@@ -108,13 +108,11 @@ post build
         error(e).startsWith(error('''
             Did not find expected text in build output.
             Expected: missing
-             
+
             Build output:
             =======
             message
             message 2
-             
-            Output:
             '''))
 
         when:
@@ -125,13 +123,11 @@ post build
         error(e2).startsWith(error('''
             Did not find expected text in build output.
             Expected: post build
-             
+
             Build output:
             =======
             message
             message 2
-             
-            Output:
             '''))
 
         when:
@@ -142,13 +138,11 @@ post build
         error(e3).startsWith(error('''
             Did not find expected text in build output.
             Expected: BUILD
-             
+
             Build output:
             =======
             message
             message 2
-             
-            Output:
             '''))
 
         when:
@@ -159,32 +153,38 @@ post build
         error(e4).startsWith(error('''
             Did not find expected text in build output.
             Expected: message extra
-             
+
             Build output:
             =======
             message
             message 2
-             
-            Output:
+            '''))
+
+        when:
+        result.assertOutputContains("message 3")
+
+        then:
+        def e6 = thrown(AssertionError)
+        error(e6).trim().startsWith(error('''
+            Expected: "message 3"
+             but: was "message 2"
             '''))
 
         when:
         result.assertOutputContains("message\n\n")
 
         then:
-        def e6 = thrown(AssertionError)
-        error(e6).startsWith(error('''
+        def e7 = thrown(AssertionError)
+        error(e7).startsWith(error('''
             Did not find expected text in build output.
             Expected: message
-            
-            
-            
+
+
+
             Build output:
             =======
             message
             message 2
-            
-            Output:
             '''))
     }
 
@@ -215,14 +215,12 @@ more post build
         error(e).startsWith(error('''
             Did not find expected text in post-build output.
             Expected: missing
-            
+
             Post-build output:
             =======
-             
+
             post build
             more post build
-             
-            Output:
             '''))
 
         when:
@@ -233,14 +231,12 @@ more post build
         error(e2).startsWith(error('''
             Did not find expected text in post-build output.
             Expected: message
-            
+
             Post-build output:
             =======
-             
+
             post build
             more post build
-             
-            Output:
             '''))
 
         when:
@@ -251,14 +247,12 @@ more post build
         error(e3).startsWith(error('''
             Did not find expected text in post-build output.
             Expected: BUILD
-            
+
             Post-build output:
             =======
-             
+
             post build
             more post build
-             
-            Output:
             '''))
 
         when:
@@ -269,14 +263,12 @@ more post build
         error(e4).startsWith(error('''
             Did not find expected text in post-build output.
             Expected: post build extra
-            
+
             Post-build output:
             =======
-             
+
             post build
             more post build
-             
-            Output:
             '''))
 
         when:
@@ -289,14 +281,12 @@ more post build
             Expected: post build
 
 
-            
+
             Post-build output:
             =======
-             
+
             post build
             more post build
-             
-            Output:
             '''))
     }
 

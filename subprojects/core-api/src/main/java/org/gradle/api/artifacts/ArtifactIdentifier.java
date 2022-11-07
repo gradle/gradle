@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts;
 
+import javax.annotation.Nullable;
+
 /**
  * The identifier for a module artifact.
  */
@@ -45,11 +47,13 @@ public interface ArtifactIdentifier {
      *
      * @see #getType()
      */
+    @Nullable
     String getExtension();
 
     /**
      * Returns the classifier of this artifact, if any.
      */
+    @Nullable
     String getClassifier();
 
 }

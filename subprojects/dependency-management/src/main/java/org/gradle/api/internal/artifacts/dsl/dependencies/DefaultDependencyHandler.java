@@ -18,12 +18,14 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
@@ -45,13 +47,10 @@ import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
-import org.gradle.api.internal.catalog.DependencyBundleValueSource;
-import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-import org.gradle.api.provider.ValueSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -64,16 +63,14 @@ import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
 
 public abstract class DefaultDependencyHandler implements DependencyHandler, MethodMixIn {
     private final ConfigurationContainer configurationContainer;
-    private final DependencyFactory dependencyFactory;
+    private final DependencyFactoryInternal dependencyFactory;
     private final ProjectFinder projectFinder;
     private final DependencyConstraintHandler dependencyConstraintHandler;
     private final ComponentMetadataHandler componentMetadataHandler;
@@ -87,7 +84,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     private final DynamicAddDependencyMethods dynamicMethods;
 
     public DefaultDependencyHandler(ConfigurationContainer configurationContainer,
-                                    DependencyFactory dependencyFactory,
+                                    DependencyFactoryInternal dependencyFactory,
                                     ProjectFinder projectFinder,
                                     DependencyConstraintHandler dependencyConstraintHandler,
                                     ComponentMetadataHandler componentMetadataHandler,
@@ -178,17 +175,20 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Nullable
     private Dependency doAdd(Configuration configuration, Object dependencyNotation, @Nullable Closure configureClosure) {
         if (dependencyNotation instanceof Configuration) {
-            DeprecationLogger.deprecateBehaviour("Adding a Configuration as a dependency is a confusing behavior which isn't recommended.")
-                .withAdvice("If you're interested in inheriting the dependencies from the Configuration you are adding, you should use Configuration#extendsFrom instead.")
-                .willBeRemovedInGradle8()
-                .withDslReference(Configuration.class, "extendsFrom(org.gradle.api.artifacts.Configuration[])")
-                .nagUser();
-            return doAddConfiguration(configuration, (Configuration) dependencyNotation);
-        }
-        if (dependencyNotation instanceof ProviderConvertible<?>) {
-            return doAddProvider(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
-        }
-        if (dependencyNotation instanceof Provider<?>) {
+            throw new GradleException("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.");
+        } else if (dependencyNotation instanceof ProviderConvertible<?>) {
+            return doAdd(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
+        } else if (dependencyNotation instanceof ProviderInternal<?>) {
+            ProviderInternal<?> provider = (ProviderInternal<?>) dependencyNotation;
+            if (provider.getType()!=null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
+                ExternalModuleDependencyBundle bundle = Cast.uncheckedCast(provider.get());
+                for (MinimalExternalModuleDependency dependency : bundle) {
+                    doAddRegularDependency(configuration, dependency, configureClosure);
+                }
+                return null;
+            }
+            return doAddProvider(configuration, provider, configureClosure);
+        } else if (dependencyNotation instanceof Provider<?>) {
             return doAddProvider(configuration, (Provider<?>) dependencyNotation, configureClosure);
         } else {
             return doAddRegularDependency(configuration, dependencyNotation, configureClosure);
@@ -203,26 +203,19 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
     @Nullable
     private Dependency doAddProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
-        if (dependencyNotation instanceof DefaultValueSourceProviderFactory.ValueSourceProvider) {
-            Class<? extends ValueSource<?, ?>> valueSourceType = ((DefaultValueSourceProviderFactory.ValueSourceProvider<?, ?>) dependencyNotation).getValueSourceType();
-            if (valueSourceType.isAssignableFrom(DependencyBundleValueSource.class)) {
-                return doAddListProvider(configuration, dependencyNotation, configureClosure);
+        if (dependencyNotation instanceof ProviderInternal<?>) {
+            ProviderInternal<?> provider = (ProviderInternal<?>) dependencyNotation;
+            if (provider.getType() != null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
+                ExternalModuleDependencyBundle bundle = Cast.uncheckedCast(provider.get());
+                for (MinimalExternalModuleDependency dependency : bundle) {
+                    doAddRegularDependency(configuration, dependency, configureClosure);
+                }
+                return null;
             }
         }
         Provider<Dependency> lazyDependency = dependencyNotation.map(mapDependencyProvider(configuration, configureClosure));
         configuration.getDependencies().addLater(lazyDependency);
         // Return null here because we don't want to prematurely realize the dependency
-        return null;
-    }
-
-    private Dependency doAddListProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
-        // workaround for the fact that mapping to a list will not create a `CollectionProviderInternal`
-        ListProperty<Dependency> dependencies = objects.listProperty(Dependency.class);
-        dependencies.set(dependencyNotation.map(notation -> {
-            List<MinimalExternalModuleDependency> deps = Cast.uncheckedCast(notation);
-            return deps.stream().map(d -> create(d, configureClosure)).collect(Collectors.toList());
-        }));
-        configuration.getDependencies().addAllLater(dependencies);
         return null;
     }
 
@@ -233,16 +226,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
             }
             return create(lazyNotation, configureClosure);
         };
-    }
-
-    @Nullable
-    private Dependency doAddConfiguration(Configuration configuration, Configuration dependencyNotation) {
-        Configuration other = dependencyNotation;
-        if (!configurationContainer.contains(other)) {
-            throw new UnsupportedOperationException("Currently you can only declare dependencies on configurations from the same project.");
-        }
-        configuration.extendsFrom(other);
-        return null;
     }
 
     @Override
@@ -263,17 +246,17 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
     @Override
     public Dependency gradleApi() {
-        return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_API);
+        return dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_API);
     }
 
     @Override
     public Dependency gradleTestKit() {
-        return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT);
+        return dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT);
     }
 
     @Override
     public Dependency localGroovy() {
-        return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.LOCAL_GROOVY);
+        return dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY);
     }
 
     @Override
@@ -339,17 +322,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Override
     public void artifactTypes(Action<? super ArtifactTypeContainer> configureAction) {
         configureAction.execute(getArtifactTypes());
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void registerTransform(Action<? super org.gradle.api.artifacts.transform.VariantTransform> registrationAction) {
-        DeprecationLogger.deprecate("Registering artifact transforms extending ArtifactTransform")
-            .withAdvice("Implement TransformAction instead.")
-            .willBeRemovedInGradle8()
-            .withUserManual("artifact_transforms")
-            .nagUser();
-        transforms.registerTransform(registrationAction);
     }
 
     @Override

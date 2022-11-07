@@ -22,6 +22,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
+import java.util.concurrent.Callable;
 
 public class Providers {
     private static final NoValueProvider<Object> NULL_PROVIDER = new NoValueProvider<>(ValueSupplier.Value.MISSING);
@@ -45,7 +47,9 @@ public class Providers {
                 return new NoValueProvider<>(value);
             }
         } else {
-            return of(value.get());
+            ProviderInternal<T> provider = of(value.getWithoutSideEffect());
+            ValueSupplier.SideEffect<?> sideEffect = value.getSideEffect();
+            return sideEffect == null ? provider : provider.withSideEffect(Cast.uncheckedCast(sideEffect));
         }
     }
 
@@ -70,6 +74,13 @@ public class Providers {
         } else {
             return of(value);
         }
+    }
+
+    public interface SerializableCallable<V> extends Callable<V>, Serializable {
+    }
+
+    public static <T> ProviderInternal<T> changing(SerializableCallable<T> value) {
+        return new ChangingProvider<>(value);
     }
 
     public static class FixedValueProvider<T> extends AbstractProviderWithValue<T> {

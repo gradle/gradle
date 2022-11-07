@@ -57,7 +57,6 @@ class CacheTaskOutputIntegrationTest extends AbstractIntegrationSpec {
             "hostName",
         )
         metadata.identity == ":compileJava"
-        metadata.rootPath == testDirectory.absolutePath
         metadata.type == TaskExecution.name.replaceAll(/\$/, ".")
         metadata.userName == System.getProperty("user.name")
         metadata.operatingSystem == System.getProperty("os.name")

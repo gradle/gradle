@@ -28,9 +28,9 @@ import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class ModuleExclusions {
     private final CachingExcludeFactory.MergeCaches mergeCaches = new CachingExcludeFactory.MergeCaches();
@@ -53,7 +53,7 @@ public class ModuleExclusions {
         nothing = factory.nothing();
     }
 
-    public ExcludeSpec excludeAny(Collection<ExcludeMetadata> excludes) {
+    public ExcludeSpec excludeAny(Collection<? extends ExcludeMetadata> excludes) {
         if (excludes.isEmpty()) {
             // avoids creation of empty hashset
             return nothing;
@@ -61,9 +61,11 @@ public class ModuleExclusions {
         if (excludes.size() == 1) {
             return forExclude(excludes.iterator().next());
         }
-        return factory.anyOf(excludes.stream()
-            .map(this::forExclude)
-            .collect(Collectors.toSet()));
+        Set<ExcludeSpec> result = new HashSet<>();
+        for (ExcludeMetadata exclude : excludes) {
+            result.add(forExclude(exclude));
+        }
+        return factory.anyOf(result);
     }
 
     public ExcludeSpec nothing() {

@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Unroll
@@ -100,7 +99,6 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         }
     }
 
-    @ToBeFixedForConfigurationCache
     void "fails selecting distinct variants of the same component by using attributes if they have different capabilities but incompatible values"() {
         given:
         repository {
@@ -159,7 +157,6 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
    - Variant org:test:1.0 variant runtime2 has attributes {custom=c2, org.gradle.status=${MultipleVariantSelectionIntegrationTest.defaultStatus()}}""")
     }
 
-    @ToBeFixedForConfigurationCache
     void "cannot select distinct variants of the same component by using different attributes if they have the same capabilities"() {
         given:
         repository {
@@ -202,7 +199,6 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
     }
 
     @Unroll("can select distinct variants of the same component by using different attributes with capabilities (conflict=#conflict)")
-    @ToBeFixedForConfigurationCache(iterationMatchers = [".*conflict=true.*"])
     void "can select distinct variants of the same component by using different attributes with capabilities"() {
         given:
         repository {
@@ -373,7 +369,6 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "prevents selection of 2 variants of the same component with transitive dependency if they have different capabilities but incompatible attributes"() {
         given:
         repository {
@@ -455,7 +450,6 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "cannot select 2 variants of the same component with transitive dependency if they use the same capability"() {
         given:
         repository {
@@ -650,7 +644,6 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "detects conflicts between component with a capability and a variant with the same capability"() {
         given:
         repository {
@@ -691,7 +684,6 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
    Cannot select module with conflict on capability 'org:foo:1.0' also provided by [org:foo:1.0(runtime)]""")
     }
 
-    @ToBeFixedForConfigurationCache
     def "detects conflicts between 2 variants of 2 different components with the same capability"() {
         given:
         repository {
@@ -742,7 +734,6 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
     }
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/8386")
-    @ToBeFixedForConfigurationCache
     def "selects a variant with different attribute value but matching transform"() {
         given:
         repository {

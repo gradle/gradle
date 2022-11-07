@@ -33,10 +33,16 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     static boolean shellAvailable(String shellCommand) {
-        return TestPrecondition.UNIX_DERIVATIVE.isFulfilled() && (
-            new File("/bin/$shellCommand").exists()
-                || new File("/usr/bin/$shellCommand").exists()
-                || new File("/opt/local/bin/$shellCommand").exists());
+        return TestPrecondition.UNIX_DERIVATIVE.isFulfilled() && locate(shellCommand)
+    }
+
+    static File locate(String shellCommand) {
+        return [
+                new File("/bin/$shellCommand"),
+                new File("/usr/bin/$shellCommand"),
+                new File("/usr/local/bin/$shellCommand"),
+                new File("/opt/local/bin/$shellCommand")
+        ].find { it.exists() }
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("bash") })
@@ -198,15 +204,31 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Hello World!')
     }
 
+    @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("shellcheck") })
+    def "generate start script passes shellcheck"() {
+        given:
+        succeeds('installDist')
+
+        when:
+        runViaUnixStartScript("shellcheck")
+        then:
+        noExceptionThrown()
+    }
+
     ExecutionResult runViaUnixStartScript(String shCommand, String... args) {
         TestFile startScriptDir = file('build/install/sample/bin')
         buildFile << """
 task execStartScript(type: Exec) {
     workingDir '$startScriptDir.canonicalPath'
-    commandLine '$shCommand'
-    args "./sample", "${args.join('", "')}"
+    commandLine '${locate(shCommand).absolutePath}'
+    args "./sample"
 }
 """
+        if (args.length > 0) {
+            buildFile << """
+                execStartScript.args "${args.join('", "')}"
+            """
+        }
         return succeeds('execStartScript')
     }
 

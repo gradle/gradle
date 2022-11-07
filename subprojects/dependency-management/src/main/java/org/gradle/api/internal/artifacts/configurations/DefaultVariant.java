@@ -36,8 +36,10 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public class DefaultVariant implements ConfigurationVariantInternal {
     private final Describable parentDisplayName;
@@ -46,6 +48,7 @@ public class DefaultVariant implements ConfigurationVariantInternal {
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final PublishArtifactSet artifacts;
     private Factory<List<PublishArtifact>> lazyArtifacts;
+    @Nullable private String description;
 
     public DefaultVariant(Describable parentDisplayName,
                           String name,
@@ -59,6 +62,16 @@ public class DefaultVariant implements ConfigurationVariantInternal {
         attributes = cache.mutable(parentAttributes);
         this.artifactNotationParser = artifactNotationParser;
         artifacts = new DefaultPublishArtifactSet(getAsDescribable(), domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), fileCollectionFactory);
+    }
+
+    @Override
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    @Override
+    public Optional<String> getDescription() {
+        return Optional.ofNullable(description);
     }
 
     @Override

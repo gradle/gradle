@@ -30,13 +30,12 @@ import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.composite.IncludedBuildInternal;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.Path;
 
 import java.io.File;
 
-public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState implements IncludedBuildState, Stoppable {
+public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState implements IncludedBuildState {
     private final BuildIdentifier buildIdentifier;
     private final Path identityPath;
     private final BuildDefinition buildDefinition;
@@ -144,11 +143,6 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     @Override
     public ExecutionResult<Void> finishBuild() {
         return getBuildController().finishBuild(null);
-    }
-
-    @Override
-    public void stop() {
-        getBuildController().stop();
     }
 
     public static class IncludedBuildImpl implements IncludedBuildInternal {

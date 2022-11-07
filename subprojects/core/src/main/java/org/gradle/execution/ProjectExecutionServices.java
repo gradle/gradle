@@ -17,7 +17,6 @@
 package org.gradle.execution;
 
 import org.gradle.StartParameter;
-import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionModeResolver;
@@ -27,7 +26,6 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
-import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
 import org.gradle.api.internal.tasks.execution.DefaultTaskCacheabilityResolver;
 import org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
@@ -38,22 +36,19 @@ import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.TaskCacheabilityResolver;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
+import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
-import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter;
+import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.execution.FileCollectionSnapshotter;
+import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry;
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
-import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
@@ -86,31 +81,26 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         return new DefaultReservedFileSystemLocationRegistry(reservedFileSystemLocations);
     }
 
-    ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy createInputNodeAccessHierarchy(ExecutionNodeAccessHierarchies hierarchies) {
-        return hierarchies.createInputHierarchy();
+    public MissingTaskDependencyDetector createMissingTaskDependencyDetector(ExecutionNodeAccessHierarchies hierarchies) {
+        return new MissingTaskDependencyDetector(hierarchies.getOutputHierarchy(), hierarchies.createInputHierarchy());
     }
 
     TaskExecuter createTaskExecuter(
         AsyncWorkTracker asyncWorkTracker,
         BuildCacheController buildCacheController,
         BuildOperationExecutor buildOperationExecutor,
-        BuildOutputCleanupRegistry cleanupRegistry,
         GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        Deleter deleter,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
         FileOperations fileOperations,
         ListenerManager listenerManager,
-        OutputChangeListener outputChangeListener,
-        OutputFilesRepository outputFilesRepository,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         org.gradle.api.execution.TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
         TaskExecutionGraphInternal taskExecutionGraph,
         org.gradle.api.execution.TaskExecutionListener taskExecutionListener,
         TaskExecutionModeResolver repository,
-        TaskInputsListeners taskInputsListeners,
         TaskListenerInternal taskListenerInternal,
         ExecutionEngine executionEngine,
         InputFingerprinter inputFingerprinter
@@ -133,16 +123,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             listenerManager,
             reservedFileSystemLocationRegistry,
             fileCollectionFactory,
-            fileOperations,
-            taskInputsListeners
-        );
-        executer = new CleanupStaleOutputsExecuter(
-            buildOperationExecutor,
-            cleanupRegistry,
-            deleter,
-            outputChangeListener,
-            outputFilesRepository,
-            executer
+            fileOperations
         );
         executer = new FinalizePropertiesTaskExecuter(executer);
         executer = new ResolveTaskExecutionModeExecuter(repository, executer);

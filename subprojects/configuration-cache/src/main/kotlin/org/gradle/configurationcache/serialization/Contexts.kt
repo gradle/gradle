@@ -16,13 +16,16 @@
 
 package org.gradle.configurationcache.serialization
 
+import it.unimi.dsi.fastutil.objects.ReferenceArrayList
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.gradle.configurationcache.ClassLoaderScopeSpec
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.configurationcache.serialization.beans.BeanStateReader
 import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.BeanStateWriter
@@ -55,6 +58,8 @@ class DefaultWriteContext(
 ) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener), WriteContext, Encoder by encoder, AutoCloseable {
 
     override val sharedIdentities = WriteIdentities()
+
+    override val circularReferences = CircularReferences()
 
     private
     val classes = WriteIdentities()
@@ -144,7 +149,8 @@ internal
 class LoggingTracer(
     private val profile: String,
     private val writePosition: () -> Long,
-    private val logger: Logger
+    private val logger: Logger,
+    private val level: LogLevel
 ) : Tracer {
 
     // Include a sequence number in the events so the order of events can be preserved in face of log output reordering
@@ -161,7 +167,8 @@ class LoggingTracer(
 
     private
     fun log(frame: String, openOrClose: Char) {
-        logger.debug(
+        logger.log(
+            level,
             """{"profile":"$profile","type":"$openOrClose","frame":"$frame","at":${writePosition()},"sn":${nextSequenceNumber()}}"""
         )
     }
@@ -216,6 +223,21 @@ class DefaultReadContext(
     lateinit var projectProvider: ProjectProvider
 
     override lateinit var classLoader: ClassLoader
+
+    override fun onFinish(action: () -> Unit) {
+        pendingOperations.add(action)
+    }
+
+    internal
+    fun finish() {
+        for (op in pendingOperations) {
+            op()
+        }
+        pendingOperations.clear()
+    }
+
+    private
+    var pendingOperations = ReferenceArrayList<() -> Unit>()
 
     internal
     fun initClassLoader(classLoader: ClassLoader) {
@@ -323,6 +345,7 @@ abstract class AbstractIsolateContext<T>(
     codec: Codec<Any?>,
     problemsListener: ProblemsListener
 ) : MutableIsolateContext {
+
     private
     var currentProblemsListener: ProblemsListener = problemsListener
 
@@ -332,8 +355,7 @@ abstract class AbstractIsolateContext<T>(
     private
     var currentCodec = codec
 
-    override
-    var trace: PropertyTrace = PropertyTrace.Gradle
+    override var trace: PropertyTrace = PropertyTrace.Gradle
 
     protected
     abstract fun newIsolate(owner: IsolateOwner): T
@@ -371,6 +393,10 @@ abstract class AbstractIsolateContext<T>(
 
     override fun onProblem(problem: PropertyProblem) {
         currentProblemsListener.onProblem(problem)
+    }
+
+    override fun onError(error: Exception, message: StructuredMessageBuilder) {
+        currentProblemsListener.onError(trace, error, message)
     }
 
     override suspend fun forIncompatibleType(action: suspend () -> Unit) {

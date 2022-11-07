@@ -21,23 +21,18 @@ import org.gradle.api.internal.TaskInternal;
 
 public interface TaskIdentifier {
     BuildIdentifier getBuildIdentifier();
-    int getOrdinal();
+
     String getTaskPath();
 
     interface TaskBasedTaskIdentifier extends TaskIdentifier {
         TaskInternal getTask();
     }
 
-    static TaskBasedTaskIdentifier of(BuildIdentifier buildIdentifier, TaskInternal task, int ordinal) {
+    static TaskBasedTaskIdentifier of(BuildIdentifier buildIdentifier, TaskInternal task) {
         return new TaskBasedTaskIdentifier() {
             @Override
             public BuildIdentifier getBuildIdentifier() {
                 return buildIdentifier;
-            }
-
-            @Override
-            public int getOrdinal() {
-                return ordinal;
             }
 
             @Override
@@ -52,7 +47,7 @@ public interface TaskIdentifier {
         };
     }
 
-    static TaskIdentifier of(BuildIdentifier buildIdentifier, String taskPath, int ordinal) {
+    static TaskIdentifier of(BuildIdentifier buildIdentifier, String taskPath) {
         return new TaskIdentifier() {
             @Override
             public BuildIdentifier getBuildIdentifier() {
@@ -62,11 +57,6 @@ public interface TaskIdentifier {
             @Override
             public String getTaskPath() {
                 return taskPath;
-            }
-
-            @Override
-            public int getOrdinal() {
-                return ordinal;
             }
         };
     }

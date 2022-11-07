@@ -29,8 +29,7 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
         resolveLocal.expectDefaultConfiguration('runtime')
         resolvePublished = new ResolveTestFixture(buildFile, 'publishedPath')
         resolvePublished.expectDefaultConfiguration('runtime')
-        resolveLocal.addDefaultVariantDerivationStrategy()
-        resolveLocal.addJavaEcosystemSchema()
+        resolveLocal.addJavaEcosystem()
 
         mavenRepo.module("org.test", "m2", "1.0").dependsOn("org.test", "m3", "1.0").withModuleMetadata().publish()
         mavenRepo.module("org.test", "m3", '1.0').withModuleMetadata().publish()

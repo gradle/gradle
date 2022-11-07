@@ -17,13 +17,13 @@
 package org.gradle.integtests.resource.s3.maven
 
 import org.gradle.api.credentials.AwsCredentials
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
 import org.gradle.integtests.resource.s3.fixtures.S3Artifact
 import org.gradle.integtests.resource.s3.fixtures.S3IntegrationTestPrecondition
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.gradle.internal.credentials.DefaultAwsCredentials
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Requires
 
@@ -38,16 +38,16 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
     }
 
-    @ToBeFixedForConfigurationCache
-    def "can publish to a S3 Maven repository"() {
+    def "can publish to a S3 Maven repository bucket=#bucket"() {
         given:
         def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", bucket)
         buildFile << publicationBuild(mavenRepo.uri, """
-            credentials(AwsCredentials) {
-                accessKey "someKey"
-                secretKey "someSecret"
-            }
+            credentials(AwsCredentials)
             """)
+        propertiesFile << """
+        mavenAccessKey=someKey
+        mavenSecretKey=someSecret
+        """
 
         when:
         def module = mavenRepo.module('org.gradle.test', 'publishS3Test', '1.0').withModuleMetadata()
@@ -67,7 +67,6 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         bucket << ["tests3Bucket", "tests-3-Bucket-1.2.3" ]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish to a S3 Maven repository using provided access and secret keys"() {
         given:
         AwsCredentials credentials = new DefaultAwsCredentials()
@@ -109,7 +108,6 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         failure.assertHasErrorOutput("- mavenSecretKey")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish to a S3 Maven repository with IAM"() {
         given:
         def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")
@@ -127,6 +125,11 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         module.rootMetaData.expectDownloadMissing()
         expectPublish(module.rootMetaData)
 
+        if (TestPrecondition.MAC_OS_X_M1.fulfilled) {
+            // FIXME KM M1 support might require aws-sdk-java-v2:2.17.198 and higher; see https://github.com/aws/aws-sdk-java-v2/issues/2942
+            //   ...or this is just a harmless ST, see https://github.com/aws/aws-sdk-java/issues/2365
+            executer.withStackTraceChecksDisabled()
+        }
         succeeds 'publish'
 
         then:

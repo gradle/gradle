@@ -58,7 +58,7 @@ import java.io.File;
  *     // such as 'ScalaCompile' or 'ScalaDoc', or to execute these and other Scala tools directly.
  * </pre>
  */
-public class ScalaRuntime {
+public abstract class ScalaRuntime {
 
     private final Project project;
     private final JvmEcosystemUtilities jvmEcosystemUtilities;

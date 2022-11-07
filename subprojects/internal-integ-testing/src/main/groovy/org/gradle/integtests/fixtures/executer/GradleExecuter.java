@@ -335,6 +335,10 @@ public interface GradleExecuter extends Stoppable {
 
     /**
      * Expects exactly the given deprecation warning.
+     *
+     * This may show up with a strikethrough in IntelliJ as if it were deprecated.  This method is still okay to use.  You can
+     * also switch to the more specific {@link #expectDocumentedDeprecationWarning(String)} if the warning includes a documentation
+     * link and you don't want to (ironically) see code testing deprecation appearing as if it itself were deprecated.
      */
     GradleExecuter expectDeprecationWarning(String warning);
 
@@ -371,6 +375,11 @@ public interface GradleExecuter extends Stoppable {
      * Disables asserting that no unexpected stacktraces are present in the output.
      */
     GradleExecuter withStackTraceChecksDisabled();
+
+    /**
+     * Enables checks for warnings emitted by the JDK itself. Including illegal access warnings.
+     */
+    GradleExecuter withJdkWarningChecksEnabled();
 
     /**
      * An executer may decide to implicitly bump the logging level, unless this is called.
@@ -490,9 +499,9 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withWarningMode(WarningMode warningMode);
 
     /**
-     * Execute the builds without adding the {@code "--stacktrace"} argument.
+     * Execute the builds with adding the {@code "--stacktrace"} argument.
      */
-    GradleExecuter withStacktraceDisabled();
+    GradleExecuter withStacktraceEnabled();
 
     /**
      * Renders the welcome message users see upon first invocation of a Gradle distribution with a given Gradle user home directory.

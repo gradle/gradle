@@ -35,8 +35,7 @@ import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
-import org.gradle.internal.work.WorkerLeaseRegistry
-import org.gradle.jvm.toolchain.JavaLauncher
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher
 import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
 import org.gradle.jvm.toolchain.internal.JavaToolchain
@@ -60,7 +59,6 @@ class TestTest extends AbstractConventionTaskTest {
     def testExecuterMock = Mock(TestExecuter)
     def testFrameworkMock = Mock(TestFramework)
 
-    private WorkerLeaseRegistry.WorkerLeaseCompletion completion
     private FileCollection classpathMock = TestFiles.fixed(new File("classpath"))
     private Test test
 
@@ -71,13 +69,8 @@ class TestTest extends AbstractConventionTaskTest {
         resultsDir = temporaryFolder.createDir("testResults")
         binResultsDir = temporaryFolder.createDir("binResults")
         reportDir = temporaryFolder.createDir("report")
-        completion = project.services.get(WorkerLeaseRegistry).startWorker()
 
         test = createTask(Test.class)
-    }
-
-    def cleanup() {
-        completion.leaseFinish()
     }
 
     ConventionTask getTask() {
@@ -243,7 +236,7 @@ class TestTest extends AbstractConventionTaskTest {
         metadata.getLanguageVersion() >> Jvm.current().javaVersion
         metadata.getCapabilities() >> Collections.emptySet()
         metadata.getJavaHome() >> Jvm.current().javaHome.toPath()
-        def toolchain = new JavaToolchain(metadata, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory), TestFiles.fileFactory(), Mock(JavaToolchainInput))
+        def toolchain = new JavaToolchain(metadata, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory), TestFiles.fileFactory(), Mock(JavaToolchainInput), false, Stub(BuildOperationProgressEventEmitter))
         def launcher = new DefaultToolchainJavaLauncher(toolchain)
 
         when:
@@ -253,17 +246,6 @@ class TestTest extends AbstractConventionTaskTest {
         test.getJavaVersion() == Jvm.current().javaVersion
     }
 
-    def "cannot set executable and toolchain launcher at the same time"() {
-        when:
-        test.javaLauncher.set(Mock(JavaLauncher))
-        test.executable = "something"
-        test.createTestExecutionSpec()
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message == "Must not use `executable` property on `Test` together with `javaLauncher` property"
-    }
-
     private void assertIsDirectoryTree(FileTreeInternal classFiles, Set<String> includes, Set<String> excludes) {
         classFiles.visitStructure(new FileCollectionStructureVisitor() {
             @Override
@@ -271,10 +253,6 @@ class TestTest extends AbstractConventionTaskTest {
                 throw new IllegalArgumentException()
             }
 
-            @Override
-            void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                throw new IllegalArgumentException()
-            }
 
             @Override
             void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {

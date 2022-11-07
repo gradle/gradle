@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDependencyResolutionTest {
@@ -37,6 +38,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.prepare()
     }
 
+    @ToBeFixedForConfigurationCache(because = "serializes the incorrect artifact in ArtifactCollection used by resolve fixture")
     def "can select both main variant and test fixtures with project dependencies"() {
         given:
         settingsFile << "include 'lib'"
@@ -82,7 +84,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category':'library', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
+                    variant "apiElements", ['org.gradle.usage':'java-api', 'org.gradle.compile-view': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category':'library', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }
                 project(":lib", "test:lib:") {
@@ -93,12 +95,13 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         }
     }
 
+    @ToBeFixedForConfigurationCache(because = "serializes the incorrect artifact in ArtifactCollection used by resolve fixture")
     def "prefers the variant which strictly matches the requested capabilities"() {
         given:
         settingsFile << "include 'lib'"
 
         file("lib/build.gradle") << """
-            configurations {                
+            configurations {
                 testFixtures {
                     canBeResolved = false
                     canBeConsumed = true
@@ -132,7 +135,7 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category':'library', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
+                    variant "apiElements", ['org.gradle.usage':'java-api', 'org.gradle.compile-view': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category':'library', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
                     artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
                 }
             }

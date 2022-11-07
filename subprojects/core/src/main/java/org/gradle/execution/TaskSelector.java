@@ -17,15 +17,33 @@
 package org.gradle.execution;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.util.Path;
 
-import javax.annotation.Nullable;
-import java.io.File;
+@ServiceScope(Scopes.BuildTree.class)
+public interface TaskSelector {
+    Spec<Task> getFilter(SelectionContext context, ProjectState project, String taskName, boolean selectAllMatching);
 
-public abstract class TaskSelector {
-    public abstract Spec<Task> getFilter(String path);
+    TaskSelection getSelection(SelectionContext context, ProjectState project, String taskName, boolean selectAllMatching);
 
-    public abstract TaskSelection getSelection(String path);
+    class SelectionContext {
+        private final Path originalPath;
+        private final String type;
 
-    public abstract TaskSelection getSelection(@Nullable String projectPath, @Nullable File root, String path);
+        public SelectionContext(Path originalPath, String type) {
+            this.originalPath = originalPath;
+            this.type = type;
+        }
+
+        public Path getOriginalPath() {
+            return originalPath;
+        }
+
+        public String getType() {
+            return type;
+        }
+    }
 }

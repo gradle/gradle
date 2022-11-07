@@ -26,8 +26,9 @@ tasks.withType<Test>().configureEach {
 
 tasks.register("checkJavadocOutput") {
     dependsOn(tasks.javadoc)
+    val docsDir = java.docsDir
     doLast {
-        require(File(project.the<JavaPluginConvention>().docsDir, "javadoc/org/gradle/Person.html").readText().contains("<p>Represents a person.</p>"))
+        require(File(docsDir.get().asFile, "javadoc/org/gradle/Person.html").readText().contains("<p>Represents a person.</p>"))
     }
 }
 

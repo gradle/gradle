@@ -20,6 +20,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.process.ExecOperations
+import org.gradle.test.fixtures.dsl.GradleDsl
+import spock.lang.Ignore
 
 import javax.inject.Inject
 
@@ -32,15 +34,14 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stri
 class ConfigurationCacheExternalProcessInPluginIntegrationTest extends AbstractConfigurationCacheExternalProcessIntegrationTest {
     def "using #snippetsFactory.summary in convention plugin #file is a problem"() {
         given:
+        settingsFileWithStableConfigurationCache()
         def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/build.gradle.kts") << """
             plugins {
                 `$plugin`
             }
 
-            repositories {
-               mavenCentral()
-            }
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
         """
         def conventionPluginFile = testDirectory.file(file)
         conventionPluginFile << """
@@ -54,6 +55,8 @@ class ConfigurationCacheExternalProcessInPluginIntegrationTest extends AbstractC
                 id("test-convention-plugin")
             }
         """)
+
+        executer.noDeprecationChecks()
 
         when:
         configurationCacheFails(":help")
@@ -82,6 +85,7 @@ class ConfigurationCacheExternalProcessInPluginIntegrationTest extends AbstractC
 
     def "using #snippetsFactory.summary in java project plugin application is a problem"() {
         given:
+        settingsFileWithStableConfigurationCache()
         def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file("buildSrc/src/main/java/SneakyPlugin.java") << """
             import ${ExecOperations.name};
@@ -125,6 +129,7 @@ class ConfigurationCacheExternalProcessInPluginIntegrationTest extends AbstractC
         runtimeExec().java                   | _
     }
 
+    @Ignore("settings plugins are applied too early for feature flag to take effect")
     def "using #snippetsFactory.summary in java settings plugin application is a problem"() {
         given:
         def snippets = snippetsFactory.newSnippets(execOperationsFixture)

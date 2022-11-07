@@ -40,6 +40,7 @@ import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroad
 import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -93,6 +94,7 @@ public class CrossBuildSessionState implements Closeable {
         }
 
         void configure(ServiceRegistration registration) {
+            registration.add(DefaultResourceLockCoordinationService.class);
             registration.add(DefaultWorkerLeaseService.class);
         }
 

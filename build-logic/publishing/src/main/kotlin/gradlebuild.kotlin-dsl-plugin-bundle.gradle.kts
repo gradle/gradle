@@ -24,7 +24,7 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
-extensions.create<PluginPublishExtension>("pluginPublish", gradlePlugin, pluginBundle)
+extensions.create<PluginPublishExtension>("pluginPublish", gradlePlugin)
 
 tasks.validatePlugins {
     enableStricterValidation.set(true)
@@ -39,13 +39,7 @@ configurations.all {
     }
 }
 
-pluginBundle {
-    tags = listOf("Kotlin", "DSL")
-    website = "https://github.com/gradle/kotlin-dsl"
-    vcsUrl = "https://github.com/gradle/kotlin-dsl"
-}
-
-publishing.publications.withType<MavenPublication>() {
+publishing.publications.withType<MavenPublication>().configureEach {
     if (name == "pluginMaven") {
         groupId = project.group.toString()
         artifactId = moduleIdentity.baseName.get()
@@ -58,12 +52,13 @@ val localRepository = layout.buildDirectory.dir("repository")
 
 val publishPluginsToTestRepository by tasks.registering {
     dependsOn("publishPluginMavenPublicationToTestRepository")
+    val repoDir = localRepository // Prevent capturing the Gradle script instance for configuration cache compatibility
     // This should be unified with publish-public-libraries if possible
     doLast {
-        localRepository.get().asFileTree.matching { include("**/maven-metadata.xml") }.forEach {
+        repoDir.get().asFileTree.matching { include("**/maven-metadata.xml") }.forEach {
             it.writeText(it.readText().replace("\\Q<lastUpdated>\\E\\d+\\Q</lastUpdated>\\E".toRegex(), "<lastUpdated>${Year.now().value}0101000000</lastUpdated>"))
         }
-        localRepository.get().asFileTree.matching { include("**/*.module") }.forEach {
+        repoDir.get().asFileTree.matching { include("**/*.module") }.forEach {
             val content = it.readText()
                 .replace("\"buildId\":\\s+\"\\w+\"".toRegex(), "\"buildId\": \"\"")
                 .replace("\"size\":\\s+\\d+".toRegex(), "\"size\": 0")
@@ -98,9 +93,14 @@ publishing {
 }
 
 gradlePlugin {
+    website.set("https://github.com/gradle/kotlin-dsl")
+    vcsUrl.set("https://github.com/gradle/kotlin-dsl")
+
     plugins.all {
 
         val plugin = this
+
+        tags.addAll("Kotlin", "DSL")
 
         publishPluginsToTestRepository.configure {
             dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")

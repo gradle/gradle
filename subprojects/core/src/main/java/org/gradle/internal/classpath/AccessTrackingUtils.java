@@ -44,10 +44,10 @@ class AccessTrackingUtils {
      */
     @Nullable
     public static Map.Entry<String, String> tryConvertingToTrackableEntry(Object o) {
-        if (!(o instanceof Map.Entry)) {
+        Map.Entry<?, ?> entry = tryConvertingToEntry(o);
+        if (entry == null) {
             return null;
         }
-        Map.Entry<?, ?> entry = (Map.Entry<?, ?>) o;
         // Return a copy to make sure that the results of getKey() and getValue() do not change.
         Object key = entry.getKey();
         Object value = entry.getValue();
@@ -57,4 +57,11 @@ class AccessTrackingUtils {
         return null;
     }
 
+    @Nullable
+    public static Map.Entry<?, ?> tryConvertingToEntry(Object o) {
+        if (!(o instanceof Map.Entry)) {
+            return null;
+        }
+        return (Map.Entry<?, ?>) o;
+    }
 }

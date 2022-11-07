@@ -18,16 +18,24 @@ package org.gradle.util;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.Arrays;
 
 /**
  * This class is only here to maintain binary compatibility with existing plugins.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public final class NameValidator {
+
+    private static void logDeprecation() {
+        DeprecationLogger.deprecateType(NameValidator.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
 
     private static final char[] FORBIDDEN_CHARACTERS = new char[] {'/', '\\', ':', '<', '>', '"', '?', '*', '|'};
     private static final char FORBIDDEN_LEADING_AND_TRAILING_CHARACTER = '.';
@@ -38,6 +46,7 @@ public final class NameValidator {
      * Validates that a given name string does not contain any forbidden characters.
      */
     public static void validate(String name, String nameDescription, String fixSuggestion) throws InvalidUserDataException {
+        logDeprecation();
         if (StringUtils.isEmpty(name)) {
             throw newInvalidUserDataException("The " + nameDescription + " must not be empty.", fixSuggestion);
         } else if (StringUtils.containsAny(name, FORBIDDEN_CHARACTERS)) {

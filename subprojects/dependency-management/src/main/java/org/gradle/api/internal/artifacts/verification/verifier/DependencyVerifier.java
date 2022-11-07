@@ -106,10 +106,17 @@ public class DependencyVerifier {
             for (ArtifactVerificationMetadata verification : verifications) {
                 String verifiedArtifact = verification.getArtifactName();
                 if (verifiedArtifact.equals(foundArtifactFileName)) {
-                    if (signature == null && config.isVerifySignatures()) {
-                        builder.failWith(new MissingSignature(file));
-                    }
-                    if (signature != null) {
+                    if (signature == null) {
+                        // There is no signature file or verify-signature=false
+                        if (config.isVerifySignatures()) {
+                            builder.failWith(new MissingSignature(file));
+                        }
+                        if (verification.getChecksums().isEmpty()) {
+                            builder.failWith(new MissingChecksums(file));
+                            return;
+                        }
+                    } else {
+                        // There is a signature file and verify-signature=true
                         DefaultSignatureVerificationResultBuilder result = new DefaultSignatureVerificationResultBuilder(file, signature);
                         verifySignature(signatureVerificationService, file, signature, allTrustedKeys(foundArtifact, verification.getTrustedPgpKeys()), allIgnoredKeys(verification.getIgnoredPgpKeys()), result);
                         if (result.hasOnlyIgnoredKeys()) {
@@ -139,7 +146,9 @@ public class DependencyVerifier {
             if (result.hasError()) {
                 builder.failWith(result.asError(publicKeyService));
                 return;
-            } else if (!result.hasOnlyIgnoredKeys()) {
+            } else if (result.hasOnlyIgnoredKeys()) {
+                builder.failWith(new OnlyIgnoredKeys(file));
+            } else {
                 return;
             }
         }
