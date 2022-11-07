@@ -32,7 +32,7 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         given:
         // A is a private dependency of B and B is referenced in E.isCacheEnabled through inheritance
         File aClass = sourceForLanguageForProject(CompiledLanguage.JAVA, "api", "class A { void m1() {}; }")
-        sourceWithFileSuffixForProject(bSuffix, "impl", "$bCompileStatic class B { void m1() { new A().m1(); }; }")
+        sourceWithFileSuffixForProject(bSuffix, "impl", "$bCompileStatic class B { void m1() { A a = new A(); a.m1(); }; }")
         sourceWithFileSuffixForProject("java", "impl", "class C extends B {}")
         sourceWithFileSuffixForProject("java", "impl", "class D extends C { static boolean getCache() { return true; } }")
         File eClass = sourceWithFileSuffixForProject("groovy", "impl", "class E { boolean isCacheEnabled = D.cache }")
@@ -50,7 +50,7 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         where:
         bSuffix  | bCompileStatic                    | expectedRecompiledClass
         "java"   | ""                                | ["B", "C", "D", "E"]
-        "groovy" | ""                                | ["E"]
+        "groovy" | ""                                | ["B", "E"]
         "groovy" | "@groovy.transform.CompileStatic" | ["B", "E"]
     }
 
@@ -66,7 +66,7 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         """
         // A is a private dependency of B and B is referenced in E.isCacheEnabled through inheritance
         File aClass = sourceForLanguageForProject(CompiledLanguage.JAVA, "api", "class A { void m1() {}; }")
-        sourceWithFileSuffixForProject(bSuffix, "impl", "$bCompileStatic class B { void m1() { new A().m1(); }; }")
+        sourceWithFileSuffixForProject(bSuffix, "impl", "$bCompileStatic class B { void m1() { A a = new A(); a.m1(); }; }")
         sourceWithFileSuffixForProject("java", "impl", "class C extends B {}")
         sourceWithFileSuffixForProject("java", "impl", "class D extends C { static boolean getCache() { return true; } }")
         File eClass = sourceWithFileSuffixForProject("groovy", "impl", "class E { boolean isCacheEnabled = D.cache }")
@@ -84,7 +84,7 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         where:
         bSuffix  | bCompileStatic                    | expectedRecompiledClass
         "java"   | ""                                | ["E"]
-        "groovy" | ""                                | ["E"]
+        "groovy" | ""                                | ["B", "E"]
         "groovy" | "@groovy.transform.CompileStatic" | ["B", "E"]
     }
 
@@ -95,6 +95,8 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         sourceWithFileSuffixForProject("java", "impl", "class C extends B {}")
         sourceWithFileSuffixForProject("java", "impl", "class D extends C { static boolean getCache() { return true; } }")
         File eClass = sourceWithFileSuffixForProject("groovy", "impl", "class E { boolean isCacheEnabled = D.cache }")
+        sourceWithFileSuffixForProject("java", "impl", "class F {}")
+        sourceWithFileSuffixForProject("groovy", "impl", "class G {}")
         run ":impl:compileGroovy"
 
         when:
