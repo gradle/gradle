@@ -121,18 +121,24 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
 }
 
 class GradleVersionRangeCrossVersionTestBucket(private val startInclusive: String, private val endExclusive: String) : BuildTypeBucket {
-    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int) =
-        FunctionalTest(
+    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int): FunctionalTest {
+        val parallelizationMethod = when (testCoverage.os) {
+            Os.LINUX -> ParallelizationMethod.TestDistributionParallization
+            else -> null
+        }
+
+        return FunctionalTest(
             model,
             testCoverage.getBucketUuid(model, bucketIndex),
             "${testCoverage.asName()} ($startInclusive <= gradle <$endExclusive)",
             "${testCoverage.asName()} for gradle ($startInclusive <= gradle <$endExclusive)",
             testCoverage,
             stage,
-            if (testCoverage.os == Os.LINUX) ParallelizationMethod.TestDistributionParallization else null,
+            parallelizationMethod,
             emptyList(),
             extraParameters = "-PonlyTestGradleVersion=$startInclusive-$endExclusive"
         )
+    }
 }
 
 class TestClassAndSourceSet(

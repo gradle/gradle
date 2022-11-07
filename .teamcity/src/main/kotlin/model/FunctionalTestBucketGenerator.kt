@@ -114,13 +114,10 @@ class SubprojectTestClassTime(
 ) {
     val totalTime: Int = testClassTimes.sumOf { it.buildTimeMs }
 
-    fun split(expectedBucketNumber: Int, enableTestDistribution: Boolean = false): List<BuildTypeBucket> {
+    fun split(expectedBucketNumber: Int, parallelizationMethod: ParallelizationMethod?): List<BuildTypeBucket> {
         return if (expectedBucketNumber == 1) {
             listOf(
-                SmallSubprojectBucket(
-                    listOf(subProject),
-
-                )
+                SmallSubprojectBucket(listOf(subProject), parallelizationMethod)
             )
         } else {
             // fun <T, R> split(list: LinkedList<T>, toIntFunction: (T) -> Int, largeElementSplitFunction: (T, Int) -> List<R>, smallElementAggregateFunction: (List<T>) -> R, expectedBucketNumber: Int, maxNumberInBucket: Int): List<R> {
@@ -186,7 +183,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
 
         // Build project not found, don't split into buckets
         val subProjectToClassTimes: MutableMap<String, List<TestClassTime>> =
-            determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap() ?: return validSubprojects.map { SmallSubprojectBucket(it, false) }
+            determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap() ?: return validSubprojects.map { SmallSubprojectBucket(it, null) }
 
         validSubprojects.forEach {
             if (!subProjectToClassTimes.containsKey(it.name)) {
@@ -207,11 +204,14 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             testCoverage.testType == TestType.platform && testCoverage.os == Os.LINUX ->
                 splitDocsSubproject(validSubprojects) +
                     splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs"), true)
+
             testCoverage.testType == TestType.platform ->
                 splitDocsSubproject(validSubprojects) +
                     splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs"), false)
+
             testCoverage.os == Os.LINUX ->
                 splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, emptyList(), true)
+
             else ->
                 splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, emptyList(), false)
         }
@@ -239,20 +239,21 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         subProjectTestClassTimes: List<SubprojectTestClassTime>,
         testCoverage: TestCoverage,
         excludedSubprojectNames: List<String> = listOf(),
-        enableTestDistribution: Boolean = false
+        parallelizationMethod: ParallelizationMethod?
     ): List<BuildTypeBucket> {
         val specialSubprojects = validSubprojects.filter { excludedSubprojectNames.contains(it.name) }
         val otherSubProjectTestClassTimes = subProjectTestClassTimes.filter { !excludedSubprojectNames.contains(it.subProject.name) }
+
         return splitIntoBuckets(
             LinkedList(otherSubProjectTestClassTimes),
             SubprojectTestClassTime::totalTime,
             { largeElement: SubprojectTestClassTime, size: Int ->
-                if (enableTestDistribution)
-                    largeElement.split(1, enableTestDistribution)
-                else
-                    largeElement.split(size)
+                when (parallelizationMethod) {
+                    null -> largeElement.split(size)
+                    else -> largeElement.split(1, parallelizationMethod)
+                }
             },
-            { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list.map { it.subProject }, enableTestDistribution) },
+            { list: List<SubprojectTestClassTime> -> SmallSubprojectBucket(list.map { it.subProject }, parallelizationMethod) },
             testCoverage.expectedBucketNumber - specialSubprojects.size,
             MAX_PROJECT_NUMBER_IN_BUCKET
         )

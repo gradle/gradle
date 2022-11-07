@@ -36,7 +36,7 @@ data class JsonBasedGradleSubprojectProvider(private val jsonFile: File) : Gradl
     override val subprojects = JSON.parseArray(jsonFile.readText()).map { toSubproject(it as Map<String, Any>) }
     private val nameToSubproject = subprojects.map { it.name to it }.toMap()
 
-    override fun getSubprojectsFor(testConfig: TestCoverage, stage: Stage) =
+    override fun getSubprojectsFor(testConfig: TestCoverage, stage: Stage): List<GradleSubproject> =
         subprojects.filter { it.hasTestsOf(testConfig.testType) }
             .filterNot { testConfig.os.ignoredSubprojects.contains(it.name) }
 
