@@ -18,6 +18,7 @@ dependencies {
 // end::explicit-configuration-dependency[]
 
 tasks.register("resolveInstrumentedClasses") {
+    val instrumentedClasspath: FileCollection = instrumentedClasspath
     inputs.files(instrumentedClasspath)
     doLast {
         println(instrumentedClasspath.files.map { it.name })
