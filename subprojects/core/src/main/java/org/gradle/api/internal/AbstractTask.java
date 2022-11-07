@@ -1037,7 +1037,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public List<ResourceLock> getSharedResources() {
-        return getBuildServiceRegistry().getSharedResources(taskRequiredServices.getRequiredServices());
+        return getBuildServiceRegistry().getSharedResources(taskRequiredServices.getElements());
     }
 
     private BuildServiceRegistryInternal getBuildServiceRegistry() {

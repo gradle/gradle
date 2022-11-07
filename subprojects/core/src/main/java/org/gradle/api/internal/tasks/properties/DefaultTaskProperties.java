@@ -236,11 +236,9 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         @Override
-        public void visitServiceReference(String propertyName, Boolean optional, Provider<? extends BuildService<?>> serviceProvider, @Nullable String serviceName) {
-            if (optional != null && serviceName != null) {
-                // Service reference declared via annotation, validate it
-                taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, StaticValue.of(serviceProvider), optional, ValidationActions.NO_OP));
-            }
+        public void visitServiceReference(String propertyName, boolean optional, Provider<? extends BuildService<?>> serviceProvider, @Nullable String serviceName) {
+            // Service reference declared via annotation, validate it
+            taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, StaticValue.of(serviceProvider), optional, ValidationActions.NO_OP));
         }
 
         public List<ValidatingProperty> getTaskPropertySpecs() {

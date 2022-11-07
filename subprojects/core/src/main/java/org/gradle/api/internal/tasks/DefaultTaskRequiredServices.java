@@ -32,54 +32,53 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static java.util.Collections.emptySet;
+
 public class DefaultTaskRequiredServices implements TaskRequiredServices {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
     private final PropertyWalker propertyWalker;
-    private final BuildServiceRegistry buildServiceRegistry;
-    private Set<Provider<? extends BuildService<?>>> servicesRegistered;
-    private Set<Provider<? extends BuildService<?>>> servicesRequired;
+
+    /**
+     * Services registered explicitly via Task#usesService(provider).
+     */
+    @Nullable
+    private Set<Provider<? extends BuildService<?>>> registeredServices;
+    /**
+     * Lazy union between #registeredServices and properties annotated with @ServiceReference.
+     */
+    @Nullable
+    private Set<Provider<? extends BuildService<?>>> requiredServices;
 
     public DefaultTaskRequiredServices(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, BuildServiceRegistry buildServiceRegistry) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.propertyWalker = propertyWalker;
-        this.buildServiceRegistry = buildServiceRegistry;
     }
 
     @Override
-    public Set<Provider<? extends BuildService<?>>> getRequiredServices() {
-        if (servicesRequired == null) {
-            servicesRequired = collectServicesRequired();
+    public Set<Provider<? extends BuildService<?>>> getElements() {
+        if (requiredServices == null) {
+            requiredServices = collectRequiredServices();
         }
-        return servicesRequired;
-    }
-
-    @Override
-    public void visitRegisteredProperties(PropertyVisitor visitor) {
-        Set<Provider<? extends BuildService<?>>> servicesRegistered = this.servicesRegistered;
-        if (servicesRegistered != null) {
-            for (Provider<? extends BuildService<?>> next: servicesRegistered) {
-                // no name provided for explicit registrations
-                visitor.visitServiceReference(null, null, next, null);
-            }
-        }
+        return requiredServices;
     }
 
     @Override
     public boolean isServiceRequired(Provider<? extends BuildService<?>> toCheck) {
-        return getRequiredServices().stream().anyMatch(it -> BuildServiceProvider.isSameService(it, toCheck));
+        return getElements().stream().anyMatch(it -> BuildServiceProvider.isSameService(it, toCheck));
     }
 
     /**
      * Returns both services declared as referenced (via @ServiceReference) or explicitly as used (via Task#usesService()).
      */
-    private Set<Provider<? extends BuildService<?>>> collectServicesRequired() {
-        Set<Provider<? extends BuildService<?>>> servicesRequired = new LinkedHashSet<>();
+    private Set<Provider<? extends BuildService<?>>> collectRequiredServices() {
+        Set<Provider<? extends BuildService<?>>> registeredServices = this.registeredServices != null ? this.registeredServices : emptySet();
+        Set<Provider<? extends BuildService<?>>> requiredServices = new LinkedHashSet<>(registeredServices);
         visitServiceReferences(referenceProvider ->
-            servicesRequired.add(asBuildServiceProvider(referenceProvider))
+            requiredServices.add(asBuildServiceProvider(referenceProvider))
         );
-        return servicesRequired;
+        return requiredServices;
     }
 
     private Provider<? extends BuildService<?>> asBuildServiceProvider(Provider<? extends BuildService<?>> referenceProvider) {
@@ -93,20 +92,21 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
     private void visitServiceReferences(Consumer<Provider<? extends BuildService<?>>> visitor) {
         TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
             @Override
-            public void visitServiceReference(String propertyName, Boolean optional, Provider<? extends BuildService<?>> referenceProvider, @Nullable String serviceName) {
+            public void visitServiceReference(String propertyName, boolean optional, Provider<? extends BuildService<?>> referenceProvider, @Nullable String serviceName) {
                 visitor.accept(referenceProvider);
             }
         });
+
     }
 
     @Override
     public void registerServiceUsage(Provider<? extends BuildService<?>> service) {
         taskMutator.mutate("Task.usesService(Provider)", () -> {
-            if (servicesRegistered == null) {
-                servicesRegistered = new HashSet<>();
+            if (registeredServices == null) {
+                registeredServices = new HashSet<>();
             }
             // TODO:configuration-cache assert build service is from the same build as the task
-            servicesRegistered.add(service);
+            registeredServices.add(service);
         });
     }
 }

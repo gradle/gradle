@@ -85,6 +85,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static java.util.Optional.ofNullable;
+
 /**
  * Generates a subclass of the target class to mix-in some DSL behaviour.
  *
@@ -659,11 +661,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Nullable
         public <A extends Annotation> A findAnnotation(Class<A> type) {
-            if (backingField != null && backingField.getAnnotation(type) != null) {
-                return backingField.getAnnotation(type);
-            } else {
-                return mainGetter.method.getAnnotation(type);
-            }
+            return ofNullable(backingFieldAnnotationOf(type)).orElseGet(() -> getterAnnotationOf(type));
+        }
+
+        private <A extends Annotation> A getterAnnotationOf(Class<A> type) {
+            return mainGetter.method.getAnnotation(type);
+        }
+
+        private <A extends Annotation> A backingFieldAnnotationOf(Class<A> type) {
+            return backingField == null ? null : backingField.getAnnotation(type);
         }
 
         public MethodMetadata getMainGetter() {
