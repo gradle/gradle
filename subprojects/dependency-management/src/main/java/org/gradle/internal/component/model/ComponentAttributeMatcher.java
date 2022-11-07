@@ -17,6 +17,7 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.primitives.Ints;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -150,9 +151,9 @@ public class ComponentAttributeMatcher implements AttributeMatcher {
         CachedQuery query = CachedQuery.from(requestedAttributes, candidateList);
         int[] indices = cachedQueries.compute(query, (key, value) -> {
             if (value == null || !explanationBuilder.canSkipExplanation()) {
-                List<T> matches = new MultipleCandidateMatcher<T>(schema, candidateList, requestedAttributes, explanationBuilder).getMatches();
-                LOGGER.debug("Selected matches {} from candidates {} for {}", matches, candidateList, requested);
-                return CachedQuery.getCandidateIndicesFromMatches(candidateList, matches);
+                int[] matches = new MultipleCandidateMatcher<T>(schema, candidateList, requestedAttributes, explanationBuilder).getMatches();
+                LOGGER.debug("Selected matches {} from candidates {} for {}", Ints.asList(matches), candidateList, requested);
+                return matches;
             }
             return value;
         });
@@ -187,33 +188,14 @@ public class ComponentAttributeMatcher implements AttributeMatcher {
             return new CachedQuery(requestedAttributes, attributes);
         }
 
-        public static <T extends HasAttributes> int[] getCandidateIndicesFromMatches(List<? extends T> candidates, List<T> matches) {
-            if (matches.isEmpty()) {
-                return new int[0];
-            }
-
-            int[] indices = new int[matches.size()];
-
-            int c = 0;
-            for (int i = 0; i < matches.size(); i++) {
-                T match = matches.get(i);
-                while (match != candidates.get(c)) {
-                    c++; // Skip candidates until we find the next match.
-                }
-                indices[i] = c;
-            }
-
-            return indices;
-        }
-
         public static <T extends HasAttributes> List<T> getMatchesFromCandidateIndices(int[] indices, List<? extends T> candidates) {
             if (indices.length == 0) {
                 return Collections.emptyList();
             }
 
             List<T> matches = new ArrayList<>(indices.length);
-            for (int c = 0; c < indices.length; c++) {
-                matches.add(candidates.get(indices[c]));
+            for (int index : indices) {
+                matches.add(candidates.get(index));
             }
 
             return matches;
