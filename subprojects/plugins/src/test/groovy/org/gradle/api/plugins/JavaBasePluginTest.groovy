@@ -36,6 +36,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -433,9 +434,10 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     def "check default disambiguation rules (consumer=#consumer, candidates=#candidates, selected=#preferred)"() {
         given:
         JavaEcosystemSupport.UsageDisambiguationRules rules = new JavaEcosystemSupport.UsageDisambiguationRules(
-                usage(Usage.JAVA_API),
-                usage(Usage.JAVA_RUNTIME),
-                TestUtil.objectFactory()
+            usage(Usage.JAVA_API),
+            usage(JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS),
+            usage(Usage.JAVA_RUNTIME),
+            usage(JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS)
         )
         MultipleCandidatesDetails details = new DefaultMultipleCandidateResult(usage(consumer), candidates.collect { usage(it)} as Set)
 

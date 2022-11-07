@@ -204,13 +204,14 @@ public abstract class JavaEcosystemSupport {
 
         @Inject
         UsageDisambiguationRules(Usage javaApi,
+                                 Usage javaApiJars,
                                  Usage javaRuntime,
-                                 ObjectFactory objectFactory) {
+                                 Usage javaRuntimeJars) {
             this.javaApi = javaApi;
-            this.javaApiJars = objectFactory.named(Usage.class, DEPRECATED_JAVA_API_JARS);
+            this.javaApiJars = javaApiJars;
             this.apiVariants = ImmutableSet.of(javaApi, javaApiJars);
             this.javaRuntime = javaRuntime;
-            this.javaRuntimeJars = objectFactory.named(Usage.class, DEPRECATED_JAVA_RUNTIME_JARS);
+            this.javaRuntimeJars = javaRuntimeJars;
             this.runtimeVariants = ImmutableSet.of(javaRuntime, javaRuntimeJars);
         }
 
