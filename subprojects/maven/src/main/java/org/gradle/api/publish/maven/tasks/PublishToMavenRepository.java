@@ -23,6 +23,7 @@ import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository;
+import org.gradle.api.internal.credentials.CredentialListener;
 import org.gradle.api.internal.provider.MissingValueException;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -36,7 +37,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.internal.credentials.CredentialListener;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
@@ -55,10 +55,11 @@ import static org.gradle.internal.serialization.Transient.varOf;
  * @since 1.4
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class PublishToMavenRepository extends AbstractPublishToMaven {
+public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
     private final Transient.Var<DefaultMavenArtifactRepository> repository = varOf();
     private final Cached<PublishSpec> spec = Cached.of(this::computeSpec);
     private final Property<Credentials> credentials = getProject().getObjects().property(Credentials.class);
+
     /**
      * The repository to publish to.
      *
@@ -93,7 +94,10 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
     @TaskAction
     public void publish() {
         PublishSpec spec = this.spec.get();
-        doPublish(spec.publication, spec.repository.get(getServices()));
+        MavenNormalizedPublication publication = spec.publication;
+        MavenArtifactRepository repository = spec.repository.get(getServices());
+        getDuplicatePublicationTracker().checkCanPublish(publication, repository.getUrl(), repository.getName());
+        doPublish(publication, repository);
     }
 
     private PublishSpec computeSpec() {
@@ -109,7 +113,6 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
 
         checkCredentialSafety(repository);
 
-        getDuplicatePublicationTracker().checkCanPublish(publicationInternal, repository.getUrl(), repository.getName());
         MavenNormalizedPublication normalizedPublication = publicationInternal.asNormalisedPublication();
         return new PublishSpec(
                 RepositorySpec.of(repository),
@@ -133,7 +136,14 @@ public class PublishToMavenRepository extends AbstractPublishToMaven {
         ProviderFactory providerFactory = getServices().get(ProviderFactory.class);
         Credentials referenceCredentials;
         try {
-            Provider<? extends Credentials> credentialsProvider = providerFactory.credentials(toCheck.getClass(), identity);
+            Provider<? extends Credentials> credentialsProvider;
+            try {
+                credentialsProvider = providerFactory.credentials(toCheck.getClass(), identity);
+            } catch (IllegalArgumentException e) {
+                // some possibilities are invalid repository names and invalid credential types
+                // either way, this is not the place to validate that
+                return false;
+            }
             referenceCredentials = credentialsProvider.get();
         } catch (MissingValueException e) {
             return false;

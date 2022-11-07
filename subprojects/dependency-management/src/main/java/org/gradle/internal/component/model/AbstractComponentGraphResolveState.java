@@ -29,27 +29,33 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
-public abstract class AbstractComponentGraphResolveState<T extends ComponentResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
-    private final T metadata;
+public abstract class AbstractComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> implements ComponentGraphResolveState, ComponentArtifactResolveState {
+    private final T graphMetadata;
+    private final S artifactMetadata;
 
-    public AbstractComponentGraphResolveState(T metadata) {
-        this.metadata = metadata;
+    public AbstractComponentGraphResolveState(T graphMetadata, S artifactMetadata) {
+        this.graphMetadata = graphMetadata;
+        this.artifactMetadata = artifactMetadata;
     }
 
     @Override
     public ComponentIdentifier getId() {
-        return metadata.getId();
+        return graphMetadata.getId();
     }
 
     @Nullable
     @Override
     public ModuleSources getSources() {
-        return metadata.getSources();
+        return artifactMetadata.getSources();
     }
 
     @Override
     public T getMetadata() {
-        return metadata;
+        return graphMetadata;
+    }
+
+    public S getArtifactMetadata() {
+        return artifactMetadata;
     }
 
     @Nullable
@@ -64,12 +70,11 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentReso
     }
 
     public void resolveArtifactsWithType(ArtifactResolver artifactResolver, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
-        artifactResolver.resolveArtifactsWithType(getMetadata(), artifactType, result);
+        artifactResolver.resolveArtifactsWithType(artifactMetadata, artifactType, result);
     }
 
     @Override
     public ArtifactSet prepareForArtifactResolution(ArtifactSelector artifactSelector, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
-        return artifactSelector.resolveArtifacts(getMetadata(), artifacts, overriddenAttributes);
+        return artifactSelector.resolveArtifacts(artifactMetadata, artifacts, overriddenAttributes);
     }
-
 }

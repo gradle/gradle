@@ -18,7 +18,6 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public interface BuildableComponentResolveResult extends ComponentResolveResult, ResourceAwareResolveResult {
@@ -26,11 +25,6 @@ public interface BuildableComponentResolveResult extends ComponentResolveResult,
      * Marks the component as resolved, with the given graph resolution state.
      */
     void resolved(ComponentGraphResolveState state);
-
-    /**
-     * Marks the component as resolved, with the given metadata.
-     */
-    void resolved(ComponentResolveMetadata metadata);
 
     /**
      * Marks the resolve as failed with the given exception.

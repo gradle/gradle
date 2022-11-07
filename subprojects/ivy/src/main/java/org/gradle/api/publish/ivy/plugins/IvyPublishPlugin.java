@@ -73,7 +73,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * @since 1.3
  * @see <a href="https://docs.gradle.org/current/userguide/publishing_ivy.html">Ivy Publishing reference</a>
  */
-public class IvyPublishPlugin implements Plugin<Project> {
+public abstract class IvyPublishPlugin implements Plugin<Project> {
     private final static Logger LOGGER = Logging.getLogger(IvyPublishPlugin.class);
 
     private final Instantiator instantiator;
