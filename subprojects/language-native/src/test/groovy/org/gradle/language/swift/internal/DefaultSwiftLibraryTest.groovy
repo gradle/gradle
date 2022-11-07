@@ -16,7 +16,7 @@
 
 package org.gradle.language.swift.internal
 
-import org.gradle.language.cpp.internal.DefaultSoftwareComponentVariant
+import org.gradle.api.internal.component.DefaultSoftwareComponentVariant
 import org.gradle.language.cpp.internal.NativeVariantIdentity
 import org.gradle.language.swift.SwiftPlatform
 import org.gradle.nativeplatform.MachineArchitecture

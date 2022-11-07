@@ -27,6 +27,7 @@ import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.internal.ConfigurationSoftwareComponentVariant;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -54,7 +55,7 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
 
     @Override
     public Set<SoftwareComponentVariant> getAllVariants() {
-        return ImmutableSet.of(new DefaultSoftwareComponentVariant(name, attributeContainer, artifacts, dependencies));
+        return ImmutableSet.of(new ConfigurationSoftwareComponentVariant(name, dependencies, attributeContainer, artifacts));
     }
 
     @Override

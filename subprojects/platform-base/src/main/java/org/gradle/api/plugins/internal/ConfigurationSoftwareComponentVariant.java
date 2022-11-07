@@ -23,22 +23,31 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.component.AbstractSoftwareComponentVariant;
 
 import java.util.Set;
 
-public abstract class AbstractConfigurationVariant extends AbstractSoftwareComponentVariant {
+public class ConfigurationSoftwareComponentVariant extends AbstractSoftwareComponentVariant {
     protected final String name;
+    private final Configuration configuration;
     private DomainObjectSet<ModuleDependency> dependencies;
     private DomainObjectSet<DependencyConstraint> dependencyConstraints;
     private Set<? extends Capability> capabilities;
     private Set<ExcludeRule> excludeRules;
 
-    public AbstractConfigurationVariant(String name, ImmutableAttributes attributes, Set<PublishArtifact> artifacts) {
-        super(attributes, artifacts);
+    public ConfigurationSoftwareComponentVariant(SoftwareComponentVariant base, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
+        this(base.getName(), configuration, base.getAttributes(), artifacts);
+    }
+
+    public ConfigurationSoftwareComponentVariant(String name, Configuration configuration, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts) {
+        super(((AttributeContainerInternal) attributes).asImmutable(), artifacts);
+        this.configuration = configuration;
         this.name = name;
     }
 
@@ -81,5 +90,7 @@ public abstract class AbstractConfigurationVariant extends AbstractSoftwareCompo
         return excludeRules;
     }
 
-    protected abstract Configuration getConfiguration();
+    protected Configuration getConfiguration() {
+        return configuration;
+    }
 }

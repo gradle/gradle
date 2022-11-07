@@ -20,23 +20,16 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.component.IvyPublishingAwareVariant;
 import org.gradle.api.internal.component.MavenPublishingAwareVariant;
-import org.gradle.api.plugins.internal.AbstractConfigurationVariant;
+import org.gradle.api.plugins.internal.ConfigurationSoftwareComponentVariant;
 
-public class FeatureConfigurationVariant extends AbstractConfigurationVariant implements MavenPublishingAwareVariant, IvyPublishingAwareVariant {
-    private final Configuration configuration;
+public class FeatureConfigurationVariant extends ConfigurationSoftwareComponentVariant implements MavenPublishingAwareVariant, IvyPublishingAwareVariant {
     private final ScopeMapping scopeMapping;
     private final boolean optional;
 
     public FeatureConfigurationVariant(String name, Configuration configuration, ConfigurationVariant variant, String mavenScope, boolean optional) {
-        super(name, ((AttributeContainerInternal)variant.getAttributes()).asImmutable(), variant.getArtifacts());
-        this.configuration = configuration;
+        super(name, configuration, ((AttributeContainerInternal)variant.getAttributes()).asImmutable(), variant.getArtifacts());
         this.scopeMapping = ScopeMapping.of(mavenScope, optional);
         this.optional = optional;
-    }
-
-    @Override
-    protected Configuration getConfiguration() {
-        return configuration;
     }
 
     @Override

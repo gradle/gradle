@@ -18,7 +18,6 @@ package org.gradle.api.plugins.internal;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.component.AdhocComponentWithVariants;
@@ -49,11 +48,7 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
 
     @Override
     public void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> spec) {
-        ConfigurationVariantMapping mapping = new ConfigurationVariantMapping((ConfigurationInternal) outgoingConfiguration, spec, instantiator);
-        if (variants.put(outgoingConfiguration, mapping) != null) {
-            throw new GradleException("Mapping for configuration '" + outgoingConfiguration.getName() +
-                "' already exists. Use 'withVariantsFromConfiguration' to modify this configuration's variants");
-        }
+        variants.put(outgoingConfiguration, new ConfigurationVariantMapping((ConfigurationInternal) outgoingConfiguration, spec, instantiator));
     }
 
     @Override

@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.internal;
+package org.gradle.api.internal.component;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.component.SoftwareComponentVariant;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.Set;
 
 public abstract class AbstractSoftwareComponentVariant implements SoftwareComponentVariant {
-    private final ImmutableAttributes attributes;
-    private final Set<PublishArtifact> artifacts;
+    private final AttributeContainer attributes;
+    private final Set<? extends PublishArtifact> artifacts;
 
-    public AbstractSoftwareComponentVariant(ImmutableAttributes attributes, Set<PublishArtifact> artifacts) {
+    public AbstractSoftwareComponentVariant(AttributeContainer attributes, Set<? extends PublishArtifact> artifacts) {
         this.attributes = attributes;
         this.artifacts = artifacts;
     }
@@ -37,7 +36,7 @@ public abstract class AbstractSoftwareComponentVariant implements SoftwareCompon
     }
 
     @Override
-    public Set<PublishArtifact> getArtifacts() {
+    public Set<? extends PublishArtifact> getArtifacts() {
         return artifacts;
     }
 }

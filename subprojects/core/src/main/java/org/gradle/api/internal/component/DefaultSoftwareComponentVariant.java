@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,51 +14,49 @@
  * limitations under the License.
  */
 
-package org.gradle.language.cpp.internal;
+package org.gradle.api.internal.component;
 
-import org.gradle.api.Named;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.component.SoftwareComponentVariant;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.plugins.internal.AbstractSoftwareComponentVariant;
-import org.gradle.internal.Cast;
 
 import java.util.Collections;
 import java.util.Set;
 
-public class DefaultSoftwareComponentVariant extends AbstractSoftwareComponentVariant implements Named {
+public class DefaultSoftwareComponentVariant extends AbstractSoftwareComponentVariant {
     private final String name;
     private final Set<? extends ModuleDependency> dependencies;
     private final Set<? extends DependencyConstraint> dependencyConstraints;
+    private final Set<? extends Capability> capabilities;
     private final Set<ExcludeRule> globalExcludes;
 
-    public DefaultSoftwareComponentVariant(SoftwareComponentVariant base, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
-        this(base.getName(), base.getAttributes(), artifacts, configuration);
-    }
-
     public DefaultSoftwareComponentVariant(String name, AttributeContainer attributes) {
-        this(name, attributes, null, null);
+        this(name, attributes, Collections.emptySet());
     }
 
-    public DefaultSoftwareComponentVariant(String name, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
-        super(((AttributeContainerInternal)attributes).asImmutable(), Cast.uncheckedCast(artifacts));
+    public DefaultSoftwareComponentVariant(String name, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts) {
+        this(name, attributes, artifacts, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet());
+    }
+
+    public DefaultSoftwareComponentVariant(
+        String name,
+        AttributeContainer attributes,
+        Set<? extends PublishArtifact> artifacts,
+        Set<? extends ModuleDependency> dependencies,
+        Set<? extends DependencyConstraint> dependencyConstraints,
+        Set<? extends Capability> capabilities,
+        Set<ExcludeRule> globalExcludes
+    ) {
+        super(((AttributeContainerInternal)attributes).asImmutable(), artifacts);
         this.name = name;
-        if (configuration != null) {
-            this.dependencies = configuration.getAllDependencies().withType(ModuleDependency.class);
-            this.dependencyConstraints = configuration.getAllDependencyConstraints();
-            this.globalExcludes = ((ConfigurationInternal) configuration).getAllExcludeRules();
-        } else {
-            this.dependencies = null;
-            this.dependencyConstraints = null;
-            this.globalExcludes = Collections.emptySet();
-        }
+        this.dependencies = dependencies;
+        this.dependencyConstraints = dependencyConstraints;
+        this.capabilities = capabilities;
+        this.globalExcludes = globalExcludes;
     }
 
     @Override
@@ -80,7 +78,7 @@ public class DefaultSoftwareComponentVariant extends AbstractSoftwareComponentVa
 
     @Override
     public Set<? extends Capability> getCapabilities() {
-        return Collections.emptySet();
+        return capabilities;
     }
 
     @Override

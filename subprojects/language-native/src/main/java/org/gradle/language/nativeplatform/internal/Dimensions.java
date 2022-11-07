@@ -26,7 +26,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
-import org.gradle.language.cpp.internal.DefaultSoftwareComponentVariant;
+import org.gradle.api.internal.component.DefaultSoftwareComponentVariant;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.MachineArchitecture;
