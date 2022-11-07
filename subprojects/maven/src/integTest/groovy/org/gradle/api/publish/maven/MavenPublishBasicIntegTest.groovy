@@ -16,8 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.SetSystemProperties
@@ -420,7 +418,6 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         succeeds 'publish'
     }
 
-    @ToBeFixedForConfigurationCache(because = "configuration cache doesn't support task failures")
     @Issue("https://github.com/gradle/gradle/issues/15009")
     def "fails publishing if a variant contains a dependency on an enforced platform"() {
         settingsFile << """
@@ -430,6 +427,11 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
             plugins {
                 id 'java'
                 id 'maven-publish'
+            }
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
 
             dependencies {
@@ -458,8 +460,8 @@ In general publishing dependencies to enforced platforms is a mistake: enforced 
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15009")
-    @ToBeFixedForConfigurationCache(because = "configuration cache doesn't support task failures")
     def "can disable validation of publication of dependencies on enforced platforms"() {
+        mavenRepo.module("org", "platform", "1.0").asGradlePlatform().publish()
         settingsFile << """
             rootProject.name = 'publish'
         """
@@ -471,6 +473,11 @@ In general publishing dependencies to enforced platforms is a mistake: enforced 
 
             group = 'com.acme'
             version = '0.999'
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
 
             dependencies {
                 implementation enforcedPlatform('org:platform:1.0')

@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
@@ -72,4 +73,7 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
     void preventFromFurtherMutation();
 
     DependencyResolutionManagementInternal getDependencyResolutionManagement();
+
+    @Override
+    CacheConfigurationsInternal getCaches();
 }

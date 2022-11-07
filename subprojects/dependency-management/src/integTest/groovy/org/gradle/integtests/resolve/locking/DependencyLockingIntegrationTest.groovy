@@ -90,8 +90,10 @@ dependencies {
     conf 'org:baz:1.1'
 }
 task check {
+    def conf = configurations.conf
+    def lockEnabledConf = configurations.lockEnabledConf
     doLast {
-        assert configurations.conf*.name == configurations.lockEnabledConf*.name
+        assert conf*.name == lockEnabledConf*.name
     }
 }
 """
@@ -173,17 +175,13 @@ configurations {
     lockedConf
 }
 
-task doIt {
-    doLast {
-        println configurations.lockedConf.files
-        dependencyLocking {
-            lockMode = LockMode.STRICT
-        }
-    }
+println configurations.lockedConf.files
+dependencyLocking {
+    lockMode = LockMode.STRICT
 }
 """
         when:
-        fails 'doIt'
+        fails()
 
         then:
         failureHasCause("The value for property 'lockMode' is final and cannot be changed any further.")

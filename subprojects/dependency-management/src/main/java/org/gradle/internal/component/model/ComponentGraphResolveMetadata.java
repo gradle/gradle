@@ -34,9 +34,8 @@ import java.util.Set;
  * component or its variants, as this may be expensive to calculate and is only required in specific cases.
  * Information about the artifacts can be accessed via the methods of {@link ComponentGraphResolveState}.</p>
  *
- * <p>Implementations must be immutable, thread safe and "fast" (ie should not run user code, or touch the file system or network etc).
- * Expensive operations should live on {@link ComponentGraphResolveState} instead. Note that not all implementations currently honor this contract as a transitional step.</p>
- *
+ * <p>Implementations must be immutable, thread safe, "fast" (ie should not run user code, or touch the file system or network etc) and "reliable" (ie should not fail)
+ * Expensive operations should live on {@link ComponentGraphResolveState} instead. Note that as a transition step, not all implementations currently honor this contract.</p>
  */
 public interface ComponentGraphResolveMetadata {
     /**
