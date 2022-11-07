@@ -10,12 +10,9 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailu
 import model.ALL_CROSS_VERSION_BUCKETS
 import model.CIBuildModel
 import model.DefaultFunctionalTestBucketProvider
-import model.FunctionalTestBucketProvider
 import model.GradleSubproject
 import model.JsonBasedGradleSubprojectProvider
 import model.QUICK_CROSS_VERSION_BUCKETS
-import model.SmallSubprojectBucket
-import model.Stage
 import model.StageName
 import model.TestCoverage
 import model.TestType
@@ -84,13 +81,6 @@ class CIConfigIntegrationTests {
                 it.dependencies.items.size, stage.stageName.stageName
             )
         }
-    }
-
-    class SubProjectBucketProvider(private val model: CIBuildModel) : FunctionalTestBucketProvider {
-        override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage) =
-            model.subprojects.subprojects.map {
-                SmallSubprojectBucket(it, false).createFunctionalTestsFor(model, stage, testCoverage, Int.MAX_VALUE)
-            }
     }
 
     private

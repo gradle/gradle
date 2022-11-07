@@ -10,10 +10,18 @@ import model.TestCoverage
 
 const val functionalTestTag = "FunctionalTest"
 
-sealed class ParallelizationMethod {
+sealed class ParallelizationMethod(val name: String) {
 
-    object TestDistributionParallization : ParallelizationMethod()
-    class ParallelTestingParallization(val numberOfBuckets: Int) : ParallelizationMethod()
+    class TestDistribution : ParallelizationMethod(getName()) {
+        companion object {
+            fun getName() = "testDistribution"
+        }
+    }
+    class ParallelTesting(val numberOfBuckets: Int): ParallelizationMethod(getName()) {
+        companion object {
+            fun getName() = "parallelTesting"
+        }
+    }
 }
 
 
@@ -40,12 +48,12 @@ class FunctionalTest(
         "-PflakyTests=${determineFlakyTestStrategy(stage)}",
         extraParameters,
         when (parallelizationMethod) {
-            is ParallelizationMethod.TestDistributionParallization -> "-DenableTestDistribution=%enableTestDistribution% -DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%"
+            is ParallelizationMethod.TestDistribution -> "-DenableTestDistribution=%enableTestDistribution% -DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%"
             else -> ""
         }
     ).filter { it.isNotBlank() }.joinToString(separator = " ")
 
-    if (parallelizationMethod is ParallelizationMethod.ParallelTestingParallization) {
+    if (parallelizationMethod is ParallelizationMethod.ParallelTesting) {
         features {
             parallelTests {
                 this.numberOfBatches = parallelizationMethod.numberOfBuckets

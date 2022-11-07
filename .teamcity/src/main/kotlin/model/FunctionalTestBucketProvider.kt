@@ -123,7 +123,7 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
 class GradleVersionRangeCrossVersionTestBucket(private val startInclusive: String, private val endExclusive: String) : BuildTypeBucket {
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int): FunctionalTest {
         val parallelizationMethod = when (testCoverage.os) {
-            Os.LINUX -> ParallelizationMethod.TestDistributionParallization
+            Os.LINUX -> ParallelizationMethod.TestDistribution()
             else -> null
         }
 
@@ -220,6 +220,7 @@ data class SmallSubprojectBucket(
     val subprojects: List<GradleSubproject>,
     val parallelizationMethod: ParallelizationMethod?
 ) : BuildTypeBucket {
+    constructor(subproject: GradleSubproject, parallelizationMethod: ParallelizationMethod?) : this(listOf(subproject), parallelizationMethod)
 
     val name = truncateName(subprojects.joinToString(","))
 
