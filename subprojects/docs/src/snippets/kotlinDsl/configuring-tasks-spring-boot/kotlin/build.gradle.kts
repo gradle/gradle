@@ -2,6 +2,7 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.run.BootRun
 
+// TODO:Finalize Upload Removal - Issue #21439
 // tag::accessors[]
 plugins {
     java

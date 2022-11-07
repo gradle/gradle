@@ -27,7 +27,6 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import java.nio.file.NoSuchFileException
-import java.util.concurrent.atomic.AtomicBoolean
 
 @UsesNativeServices
 @CleanupTestDirectory(fieldName = "tmpDir")
@@ -169,6 +168,6 @@ class DirectorySnapshotterStatisticsTest extends Specification {
     }
 
     private snapshot(File root) {
-        directorySnapshotter.snapshot(root.absolutePath, null, new AtomicBoolean()) {}
+        directorySnapshotter.snapshot(root.absolutePath, null) {}
     }
 }

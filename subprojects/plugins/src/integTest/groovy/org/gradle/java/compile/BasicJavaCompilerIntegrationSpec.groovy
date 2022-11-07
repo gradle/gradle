@@ -26,12 +26,15 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
+
+    abstract String compilerConfiguration()
+
+    abstract String logStatement()
+
     def setup() {
         executer.withArguments("-i")
         buildFile << buildScript()
-        buildFile << """
-    ${compilerConfiguration()}
-"""
+        buildFile << compilerConfiguration()
     }
 
     def compileGoodCode() {
@@ -128,7 +131,8 @@ compileJava.options.debug = false
     }
 
     // JavaFx was removed in JDK 10
-    @Requires(TestPrecondition.JDK9_OR_EARLIER)
+    // We don't have Oracle Java 8 on Windows any more
+    @Requires([TestPrecondition.JDK9_OR_EARLIER, TestPrecondition.NOT_WINDOWS])
     def "compileJavaFx8Code"() {
         given:
         file("src/main/java/compile/test/FxApp.java") << '''
@@ -409,10 +413,6 @@ dependencies {
 }
 """
     }
-
-    abstract compilerConfiguration()
-
-    abstract logStatement()
 
     def goodCode() {
         file("src/main/java/compile/test/Person.java") << '''

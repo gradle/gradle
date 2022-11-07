@@ -21,6 +21,7 @@ import groovy.xml.XmlParser
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
+import org.gradle.api.attributes.CompileView
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -52,7 +53,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     int publishCount = 1
     private boolean hasPom = true
     private boolean gradleMetadataRedirect = false
-    private final List<VariantMetadataSpec> variants = [new VariantMetadataSpec("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): LibraryElements.JAR, (Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY]),
+    private final List<VariantMetadataSpec> variants = [new VariantMetadataSpec("api", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (CompileView.VIEW_ATTRIBUTE.name): CompileView.JAVA_INTERNAL, (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): LibraryElements.JAR, (Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY]),
                                                         new VariantMetadataSpec("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): LibraryElements.JAR, (Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY])]
     private final List dependencies = []
     private Map<String, ?> mainArtifact = [:]
@@ -729,9 +730,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
         variants.each {
             it.artifacts.findAll { it.name }.each {
-                def variantArtifact = moduleDir.file(it.name)
+                def variantArtifact = moduleDir.file(it.publishUrl)
                 publish(variantArtifact) { Writer writer ->
-                    writer << "${it.name} : Variant artifact $it.name"
+                    writer << "${it.name} : Variant artifact $it.publishUrl"
                 }
             }
         }
@@ -760,6 +761,19 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         gradleMetadataRedirect = true
         super.withModuleMetadata()
         this
+    }
+
+    @Override
+    MavenModule asGradlePlatform() {
+        variants.clear()
+        variant('api',  [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
+            useDefaultArtifacts = false
+        }
+        variant('runtime', [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
+            useDefaultArtifacts = false
+        }
+        hasType('pom')
+        withModuleMetadata()
     }
 
     @Override

@@ -18,8 +18,11 @@ package org.gradle.profile;
 import com.google.common.collect.Maps;
 import org.gradle.StartParameter;
 import org.gradle.api.initialization.Settings;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.CollectionUtils;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -42,12 +45,13 @@ import java.util.Map;
  * <li>setBuildFinished</li>
  * </ul>
  */
+@ServiceScope(Scopes.BuildTree.class)
 public class BuildProfile {
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd - HH:mm:ss");
 
-    private final Map<String, ProjectProfile> projects = new LinkedHashMap<String, ProjectProfile>();
-    private final Map<String, ContinuousOperation> dependencySets = new LinkedHashMap<String, ContinuousOperation>();
+    private final Map<String, ProjectProfile> projects = new LinkedHashMap<>();
+    private final Map<String, ContinuousOperation> dependencySets = new LinkedHashMap<>();
     private final Map<String, FragmentedOperation> transformations = Maps.newLinkedHashMap();
     private long profilingStarted;
     private long buildStarted;
@@ -55,8 +59,9 @@ public class BuildProfile {
     private long projectsLoaded;
     private long projectsEvaluated;
     private long buildFinished;
-    private StartParameter startParameter;
+    private final StartParameter startParameter;
     private boolean successful;
+    private File buildDir;
 
     public BuildProfile(StartParameter startParameter) {
         this.startParameter = startParameter;
@@ -97,6 +102,7 @@ public class BuildProfile {
 
     /**
      * Get the profiling container for the specified project
+     *
      * @param projectPath to look up
      */
     public ProjectProfile getProjectProfile(String projectPath) {
@@ -110,6 +116,7 @@ public class BuildProfile {
 
     /**
      * Get a list of the profiling containers for all projects
+     *
      * @return list
      */
     public List<ProjectProfile> getProjects() {
@@ -117,12 +124,12 @@ public class BuildProfile {
     }
 
     public CompositeOperation<Operation> getProjectConfiguration() {
-        List<Operation> operations = new ArrayList<Operation>();
+        List<Operation> operations = new ArrayList<>();
         for (ProjectProfile projectProfile : projects.values()) {
             operations.add(projectProfile.getConfigurationOperation());
         }
         operations = CollectionUtils.sort(operations, Operation.slowestFirst());
-        return new CompositeOperation<Operation>(operations);
+        return new CompositeOperation<>(operations);
     }
 
     public ContinuousOperation getDependencySetProfile(String dependencySetDescription) {
@@ -136,7 +143,7 @@ public class BuildProfile {
 
     public CompositeOperation<ContinuousOperation> getDependencySets() {
         final List<ContinuousOperation> profiles = CollectionUtils.sort(dependencySets.values(), Operation.slowestFirst());
-        return new CompositeOperation<ContinuousOperation>(profiles);
+        return new CompositeOperation<>(profiles);
     }
 
     public FragmentedOperation getTransformationProfile(String transformationDescription) {
@@ -150,7 +157,7 @@ public class BuildProfile {
 
     public CompositeOperation<FragmentedOperation> getTransformations() {
         final List<FragmentedOperation> profiles = CollectionUtils.sort(transformations.values(), Operation.slowestFirst());
-        return new CompositeOperation<FragmentedOperation>(profiles);
+        return new CompositeOperation<>(profiles);
     }
 
     /**
@@ -262,9 +269,11 @@ public class BuildProfile {
         return "Started on: " + DATE_FORMAT.format(buildStarted);
     }
 
-    public StartParameter getStartParameter() {
-        return startParameter;
+    public File getBuildDir() {
+        return buildDir;
     }
 
-
+    public void setBuildDir(File buildDir) {
+        this.buildDir = buildDir;
+    }
 }

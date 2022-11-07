@@ -19,6 +19,10 @@ package org.gradle.internal.resource.transport.http
 import org.apache.http.ssl.SSLInitializationException
 import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.TempDir
+
+import java.security.KeyStore
+
 /**
  * Tests loading of keystores and truststores corresponding to system
  * properties specified.
@@ -26,6 +30,9 @@ import spock.lang.Specification
 class DefaultSslContextFactoryTest extends Specification {
     def props
     def loader
+
+    @TempDir
+    File temporaryDir
 
     void setup() {
         props = ['java.home': System.properties['java.home']]
@@ -53,7 +60,7 @@ class DefaultSslContextFactoryTest extends Specification {
 
     void 'valid truststore file without specifying password'() {
         given:
-        props['javax.net.ssl.trustStore'] = getDefaultTrustStore()
+        props['javax.net.ssl.trustStore'] = createTrustStore('changeit').absolutePath
 
         when:
         loader.load(props)
@@ -67,7 +74,7 @@ class DefaultSslContextFactoryTest extends Specification {
 
     void 'valid truststore file with incorrect password'() {
         given:
-        props['javax.net.ssl.trustStore'] = getDefaultTrustStore()
+        props['javax.net.ssl.trustStore'] = createTrustStore('changeit').absolutePath
         props['javax.net.ssl.trustStorePassword'] = 'totally-wrong'
 
         when:
@@ -79,7 +86,7 @@ class DefaultSslContextFactoryTest extends Specification {
 
     void 'valid truststore file with correct password'() {
         given:
-        props['javax.net.ssl.trustStore'] = getDefaultTrustStore()
+        props['javax.net.ssl.trustStore'] = createTrustStore('changeit').absolutePath
         props['javax.net.ssl.trustStorePassword'] = 'changeit'
 
         when:
@@ -126,7 +133,7 @@ class DefaultSslContextFactoryTest extends Specification {
 
     void 'valid keystore file without specifying password'() {
         given:
-        props['javax.net.ssl.keyStore'] = getDefaultTrustStore()
+        props['javax.net.ssl.keyStore'] = createTrustStore('changeit').absolutePath
 
         when:
         loader.load(props)
@@ -139,7 +146,7 @@ class DefaultSslContextFactoryTest extends Specification {
 
     void 'valid keystore file with incorrect password'() {
         given:
-        props['javax.net.ssl.keyStore'] = getDefaultTrustStore()
+        props['javax.net.ssl.keyStore'] = createTrustStore('changeit').absolutePath
         props['javax.net.ssl.keyStorePassword'] = 'totally-wrong'
 
         when:
@@ -151,7 +158,7 @@ class DefaultSslContextFactoryTest extends Specification {
 
     void 'valid keystore file with correct password'() {
         given:
-        props['javax.net.ssl.keyStore'] = getDefaultTrustStore()
+        props['javax.net.ssl.keyStore'] = createTrustStore('changeit').absolutePath
         props['javax.net.ssl.keyStorePassword'] = 'changeit'
 
         when:
@@ -161,17 +168,15 @@ class DefaultSslContextFactoryTest extends Specification {
         notThrown(SSLInitializationException)
     }
 
-    // NOTE: A keystore and a truststore are generally both simply a JKS
-    //       file.  A default "keystore" is always shipped with the JRE and
-    //       it contains simply trusted public certificates, and it is the
-    //       default truststore used when one is not explicitly specified.
-    String getDefaultTrustStore() {
-        File keyStore = new File(props['java.home'], 'lib/security/jssecacerts')
+    File createTrustStore(String password) {
+        File trustStore = new File(temporaryDir, "truststore")
+        // initialize an empty keystore
+        KeyStore keyStore = KeyStore.getInstance(KeyStore.defaultType)
+        keyStore.load(null, null)
 
-        if (!keyStore.exists()) {
-            keyStore = new File(props['java.home'], 'lib/security/cacerts')
-        }
-
-        keyStore.path
+        ByteArrayOutputStream out = new ByteArrayOutputStream()
+        keyStore.store(out, password.chars)
+        trustStore.bytes = out.toByteArray()
+        return trustStore
     }
 }

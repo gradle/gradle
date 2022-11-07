@@ -8,6 +8,7 @@ plugins {
 android {
     compileSdkVersion 24
     buildToolsVersion '$androidBuildToolsVersion'
+    namespace "org.gradle.smoketest.kotlin.android"
     defaultConfig {
         applicationId "org.gradle.smoketest.kotlin.android"
         minSdkVersion 16
@@ -79,8 +80,8 @@ project.afterEvaluate {
                 sourceDirectories.from(files(coverageSourceDirs))
                 executionData.from(files("${project.buildDir}/jacoco/${testTaskName}.exec"))
                 reports {
-                    xml.enabled = true
-                    html.enabled = true
+                    xml.required = true
+                    html.required = true
                 }
             }
         }
@@ -89,7 +90,5 @@ project.afterEvaluate {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-    implementation 'org.jetbrains.anko:anko-common:0.9'
-
     testImplementation 'junit:junit:4.13'
 }

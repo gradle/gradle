@@ -16,8 +16,6 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.api.file.FileVisitDetails
-import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionBackedFileTree
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -52,6 +50,14 @@ sealed class FileTreeSpec
 
 private
 class AdaptedFileTreeSpec(val tree: MinimalFileTree) : FileTreeSpec()
+
+
+private
+class FilteredFileTreeSpec(val tree: FileTreeInternal, val patterns: PatternSet) : FileTreeSpec()
+
+
+private
+class FilteredMinimalFileTreeSpec(val tree: FileTreeSpec, val patterns: PatternSet) : FileTreeSpec()
 
 
 private
@@ -90,18 +96,7 @@ class FileTreeCodec(
     override suspend fun ReadContext.decode(): FileTreeInternal? =
         decodePreservingIdentity { id ->
             val specs = readNonNull<List<FileTreeSpec>>()
-            val fileTrees = specs.map {
-                when (it) {
-                    is AdaptedFileTreeSpec -> fileCollectionFactory.treeOf(it.tree)
-                    is WrappedFileCollectionTreeSpec -> it.collection.asFileTree
-                    is DirectoryTreeSpec -> fileCollectionFactory.treeOf(directoryFileTreeFactory.create(it.file, it.patterns))
-                    is GeneratedTreeSpec -> it.spec.run {
-                        fileCollectionFactory.generated(tmpDir, fileName, fileGenerationListener, contentGenerator)
-                    }
-                    is ZipTreeSpec -> fileOperations.zipTree(it.file) as FileTreeInternal
-                    is TarTreeSpec -> fileOperations.tarTree(it.file) as FileTreeInternal
-                }
-            }
+            val fileTrees = specs.map(::fromSpec)
             val tree = fileCollectionFactory.treeOf(fileTrees)
             isolate.identities.putInstance(id, tree)
             tree
@@ -115,7 +110,7 @@ class FileTreeCodec(
     }
 
     private
-    class FileTreeVisitor : FileCollectionStructureVisitor {
+    inner class FileTreeVisitor : FileCollectionStructureVisitor {
         var roots = mutableListOf<FileTreeSpec>()
 
         override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean = when {
@@ -129,10 +124,18 @@ class FileTreeCodec(
                 roots.add(WrappedFileCollectionTreeSpec(fileCollection.collection))
                 false
             }
-            fileCollection is FilteredFileTree && fileCollection.patterns.isEmpty -> {
-                // Optimize a common case, where fileCollection.asFileTree.matching(emptyPatterns) is used, eg in SourceTask and in CopySpec
-                // Skip applying the filters to the tree
-                fileCollection.tree.visitStructure(this)
+            fileCollection is FilteredFileTree -> {
+                when {
+                    // Optimize a common case, where fileCollection.asFileTree.matching(emptyPatterns) is used,
+                    // e.g. in SourceTask and in CopySpec.
+                    // Skip applying the filters to the tree
+                    fileCollection.patterns.isEmpty -> {
+                        fileCollection.tree.visitStructure(this)
+                    }
+                    else -> {
+                        roots.add(FilteredFileTreeSpec(fileCollection.tree, fileCollection.patterns))
+                    }
+                }
                 false
             }
             else -> {
@@ -143,21 +146,6 @@ class FileTreeCodec(
         override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) =
             throw UnsupportedOperationException()
 
-        override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
-            // Visit the contents to create the mirror
-            sourceTree.visit(object : FileVisitor {
-                override fun visitFile(fileDetails: FileVisitDetails) {
-                    fileDetails.file
-                }
-
-                override fun visitDir(dirDetails: FileVisitDetails) {
-                    dirDetails.file
-                }
-            })
-            val mirror = sourceTree.mirror
-            roots.add(DirectoryTreeSpec(mirror.dir, mirror.patterns))
-        }
-
         override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
             roots.add(DirectoryTreeSpec(root, patterns))
         }
@@ -165,25 +153,38 @@ class FileTreeCodec(
         override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
             roots.add(toSpec(sourceTree))
         }
-
-        private
-        fun toSpec(tree: MinimalFileTree): FileTreeSpec =
-            toSpecOrNull(tree) ?: cannotCreateSpecFor(tree)
-
-        private
-        fun toSpecOrNull(tree: MinimalFileTree): FileTreeSpec? = when (tree) {
-            // TODO - deal with tree that is not backed by a file
-            is ZipFileTree -> ZipTreeSpec(tree.backingFileProvider)
-            is TarFileTree -> TarTreeSpec(tree.backingFileProvider)
-            // TODO - capture the patterns
-            is FilteredMinimalFileTree -> toSpecOrNull(tree.tree)
-            is GeneratedSingletonFileTree -> GeneratedTreeSpec(tree.toSpec())
-            is DirectoryFileTree -> DirectoryTreeSpec(tree.dir, tree.patternSet)
-            else -> null
-        }
-
-        private
-        fun cannotCreateSpecFor(tree: MinimalFileTree): Nothing =
-            throw UnsupportedOperationException("Cannot create spec for file tree '$tree' of type '${tree.javaClass}'.")
     }
+
+    private
+    fun fromSpec(spec: FileTreeSpec): FileTreeInternal = when (spec) {
+        is AdaptedFileTreeSpec -> fileCollectionFactory.treeOf(spec.tree)
+        is FilteredFileTreeSpec -> spec.tree.matching(spec.patterns)
+        is FilteredMinimalFileTreeSpec -> fromSpec(spec.tree).matching(spec.patterns)
+        is WrappedFileCollectionTreeSpec -> spec.collection.asFileTree
+        is DirectoryTreeSpec -> fileCollectionFactory.treeOf(directoryFileTreeFactory.create(spec.file, spec.patterns))
+        is GeneratedTreeSpec -> spec.spec.run {
+            fileCollectionFactory.generated(tmpDir, fileName, fileGenerationListener, contentGenerator)
+        }
+        is ZipTreeSpec -> fileOperations.zipTree(spec.file) as FileTreeInternal
+        is TarTreeSpec -> fileOperations.tarTree(spec.file) as FileTreeInternal
+    }
+
+    private
+    fun toSpec(tree: MinimalFileTree): FileTreeSpec =
+        toSpecOrNull(tree) ?: cannotCreateSpecFor(tree)
+
+    private
+    fun toSpecOrNull(tree: MinimalFileTree): FileTreeSpec? = when (tree) {
+        // TODO - deal with tree that is not backed by a file
+        is ZipFileTree -> ZipTreeSpec(tree.backingFileProvider)
+        is TarFileTree -> TarTreeSpec(tree.backingFileProvider)
+        is FilteredMinimalFileTree -> toSpecOrNull(tree.tree)?.let { FilteredMinimalFileTreeSpec(it, tree.patterns) }
+        is GeneratedSingletonFileTree -> GeneratedTreeSpec(tree.toSpec())
+        is DirectoryFileTree -> DirectoryTreeSpec(tree.dir, tree.patternSet)
+        else -> null
+    }
+
+    private
+    fun cannotCreateSpecFor(tree: MinimalFileTree): Nothing =
+        throw UnsupportedOperationException("Cannot create spec for file tree '$tree' of type '${tree.javaClass}'.")
 }

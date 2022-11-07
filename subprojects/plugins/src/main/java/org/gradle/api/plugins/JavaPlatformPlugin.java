@@ -28,14 +28,10 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
-import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
-import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.java.DefaultJavaPlatformExtension;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.internal.component.external.model.DefaultShadowedCapability;
-import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 
 import javax.inject.Inject;
@@ -49,7 +45,7 @@ import java.util.Set;
  * @since 5.2
  * @see <a href="https://docs.gradle.org/current/userguide/java_platform_plugin.html">Java Platform plugin reference</a>
  */
-public class JavaPlatformPlugin implements Plugin<Project> {
+public abstract class JavaPlatformPlugin implements Plugin<Project> {
     // Buckets of dependencies
     public static final String API_CONFIGURATION_NAME = "api";
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
@@ -99,15 +95,9 @@ public class JavaPlatformPlugin implements Plugin<Project> {
             );
         }
         project.getPluginManager().apply(BasePlugin.class);
+        project.getPluginManager().apply(JvmEcosystemPlugin.class);
         createConfigurations(project);
         configureExtension(project);
-        JavaEcosystemSupport.configureSchema(project.getDependencies().getAttributesSchema(), project.getObjects());
-        configureVariantDerivationStrategy((ProjectInternal) project);
-    }
-
-    private static void configureVariantDerivationStrategy(ProjectInternal project) {
-        ComponentMetadataHandlerInternal metadataHandler = (ComponentMetadataHandlerInternal) project.getDependencies().getComponents();
-        metadataHandler.setVariantDerivationStrategy(JavaEcosystemVariantDerivationStrategy.getInstance());
     }
 
     private void createSoftwareComponent(Project project, Configuration apiElements, Configuration runtimeElements) {

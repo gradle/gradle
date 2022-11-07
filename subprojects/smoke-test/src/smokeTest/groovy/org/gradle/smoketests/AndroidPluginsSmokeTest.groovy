@@ -16,12 +16,12 @@
 
 package org.gradle.smoketests
 
+
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
-import org.gradle.util.GradleVersion
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 /**
@@ -83,7 +83,10 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ))
 
         when: 'first build'
-        def result = buildMaybeExpectingWorkerExecutorDeprecation(runner, agpVersion)
+        def result = runner.deprecations(AndroidDeprecations) {
+            expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+            expectReportDestinationPropertyDeprecation(agpVersion)
+        }.build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -97,7 +100,11 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         assertConfigurationCacheStateStored()
 
         when: 'up-to-date build'
-        result = buildMaybeExpectingFileTreeDeprecations(runner, agpVersion)
+        result = runner.deprecations(AndroidDeprecations) {
+            if (!GradleContextualExecuter.isConfigCache()) {
+                expectReportDestinationPropertyDeprecation(agpVersion)
+            }
+        }.build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.UP_TO_DATE
@@ -110,7 +117,12 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'abi change on library'
         abiChange.run()
-        result = buildMaybeExpectingWorkerExecutorDeprecation(runner, agpVersion)
+        result = runner.deprecations(AndroidDeprecations) {
+            expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+            if (!GradleContextualExecuter.isConfigCache()) {
+                expectReportDestinationPropertyDeprecation(agpVersion)
+            }
+        }.build()
 
         then: 'dependent sources are recompiled'
         result.task(':library:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -123,7 +135,12 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'clean re-build'
         useAgpVersion(agpVersion, this.runner('clean')).build()
-        result = buildMaybeExpectingWorkerExecutorDeprecation(runner, agpVersion)
+        result = runner.deprecations(AndroidDeprecations) {
+            expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+            if (!GradleContextualExecuter.isConfigCache()) {
+                expectReportDestinationPropertyDeprecation(agpVersion)
+            }
+        }.build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -140,18 +157,10 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         ].combinations()
     }
 
-    private static BuildResult buildMaybeExpectingWorkerExecutorDeprecation(SmokeTestGradleRunner runner, String agpVersion) {
-        return buildMaybeExpectingFileTreeDeprecations(
-            runner.expectLegacyDeprecationWarningIf(agpVersion.startsWith('4.1'),
-                "The WorkerExecutor.submit() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 8.0. Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details.")
-            , agpVersion)
-    }
-
-    private static BuildResult buildMaybeExpectingFileTreeDeprecations(SmokeTestGradleRunner runner, String agpVersion) {
-        expectAgpFileTreeDeprecations(agpVersion, runner)
-        return runner.build()
+    static class AndroidDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
+        AndroidDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
     }
 
     /**
@@ -169,8 +178,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         writeActivity(library, libPackage, libraryActivity)
         file("${library}/src/main/AndroidManifest.xml") << """<?xml version="1.0" encoding="utf-8"?>
-            <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-                package="${libPackage}">
+            <manifest xmlns:android="http://schemas.android.com/apk/res/android">
             </manifest>""".stripIndent()
 
         writeActivity(app, appPackage, appActivity)
@@ -181,8 +189,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             }
         """
         file("${app}/src/main/AndroidManifest.xml") << """<?xml version="1.0" encoding="utf-8"?>
-            <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-                package="${appPackage}">
+            <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
                 <application android:label="@string/app_name" >
                     <activity
@@ -228,7 +235,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
             android.defaultConfig.applicationId "org.gradle.android.myapplication"
         """
-        appBuildFile << androidPluginConfiguration()
+        appBuildFile << androidPluginConfiguration(appPackage)
         appBuildFile << activityDependency()
         appBuildFile << """
             dependencies {
@@ -242,7 +249,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         libraryBuildFile << """
             apply plugin: 'com.android.library'
         """
-        libraryBuildFile << androidPluginConfiguration()
+        libraryBuildFile << androidPluginConfiguration(libPackage)
         libraryBuildFile << activityDependency()
 
         return {
@@ -316,12 +323,13 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             </LinearLayout>'''.stripIndent()
     }
 
-    def androidPluginConfiguration() {
+    def androidPluginConfiguration(String appPackage) {
         """
             android {
                 compileSdkVersion 22
                 buildToolsVersion "${TestedVersions.androidTools}"
 
+                namespace "${appPackage}"
                 defaultConfig {
                     minSdkVersion 22
                     targetSdkVersion 26
@@ -358,6 +366,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         if (testedPluginId != 'com.android.reporting') {
             buildFile << """
                 android {
+                    namespace = "org.gradle.android.example.app"
                     compileSdkVersion 24
                     buildToolsVersion '${TestedVersions.androidTools}'
                 }

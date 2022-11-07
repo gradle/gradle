@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.composite.internal.BuildTreeWorkGraphController
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 
 class TaskNodeFactoryTest extends Specification {
@@ -38,7 +39,7 @@ class TaskNodeFactoryTest extends Specification {
         project.gradle >> gradle
         project.pluginManager >> Stub(PluginManagerInternal)
 
-        graph = new TaskNodeFactory(gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController))
+        graph = new TaskNodeFactory(gradle, Stub(DocumentationRegistry), Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationExecutor(), Stub(ExecutionNodeAccessHierarchies))
     }
 
     private TaskInternal task(String name) {
@@ -51,7 +52,7 @@ class TaskNodeFactoryTest extends Specification {
 
     void 'can create a node for a task'() {
         when:
-        def node = graph.getOrCreateNode(a, 0)
+        def node = graph.getOrCreateNode(a)
 
         then:
         !node.inKnownState
@@ -65,16 +66,16 @@ class TaskNodeFactoryTest extends Specification {
 
     void 'caches node for a given task'() {
         when:
-        def node = graph.getOrCreateNode(a, 0)
+        def node = graph.getOrCreateNode(a)
 
         then:
-        graph.getOrCreateNode(a, 0).is(node)
+        graph.getOrCreateNode(a).is(node)
     }
 
     void 'can add multiple nodes'() {
         when:
-        graph.getOrCreateNode(a, 0)
-        graph.getOrCreateNode(b, 0)
+        graph.getOrCreateNode(a)
+        graph.getOrCreateNode(b)
 
         then:
         graph.tasks == [a, b] as Set
@@ -82,9 +83,9 @@ class TaskNodeFactoryTest extends Specification {
 
     void 'clear'() {
         when:
-        graph.getOrCreateNode(a, 0)
-        graph.getOrCreateNode(b, 0)
-        graph.getOrCreateNode(c, 0)
+        graph.getOrCreateNode(a)
+        graph.getOrCreateNode(b)
+        graph.getOrCreateNode(c)
         graph.clear()
 
         then:

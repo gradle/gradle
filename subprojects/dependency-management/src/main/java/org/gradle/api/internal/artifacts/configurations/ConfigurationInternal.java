@@ -54,6 +54,10 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     Path getIdentityPath();
 
+    void setReturnAllVariants(boolean returnAllVariants);
+
+    boolean getReturnAllVariants();
+
     /**
      * Runs any registered dependency actions for this Configuration, and any parent Configuration.
      * Actions may mutate the dependency set for this configuration.
@@ -112,6 +116,49 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      * @return a decorated resolve exception, or the same exception
      */
     ResolveException maybeAddContext(ResolveException e);
+
+    /**
+     * Test if this configuration can either be declared against or extends another
+     * configuration which can be declared against.
+     *
+     * @return {@code true} if so; {@code false} otherwise
+     */
+    default boolean isDeclarableAgainstByExtension() {
+        return isDeclarableAgainstByExtension(this);
+    }
+
+    /**
+     * Configures if a configuration can have dependencies declared upon it.
+     *
+     * @since 8.0
+     */
+    void setCanBeDeclaredAgainst(boolean allowed);
+
+    /**
+     * Returns true if it is allowed to declare dependencies upon this configuration.
+     * Defaults to true.
+     * @return true if this configuration can have dependencies declared
+     * @since 8.0
+     */
+    boolean isCanBeDeclaredAgainst();
+
+    /**
+     * Test if the given configuration can either be declared against or extends another
+     * configuration which can be declared against.
+     * This method should probably be made {@code private} when upgrading to Java 9.
+     *
+     * @param configuration the configuration to test
+     * @return {@code true} if so; {@code false} otherwise
+     */
+    static boolean isDeclarableAgainstByExtension(ConfigurationInternal configuration) {
+        if (configuration.isCanBeDeclaredAgainst()) {
+            return true;
+        } else {
+            return configuration.getExtendsFrom().stream()
+                    .map(ConfigurationInternal.class::cast)
+                    .anyMatch(ci -> ci.isDeclarableAgainstByExtension());
+        }
+    }
 
     interface VariantVisitor {
         // The artifacts to use when this configuration is used as a configuration

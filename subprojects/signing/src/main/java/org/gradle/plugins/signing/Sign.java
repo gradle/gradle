@@ -58,7 +58,7 @@ import static java.util.stream.Collectors.toMap;
  * tasks signatory and signature type.
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class Sign extends DefaultTask implements SignatureSpec {
+public abstract class Sign extends DefaultTask implements SignatureSpec {
 
     private SignatureType signatureType;
     private Signatory signatory;
@@ -68,7 +68,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
     @Inject
     public Sign() {
         // If we aren't required and don't have a signatory then we just don't run
-        onlyIf(task -> isRequired() || getSignatory() != null);
+        onlyIf("Signing is required, or signatory is set", task -> isRequired() || getSignatory() != null);
     }
 
     /**
@@ -229,7 +229,15 @@ public class Sign extends DefaultTask implements SignatureSpec {
      * Returns signatures mapped by their key with duplicated and non-existing inputs removed.
      */
     private Map<String, Signature> sanitizedSignatures() {
-        return signatures.matching(signature -> signature.getToSign().exists()).stream().collect(toMap(Signature::toKey, identity(), (signature, duplicate) -> signature));
+        return signatures.matching(signature -> signature.getToSign().exists())
+            .stream()
+            .collect(
+                toMap(
+                    signature -> signature.getToSign().toPath().toAbsolutePath().toString(),
+                    identity(),
+                    (signature, duplicate) -> signature
+                )
+            );
     }
 
     /**

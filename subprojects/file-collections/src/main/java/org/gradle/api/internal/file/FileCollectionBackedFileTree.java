@@ -77,11 +77,6 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
             }
 
             @Override
-            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                visitor.accept(fileTree);
-            }
-
-            @Override
             public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                 visitor.accept(fileTree);
             }
@@ -106,11 +101,6 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
                         new FileTreeAdapter(new DirectoryFileTree(file, patterns, FileSystems.getDefault()), patternSetFactory).visitStructure(visitor);
                     }
                 }
-            }
-
-            @Override
-            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                visitor.visitGenericFileTree(fileTree, sourceTree);
             }
 
             @Override

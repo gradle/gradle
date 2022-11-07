@@ -44,8 +44,10 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration>
     implements ConfigurationContainerInternal, ConfigurationsProvider {
@@ -90,7 +92,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public Set<? extends ConfigurationInternal> getAll() {
-        return withType(ConfigurationInternal.class);
+        return stream().map(ConfigurationInternal.class::cast).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     @Override

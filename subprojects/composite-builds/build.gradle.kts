@@ -17,6 +17,7 @@ dependencies {
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
+    implementation(libs.inject)
 
     testImplementation(project(":file-watching"))
     testImplementation(project(":build-option"))

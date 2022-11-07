@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.internal.HasInternalProtocol;
@@ -108,7 +109,7 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * {@inheritDoc}
      */
     @Override
-    Configuration getByName(String name, Closure configureClosure) throws UnknownConfigurationException;
+    Configuration getByName(String name, @DelegatesTo(Configuration.class) Closure configureClosure) throws UnknownConfigurationException;
 
     /**
      * {@inheritDoc}

@@ -16,10 +16,31 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.execution.history.AfterExecutionState;
 
-public interface CachingResult extends UpToDateResult, ExecutionEngine.Result {
+import javax.annotation.Nullable;
+import java.time.Duration;
 
-    CachingState getCachingState();
+public class CachingResult extends UpToDateResult implements ExecutionEngine.Result {
+
+    private final CachingState cachingState;
+
+    public CachingResult(UpToDateResult parent, CachingState cachingState) {
+        super(parent);
+        this.cachingState = cachingState;
+    }
+
+    public CachingResult(Duration duration, Try<ExecutionEngine.Execution> execution, @Nullable AfterExecutionState afterExecutionState, ImmutableList<String> executionReasons, @Nullable OriginMetadata reusedOutputOriginMetadata, CachingState cachingState) {
+        super(duration, execution, afterExecutionState, executionReasons, reusedOutputOriginMetadata);
+        this.cachingState = cachingState;
+    }
+
+    public CachingState getCachingState() {
+        return cachingState;
+    }
 }

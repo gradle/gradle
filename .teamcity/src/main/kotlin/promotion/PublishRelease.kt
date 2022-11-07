@@ -20,13 +20,15 @@ import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 
 abstract class PublishRelease(
-    task: String,
+    prepTask: String,
+    promoteTask: String,
     requiredConfirmationCode: String,
     promotedBranch: String,
     init: PublishRelease.() -> Unit = {}
-) : PublishGradleDistribution(
+) : PublishGradleDistributionFullBuild(
     promotedBranch = promotedBranch,
-    task = task,
+    prepTask = prepTask,
+    promoteTask = promoteTask,
     triggerName = "ReadyforRelease",
     gitUserEmail = "%gitUserEmail%",
     gitUserName = "%gitUserName%",
@@ -70,7 +72,8 @@ abstract class PublishRelease(
 
 class PublishFinalRelease(branch: VersionedSettingsBranch) : PublishRelease(
     promotedBranch = branch.branchName,
-    task = "promoteFinalRelease",
+    prepTask = "prepFinalRelease",
+    promoteTask = branch.promoteFinalReleaseTaskName(),
     requiredConfirmationCode = "final",
     init = {
         id("Promotion_FinalRelease")
@@ -81,7 +84,8 @@ class PublishFinalRelease(branch: VersionedSettingsBranch) : PublishRelease(
 
 class PublishReleaseCandidate(branch: VersionedSettingsBranch) : PublishRelease(
     promotedBranch = branch.branchName,
-    task = "promoteRc",
+    prepTask = "prepRc",
+    promoteTask = "promoteRc",
     requiredConfirmationCode = "rc",
     init = {
         id("Promotion_ReleaseCandidate")
@@ -92,11 +96,12 @@ class PublishReleaseCandidate(branch: VersionedSettingsBranch) : PublishRelease(
 
 class PublishMilestone(branch: VersionedSettingsBranch) : PublishRelease(
     promotedBranch = branch.branchName,
-    task = "promoteMilestone",
+    prepTask = "prepMilestone",
+    promoteTask = branch.promoteMilestoneTaskName(),
     requiredConfirmationCode = "milestone",
     init = {
         id("Promotion_Milestone")
         name = "Release - Milestone"
-        description = "Promotes the latest successful change on 'release' as a new milestone"
+        description = "Promotes the latest successful change on '${branch.branchName}' as a new milestone"
     }
 )

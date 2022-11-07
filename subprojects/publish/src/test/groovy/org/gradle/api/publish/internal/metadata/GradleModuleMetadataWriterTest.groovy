@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.VersionConstraint
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
@@ -50,6 +51,7 @@ import spock.lang.Issue
 import spock.lang.Specification
 
 import static org.gradle.util.AttributeTestUtil.attributes
+import static org.gradle.util.AttributeTestUtil.attributesTyped
 
 class GradleModuleMetadataWriterTest extends Specification {
 
@@ -578,10 +580,18 @@ class GradleModuleMetadataWriterTest extends Specification {
 
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
-        v1.attributes >> attributes(usage: "compile", debuggable: true, platform: platform, linkage: SomeEnum.VALUE_1)
+        v1.attributes >> attributesTyped(
+                (Attribute.of("usage", String)): "compile",
+                (Attribute.of("debuggable", Boolean)): true,
+                (Attribute.of("platform", Named)): platform,
+                (Attribute.of("linkage", SomeEnum)): SomeEnum.VALUE_1)
         def v2 = Stub(UsageContext)
         v2.name >> "v2"
-        v2.attributes >> attributes(usage: "runtime", debuggable: true, platform: platform, linkage: SomeEnum.VALUE_2)
+        v2.attributes >> attributesTyped(
+                (Attribute.of("usage", String)): "runtime",
+                (Attribute.of("debuggable", Boolean)): true,
+                (Attribute.of("platform", Named)): platform,
+                (Attribute.of("linkage", SomeEnum)): SomeEnum.VALUE_2)
 
         component.usages >> [v1, v2]
 
@@ -1154,6 +1164,90 @@ class GradleModuleMetadataWriterTest extends Specification {
           }
         }
       ]
+    }
+  ]
+}
+"""
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19769")
+    def "writes different components for different publications"() {
+        def writer = new StringWriter()
+
+        def comp = Stub(TestComponent) //same component, intentional
+
+        def id1 = DefaultModuleVersionIdentifier.newId("group", "other-1", "1")
+        def publication1 = publication(comp, id1)
+        def id2 = DefaultModuleVersionIdentifier.newId("group", "other-2", "2")
+        def publication2 = publication(comp, id2)
+
+        def v1 = Stub(UsageContext)
+        v1.name >> "v1"
+        v1.attributes >> attributes(usage: "compile")
+        def v2 = Stub(UsageContext)
+        v2.name >> "v2"
+        v2.attributes >> attributes(usage: "runtime")
+
+        comp.usages >> [v1, v2]
+
+        when:
+        writeTo(writer, publication1, [publication1, publication2])
+        writeTo(writer, publication2, [publication1, publication2])
+
+        then:
+        writer.toString() == """{
+  "formatVersion": "${GradleModuleMetadataParser.FORMAT_VERSION}",
+  "component": {
+    "group": "group",
+    "module": "other-1",
+    "version": "1",
+    "attributes": {}
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "${GradleVersion.current().version}"
+    }
+  },
+  "variants": [
+    {
+      "name": "v1",
+      "attributes": {
+        "usage": "compile"
+      }
+    },
+    {
+      "name": "v2",
+      "attributes": {
+        "usage": "runtime"
+      }
+    }
+  ]
+}
+{
+  "formatVersion": "${GradleModuleMetadataParser.FORMAT_VERSION}",
+  "component": {
+    "group": "group",
+    "module": "other-2",
+    "version": "2",
+    "attributes": {}
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "${GradleVersion.current().version}"
+    }
+  },
+  "variants": [
+    {
+      "name": "v1",
+      "attributes": {
+        "usage": "compile"
+      }
+    },
+    {
+      "name": "v2",
+      "attributes": {
+        "usage": "runtime"
+      }
     }
   ]
 }

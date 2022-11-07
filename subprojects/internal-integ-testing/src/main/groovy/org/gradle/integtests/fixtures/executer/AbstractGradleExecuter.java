@@ -17,7 +17,6 @@ package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -81,7 +80,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -94,6 +92,7 @@ import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.Cli
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.FOREGROUND;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NOT_DEFINED;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
+import static org.gradle.integtests.fixtures.executer.DocumentationUtils.normalizeDocumentationLink;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.internal.CollectionUtils.collect;
@@ -170,7 +169,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean useOwnUserHomeServices;
     private ConsoleOutput consoleType;
     protected WarningMode warningMode = WarningMode.All;
-    private boolean showStacktrace = true;
+    private boolean showStacktrace = false;
     private boolean renderWelcomeMessage;
     private boolean disableToolchainDownload = true;
     private boolean disableToolchainDetection = true;
@@ -180,6 +179,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private final List<String> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
+    private boolean jdkWarningChecksOn = false;
 
     private final MutableActionSet<GradleExecuter> beforeExecute = new MutableActionSet<>();
     private ImmutableActionSet<GradleExecuter> afterExecute = ImmutableActionSet.empty();
@@ -253,6 +253,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         expectedGenericDeprecationWarnings = 0;
         expectedDeprecationWarnings.clear();
         stackTraceChecksOn = true;
+        jdkWarningChecksOn = false;
         renderWelcomeMessage = false;
         disableToolchainDownload = true;
         disableToolchainDetection = true;
@@ -388,6 +389,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (!stackTraceChecksOn) {
             executer.withStackTraceChecksDisabled();
         }
+        if (jdkWarningChecksOn) {
+            executer.withJdkWarningChecksEnabled();
+        }
         if (useOwnUserHomeServices) {
             executer.withOwnUserHomeServices();
         }
@@ -420,8 +424,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         executer.withWarningMode(warningMode);
 
-        if (!showStacktrace) {
-            executer.withStacktraceDisabled();
+        if (showStacktrace) {
+            executer.withStacktraceEnabled();
         }
 
         if (renderWelcomeMessage) {
@@ -571,6 +575,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         buildJvmOpts.add("-ea");
 
         if (isDebug()) {
+            if (System.getenv().containsKey("CI")) {
+                throw new IllegalArgumentException("Builds cannot be started with the debugger enabled on CI. This will cause tests to hang forever. Remove the call to startBuildProcessInDebugger().");
+            }
             buildJvmOpts.addAll(DEBUG_ARGS);
         }
         if (isProfile()) {
@@ -584,7 +591,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             buildJvmOpts.add("-Xms256m");
             buildJvmOpts.add("-Xmx512m");
         }
-        if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_8) < 0) {
+        if (getJavaVersionFromJavaHome().compareTo(JavaVersion.VERSION_1_8) < 0) {
             // Although Gradle isn't supported on earlier versions, some tests do run it using Java 6 and 7 to verify it behaves well in this case
             buildJvmOpts.add("-XX:MaxPermSize=320m");
         } else {
@@ -618,6 +625,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     public GradleExecuter withJavaHome(File javaHome) {
         this.javaHome = javaHome;
         return this;
+    }
+
+    private JavaVersion getJavaVersionFromJavaHome() {
+        return JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome()));
     }
 
     @Override
@@ -844,8 +855,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter withStacktraceDisabled() {
-        showStacktrace = false;
+    public GradleExecuter withStacktraceEnabled() {
+        showStacktrace = true;
         return this;
     }
 
@@ -863,7 +874,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter withToolchainDownloadEnabled() {
-        withToolchainDetectionEnabled();
         disableToolchainDownload = false;
         return this;
     }
@@ -1125,6 +1135,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         properties.put("file.encoding", getDefaultCharacterEncoding());
+        if (getJavaVersionFromJavaHome() == JavaVersion.VERSION_18) {
+            properties.put("sun.stdout.encoding", getDefaultCharacterEncoding());
+            properties.put("sun.stderr.encoding", getDefaultCharacterEncoding());
+        } else if (getJavaVersionFromJavaHome().isCompatibleWith(JavaVersion.VERSION_19)) {
+            properties.put("stdout.encoding", getDefaultCharacterEncoding());
+            properties.put("stderr.encoding", getDefaultCharacterEncoding());
+        }
         Locale locale = getDefaultLocale();
         if (locale != null) {
             properties.put("user.language", locale.getLanguage());
@@ -1266,160 +1283,165 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     protected Action<ExecutionResult> getResultAssertion() {
-        return new Action<ExecutionResult>() {
-            private int expectedGenericDeprecationWarnings = AbstractGradleExecuter.this.expectedGenericDeprecationWarnings;
-            private final List<String> expectedDeprecationWarnings = new ArrayList<>(AbstractGradleExecuter.this.expectedDeprecationWarnings);
-            private final boolean expectStackTraces = !AbstractGradleExecuter.this.stackTraceChecksOn;
-            private final boolean checkDeprecations = AbstractGradleExecuter.this.checkDeprecations;
+        return new ResultAssertion(
+            expectedGenericDeprecationWarnings, expectedDeprecationWarnings,
+            !stackTraceChecksOn, checkDeprecations, jdkWarningChecksOn
+        );
+    }
 
-            @Override
-            public void execute(ExecutionResult executionResult) {
-                String normalizedOutput = executionResult.getNormalizedOutput();
-                String error = executionResult.getError();
-                boolean executionFailure = isExecutionFailure(executionResult);
+    private static class ResultAssertion implements Action<ExecutionResult> {
+        private int expectedGenericDeprecationWarnings;
+        private final List<String> expectedDeprecationWarnings;
+        private final boolean expectStackTraces;
+        private final boolean checkDeprecations;
+        private final boolean checkJdkWarnings;
 
-                // for tests using rich console standard out and error are combined in output of execution result
-                if (executionFailure) {
-                    normalizedOutput = removeExceptionStackTraceForFailedExecution(normalizedOutput);
-                }
+        private ResultAssertion(
+            int expectedGenericDeprecationWarnings, List<String> expectedDeprecationWarnings,
+            boolean expectStackTraces, boolean checkDeprecations, boolean checkJdkWarnings
+        ) {
+            this.expectedGenericDeprecationWarnings = expectedGenericDeprecationWarnings;
+            this.expectedDeprecationWarnings = new ArrayList<>(expectedDeprecationWarnings);
+            this.expectStackTraces = expectStackTraces;
+            this.checkDeprecations = checkDeprecations;
+            this.checkJdkWarnings = checkJdkWarnings;
+        }
 
-                validate(normalizedOutput, "Standard output");
+        @Override
+        public void execute(ExecutionResult executionResult) {
+            String normalizedOutput = executionResult.getNormalizedOutput();
+            String error = executionResult.getError();
+            boolean executionFailure = executionResult instanceof ExecutionFailure;
 
-                if (executionFailure) {
-                    error = removeExceptionStackTraceForFailedExecution(error);
-                }
-
-                validate(error, "Standard error");
-
-                if (!expectedDeprecationWarnings.isEmpty()) {
-                    throw new AssertionError(String.format("Expected the following deprecation warnings:%n%s",
-                        expectedDeprecationWarnings.stream()
-                            .map(warning -> " - " + warning)
-                            .collect(joining("\n"))));
-                }
-                if (expectedGenericDeprecationWarnings > 0) {
-                    throw new AssertionError(String.format("Expected %d more deprecation warnings", expectedGenericDeprecationWarnings));
-                }
+            // for tests using rich console standard out and error are combined in output of execution result
+            if (executionFailure) {
+                normalizedOutput = removeExceptionStackTraceForFailedExecution(normalizedOutput);
             }
 
-            private boolean isErrorOutEmpty(String error) {
-                //remove SLF4J error out like 'Class path contains multiple SLF4J bindings.'
-                //See: https://github.com/gradle/performance/issues/375#issuecomment-315103861
-                return Strings.isNullOrEmpty(error.replaceAll("(?m)^SLF4J: .*", "").trim());
+            validate(normalizedOutput, "Standard output");
+
+            if (executionFailure) {
+                error = removeExceptionStackTraceForFailedExecution(error);
             }
 
-            private boolean isExecutionFailure(ExecutionResult executionResult) {
-                return executionResult instanceof ExecutionFailure;
-            }
+            validate(error, "Standard error");
 
-            // Axe everything after the expected exception
-            private String removeExceptionStackTraceForFailedExecution(String text) {
-                int pos = text.indexOf("* Exception is:");
-                if (pos >= 0) {
-                    text = text.substring(0, pos);
+            if (!expectedDeprecationWarnings.isEmpty()) {
+                throw new AssertionError(String.format("Expected the following deprecation warnings:%n%s",
+                    expectedDeprecationWarnings.stream()
+                        .map(warning -> " - " + warning)
+                        .collect(joining("\n"))));
+            }
+            if (expectedGenericDeprecationWarnings > 0) {
+                throw new AssertionError(String.format("Expected %d more deprecation warnings", expectedGenericDeprecationWarnings));
+            }
+        }
+
+        // Axe everything after the expected exception
+        private String removeExceptionStackTraceForFailedExecution(String text) {
+            int pos = text.indexOf("* Exception is:");
+            if (pos >= 0) {
+                text = text.substring(0, pos);
+            }
+            return text;
+        }
+
+        private void validate(String output, String displayName) {
+            List<String> lines;
+            try {
+                lines = CharSource.wrap(output).readLines();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            int i = 0;
+            boolean insideVariantDescriptionBlock = false;
+            boolean insideKotlinCompilerFlakyStacktrace = false;
+            boolean sawVmPluginLoadFailure = false;
+            while (i < lines.size()) {
+                String line = lines.get(i);
+                if (insideVariantDescriptionBlock && line.contains("]")) {
+                    insideVariantDescriptionBlock = false;
+                } else if (!insideVariantDescriptionBlock && line.contains("variant \"")) {
+                    insideVariantDescriptionBlock = true;
                 }
-                return text;
-            }
 
-            private void validate(String output, String displayName) {
-                List<String> lines;
-                try {
-                    lines = CharSource.wrap(output).readLines();
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-                int i = 0;
-                boolean insideVariantDescriptionBlock = false;
-                boolean insideKotlinCompilerFlakyStacktrace = false;
-                boolean sawVmPluginLoadFailure = false;
-                while (i < lines.size()) {
-                    String line = lines.get(i);
-                    if (insideVariantDescriptionBlock && line.contains("]")) {
-                        insideVariantDescriptionBlock = false;
-                    } else if (!insideVariantDescriptionBlock && line.contains("variant \"")) {
-                        insideVariantDescriptionBlock = true;
+                // https://youtrack.jetbrains.com/issue/KT-29546
+                if (line.contains("Compilation with Kotlin compile daemon was not successful")) {
+                    insideKotlinCompilerFlakyStacktrace = true;
+                    i++;
+                } else if (line.contains("Trying to create VM plugin `org.codehaus.groovy.vmplugin.v9.Java9` by checking `java.lang.Module`")) {
+                    // a groovy warning when running on Java < 9
+                    // https://issues.apache.org/jira/browse/GROOVY-9933
+                    i++; // full stracktrace skipped in next branch
+                    sawVmPluginLoadFailure = true;
+                } else if (line.contains("java.lang.ClassNotFoundException: java.lang.Module") && sawVmPluginLoadFailure) {
+                    // a groovy warning when running on Java < 9
+                    // https://issues.apache.org/jira/browse/GROOVY-9933
+                    i++;
+                    i = skipStackTrace(lines, i);
+                } else if (insideKotlinCompilerFlakyStacktrace &&
+                    (line.contains("java.rmi.UnmarshalException") ||
+                        line.contains("java.io.EOFException")) ||
+                    // Verbose logging by Jetty when connector is shutdown
+                    // https://github.com/eclipse/jetty.project/issues/3529
+                    line.contains("java.nio.channels.CancelledKeyException")) {
+                    i++;
+                    i = skipStackTrace(lines, i);
+                } else if (line.contains("com.amazonaws.http.IdleConnectionReaper")) {
+                    /*
+                    2021-01-05T08:15:51.329+0100 [DEBUG] [com.amazonaws.http.IdleConnectionReaper] Reaper thread:
+                    java.lang.InterruptedException: sleep interrupted
+                        at java.base/java.lang.Thread.sleep(Native Method)
+                        at com.amazonaws.http.IdleConnectionReaper.run(IdleConnectionReaper.java:188)
+                     */
+                    i += 2;
+                    i = skipStackTrace(lines, i);
+                } else if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
+                    // A javac warning, ignore
+                    i++;
+                } else if (line.matches(".*w: .* is deprecated\\..*")) {
+                    // A kotlinc warning, ignore
+                    i++;
+                } else if (isDeprecationMessageInHelpDescription(line)) {
+                    i++;
+                } else if (removeFirstExpectedDeprecationWarning(line)) {
+                    // Deprecation warning is expected
+                    i++;
+                    i = skipStackTrace(lines, i);
+                } else if (line.matches(".*\\s+deprecated.*")) {
+                    if (checkDeprecations && expectedGenericDeprecationWarnings <= 0) {
+                        throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                     }
-
-                    // https://youtrack.jetbrains.com/issue/KT-29546
-                    if (line.contains("Compilation with Kotlin compile daemon was not successful")) {
-                        insideKotlinCompilerFlakyStacktrace = true;
-                        i++;
-                    } else if (line.contains("Trying to create VM plugin `org.codehaus.groovy.vmplugin.v9.Java9` by checking `java.lang.Module`")) {
-                        // a groovy warning when running on Java < 9
-                        // https://issues.apache.org/jira/browse/GROOVY-9933
-                        i++; // full stracktrace skipped in next branch
-                        sawVmPluginLoadFailure = true;
-                    } else if (line.contains("java.lang.ClassNotFoundException: java.lang.Module") && sawVmPluginLoadFailure) {
-                        // a groovy warning when running on Java < 9
-                        // https://issues.apache.org/jira/browse/GROOVY-9933
-                        i++;
-                        i = skipStackTrace(lines, i);
-                    } else if (insideKotlinCompilerFlakyStacktrace &&
-                        (line.contains("java.rmi.UnmarshalException") ||
-                            line.contains("java.io.EOFException")) ||
-                        // Verbose logging by Jetty when connector is shutdown
-                        // https://github.com/eclipse/jetty.project/issues/3529
-                        line.contains("java.nio.channels.CancelledKeyException")) {
-                        i++;
-                        i = skipStackTrace(lines, i);
-                    } else if (line.contains("com.amazonaws.http.IdleConnectionReaper")) {
-                        /*
-                        2021-01-05T08:15:51.329+0100 [DEBUG] [com.amazonaws.http.IdleConnectionReaper] Reaper thread:
-                        java.lang.InterruptedException: sleep interrupted
-                            at java.base/java.lang.Thread.sleep(Native Method)
-                            at com.amazonaws.http.IdleConnectionReaper.run(IdleConnectionReaper.java:188)
-                         */
-                        i += 2;
-                        i = skipStackTrace(lines, i);
-                    } else if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
-                        // A javac warning, ignore
-                        i++;
-                    } else if (line.matches(".*w: .* is deprecated\\..*")) {
-                        // A kotlinc warning, ignore
-                        i++;
-                    } else if (isDeprecationMessageInHelpDescription(line)) {
-                        i++;
-                    } else if (removeFirstExpectedDeprecationWarning(warning -> line.contains(warning))) {
-                        // Deprecation warning is expected
-                        i++;
-                        i = skipStackTrace(lines, i);
-                    } else if (line.matches(".*\\s+deprecated.*")) {
-                        if (checkDeprecations && expectedGenericDeprecationWarnings <= 0) {
-                            throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
-                        }
-                        expectedGenericDeprecationWarnings--;
-                        // skip over stack trace
-                        i++;
-                        i = skipStackTrace(lines, i);
-                    } else if (!expectStackTraces && !insideVariantDescriptionBlock && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
-                        // 2 or more lines that look like stack trace elements
-                        throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
-                    } else {
-                        i++;
-                    }
-                }
-            }
-
-            private boolean removeFirstExpectedDeprecationWarning(final Predicate<String> condition) {
-                final Optional<String> firstMatch = expectedDeprecationWarnings.stream().filter(condition).findFirst();
-                if (firstMatch.isPresent()) {
-                    return expectedDeprecationWarnings.remove(firstMatch.get());
+                    expectedGenericDeprecationWarnings--;
+                    // skip over stack trace
+                    i++;
+                    i = skipStackTrace(lines, i);
+                } else if (!expectStackTraces && !insideVariantDescriptionBlock && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
+                    // 2 or more lines that look like stack trace elements
+                    throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
+                } else if (checkJdkWarnings && line.matches("\\s*WARNING:.*")) {
+                    throw new AssertionError(String.format("%s line %d contains unexpected JDK warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                 } else {
-                    return false;
-                }
-            }
-
-            private int skipStackTrace(List<String> lines, int i) {
-                while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
                     i++;
                 }
-                return i;
             }
+        }
 
-            private boolean isDeprecationMessageInHelpDescription(String s) {
-                return s.matches(".*\\[deprecated.*]");
+        private boolean removeFirstExpectedDeprecationWarning(String line) {
+            return expectedDeprecationWarnings.stream().filter(line::contains).findFirst()
+                .map(expectedDeprecationWarnings::remove).orElse(false);
+        }
+
+        private static int skipStackTrace(List<String> lines, int i) {
+            while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+                i++;
             }
-        };
+            return i;
+        }
+
+        private boolean isDeprecationMessageInHelpDescription(String s) {
+            return s.matches(".*\\[deprecated.*]");
+        }
     }
 
     @Override
@@ -1443,13 +1465,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
-        String pattern = "https://docs.gradle.org/current/";
-        String replacement = "https://docs.gradle.org/" + GradleVersion.current().getVersion() + "/";
-        String expectedWarning = warning.replace(pattern, replacement);
-        if (warning.equals(expectedWarning)) {
-            throw new IllegalArgumentException("Documented deprecation warning must reference '" + pattern + "'.");
-        }
-        return expectDeprecationWarning(expectedWarning);
+        return expectDeprecationWarning(normalizeDocumentationLink(warning));
     }
 
     @Override
@@ -1473,6 +1489,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter withStackTraceChecksDisabled() {
         stackTraceChecksOn = false;
+        return this;
+    }
+    @Override
+    public GradleExecuter withJdkWarningChecksEnabled() {
+        jdkWarningChecksOn = true;
         return this;
     }
 

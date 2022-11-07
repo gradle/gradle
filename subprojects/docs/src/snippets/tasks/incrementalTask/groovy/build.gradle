@@ -1,38 +1,33 @@
 tasks.register('originalInputs') {
-    outputs.dir('inputs')
+    def inputsDir = layout.projectDirectory.dir('inputs')
+    outputs.dir(inputsDir)
     doLast {
-        file('inputs').mkdir()
-        file('inputs/1.txt').text = 'Content for file 1.'
-        file('inputs/2.txt').text = 'Content for file 2.'
-        file('inputs/3.txt').text = 'Content for file 3.'
+        inputsDir.file('1.txt').asFile.text = 'Content for file 1.'
+        inputsDir.file('2.txt').asFile.text = 'Content for file 2.'
+        inputsDir.file('3.txt').asFile.text = 'Content for file 3.'
     }
 }
 
 // tag::updated-inputs[]
 tasks.register('updateInputs') {
-    outputs.dir('inputs')
+    def inputsDir = layout.projectDirectory.dir('inputs')
+    outputs.dir(inputsDir)
     doLast {
-        file('inputs/1.txt').text = 'Changed content for existing file 1.'
-        file('inputs/4.txt').text = 'Content for new file 4.'
+        inputsDir.file('1.txt').asFile.text = 'Changed content for existing file 1.'
+        inputsDir.file('4.txt').asFile.text = 'Content for new file 4.'
     }
 }
 // end::updated-inputs[]
 
 // tag::removed-input[]
-tasks.register('removeInput') {
-    outputs.dir('inputs')
-    doLast {
-        file('inputs/3.txt').delete()
-    }
+tasks.register('removeInput', Delete) {
+    delete 'inputs/3.txt'
 }
 // end::removed-input[]
 
 // tag::removed-output[]
-tasks.register('removeOutput') {
-    outputs.dir("$buildDir/outputs")
-    doLast {
-        file("$buildDir/outputs/1.txt").delete()
-    }
+tasks.register('removeOutput', Delete) {
+    delete "$buildDir/outputs/1.txt"
 }
 // end::removed-output[]
 

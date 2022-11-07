@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
@@ -141,7 +142,7 @@ import java.util.Set;
  * }
  * </pre>
  */
-public class EclipseClasspath {
+public abstract class EclipseClasspath {
     private Iterable<SourceSet> sourceSets;
 
     private Collection<Configuration> plusConfigurations = new ArrayList<Configuration>();
@@ -328,7 +329,7 @@ public class EclipseClasspath {
      * <p>
      * See {@link EclipseProject} for an example.
      */
-    public void file(Closure closure) {
+    public void file(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
         ConfigureUtil.configure(closure, file);
     }
 
@@ -388,7 +389,6 @@ public class EclipseClasspath {
      *
      * @since 6.8
      */
-    @Incubating
     public Property<Boolean> getContainsTestFixtures() {
         return containsTestFixtures;
     }

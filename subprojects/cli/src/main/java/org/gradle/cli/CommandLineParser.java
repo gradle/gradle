@@ -193,6 +193,9 @@ public class CommandLineParser {
 
             lines.put(key, value);
         }
+        // The "--" delimiter isn't an option, but it's useful to print it in the usage message anyway.
+        lines.put("--", "Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.");
+
         int max = 0;
         for (String optionStr : lines.keySet()) {
             max = Math.max(max, optionStr.length());

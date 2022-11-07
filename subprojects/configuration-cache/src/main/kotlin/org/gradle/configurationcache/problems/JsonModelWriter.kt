@@ -121,6 +121,11 @@ class JsonModelWriter(val writer: Writer) {
                     }
                 }
             }
+            is PropertyTrace.SystemProperty -> {
+                property("kind", "SystemProperty")
+                comma()
+                property("name", trace.name)
+            }
             is PropertyTrace.Task -> {
                 property("kind", "Task")
                 comma()

@@ -18,21 +18,21 @@ package org.gradle.internal.execution.history.changes;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
+import org.gradle.internal.snapshot.impl.ClassImplementationSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
-import org.gradle.internal.snapshot.impl.KnownImplementationSnapshot;
 
 public class ImplementationChanges implements ChangeContainer {
-    private final ImplementationSnapshot previousImplementation;
+    private final ClassImplementationSnapshot previousImplementation;
     private final ImmutableList<ImplementationSnapshot> previousAdditionalImplementations;
-    private final KnownImplementationSnapshot currentImplementation;
-    private final ImmutableList<KnownImplementationSnapshot> currentAdditionalImplementations;
+    private final ClassImplementationSnapshot currentImplementation;
+    private final ImmutableList<ImplementationSnapshot> currentAdditionalImplementations;
     private final Describable executable;
 
     public ImplementationChanges(
-        ImplementationSnapshot previousImplementation,
+        ClassImplementationSnapshot previousImplementation,
         ImmutableList<ImplementationSnapshot> previousAdditionalImplementations,
-        KnownImplementationSnapshot currentImplementation,
-        ImmutableList<KnownImplementationSnapshot> currentAdditionalImplementations,
+        ClassImplementationSnapshot currentImplementation,
+        ImmutableList<ImplementationSnapshot> currentAdditionalImplementations,
         Describable executable
     ) {
         this.previousImplementation = previousImplementation;
@@ -44,23 +44,19 @@ public class ImplementationChanges implements ChangeContainer {
 
     @Override
     public boolean accept(ChangeVisitor visitor) {
-        if (!currentImplementation.getTypeName().equals(previousImplementation.getTypeName())) {
+        if (!currentImplementation.getClassIdentifier().equals(previousImplementation.getClassIdentifier())) {
             return visitor.visitChange(new DescriptiveChange("The type of %s has changed from '%s' to '%s'.",
-                executable.getDisplayName(), previousImplementation.getTypeName(), currentImplementation.getTypeName()));
+                executable.getDisplayName(), previousImplementation.getClassIdentifier(), currentImplementation.getClassIdentifier()));
         }
-        if (previousImplementation.isUnknown()) {
-            return visitor.visitChange(new DescriptiveChange("The implementation of %s has changed.",
-                executable.getDisplayName())
-            );
-        }
+
         if (!currentImplementation.getClassLoaderHash().equals(previousImplementation.getClassLoaderHash())) {
             return visitor.visitChange(new DescriptiveChange("Class path of %s has changed from %s to %s.",
-                    executable.getDisplayName(), previousImplementation.getClassLoaderHash(), currentImplementation.getClassLoaderHash()));
+                executable.getDisplayName(), previousImplementation.getClassLoaderHash(), currentImplementation.getClassLoaderHash()));
         }
 
         if (!currentAdditionalImplementations.equals(previousAdditionalImplementations)) {
             return visitor.visitChange(new DescriptiveChange("One or more additional actions for %s have changed.",
-                    executable.getDisplayName()));
+                executable.getDisplayName()));
         }
         return true;
     }

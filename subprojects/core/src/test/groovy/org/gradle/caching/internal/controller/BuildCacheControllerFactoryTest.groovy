@@ -17,6 +17,7 @@
 package org.gradle.caching.internal.controller
 
 import org.gradle.api.Action
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
@@ -27,10 +28,13 @@ import org.gradle.caching.configuration.AbstractBuildCache
 import org.gradle.caching.configuration.internal.DefaultBuildCacheConfiguration
 import org.gradle.caching.configuration.internal.DefaultBuildCacheServiceRegistration
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType
+import org.gradle.caching.internal.origin.OriginMetadataFactory
+import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
 import org.gradle.caching.internal.services.BuildCacheControllerFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -66,7 +70,11 @@ class BuildCacheControllerFactoryTest extends Specification {
             ONLINE,
             logStacktraces,
             emitDebugLogging,
-            TestUtil.instantiatorFactory().inject()
+            TestUtil.instantiatorFactory().inject(),
+            Stub(FileSystemAccess),
+            Stub(BuildCacheEntryPacker),
+            Stub(OriginMetadataFactory),
+            Stub(StringInterner)
         )
         assert controllerType.isInstance(controller)
         controllerType.cast(controller)

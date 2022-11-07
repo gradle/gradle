@@ -23,12 +23,13 @@ import org.gradle.api.Task
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.snapshot.impl.ClassImplementationSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
-import org.gradle.internal.snapshot.impl.KnownImplementationSnapshot
 import spock.lang.Specification
 
 class ImplementationChangesTest extends Specification {
-    def taskLoaderHash = HashCode.fromInt(123)
+    def taskLoaderHash = TestHashCodes.hashCodeFrom(123)
     def executable = Stub(Describable) {
         getDisplayName() >> "task ':test'"
     }
@@ -50,7 +51,7 @@ class ImplementationChangesTest extends Specification {
     }
 
     def "not up-to-date when class-loader has changed"() {
-        def previousHash = HashCode.fromInt(987)
+        def previousHash = TestHashCodes.hashCodeFrom(987)
         expect:
         changesBetween(
             impl(SimpleTask, previousHash), [impl(TestAction)],
@@ -59,7 +60,7 @@ class ImplementationChangesTest extends Specification {
     }
 
     def "not up-to-date when action class-loader has changed"() {
-        def previousHash = HashCode.fromInt(987)
+        def previousHash = TestHashCodes.hashCodeFrom(987)
         expect:
         changesBetween(
             impl(SimpleTask), [impl(TestAction, previousHash)],
@@ -91,25 +92,9 @@ class ImplementationChangesTest extends Specification {
         ) == ["One or more additional actions for task ':test' have changed."]
     }
 
-    def "not up-to-date when task was previously loaded with an unknown classloader"() {
-        expect:
-        changesBetween(
-            unknownImpl(SimpleTask), [impl(TestAction)],
-            impl(SimpleTask), [impl(TestAction)]
-        ) == ["The implementation of task ':test' has changed." as String]
-    }
-
-    def "not up-to-date when task action was previously loaded with an unknown classloader"() {
-        expect:
-        changesBetween(
-            impl(SimpleTask), [unknownImpl(TestAction)],
-            impl(SimpleTask), [impl(TestAction)]
-        ) == ["One or more additional actions for task ':test' have changed." as String]
-    }
-
     List<String> changesBetween(
-        ImplementationSnapshot previousImpl, List<ImplementationSnapshot> previousAdditionalImpls,
-        KnownImplementationSnapshot currentImpl, List<KnownImplementationSnapshot> currentAdditionalImpls
+        ClassImplementationSnapshot previousImpl, List<ImplementationSnapshot> previousAdditionalImpls,
+        ClassImplementationSnapshot currentImpl, List<ClassImplementationSnapshot> currentAdditionalImpls
     ) {
         def visitor = new CollectingChangeVisitor()
         new ImplementationChanges(
@@ -120,12 +105,8 @@ class ImplementationChangesTest extends Specification {
         return visitor.changes*.message
     }
 
-    private KnownImplementationSnapshot impl(Class<?> type, HashCode classLoaderHash = taskLoaderHash) {
-        new KnownImplementationSnapshot(type.getName(), classLoaderHash)
-    }
-
-    private static ImplementationSnapshot unknownImpl(Class<?> type) {
-        ImplementationSnapshot.of(type.getName(), null)
+    private ClassImplementationSnapshot impl(Class<?> type, HashCode classLoaderHash = taskLoaderHash) {
+        new ClassImplementationSnapshot(type.getName(), classLoaderHash)
     }
 
     private class SimpleTask extends DefaultTask {}

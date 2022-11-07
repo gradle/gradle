@@ -5,5 +5,8 @@ def hello = tasks.register('hello') {
 }
 
 hello.configure {
-    onlyIf { !project.hasProperty('skipHello') }
+    def skipProvider = providers.gradleProperty("skipHello")
+    onlyIf("there is no property skipHello") {
+        !skipProvider.present
+    }
 }

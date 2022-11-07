@@ -9,7 +9,7 @@ import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
 import org.gradle.api.Generated
 
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_API
 import org.gradle.api.internal.classpath.Module
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.classpath.DefaultClassPath

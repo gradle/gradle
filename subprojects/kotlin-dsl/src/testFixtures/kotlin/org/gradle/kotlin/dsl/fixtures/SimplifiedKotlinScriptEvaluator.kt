@@ -29,6 +29,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
@@ -190,7 +191,7 @@ class SimplifiedKotlinScriptEvaluator(
         override fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>) = Unit
 
         override fun hashOf(classPath: ClassPath): HashCode =
-            HashCode.fromInt(0)
+            TestHashCodes.hashCodeFrom(0)
 
         override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
             action()

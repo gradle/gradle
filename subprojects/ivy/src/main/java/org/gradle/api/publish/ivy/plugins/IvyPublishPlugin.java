@@ -25,7 +25,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository;
@@ -52,13 +51,11 @@ import org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor;
 import org.gradle.api.publish.ivy.tasks.PublishToIvyRepository;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
-import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.model.Path;
@@ -76,7 +73,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * @since 1.3
  * @see <a href="https://docs.gradle.org/current/userguide/publishing_ivy.html">Ivy Publishing reference</a>
  */
-public class IvyPublishPlugin implements Plugin<Project> {
+public abstract class IvyPublishPlugin implements Plugin<Project> {
     private final static Logger LOGGER = Logging.getLogger(IvyPublishPlugin.class);
 
     private final Instantiator instantiator;
@@ -184,8 +181,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
             }
             return standard;
         };
-        Spec<TaskInternal> spec = new AndSpec<TaskInternal>(generateTask.getOnlyIf(), checkStandardLayout);
-        generateTask.setOnlyIf(Cast.<Spec<? super Task>>uncheckedCast(spec));
+        generateTask.onlyIf("The Ivy repositories follow the standard layout", checkStandardLayout);
     }
 
     private boolean hasStandardPattern(IvyArtifactRepository ivyArtifactRepository) {

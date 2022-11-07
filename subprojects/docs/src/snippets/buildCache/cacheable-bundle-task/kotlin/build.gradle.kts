@@ -7,10 +7,16 @@ abstract class NpmTask : DefaultTask() {
 
     open val args = project.objects.listProperty<String>()
 
+    @get:Inject
+    abstract val projectLayout: ProjectLayout
+
     @TaskAction
     fun run() {
-        project.file("${project.buildDir}/bundle.js").outputStream().use { stream ->
-            project.file("scripts").listFiles().sorted().forEach {
+        val bundleFile = projectLayout.buildDirectory.file("bundle.js").get().asFile
+        val scriptsFiles = projectLayout.projectDirectory.dir("scripts").asFile.listFiles()
+
+        bundleFile.outputStream().use { stream ->
+            scriptsFiles.sorted().forEach {
                 stream.write(it.readBytes())
             }
         }
@@ -40,10 +46,10 @@ abstract class BundleTask : NpmTask() {
 
     init {
         args.addAll("run", "bundle")
-        bundle.set(project.layout.buildDirectory.file("bundle.js"))
-        scripts.set(project.layout.projectDirectory.dir("scripts"))
-        configFiles.from(project.layout.projectDirectory.file("package.json"))
-        configFiles.from(project.layout.projectDirectory.file("package-lock.json"))
+        bundle.set(projectLayout.buildDirectory.file("bundle.js"))
+        scripts.set(projectLayout.projectDirectory.dir("scripts"))
+        configFiles.from(projectLayout.projectDirectory.file("package.json"))
+        configFiles.from(projectLayout.projectDirectory.file("package-lock.json"))
     }
 }
 
@@ -52,7 +58,10 @@ tasks.register<BundleTask>("bundle")
 
 tasks.register("printBundle") {
     dependsOn("bundle")
+
+    val projectLayout: ProjectLayout = layout
+
     doLast {
-        println(project.layout.buildDirectory.file("bundle.js").get().asFile.readText())
+        println(projectLayout.buildDirectory.file("bundle.js").get().asFile.readText())
     }
 }

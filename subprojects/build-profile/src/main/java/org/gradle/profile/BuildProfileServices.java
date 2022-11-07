@@ -17,41 +17,47 @@
 package org.gradle.profile;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.BuildDefinition;
-import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction;
-import org.gradle.internal.time.Clock;
 
 public class BuildProfileServices extends AbstractPluginServiceRegistry {
-
     @Override
-    public void registerBuildServices(ServiceRegistration registration) {
+    public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new Object() {
-            public BuildScopeListenerManagerAction createBuildProfileListeners(ServiceRegistry services, BuildDefinition buildDefinition) {
-                return new BuildScopeListenerManagerAction() {
-                    @Override
-                    public void execute(ListenerManager listenerManager) {
-                        if (buildDefinition.getStartParameter().isProfile()) {
-                            listenerManager.addListener(services.get(ProfileEventAdapter.class));
-                            listenerManager.addListener(services.get(ReportGeneratingProfileListener.class));
-                        }
-                    }
-                };
-            }
-
-            public ReportGeneratingProfileListener createReportGeneratingProfileListener(StyledTextOutputFactory styledTextOutputFactory) {
-                return new ReportGeneratingProfileListener(styledTextOutputFactory);
-            }
-
-            public ProfileEventAdapter createProfileEventAdapter(BuildStartedTime buildStartedTime, Clock clock, ListenerManager listenerManager, StartParameter startParameter) {
-                return new ProfileEventAdapter(buildStartedTime, clock, listenerManager.getBroadcaster(ProfileListener.class), startParameter);
+            public void configure(ServiceRegistration serviceRegistration, StartParameter startParameter) {
+                if (startParameter.isProfile()) {
+                    serviceRegistration.add(BuildProfile.class);
+                    serviceRegistration.add(ReportGeneratingProfileListener.class);
+                    serviceRegistration.add(ProfileCoordinator.class);
+                }
             }
         });
     }
 
+    @Override
+    public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new Object() {
+            public void configure(ServiceRegistration serviceRegistration, StartParameter startParameter) {
+                if (startParameter.isProfile()) {
+                    serviceRegistration.add(ProfileEventAdapter.class);
+                    serviceRegistration.add(ProfileRegistrationAction.class);
+                }
+            }
+        });
+    }
+
+    public static class ProfileRegistrationAction implements BuildScopeListenerManagerAction {
+        private final ProfileEventAdapter eventAdapter;
+
+        public ProfileRegistrationAction(ProfileEventAdapter eventAdapter) {
+            this.eventAdapter = eventAdapter;
+        }
+
+        @Override
+        public void execute(ListenerManager listenerManager) {
+            listenerManager.addListener(eventAdapter);
+        }
+    }
 }

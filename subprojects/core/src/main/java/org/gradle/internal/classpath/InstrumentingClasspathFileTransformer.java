@@ -153,9 +153,9 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
                     Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter);
                     reader.accept(chain.right, 0);
                     byte[] bytes = classWriter.toByteArray();
-                    builder.put(chain.left.getPathString(), bytes);
+                    builder.put(chain.left.getPathString(), bytes, entry.getCompressionMethod());
                 } else {
-                    builder.put(entry.getName(), entry.getContent());
+                    builder.put(entry.getName(), entry.getContent(), entry.getCompressionMethod());
                 }
             } catch (Throwable e) {
                 throw new IOException("Failed to process the entry '" + entry.getName() + "' from '" + source + "'", e);

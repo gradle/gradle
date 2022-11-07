@@ -55,11 +55,10 @@ class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDependencyDe
         selector.versionConstraint.preferredVersion == ""
     }
 
-    def testCreateFromModuleDependency() {
+    def "test create from module dependency"() {
         when:
-        boolean withArtifacts = true
-        DefaultExternalModuleDependency moduleDependency = new DefaultExternalModuleDependency("org.gradle",
-                "gradle-core", "1.0", null)
+        def configuration = withArtifacts ? null : TEST_DEP_CONF
+        DefaultExternalModuleDependency moduleDependency = new DefaultExternalModuleDependency("org.gradle", "gradle-core", "1.0", configuration)
         setUpDependency(moduleDependency, withArtifacts)
 
         LocalOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(componentId, TEST_CONF, null, moduleDependency)
@@ -72,24 +71,8 @@ class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDependencyDe
         moduleDependency.version == dependencyMetaData.selector.version
         ((VersionConstraintInternal) moduleDependency.getVersionConstraint()).asImmutable() == dependencyMetaData.selector.versionConstraint
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData, withArtifacts)
-    }
 
-    def testCreateFromModuleDependencyWithoutArtifacts() {
-        when:
-        boolean withArtifacts = false
-        DefaultExternalModuleDependency moduleDependency = new DefaultExternalModuleDependency("org.gradle",
-            "gradle-core", "1.0", TEST_DEP_CONF)
-        setUpDependency(moduleDependency, withArtifacts)
-
-        LocalOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(componentId, TEST_CONF, null, moduleDependency)
-
-        then:
-        moduleDependency.changing == dependencyMetaData.changing
-        moduleDependency.force == dependencyMetaData.force
-        moduleDependency.group == dependencyMetaData.selector.group
-        moduleDependency.name == dependencyMetaData.selector.module
-        moduleDependency.version == dependencyMetaData.selector.version
-        ((VersionConstraintInternal) moduleDependency.getVersionConstraint()).asImmutable() == dependencyMetaData.selector.versionConstraint
-        assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData, withArtifacts)
+        where:
+        withArtifacts << [true, false]
     }
 }

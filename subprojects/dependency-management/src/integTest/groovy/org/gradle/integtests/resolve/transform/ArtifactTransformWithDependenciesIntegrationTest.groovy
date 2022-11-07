@@ -1201,6 +1201,39 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         output.contains("result = [lib2-5.6.jar.txt, lib1-1.3.jar.txt]")
     }
 
+    def "transform does not receive artifacts for dependencies referenced only via a constraint"() {
+        setupBuildWithSingleStep()
+        buildFile("""
+            project(":common") {
+                dependencies {
+                    constraints {
+                        implementation project(":lib")
+                        implementation 'unknown:unknown:1.3'
+                    }
+                }
+            }
+            project(":lib") {
+                dependencies {
+                    constraints {
+                        implementation project(":common")
+                    }
+                }
+            }
+        """)
+
+        when:
+        run ":app:resolve"
+
+        then:
+        assertTransformationsExecuted(
+            singleStep('slf4j-api-1.7.25.jar'),
+            singleStep('hamcrest-core-1.3.jar'),
+            singleStep('junit-4.11.jar', 'hamcrest-core-1.3.jar'),
+            singleStep('common.jar'),
+            singleStep('lib.jar', 'common.jar', 'slf4j-api-1.7.25.jar'),
+        )
+    }
+
     def "reuses result of transform of external dependency with different upstream dependencies when transform does not consume upstream dependencies"() {
         given:
         def lib1 = withColorVariants(mavenHttpRepo.module("test", "lib1", "1.2")).publish().allowAll()

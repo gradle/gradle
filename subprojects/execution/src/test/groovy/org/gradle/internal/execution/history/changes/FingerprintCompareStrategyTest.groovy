@@ -25,7 +25,7 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import spock.lang.Specification
 
 class FingerprintCompareStrategyTest extends Specification {
@@ -268,10 +268,10 @@ class FingerprintCompareStrategyTest extends Specification {
     def "comparing regular snapshot to empty snapshot shows entries removed (strategy: #strategy)"() {
         def fingerprint = Mock(FileCollectionFingerprint) {
             getFingerprints() >> [
-                "file1.txt": new DefaultFileSystemLocationFingerprint("file1.txt", FileType.RegularFile, HashCode.fromInt(123)),
-                "file2.txt": new DefaultFileSystemLocationFingerprint("file2.txt", FileType.RegularFile, HashCode.fromInt(234)),
+                "file1.txt": new DefaultFileSystemLocationFingerprint("file1.txt", FileType.RegularFile, TestHashCodes.hashCodeFrom(123)),
+                "file2.txt": new DefaultFileSystemLocationFingerprint("file2.txt", FileType.RegularFile, TestHashCodes.hashCodeFrom(234)),
             ]
-            getRootHashes() >> ImmutableMultimap.of('/dir', HashCode.fromInt(456))
+            getRootHashes() >> ImmutableMultimap.of('/dir', TestHashCodes.hashCodeFrom(456))
         }
         def emptyFingerprint = new EmptyCurrentFileCollectionFingerprint("test")
         expect:
@@ -297,9 +297,9 @@ class FingerprintCompareStrategyTest extends Specification {
     }
 
     def changes(FingerprintCompareStrategy strategy, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
-        def strategyConfigurationHash = HashCode.fromInt(5432)
-        def currentFingerprint = new SerializableFileCollectionFingerprint(current, ImmutableMultimap.of("some", HashCode.fromInt(1234)), strategyConfigurationHash)
-        def previousFingerprint = new SerializableFileCollectionFingerprint(previous, ImmutableMultimap.of("some", HashCode.fromInt(4321)), strategyConfigurationHash)
+        def strategyConfigurationHash = TestHashCodes.hashCodeFrom(5432)
+        def currentFingerprint = new SerializableFileCollectionFingerprint(current, ImmutableMultimap.of("some", TestHashCodes.hashCodeFrom(1234)), strategyConfigurationHash)
+        def previousFingerprint = new SerializableFileCollectionFingerprint(previous, ImmutableMultimap.of("some", TestHashCodes.hashCodeFrom(4321)), strategyConfigurationHash)
         changes(strategy, currentFingerprint, previousFingerprint)
     }
 
@@ -310,7 +310,7 @@ class FingerprintCompareStrategyTest extends Specification {
     }
 
     def fingerprint(String normalizedPath, def hashCode = 0x1234abcd) {
-        return new DefaultFileSystemLocationFingerprint(normalizedPath, FileType.RegularFile, HashCode.fromInt((int) hashCode))
+        return new DefaultFileSystemLocationFingerprint(normalizedPath, FileType.RegularFile, TestHashCodes.hashCodeFrom((int) hashCode))
     }
 
     def added(String path) {

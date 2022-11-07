@@ -21,13 +21,10 @@ import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
-@Requires(TestPrecondition.XCODE)
 class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
     def setup() {
         useXcodebuildTool()
@@ -96,7 +93,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
-        settingsFile.text =  """
+        settingsFile.text = """
             include 'app', 'deck', 'card', 'shuffle'
             rootProject.name = "${rootProjectName}"
         """
@@ -174,7 +171,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:
-        settingsFile.text =  """
+        settingsFile.text = """
             include 'app', 'deck', 'card', 'shuffle'
             rootProject.name = "${rootProjectName}"
         """

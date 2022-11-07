@@ -31,65 +31,60 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
 
-import java.util.List;
-
 public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMetadata<T>> implements DependencyMetadata<T> {
-    private final List<ModuleDependencyMetadata> container;
-    private final int originalIndex;
     private final ImmutableAttributesFactory attributesFactory;
+    private ModuleDependencyMetadata metadata;
 
-    public AbstractDependencyMetadataAdapter(ImmutableAttributesFactory attributesFactory, List<ModuleDependencyMetadata> container, int originalIndex) {
+    public AbstractDependencyMetadataAdapter(ImmutableAttributesFactory attributesFactory, ModuleDependencyMetadata metadata) {
         this.attributesFactory = attributesFactory;
-        this.container = container;
-        this.originalIndex = originalIndex;
+        this.metadata = metadata;
     }
 
-    protected ModuleDependencyMetadata getOriginalMetadata() {
-        return container.get(originalIndex);
+    public ModuleDependencyMetadata getMetadata() {
+        return metadata;
     }
 
     protected void updateMetadata(ModuleDependencyMetadata modifiedMetadata) {
-        container.set(originalIndex, modifiedMetadata);
+        this.metadata = modifiedMetadata;
     }
 
     @Override
     public String getGroup() {
-        return getOriginalMetadata().getSelector().getGroup();
+        return getMetadata().getSelector().getGroup();
     }
 
     @Override
     public String getName() {
-        return getOriginalMetadata().getSelector().getModule();
+        return getMetadata().getSelector().getModule();
     }
 
     @Override
     public VersionConstraint getVersionConstraint() {
-        return getOriginalMetadata().getSelector().getVersionConstraint();
+        return getMetadata().getSelector().getVersionConstraint();
     }
 
     @Override
     public T version(Action<? super MutableVersionConstraint> configureAction) {
         DefaultMutableVersionConstraint mutableVersionConstraint = new DefaultMutableVersionConstraint(getVersionConstraint());
         configureAction.execute(mutableVersionConstraint);
-        ModuleDependencyMetadata dependencyMetadata = getOriginalMetadata().withRequestedVersion(mutableVersionConstraint);
-        updateMetadata(dependencyMetadata);
+        updateMetadata(getMetadata().withRequestedVersion(mutableVersionConstraint));
         return Cast.uncheckedCast(this);
     }
 
     @Override
     public T because(String reason) {
-        updateMetadata(getOriginalMetadata().withReason(reason));
+        updateMetadata(getMetadata().withReason(reason));
         return Cast.uncheckedCast(this);
     }
 
     @Override
     public ModuleIdentifier getModule() {
-        return getOriginalMetadata().getSelector().getModuleIdentifier();
+        return getMetadata().getSelector().getModuleIdentifier();
     }
 
     @Override
     public String getReason() {
-        return getOriginalMetadata().getReason();
+        return getMetadata().getReason();
     }
 
     @Override
@@ -99,25 +94,24 @@ public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMeta
 
     @Override
     public AttributeContainer getAttributes() {
-        return getOriginalMetadata().getSelector().getAttributes();
+        return getMetadata().getSelector().getAttributes();
     }
 
     @Override
     public T attributes(Action<? super AttributeContainer> configureAction) {
-        ModuleComponentSelector selector = getOriginalMetadata().getSelector();
+        ModuleComponentSelector selector = getMetadata().getSelector();
         AttributeContainerInternal attributes = attributesFactory.mutable((AttributeContainerInternal) selector.getAttributes());
         configureAction.execute(attributes);
         ModuleComponentSelector target = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), selector.getVersionConstraint(), attributes.asImmutable(), selector.getRequestedCapabilities());
-        ModuleDependencyMetadata metadata = (ModuleDependencyMetadata) getOriginalMetadata().withTarget(target);
+        ModuleDependencyMetadata metadata = (ModuleDependencyMetadata) getMetadata().withTarget(target);
         updateMetadata(metadata);
         return Cast.uncheckedCast(this);
     }
 
     public void forced() {
-        ModuleDependencyMetadata originalMetadata = getOriginalMetadata();
+        ModuleDependencyMetadata originalMetadata = getMetadata();
         if (originalMetadata instanceof ForcingDependencyMetadata) {
             updateMetadata((ModuleDependencyMetadata) ((ForcingDependencyMetadata) originalMetadata).forced());
         }
     }
-
 }

@@ -16,8 +16,10 @@
 
 package org.gradle.testing.jacoco.plugins
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
+import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -188,6 +190,34 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertDoesNotContainClass("org.apache.commons.io.IOUtils")
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/20432')
+    def "aggregated report resolves classes variant of project dependencies"() {
+        given:
+        file("application/build.gradle") << """
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+
+            tasks.register('dumpAllCodeCoverageReportClassDirectoriesConfiguration') {
+                logger.lifecycle(configurations.allCodeCoverageReportClassDirectories.asPath)
+            }
+        """
+        file("transitive/build.gradle") << """
+            dependencies {
+                implementation 'org.apache.commons:commons-io:1.3.2'
+            }
+        """
+
+        when:
+        succeeds(':application:dumpAllCodeCoverageReportClassDirectoriesConfiguration')
+
+        then:
+        outputContains(file('application/build/classes/java/main').absolutePath)
+        outputDoesNotContain(file('application/build/libs/application-1.0.jar').absolutePath)
+        outputContains(file('direct/build/classes/java/main').absolutePath)
+        outputDoesNotContain(file('direct/build/libs/direct-1.0.jar').absolutePath)
+        outputContains(file('transitive/build/classes/java/main').absolutePath)
+        outputDoesNotContain(file('transitive/build/libs/transitive-1.0.jar').absolutePath)
+    }
+
     def 'aggregated report infers dependency versions from platform'() {
         given:
         file("application/build.gradle") << """
@@ -219,7 +249,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
                         testType = TestSuiteType.INTEGRATION_TEST
                         useJUnit()
                         dependencies {
-                          implementation project
+                          implementation project()
                         }
                     }
                 }

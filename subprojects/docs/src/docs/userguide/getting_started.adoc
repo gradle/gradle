@@ -21,7 +21,6 @@ Everyone has to start somewhere and if you're new to Gradle, this is where to be
 
 In order to use Gradle effectively, you need to know what it is and understand some of its fundamental concepts. So before you start using Gradle in earnest, we highly recommend you read <<what_is_gradle#what_is_gradle,What is Gradle?>>.
 
-Even if you're experienced with using Gradle, we suggest you read the section <<what_is_gradle#five_things,5 things you need to know about Gradle>> as it clears up some common misconceptions.
 
 [[gs:installation]]
 == Installation
@@ -95,7 +94,7 @@ Learning to create and maintain Gradle builds is a process, and one that takes a
 Here are some useful first steps on your journey to mastering Gradle:
 
  1. Try one or two <<#try_gradle,basic tutorials>> to see what a Gradle build looks like, particularly the ones that match the type of project you work with (Java, native, Android, etc.).
- 2. Make sure you've read <<what_is_gradle#five_things,5 things you need to know about Gradle>>!
+ 2. Make sure you've read <<what_is_gradle#what_is_gradle,What is Gradle?>>
  3. Learn about the fundamental elements of a Gradle build: <<tutorial_using_tasks#sec:projects_and_tasks,projects>>, <<more_about_tasks#more_about_tasks,tasks>>, and the <<working_with_files#working_with_files,file API>>.
  4. If you are building software for the JVM, be sure to read about the specifics of those types of projects in <<building_java_projects#building_java_projects,Building Java & JVM projects>> and <<java_testing#java_testing,Testing in Java & JVM projects>>.
  5. Familiarize yourself with the <<plugin_reference#plugin_reference,core plugins>> that come packaged with Gradle, as they provide a lot of useful functionality out of the box.

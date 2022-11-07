@@ -22,14 +22,17 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 
-fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30) {
-    applyDefaultSettings(os = os, timeout = timeout)
+fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, timeout: Int = 30) {
+    applyDefaultSettings(os = os, arch = arch, timeout = timeout)
     artifactRules = """
         build/report-*-performance-tests.zip => .
+        build/report-*-performance.zip => $hiddenArtifactDestination
+        build/report-*PerformanceTest.zip => $hiddenArtifactDestination
     """.trimIndent()
     detectHangingBuilds = false
     requirements {
-        requiresNoEc2Agent()
+        requiresNotEc2Agent()
+        requiresNotSharedHost()
     }
     params {
         param("env.JPROFILER_HOME", os.jprofilerHome)
@@ -37,11 +40,19 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
     }
 }
 
-fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", os: Os = Os.LINUX) = listOf(
+fun performanceTestCommandLine(
+    task: String,
+    baselines: String,
+    extraParameters: String = "",
+    os: Os = Os.LINUX,
+    arch: Arch = Arch.AMD64,
+    testJavaVersion: String = os.perfTestJavaVersion.major.toString(),
+    testJavaVendor: String = os.perfTestJavaVendor,
+) = listOf(
     "$task${if (extraParameters.isEmpty()) "" else " $extraParameters"}",
     "-PperformanceBaselines=$baselines",
-    "-PtestJavaVersion=${os.perfTestJavaVersion.major}",
-    "-PtestJavaVendor=${os.perfTestJavaVendor}",
+    "-PtestJavaVersion=$testJavaVersion",
+    "-PtestJavaVendor=$testJavaVendor",
     "-PautoDownloadAndroidStudio=true",
     "-PrunAndroidStudioInHeadlessMode=true",
     "-Porg.gradle.java.installations.auto-download=false",
@@ -64,6 +75,7 @@ fun BuildSteps.killGradleProcessesStep(os: Os) {
         name = "KILL_GRADLE_PROCESSES"
         executionMode = BuildStep.ExecutionMode.ALWAYS
         scriptContent = os.killAllGradleProcesses
+        skipConditionally()
     }
 }
 
@@ -77,6 +89,7 @@ fun BuildSteps.substDirOnWindows(os: Os) {
                 subst p: /d
                 subst p: "%teamcity.build.checkoutDir%"
             """.trimIndent()
+            skipConditionally()
         }
         cleanBuildLogicBuild("P:/build-logic-commons")
         cleanBuildLogicBuild("P:/build-logic")
@@ -89,6 +102,7 @@ fun BuildSteps.removeSubstDirOnWindows(os: Os) {
             name = "REMOVE_VIRTUAL_DISK_FOR_PERF_TEST"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = """dir p: && subst p: /d"""
+            skipConditionally()
         }
         cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic-commons")
         cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic")

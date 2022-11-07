@@ -19,14 +19,12 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.ClasspathHasher;
@@ -42,19 +40,20 @@ import javax.inject.Inject;
  * Compiles Scala source files, and optionally, Java source files.
  */
 @CacheableTask
-public class ScalaCompile extends AbstractScalaCompile {
+public abstract class ScalaCompile extends AbstractScalaCompile {
 
     private FileCollection scalaClasspath;
     private FileCollection zincClasspath;
     private FileCollection scalaCompilerPlugins;
-    private final Property<ScalaRuntime> scalaRuntime;
     private org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler;
 
     @Inject
     public ScalaCompile() {
-        super(new ScalaCompileOptions());
-        ObjectFactory objectFactory = getObjectFactory();
-        this.scalaRuntime = objectFactory.property(ScalaRuntime.class);
+    }
+
+    @Inject
+    protected VersionParser getVersionParser() {
+        throw new UnsupportedOperationException();
     }
 
     @Nested
@@ -97,7 +96,7 @@ public class ScalaCompile extends AbstractScalaCompile {
 
     @Override
     protected ScalaJavaJointCompileSpec createSpec() {
-        ScalaCompileOptionsConfigurer.configure(getScalaCompileOptions(), getToolchain(), getScalaClasspath().getFiles());
+        ScalaCompileOptionsConfigurer.configure(getScalaCompileOptions(), getToolchain(), getScalaClasspath().getFiles(), getVersionParser());
         ScalaJavaJointCompileSpec spec = super.createSpec();
         if (getScalaCompilerPlugins() != null) {
             spec.setScalaCompilerPlugins(ImmutableList.copyOf(getScalaCompilerPlugins()));

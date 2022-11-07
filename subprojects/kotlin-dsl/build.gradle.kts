@@ -8,10 +8,7 @@ description = "Kotlin DSL Provider"
 
 dependencies {
 
-    compileOnlyApi(libs.futureKotlin("compiler-embeddable"))
     compileOnlyApi(libs.futureKotlin("reflect"))
-
-    runtimeOnly(project(":kotlin-compiler-embeddable"))
 
     api(project(":kotlin-dsl-tooling-models"))
     api(libs.futureKotlin("stdlib-jdk8"))
@@ -45,6 +42,7 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.asm)
 
+    implementation(libs.futureKotlin("compiler-embeddable"))
     implementation(libs.futureKotlin("script-runtime"))
     implementation(libs.futureKotlin("daemon-embeddable"))
 
@@ -66,7 +64,7 @@ dependencies {
     implementation(libs.futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
     }
-    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.4.1") {
+    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0") {
         isTransitive = false
     }
 
@@ -107,6 +105,10 @@ dependencies {
     testFixturesImplementation(project(":internal-testing"))
     testFixturesImplementation(project(":internal-integ-testing"))
 
+    testFixturesImplementation(testFixtures(project(":hashing")))
+
+    testFixturesImplementation(libs.futureKotlin("compiler-embeddable"))
+
     testFixturesImplementation(libs.junit)
     testFixturesImplementation(libs.mockitoKotlin)
     testFixturesImplementation(libs.jacksonKotlin)
@@ -115,8 +117,12 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/**")
 }
 
 testFilesCleanup.reportOnly.set(true)
+
+strictCompile {
+    ignoreDeprecations()
+}

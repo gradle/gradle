@@ -18,13 +18,14 @@ package org.gradle.architecture.test;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.xml.MarkupBuilder;
+import org.gradle.api.Plugin;
+import org.gradle.api.Task;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -33,11 +34,9 @@ import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
 
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
-import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
-import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
-import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -47,14 +46,12 @@ import static org.gradle.architecture.test.ArchUnitFixture.gradleInternalApi;
 import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
 import static org.gradle.architecture.test.ArchUnitFixture.haveDirectSuperclassOrInterfaceThatAre;
 import static org.gradle.architecture.test.ArchUnitFixture.haveOnlyArgumentsOrReturnTypesThatAre;
+import static org.gradle.architecture.test.ArchUnitFixture.beAbstract;
 import static org.gradle.architecture.test.ArchUnitFixture.primitive;
+import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 
 @AnalyzeClasses(packages = "org.gradle")
 public class PublicApiAccessTest {
-
-    private static final DescribedPredicate<JavaMember> public_api_methods = declaredIn(gradlePublicApi())
-        .and(modifier(PUBLIC))
-        .as("public API methods");
 
     private static final DescribedPredicate<JavaClass> allowed_types_for_public_api =
         gradlePublicApi()
@@ -73,12 +70,19 @@ public class PublicApiAccessTest {
                 .or(type(Closure.class))
                 .as("Groovy classes")
             );
+    private static final DescribedPredicate<JavaClass> public_api_tasks_or_plugins =
+            gradlePublicApi().and(assignableTo(Task.class).or(assignableTo(Plugin.class)));
 
     @ArchTest
     public static final ArchRule public_api_methods_do_not_reference_internal_types_as_parameters = freeze(methods()
         .that(are(public_api_methods))
         .should(haveOnlyArgumentsOrReturnTypesThatAre(allowed_types_for_public_api))
     );
+
+    @ArchTest
+    public static final ArchRule public_api_tasks_and_plugins_are_abstract = classes()
+            .that(are(public_api_tasks_or_plugins))
+            .should(beAbstract());
 
     @ArchTest
     public static final ArchRule public_api_classes_do_not_extend_internal_types = freeze(classes()

@@ -25,7 +25,6 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExternalProcessStartedListener;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
@@ -97,18 +96,16 @@ import org.gradle.configuration.ScriptPluginFactorySelector;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.project.DefaultCompileOperationFactory;
 import org.gradle.configuration.project.PluginsProjectConfigureActions;
-import org.gradle.execution.CompositeAwareTaskSelector;
 import org.gradle.execution.ProjectConfigurer;
-import org.gradle.execution.TaskNameResolver;
-import org.gradle.execution.TaskPathProjectEvaluator;
-import org.gradle.execution.TaskSelector;
 import org.gradle.execution.plan.DefaultNodeValidator;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.ExecutionPlanFactory;
+import org.gradle.execution.plan.OrdinalGroupFactory;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.execution.plan.TaskNodeDependencyResolver;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.execution.plan.WorkNodeDependencyResolver;
+import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.internal.BuildOperationBackedScriptCompilationHandler;
@@ -127,6 +124,7 @@ import org.gradle.initialization.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
+import org.gradle.initialization.DefaultToolchainManagement;
 import org.gradle.initialization.Environment;
 import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.GradleUserHomeDirProvider;
@@ -191,6 +189,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resource.local.FileResourceListener;
+import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scripts.ScriptExecutionListener;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -221,10 +220,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registration.add(DefaultFileOperations.class);
             registration.add(DefaultFileSystemOperations.class);
             registration.add(DefaultArchiveOperations.class);
-            registration.add(TaskPathProjectEvaluator.class);
             registration.add(ProjectFactory.class);
             registration.add(DefaultSettingsLoaderFactory.class);
             registration.add(ResolvedBuildLayout.class);
+            registration.add(DefaultNodeValidator.class);
             registration.add(TaskNodeFactory.class);
             registration.add(TaskNodeDependencyResolver.class);
             registration.add(WorkNodeDependencyResolver.class);
@@ -238,19 +237,26 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         });
     }
 
+    OrdinalGroupFactory createOrdinalGroupFactory() {
+        return new OrdinalGroupFactory();
+    }
+
     ExecutionPlanFactory createExecutionPlanFactory(
-        GradleInternal gradleInternal,
+        BuildState build,
         TaskNodeFactory taskNodeFactory,
+        OrdinalGroupFactory ordinalGroupFactory,
         TaskDependencyResolver dependencyResolver,
-        ExecutionNodeAccessHierarchies executionNodeAccessHierarchies
+        ExecutionNodeAccessHierarchies executionNodeAccessHierarchies,
+        ResourceLockCoordinationService lockCoordinationService
     ) {
         return new ExecutionPlanFactory(
-            gradleInternal.getIdentityPath().toString(),
+            build.getDisplayName().getDisplayName(),
             taskNodeFactory,
+            ordinalGroupFactory,
             dependencyResolver,
-            new DefaultNodeValidator(),
             executionNodeAccessHierarchies.getOutputHierarchy(),
-            executionNodeAccessHierarchies.getDestroyableHierarchy()
+            executionNodeAccessHierarchies.getDestroyableHierarchy(),
+            lockCoordinationService
         );
     }
 
@@ -567,8 +573,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             ));
     }
 
-    protected TaskSelector createTaskSelector(GradleInternal gradle, BuildStateRegistry buildStateRegistry, ProjectConfigurer projectConfigurer) {
-        return new CompositeAwareTaskSelector(gradle, buildStateRegistry, projectConfigurer, new TaskNameResolver());
+    protected BuildTaskSelector.BuildSpecificSelector createTaskSelector(BuildTaskSelector selector, BuildState build) {
+        return selector.relativeToBuild(build);
     }
 
     protected PluginRegistry createPluginRegistry(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector) {
@@ -648,5 +654,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             scriptExecutionListener,
             instantiatorFactory.inject()
         );
+    }
+
+    protected DefaultToolchainManagement createToolchainManagement(ObjectFactory objectFactory) {
+        return objectFactory.newInstance(DefaultToolchainManagement.class);
     }
 }

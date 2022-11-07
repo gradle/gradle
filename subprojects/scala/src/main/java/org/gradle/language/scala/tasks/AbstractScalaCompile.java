@@ -43,12 +43,14 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
+import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.jvm.Jvm;
@@ -80,16 +82,34 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     private final ConfigurableFileCollection analysisFiles;
     private final Property<JavaLauncher> javaLauncher;
 
-    protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
+    {
+        // Calling this(getProject().getObject()...) in the constructor is invalid as getProject() is an instance method.
+        // To avoid code duplication, the initialization logic is extracted to an instance initialization block.
         ObjectFactory objectFactory = getObjectFactory();
         this.analysisMappingFile = objectFactory.fileProperty();
         this.analysisFiles = getProject().files();
         this.compileOptions = objectFactory.newInstance(CompileOptions.class);
-        this.scalaCompileOptions = scalaCompileOptions;
-        this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));
         this.javaLauncher = objectFactory.property(JavaLauncher.class);
-
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
+    }
+
+    /**
+     * Constructor.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    protected AbstractScalaCompile() {
+        ObjectFactory objectFactory = getObjectFactory();
+        this.scalaCompileOptions = objectFactory.newInstance(ScalaCompileOptions.class);
+        this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));
+    }
+
+    @Deprecated // Kept to preserve binary compatibility; will be removed in Gradle 8.
+    @SuppressWarnings("unused")
+    protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
+        this.scalaCompileOptions = scalaCompileOptions;
+        this.scalaCompileOptions.setIncrementalOptions(getObjectFactory().newInstance(IncrementalCompileOptions.class));
     }
 
     /**
@@ -127,8 +147,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
      * @return the java launcher property
      * @since 7.2
      */
-    @Incubating
-    @Internal
+    @Nested
+    @Optional
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }

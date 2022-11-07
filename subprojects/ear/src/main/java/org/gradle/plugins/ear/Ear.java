@@ -18,7 +18,6 @@ package org.gradle.plugins.ear;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
@@ -60,7 +59,7 @@ import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
  * Assembles an EAR archive.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class Ear extends Jar {
+public abstract class Ear extends Jar {
     public static final String EAR_EXTENSION = "ear";
 
     private String libDirName;
@@ -110,7 +109,7 @@ public class Ear extends Jar {
                 return fileCollectionFactory().generated(
                     getTemporaryDirFactory(),
                     descriptorFileName,
-                    file -> outputChangeListener.beforeOutputChange(singleton(file.getAbsolutePath())),
+                    file -> outputChangeListener.invalidateCachesFor(singleton(file.getAbsolutePath())),
                     outputStream -> {
                         try {
                             outputStream.write(cachedDescriptor.get());
@@ -288,7 +287,6 @@ public class Ear extends Jar {
      * @since 7.1
      */
     @Internal
-    @Incubating
     public DirectoryProperty getAppDirectory() {
         return appDir;
     }

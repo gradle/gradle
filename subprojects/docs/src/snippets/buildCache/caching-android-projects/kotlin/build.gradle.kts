@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.plugin.KaptExtension
 
 plugins {
-    kotlin("jvm") version "1.4.32"
-    kotlin("kapt") version "1.4.32"
+    kotlin("jvm") version "1.6.0"
+    kotlin("kapt") version "1.6.0"
 }
 
 repositories {

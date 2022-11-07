@@ -18,11 +18,8 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.GradleVersion
-import spock.lang.Issue
 
 class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
-
-    @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'asciidoctor plugin #version'() {
         given:
@@ -43,13 +40,9 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             """.stripIndent()
 
         when:
-        runner('asciidoc')
-            .expectDeprecationWarning("The JavaExecHandleBuilder.setMain(String) method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 8.0. " +
-                "Please use the mainClass property instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#java_exec_properties",
-                "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/602")
-            .expectDeprecationWarning(deprecationOfFileTreeForEmptySources("sourceFileTree"), "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/629")
-            .build()
+        runner('asciidoc').deprecations(AsciidocDeprecations) {
+            expectAsciiDocDeprecationWarnings()
+        }.build()
 
         then:
         file('build/docs/asciidoc').isDirectory()
@@ -82,6 +75,20 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     void configureValidation(String pluginId, String version) {
         validatePlugins {
             alwaysPasses()
+        }
+    }
+
+    static class AsciidocDeprecations extends BaseDeprecations {
+        AsciidocDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
+
+        void expectAsciiDocDeprecationWarnings() {
+            runner.expectDeprecationWarning("The JavaExecSpec.main property has been deprecated." +
+                    " This is scheduled to be removed in Gradle 9.0." +
+                    " Please use the mainClass property instead." +
+                    " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.process.JavaExecSpec.html#org.gradle.process.JavaExecSpec:main for more details.",
+                    "")
         }
     }
 }

@@ -17,141 +17,143 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
-import org.gradle.api.internal.artifacts.ArtifactPublisher;
-import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
-import org.gradle.internal.Transformers;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
-import java.util.List;
-
-import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
- * Uploads the artifacts of a {@link Configuration} to a set of repositories.
+ * This task is <strong>no longer supported</strong> and will <strong>throw an exception</strong> if you try to use it.
+ * It is preserved solely for backwards compatibility and may be removed in a future version.
  *
- * @deprecated This class is scheduled for removal in Gradle 8.0. To upload artifacts, use the maven-publish plugin instead.
+ * @deprecated This class is scheduled for removal in a future version. To upload artifacts, use the `maven-publish` or `ivy-publish` plugins instead.
  */
-@Deprecated
+@Deprecated // TODO:Finalize Upload Removal - Issue #21439
 @DisableCachingByDefault(because = "Produces no cacheable output")
-public class Upload extends ConventionTask {
-
-    private Configuration configuration;
-    private boolean uploadDescriptor;
-    private File descriptorDestination;
-    private RepositoryHandler repositories;
-
+public abstract class Upload extends ConventionTask {
+    /**
+     * Do not use this method, it is for internal use only.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     */
+    @Deprecated
     @Inject
-    protected ArtifactPublicationServices getPublicationServices() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract DocumentationRegistry getDocumentationRegistry();
 
     @TaskAction
     protected void upload() {
-        getLogger().info("Publishing configuration: {}", configuration);
-        DeprecationLogger.deprecateTaskType(Upload.class, getPath()).willBeRemovedInGradle8().withUpgradeGuideSection(7, "upload_task_deprecation").nagUser();
-
-        Module module = ((ConfigurationInternal) configuration).getModule();
-
-        ArtifactPublisher artifactPublisher = getPublicationServices().createArtifactPublisher();
-        File descriptorDestination = isUploadDescriptor() ? getDescriptorDestination() : null;
-        List<PublicationAwareRepository> publishRepositories = collect(getRepositories(), Transformers.cast(PublicationAwareRepository.class));
-
-        try {
-            artifactPublisher.publish(publishRepositories, module, configuration, descriptorDestination);
-        } catch (Exception e) {
-            throw new PublishException(String.format("Could not publish configuration '%s'", configuration.getName()), e);
-        }
+        throw new InvalidUserCodeException(
+                "The legacy `Upload` task was removed in Gradle 8. Please use the `maven-publish` or `ivy-publish` plugin instead. See " +
+                        getDocumentationRegistry().getDocumentationFor("publishing_maven", "publishing_maven") + " or " +
+                        getDocumentationRegistry().getDocumentationFor("publishing_ivy", "publishing_ivy") + " for details");
     }
 
     /**
-     * Specifies whether the dependency descriptor should be uploaded.
+     * Do not use this method, it will always return {@code false}.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
      */
     @Input
+    @Deprecated
     public boolean isUploadDescriptor() {
-        return uploadDescriptor;
-    }
-
-    public void setUploadDescriptor(boolean uploadDescriptor) {
-        this.uploadDescriptor = uploadDescriptor;
+        return false;
     }
 
     /**
-     * Returns the path to generate the dependency descriptor to.
+     * Do not use this method, it does nothing.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
      */
-    @Internal
-    public File getDescriptorDestination() {
-        return descriptorDestination;
-    }
-
+    @Deprecated
     @SuppressWarnings("UnusedDeclaration")
-    public void setDescriptorDestination(File descriptorDestination) {
-        this.descriptorDestination = descriptorDestination;
+    public void setUploadDescriptor(boolean uploadDescriptor) { /* empty */ }
+
+    /**
+     * Do not use this method, it will always return {@code null}.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     */
+    @Internal
+    @Nullable
+    @Deprecated
+    public File getDescriptorDestination() {
+        return null;
     }
 
     /**
-     * Returns the repositories to upload to.
+     * Do not use this method, it does nothing.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     */
+    @SuppressWarnings("UnusedDeclaration")
+    @Deprecated
+    public void setDescriptorDestination(@Nullable File descriptorDestination) { /* empty */ }
+
+    /**
+     * Do not use this method, it will always return {@code null}.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
      */
     @Internal
+    @Nullable
+    @Deprecated
     public RepositoryHandler getRepositories() {
-        if (repositories == null) {
-            repositories = getPublicationServices().createRepositoryHandler();
-        }
-        return repositories;
+        return null;
     }
 
     /**
-     * Returns the configuration to upload.
+     * Do not use this method, it will always return {@code null}.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
      */
     @Internal
+    @Nullable
+    @Deprecated
     public Configuration getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(Configuration configuration) {
-        this.configuration = configuration;
+        return null;
     }
 
     /**
-     * Configures the set of repositories to upload to.
+     * Do not use this method, it does nothing.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
      */
-    public RepositoryHandler repositories(@Nullable Closure configureClosure) {
-        return ConfigureUtil.configure(configureClosure, getRepositories());
+    @Deprecated
+    @SuppressWarnings("UnusedDeclaration")
+    public void setConfiguration(@Nullable Configuration configuration) { /* empty */ }
+
+    /**
+     * Do not use this method, it will always return {@code null}.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     */
+    @Nullable
+    @Deprecated
+    @SuppressWarnings("UnusedDeclaration")
+    public RepositoryHandler repositories(@Nullable @DelegatesTo(RepositoryHandler.class) Closure configureClosure) {
+        return null;
     }
 
     /**
-     * Configures the set of repositories to upload to.
-     * @since 3.5
+     * Do not use this method, it will always return {@code null}.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
      */
+    @Nullable
+    @Deprecated
+    @SuppressWarnings("UnusedDeclaration")
     public RepositoryHandler repositories(Action<? super RepositoryHandler> configureAction) {
-        RepositoryHandler repositories = getRepositories();
-        configureAction.execute(repositories);
-        return repositories;
+        return null;
     }
 
     /**
-     * Returns the artifacts which will be uploaded.
-     *
-     * @return the artifacts.
+     * Do not use this method, it must return a non-{@code null} value as an input property to all the task to run,
+     * but this value <strong>should not be relied upon</strong> for anything.
+     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
      */
     @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFiles
+    @Deprecated
     public FileCollection getArtifacts() {
-        Configuration configuration = getConfiguration();
-        return configuration.getAllArtifacts().getFiles();
+        return getProject().files();
     }
-
 }

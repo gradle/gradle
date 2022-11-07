@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.compile.incremental.classpath;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
 import org.gradle.cache.Cache;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
@@ -39,10 +40,8 @@ public class CachingClassSetAnalyzer implements ClassSetAnalyzer {
 
     @Override
     public ClassSetAnalysisData analyzeClasspathEntry(final File classpathEntry) {
-        return fileSystemAccess.read(
-            classpathEntry.getAbsolutePath(),
-            snapshot -> cache.get(snapshot.getHash(), hash -> delegate.analyzeClasspathEntry(classpathEntry))
-        );
+        FileSystemLocationSnapshot snapshot = fileSystemAccess.read(classpathEntry.getAbsolutePath());
+        return cache.get(snapshot.getHash(), hash -> delegate.analyzeClasspathEntry(classpathEntry));
     }
 
     @Override

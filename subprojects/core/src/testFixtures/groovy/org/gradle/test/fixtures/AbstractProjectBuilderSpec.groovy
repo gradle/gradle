@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures
 
+
 import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
@@ -60,13 +61,21 @@ abstract class AbstractProjectBuilderSpec extends Specification {
 
     @Rule SetSystemProperties systemProperties
 
-    ProjectInternal project
+    private ProjectInternal rootProject
     ProjectExecutionServices executionServices
 
     def setup() {
-        project = TestUtil.createRootProject(temporaryFolder.testDirectory)
-        executionServices = new ProjectExecutionServices(project)
         System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
+        // This prevents the ProjectBuilder from finding the Gradle build's root settings.gradle
+        // and treating the root of the repository as the root of the build
+        new File(temporaryFolder.testDirectory, "settings.gradle") << ""
+        rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
+        executionServices = new ProjectExecutionServices(rootProject)
+    }
+
+    final ProjectInternal getProject() {
+        assert rootProject!=null
+        return rootProject
     }
 
     def cleanup() {
@@ -79,7 +88,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
             null,
             DefaultTaskProperties.resolve(executionServices.get(PropertyWalker), executionServices.get(FileCollectionFactory), task as TaskInternal),
             new DefaultWorkValidationContext(documentationRegistry, WorkValidationContext.TypeOriginInspector.NO_OP),
-            { historyMaintained, context -> }
+            { context -> }
         )
         project.gradle.services.get(BuildOutputCleanupRegistry).resolveOutputs()
         executionServices.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, taskExecutionContext)

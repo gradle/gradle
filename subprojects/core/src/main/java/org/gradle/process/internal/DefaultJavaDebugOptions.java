@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.internal.model.InstantiatorBackedObjectFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.process.JavaDebugOptions;
 
@@ -27,6 +28,7 @@ import java.util.Objects;
 
 public class DefaultJavaDebugOptions implements JavaDebugOptions {
     private final Property<Boolean> enabled;
+    private final Property<String> host;
     private final Property<Integer> port;
     private final Property<Boolean> server;
     private final Property<Boolean> suspend;
@@ -34,6 +36,7 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
     @Inject
     public DefaultJavaDebugOptions(ObjectFactory objectFactory) {
         this.enabled = objectFactory.property(Boolean.class).convention(false);
+        this.host = objectFactory.property(String.class);
         this.port = objectFactory.property(Integer.class).convention(5005);
         this.server = objectFactory.property(Boolean.class).convention(true);
         this.suspend = objectFactory.property(Boolean.class).convention(true);
@@ -47,7 +50,7 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getEnabled().get(), getPort().get(), getServer().get(), getSuspend().get());
+        return Objects.hash(getEnabled().get(), getHost().getOrNull(), getPort().get(), getServer().get(), getSuspend().get());
     }
 
     @Override
@@ -60,14 +63,21 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
         }
         DefaultJavaDebugOptions that = (DefaultJavaDebugOptions) o;
         return enabled.get() == that.enabled.get()
-                && port.get().equals(that.port.get())
-                && server.get()  == that.server.get()
-                && suspend.get()  == that.suspend.get();
+            && Objects.equals(host.getOrNull(), that.host.getOrNull())
+            && port.get().equals(that.port.get())
+            && server.get() == that.server.get()
+            && suspend.get() == that.suspend.get();
     }
 
     @Override
     public Property<Boolean> getEnabled() {
         return enabled;
+    }
+
+    @Override
+    @Optional
+    public Property<String> getHost() {
+        return host;
     }
 
     @Override

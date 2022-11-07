@@ -17,13 +17,16 @@ package org.gradle.api.plugins.antlr
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
+import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
+import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
+
 class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
     String getMainTask() {
         return "build"
     }
 
-    def "can handle grammar in nested folders"(){
+    def "can handle grammar in nested folders"() {
         given:
         buildFile << """
             apply plugin: "java"
@@ -59,4 +62,45 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
 
     }
 
+    def "can configure antlr source set extension in Groovy scripts"() {
+        given:
+        buildFile << """
+            apply plugin: "java"
+            apply plugin: "antlr"
+
+            ${mavenCentralRepository(GROOVY)}
+
+            sourceSets.main {
+                antlr {}
+            }
+            sourceSets.main {
+                antlr({} as Action)
+            }
+        """
+
+        expect:
+        succeeds 'help'
+    }
+
+    def "can configure antlr source set extension in Kotlin scripts"() {
+        given:
+        buildKotlinFile << """
+            plugins {
+                java
+                antlr
+            }
+
+            ${mavenCentralRepository(KOTLIN)}
+
+            sourceSets.main {
+                antlr {}
+            }
+            sourceSets.main {
+                antlr(Action {})
+            }
+        """
+
+        expect:
+        succeeds 'help'
+    }
 }

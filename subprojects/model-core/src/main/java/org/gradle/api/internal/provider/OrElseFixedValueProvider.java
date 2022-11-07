@@ -51,7 +51,7 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
         if (value.isMissing()) {
             // Use fallback value
             return ExecutionTimeValue.fixedValue(fallbackValue);
-        } else if (value.isFixedValue()) {
+        } else if (value.hasFixedValue()) {
             // Result is fixed value, use it
             return value;
         } else {

@@ -21,11 +21,13 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.util.internal.WrapUtil;
@@ -49,10 +51,17 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
 
     @Override
     public LocalOriginDependencyMetadata createDependencyConstraintDescriptor(ComponentIdentifier componentId, String clientConfiguration, AttributeContainer attributes, DependencyConstraint dependencyConstraint) {
-        ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
-            DefaultModuleIdentifier.newId(nullToEmpty(dependencyConstraint.getGroup()), nullToEmpty(dependencyConstraint.getName())), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableList.of());
+        ComponentSelector selector = createSelector(dependencyConstraint);
         return new LocalComponentDependencyMetadata(componentId, selector, clientConfiguration, attributes, dependencyConstraint.getAttributes(), null,
                 Collections.emptyList(), Collections.emptyList(), ((DependencyConstraintInternal)dependencyConstraint).isForce(), false, false, true, false, dependencyConstraint.getReason());
+    }
+
+    private ComponentSelector createSelector(DependencyConstraint dependencyConstraint) {
+        if (dependencyConstraint instanceof DefaultProjectDependencyConstraint) {
+            return DefaultProjectComponentSelector.newSelector(((DefaultProjectDependencyConstraint) dependencyConstraint).getProjectDependency().getDependencyProject());
+        }
+        return DefaultModuleComponentSelector.newSelector(
+            DefaultModuleIdentifier.newId(nullToEmpty(dependencyConstraint.getGroup()), nullToEmpty(dependencyConstraint.getName())), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableList.of());
     }
 
     private IvyDependencyDescriptorFactory findFactoryForDependency(ModuleDependency dependency) {

@@ -18,7 +18,7 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.RejectedVersion;
 
@@ -36,9 +36,9 @@ public interface BuildableComponentIdResolveResult extends ComponentIdResolveRes
     void rejected(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier);
 
     /**
-     * Marks the component selector as resolved, with the provided metadata. The id is taken from the metadata.
+     * Marks the component selector as resolved, with the provided state. The id is taken from the metadata.
      */
-    void resolved(ComponentResolveMetadata metaData);
+    void resolved(ComponentGraphResolveState state);
 
     /**
      * Marks the component selection as failed.

@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Provider;
@@ -23,7 +24,9 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.util.internal.MavenUtil;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
@@ -51,21 +54,24 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
     private final Provider<String> toolchainLocation;
     private final XPathFactory xPathFactory;
     private final DocumentBuilderFactory documentBuilderFactory;
+    private final FileResolver fileResolver;
 
     @Inject
-    public MavenToolchainsInstallationSupplier(ProviderFactory factory) {
+    public MavenToolchainsInstallationSupplier(ProviderFactory factory, FileResolver fileResolver) {
         super(factory);
         toolchainLocation = factory.gradleProperty(PROPERTY_NAME).orElse(defaultMavenToolchainsDefinitionsLocation());
         xPathFactory = XPathFactory.newInstance();
         documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        this.fileResolver = fileResolver;
     }
 
     @Override
     protected Set<InstallationLocation> findCandidates() {
-        File toolchainFile = new File(toolchainLocation.get());
+        File toolchainFile = fileResolver.resolve(toolchainLocation.get());
         if (toolchainFile.exists()) {
             try (FileInputStream toolchain = new FileInputStream(toolchainFile)) {
                 DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+                documentBuilder.setErrorHandler(new PropagatingErrorHandler());
                 XPath xpath = xPathFactory.newXPath();
                 XPathExpression expression = xpath.compile(PARSE_EXPRESSION);
 
@@ -82,9 +88,9 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
                     .collect(Collectors.toSet());
             } catch (IOException | ParserConfigurationException | SAXException | XPathExpressionException e) {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(String.format("Java Toolchain auto-detection failed to parse Maven Toolchains located at %s", toolchainLocation), e);
+                    LOGGER.debug("Java Toolchain auto-detection failed to parse Maven Toolchains located at {}", toolchainFile, e);
                 } else {
-                    LOGGER.info(String.format("Java Toolchain auto-detection failed to parse Maven Toolchains located at %s", toolchainLocation));
+                    LOGGER.info("Java Toolchain auto-detection failed to parse Maven Toolchains located at {}. {}", toolchainFile, e.getMessage());
                 }
             }
         }
@@ -95,4 +101,21 @@ public class MavenToolchainsInstallationSupplier extends AutoDetectingInstallati
         return new File(MavenUtil.getUserMavenDir(), "toolchains.xml").getAbsolutePath();
     }
 
+    private static class PropagatingErrorHandler implements ErrorHandler {
+        @Override
+        public void warning(SAXParseException e) throws SAXException {
+            // Non-fatal error. No need to log.
+        }
+
+        @Override
+        public void error(SAXParseException e) throws SAXException {
+            // Non-fatal error. No need to log.
+        }
+
+        @Override
+        public void fatalError(SAXParseException e) throws SAXException {
+            // Propagate error -- consistent with default behavior.
+            throw e;
+        }
+    }
 }

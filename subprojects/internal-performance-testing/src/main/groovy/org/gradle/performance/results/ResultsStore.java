@@ -17,6 +17,7 @@
 package org.gradle.performance.results;
 
 import java.io.Closeable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -27,16 +28,20 @@ public interface ResultsStore extends Closeable {
     List<PerformanceExperiment> getPerformanceExperiments();
 
     /**
-     * Returns the full history of the given performance experiment.
-     */
-    PerformanceTestHistory getTestResults(PerformanceExperiment experiment, String channel);
-
-    /**
      * Returns the n most recent instances of the given test which are younger than the max age.
      *
      * This returns all the executions which are either from the channel or in the list of provided teamcity build ids.
      */
-    PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, String channel, List<String> teamcityBuildIds);
+    default PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, String channel, List<String> teamcityBuildIds) {
+        return getTestResults(experiment, mostRecentN, maxDaysOld, Collections.singletonList(channel), teamcityBuildIds);
+    }
+
+    /**
+     * Returns the n most recent instances of the given test which are younger than the max age.
+     *
+     * This returns all the executions which either match the channel patterns or are in the list of provided teamcity build ids.
+     */
+    PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, List<String> channelPatterns, List<String> teamcityBuildIds);
 
     /**
      * Returns the estimated duration for each experiment in milliseconds.

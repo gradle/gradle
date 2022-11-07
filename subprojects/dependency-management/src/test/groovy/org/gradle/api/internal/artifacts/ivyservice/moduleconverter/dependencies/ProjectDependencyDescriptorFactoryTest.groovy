@@ -48,10 +48,10 @@ class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescripto
         !projectDependencyDescriptorFactory.canConvert(Mock(ExternalModuleDependency))
     }
 
-    def testCreateFromProjectDependency() {
+    def "test create from project dependency"() {
         when:
-        boolean withArtifacts = true
-        ProjectDependency projectDependency = createProjectDependency(null)
+        def configuration = withArtifacts ? null : TEST_DEP_CONF
+        ProjectDependency projectDependency = createProjectDependency(configuration)
         setUpDependency(projectDependency, withArtifacts)
         LocalOriginDependencyMetadata dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(componentId, TEST_CONF, null, projectDependency)
 
@@ -61,21 +61,9 @@ class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescripto
         !dependencyMetaData.force
         dependencyMetaData.selector == new DefaultProjectComponentSelector(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root", ImmutableAttributes.EMPTY, [])
         projectDependency == dependencyMetaData.source
-    }
 
-    def testCreateFromProjectDependencyWithoutArtifacts() {
-        when:
-        boolean withArtifacts = false
-        ProjectDependency projectDependency = createProjectDependency(TEST_DEP_CONF)
-        setUpDependency(projectDependency, withArtifacts)
-        LocalOriginDependencyMetadata dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(componentId, TEST_CONF, null, projectDependency)
-
-        then:
-        assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData, withArtifacts)
-        !dependencyMetaData.changing
-        !dependencyMetaData.force
-        dependencyMetaData.selector == new DefaultProjectComponentSelector(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root", ImmutableAttributes.EMPTY, [])
-        projectDependency == dependencyMetaData.source
+        where:
+        withArtifacts << [true, false]
     }
 
     private ProjectDependency createProjectDependency(String dependencyConfiguration) {

@@ -33,6 +33,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.Optional;
 import java.util.Set;
 
 public class ConfigurationVariantMapping {
@@ -58,7 +59,7 @@ public class ConfigurationVariantMapping {
 
     public void collectUsageContexts(final ImmutableCollection.Builder<UsageContext> outgoing) {
         if (!outgoingConfiguration.isTransitive()) {
-            DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level.", "Consider using 'transitive = false' at the dependency level if you need this to be published.")
+            DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level", "Consider using 'transitive = false' at the dependency level if you need this to be published.")
                 .withUserManual("publishing_ivy", "configurations_marked_as_non_transitive")
                 .nagUser();
         }
@@ -111,6 +112,11 @@ public class ConfigurationVariantMapping {
         @Override
         public String getName() {
             return outgoingConfiguration.getName();
+        }
+
+        @Override
+        public Optional<String> getDescription() {
+            return Optional.ofNullable(outgoingConfiguration.getDescription());
         }
 
         @Override

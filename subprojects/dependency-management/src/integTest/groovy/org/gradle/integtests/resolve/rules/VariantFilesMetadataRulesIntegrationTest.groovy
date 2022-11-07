@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -202,7 +201,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "using a non-existing base throws and error"() {
         given:
         repository {
@@ -275,13 +273,13 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org.test:moduleA:1.0') {
-                    variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar',
+                    variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.compile-view': 'java-internal', 'org.gradle.libraryelements': 'jar',
                                             'org.gradle.category': 'documentation', 'org.gradle.docstype': 'all-files'])
                     artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'jar')
                     artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'pom')
                     if (hasModuleFile) { artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'module') }
                     module('org.test:moduleB:1.0') {
-                        variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar',
+                        variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.compile-view': 'java-internal', 'org.gradle.libraryelements': 'jar',
                                                 'org.gradle.category': 'documentation', 'org.gradle.docstype': 'all-files'])
                         artifact(group: 'org.test', name: 'moduleB', version: '1.0', type: 'jar')
                         artifact(group: 'org.test', name: 'moduleB', version: '1.0', type: 'pom')
@@ -397,7 +395,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "cannot add file with the same name multiple times"() {
         def dependencyDeclaration = (useMaven() || gradleMetadataPublished)
             ? "'org.test:moduleA:1.0'" // variant matching
@@ -604,17 +601,16 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         'java-runtime' | 'runtimeElements'
     }
 
-
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
-    def "do #not opt-out of maven artifact discovery when #not adding files to a variant (#extension artifact)"() {
+    def "opts-out of maven artifact discovery when files are added to variant metadata"() {
         given:
         repository {
             'org.test:moduleA:1.0' {
                 withModule {
                     undeclaredArtifact(classifier: 'extraFeature')
-                    undeclaredArtifact(type: extension)
-                    hasPackaging(extension)
+                    undeclaredArtifact(type: 'jar')
+                    hasPackaging('jar')
                 }
             }
         }
@@ -624,27 +620,15 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
             dependencies {
                 conf 'org.test:moduleA:1.0'
                 components {
-                    ${applyFileRule ? "withModule('org.test:moduleA', MissingFileRule) { params('-extraFeature', 'jar', '') }" : ''}
-                    ${applyFileRule && extension != 'jar' ?
-                        // it is not clear if the existing artifact is 'moduleA-1.0.jar' or 'moduleA-1.0.notJar',
-                        // because the packaging can indicate to the file extension or not. Since we do not know,
-                        // Gradle removes the 'default' artifact as soon as a file rule is applied.
-                        // We now have to explicitly add the artifact we expect.
-                        "withModule('org.test:moduleA', MissingFileRule) { params('', 'notJar', '') }" : ''
-                    }
+                    withModule('org.test:moduleA', MissingFileRule) { params('-extraFeature', 'jar', '') }
                 }
             }
         """
         repositoryInteractions {
             'org.test:moduleA:1.0' {
                 expectGetMetadata()
-                if (!applyFileRule && extension != 'jar') {
-                    expectHeadArtifact(type: extension) // testing for the file indicated by the packaging in the pom
-                }
-                if (applyFileRule) {
-                    expectGetArtifact(classifier: 'extraFeature')
-                }
-                expectGetArtifact(type: extension)
+                expectGetArtifact(classifier: 'extraFeature')
+                expectGetArtifact(type: 'jar')
             }
         }
 
@@ -653,19 +637,97 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org.test:moduleA:1.0') {
-                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: extension)
-                    if (applyFileRule) {
-                        artifact(group: 'org.test', name: 'moduleA', version: '1.0', classifier: 'extraFeature')
-                    }
+                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'jar')
+                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', classifier: 'extraFeature')
+                }
+            }
+        }
+    }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+    def "opts-out of maven artifact discovery when files are added to variant metadata (packaging='notJar')"() {
+        given:
+        repository {
+            'org.test:moduleA:1.0' {
+                withModule {
+                    undeclaredArtifact(classifier: 'extraFeature')
+                    undeclaredArtifact(type: 'notJar')
+                    hasPackaging('notJar')
                 }
             }
         }
 
-        where:
-        applyFileRule | extension | not
-        true          | 'jar'     | ''
-        false         | 'jar'     | 'not'
-        true          | 'notJar'  | ''
-        false         | 'notJar'  | 'not'
+        when:
+        buildFile << """
+            dependencies {
+                conf 'org.test:moduleA:1.0'
+                components {
+                    withModule('org.test:moduleA', MissingFileRule) { params('-extraFeature', 'jar', '') }
+                    // it is not clear if the existing artifact is 'moduleA-1.0.jar' or 'moduleA-1.0.notJar',
+                    // because the packaging can indicate to the file extension or not. Since we do not know,
+                    // Gradle removes the 'default' artifact as soon as a file rule is applied.
+                    // We now have to explicitly add the artifact we expect.
+                    withModule('org.test:moduleA', MissingFileRule) { params('', 'notJar', '') }
+                }
+            }
+        """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact(classifier: 'extraFeature')
+                expectGetArtifact(type: 'notJar')
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org.test:moduleA:1.0') {
+                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'notJar')
+                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', classifier: 'extraFeature')
+                }
+            }
+        }
+    }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+    def "probes for artifact when metadata does not include artifact"() {
+        given:
+        repository {
+            'org.test:moduleA:1.0' {
+                withModule {
+                    undeclaredArtifact(classifier: 'extraFeature')
+                    undeclaredArtifact(type: 'notJar')
+                    hasPackaging('notJar')
+                }
+            }
+        }
+
+        when:
+        buildFile << """
+            dependencies {
+                conf 'org.test:moduleA:1.0'
+            }
+        """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectHeadArtifact(type: 'notJar')
+                expectGetArtifact(type: 'notJar')
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org.test:moduleA:1.0') {
+                    artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'notJar')
+                }
+            }
+        }
     }
 }

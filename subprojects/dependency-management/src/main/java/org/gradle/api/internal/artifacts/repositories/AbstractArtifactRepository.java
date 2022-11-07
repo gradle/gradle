@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MetadataSupplierAware;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalRepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.model.ObjectFactory;
@@ -56,9 +57,11 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     private Action<? super ActionConfiguration> componentMetadataListerRuleConfiguration;
     private final ObjectFactory objectFactory;
     private final Supplier<RepositoryContentDescriptorInternal> repositoryContentDescriptor = Suppliers.memoize(this::createRepositoryDescriptor)::get;
+    private final VersionParser versionParser;
 
-    protected AbstractArtifactRepository(ObjectFactory objectFactory) {
+    protected AbstractArtifactRepository(ObjectFactory objectFactory, VersionParser versionParser) {
        this.objectFactory = objectFactory;
+        this.versionParser = versionParser;
     }
 
     @Override
@@ -110,7 +113,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
 
     @Override
     public RepositoryContentDescriptorInternal createRepositoryDescriptor() {
-        return new DefaultRepositoryContentDescriptor(this::getDisplayName);
+        return new DefaultRepositoryContentDescriptor(this::getDisplayName, versionParser);
     }
 
     @Override

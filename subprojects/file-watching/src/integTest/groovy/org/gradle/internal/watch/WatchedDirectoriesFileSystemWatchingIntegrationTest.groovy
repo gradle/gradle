@@ -17,6 +17,7 @@
 package org.gradle.internal.watch
 
 import com.google.common.collect.ImmutableSet
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.apache.commons.io.FileUtils
 import org.gradle.cache.GlobalCacheLocations
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -31,6 +32,7 @@ import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
+@LocalOnly
 class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     @Rule
     public final RepositoryHttpServer server = new RepositoryHttpServer(temporaryFolder)
@@ -292,8 +294,9 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         def mavenRepository = maven("repo")
         def mavenHttpRepository = new MavenHttpRepository(server, mavenRepository)
         m2.generateGlobalSettingsFile()
-        def remoteModule = mavenHttpRepository.module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
-        def m2Module = m2.mavenRepo().module('gradletest.maven.local.cache.test', "foo", "1.0").publish()
+        def artifactId = "foo-watch-test"
+        def remoteModule = mavenHttpRepository.module('watched.directories.maven.local.test', artifactId, "1.0").publish()
+        def m2Module = m2.mavenRepo().module('watched.directories.maven.local.test', artifactId, "1.0").publish()
 
         def projectDir = file("projectDir")
 
@@ -303,7 +306,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
             }
             configurations { compile }
             dependencies {
-                compile 'gradletest.maven.local.cache.test:foo:1.0'
+                compile 'watched.directories.maven.local.test:$artifactId:1.0'
             }
             task retrieve(type: Sync) {
                 from configurations.compile
@@ -322,7 +325,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         withWatchFs().run 'retrieve', "--info"
 
         then:
-        projectDir.file('build/foo-1.0.jar').assertIsCopyOf(m2Module.artifactFile)
+        projectDir.file("build/$artifactId-1.0.jar").assertIsCopyOf(m2Module.artifactFile)
         assertWatchedHierarchies([projectDir])
     }
 
@@ -348,7 +351,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         executer.beforeExecute {
             inDirectory(consumer)
         }
-        file("consumer/gradle.properties") << "systemProp.${VirtualFileSystemServices.MAX_HIERARCHIES_TO_WATCH_PROPERTY}=1"
+        file("consumer/gradle.properties") << "systemProp.${VirtualFileSystemServices.MAX_HIERARCHIES_TO_WATCH_PROPERTY.systemPropertyName}=1"
 
         when:
         withWatchFs().run "assemble", "--info"

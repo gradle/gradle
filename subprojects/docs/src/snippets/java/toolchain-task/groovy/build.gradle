@@ -39,6 +39,6 @@ tasks.register('showDefaultToolchain', CustomTaskUsingToolchains)
 
 tasks.register('showCustomToolchain', CustomTaskUsingToolchains) {
     launcher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(16)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }

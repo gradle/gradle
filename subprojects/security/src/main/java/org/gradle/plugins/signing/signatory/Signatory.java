@@ -17,6 +17,7 @@ package org.gradle.plugins.signing.signatory;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -57,5 +58,6 @@ public interface Signatory {
      * @return The key id
      */
     @Input
+    @Optional
     String getKeyId();
 }

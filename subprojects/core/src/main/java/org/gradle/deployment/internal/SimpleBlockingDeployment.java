@@ -18,6 +18,7 @@ package org.gradle.deployment.internal;
 
 import org.gradle.internal.UncheckedException;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -64,7 +65,7 @@ class SimpleBlockingDeployment implements DeploymentInternal {
     }
 
     @Override
-    public void upToDate(Throwable failure) {
+    public void upToDate(@Nullable Throwable failure) {
         lock.lock();
         try {
             delegate.upToDate(failure);

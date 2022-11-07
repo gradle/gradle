@@ -75,6 +75,10 @@ import java.nio.file.Files
 import javax.inject.Inject
 
 
+internal
+const val strictModeSystemPropertyName = "org.gradle.kotlin.dsl.precompiled.accessors.strict"
+
+
 @CacheableTask
 abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constructor(
 
@@ -120,6 +124,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         get() = scriptPluginFilesOf(plugins)
 
     @get:Input
+    @Deprecated("Will be removed in Gradle 9.0")
     abstract val strict: Property<Boolean>
 
     init {
@@ -356,7 +361,9 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     startParameter.gradleHomeDir,
                     startParameter.gradleUserHomeDir,
                     projectDir,
-                    projectDir
+                    projectDir,
+                    null,
+                    null
                 )
             )
         }

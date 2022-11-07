@@ -51,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 
 public class IvyModuleDescriptorConverter {
-    private static final IvyArtifactName WILDARD_ARTIFACT = new DefaultIvyArtifactName(PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION, PatternMatchers.ANY_EXPRESSION);
 
     private static final String CLASSIFIER = "classifier";
     private static final Field DEPENDENCY_CONFIG_FIELD;

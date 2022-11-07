@@ -20,21 +20,22 @@ import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.specs.Spec;
 import org.gradle.execution.BuildWorkExecutor;
+import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.BuildWorkPlan;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.FinalizedExecutionPlan;
+import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
-import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.Describables;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
-import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -53,11 +54,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
-    private final BuildCompletionListener buildCompletionListener;
     private final InternalBuildFinishedListener buildFinishedListener;
     private final BuildWorkPreparer workPreparer;
     private final BuildWorkExecutor workExecutor;
-    private final BuildScopeServices buildServices;
     private final BuildToolingModelControllerFactory toolingModelControllerFactory;
     private final BuildModelController modelController;
     private final StateTransitionController<State> state;
@@ -69,11 +68,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         BuildModelController buildModelController,
         ExceptionAnalyser exceptionAnalyser,
         BuildListener buildListener,
-        BuildCompletionListener buildCompletionListener,
         InternalBuildFinishedListener buildFinishedListener,
         BuildWorkPreparer workPreparer,
         BuildWorkExecutor workExecutor,
-        BuildScopeServices buildServices,
         BuildToolingModelControllerFactory toolingModelControllerFactory,
         StateTransitionControllerFactory controllerFactory
     ) {
@@ -83,9 +80,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         this.buildListener = buildListener;
         this.workPreparer = workPreparer;
         this.workExecutor = workExecutor;
-        this.buildCompletionListener = buildCompletionListener;
         this.buildFinishedListener = buildFinishedListener;
-        this.buildServices = buildServices;
         this.toolingModelControllerFactory = toolingModelControllerFactory;
         this.state = controllerFactory.newController(Describables.of("state of", gradle.getOwner().getDisplayName()), State.Configure);
     }
@@ -122,6 +117,11 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
+    public void resetState() {
+        state.restart(State.Configure, () -> gradle.resetState());
+    }
+
+    @Override
     public GradleInternal getConfiguredBuild() {
         // Should not ignore other threads. See above.
         return state.notInStateIgnoreOtherThreads(State.Finished, modelController::getConfiguredModel);
@@ -137,24 +137,28 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
     @Override
     public BuildWorkPlan newWorkGraph() {
-        return state.inState(State.TaskSchedule, () -> {
-            ExecutionPlan plan = workPreparer.newExecutionPlan();
-            modelController.initializeWorkGraph(plan);
-            return new DefaultBuildWorkPlan(this, plan);
-        });
+        ExecutionPlan plan = workPreparer.newExecutionPlan();
+        return new DefaultBuildWorkPlan(this, plan);
     }
 
     @Override
     public void populateWorkGraph(BuildWorkPlan plan, Consumer<? super WorkGraphBuilder> action) {
         DefaultBuildWorkPlan workPlan = unpack(plan);
+        workPlan.empty = false;
         state.inState(State.TaskSchedule, () -> workPreparer.populateWorkGraph(gradle, workPlan.plan, dest -> action.accept(new DefaultWorkGraphBuilder(dest))));
     }
 
     @Override
     public void finalizeWorkGraph(BuildWorkPlan plan) {
         DefaultBuildWorkPlan workPlan = unpack(plan);
+        if (workPlan.empty) {
+            return;
+        }
         state.transition(State.TaskSchedule, State.ReadyToRun, () -> {
-            workPreparer.finalizeWorkGraph(gradle, workPlan.plan);
+            for (Consumer<LocalTaskNode> handler : workPlan.handlers) {
+                workPlan.plan.onComplete(handler);
+            }
+            workPlan.finalizedPlan = workPreparer.finalizeWorkGraph(gradle, workPlan.plan);
         });
     }
 
@@ -162,7 +166,10 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     public ExecutionResult<Void> executeTasks(BuildWorkPlan plan) {
         // Execute tasks and transition back to "configure", as this build may run more tasks;
         DefaultBuildWorkPlan workPlan = unpack(plan);
-        return state.tryTransition(State.ReadyToRun, State.Configure, () -> workExecutor.execute(gradle, workPlan.plan));
+        if (workPlan.empty) {
+            return ExecutionResult.succeeded();
+        }
+        return state.tryTransition(State.ReadyToRun, State.Configure, () -> workExecutor.execute(gradle, workPlan.finalizedPlan));
     }
 
     private DefaultBuildWorkPlan unpack(BuildWorkPlan plan) {
@@ -213,22 +220,31 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         getGradle().addListener(listener);
     }
 
-    @Override
-    public void stop() {
-        try {
-            CompositeStoppable.stoppable(buildServices).stop();
-        } finally {
-            buildCompletionListener.completed();
-        }
-    }
-
     private static class DefaultBuildWorkPlan implements BuildWorkPlan {
         private final DefaultBuildLifecycleController owner;
         private final ExecutionPlan plan;
+        private final List<Consumer<LocalTaskNode>> handlers = new ArrayList<>();
+        private FinalizedExecutionPlan finalizedPlan;
+        private boolean empty = true;
 
         public DefaultBuildWorkPlan(DefaultBuildLifecycleController owner, ExecutionPlan plan) {
             this.owner = owner;
             this.plan = plan;
+        }
+
+        @Override
+        public void stop() {
+            plan.close();
+        }
+
+        @Override
+        public void addFilter(Spec<Task> filter) {
+            plan.addFilter(filter);
+        }
+
+        @Override
+        public void onComplete(Consumer<LocalTaskNode> handler) {
+            handlers.add(handler);
         }
     }
 
@@ -240,20 +256,20 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
-        public void addRequestedTasks() {
-            modelController.scheduleRequestedTasks(plan);
+        public void addRequestedTasks(@Nullable EntryTaskSelector selector) {
+            modelController.scheduleRequestedTasks(selector, plan);
         }
 
         @Override
         public void addEntryTasks(List<? extends Task> tasks) {
             for (Task task : tasks) {
-                plan.addEntryTasks(Collections.singletonList(task));
+                plan.addEntryTask(task);
             }
         }
 
         @Override
-        public void addNodes(List<? extends Node> nodes) {
-            plan.addNodes(nodes);
+        public void setScheduledNodes(List<? extends Node> nodes) {
+            plan.setScheduledNodes(nodes);
         }
     }
 }

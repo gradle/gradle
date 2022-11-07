@@ -18,15 +18,16 @@ package org.gradle.architecture.test;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
-import com.tngtech.archunit.base.PackageMatchers;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaGenericArrayType;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaParameterizedType;
 import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.JavaWildcardType;
+import com.tngtech.archunit.core.domain.PackageMatchers;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -55,9 +56,16 @@ import java.util.stream.Stream;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
+import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
+import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static java.util.stream.Collectors.toSet;
 
 public interface ArchUnitFixture {
+    DescribedPredicate<JavaMember> public_api_methods = declaredIn(gradlePublicApi())
+        .and(modifier(PUBLIC))
+        .as("public API methods");
+
     static ArchRule freeze(ArchRule rule) {
         return new FreezeInstructionsPrintingArchRule(FreezingArchRule.freeze(rule));
     }
@@ -74,7 +82,7 @@ public interface ArchUnitFixture {
 
     DescribedPredicate<JavaClass> primitive = new DescribedPredicate<JavaClass>("primitive") {
         @Override
-        public boolean apply(JavaClass input) {
+        public boolean test(JavaClass input) {
             return input.isPrimitive();
         }
     };
@@ -82,8 +90,21 @@ public interface ArchUnitFixture {
     static <T> DescribedPredicate<Collection<T>> thatAll(DescribedPredicate<T> predicate) {
         return new DescribedPredicate<Collection<T>>("that all %s", predicate.getDescription()) {
             @Override
-            public boolean apply(Collection<T> input) {
-                return input.stream().allMatch(predicate::apply);
+            public boolean test(Collection<T> input) {
+                return input.stream().allMatch(predicate);
+            }
+        };
+    }
+
+    static ArchCondition<JavaClass> beAbstract() {
+        return new ArchCondition<JavaClass>("be abstract") {
+            @Override
+            public void check(JavaClass input, ConditionEvents events) {
+                if (input.isInterface() || input.getModifiers().contains(JavaModifier.ABSTRACT)) {
+                    events.add(new SimpleConditionEvent(input, true, input.getFullName() + " is abstract"));
+                } else {
+                    events.add(new SimpleConditionEvent(input, false, input.getFullName() + " is not abstract"));
+                }
             }
         };
     }
@@ -111,7 +132,7 @@ public interface ArchUnitFixture {
             method.getTypeParameters().forEach(typeParameter -> unpackJavaType(typeParameter, referencedTypes));
             referencedTypes.addAll(method.getRawParameterTypes());
             ImmutableSet<String> matchedClasses = referencedTypes.stream()
-                .filter(it -> !types.apply(it))
+                .filter(it -> !types.test(it))
                 .map(JavaClass::getName)
                 .collect(ImmutableSet.toImmutableSet());
             boolean fulfilled = matchedClasses.isEmpty();
@@ -168,8 +189,8 @@ public interface ArchUnitFixture {
         }
 
         @Override
-        public boolean apply(JavaClass input) {
-            return INCLUDES.apply(input.getPackageName()) && !EXCLUDES.apply(input.getPackageName()) && !TEST_FIXTURES.apply(input) && input.getModifiers().contains(JavaModifier.PUBLIC);
+        public boolean test(JavaClass input) {
+            return INCLUDES.test(input.getPackageName()) && !EXCLUDES.test(input.getPackageName()) && !TEST_FIXTURES.test(input) && input.getModifiers().contains(JavaModifier.PUBLIC);
         }
 
         private static Set<String> parsePackageMatcher(String packageList) {
@@ -189,10 +210,10 @@ public interface ArchUnitFixture {
 
         @Override
         public void check(JavaClass item, ConditionEvents events) {
-            Optional<JavaClass> matchingSuperclass = Optional.ofNullable(item.getRawSuperclass().orNull())
-                .filter(types::apply);
+            Optional<JavaClass> matchingSuperclass = item.getRawSuperclass()
+                .filter(types);
             Stream<JavaClass> matchingInterfaces = item.getRawInterfaces().stream()
-                .filter(types::apply);
+                .filter(types);
             List<String> implementedClasses = Stream.concat(matchingSuperclass.map(Stream::of).orElse(Stream.empty()), matchingInterfaces)
                 .map(JavaClass::getName)
                 .collect(Collectors.toList());

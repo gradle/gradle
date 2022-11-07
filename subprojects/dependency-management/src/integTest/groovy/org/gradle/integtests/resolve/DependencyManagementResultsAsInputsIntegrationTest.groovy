@@ -30,6 +30,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.ImmutableCapability
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -49,6 +50,17 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
                 configurations {
                     runtimeElements {
                         attributes { attribute(myAttribute, System.getProperty('$sysPropName', 'default-value')) }
+                    }
+                }
+            """
+        }
+        def unselectedVariantDeclaration = { sysPropName ->
+            """
+                def myUnselectedAttribute = Attribute.of("my.unselected.attribute.name", String)
+                dependencies.attributesSchema { attribute(myUnselectedAttribute) }
+                configurations {
+                    mainSourceElements {
+                        attributes { attribute(myUnselectedAttribute, System.getProperty('$sysPropName', 'default-value')) }
                     }
                 }
             """
@@ -75,6 +87,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             project(':project-lib') {
                 apply plugin: 'java-library'
                 ${variantDeclaration('projectLibAttrValue')}
+                ${unselectedVariantDeclaration('projectUnselectedLibAttrValue')}
             }
             apply plugin: 'java-library'
             repositories { maven { url "${mavenHttpRepo.uri}" } }
@@ -111,23 +124,55 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         withOriginalSourceIn("composite-lib")
     }
 
-    def "can not use ResolvedArtifactResult as task input"() {
+    def "can not use ResolvedArtifactResult as task input annotated with #annotation"() {
+
+        executer.beforeExecute {
+            executer.noDeprecationChecks() // Cannot convert the provided notation to a File or URI
+            executer.withArgument("-Dorg.gradle.internal.max.validation.errors=20")
+        }
+
         given:
         buildFile << """
+            interface NestedBean {
+                $annotation
+                Property<ResolvedArtifactResult> getNested()
+            }
+
             abstract class TaskWithInput extends DefaultTask {
 
-                @Input
-                abstract SetProperty<ResolvedArtifactResult> getInput();
+                private final NestedBean nested = project.objects.newInstance(NestedBean.class)
 
-                @OutputFile
-                abstract RegularFileProperty getOutputFile()
+                $annotation
+                ResolvedArtifactResult getDirect() { null }
+
+                $annotation
+                Provider<ResolvedArtifactResult> getProviderInput() { propertyInput }
+
+                $annotation
+                abstract Property<ResolvedArtifactResult> getPropertyInput();
+
+                $annotation
+                abstract SetProperty<ResolvedArtifactResult> getSetPropertyInput();
+
+                $annotation
+                abstract ListProperty<ResolvedArtifactResult> getListPropertyInput();
+
+                $annotation
+                abstract MapProperty<String, ResolvedArtifactResult> getMapPropertyInput();
+
+                @Nested
+                abstract NestedBean getNestedInput();
             }
 
             tasks.register('verify', TaskWithInput) {
-                input.set(configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts)
-                outputFile.set(layout.buildDirectory.file('output.txt'))
+                def artifacts = configurations.runtimeClasspath.incoming.artifacts
+                propertyInput.set(artifacts.resolvedArtifacts.map { it[0] })
+                setPropertyInput.set(artifacts.resolvedArtifacts)
+                listPropertyInput.set(artifacts.resolvedArtifacts)
+                mapPropertyInput.put("some", artifacts.resolvedArtifacts.map { it[0] })
+                nestedInput.nested.set(artifacts.resolvedArtifacts.map { it[0] })
                 doLast {
-                    println(input.get())
+                    println(setPropertyInput.get())
                 }
             }
         """
@@ -136,8 +181,30 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         fails "verify"
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':verify'.")
-        failureHasCause("Cannot fingerprint input property 'input'")
+        failureDescriptionStartsWith("Some problems were found with the configuration of task ':verify' (type 'TaskWithInput').")
+        failureDescriptionContains("Type 'TaskWithInput' property 'direct' has $annotation annotation used on property of type 'ResolvedArtifactResult'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'providerInput' has $annotation annotation used on property of type 'Provider<ResolvedArtifactResult>'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'propertyInput' has $annotation annotation used on property of type 'Property<ResolvedArtifactResult>'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'setPropertyInput' has $annotation annotation used on property of type 'SetProperty<ResolvedArtifactResult>'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'listPropertyInput' has $annotation annotation used on property of type 'ListProperty<ResolvedArtifactResult>'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'mapPropertyInput' has $annotation annotation used on property of type 'MapProperty<String, ResolvedArtifactResult>'.")
+        failureDescriptionContains("Type 'TaskWithInput' property 'nestedInput.nested' has $annotation annotation used on property of type 'Property<ResolvedArtifactResult>'.")
+
+        // Because
+        failureDescriptionContains("ResolvedArtifactResult is not supported on task properties annotated with $annotation.")
+
+        // Possible solutions
+        failureDescriptionContains("1. Extract artifact metadata and annotate with @Input.")
+        failureDescriptionContains("2. Extract artifact files and annotate with @InputFiles.")
+
+        // Documentation
+        failureDescriptionContains("Please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#unsupported_value_type for more details about this problem.")
+
+        where:
+        annotation    | _
+        "@Input"      | _
+        "@InputFile"  | _
+        "@InputFiles" | _
     }
 
     def "can use #type as task input"() {
@@ -471,8 +538,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         executedAndNotSkipped ":verify"
     }
 
-    def "can use ResolvedComponentResult result as task input"() {
-        given:
+    private def resolvedComponentResultSetup() {
         buildFile << """
             abstract class TaskWithGraphInput extends DefaultTask {
 
@@ -491,79 +557,144 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
                 }
             }
         """
+    }
 
-        when:
+    def "can use ResolvedComponentResult result as task input and changing source in '#changeLoc' doesn't invalidate the cache"() {
+        given:
+        resolvedComponentResultSetup()
+
+        when: "Task without changes is executed & not skipped"
         succeeds "verify"
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when:
-        succeeds "verify"
-
-        then:
-        skipped ":verify"
-        notExecuted ":project-lib:jar", ":composite-lib:jar"
-
-        when:
-        withChangedSourceIn("project-lib")
-        succeeds "verify"
-
-        then:
-        skipped ":verify"
-        notExecuted ":project-lib:jar", ":composite-lib:jar"
-
-        when:
-        withChangedSourceIn("composite-lib")
+        when: "Running it again with the same environment skips the task"
         succeeds "verify"
 
         then:
         skipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when:
-        withNewExternalDependency()
-        succeeds "verify"
-
-        then:
-        executedAndNotSkipped ":verify"
-        notExecuted ":project-lib:jar", ":composite-lib:jar"
-
-        when:
+        when: "The change doesn't invalidate the cache"
+        withChangedSourceIn(changeLoc)
         succeeds "verify"
 
         then:
         skipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when: "changing selection reason"
-        succeeds "verify", "-DselectionReason=changed"
+        where:
+        changeLoc << ['project-lib', 'composite-lib']
+    }
+
+    def "can use ResolvedComponentResult result as task input and '#changeDesc' invalidates the cache"() {
+        given:
+        resolvedComponentResultSetup()
+        buildFile << """
+            if (Boolean.getBoolean("externalDependency")) {
+                dependencies { implementation 'org.external:external-tool:1.0' }
+            }
+        """
+
+        when: "Task without changes is executed & not skipped"
+        succeeds "verify"
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when: "changing project library variant metadata"
-        succeeds "verify", "-DprojectLibAttrValue=new-value"
+        when: "Running it again with the same environment skips the task"
+        succeeds "verify"
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "Making a change invalidates the cache"
+        succeeds "verify", changeArg
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when: "changing included library variant metadata"
-        succeeds "verify", "-DcompositeLibAttrValue=new-value"
+        when: "Keeping the change skips the task again"
+        succeeds "verify", changeArg
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "Losing the change invalidates the cache"
+        succeeds "verify"
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
 
-        when: "changing external library variant metadata"
-        succeeds "verify", "-DexternalLibAttrValue=new-value"
+        where:
+        changeDesc                                   | changeArg
+        "a new external dependency"                  | "-DexternalDependency=true"
+        "changing selection reasons"                 | "-DselectionReason=changed"
+        "changing project library variant metadata"  | "-DprojectLibAttrValue=new-value"
+        "changing included library variant metadata" | "-DcompositeLibAttrValue=new-value"
+        "changing external library variant metadata" | "-DexternalLibAttrValue=new-value"
+    }
+
+    def "can use ResolvedComponentResult result as task input and '#changeDesc' invalidates the cache (returnAllVariants=true)"() {
+        given:
+        resolvedComponentResultSetup()
+        buildFile << """
+            if (Boolean.getBoolean("externalDependency")) {
+                dependencies { implementation 'org.external:external-tool:1.0' }
+            }
+            configurations.runtimeClasspath.returnAllVariants = true
+        """
+
+        when: "Task without changes is executed & not skipped"
+        succeeds "verify"
 
         then:
         executedAndNotSkipped ":verify"
         notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "Running it again with the same environment skips the task"
+        succeeds "verify"
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "The change invalidates the cache"
+        succeeds "verify", changeArg
+
+        then:
+        executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "Keeping the change skips the task again"
+        succeeds "verify", changeArg
+
+        then:
+        skipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        when: "Losing the change invalidates the cache"
+        succeeds "verify"
+
+        then:
+        executedAndNotSkipped ":verify"
+        notExecuted ":project-lib:jar", ":composite-lib:jar"
+
+        where:
+        changeDesc                                             | changeArg
+        "a new external dependency"                            | "-DexternalDependency=true"
+        "changing selection reasons"                           | "-DselectionReason=changed"
+        "changing project library variant metadata"            | "-DprojectLibAttrValue=new-value"
+        "changing unselected project library variant metadata" | "-DprojectUnselectedLibAttrValue=new-value"
+        "changing included library variant metadata"           | "-DcompositeLibAttrValue=new-value"
+        "changing external library variant metadata"           | "-DexternalLibAttrValue=new-value"
     }
 
     private void withOriginalSourceIn(String basePath) {

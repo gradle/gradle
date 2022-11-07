@@ -16,11 +16,11 @@
 
 package org.gradle.test.fixtures.server.http
 
+import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.resource.RemoteArtifact
-import org.gradle.test.fixtures.resource.RemoteResource
 
 abstract class HttpArtifact extends HttpResource implements RemoteArtifact {
 
@@ -31,24 +31,27 @@ abstract class HttpArtifact extends HttpResource implements RemoteArtifact {
         this.modulePath = modulePath
     }
 
+    @Override
     HttpResource getMd5() {
         return new BasicHttpResource(server, getMd5File(), "${path}.md5")
     }
 
+    @Override
     HttpResource getSha1() {
         return new BasicHttpResource(server, getSha1File(), "${path}.sha1")
     }
 
     @Override
-    RemoteResource getSha256() {
+    HttpResource getSha256() {
         new BasicHttpResource(server, getSha256File(), "${path}.sha256")
     }
 
     @Override
-    RemoteResource getSha512() {
+    HttpResource getSha512() {
         new BasicHttpResource(server, getSha512File(), "${path}.sha512")
     }
 
+    @Override
     String getPath() {
         return "${modulePath}/${file.name}"
     }
@@ -72,13 +75,13 @@ abstract class HttpArtifact extends HttpResource implements RemoteArtifact {
         assert HashCode.fromString(md5File.text) == Hashing.md5().hashFile(getFile())
     }
 
-    void expectPublish(boolean extraChecksums = true) {
-        expectPut()
-        sha1.expectPut()
+    void expectPublish(boolean extraChecksums = true, PasswordCredentials credentials = null) {
+        expectPut(credentials)
+        sha1.expectPut(credentials)
         if (extraChecksums) {
-            sha256.expectPut()
-            sha512.expectPut()
+            sha256.expectPut(credentials)
+            sha512.expectPut(credentials)
         }
-        md5.expectPut()
+        md5.expectPut(credentials)
     }
 }

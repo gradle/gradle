@@ -57,11 +57,35 @@ public class ToolchainReportRenderer extends TextReportRenderer {
             for (ReportableToolchain toolchain : invalidToolchains) {
                 JvmInstallationMetadata metadata = toolchain.metadata;
                 output.withStyle(Identifier).println("     + " + metadata.getJavaHome());
-                final String paddedErrorType = Strings.padEnd("Error:", 20, ' ');
-                getTextOutput().withStyle(Normal).format("       | %s", paddedErrorType);
-                getTextOutput().withStyle(Description).println(metadata.getErrorMessage());
+                printInvalidToolchainErrorLines(toolchain);
             }
             output.println();
         }
     }
+
+    private void printInvalidToolchainErrorLines(ReportableToolchain invalidToolchain) {
+        getTextOutput().withStyle(Normal).format("       | %s", Strings.padEnd("Error:", 20, ' '));
+        getTextOutput().withStyle(Description).println(invalidToolchain.metadata.getErrorMessage());
+
+        final Throwable errorCause = invalidToolchain.metadata.getErrorCause();
+        Throwable cause = errorCause != null ? errorCause.getCause() : null;
+        int reportedCauseLines = 0;
+        while (cause != null) {
+            getTextOutput().withStyle(Normal).format("       | %s", Strings.padEnd("    Caused by:", 20, ' '));
+            getTextOutput().withStyle(Description).println(cause.getMessage());
+            reportedCauseLines++;
+
+            cause = cause.getCause();
+
+            // Protect against excessively long cause-chains in the outputs.
+            if (reportedCauseLines == INVALID_TOOLCHAIN_ERROR_CAUSE_LIMIT && cause != null) {
+                // Ellipsize the omitted cause lines:
+                getTextOutput().withStyle(Normal).format("       | %s", Strings.padEnd("", 20, ' '));
+                getTextOutput().withStyle(Description).println("...");
+                break;
+            }
+        }
+    }
+
+    private static final int INVALID_TOOLCHAIN_ERROR_CAUSE_LIMIT = 5;
 }

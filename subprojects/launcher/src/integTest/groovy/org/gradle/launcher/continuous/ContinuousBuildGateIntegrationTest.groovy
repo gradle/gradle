@@ -16,13 +16,13 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.deployment.internal.ContinuousExecutionGate
 import org.gradle.deployment.internal.DeploymentRegistryInternal
-import org.gradle.initialization.ContinuousExecutionGate
+import org.gradle.deployment.internal.PendingChangesListener
+import org.gradle.deployment.internal.PendingChangesManager
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.internal.filewatch.PendingChangesListener
-import org.gradle.internal.filewatch.PendingChangesManager
-import org.gradle.internal.filewatch.SingleFirePendingChangesListener
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.tooling.internal.provider.continuous.SingleFirePendingChangesListener
 import org.junit.Rule
 
 class ContinuousBuildGateIntegrationTest extends AbstractContinuousIntegrationTest {

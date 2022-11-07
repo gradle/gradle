@@ -34,14 +34,16 @@ public class DetachedComponentResult implements ResolvedGraphComponent {
     private final ComponentSelectionReason reason;
     private final ComponentIdentifier componentIdentifier;
     private final List<ResolvedVariantResult> resolvedVariants;
+    private final List<ResolvedVariantResult> allVariants;
     private final String repositoryName;
 
-    public DetachedComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier, List<ResolvedVariantResult> resolvedVariants, String repositoryName) {
+    public DetachedComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier, List<ResolvedVariantResult> resolvedVariants, List<ResolvedVariantResult> allVariants, String repositoryName) {
         this.resultId = resultId;
         this.id = id;
         this.reason = reason;
         this.componentIdentifier = componentIdentifier;
         this.resolvedVariants = resolvedVariants;
+        this.allVariants = allVariants;
         this.repositoryName = repositoryName;
     }
 
@@ -73,5 +75,10 @@ public class DetachedComponentResult implements ResolvedGraphComponent {
     @Override
     public List<ResolvedVariantResult> getResolvedVariants() {
         return resolvedVariants;
+    }
+
+    @Override
+    public List<ResolvedVariantResult> getAllVariants() {
+        return allVariants;
     }
 }

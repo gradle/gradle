@@ -7,6 +7,13 @@ description = "This project contains various native operating system integration
 
 gradlebuildJava.usedInWorkers()
 
+/**
+ * Use Java 8 compatibility for JMH benchmarks
+ */
+tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
+    options.release.set(8)
+}
+
 dependencies {
     api(project(":files"))
 

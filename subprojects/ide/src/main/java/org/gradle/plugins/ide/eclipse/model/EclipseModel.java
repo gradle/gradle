@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -63,7 +64,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * More examples in docs for {@link EclipseProject}, {@link EclipseClasspath}, {@link EclipseWtp}
  */
-public class EclipseModel {
+public abstract class EclipseModel {
 
     private EclipseProject project;
 
@@ -87,6 +88,7 @@ public class EclipseModel {
      *
      * @since 5.4
      */
+    @Inject
     public EclipseModel(Project project) {
         this.synchronizationTasks = new DefaultTaskDependency(((ProjectInternal) project).getTasks());
         this.autoBuildTasks = new DefaultTaskDependency(((ProjectInternal) project).getTasks());
@@ -167,7 +169,7 @@ public class EclipseModel {
      * <p>
      * For examples see docs for {@link EclipseProject}
      */
-    public void project(Closure closure) {
+    public void project(@DelegatesTo(EclipseProject.class) Closure closure) {
         configure(closure, getProject());
     }
 
@@ -187,7 +189,7 @@ public class EclipseModel {
      * <p>
      * For examples see docs for {@link EclipseClasspath}
      */
-    public void classpath(Closure closure) {
+    public void classpath(@DelegatesTo(EclipseClasspath.class) Closure closure) {
         configure(closure, classpath);
     }
 
@@ -207,7 +209,7 @@ public class EclipseModel {
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
-    public void wtp(Closure closure) {
+    public void wtp(@DelegatesTo(EclipseWtp.class) Closure closure) {
         configure(closure, wtp);
     }
 
@@ -227,7 +229,7 @@ public class EclipseModel {
      * <p>
      * For examples see docs for {@link EclipseProject}
      */
-    public void jdt(Closure closure) {
+    public void jdt(@DelegatesTo(EclipseJdt.class) Closure closure) {
         configure(closure, getJdt());
     }
 

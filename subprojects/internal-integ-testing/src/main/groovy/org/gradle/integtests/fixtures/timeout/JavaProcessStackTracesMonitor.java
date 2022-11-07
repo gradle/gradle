@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -42,11 +40,13 @@ import java.util.stream.Stream;
 
 /**
  * NOTICE: This class is used in LifeCyclePlugin so you must:
- * 1. NOT DEPENDS ON ANY 3RD-PARTY LIBRARIES except JDK 11
- * 2. UPDATE LifeCyclePlugin.setupTimeoutMonitorOnCI IF YOU MOVE THIS CLASS TO OTHER PACKAGE
+ * 1. NOT DEPENDS ON ANY 3RD-PARTY LIBRARIES except JDK 11.
+ * 2. UPDATE build-logic/lifecycle/src/main/kotlin/PrintStackTracesOnTimeoutBuildService.kt if this class is moved to another package.
  *
  * Used to print all JVMs' thread dumps on the machine. When it starts working, the process/machine might be in a bad state (e.g. deadlock),
- * So we don't want it to depend on any third-party libraries. It's executed directly via `java JavaProcessStackTracesMonitor` in `LifeCyclePlugin`.
+ * So we don't want it to depend on any third-party libraries. It's executed directly via `java JavaProcessStackTracesMonitor` in `PrintStackTracesOnTimeoutBuildService`.
+ *
+ * To avoid leaking credentials, it prints everything to a file (in current working directory if not specified).
  *
  * This class is executed both in gradle/gradle build and integration test (see {@link IntegrationTestTimeout}.
  */
@@ -56,8 +56,21 @@ public class JavaProcessStackTracesMonitor {
     private static final Pattern WINDOWS_PID_PATTERN = Pattern.compile("([0-9]+)\\s*$");
     private static final Pattern UNIX_PID_PATTERN = Pattern.compile("([0-9]+)");
 
+    private final File outputFile;
+    private final PrintStream output;
+
+    public JavaProcessStackTracesMonitor(File dumpDir) {
+        try {
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"));
+            this.outputFile = new File(dumpDir, timestamp + ".threaddump");
+            this.output = new PrintStream(outputFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void main(String[] args) {
-        printAllStackTracesByJstack(new File(args[0]));
+        new JavaProcessStackTracesMonitor(new File(args.length == 0 ? "." : args[0])).printAllStackTracesByJstack();
     }
 
     private static void assertTrue(boolean condition, String message) {
@@ -119,7 +132,7 @@ public class JavaProcessStackTracesMonitor {
         String jstack() {
             ExecResult result = run(getJstackCommand(), pid);
 
-            StringBuilder sb = new StringBuilder(String.format("Run %s %s return %s", getJstackCommand(), pid, result.toString()));
+            StringBuilder sb = new StringBuilder(String.format("Run %s %s return %s", getJstackCommand(), pid, result));
             if (result.code != 0) {
                 result = run(getJstackCommand(), "-F", pid);
                 sb.append(String.format("Run %s -F %s return %s", getJstackCommand(), pid, result.toString()));
@@ -169,12 +182,14 @@ public class JavaProcessStackTracesMonitor {
         }
     }
 
-    private static StdoutAndPatterns ps() {
+    private StdoutAndPatterns ps() {
         String[] command = isWindows() ? new String[]{"wmic", "process", "get", "processid,commandline"} : new String[]{"ps", "x"};
-        ExecResult result = run(command).assertZeroExit();
+        ExecResult result = run(command);
+        output.printf("Run: " + Arrays.toString(command));
+        output.printf("Stdout: " + result.stdout);
+        output.printf("Stderr: " + result.stderr);
 
-        System.out.println(String.format("Command %s stdout: %s", Arrays.toString(command), result.stdout));
-        System.out.println(String.format("Command %s stderr: %s", Arrays.toString(command), result.stderr));
+        result.assertZeroExit();
         return new StdoutAndPatterns(result.stdout);
     }
 
@@ -201,7 +216,7 @@ public class JavaProcessStackTracesMonitor {
         }
 
         ExecResult assertZeroExit() {
-            assertTrue(code == 0, String.format("%s return:\n%s\n%s\n", Arrays.toString(args), stdout, stderr));
+            assertTrue(code == 0, String.format("%s returns %d\n", Arrays.toString(args), code));
             return this;
         }
     }
@@ -241,15 +256,8 @@ public class JavaProcessStackTracesMonitor {
     }
 
 
-    public static File printAllStackTracesByJstack(File dir) {
-        try {
-            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss"));
-            String output = ps().getSuspiciousDaemons().stream().map(JavaProcessInfo::jstack).collect(Collectors.joining("\n"));
-            Path outputFile = dir.toPath().resolve(timestamp + ".threaddump");
-            Files.write(outputFile, output.getBytes(StandardCharsets.UTF_8));
-            return outputFile.toFile();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public File printAllStackTracesByJstack() {
+        output.println(ps().getSuspiciousDaemons().stream().map(JavaProcessInfo::jstack).collect(Collectors.joining("\n")));
+        return outputFile;
     }
 }

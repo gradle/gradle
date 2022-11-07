@@ -23,7 +23,6 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.PartialDirectoryNode;
-import org.gradle.internal.snapshot.ReadOnlyFileSystemNode;
 import org.gradle.internal.snapshot.SingletonChildMap;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.UnknownFileSystemNode;
@@ -69,7 +68,8 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     @Override
     public boolean hasDescendantsUnder(String absolutePath) {
-        return getNode(absolutePath).hasDescendants();
+        return getNode(absolutePath).map(FileSystemNode::hasDescendants)
+            .orElse(false);
     }
 
     @Override
@@ -110,14 +110,21 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     @Override
     public Stream<FileSystemLocationSnapshot> rootSnapshotsUnder(String absolutePath) {
-        return getNode(absolutePath).rootSnapshots();
+        return getNode(absolutePath)
+            .map(FileSystemNode::rootSnapshots)
+            .orElseGet(Stream::empty);
     }
 
-    private ReadOnlyFileSystemNode getNode(String absolutePath) {
+    private Optional<FileSystemNode> getNode(String absolutePath) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
         return relativePath.isEmpty()
-            ? rootNode
+            ? Optional.of(rootNode)
             : rootNode.getNode(relativePath, caseSensitivity);
+    }
+
+    @Override
+    public CaseSensitivity getCaseSensitivity() {
+        return caseSensitivity;
     }
 
     private enum EmptySnapshotHierarchy implements SnapshotHierarchy {
@@ -172,5 +179,9 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
             return Stream.empty();
         }
 
+        @Override
+        public CaseSensitivity getCaseSensitivity() {
+            return caseSensitivity;
+        }
     }
 }

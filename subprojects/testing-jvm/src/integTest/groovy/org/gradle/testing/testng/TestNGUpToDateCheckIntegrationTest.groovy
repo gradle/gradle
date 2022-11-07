@@ -108,7 +108,7 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         'threadCount'         | '= 2'
         'listeners'           | '= ["org.testng.reporters.FailedReporter"]'
         'useDefaultListeners' | '= true'
-        //'configFailurePolicy' | '= "continue"' // See https://github.com/gradle/gradle/issues/10507; API removed in TestNG v7
+        'configFailurePolicy' | '= "continue"'
         'preserveOrder'       | '= true'
         'groupByInstances'    | '= true'
     }

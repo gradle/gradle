@@ -1,6 +1,5 @@
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.hamcrest.CoreMatchers.containsString
@@ -12,7 +11,6 @@ import org.junit.Test
 class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     fun `no extra dependencies are added to the buildscript classpath`() {
 
         val result = build("buildEnvironment")
@@ -21,7 +19,6 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     fun `embedded kotlin dependencies are pinned to the embedded version`() {
 
         withBuildScript(
@@ -44,26 +41,29 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
         withBuildScript(
             """
+            buildscript {
+                $repositoriesBlock
+                dependencies {
+                    classpath("org.jetbrains.kotlin:kotlin-stdlib:1.6.10")
+                    classpath("org.jetbrains.kotlin:kotlin-reflect:1.6.10")
+                }
+            }
             plugins {
-                kotlin("jvm") version "1.4.20"
+                kotlin("jvm") version "1.6.10"
             }
             """
         )
 
-        executer.withFullDeprecationStackTraceEnabled()
         val result = build("buildEnvironment")
-
         listOf("stdlib", "reflect").forEach { module ->
-            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.4.20 -> $embeddedKotlinVersion"))
+            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.6.10 -> $embeddedKotlinVersion"))
         }
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     fun `compiler-embeddable is not pinned`() {
         withBuildScript(
             """

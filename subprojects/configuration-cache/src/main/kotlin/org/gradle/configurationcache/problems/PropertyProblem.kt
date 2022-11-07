@@ -42,6 +42,7 @@ enum class DocumentationSection(val anchor: String) {
     RequirementsExternalProcess("config_cache:requirements:external_processes"),
     RequirementsTaskAccess("config_cache:requirements:task_access"),
     RequirementsSysPropEnvVarRead("config_cache:requirements:reading_sys_props_and_env_vars"),
+    RequirementsSafeCredentials("config_cache:requirements:safe_credentials"),
     RequirementsUseProjectDuringExecution("config_cache:requirements:use_project_during_execution")
 }
 
@@ -132,6 +133,14 @@ sealed class PropertyTrace {
             get() = trace.containingUserCode
     }
 
+    class SystemProperty(
+        val name: String,
+        val trace: PropertyTrace
+    ) : PropertyTrace() {
+        override val containingUserCode: String
+            get() = trace.containingUserCode
+    }
+
     override fun toString(): String =
         StringBuilder().apply {
             sequence.forEach {
@@ -158,6 +167,11 @@ sealed class PropertyTrace {
                 append(" ")
                 quoted(trace.name)
                 append(" of ")
+            }
+            is SystemProperty -> {
+                append("system property ")
+                quoted(trace.name)
+                append(" set at ")
             }
             is Bean -> {
                 quoted(trace.type.name)
@@ -203,6 +217,7 @@ sealed class PropertyTrace {
         get() = when (this) {
             is Bean -> trace
             is Property -> trace
+            is SystemProperty -> trace
             else -> null
         }
 }

@@ -26,9 +26,9 @@ import java.util.Collection;
 @ServiceScope(Scopes.BuildSession.class)
 public interface ProjectLeaseRegistry {
     /**
-     * Get the lock for the state of all projects. This lock provides exclusive access to the state of all projects. While this lock is held, no project state locks can be held.
+     * Get the lock for the state of all projects of the given build. This lock provides exclusive access to the state of all projects in the build.While this lock is held, no project state locks can be held.
      */
-    ResourceLock getAllProjectsLock();
+    ResourceLock getAllProjectsLock(Path buildIdentityPath);
 
     /**
      * Get a lock for access to the specified project's state.
@@ -43,7 +43,7 @@ public interface ProjectLeaseRegistry {
     /**
      * Returns any project state locks currently held by this thread.
      *
-     * Note: may contain either locks for specific projects (returned by {@link #getProjectLock(Path, Path)}) or the lock for all projects (returned by {@link #getAllProjectsLock()}.
+     * Note: may contain either locks for specific projects (returned by {@link #getProjectLock(Path, Path)}) or the lock for all projects (returned by {@link #getAllProjectsLock(Path)}.
      */
     Collection<? extends ResourceLock> getCurrentProjectLocks();
 
@@ -76,12 +76,6 @@ public interface ProjectLeaseRegistry {
      * While blocking to reacquire the project lock, all worker leases held by the thread will be released and reacquired once the project lock is obtained.
      */
     void runAsIsolatedTask(Runnable action);
-
-    /**
-     * This is used by the Gradle build, via Docbook2Xhtml. Remove this once it is updated to use a new nightly
-     */
-    @Deprecated
-    void withoutProjectLock(Runnable action);
 
     /**
      * Allows the given code to access the mutable state of any project, regardless of which other threads may be accessing the project.

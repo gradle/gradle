@@ -365,7 +365,8 @@ Gradle offers multiple ways to skip the execution of a task.
 [[sec:using_a_predicate]]
 === Using a predicate
 
-You can use the `onlyIf()` method to attach a predicate to a task. The task's actions are only executed if the predicate evaluates to true. You implement the predicate as a closure. The closure is passed the task as a parameter, and should return true if the task should execute and false if the task should be skipped. The predicate is evaluated just before the task is due to be executed.
+You can use link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(org.gradle.api.specs.Spec)[`Task.onlyIf`] to attach a predicate to a task. The task's actions are only executed if the predicate evaluates to true. The predicate is passed the task as a parameter, and should return true if the task should execute and false if the task should be skipped. The predicate is evaluated just before the task is executed.
+Passing an optional reason string to `onlyIf()` is useful for explaining why the task is skipped.
 
 .Skipping a task using a predicate
 ====
@@ -376,6 +377,14 @@ include::sample[dir="snippets/tutorial/taskOnlyIf/kotlin",files="build.gradle.kt
 ----
 > gradle hello -PskipHello
 include::{snippetsPath}/tutorial/taskOnlyIf/tests/taskOnlyIf.out[]
+----
+
+It is possible to find the reason for a task being skipped by running the build with the `--info` logging level.
+
+.Output of **`gradle hello -PskipHello --hello`**
+----
+> gradle hello -PskipHello --info
+include::{snippetsPath}/tutorial/taskOnlyIf/tests/taskOnlyIf-info.out[]
 ----
 ====
 
@@ -471,7 +480,7 @@ If you’re implementing a custom task as a class, then it takes just two steps 
 Annotations must be placed on getters or on Groovy properties. Annotations placed on setters, or on a Java field without a corresponding annotated getter, are ignored.
 ====
 
-Gradle supports three main categories of inputs and outputs:
+Gradle supports four main categories of inputs and outputs:
 
 * Simple values
 +
@@ -479,7 +488,12 @@ Things like strings and numbers. More generally, a simple value can have any typ
 
 * Filesystem types
 +
-These consist of the standard `File` class but also derivatives of Gradle’s link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] type and anything else that can be passed to either the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method — for single file/directory properties — or the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object++...++)] method.
+These consist of `RegularFile`, `Directory` and the standard `File` class but also derivatives of Gradle’s link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] type and anything else that can be passed to either the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method — for single file/directory properties — or the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object++...++)] method.
+
+* Dependency resolution results
++
+This includes the link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedArtifactResult.html[ResolvedArtifactResult] type for artifact metadata and the link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult] type for dependency graphs.
+Note that they are only supported wrapped in a `Provider`.
 
 * Nested values
 +
@@ -519,7 +533,7 @@ include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskC
 .Output of `gradle processTemplates` (run again)
 ----
 > gradle processTemplates
-include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithInputOutputAnnotationsUpToDate.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithInputOutputAnnotationsUpToDateWithoutCC.out[]
 ----
 ====
 
@@ -556,8 +570,8 @@ Now that you have seen some of the input and output annotations in practice, let
 | Description
 
 | `@link:{javadocPath}/org/gradle/api/tasks/Input.html[Input]`
-| Any `Serializable` type
-| A simple input value
+| Any `Serializable` type or dependency resolution result types
+| A simple input value or dependency resolution results
 
 | `@link:{javadocPath}/org/gradle/api/tasks/InputFile.html[InputFile]`
 | `File`*
@@ -668,11 +682,11 @@ Implies `<<#incremental,@Incremental>>`.
 [NOTE]
 ====
 [horizontal]
-+++*+++::
+*::
 In fact, `File` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] and `Iterable&lt;File&gt;` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)].
 This includes instances of `Callable`, such as closures, allowing for lazy evaluation of the property values.
 Be aware that the types `FileCollection` and `FileTree` are ``Iterable&lt;File&gt;``s.
-+++**+++::
+**::
 Similar to the above, `File` can be any type accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)]. The `Map` itself can be wrapped in ``Callable``s, such as closures.
 ====
 
@@ -681,6 +695,49 @@ Annotations are inherited from all parent types including implemented interfaces
 Annotations on a property declared in a type override similar annotations declared by the superclass and in any implemented interfaces. Superclass annotations take precedence over annotations declared in implemented interfaces.
 
 The link:{javadocPath}/org/gradle/api/tasks/Console.html[Console] and link:{javadocPath}/org/gradle/api/tasks/Internal.html[Internal] annotations in the table are special cases as they don’t declare either task inputs or task outputs. So why use them? It's so that you can take advantage of the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development plugin>> to help you develop and publish your own plugins. This plugin checks whether any properties of your custom task classes lack an incremental build annotation. This protects you from forgetting to add an appropriate annotation during development.
+
+[[sec:task_input_using_dependency_resolution_results]]
+===== Using dependency resolution results
+
+Dependency resolution results can be consumed as task inputs in two ways.
+First by consuming the graph of the resolved metadata using link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[ResolvedComponentResult].
+Second by consuming the flat set of the resolved artifacts using link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedArtifactResult.html[ResolvedArtifactResult].
+
+A resolved graph can be obtained lazily from the incoming resolution result of a `Configuration` and wired to an `@Input` property:
+
+.Resolved graph as task input
+====
+.Task declaration
+[source,java]
+----
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/GraphResolvedComponents.java[tag=inputs]
+----
+.Task configuration
+[source,java]
+----
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/DependencyReportsPlugin.java[tag=graphResolvedComponents]
+----
+====
+
+The resolved set of artifacts can be obtained lazily from the incoming artifacts of a `Configuration`.
+Given the `ResolvedArtifactResult` type contains both metadata and file information, instances need to be transformed to metadata only before being wired to an `@Input` property:
+
+.Resolved artifacts as task input
+====
+.Task declaration
+[source,java]
+----
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/ListResolvedArtifacts.java[tag=inputs]
+----
+.Task configuration
+[source,java]
+----
+include::{samplesPath}/writing-tasks/tasks-with-dependency-resolution-result-inputs/common/dependency-reports/src/main/java/com/example/DependencyReportsPlugin.java[tag=listResolvedArtifacts]
+----
+====
+
+Both graph and flat results can be combined and augmented with resolved file information.
+This is all demonstrated in the link:../samples/sample_tasks_with_dependency_resolution_result_inputs.html[Tasks with dependency resolution result inputs] sample.
 
 [[sec:task_input_using_classpath_annotations]]
 ===== Using the classpath annotations
@@ -708,7 +765,7 @@ When adding `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]` to a 
 When adding `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]` to an iterable, each element is treated as a separate nested input.
 Each nested input in the iterable is assigned a name, which by default is the dollar sign followed by the index in the iterable, e.g. `$2`.
 If an element of the iterable implements `link:{javadocPath}/org/gradle/api/Named.html[Named]`, then the name is used as property name.
-The ordering of the elements in the iterable is crucial for for reliable up-to-date checks and caching if not all of the elements implement `link:{javadocPath}/org/gradle/api/Named.html[Named]`.
+The ordering of the elements in the iterable is crucial for reliable up-to-date checks and caching if not all of the elements implement `link:{javadocPath}/org/gradle/api/Named.html[Named]`.
 Multiple elements which have the same name are not allowed.
 
 When adding `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]` to a map, then for each value a nested input is added, using the key as name.
@@ -783,7 +840,7 @@ Specifically, they never can be:
 * executed in parallel with other tasks, even if <<multi_project_configuration_and_execution.adoc#sec:parallel_execution,parallel execution>> is enabled,
 * executed incrementally.
 
-The in-memory representation of the file system state (aka _<<gradle_daemon.adoc#sec:daemon_watch_fs,Virtual File System>>)_ is also invalidated before an invalid task is executed.
+The in-memory representation of the file system state (aka _<<file_system_watching.adoc#sec:daemon_watch_fs,Virtual File System>>)_ is also invalidated before an invalid task is executed.
 ====
 
 [[sec:task_input_output_runtime_api]]
@@ -805,7 +862,15 @@ This runtime API is provided through a couple of aptly named properties that are
 
 These objects have methods that allow you to specify files, directories and values which constitute the task’s inputs and outputs.
 In fact, the runtime API has almost feature parity with the annotations.
-All it lacks is an equivalent for `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`.
+
+It lacks equivalents for 
+
+* `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`
+* `@link:{javadocPath}/org/gradle/api/tasks/Classpath.html[Classpath]`
+* `@link:{javadocPath}/org/gradle/api/tasks/CompileClasspath.html[CompileClasspath]`
+* `@link:{javadocPath}/org/gradle/api/tasks/LocalState.html[LocalState]`
+* `@link:{javadocPath}/org/gradle/api/tasks/ReplacedBy.html[ReplacedBy]`
+* `@link:{javadocPath}/org/gradle/api/tasks/Internal.html[Internal]`
 
 Let’s take the template processing example from before and see how it would look as an ad-hoc task that uses the runtime API:
 
@@ -1162,7 +1227,7 @@ If you are writing your own task that always should run, then you can also use t
 Sometimes you want to integrate an external tool like Git or Npm, both of which do their own up-to-date checking.
 In that case it doesn't make much sense for Gradle to also do up-to-date checks.
 You can disable Gradle's up-to-date checks by using the `@link:{javadocPath}/org/gradle/api/tasks/UntrackedTask.html[UntrackedTask]` annotation on the task wrapping the tool.
-Alternatively, you can use the runtime API method `link:{groovyDslDoc}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()]`.
+Alternatively, you can use the runtime API method `link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doNotTrackState(java.lang.String)[Task.doNotTrackState()]`.
 
 For example, let's say you want to implement a task which clones a Git repository.
 

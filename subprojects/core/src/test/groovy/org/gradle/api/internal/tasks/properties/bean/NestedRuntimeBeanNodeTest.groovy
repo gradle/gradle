@@ -24,7 +24,7 @@ import spock.lang.Specification
 class NestedRuntimeBeanNodeTest extends Specification {
     def "correct implementation for #type coerced to Action is tracked"() {
         expect:
-        NestedRuntimeBeanNode.getImplementationClass(implementation as Action) == implementation.getClass()
+        NestedRuntimeBeanNode.unwrapBean(implementation as Action) == implementation
 
         where:
         type      | implementation
@@ -37,9 +37,9 @@ class NestedRuntimeBeanNodeTest extends Specification {
         def closure = { it }
 
         expect:
-        NestedRuntimeBeanNode.getImplementationClass(ConfigureUtil.configureUsing(closure)) == closure.getClass()
+        NestedRuntimeBeanNode.unwrapBean(ConfigureUtil.configureUsing(closure)) == closure
 
         and:
-        NestedRuntimeBeanNode.getImplementationClass(ClosureBackedAction.of(closure)) == closure.getClass()
+        NestedRuntimeBeanNode.unwrapBean(ClosureBackedAction.of(closure)) == closure
     }
 }

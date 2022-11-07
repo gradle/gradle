@@ -21,10 +21,6 @@ plugins {
 // end::use-codenarc-plugin[]
 // end::use-pmd-plugin[]
 
-codenarc {
-    toolVersion = "2.0.0"
-}
-
 repositories {
     mavenCentral()
 }
@@ -52,3 +48,9 @@ pmd {
     ruleSets = listOf("category/java/errorprone.xml", "category/java/bestpractices.xml")
 }
 // end::customize-pmd[]
+
+// tag::pmd-threads[]
+pmd {
+    threads.set(4)
+}
+// end::pmd-threads[]

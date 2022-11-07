@@ -29,7 +29,7 @@ import java.util.List;
 
 public class EffectiveClassPath extends DefaultClassPath {
     public EffectiveClassPath(ClassLoader classLoader) {
-        super(new ImmutableUniqueList<File>(findAvailableClasspathFiles(classLoader)));
+        super(ImmutableUniqueList.of(findAvailableClasspathFiles(classLoader)));
     }
 
     private static List<File> findAvailableClasspathFiles(ClassLoader classLoader) {

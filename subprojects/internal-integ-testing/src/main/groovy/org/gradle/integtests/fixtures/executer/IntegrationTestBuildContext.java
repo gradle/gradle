@@ -105,8 +105,8 @@ public class IntegrationTestBuildContext {
             return new BuildServerGradleDistribution(version, previousVersionDir.file(version));
         }
 
-        if (LocallyBuiltGradleDistribution.isLocallyBuiltVersion(version)) {
-            return new LocallyBuiltGradleDistribution(version);
+        if (CommitDistribution.isCommitDistribution(version)) {
+            return new CommitDistribution(version, getGradleUserHomeDir().getParentFile().file("commit-distributions"));
         }
         return new ReleasedGradleDistribution(version, previousVersionDir.file(version));
     }

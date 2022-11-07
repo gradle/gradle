@@ -25,6 +25,7 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stri
 class ConfigurationCacheExternalProcessInBuildScriptIntegrationTest extends AbstractConfigurationCacheExternalProcessIntegrationTest {
     def "using #snippetsFactory.summary in #location.toLowerCase() #file is a problem"() {
         given:
+        settingsFileWithStableConfigurationCache()
         def snippets = snippetsFactory.newSnippets(execOperationsFixture)
         testDirectory.file(file) << """
             ${snippets.imports}
@@ -52,16 +53,6 @@ class ConfigurationCacheExternalProcessInBuildScriptIntegrationTest extends Abst
         processBuilder().kotlin     | "build.gradle.kts"             | "Build file"
         stringArrayExecute().kotlin | "build.gradle.kts"             | "Build file"
         runtimeExec().kotlin        | "build.gradle.kts"             | "Build file"
-        exec().groovy               | "settings.gradle"              | "Settings file"
-        javaexec().groovy           | "settings.gradle"              | "Settings file"
-        processBuilder().groovy     | "settings.gradle"              | "Settings file"
-        stringArrayExecute().groovy | "settings.gradle"              | "Settings file"
-        runtimeExec().groovy        | "settings.gradle"              | "Settings file"
-        exec().kotlin               | "settings.gradle.kts"          | "Settings file"
-        javaexec().kotlin           | "settings.gradle.kts"          | "Settings file"
-        processBuilder().kotlin     | "settings.gradle.kts"          | "Settings file"
-        stringArrayExecute().kotlin | "settings.gradle.kts"          | "Settings file"
-        runtimeExec().kotlin        | "settings.gradle.kts"          | "Settings file"
         exec().groovy               | "buildSrc/build.gradle"        | "Build file"
         javaexec().groovy           | "buildSrc/build.gradle"        | "Build file"
         processBuilder().groovy     | "buildSrc/build.gradle"        | "Build file"
@@ -82,5 +73,38 @@ class ConfigurationCacheExternalProcessInBuildScriptIntegrationTest extends Abst
         processBuilder().kotlin     | "buildSrc/settings.gradle.kts" | "Settings file"
         stringArrayExecute().kotlin | "buildSrc/settings.gradle.kts" | "Settings file"
         runtimeExec().kotlin        | "buildSrc/settings.gradle.kts" | "Settings file"
+    }
+
+    def "using #snippetsFactory.summary in settings file #file is a problem"() {
+        given:
+        def snippets = snippetsFactory.newSnippets(execOperationsFixture)
+        testDirectory.file(file) << """
+            ${snippets.imports}
+
+            enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
+            ${snippets.body}
+        """
+
+        when:
+        configurationCacheFails(":help")
+
+        then:
+        failure.assertOutputContains("Hello")
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Settings file '${relativePath(file)}': external process started")
+        }
+
+        where:
+        snippetsFactory             | file                           | location
+        exec().groovy               | "settings.gradle"              | "Settings file"
+        javaexec().groovy           | "settings.gradle"              | "Settings file"
+        processBuilder().groovy     | "settings.gradle"              | "Settings file"
+        stringArrayExecute().groovy | "settings.gradle"              | "Settings file"
+        runtimeExec().groovy        | "settings.gradle"              | "Settings file"
+        exec().kotlin               | "settings.gradle.kts"          | "Settings file"
+        javaexec().kotlin           | "settings.gradle.kts"          | "Settings file"
+        processBuilder().kotlin     | "settings.gradle.kts"          | "Settings file"
+        stringArrayExecute().kotlin | "settings.gradle.kts"          | "Settings file"
+        runtimeExec().kotlin        | "settings.gradle.kts"          | "Settings file"
     }
 }

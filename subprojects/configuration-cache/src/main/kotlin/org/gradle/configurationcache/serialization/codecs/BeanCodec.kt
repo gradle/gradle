@@ -28,7 +28,7 @@ import org.gradle.configurationcache.serialization.withBeanTrace
 
 
 internal
-class BeanCodec : Codec<Any> {
+object BeanCodec : Codec<Any> {
 
     override suspend fun WriteContext.encode(value: Any) {
         encodePreservingIdentityOf(value) {

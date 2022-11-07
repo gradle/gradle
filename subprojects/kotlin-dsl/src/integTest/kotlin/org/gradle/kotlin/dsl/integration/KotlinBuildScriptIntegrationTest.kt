@@ -1,7 +1,5 @@
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
@@ -20,7 +18,6 @@ import java.io.StringWriter
 class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
 
         withSettings(
@@ -36,7 +33,8 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             open class ProjectPlugin : Plugin<Project> {
                 override fun apply(target: Project) {
                     target.task("run") {
-                        doLast { println(target.name + ":42") }
+                        val projectName = target.name
+                        doLast { println(projectName + ":42") }
                     }
                 }
             }
@@ -106,20 +104,20 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         )
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use Kotlin 1 dot 3 language features`() {
 
         withBuildScript(
             """
 
-            // Coroutines are no longer experimental
-            val coroutine = sequence {
-                // Unsigned integer types
-                yield(42UL)
-            }
-
             task("test") {
                 doLast {
+
+                    // Coroutines are no longer experimental
+                    val coroutine = sequence {
+                        // Unsigned integer types
+                        yield(42UL)
+                    }
+
                     // Capturing when
                     when (val value = coroutine.first()) {
                         42UL -> print("42!")
@@ -137,19 +135,19 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use Kotlin 1 dot 4 language features`() {
 
         withBuildScript(
             """
 
-            val myList = listOf(
-                "foo",
-                "bar", // trailing comma
-            )
-
             task("test") {
                 doLast {
+
+                    val myList = listOf(
+                        "foo",
+                        "bar", // trailing comma
+                    )
+
                     print(myList)
                 }
             }
@@ -265,7 +263,6 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can create fileTree from map for backward compatibility`() {
 
         val fileTreeFromMap = """
@@ -291,7 +288,8 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         withBuildScript(
             """
             task("test") {
-                doLast { println("PROJECT: " + $fileTreeFromMap) }
+                val ft = $fileTreeFromMap
+                doLast { println("PROJECT: " + ft) }
             }
             """
         )

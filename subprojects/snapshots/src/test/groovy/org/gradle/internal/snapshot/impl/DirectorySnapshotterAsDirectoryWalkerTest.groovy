@@ -30,9 +30,10 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.internal.snapshot.SnapshottingFilter
 
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
+
+import static org.gradle.test.fixtures.FileMetadataTestFixture.maybeRoundLastModified
 
 class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerTest<DirectorySnapshotter> {
     Consumer<FileSystemLocationSnapshot> completeSnapshotConsumer = Stub()
@@ -40,7 +41,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
     def "directory snapshotter returns the same details as directory walker"() {
         given:
         def rootDir = tmpDir.createDir("root")
-        generateFilesAndSubDirectories(rootDir, 10, 5, 3, 1, new AtomicInteger(0))
+        generateFilesAndSubDirectories(rootDir, 10, 5, 3, 1, new AtomicInteger())
         def patternSet = Mock(PatternSet)
         List<FileVisitDetails> visitedWithJdk7Walker = walkFiles(rootDir)
         Spec<FileTreeElement> assertingSpec = new Spec<FileTreeElement>() {
@@ -49,7 +50,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
                 def elementFromFileWalker = visitedWithJdk7Walker.find { it.file == element.file }
                 assert elementFromFileWalker != null
                 assert element.directory == elementFromFileWalker.directory
-                assert element.lastModified == elementFromFileWalker.lastModified
+                assert maybeRoundLastModified(element.lastModified) == maybeRoundLastModified(elementFromFileWalker.lastModified)
                 assert element.size == elementFromFileWalker.size
                 assert element.name == elementFromFileWalker.name
                 assert element.path == elementFromFileWalker.path
@@ -61,7 +62,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
         }
 
         when:
-        directorySnapshotter().snapshot(rootDir.absolutePath, directoryWalkerPredicate(patternSet), new AtomicBoolean(), completeSnapshotConsumer)
+        directorySnapshotter().snapshot(rootDir.absolutePath, directoryWalkerPredicate(patternSet), completeSnapshotConsumer)
         then:
         1 * patternSet.getAsSpec() >> assertingSpec
 
@@ -90,7 +91,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
 
     @Override
     protected List<String> walkDirForPaths(DirectorySnapshotter walker, File rootDir, PatternSet patternSet) {
-        def snapshot = walker.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patternSet), new AtomicBoolean(), completeSnapshotConsumer)
+        def snapshot = walker.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patternSet), completeSnapshotConsumer)
         return SnapshotVisitorUtil.getAbsolutePaths(snapshot)
     }
 

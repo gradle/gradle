@@ -43,8 +43,7 @@ class TestMainActionTest extends Specification {
         then:
         1* detector.run()
         then:
-        1 * workerLeaseService.currentWorkerLease >> lease
-        1 * workerLeaseService.withoutLocks([lease], _) >> { l, Runnable runnable -> runnable.run() }
+        1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         1 * processor.stop()
         then:
         1 * timeProvider.getCurrentTime() >> 200L
@@ -68,8 +67,7 @@ class TestMainActionTest extends Specification {
         then:
         1 * detector.run() >> { throw failure }
         then:
-        1 * workerLeaseService.currentWorkerLease >> lease
-        1 * workerLeaseService.withoutLocks([lease], _) >> { l, Runnable runnable -> runnable.run() }
+        1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         1 * processor.stop()
         then:
         1 * resultProcessor.completed(!null, !null)
@@ -119,8 +117,7 @@ class TestMainActionTest extends Specification {
         then:
         1 * detector.run()
         then:
-        1 * workerLeaseService.currentWorkerLease >> lease
-        1 * workerLeaseService.withoutLocks([lease], _) >> { l, Runnable runnable -> runnable.run() }
+        1 * workerLeaseService.blocking(_) >> { Runnable runnable -> runnable.run() }
         1 * processor.stop() >> { throw failure }
         then:
         1 * resultProcessor.completed(!null, !null)

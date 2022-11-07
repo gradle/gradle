@@ -26,9 +26,11 @@ import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
+import java.util.function.Supplier
+
 class TasksFromProjectDependenciesTest extends AbstractProjectBuilderSpec {
 
-    def dependencies = Mock(DependencySet)
+    def dependencies = { Mock(DependencySet) } as Supplier<DependencySet>
     def context = Mock(TaskDependencyResolveContext)
     def project1State = Mock(ProjectState)
     def project2State = Mock(ProjectState)

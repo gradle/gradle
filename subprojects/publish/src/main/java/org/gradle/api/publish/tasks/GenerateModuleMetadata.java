@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
@@ -81,7 +80,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  * @since 4.3
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateModuleMetadata extends DefaultTask {
+public abstract class GenerateModuleMetadata extends DefaultTask {
     private final Transient<Property<Publication>> publication;
     private final Transient<ListProperty<Publication>> publications;
     private final RegularFileProperty outputFile;
@@ -102,7 +101,7 @@ public class GenerateModuleMetadata extends DefaultTask {
 
         // TODO - should be incremental
         getOutputs().upToDateWhen(Specs.satisfyNone());
-        setOnlyIf(spec(task -> hasAttachedComponent()));
+        setOnlyIf("The publication is attached to a component", spec(task -> hasAttachedComponent()));
     }
 
     // TODO - this should be an input
@@ -186,7 +185,6 @@ public class GenerateModuleMetadata extends DefaultTask {
      *
      * @since 7.0
      */
-    @Incubating
     @Input
     public SetProperty<String> getSuppressedValidationErrors() {
         return suppressedValidationErrors;

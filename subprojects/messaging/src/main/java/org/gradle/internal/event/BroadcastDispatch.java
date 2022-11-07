@@ -343,7 +343,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
         @Override
         public void dispatch(MethodInvocation message) {
-            dispatch(message, dispatchers.iterator());
+            dispatch(message, dispatchers);
         }
     }
 }

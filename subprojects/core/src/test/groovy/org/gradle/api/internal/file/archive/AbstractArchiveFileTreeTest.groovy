@@ -45,20 +45,6 @@ class AbstractArchiveFileTreeTest extends Specification {
         0 * _
     }
 
-    def "visits structure when backing file is not known"() {
-        def owner = Stub(FileTreeInternal)
-        def visitor = Mock(MinimalFileTree.MinimalFileTreeStructureVisitor)
-
-        def fileTree = new TestArchiveFileTree()
-
-        when:
-        fileTree.visitStructure(visitor, owner)
-
-        then:
-        1 * visitor.visitGenericFileTree(owner, fileTree)
-        0 * _
-    }
-
     static class TestArchiveFileTree extends AbstractArchiveFileTree {
         File backingFile
         final String displayName = "<display>"

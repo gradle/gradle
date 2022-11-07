@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 
-class ComponentMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
+class ComponentMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest  {
     String getDefaultStatus() {
         GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release'
     }
@@ -665,7 +665,7 @@ class LoggingRule implements ComponentMetadataRule {
 configurations {
     ruleDownloader.incoming.afterResolve {
         println "Adding rules"
-        dependencies {
+        project.dependencies {
             components {
                 all(LoggingRule)
             }

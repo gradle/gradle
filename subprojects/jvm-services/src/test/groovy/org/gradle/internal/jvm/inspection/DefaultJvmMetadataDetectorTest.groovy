@@ -19,6 +19,7 @@ package org.gradle.internal.jvm.inspection
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
@@ -45,7 +46,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         when:
         def detector = createDefaultJvmMetadataDetector(execHandleFactory)
         def javaHome = new File(temporaryFolder, "localGradle").tap { mkdirs() }
-        def metadata = detector.getMetadata(javaHome)
+        def metadata = detector.getMetadata(testLocation(javaHome))
 
         then:
         metadata
@@ -66,12 +67,12 @@ class DefaultJvmMetadataDetectorTest extends Specification {
                 javac << 'dummy'
             }
         }
-        def metadata = detector.getMetadata(javaHome)
+        def metadata = detector.getMetadata(testLocation(javaHome))
 
         then:
-        assert metadata.languageVersion == javaVersion
-        assert displayName == null || displayName == metadata.displayName + " " + metadata.languageVersion.majorVersion
-        assert metadata.javaHome != null
+        metadata.languageVersion == javaVersion
+        displayName == null || displayName == (metadata.displayName + " " + metadata.languageVersion.majorVersion)
+        metadata.javaHome != null
 
         where:
         jdk              | systemProperties         | javaVersion             | displayName                  | jre
@@ -102,8 +103,8 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         'ibmJdk7'        | ibmJvm('7')              | JavaVersion.VERSION_1_7 | 'IBM JDK 7'                  | false
         'ibmJdk8'        | ibmJvm('8')              | JavaVersion.VERSION_1_8 | 'IBM JDK 8'                  | false
         'ibmJdk9'        | ibmJvm('9')              | JavaVersion.VERSION_1_9 | 'IBM JDK 9'                  | false
-        'zuluJre6'       | zuluJvm('6')             | JavaVersion.VERSION_1_6 | 'Zulu JRE 6'                 | true
-        'zuluJdk8'       | zuluJvm('8')             | JavaVersion.VERSION_1_8 | 'Zulu JDK 8'                 | false
+        'zuluJre6'       | zuluJvm('6')             | JavaVersion.VERSION_1_6 | 'Azul Zulu JRE 6'            | true
+        'zuluJdk8'       | zuluJvm('8')             | JavaVersion.VERSION_1_8 | 'Azul Zulu JDK 8'            | false
         'hpuxJre6'       | hpuxJvm('6')             | JavaVersion.VERSION_1_6 | 'HP-UX JRE 6'                | true
         'hpuxJdk7'       | hpuxJvm('7')             | JavaVersion.VERSION_1_7 | 'HP-UX JDK 7'                | false
         'sapjdk13'       | sapJvm('13')             | JavaVersion.VERSION_13  | 'SAP SapMachine JDK 13'      | false
@@ -135,7 +136,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         when:
         def detector = createDefaultJvmMetadataDetector(execHandleFactory)
         def javaHome = new File(temporaryFolder, jdk).tap { mkdirs() }
-        def metadata = detector.getMetadata(javaHome)
+        def metadata = detector.getMetadata(testLocation(javaHome))
 
         then:
         assert metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE) == isJ9
@@ -171,7 +172,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         if (exists) {
             javaHome = new File(temporaryFolder, jdk).tap { mkdirs() }
         }
-        def metadata = detector.getMetadata(javaHome)
+        def metadata = detector.getMetadata(testLocation(javaHome))
 
         then:
         metadata.getErrorMessage().startsWith(errorMessage)
@@ -179,15 +180,19 @@ class DefaultJvmMetadataDetectorTest extends Specification {
 
         assertIsUnsupported({ metadata.languageVersion })
         assertIsUnsupported({ metadata.vendor })
-        assertIsUnsupported({ metadata.implementationVersion })
+        assertIsUnsupported({ metadata.javaVersion })
+        assertIsUnsupported({ metadata.runtimeName })
         assertIsUnsupported({ metadata.runtimeVersion })
+        assertIsUnsupported({ metadata.jvmName })
         assertIsUnsupported({ metadata.jvmVersion })
+        assertIsUnsupported({ metadata.jvmVendor })
+        assertIsUnsupported({ metadata.architecture })
 
         where:
         jdk                                   | systemProperties | exists | errorMessage
         'localGradle'                         | currentGradle()  | false  | "No such directory: "
         'binary that has invalid output'      | invalidOutput()  | true   | "Unexpected command output:"
-        'binary that returns unknown version' | invalidVersion() | true   |  "Cannot parse version number: bad luck"
+        'binary that returns unknown version' | invalidVersion() | true   | "Cannot parse version number: bad luck"
     }
 
     private DefaultJvmMetadataDetector createDefaultJvmMetadataDetector(ExecHandleFactory execHandleFactory) {
@@ -210,14 +215,27 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "amd64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "25.40-b25",
+         'java.vm.vendor': "Oracle Corporation",
          'java.runtime.name': "Java(TM) SE Runtime Environment",
          'java.runtime.version': "bad luck"
         ]
     }
 
+    private InstallationLocation testLocation(File javaHome) {
+        new InstallationLocation(javaHome, "test")
+    }
 
     private static Map<String, String> currentGradle() {
-        ['java.home', 'java.version', 'java.vendor', 'os.arch', 'java.vm.name', 'java.vm.version', 'java.runtime.name', 'java.runtime.version'].collectEntries { [it, System.getProperty(it)] }
+        ['java.home',
+         'java.version',
+         'java.vendor',
+         'java.runtime.name',
+         'java.runtime.version',
+         'java.vm.name',
+         'java.vm.version',
+         'java.vm.vendor',
+         'os.arch',
+        ].collectEntries { [it, System.getProperty(it)] }
     }
 
     private static Map<String, String> openJdkJvm(String version) {
@@ -227,6 +245,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "amd64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "25.40-b25",
+         'java.vm.vendor': "Oracle Corporation",
          'java.runtime.name': "Java(TM) SE Runtime Environment",
          'java.runtime.version': "1.${version}.0-b08"
         ]
@@ -239,6 +258,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "${version}+7",
+         'java.vm.vendor': "AdoptOpenJDK",
          'java.runtime.name': "OpenJDK Runtime Environment",
          'java.runtime.version': "${version}+7"
         ]
@@ -251,6 +271,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "Eclipse OpenJ9 VM",
          'java.vm.version': "openj9-0.21.0",
+         'java.vm.vendor': "AdoptOpenJDK",
          'java.runtime.name': "OpenJDK Runtime Environment",
          'java.runtime.version': "${version}+7"
         ]
@@ -263,6 +284,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64\r",
          'java.vm.name': "OpenJDK 64-Bit Server VM\r",
          'java.vm.version': "${version}+7\r",
+         'java.vm.vendor': "AdoptOpenJDK\r",
          'java.runtime.name': "OpenJDK Runtime Environment\r",
          'java.runtime.version': "${version}+7\r"
         ]
@@ -275,6 +297,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "amd64",
          'java.vm.name': "Java HotSpot(TM) 64-Bit Server VM",
          'java.vm.version': "25.40-b25",
+         'java.vm.vendor': "Oracle Corporation",
          'java.runtime.name': "Java(TM) SE Runtime Environment",
          'java.runtime.version': "1.${version}.0-b08"
         ]
@@ -287,6 +310,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "amd64",
          'java.vm.name': "IBM J9 VM",
          'java.vm.version': "2.4",
+         'java.vm.vendor': "IBM Corporation",
          'java.runtime.name': "Java(TM) SE Runtime Environment",
          'java.runtime.version': "1.${version}.0-b08"
         ]
@@ -299,6 +323,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "amd64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "25.66-b17",
+         'java.vm.vendor': "Azul Systems, Inc.",
          'java.runtime.name': "OpenJDK Runtime Environment",
          'java.runtime.version': "1.${version}.0_66-b08"
         ]
@@ -311,6 +336,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "ia64",
          'java.vm.name': "Java HotSpot(TM) 64-Bit Server VM",
          'java.vm.version': "25.66-b17",
+         'java.vm.vendor': "Hewlett-Packard Co.",
          'java.runtime.name': "Java(TM) SE Runtime Environment",
          'java.runtime.version': "1.${version}.0_66-b08"
         ]
@@ -323,6 +349,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "13.0.2+8-sapmachine",
+         'java.vm.vendor': "SAP SE",
          'java.runtime.name': "OpenJDK Runtime Environment",
          'java.runtime.version': "${version}.0.2-b08"
         ]
@@ -335,6 +362,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "11.0.8+10-LTS",
+         'java.vm.vendor': "Amazon.com Inc.",
          'java.runtime.name': "OpenJDK Runtime Environment",
          'java.runtime.version': "${version}.0.8+10-LTS"
         ]
@@ -347,6 +375,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "${version}+36",
+         'java.vm.vendor': "BellSoft.",
          'java.runtime.name': "OpenJDK Runtime Environment",
          'java.runtime.version': "${version}+36"
         ]
@@ -359,6 +388,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit GraalVM CE 19.3.5",
          'java.vm.version': "25.282-b07-jvmci-19.3-b21",
+         'java.vm.vendor': "GraalVM Community",
          'java.runtime.name': "OpenJDK Runtime Environment",
          'java.runtime.version': "${version}-b08"
         ]
@@ -372,6 +402,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "25.282-b07-jvmci-19.3-b21",
+         'java.vm.vendor': "Temurin",
          'java.runtime.name': "OpenJDK Runtime Environment",
          'java.runtime.version': "${version}-b08"
         ]
@@ -385,6 +416,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "25.282-b07-jvmci-19.3-b21",
+         'java.vm.vendor': "Eclipse Foundation",
          'java.runtime.name': "OpenJDK Runtime Environment",
          'java.runtime.version': "${version}-b08"
         ]
@@ -398,6 +430,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "25.282-b07-jvmci-19.3-b21",
+         'java.vm.vendor': "Eclipse Adoptium",
          'java.runtime.name': "OpenJDK Runtime Environment",
          'java.runtime.version': "${version}-b08"
         ]
@@ -410,12 +443,18 @@ class DefaultJvmMetadataDetectorTest extends Specification {
          'os.arch': "x86_64",
          'java.vm.name': "Eclipse OpenJ9 VM",
          'java.vm.version': "openj9-0.27.0",
+         'java.vm.vendor': "International Business Machines Corporation",
          'java.runtime.name': "IBM Semeru Runtime Open Edition",
          'java.runtime.version': "${version}-b08"
         ]
     }
 
     def createExecHandleFactory(Map<String, String> actualProperties) {
+        def probedSystemProperties = ProbedSystemProperty.values().findAll { it != ProbedSystemProperty.Z_ERROR }
+        if (!actualProperties.isEmpty()) {
+            assert actualProperties.keySet() == probedSystemProperties.collect { it.systemPropertyKey }.toSet()
+        }
+
         def execHandleFactory = Mock(ExecHandleFactory)
         def exec = Mock(ExecHandleBuilder)
         execHandleFactory.newExec() >> exec
@@ -427,8 +466,13 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         def handle = Mock(ExecHandle)
         handle.start() >> handle
         handle.waitForFinish() >> {
-            actualProperties.each {
-                output.println(it.value)
+            // important to output in the order of the enum members as parsing uses enum ordinals
+            probedSystemProperties.each {
+                def actualValue = actualProperties[it.systemPropertyKey]
+                // write conditionally to simulate wrong number of outputs
+                if (actualValue != null) {
+                    output.println(MetadataProbe.MARKER_PREFIX + actualValue)
+                }
             }
             Mock(ExecResult)
         }
@@ -443,6 +487,5 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         } catch (UnsupportedOperationException ignored) {
             // expected
         }
-
     }
 }

@@ -17,16 +17,30 @@
 package org.gradle.util;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.util.internal.TextUtil;
 
 import java.io.File;
 
 /**
  * This class is only here to maintain binary compatibility with existing plugins.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public class RelativePathUtil {
+
+    private static void logDeprecation() {
+        DeprecationLogger.deprecateType(RelativePathUtil.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
+
+    public RelativePathUtil() {
+        logDeprecation();
+    }
+
     /**
      * Returns a relative path from 'from' to 'to'
      *
@@ -35,6 +49,7 @@ public class RelativePathUtil {
      * @return The relative path
      */
     public static String relativePath(File from, File to) {
+        logDeprecation();
         try {
             return TextUtil.normaliseFileSeparators(from.toPath().relativize(to.toPath()).toString());
         } catch (Exception e) {

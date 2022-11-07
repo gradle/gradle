@@ -18,12 +18,15 @@ package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
+import static org.junit.Assume.assumeNotNull
 
 class JUnitPlatformOnJdk7IntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         def jdk7 = AvailableJavaHomes.getJdk7()
+        assumeNotNull(jdk7)
         file("gradle.properties").writeProperties("org.gradle.java.installations.paths": jdk7.javaHome.canonicalPath)
         buildFile << """
             apply plugin: 'java'

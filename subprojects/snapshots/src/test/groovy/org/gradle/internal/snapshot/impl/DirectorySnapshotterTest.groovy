@@ -39,7 +39,6 @@ import spock.lang.Issue
 import spock.lang.Specification
 
 import java.nio.file.Paths
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Consumer
 
 @UsesNativeServices
@@ -51,7 +50,6 @@ class DirectorySnapshotterTest extends Specification {
     def fileHasher = new TestFileHasher()
     def statisticsCollector = Stub(DirectorySnapshotterStatistics.Collector)
     def directorySnapshotter = new DirectorySnapshotter(fileHasher, new StringInterner(), [], statisticsCollector)
-    def actuallyFiltered = new AtomicBoolean(false)
     List<FileSystemLocationSnapshot> unfilteredSubsnapshots = []
     Consumer<FileSystemLocationSnapshot> unfilteredSubSnapshotsCollector = { FileSystemLocationSnapshot snapshot ->
         unfilteredSubsnapshots.add(snapshot)
@@ -73,11 +71,10 @@ class DirectorySnapshotterTest extends Specification {
         patterns.exclude("subdir1/**")
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered, unfilteredSubSnapshotsCollector)
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, unfilteredSubSnapshotsCollector)
 
         then:
-        ! actuallyFiltered.get()
-        unfilteredSubsnapshots.empty
+        unfilteredSubsnapshots == [snapshot]
         0 * _
 
         when:
@@ -108,10 +105,9 @@ class DirectorySnapshotterTest extends Specification {
         def patterns = new PatternSet().exclude("**/*")
 
         when:
-        def snapshot = directorySnapshotter.snapshot(fileSystemRoot, directoryWalkerPredicate(patterns), actuallyFiltered, unfilteredSubSnapshotsCollector)
+        def snapshot = directorySnapshotter.snapshot(fileSystemRoot, directoryWalkerPredicate(patterns), unfilteredSubSnapshotsCollector)
 
         then:
-        actuallyFiltered.get()
         unfilteredSubsnapshots.empty
         snapshot.absolutePath == fileSystemRoot
         snapshot.name == ""
@@ -144,10 +140,10 @@ class DirectorySnapshotterTest extends Specification {
         patterns.exclude("subdir1/**")
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patterns), actuallyFiltered, unfilteredSubSnapshotsCollector)
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patterns), unfilteredSubSnapshotsCollector)
 
         then:
-        actuallyFiltered.get()
+        !unfilteredSubsnapshots.contains(snapshot)
         0 * _
 
         when:
@@ -186,7 +182,7 @@ class DirectorySnapshotterTest extends Specification {
         symlink.createLink(linkTarget)
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered, unfilteredSubSnapshotsCollector) as DirectorySnapshot
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, unfilteredSubSnapshotsCollector) as DirectorySnapshot
         def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot)
         then:
         relativePaths == ["some", "some/sub", "some/sub/dir", "some/sub/dir/other", "some/sub/dir/other/text.txt"]
@@ -194,7 +190,7 @@ class DirectorySnapshotterTest extends Specification {
         def symlinkedDir = snapshot.children[0].children[0].children[0] as DirectorySnapshot
         symlinkedDir.accessType == AccessType.VIA_SYMLINK
         symlinkedDir.absolutePath == symlink.absolutePath
-        unfilteredSubsnapshots.empty
+        unfilteredSubsnapshots == [snapshot]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -205,14 +201,14 @@ class DirectorySnapshotterTest extends Specification {
         rootDir.createLink(linkTarget)
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered, unfilteredSubSnapshotsCollector) as DirectorySnapshot
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, unfilteredSubSnapshotsCollector) as DirectorySnapshot
         def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot)
         then:
         relativePaths == ["sub", "sub/text.txt"]
         SnapshotVisitorUtil.getAbsolutePaths(snapshot) == relativePaths.collect { new File(rootDir, it).absolutePath }
         snapshot.accessType == AccessType.VIA_SYMLINK
         snapshot.absolutePath == rootDir.absolutePath
-        unfilteredSubsnapshots.empty
+        unfilteredSubsnapshots == [snapshot]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -254,7 +250,7 @@ class DirectorySnapshotterTest extends Specification {
         patterns.include("included*/*.txt")
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patterns), actuallyFiltered, unfilteredSubSnapshotsCollector) as DirectorySnapshot
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patterns), unfilteredSubSnapshotsCollector) as DirectorySnapshot
         def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot)
         then:
         relativePaths == ["included", "included/text.txt", "includedSymlink", "includedSymlink/included.txt", "includedSymlink/symlinkedFile.txt"]
@@ -286,10 +282,9 @@ class DirectorySnapshotterTest extends Specification {
         patterns.include("included*/*.txt")
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patterns), actuallyFiltered, unfilteredSubSnapshotsCollector) as DirectorySnapshot
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, directoryWalkerPredicate(patterns), unfilteredSubSnapshotsCollector) as DirectorySnapshot
         def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot)
         then:
-        actuallyFiltered.get()
         relativePaths == ["included", "included/text.txt", "includedSymlink", "includedSymlink/included.txt"]
         SnapshotVisitorUtil.getAbsolutePaths(snapshot) == relativePaths.collect { new File(rootDir, it).absolutePath }
         unfilteredSubsnapshots*.absolutePath == absolutePathsFor(rootDir, "includedSymlink/included.txt", "included")
@@ -316,7 +311,7 @@ class DirectorySnapshotterTest extends Specification {
         linkTarget3.file("another/fileLink").createLink(linkTarget4)
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered, unfilteredSubSnapshotsCollector) as DirectorySnapshot
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, unfilteredSubSnapshotsCollector) as DirectorySnapshot
         def relativePaths = SnapshotVisitorUtil.getRelativePaths(snapshot)
         then:
         relativePaths == [
@@ -343,7 +338,7 @@ class DirectorySnapshotterTest extends Specification {
         link4.accessType == AccessType.VIA_SYMLINK
         link4.name == "fileLink"
 
-        unfilteredSubsnapshots.empty
+        unfilteredSubsnapshots == [snapshot]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -353,28 +348,27 @@ class DirectorySnapshotterTest extends Specification {
         assert rootDir.listFiles()*.exists() == [false]
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered, unfilteredSubSnapshotsCollector)
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, unfilteredSubSnapshotsCollector)
 
         then:
-        ! actuallyFiltered.get()
         snapshot.children.size() == 1
         def brokenSymlinkSnapshot = snapshot.children[0]
         brokenSymlinkSnapshot.class == MissingFileSnapshot
         brokenSymlinkSnapshot.accessType == AccessType.VIA_SYMLINK
         SnapshotVisitorUtil.getRelativePaths(snapshot) == ["brokenSymlink"]
-        unfilteredSubsnapshots.empty
+        unfilteredSubsnapshots == [snapshot]
         0 * _
 
         when:
         rootDir.file("linkTarget").createFile() // unbreak my heart
         and:
-        snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered, unfilteredSubSnapshotsCollector)
+        unfilteredSubsnapshots.clear()
+        snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, unfilteredSubSnapshotsCollector)
 
         then:
-        ! actuallyFiltered.get()
         snapshot.children*.class == [RegularFileSnapshot, RegularFileSnapshot]
         snapshot.children*.accessType == [AccessType.VIA_SYMLINK, AccessType.DIRECT]
-        unfilteredSubsnapshots.empty
+        unfilteredSubsnapshots == [snapshot]
         0 * _
     }
 
@@ -385,7 +379,7 @@ class DirectorySnapshotterTest extends Specification {
         dir.file('subdir').createLink(dir)
 
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered, unfilteredSubSnapshotsCollector)
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, unfilteredSubSnapshotsCollector)
 
         then:
         snapshot.children.size() == 1
@@ -393,7 +387,7 @@ class DirectorySnapshotterTest extends Specification {
         dirSnapshot.class == DirectorySnapshot
         dirSnapshot.accessType == AccessType.DIRECT
         dirSnapshot.children == []
-        unfilteredSubsnapshots.empty
+        unfilteredSubsnapshots == [snapshot]
         0 * _
     }
 
@@ -407,14 +401,13 @@ class DirectorySnapshotterTest extends Specification {
         second.createLink(third)
         third.createLink(first)
         when:
-        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered, unfilteredSubSnapshotsCollector)
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, unfilteredSubSnapshotsCollector)
 
         then:
-        ! actuallyFiltered.get()
         snapshot.children.size() == 3
         snapshot.children.every { it.class == MissingFileSnapshot }
         snapshot.children.every { it.accessType == AccessType.VIA_SYMLINK }
-        unfilteredSubsnapshots.empty
+        unfilteredSubsnapshots == [snapshot]
         0 * _
     }
 
@@ -429,7 +422,7 @@ class DirectorySnapshotterTest extends Specification {
         unreadable."create${type.capitalize()}"().makeUnreadable()
 
         when:
-        directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered, unfilteredSubSnapshotsCollector)
+        directorySnapshotter.snapshot(rootDir.absolutePath, null, unfilteredSubSnapshotsCollector)
 
         then:
         def ex = thrown(UncheckedIOException)
@@ -453,7 +446,7 @@ class DirectorySnapshotterTest extends Specification {
         def pipe = rootDir.file("testPipe").createNamedPipe()
 
         when:
-        directorySnapshotter.snapshot(rootDir.absolutePath, null, actuallyFiltered, unfilteredSubSnapshotsCollector)
+        directorySnapshotter.snapshot(rootDir.absolutePath, null, unfilteredSubSnapshotsCollector)
 
         then:
         def ex = thrown(UncheckedIOException)

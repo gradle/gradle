@@ -69,27 +69,26 @@ public class SnapshotUtil {
         });
     }
 
-    public static <T extends FileSystemNode> ReadOnlyFileSystemNode getChild(ChildMap<T> children, VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
-        return children.withNode(targetPath, caseSensitivity, new ChildMap.NodeHandler<T, ReadOnlyFileSystemNode>() {
+    public static <T extends FileSystemNode> Optional<FileSystemNode> getChild(ChildMap<T> children, VfsRelativePath targetPath, CaseSensitivity caseSensitivity) {
+        return children.withNode(targetPath, caseSensitivity, new ChildMap.NodeHandler<T, Optional<FileSystemNode>>() {
             @Override
-            public ReadOnlyFileSystemNode handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {
+            public Optional<FileSystemNode> handleAsDescendantOfChild(VfsRelativePath pathInChild, T child) {
                 return child.getNode(pathInChild, caseSensitivity);
             }
 
             @Override
-            public ReadOnlyFileSystemNode handleAsAncestorOfChild(String childPath, T child) {
-                // TODO: This is not correct, it should be a node with the child at targetPath.fromChild(childPath).
-                return child;
+            public Optional<FileSystemNode> handleAsAncestorOfChild(String childPath, T child) {
+                return Optional.of(child);
             }
 
             @Override
-            public ReadOnlyFileSystemNode handleExactMatchWithChild(T child) {
-                return child;
+            public Optional<FileSystemNode> handleExactMatchWithChild(T child) {
+                return Optional.of(child);
             }
 
             @Override
-            public ReadOnlyFileSystemNode handleUnrelatedToAnyChild() {
-                return ReadOnlyFileSystemNode.EMPTY;
+            public Optional<FileSystemNode> handleUnrelatedToAnyChild() {
+                return Optional.empty();
             }
         });
     }

@@ -19,6 +19,8 @@ package org.gradle.configurationcache.inputs.undeclared
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import java.util.function.Supplier
@@ -286,6 +288,229 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         ]
     }
 
+    def "system property set at the configuration phase is restored when running from cache"() {
+        given:
+        buildFile("""
+            $propertySetter
+
+            tasks.register("printProperty") {
+                doLast {
+                    println("some.property = \${System.properties["some.property"]}")
+                }
+            }
+        """)
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("printProperty")
+
+        then:
+        outputContains("some.property = $propertyValue")
+
+        when:
+        configurationCacheRun("printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("some.property = $propertyValue")
+
+        where:
+        propertyValue | propertySetter
+        "some.value"  | """System.setProperty("some.property", "$propertyValue")"""
+        "some.value"  | """System.properties["some.property"]="$propertyValue" """
+        "1"           | """System.properties["some.property"]=$propertyValue"""
+    }
+
+    def "system property removed at the configuration phase is removed when running from cache"() {
+        given:
+        buildFile("""
+            $propertyRemover
+
+            tasks.register("printProperty") {
+                doLast {
+                    println("some.property present = \${System.properties.containsKey("some.property")}")
+                }
+            }
+        """)
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("-Dsome.property=some.value", "printProperty")
+
+        then:
+        outputContains("some.property present = false")
+
+        when:
+        configurationCacheRun("-Dsome.property=some.value", "printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("some.property present = false")
+
+        where:
+        propertyRemover                                               | _
+        """System.clearProperty("some.property")"""                   | _
+        """System.properties.remove("some.property")"""               | _
+        """System.getProperties().keySet().remove("some.property")""" | _
+    }
+
+    def "build logic can use setProperties at configuration phase"() {
+        given:
+        buildFile("""
+            System.setProperty("some.removed.property", "removed.value")
+            def newProps = new Properties()
+            System.properties.forEach { k, v -> newProps.put(k, v) }
+            newProps.setProperty("some.property", "some.value")
+            newProps.remove("some.removed.property")
+
+            System.setProperties(newProps)
+            tasks.register("printProperty") {
+                doLast {
+                    println("some.property = \${System.properties.getProperty("some.property")}")
+                    println("some.removed.property = \${System.properties.getProperty("some.removed.property")}")
+                }
+            }
+        """)
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("some.property = some.value")
+        outputContains("some.removed.property = null")
+
+        when:
+        configurationCacheRun("printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("some.property = some.value")
+        outputContains("some.removed.property = null")
+    }
+
+    // Running with --no-daemon causes the test to fail when changing the command line because the
+    // internal property sun.java.command changes.
+    @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
+    def "properties set after clearing system properties with #systemPropsCleaner do not become inputs"() {
+        given:
+        buildFile("""
+            def copiedProps = new HashMap<>(System.properties)
+            $systemPropsCleaner
+
+            copiedProps.forEach { k, v -> System.setProperty(k, v) }
+            System.setProperty("some.property", "some.value")
+
+            tasks.register("printProperty") {
+                doLast {
+                    println("some.property = \${System.properties.getProperty("some.property")}")
+                }
+            }
+        """)
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("some.property = some.value")
+
+        when:
+        configurationCacheRun("-Dsome.property=other.value", "printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("some.property = some.value")
+
+        where:
+        systemPropsCleaner                       | _
+        'System.properties.clear()'              | _
+        'System.properties.keySet().clear()'     | _
+        'System.properties.entrySet().clear()'   | _
+        'System.setProperties(new Properties())' | _
+    }
+
+    def "system property removed after update at the configuration phase is removed when running from cache"() {
+        given:
+        buildFile("""
+            System.setProperty("some.property", "some.value")
+            System.clearProperty("some.property")
+
+            tasks.register("printProperty") {
+                doLast {
+                    println("some.property present = \${System.properties.containsKey("some.property")}")
+                }
+            }
+        """)
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("-Dsome.property=some.value", "printProperty")
+
+        then:
+        outputContains("some.property present = false")
+
+        when:
+        configurationCacheRun("-Dsome.property=some.value", "printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("some.property present = false")
+    }
+
+    def "system property added and removed at the configuration phase is removed when running from cache even if set externally"() {
+        given:
+        buildFile("""
+            System.properties.putAll(someProperty: "some.value")  // Use putAll to avoid recording property as an input
+            System.clearProperty("someProperty")
+
+            tasks.register("printProperty") {
+                doLast {
+                    println("someProperty present = \${System.properties.containsKey("someProperty")}")
+                }
+            }
+        """)
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("printProperty")
+
+        then:
+        outputContains("someProperty present = false")
+
+        when:
+        configurationCacheRun("-DsomeProperty=some.value", "printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("someProperty present = false")
+    }
+
+    def "non-serializable system property is reported"() {
+        given:
+        buildFile("""
+            System.properties["some.property"] = new Thread()
+        """)
+
+        when:
+        configurationCacheFails()
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            totalProblemsCount = 1
+            withProblem("Build file 'build.gradle': cannot serialize object of type 'java.lang.Thread', a subtype of 'java.lang.Thread', as these are not supported with the configuration cache.")
+            problemsWithStackTraceCount = 0
+        }
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/13155")
     def "plugin can bundle multiple resources with the same name"() {
         file("buildSrc/build.gradle") << """
@@ -403,6 +628,39 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         EnvVariableRead.getEnvContainsKey("CI")             | "false"    | "defined" | "true"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/19710")
+    def "modification of allowed properties does not invalidate cache"() {
+        buildFile("""
+            def oldValue = System.setProperty("java.awt.headless", "true")
+            println("previous value = \$oldValue")
+
+            // Attempt to capture the modified property value.
+            println("configuration time value=\${System.getProperty("java.awt.headless")}")
+
+            tasks.register("printProperty") {
+                doLast {
+                    println("execution time value=\${System.getProperty("java.awt.headless")}")
+                }
+            }
+        """)
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("-Djava.awt.headless=false", "printProperty")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("configuration time value=true")
+        outputContains("execution time value=true")
+
+        when:
+        configurationCacheRun("-Djava.awt.headless=false", "printProperty")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("execution time value=true")
+    }
+
     def "reports build logic reading environment variables with getenv(String) using GString parameters"() {
         // Note that the map returned from System.getenv() doesn't support GStrings as keys, so there is no point in testing it.
         buildFile << '''
@@ -430,6 +688,184 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
             withInput("Build file 'build.gradle': environment variable 'CI1'")
         }
         outputContains("CI1 = defined")
+    }
+
+    def "build logic can read environment variables with prefix"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            def ciVars = providers.environmentVariablesPrefixedBy("CI")
+            ciVars.get().forEach((k, v) -> {
+                println("Configuration: \$k = \$v")
+            })
+
+            tasks.register("print") {
+                doLast {
+                    ciVars.get().forEach((k, v) -> {
+                        println("Execution: \$k = \$v")
+                    })
+                }
+            }
+        """)
+
+        when:
+        EnvVariableInjection.environmentVariable("CI1", "1").setup(this)
+        configurationCacheRun("print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: CI1 = 1")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': environment variables prefixed by 'CI'")
+        }
+
+
+        when:
+        EnvVariableInjection.environmentVariable("CI1", "1").setup(this)
+        configurationCacheRun("print")
+        outputContains("Execution: CI1 = 1")
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        EnvVariableInjection.environmentVariables(CI1: "1", CI2: "2").setup(this)
+        configurationCacheRun("print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: CI1 = 1")
+        outputContains("Configuration: CI2 = 2")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': environment variables prefixed by 'CI'")
+        }
+    }
+
+    def "build logic can read system properties with prefix"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            def ciVars = providers.systemPropertiesPrefixedBy("some.property.")
+            ciVars.get().forEach((k, v) -> {
+                println("Configuration: \$k = \$v")
+            })
+
+            tasks.register("print") {
+                doLast {
+                    ciVars.get().forEach((k, v) -> {
+                        println("Execution: \$k = \$v")
+                    })
+                }
+            }
+        """)
+
+        when:
+        configurationCacheRun("-Dsome.property.1=1", "print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: some.property.1 = 1")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': system properties prefixed by 'some.property.'")
+        }
+
+        when:
+        configurationCacheRun("-Dsome.property.1=1", "print")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Execution: some.property.1 = 1")
+
+        when:
+        configurationCacheRun("-Dsome.property.1=1", "-Dsome.property.2=2", "print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: some.property.1 = 1")
+        outputContains("Configuration: some.property.2 = 2")
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': system properties prefixed by 'some.property.'")
+        }
+    }
+
+    def "build logic can read Gradle properties with prefix"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            def ciVars = providers.gradlePropertiesPrefixedBy("some.property.")
+            ciVars.get().forEach((k, v) -> {
+                println("Configuration: \$k = \$v")
+            })
+
+            tasks.register("print") {
+                doLast {
+                    ciVars.get().forEach((k, v) -> {
+                        println("Execution: \$k = \$v")
+                    })
+                }
+            }
+        """)
+
+        when:
+        configurationCacheRun("-Psome.property.1=1", "-Dsome.property.2=2", "print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: some.property.1 = 1")
+        outputDoesNotContain("Configuration: some.property.2 = 2")
+        problems.assertResultHasProblems(result) {
+            withNoInputs()
+        }
+
+        when:
+        configurationCacheRun("-Psome.property.1=1", "print")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Execution: some.property.1 = 1")
+
+        when:
+        configurationCacheRun("-Psome.property.1=1", "-Psome.property.2=2", "print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: some.property.1 = 1")
+        outputContains("Configuration: some.property.2 = 2")
+        problems.assertResultHasProblems(result) {
+            withNoInputs()
+        }
+    }
+
+    def "system properties overwritten in build logic are not inputs to prefixed system properties"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            System.properties.putAll(("some.property.1"): "0")
+            def ciVars = providers.systemPropertiesPrefixedBy("some.property.")
+            ciVars.get().forEach((k, v) -> {
+                println("Configuration: \$k = \$v")
+            })
+
+            tasks.register("print") {
+                doLast {
+                    ciVars.get().forEach((k, v) -> {
+                        println("Execution: \$k = \$v")
+                    })
+                }
+            }
+        """)
+
+        when:
+        configurationCacheRun("-Dsome.property.1=1", "-Dsome.property.2=2", "print")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Configuration: some.property.1 = 0")
+        outputContains("Configuration: some.property.2 = 2")
+
+        when:
+        configurationCacheRun("-Dsome.property.1=-1", "-Dsome.property.2=2", "print")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Execution: some.property.1 = 0")
+        outputContains("Execution: some.property.2 = 2")
     }
 
     def "reports build logic reading files in #title"() {

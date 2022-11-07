@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
@@ -49,7 +50,7 @@ import java.util.Map;
 /**
  * Main options for Java compilation.
  */
-public class CompileOptions extends AbstractOptions {
+public abstract class CompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
     private boolean failOnError = true;
@@ -66,11 +67,11 @@ public class CompileOptions extends AbstractOptions {
 
     private boolean debug = true;
 
-    private DebugOptions debugOptions = new DebugOptions();
+    private DebugOptions debugOptions;
 
     private boolean fork;
 
-    private ForkOptions forkOptions = new ForkOptions();
+    private ForkOptions forkOptions;
 
     private FileCollection bootstrapClasspath;
 
@@ -85,6 +86,7 @@ public class CompileOptions extends AbstractOptions {
 
     private FileCollection annotationProcessorPath;
 
+    private final Property<Boolean> incrementalAfterFailure;
     private final Property<String> javaModuleVersion;
     private final Property<String> javaModuleMainClass;
     private final Property<Integer> release;
@@ -100,6 +102,9 @@ public class CompileOptions extends AbstractOptions {
         this.generatedSourceOutputDirectory = objectFactory.directoryProperty();
         this.headerOutputDirectory = objectFactory.directoryProperty();
         this.release = objectFactory.property(Integer.class);
+        this.incrementalAfterFailure = objectFactory.property(Boolean.class);
+        this.forkOptions = objectFactory.newInstance(ForkOptions.class);
+        this.debugOptions = new DebugOptions();
     }
 
     /**
@@ -383,6 +388,24 @@ public class CompileOptions extends AbstractOptions {
     @Internal
     public boolean isIncremental() {
         return incremental;
+    }
+
+    /**
+     * Used to enable or disable incremental compilation after a failure.
+     * <p>
+     * By default, incremental compilation after a failure is enabled for Java and Groovy.
+     * It has no effect for Scala. It has no effect if incremental compilation is not enabled.
+     * <p>
+     * When the Java command line compiler is used, i.e. when a custom java home is passed to forkOptions.javaHome or javac is passed to forkOptions.executable,
+     * this optimization is automatically disabled, since the compiler is not invoked via the compiler API.
+     *
+     * @since 7.6
+     */
+    @Input
+    @Optional
+    @Incubating
+    public Property<Boolean> getIncrementalAfterFailure() {
+        return incrementalAfterFailure;
     }
 
     /**

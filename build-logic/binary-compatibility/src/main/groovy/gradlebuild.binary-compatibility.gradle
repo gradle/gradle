@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+import gradlebuild.EnrichedReportRenderer
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicKotlinDslApi
 import gradlebuild.basics.GradleModuleApiAttribute
@@ -47,8 +49,8 @@ repositories {
     }
 }
 
-def apiChangesJsonFile = project.file("src/changes/accepted-public-api-changes.json")
-def acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonFile.text)
+def apiChangesJsonFile = layout.projectDirectory.file("src/changes/accepted-public-api-changes.json")
+def acceptedViolations = AcceptedApiChanges.parse(providers.fileContents(apiChangesJsonFile).asText.get())
 def compatibilityBaselineVersion = moduleIdentity.releasedVersions.get().mostRecentRelease.version
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
@@ -116,12 +118,12 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
     def currentClasspath = configurations.currentApiClasspath.incoming.artifactView { lenient(true) }.files
     inputs.files(currentClasspath)
 
-    newClasspath = currentClasspath
-    oldClasspath = configurations.baselineClasspath
+    newClasspath.from(currentClasspath)
+    oldClasspath.from(configurations.baselineClasspath)
 
     def currentDistributionJars = currentClasspath.filter { it.name.startsWith('gradle-') && it.name.endsWith('.jar') }
-    newArchives = currentDistributionJars
-    oldArchives = configurations.baselineJars
+    newArchives.from(currentDistributionJars)
+    oldArchives.from(configurations.baselineJars)
 
     dependencies.registerTransform(FindGradleJars) {
         from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
@@ -136,31 +138,34 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
     onlyModified = false
     failOnModification = false // we rely on the custom report to fail or not
     ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
-    richReport {
-        includedClasses = toPatterns(PublicApi.includes + PublicKotlinDslApi.includes)
-        excludedClasses = toPatterns(PublicApi.excludes + PublicKotlinDslApi.excludes)
+    richReport({
+        it.includedClasses = toPatterns(PublicApi.includes + PublicKotlinDslApi.includes)
+        it.excludedClasses = toPatterns(PublicApi.excludes + PublicKotlinDslApi.excludes)
 
-        title = "Binary compatibility report for Gradle ${isSnapshot.get() ? "${baseVersion.get()}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
-        destinationDir = file("$buildDir/reports/binary-compatibility")
-        reportName = "report.html"
-        description = """
+        it.title = "Binary compatibility report for Gradle ${isSnapshot.get() ? "${baseVersion.get()}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
+        it.destinationDir = file("$buildDir/reports/binary-compatibility")
+        it.reportName = "report.html"
+        it.description = """
             <p>See the <a href="https://docs.google.com/document/d/1KA5yI4HL18qOeXjXLTMMD_upkDbNUzTDGNfBGYdQlYw/edit#heading=h.9yqcmqviz47z">documentation</a> for more details.</p>
             <p>
             We check the binary compatibility by comparing the current code’s binary interfaces
             against THE LATEST VERSION WHICH IS RELEASED FROM RELEASE BRANCH (from `released-version.json` on this branch)
             AND LOWER THAN CURRENT BASE VERSION (from `version.txt` on this branch).
-            The difference must identically match `accepted-public-api-changes.json`, no more, no less - otherwise the task will fail.
+            The difference must identically match <a href="${apiChangesJsonFile.asFile.path}">accepted-public-api-changes.json</a>, no more, no less - otherwise the task will fail.
             </p>
+            ${writeFilterPreset(project)}
 """.stripIndent()
-    }
 
-    BinaryCompatibilityHelper.setupJApiCmpRichReportRules(delegate, acceptedViolations, apiSourceFolders, baseVersion.get())
+        it.renderer.set(EnrichedReportRenderer.class)
+    } as Action)
+
+    BinaryCompatibilityHelper.setupJApiCmpRichReportRules(delegate, acceptedViolations, apiSourceFolders, baseVersion.get(), apiChangesJsonFile.asFile, rootProject.layout.projectDirectory)
 }
 tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }
 
 tasks.register("cleanAcceptedApiChanges", CleanAcceptedApiChanges) {
     description = 'Cleans up all existing accepted API changes.'
-    jsonFile = apiChangesJsonFile
+    jsonFile = apiChangesJsonFile.asFile
 }
 
 static List<String> toPatterns(List<String> packages) {
@@ -171,4 +176,9 @@ static List<String> toPatterns(List<String> packages) {
             .replaceAll('/', '[.]')
             .replaceAll('###', '.*?')
     }
+}
+
+private String writeFilterPreset(Project project) {
+    def preset = project.hasProperty('bin.cmp.report.severity.filter') ? project.getProperty('bin.cmp.report.severity.filter') : 'All levels'
+    return """<input id="filter-preset" type="hidden" value="$preset" />"""
 }

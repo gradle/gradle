@@ -17,31 +17,25 @@ package org.gradle.execution.taskgraph;
 
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.Node;
+import org.gradle.internal.build.ExecutionResult;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     /**
      * Attaches the work that this graph will run. Fires events and no further tasks should be added.
      */
-    void populate(ExecutionPlan plan);
+    void populate(FinalizedExecutionPlan plan);
 
     /**
-     * Executes the given work. Discards the contents of this graph when completed. Should call {@link #populate(ExecutionPlan)} prior to
+     * Executes the given work. Discards the contents of this graph when completed. Should call {@link #populate)} prior to
      * calling this method.
-     *
-     * @param taskFailures collection to collect task execution failures into. Does not need to be thread-safe
      */
-    void execute(ExecutionPlan plan, Collection<? super Throwable> taskFailures);
-
-    /**
-     * Sets whether execution should continue if a task fails.
-     */
-    void setContinueOnFailure(boolean continueOnFailure);
+    ExecutionResult<Void> execute(FinalizedExecutionPlan plan);
 
     /**
      * Set of requested tasks.
@@ -54,8 +48,8 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     int size();
 
     /**
-     * Returns all of the work items in this graph scheduled for execution plus all
+     * Returns all the work items in this graph scheduled for execution plus all
      * dependencies from other builds.
      */
-    List<Node> getScheduledWorkPlusDependencies();
+    void visitScheduledNodes(Consumer<List<Node>> visitor);
 }

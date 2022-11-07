@@ -76,6 +76,12 @@ import javax.inject.Inject;
  * to {@link #obtain()} is synchronized.
  * </p>
  *
+ * <p>
+ * A value source implementation is exempt from the automatic detection of work graph cache inputs.
+ * For example, if the {@link #obtain()} method calls {@code System.getenv("FOO")} then changes to
+ * the {@code FOO} environment variable only invalidate the cache if the value returned by the
+ * {@code obtain()} method itself changes. The same applies to reading files or system properties.
+ * </p>
  * @param <T> The type of value obtained from this source.
  * @param <P> The source specific parameter type.
  * @see ProviderFactory#environmentVariable(String)
@@ -101,6 +107,7 @@ public interface ValueSource<T, P extends ValueSourceParameters> {
 
     /**
      * Obtains the value from the source. The returned value must be effectively immutable.
+     * The implementation is exempt from the automatic detection of work graph cache inputs.
      *
      * <p>This method must be implemented in the subclass.</p>
      * <p>This method is only called if the provider value is requested and only once in that case.</p>

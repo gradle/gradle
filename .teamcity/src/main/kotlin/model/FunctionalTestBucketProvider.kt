@@ -86,9 +86,31 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
             val buckets: List<BuildTypeBucket> = testCoverageAndBucket.getJSONArray("buckets").map {
                 fromJsonObject(it as JSONObject).toBuildTypeBucket(model.subprojects)
             }
-            testCoverage to buckets
+
+            // Sometimes people may add new subproject into `subprojects.json`
+            // in this case we have no historical test running time, so we simply add these subprojects into first available bucket
+            val allSubprojectsInBucketJson = buckets.flatMap {
+                if (it is SmallSubprojectBucket) it.subprojects.map { it.name }
+                else listOf((it as LargeSubprojectSplitBucket).subproject.name)
+            }.toSet()
+            val allSubprojectsInModel = model.subprojects.subprojects.filter { it.hasTestsOf(testCoverage.testType) }.map { it.name }
+            val subprojectsInModelButNotInBucketJson = allSubprojectsInModel.toMutableList().apply { removeAll(allSubprojectsInBucketJson) }
+
+            if (subprojectsInModelButNotInBucketJson.isEmpty()) {
+                testCoverage to buckets
+            } else {
+                testCoverage to mergeUnknownSubprojectsIntoFirstAvailableBucket(buckets, model.subprojects.subprojects.filter { subprojectsInModelButNotInBucketJson.contains(it.name) })
+            }
         }
     }
+
+    private fun mergeUnknownSubprojectsIntoFirstAvailableBucket(buckets: List<BuildTypeBucket>, unknownSubprojects: List<GradleSubproject>): MutableList<BuildTypeBucket> =
+        buckets.toMutableList().apply {
+            val firstAvailableBucketIndex = indexOfFirst { it is SmallSubprojectBucket }
+            val firstSmallSubprojectsBucket = get(firstAvailableBucketIndex) as SmallSubprojectBucket
+
+            set(firstAvailableBucketIndex, SmallSubprojectBucket(firstSmallSubprojectsBucket.subprojects + unknownSubprojects, firstSmallSubprojectsBucket.enableTestDistribution))
+        }
 
     override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage): List<FunctionalTest> {
         return buckets.getValue(testCoverage).mapIndexed { bucketIndex: Int, bucket: BuildTypeBucket ->

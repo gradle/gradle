@@ -100,7 +100,7 @@ include::sample[dir="snippets/signing/gnupg-signatory/kotlin",files="build.gradl
 
 This tells the Signing Plugin to use the `GnupgSignatory` instead of the default link:{javadocPath}/org/gradle/plugins/signing/signatory/pgp/PgpSignatory.html[PgpSignatory]. The `GnupgSignatory` relies on the gpg2 program to sign the artifacts. Of course, this requires that GnuPG is installed.
 
-Without any further configuration the `gpg2` (on Windows: `gpg2.exe`) executable found on the `PATH` will be used. The password is supplied by the `gpg-agent` and the default key is used for signing.
+Without any further configuration the `gpg` (on Windows: `gpg.exe`) executable found on the `PATH` will be used. The password is supplied by the `gpg-agent` and the default key is used for signing.
 
 
 [[sec:sec:gnupg_signatory_configuration]]

@@ -84,11 +84,12 @@ public interface TaskInputs {
      * <p>Registers an input property for this task. This value is persisted when the task executes, and is compared
      * against the property value for later invocations of the task, to determine if the task is up-to-date.</p>
      *
-     * <p>The given value for the property must be Serializable, so that it can be persisted. It should also provide a
-     * useful {@code equals()} method.</p>
+     * <p>The given value must be a simple value, like a String or Integer, or serializable. For complex values,
+     *  Gradle compares the serialized forms for detecting changes and the {@code equals()} method is ignored.
      *
-     * <p>You can specify a closure or {@code Callable} as the value of the property. In which case, the closure or
-     * {@code Callable} is executed to determine the actual property value.</p>
+     * <p>If the value is not known when registering the input, a {@link org.gradle.api.provider.Provider} can be
+     * passed instead. Gradle will then resolve the provider at the latest possible time in order to determine the actual
+     * property value.</p>
      *
      * @param name The name of the property. Must not be null.
      * @param value The value for the property. Can be null.

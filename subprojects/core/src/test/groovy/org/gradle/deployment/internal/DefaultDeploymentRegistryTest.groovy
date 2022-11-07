@@ -17,7 +17,6 @@
 package org.gradle.deployment.internal
 
 import org.gradle.api.model.ObjectFactory
-import org.gradle.internal.filewatch.PendingChangesManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 

@@ -47,7 +47,7 @@ _Depends on_: All tasks which contribute to the compilation classpath, including
 +
 Compiles production Java source files using the JDK compiler.
 
-`processResources` — link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy]::
+`processResources` — link:{groovyDslPath}/org.gradle.language.jvm.tasks.ProcessResources.html[ProcessResources]::
 Copies production resources into the production resources directory.
 
 `classes`::
@@ -141,11 +141,6 @@ Performs a full build of the project and all projects which depend upon it.
 _Depends on_: all tasks that generate the artifacts attached to the named — _ConfigName_ — configuration
 +
 Assembles the artifacts for the specified configuration. This rule is added by the Base Plugin.
-
-`upload__ConfigName__` — _task rule_, type: link:{groovyDslPath}/org.gradle.api.tasks.Upload.html[Upload]::
-_Depends on_: all tasks that generate the artifacts attached to the named — _ConfigName_ — configuration
-+
-Assembles and uploads the artifacts in the specified configuration. This rule is added by the Base Plugin.
 
 The following diagram shows the relationships between these tasks.
 
@@ -501,9 +496,13 @@ To help you understand how incremental compilation works, the following provides
 [[sec:incremental_compilation_known_issues]]
 === Known issues
 
-* If a compile task fails due to a compile error, it will do a full compilation again the next time it is invoked.
 * If you are using an annotation processor that reads resources (e.g. a configuration file), you need to declare those resources as an input of the compile task.
 * If a resource file is changed, Gradle will trigger a full recompilation.
+* Using a custom `executable` or `javaHome` deactivates some optimizations.
+    The compile task does not use incremental build immediately after a compile error or if a Java constant changes.
+    Use <<toolchains.adoc#toolchains, toolchains>> instead if possible.
+* Having a source structure that does not match the package names, while legal for compilation, might end up causing trouble in the toolchain.
+    Even more if annotation processing and <<build_cache.adoc#build_cache,caching>> are involved.
 
 [[sec:incremental_annotation_processing]]
 == Incremental annotation processing
@@ -546,6 +545,8 @@ include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/sr
 
 Both categories have the following limitations:
 
+* They can only read `CLASS` or `RUNTIME` retention annotations.
+* They can only read parameter names if the user passes the `-parameters` compiler argument.
 * They must generate their files using the link:{javaApi}/javax/annotation/processing/Filer.html[Filer API].
     Writing files any other way will result in silent failures later on, as these files won't be cleaned up correctly.
     If your processor does this, it cannot be incremental.
@@ -569,7 +570,7 @@ For instance an `EntityProcessor` could create a `<TypeName>Repository` for each
 include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/EntityProcessor.java[tag=isolating-annotation-processor]
 ----
 
-"Isolating" processors have the following limitations:
+"Isolating" processors have the following additional limitations:
 
 * They must make all decisions (code generation, validation messages) for an annotated type based on information reachable from its AST.
     This means you can analyze the types' super-class, method return types, annotations etc., even transitively.
@@ -595,11 +596,6 @@ For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistr
 ----
 include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/ServiceRegistryProcessor.java[tag=aggregating-annotation-processor]
 ----
-
-"Aggregating" processors have the following limitations:
-
-* They can only read `CLASS` or `RUNTIME` retention annotations
-* They can only read parameter names if the user passes the `-parameters` compiler argument.
 
 Gradle will always reprocess (but not recompile) all annotated files that the processor was registered for.
 Gradle will always recompile any files the processor generates.

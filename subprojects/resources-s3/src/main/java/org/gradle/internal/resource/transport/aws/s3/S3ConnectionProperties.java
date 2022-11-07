@@ -28,7 +28,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
 
-import static com.amazonaws.services.s3.internal.Constants.S3_HOSTNAME;
 import static java.lang.System.getProperty;
 
 public class S3ConnectionProperties {
@@ -81,14 +80,13 @@ public class S3ConnectionProperties {
 
     public Optional<HttpProxySettings.HttpProxy> getProxy() {
         if (endpoint.isPresent()) {
-            String host = endpoint.get().getHost();
-            if (endpoint.get().getScheme().toUpperCase().equals("HTTP")) {
-                return Optional.fromNullable(proxySettings.getProxy(host));
+            if (endpoint.get().getScheme().equalsIgnoreCase("HTTP")) {
+                return Optional.fromNullable(proxySettings.getProxy());
             } else {
-                return Optional.fromNullable(secureProxySettings.getProxy(host));
+                return Optional.fromNullable(secureProxySettings.getProxy());
             }
         }
-        return Optional.fromNullable(secureProxySettings.getProxy(S3_HOSTNAME));
+        return Optional.fromNullable(secureProxySettings.getProxy());
     }
 
     private Optional<Integer> configureErrorRetryCount(String property) {

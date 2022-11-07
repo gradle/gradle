@@ -16,9 +16,11 @@
 
 package org.gradle.api.plugins.jvm;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.dsl.DependencyAdder;
+import org.gradle.api.artifacts.dsl.GradleDependencies;
+import org.gradle.api.artifacts.dsl.PlatformDependencyModifiers;
+import org.gradle.api.artifacts.dsl.TestFixturesDependencyModifiers;
 
 /**
  * This DSL element is used to add dependencies to a component, like {@link JvmTestSuite}.
@@ -26,72 +28,52 @@ import org.gradle.api.artifacts.Dependency;
  * <ul>
  *     <li><code>implementation</code> dependencies are used at compilation and runtime.</li>
  *     <li><code>compileOnly</code> dependencies are used only at compilation and are not available at runtime.</li>
- *     <li><code>runtimeOnly</code> dependencies are not available at  compilation and are used only at runtime.</li>
+ *     <li><code>runtimeOnly</code> dependencies are not available at compilation and are used only at runtime.</li>
+ *     <li><code>annotationProcessor</code> dependencies are used only at compilation, and are added to the annotation processor classpath</li>
  * </ul>
  *
- * @since 7.3
- *
  * @see org.gradle.api.artifacts.dsl.DependencyHandler For more information.
+ * @since 7.3
  */
 @Incubating
-public interface JvmComponentDependencies {
+public interface JvmComponentDependencies extends PlatformDependencyModifiers, TestFixturesDependencyModifiers, GradleDependencies {
     /**
-     * Add a dependency to the set of implementation dependencies.
-     * <p><br>
+     * Returns a {@link DependencyAdder} to add to the set of implementation dependencies.
+     * <p>
      * <code>implementation</code> dependencies are used at compilation and runtime.
      *
-     * @param dependencyNotation dependency to add
-     * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
+     * @since 7.6
+     * @return a {@link DependencyAdder} to add to the set of implementation dependencies
      */
-    void implementation(Object dependencyNotation);
-    /**
-     * Add a dependency to the set of implementation dependencies with additional configuration.
-     * <p><br>
-     * <code>implementation</code> dependencies are used at compilation and runtime.
-     *
-     * @param dependencyNotation dependency to add
-     * @param configuration additional configuration for the provided dependency
-     * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
-     */
-    void implementation(Object dependencyNotation, Action<? super Dependency> configuration);
+    DependencyAdder getImplementation();
 
     /**
-     * Add a dependency to the set of compileOnly dependencies.
-     * <p><br>
+     * Returns a {@link DependencyAdder} to add to the set of compile-only dependencies.
+     * <p>
      * <code>compileOnly</code> dependencies are used only at compilation and are not available at runtime.
      *
-     * @param dependencyNotation dependency to add
-     * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
+     * @since 7.6
+     * @return a {@link DependencyAdder} to add to the set of compile-only dependencies
      */
-    void compileOnly(Object dependencyNotation);
-    /**
-     * Add a dependency to the set of compileOnly dependencies with additional configuration.
-     * <p><br>
-     * <code>compileOnly</code> dependencies are used only at compilation and are not available at runtime.
-     *
-     * @param dependencyNotation dependency to add
-     * @param configuration additional configuration for the provided dependency
-     * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
-     */
-    void compileOnly(Object dependencyNotation, Action<? super Dependency> configuration);
+    DependencyAdder getCompileOnly();
 
     /**
-     * Add a dependency to the set of runtimeOnly dependencies.
-     * <p><br>
-     * <code>runtimeOnly</code> dependencies are not available at  compilation and are used only at runtime.
+     * Returns a {@link DependencyAdder} to add to the set of runtime-only dependencies.
+     * <p>
+     * <code>runtimeOnly</code> dependencies are not available at compilation and are used only at runtime.
      *
-     * @param dependencyNotation dependency to add
-     * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
+     * @since 7.6
+     * @return a {@link DependencyAdder} to add to the set of runtime-only dependencies
      */
-    void runtimeOnly(Object dependencyNotation);
+    DependencyAdder getRuntimeOnly();
+
     /**
-     * Add a dependency to the set of runtimeOnly dependencies with additional configuration.
-     * <p><br>
-     * <code>runtimeOnly</code> dependencies are not available at  compilation and are used only at runtime.
+     * Returns a {@link DependencyAdder} to add to the set of annotation processor dependencies.
+     * <p>
+     * <code>annotationProcessor</code> dependencies are used only at compilation, and are added to the annotation processor classpath.
      *
-     * @param dependencyNotation dependency to add
-     * @param configuration additional configuration for the provided dependency
-     * @see org.gradle.api.artifacts.dsl.DependencyHandler Valid dependency notations.
+     * @since 7.6
+     * @return a {@link DependencyAdder} to add to the set of annotation processor dependencies
      */
-    void runtimeOnly(Object dependencyNotation, Action<? super Dependency> configuration);
+    DependencyAdder getAnnotationProcessor();
 }

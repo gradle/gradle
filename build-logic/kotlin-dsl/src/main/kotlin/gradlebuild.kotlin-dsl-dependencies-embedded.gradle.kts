@@ -26,7 +26,7 @@ plugins {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "2.2.0" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "3.1.0" // TODO:kotlin-dsl
 
 tasks {
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
@@ -35,8 +35,16 @@ tasks {
         kotlinDslPluginsVersion.set(publishedKotlinDslPluginVersion)
     }
 
+    val apiExtensionsFileCollection = files(apiExtensionsOutputDir).builtBy(generateKotlinDependencyExtensions)
+
     sourceSets.main {
-        kotlin.srcDir(files(apiExtensionsOutputDir).builtBy(generateKotlinDependencyExtensions))
+        kotlin.srcDir(apiExtensionsFileCollection)
+    }
+
+    processResources {
+        // Add generated sources to the main jar because `src` or any other Gradle distribution does not include them.
+        // A more general solution is probably required: https://github.com/gradle/gradle/issues/21114
+        from(apiExtensionsFileCollection)
     }
 
 // -- Version manifest properties --------------------------------------
@@ -64,7 +72,7 @@ val writeEmbeddedKotlinDependencies by tasks.registering {
     outputs.file(outputFile)
     val values = embeddedKotlinBaseDependencies
     inputs.files(values)
-    val skippedModules = setOf(project.name, "distributions-dependencies", "kotlin-compiler-embeddable")
+    val skippedModules = setOf(project.name, "distributions-dependencies")
     // https://github.com/gradle/configuration-cache/issues/183
     val modules = provider {
         embeddedKotlinBaseDependencies.incoming.resolutionResult.allComponents

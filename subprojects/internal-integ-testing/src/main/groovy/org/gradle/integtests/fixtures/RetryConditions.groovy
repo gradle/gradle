@@ -27,7 +27,13 @@ class RetryConditions {
 
     static private final String[] FILES_TO_PRESERVE = ['reproducible-archives-init.gradle']
 
-    static boolean onBuildTimeout(Object specification, Throwable t) {
+    static boolean onContinuousBuildTimeout(Object specification, Throwable t) {
+        def targetVersion = extractTargetVersionFromToolingApiSpecification(specification)
+        if (targetVersion == null || targetVersion.baseVersion >= GradleVersion.version("7.5")) {
+            // Starting with Gradle 7.5 we are using a new continuous build infrastructure,
+            // which shouldn't be flaky any more.
+            return false
+        }
         if (t?.message?.startsWith('Timeout waiting for build to complete.')) {
             println "Retrying continuous build test because of timeout"
             return cleanProjectDir(specification)
@@ -70,10 +76,8 @@ class RetryConditions {
     }
 
     private static boolean shouldRetry(Object specification, Throwable failure, @Nullable DaemonLogsAnalyzer daemonsFixture) {
-        String releasedGradleVersion = specification.hasProperty("releasedGradleVersion") ? specification.releasedGradleVersion : null
         def caughtGradleConnectionException = specification.hasProperty("caughtGradleConnectionException") ? specification.caughtGradleConnectionException : null
 
-        println "Cross version test failure with target version " + releasedGradleVersion
         println "Failure: " + failure
         println "Cause  : " + failure?.cause
 
@@ -85,12 +89,11 @@ class RetryConditions {
 
         println "Daemons (potentially used): ${daemonsFixture?.allDaemons?.collect { it.context?.pid }} - ${daemonsFixture?.daemonBaseDir}"
 
-        if (releasedGradleVersion == null) {
+        def targetDistVersion = extractTargetVersionFromToolingApiSpecification(specification)
+        if (targetDistVersion == null) {
             println "Can not retry cross version test because 'gradleVersion' is unknown"
             return false
         }
-
-        def targetDistVersion = GradleVersion.version(releasedGradleVersion)
 
         // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
         if (targetDistVersion < GradleVersion.version("1.3") &&
@@ -147,6 +150,15 @@ class RetryConditions {
 
         // sometime sockets are unexpectedly disappearing on daemon side (running on windows): https://github.com/gradle/gradle/issues/1111
         didSocketDisappearOnWindows(failure, specification, daemonsFixture, targetDistVersion >= GradleVersion.version('3.0'))
+    }
+
+    @Nullable
+    private static GradleVersion extractTargetVersionFromToolingApiSpecification(specification) {
+        String targetGradleVersion = specification.hasProperty("releasedGradleVersion") ? specification.releasedGradleVersion : null
+        println "Cross version test failure with target version " + targetGradleVersion
+        return targetGradleVersion == null
+            ? null
+            : GradleVersion.version(targetGradleVersion)
     }
 
     static void onWindowsSocketDisappearance(Object specification, Throwable failure) {

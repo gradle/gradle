@@ -393,7 +393,7 @@ task someTask {
             task invalid(type: InvalidTask)
         """
 
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'inputFile'))
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'inputFile'), 'id', 'section')
 
         when:
         run "invalid", "--info"
@@ -419,7 +419,7 @@ task someTask {
             task invalid(type: InvalidTask)
         """
 
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'inputFile'))
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'inputFile'), 'id', 'section')
 
         when:
         run "invalid"
@@ -445,7 +445,7 @@ task someTask {
             task invalid(type: InvalidTask)
         """
 
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'inputFile'))
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'inputFile'), 'id', 'section')
 
         when:
         run "invalid"
@@ -726,7 +726,7 @@ task someTask(type: SomeTask) {
 
         expect:
         fails "test"
-        failureDescriptionContains(cannotWriteToFile {
+        failureDescriptionContains(cannotWriteFileToDirectory {
             property('output')
                 .file(outputDir)
                 .isNotFile()

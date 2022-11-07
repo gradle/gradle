@@ -15,7 +15,9 @@
  */
 package org.gradle.launcher.cli
 
+import org.gradle.api.Action
 import org.gradle.cli.CommandLineParser
+import org.gradle.internal.Actions
 import org.gradle.internal.Factory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.OutputEventListener
@@ -26,6 +28,7 @@ import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
+import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.provider.SetupLoggingActionExecuter
 import org.gradle.util.SetSystemProperties
@@ -61,10 +64,10 @@ class BuildActionsFactoryTest extends Specification {
 
     def "check that --max-workers overrides org.gradle.workers.max"() {
         when:
-        RunBuildAction action = convert('--max-workers=5')
+        def action = convert('--max-workers=5')
 
         then:
-        action.startParameter.maxWorkerCount == 5
+        unwrapAction(action).startParameter.maxWorkerCount == 5
     }
 
     def "by default daemon is used"() {
@@ -99,7 +102,7 @@ class BuildActionsFactoryTest extends Specification {
         def action = convert('--status')
 
         then:
-        action instanceof ReportDaemonStatusAction
+        unwrapAction(action) instanceof ReportDaemonStatusAction
     }
 
     def "stops daemon"() {
@@ -107,7 +110,7 @@ class BuildActionsFactoryTest extends Specification {
         def action = convert('--stop')
 
         then:
-        action instanceof StopDaemonAction
+        unwrapAction(action) instanceof StopDaemonAction
     }
 
     def "runs daemon in foreground"() {
@@ -115,7 +118,7 @@ class BuildActionsFactoryTest extends Specification {
         def action = convert('--foreground')
 
         then:
-        action instanceof ForegroundDaemonAction
+        unwrapAction(action) instanceof ForegroundDaemonAction
     }
 
     def "executes with single use daemon if current process cannot be used"() {
@@ -137,17 +140,30 @@ class BuildActionsFactoryTest extends Specification {
     }
 
     void isDaemon(def action) {
-        assert action instanceof RunBuildAction
-        assert action.executer instanceof DaemonClient
+        def runnable = unwrapAction(action)
+        def executor = unwrapExecutor(runnable)
+        assert executor instanceof DaemonClient
     }
 
     void isInProcess(def action) {
-        assert action instanceof RunBuildAction
-        assert action.executer instanceof SetupLoggingActionExecuter
+        def runnable = unwrapAction(action)
+        def executor = unwrapExecutor(runnable)
+        assert executor instanceof SetupLoggingActionExecuter
     }
 
     void isSingleUseDaemon(def action) {
-        assert action instanceof RunBuildAction
-        assert action.executer instanceof SingleUseDaemonClient
+        def runnable = unwrapAction(action)
+        def executor = unwrapExecutor(runnable)
+        assert executor instanceof SingleUseDaemonClient
+    }
+
+    private Runnable unwrapAction(Action<?> action) {
+        assert action instanceof Actions.RunnableActionAdapter
+        return action.runnable
+    }
+
+    private BuildActionExecuter unwrapExecutor(Runnable runnable) {
+        assert runnable instanceof RunBuildAction
+        return runnable.executer
     }
 }

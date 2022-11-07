@@ -31,8 +31,7 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
 
     private final InputFilePropertyType filePropertyType;
     private boolean skipWhenEmpty;
-    @SuppressWarnings("deprecation")
-    private DirectorySensitivity directorySensitivity = DirectorySensitivity.UNSPECIFIED;
+    private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
     private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;
     private Class<? extends FileNormalizer> normalizer = AbsolutePathInputNormalizer.class;
 
@@ -124,8 +123,8 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     }
 
     @Override
-    public TaskInputFilePropertyBuilder normalizeLineEndings(boolean ignoreLineEndings) {
-        this.lineEndingSensitivity = ignoreLineEndings ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS : LineEndingSensitivity.DEFAULT;
+    public TaskInputFilePropertyBuilder normalizeLineEndings(boolean normalizeLineEndings) {
+        this.lineEndingSensitivity = normalizeLineEndings ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS : LineEndingSensitivity.DEFAULT;
         return this;
     }
 

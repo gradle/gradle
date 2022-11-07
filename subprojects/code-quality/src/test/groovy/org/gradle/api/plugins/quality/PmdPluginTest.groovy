@@ -57,6 +57,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         !extension.ignoreFailures
         extension.maxFailures.get() == 0
         extension.rulesMinimumPriority.get() == 5
+        extension.threads.get() == 1
     }
 
     def "configures pmd task for each source set"() {
@@ -112,6 +113,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert maxFailures.get() == 0
             assert rulesMinimumPriority.get() == 5
             assert incrementalAnalysis.get() == true
+            assert threads.get() == 1
         }
     }
 
@@ -131,6 +133,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.maxFailures.get() == 0
         task.rulesMinimumPriority.get() == 5
         task.incrementalAnalysis.get() == true
+        task.threads.get() == 1
     }
 
     def "adds pmd tasks to check lifecycle task"() {
@@ -162,6 +165,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             ignoreFailures = true
             maxFailures = 17
             rulesMinimumPriority = 3
+            threads = 2
         }
 
         expect:
@@ -187,6 +191,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert ignoreFailures == true
             assert maxFailures.get() == 17
             assert rulesMinimumPriority.get() == 3
+            task.threads.get() == 2
         }
     }
 
@@ -200,6 +205,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             ignoreFailures = true
             maxFailures = 5
             rulesMinimumPriority = 3
+            threads = 2
         }
 
         expect:
@@ -215,6 +221,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.ignoreFailures == true
         task.maxFailures.get() == 5
         task.rulesMinimumPriority.get() == 3
+        task.threads.get() == 2
     }
 
     def "configures pmd classpath based on sourcesets"() {

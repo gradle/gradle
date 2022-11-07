@@ -16,6 +16,7 @@
 package org.gradle.api.java.archives;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 
 /**
@@ -72,5 +73,5 @@ public interface ManifestMergeSpec {
      * @param mergeAction The action to execute.
      * @return this
      */
-    ManifestMergeSpec eachEntry(Closure<?> mergeAction);
+    ManifestMergeSpec eachEntry(@DelegatesTo(ManifestMergeDetails.class) Closure<?> mergeAction);
 }
