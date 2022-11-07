@@ -255,14 +255,19 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private static void describeUsage(Object usage, StringBuilder sb) {
         String str = toName(usage);
         switch (str) {
             case Usage.JAVA_API:
-                sb.append("an API");
+            case JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS:
+            case JavaEcosystemSupport.DEPRECATED_JAVA_API_CLASSES:
+                sb.append("compile-time");
                 break;
             case Usage.JAVA_RUNTIME:
-                sb.append("a runtime");
+            case JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS:
+            case JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_CLASSES:
+                sb.append("runtime");
                 break;
             default:
                 sb.append("'").append(str).append("'");
