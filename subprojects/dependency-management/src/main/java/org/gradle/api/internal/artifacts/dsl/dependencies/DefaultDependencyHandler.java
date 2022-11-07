@@ -29,7 +29,6 @@ import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
@@ -46,7 +45,6 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
@@ -358,10 +356,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         Dependency platformDependency = create(notation);
         if (platformDependency instanceof ExternalModuleDependency) {
             AbstractExternalModuleDependency externalModuleDependency = (AbstractExternalModuleDependency) platformDependency;
-            externalModuleDependency.setForceForEnforcedPlatform(true);
-            ModuleVersionIdentifier version = DefaultModuleVersionIdentifier.newId(externalModuleDependency.getModule(), externalModuleDependency.getVersion());
             MutableVersionConstraint constraint = (MutableVersionConstraint) externalModuleDependency.getVersionConstraint();
-            constraint.strictly(version.getVersion());
+            constraint.strictly(externalModuleDependency.getVersion());
             platformSupport.addPlatformAttribute(externalModuleDependency, toCategory(Category.ENFORCED_PLATFORM));
         } else if (platformDependency instanceof HasConfigurableAttributes) {
             platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) platformDependency, toCategory(Category.ENFORCED_PLATFORM));

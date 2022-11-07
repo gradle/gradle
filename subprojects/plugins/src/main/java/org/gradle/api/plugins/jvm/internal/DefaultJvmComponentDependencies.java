@@ -19,6 +19,7 @@ package org.gradle.api.plugins.jvm.internal;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.attributes.Category;
@@ -100,7 +101,9 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
     @Override
     public <D extends ModuleDependency> D enforcedPlatform(D dependency) {
         if (dependency instanceof ExternalDependency) {
-            ((AbstractExternalModuleDependency)dependency).setForceForEnforcedPlatform(true);
+            AbstractExternalModuleDependency externalDependency = (AbstractExternalModuleDependency) dependency;
+            MutableVersionConstraint constraint = (MutableVersionConstraint) externalDependency.getVersionConstraint();
+            constraint.strictly(externalDependency.getVersion());
         }
         dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.ENFORCED_PLATFORM)));
         return dependency;
