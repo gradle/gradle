@@ -233,7 +233,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
     }
 
-    def "fails if forcing a virtual platform version and forcing a leaf with different version through resolutionStrategy"() {
+    def "succeeds if using a virtual platform version and forcing a leaf with different version through resolutionStrategy"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
                 path "databind:$it -> core:$it"
@@ -266,10 +266,9 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
         when:
         allowAllRepositoryInteractions()
-        fails ':checkDeps'
 
         then:
-        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
+        succeeds(':checkDeps')
     }
 
     def "succeeds if forcing a virtual platform version by forcing multiple leaves with same version through resolutionStrategy"() {
