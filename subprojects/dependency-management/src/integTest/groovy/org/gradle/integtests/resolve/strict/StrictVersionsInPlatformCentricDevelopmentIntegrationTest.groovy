@@ -186,23 +186,24 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                     if (platformType != ENFORCED_PLATFORM) {
                         constraint("org:bar:${expectStrictVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
                     } else {
-                        constraint('org:bar:2.0', 'org:bar:2.0').byConstraint()
+                        constraint("org:bar:2.0", 'org:bar:2.0').byConstraint()
                     }
                     constraint("org:foo:${expectStrictVersion(platformType, '3.0', '3.1 & 3.2')}", 'org:foo:3.0').byConstraint()
                 }
                 edge('org:bar', 'org:bar:2.0') {
                     byRequest()
+                    if (platformType == ENFORCED_PLATFORM) {
+                        forced()
+                    }
                     edge('org:foo:3.1', 'org:foo:3.0') {
                         if (platformType != ENFORCED_PLATFORM) {
                             byAncestor()
                         } else {
                             byRequest()
+                            forced()
                         }
                     }
                 }
-            }
-            if (platformType == ENFORCED_PLATFORM) {
-                nodesWithoutRoot.each { it.forced() }
             }
         }
 
@@ -266,9 +267,6 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                         }
                     }
                 }
-            }
-            if (platformType == ENFORCED_PLATFORM) {
-                nodesWithoutRoot.each { it.forced() }
             }
         }
 
