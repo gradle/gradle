@@ -72,9 +72,9 @@ class JavaEcosystemSupportTest extends Specification {
         given:
         JavaEcosystemSupport.UsageDisambiguationRules rules = new JavaEcosystemSupport.UsageDisambiguationRules(
             usage(Usage.JAVA_API),
-            usage(Usage.JAVA_API_JARS),
+            usage(JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS),
             usage(Usage.JAVA_RUNTIME),
-            usage(Usage.JAVA_RUNTIME_JARS)
+            usage(JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS)
         )
         MultipleCandidatesDetails details = new DefaultMultipleCandidateResult(usage(consumer), candidates.collect { usage(it)} as Set)
 
