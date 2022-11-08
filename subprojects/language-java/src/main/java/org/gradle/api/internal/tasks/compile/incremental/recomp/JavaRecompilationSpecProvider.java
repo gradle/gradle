@@ -40,13 +40,13 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     }
 
     @Override
-    protected boolean supportsGroovyJavaJointCompilation(JavaCompileSpec javaCompileSpec) {
-        return false;
+    protected Set<String> getFileExtensions() {
+        return SUPPORTED_FILE_EXTENSIONS;
     }
 
     @Override
-    protected Set<String> getFileExtensions() {
-        return SUPPORTED_FILE_EXTENSIONS;
+    protected void processGroovyJavaJointCompilationAdditionalDependencies(JavaCompileSpec spec, RecompilationSpec recompilationSpec, SourceFileChangeProcessor sourceFileChangeProcessor, SourceFileClassNameConverter sourceFileClassNameConverter) {
+        // Not supported with only Java compiler
     }
 
     @Override
