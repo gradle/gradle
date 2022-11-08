@@ -56,7 +56,6 @@ import org.gradle.api.tasks.javadoc.internal.JavadocExecutableUtils;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Cast;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
@@ -240,7 +239,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         implementationConfiguration.setCanBeConsumed(false);
         implementationConfiguration.setCanBeResolved(false);
 
-        DeprecatableConfiguration compileOnlyConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(compileOnlyConfigurationName);
+        Configuration compileOnlyConfiguration = configurations.maybeCreate(compileOnlyConfigurationName);
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.setCanBeConsumed(false);
         compileOnlyConfiguration.setCanBeResolved(false);
@@ -268,7 +267,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         runtimeOnlyConfiguration.setCanBeResolved(false);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
-        ConfigurationInternal runtimeClasspathConfiguration = (ConfigurationInternal) configurations.maybeCreate(runtimeClasspathConfigurationName);
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(runtimeClasspathConfigurationName);
         runtimeClasspathConfiguration.setVisible(false);
         runtimeClasspathConfiguration.setCanBeConsumed(false);
         runtimeClasspathConfiguration.setCanBeResolved(true);
@@ -280,8 +279,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
         sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
 
-        compileClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, compileOnlyConfigurationName);
-        runtimeClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
+        compileClasspathConfiguration.setCanBeDeclaredAgainst(false);
+        ((ConfigurationInternal) runtimeClasspathConfiguration).setCanBeDeclaredAgainst(false);
     }
 
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {
