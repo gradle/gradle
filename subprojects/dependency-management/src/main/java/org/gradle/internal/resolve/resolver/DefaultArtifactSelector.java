@@ -40,6 +40,7 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.util.internal.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -65,25 +66,21 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     }
 
     @Override
-    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Map<VariantResolveMetadata.Identifier, ResolvedVariant> resolvedVariantCache, Supplier<Set<? extends VariantResolveMetadata>> allVariants, Set<? extends VariantResolveMetadata> legacyVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+    public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, @Nullable Map<VariantResolveMetadata.Identifier, ResolvedVariant> resolvedVariantCache, Supplier<Set<? extends VariantResolveMetadata>> allVariants, Set<? extends VariantResolveMetadata> legacyVariants, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
 
         ImmutableSet<ResolvedVariant> legacyResolvedVariants = buildResolvedVariants(component, legacyVariants, exclusions, resolvedVariantCache);
         ComponentArtifactResolveVariantState componentArtifactResolveVariantState = () -> buildResolvedVariants(component, allVariants.get(), exclusions, resolvedVariantCache);
 
-        ArtifactSet artifacts = null;
         for (OriginArtifactSelector selector : selectors) {
-            artifacts = selector.resolveArtifacts(component, componentArtifactResolveVariantState, legacyResolvedVariants, exclusions, overriddenAttributes);
+            ArtifactSet artifacts = selector.resolveArtifacts(component, componentArtifactResolveVariantState, legacyResolvedVariants, exclusions, overriddenAttributes);
             if (artifacts != null) {
-                break;
+                return artifacts;
             }
         }
-        if (artifacts == null) {
-            throw new IllegalStateException("No artifacts selected.");
-        }
-        return artifacts;
+        throw new IllegalStateException("No artifacts selected.");
     }
 
-    private ImmutableSet<ResolvedVariant> buildResolvedVariants(ComponentResolveMetadata component, Set<? extends VariantResolveMetadata> allVariants, ExcludeSpec exclusions, Map<VariantResolveMetadata.Identifier, ResolvedVariant> resolvedVariantCache) {
+    private ImmutableSet<ResolvedVariant> buildResolvedVariants(ComponentResolveMetadata component, Set<? extends VariantResolveMetadata> allVariants, ExcludeSpec exclusions, @Nullable Map<VariantResolveMetadata.Identifier, ResolvedVariant> resolvedVariantCache) {
         ImmutableSet.Builder<ResolvedVariant> resolvedVariantBuilder = ImmutableSet.builder();
         for (VariantResolveMetadata variant : allVariants) {
             ResolvedVariant resolvedVariant = toResolvedVariant(variant.getIdentifier(), variant.asDescribable(), variant.getAttributes(), variant.getArtifacts(), variant.getCapabilities(), exclusions, component.getModuleVersionId(), component.getSources(), resolvedVariantCache);
@@ -100,7 +97,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
                                               ExcludeSpec exclusions,
                                               ModuleVersionIdentifier ownerId,
                                               ModuleSources moduleSources,
-                                              Map<VariantResolveMetadata.Identifier, ResolvedVariant> resolvedVariantCache) {
+                                              @Nullable Map<VariantResolveMetadata.Identifier, ResolvedVariant> resolvedVariantCache) {
         // artifactsToResolve are those not excluded by their owning module
         List<? extends ComponentArtifactMetadata> artifactsToResolve = CollectionUtils.filter(artifacts,
                 artifact -> !exclusions.excludesArtifact(ownerId.getModule(), artifact.getName())
@@ -112,7 +109,11 @@ public class DefaultArtifactSelector implements ArtifactSelector {
             // An ad hoc variant, has no identifier
             return createResolvedVariant(null, displayName, variantAttributes, artifacts, capabilities, ownerId, moduleSources, artifactsToResolve);
         } else {
-            return resolvedVariantCache.computeIfAbsent(identifier, id -> createResolvedVariant(identifier, displayName, variantAttributes, artifacts, capabilities, ownerId, moduleSources, artifactsToResolve));
+            if (resolvedVariantCache == null) {
+                return createResolvedVariant(identifier, displayName, variantAttributes, artifacts, capabilities, ownerId, moduleSources, artifactsToResolve);
+            } else {
+                return resolvedVariantCache.computeIfAbsent(identifier, id -> createResolvedVariant(identifier, displayName, variantAttributes, artifacts, capabilities, ownerId, moduleSources, artifactsToResolve));
+            }
         }
     }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
@@ -26,6 +27,7 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
+@LocalOnly(because = "https://github.com/gradle/gradle-private/issues/3612")
 class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule

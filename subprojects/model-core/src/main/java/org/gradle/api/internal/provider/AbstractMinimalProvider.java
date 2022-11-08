@@ -35,7 +35,8 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
-        return new TransformBackedProvider<>(transformer, this);
+        // Could do a better job of inferring the type
+        return new TransformBackedProvider<>(null, this, transformer);
     }
 
     @Override

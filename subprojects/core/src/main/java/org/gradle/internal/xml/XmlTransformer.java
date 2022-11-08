@@ -44,8 +44,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -53,6 +53,8 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -202,21 +204,15 @@ public class XmlTransformer implements Transformer<String, String> {
         }
 
         public void writeTo(File file) {
-            try {
-                OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file));
-                try {
-                    writeTo(outputStream);
-                } finally {
-                    outputStream.close();
-                }
+            try (OutputStream outputStream = new BufferedOutputStream(Files.newOutputStream(file.toPath()))) {
+                writeTo(outputStream);
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
         public void writeTo(OutputStream stream) {
-            try {
-                Writer writer = new OutputStreamWriter(stream, "UTF-8");
+            try(Writer writer = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
                 doWriteTo(writer, "UTF-8");
                 writer.flush();
             } catch (IOException e) {

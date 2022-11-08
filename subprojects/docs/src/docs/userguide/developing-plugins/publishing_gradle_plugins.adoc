@@ -108,40 +108,10 @@ include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files=
 
 As an example consider the configuration for the https://plugins.gradle.org/plugin/org.ysb33r.gradletest[GradleTest plugin], which is already published to the {portal}.
 
-.build.gradle
-[source.multi-language-sample,groovy]
-----
-gradlePlugin {
-    website = 'https://github.com/ysb33r/gradleTest'
-    vcsUrl = 'https://github.com/ysb33r/gradleTest.git'
-    plugins {
-        gradletestPlugin {
-            id = 'org.ysb33r.gradletest'
-            displayName = 'Plugin for compatibility testing of Gradle plugins'
-            description = 'A plugin that helps you test your plugin against a variety of Gradle versions'
-            tags = ['testing', 'integrationTesting', 'compatibility']
-            implementationClass = 'org.ysb33r.gradle.gradletest.GradleTestPlugin'
-        }
-    }
-}
-----
-.build.gradle.kts
-[source.multi-language-sample,kotlin]
-----
-gradlePlugin {
-    website = "https://github.com/ysb33r/gradleTest"
-    vcsUrl = "https://github.com/ysb33r/gradleTest.git"
-    plugins {
-        create("gradletestPlugin") {
-            id = "org.ysb33r.gradletest"
-            displayName = "Plugin for compatibility testing of Gradle plugins"
-            description = "A plugin that helps you test your plugin against a variety of Gradle versions"
-            tags = listOf("testing", "integrationTesting", "compatibility")
-            implementationClass = "org.ysb33r.gradle.gradletest.GradleTestPlugin"
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugin_example]"]
+include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugin_example]"]
+====
 
 If you browse the associated page on the {portal} for the https://plugins.gradle.org/plugin/org.ysb33r.gradletest[GradleTest plugin], you will see how the specified metadata is displayed.
 

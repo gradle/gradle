@@ -105,9 +105,9 @@ public class AdoptOpenJdkRemoteBinary {
 
     private String determineArch(BuildPlatform platform) {
         switch (platform.getArchitecture()) {
-            case I386:
+            case X86:
                 return "x32";
-            case AMD64:
+            case X86_64:
                 return "x64";
             case AARCH64:
                 return "aarch64";

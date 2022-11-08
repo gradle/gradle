@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.CodeNarcAction;
 import org.gradle.api.plugins.quality.internal.CodeNarcActionParameters;
@@ -54,7 +53,7 @@ import java.util.stream.Collectors;
  * Runs CodeNarc against some source files.
  */
 @CacheableTask
-public class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNarcReports> {
+public abstract class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNarcReports> {
 
     private FileCollection codenarcClasspath;
 
@@ -118,12 +117,6 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
 
     @Inject
     protected JavaToolchainService getToolchainService() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    @Deprecated
-    public IsolatedAntBuilder getAntBuilder() {
         throw new UnsupportedOperationException();
     }
 

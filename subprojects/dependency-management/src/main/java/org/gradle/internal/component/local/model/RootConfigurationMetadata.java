@@ -18,7 +18,7 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 
-public interface RootConfigurationMetadata extends LocalConfigurationMetadata {
+public interface RootConfigurationMetadata extends LocalConfigurationGraphResolveMetadata {
 
     DependencyLockingState getDependencyLockingState();
 }

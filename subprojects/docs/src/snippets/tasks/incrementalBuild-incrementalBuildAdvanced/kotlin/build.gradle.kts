@@ -50,7 +50,7 @@ tasks.register<ProcessTemplates>("processTemplates2") {
 // tag::failed-inferred-task-dep[]
 
 tasks.register<Instrument>("badInstrumentClasses") {
-    classFiles.from(fileTree(tasks.compileJava.map { it.destinationDir }))
+    classFiles.from(fileTree(tasks.compileJava.flatMap { it.destinationDirectory }))
     destinationDir.set(file(layout.buildDirectory.dir("instrumented")))
 }
 // end::failed-inferred-task-dep[]
@@ -71,7 +71,7 @@ tasks.register<Instrument>("instrumentClasses2") {
 
 // tag::inferred-task-dep-with-builtby[]
 tasks.register<Instrument>("instrumentClassesBuiltBy") {
-    classFiles.from(fileTree(tasks.compileJava.map { it.destinationDir }) {
+    classFiles.from(fileTree(tasks.compileJava.flatMap { it.destinationDirectory }) {
         builtBy(tasks.compileJava)
     })
     destinationDir.set(file(layout.buildDirectory.dir("instrumented")))

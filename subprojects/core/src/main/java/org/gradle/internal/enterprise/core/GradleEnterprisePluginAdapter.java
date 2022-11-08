@@ -24,8 +24,6 @@ public interface GradleEnterprisePluginAdapter {
 
     void onLoadFromConfigurationCache();
 
-    void executionPhaseStarted();
-
     void buildFinished(@Nullable Throwable buildFailure);
 
 }

@@ -118,9 +118,11 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
         where:
         method                    | taskName
-        'JavaExec task'           | 'run'
         'project.javaexec'        | 'runWithJavaExec'
         'ExecOperations.javaexec' | 'runWithExecOperations'
+        // The test does not work with the JavaExec task because the task resolves the executable prior to starting the process.
+        // At the same time, all the cases test the same functionality of the ExecHandle implementation.
+        // 'JavaExec task'           | 'run'
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
@@ -138,9 +140,11 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
         where:
         method                    | taskName
-        'JavaExec task'           | 'run'
         'project.javaexec'        | 'runWithJavaExec'
         'ExecOperations.javaexec' | 'runWithExecOperations'
+        // The test does not work with the JavaExec task because the task resolves the executable prior to starting the process.
+        // At the same time, all the cases test the same functionality of the ExecHandle implementation.
+        // 'JavaExec task'           | 'run'
     }
 
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")

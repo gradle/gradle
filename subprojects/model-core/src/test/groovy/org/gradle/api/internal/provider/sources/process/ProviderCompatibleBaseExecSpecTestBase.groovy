@@ -181,7 +181,7 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
     protected abstract ProviderCompatibleBaseExecSpec createSpecUnderTest()
 
     static ProcessOutputValueSource.Parameters newParameters() {
-        return TestUtil.objectFactory().newInstance(ProcessOutputValueSource.Parameters.class)
+        return TestUtil.newInstance(ProcessOutputValueSource.Parameters.class)
     }
 
     private static Consumer<BaseExecSpec> configure(Consumer<BaseExecSpec> configuration) {

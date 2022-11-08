@@ -16,14 +16,15 @@
 
 package org.gradle.internal.execution.steps
 
+
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkInputListeners
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
+import org.gradle.internal.execution.InputFingerprinter
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.history.OutputsCleaner
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -51,20 +52,15 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
     def knownSnapshot = Mock(ValueSnapshot)
     def knownFileFingerprint = Mock(CurrentFileCollectionFingerprint)
-    def knownInputProperties = ImmutableSortedMap.<String, ValueSnapshot>of()
-    def knownInputFileProperties = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of()
+    def knownInputProperties = ImmutableSortedMap.<String, ValueSnapshot> of()
+    def knownInputFileProperties = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint> of()
     def sourceFileFingerprint = Mock(CurrentFileCollectionFingerprint)
 
-    @Override
-    protected PreviousExecutionContext createContext() {
-        Stub(PreviousExecutionContext) {
-            getInputProperties() >> { knownInputProperties }
-            getInputFileProperties() >> { knownInputFileProperties }
-        }
-    }
 
     def setup() {
         _ * work.inputFingerprinter >> inputFingerprinter
+        context.getInputProperties() >> { knownInputProperties }
+        context.getInputFileProperties() >> { knownInputFileProperties }
     }
 
     def "delegates when work has no source properties"() {
@@ -102,8 +98,10 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
 
     def "delegates when work has sources"() {
         def delegateResult = Mock(CachingResult)
+        def delegateContext = Stub(PreviousExecutionContext)
         knownInputProperties = ImmutableSortedMap.of("known", knownSnapshot)
         knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
+        context.withInputFiles(ImmutableSortedMap.copyOf("known-file": knownFileFingerprint, "source-file": sourceFileFingerprint)) >> delegateContext
 
         when:
         def result = step.execute(work, context)
@@ -126,11 +124,7 @@ class SkipEmptyWorkStepTest extends StepSpec<PreviousExecutionContext> {
         1 * sourceFileFingerprint.empty >> false
 
         then:
-        1 * delegate.execute(work, _ as PreviousExecutionContext) >> { UnitOfWork work, PreviousExecutionContext delegateContext ->
-            assert delegateContext.inputProperties as Map == ["known": knownSnapshot]
-            assert delegateContext.inputFileProperties as Map == ["known-file": knownFileFingerprint, "source-file": sourceFileFingerprint]
-            return delegateResult
-        }
+        1 * delegate.execute(work, delegateContext) >> delegateResult
         1 * workInputListeners.broadcastFileSystemInputsOf(work, allFileInputs)
         0 * _
 

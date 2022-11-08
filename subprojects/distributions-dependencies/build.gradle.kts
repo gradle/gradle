@@ -23,7 +23,7 @@ val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
 val junit5Version = "5.8.2"
 val mavenVersion = "3.6.3"
-val nativePlatformVersion = "0.22-milestone-23"
+val nativePlatformVersion = "0.22-milestone-24"
 val slf4jVersion = "1.7.30"
 val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
 val tomljVersion = "1.0.0"
@@ -63,7 +63,8 @@ dependencies {
         api(libs.commonsLang3)          { version { strictly("3.12.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.fastutil)              { version { strictly("8.5.2") }}
-        api(libs.gradleProfiler)        { version { strictly("0.19.0-alpha02") }}
+        api(libs.gradleProfiler)        { version { strictly("0.19.0") }}
+        api(libs.gradleEnterpriseTestAnnotation) { version { strictly("1.0") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
         api(libs.guava)                 { version { strictly("31.1-jre"); because("our Google API Client version requires 31.1-jre")  }}
@@ -175,8 +176,8 @@ dependencies {
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
         api(libs.socksProxy)            { version { strictly("2.0.0") }}
-        api(libs.spock)                 { version { strictly("2.2-M2-groovy-3.0") }}
-        api(libs.spockJUnit4)           { version { strictly("2.2-M2-groovy-3.0") }}
+        api(libs.spock)                 { version { strictly("2.3-groovy-3.0") }}
+        api(libs.spockJUnit4)           { version { strictly("2.3-groovy-3.0") }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}

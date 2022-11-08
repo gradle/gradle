@@ -25,7 +25,7 @@ import org.gradle.api.tasks.wrapper.Wrapper;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/gradle_wrapper.html">Gradle Wrapper reference</a>
  */
-public class WrapperPlugin implements Plugin<Project> {
+public abstract class WrapperPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         if (project.getParent() == null) {

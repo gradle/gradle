@@ -25,16 +25,21 @@ import org.gradle.internal.execution.history.BeforeExecutionState
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges
 
+import java.time.Duration
+
 import static org.gradle.internal.execution.ExecutionEngine.Execution
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
 
 class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
     def step = new SkipUpToDateStep<>(delegate)
     def changes = Mock(ExecutionStateChanges)
+    def delegateResult = Stub(AfterExecutionResult)
+    def delegateOriginMetadata = Stub(OriginMetadata) {
+        getExecutionTime() >> Duration.ofSeconds(1)
+    }
 
-    @Override
-    protected IncrementalChangesContext createContext() {
-        Stub(IncrementalChangesContext)
+    def setup() {
+        delegateResult.duration >> Duration.ofSeconds(1)
     }
 
     def "skips when outputs are up to date"() {
@@ -48,17 +53,19 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
         _ * context.changes >> Optional.of(changes)
         _ * context.rebuildReasons >> ImmutableList.of()
         1 * changes.beforeExecutionState >> Mock(BeforeExecutionState)
-        _ * context.previousExecutionState >> Optional.of(Mock(PreviousExecutionState) {
-            1 * getOutputFilesProducedByWork() >> ImmutableSortedMap.of()
-            1 * getOriginMetadata() >> Mock(OriginMetadata)
+        _ * context.previousExecutionState >> Optional.of(Stub(PreviousExecutionState) {
+            getOutputFilesProducedByWork() >> ImmutableSortedMap.of()
+            getOriginMetadata() >> delegateOriginMetadata
         })
         0 * _
     }
 
     def "executes when outputs are not up to date"() {
-        def delegateResult = Mock(AfterExecutionResult)
         def delegateOutcome = Try.successful(Mock(Execution))
-        def delegateAfterExecutionState = Mock(AfterExecutionState)
+        def delegateAfterExecutionState = Stub(AfterExecutionState)
+
+        delegateResult.execution >> delegateOutcome
+        delegateResult.afterExecutionState >> Optional.of(delegateAfterExecutionState)
 
         when:
         def result = step.execute(work, context)
@@ -77,7 +84,6 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
         then:
         outcome == delegateOutcome
 
-        1 * delegateResult.execution >> delegateOutcome
         0 * _
 
         when:
@@ -86,17 +92,17 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
         then:
         afterExecutionState.get() == delegateAfterExecutionState
 
-        1 * delegateResult.afterExecutionState >> Optional.of(delegateAfterExecutionState)
         0 * _
     }
 
     def "executes when change tracking is disabled"() {
         when:
         def result = step.execute(work, context)
+        delegateResult.duration >> Duration.ofSeconds(1)
 
         then:
         _ * context.changes >> Optional.empty()
-        1 * delegate.execute(work, context)
+        1 * delegate.execute(work, context) >> delegateResult
         0 * _
     }
 }

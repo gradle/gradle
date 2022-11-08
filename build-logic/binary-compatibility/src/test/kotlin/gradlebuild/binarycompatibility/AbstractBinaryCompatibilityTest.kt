@@ -250,7 +250,9 @@ abstract class AbstractBinaryCompatibilityTest {
                             this,
                             AcceptedApiChanges.parse("{acceptedApiChanges:[]}"),
                             rootProject.files("v2/src/main/kotlin"),
-                            "2.0"
+                            "2.0",
+                            file("test-api-changes.json"),
+                            rootProject.layout.projectDirectory
                         )
                     }
                     """

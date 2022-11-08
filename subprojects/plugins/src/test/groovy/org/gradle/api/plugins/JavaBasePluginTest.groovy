@@ -16,12 +16,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
-import org.gradle.api.attributes.CompatibilityCheckDetails
-import org.gradle.api.attributes.MultipleCandidatesDetails
-import org.gradle.api.attributes.Usage
-import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -31,15 +26,12 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
-import org.gradle.internal.component.model.DefaultMultipleCandidateResult
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestUtil
 import org.junit.Rule
-import spock.lang.Issue
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
 import static org.gradle.api.reflect.TypeOf.typeOf
@@ -213,17 +205,18 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     }
 
     def "source and target compatibility are configured if toolchain is configured"() {
+        def currentVersion = Jvm.current().javaVersion
         given:
-        setupProjectWithToolchain(Jvm.current().javaVersion)
+        setupProjectWithToolchain(currentVersion)
 
         when:
         project.sourceSets.create('custom')
 
         then:
-        project.tasks.compileJava.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
-        project.tasks.compileJava.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
-        project.tasks.compileCustomJava.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
-        project.tasks.compileCustomJava.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileJava.getSourceCompatibility()) == currentVersion
+        JavaVersion.toVersion(project.tasks.compileJava.getTargetCompatibility()) == currentVersion
+        JavaVersion.toVersion(project.tasks.compileCustomJava.getSourceCompatibility()) == currentVersion
+        JavaVersion.toVersion(project.tasks.compileCustomJava.getTargetCompatibility()) == currentVersion
     }
 
     def "wires toolchain for test if toolchain is configured"() {
@@ -252,21 +245,19 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         configuredJavadocTool.isPresent()
     }
 
-    def 'cannot set java compile source compatibility if toolchain is configured'() {
+    def 'can set java compile source compatibility if toolchain is configured'() {
         given:
         def someJdk = Jvm.current()
         setupProjectWithToolchain(someJdk.javaVersion)
-        project.java.sourceCompatibility = JavaVersion.VERSION_1_1
+        def prevJavaVersion = JavaVersion.toVersion(someJdk.javaVersion.majorVersion.toInteger() - 1)
+        project.java.sourceCompatibility = prevJavaVersion
 
         when:
         def javaCompileTask = project.tasks.named("compileJava", JavaCompile).get()
 
-        javaCompileTask.sourceCompatibility // accessing the property throws
-
-
         then:
-        def error = thrown(InvalidUserDataException)
-        error.message == 'The new Java toolchain feature cannot be used at the project level in combination with source and/or target compatibility'
+        javaCompileTask.sourceCompatibility == prevJavaVersion.toString()
+        javaCompileTask.sourceCompatibility == prevJavaVersion.toString()
     }
 
     private void setupProjectWithToolchain(JavaVersion version) {
@@ -289,7 +280,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         processResources.destinationDir == resourcesDir
 
         def compileJava = project.tasks['compileCustomJava']
-        compileJava.destinationDir == classesDir
+        compileJava.destinationDirectory.get().getAsFile() == classesDir
     }
 
     def "sourceSet reflect changes to tasks configuration"() {
@@ -363,7 +354,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def compile = project.task('customCompile', type: JavaCompile)
-        compile.sourceCompatibility == project.sourceCompatibility.toString()
+        JavaVersion.toVersion(compile.sourceCompatibility) == project.sourceCompatibility
 
         def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir
@@ -400,79 +391,5 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         def buildNeeded = project.tasks[JavaBasePlugin.BUILD_NEEDED_TASK_NAME]
         TaskDependencyMatchers.dependsOn(JavaBasePlugin.BUILD_TASK_NAME).matches(buildNeeded)
-    }
-
-    def "check Java usage compatibility rules (consumer value=#consumer, producer value=#producer, compatible=#compatible)"() {
-        given:
-        JavaEcosystemSupport.UsageCompatibilityRules rules = new JavaEcosystemSupport.UsageCompatibilityRules()
-        def details = Mock(CompatibilityCheckDetails)
-        when:
-        rules.execute(details)
-
-        then:
-        1 * details.getConsumerValue() >> Stub(Usage) { getName() >> consumer }
-        1 * details.getProducerValue() >> Stub(Usage) { getName() >> producer }
-        if (producer == consumer) {
-            // implementations are NOT required to say "compatible" because
-            // they should not even be called in this case
-            0 * details._()
-        } else if (compatible) {
-            1 * details.compatible()
-        } else {
-            0 * details._()
-        }
-
-        where:
-        consumer                     | producer                     | compatible
-        Usage.JAVA_API               | Usage.JAVA_API               | true
-        Usage.JAVA_API               | Usage.JAVA_RUNTIME           | true
-
-        Usage.JAVA_RUNTIME           | Usage.JAVA_API               | false
-        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME           | true
-
-        // Temporary compatibility
-        Usage.JAVA_API               | Usage.JAVA_RUNTIME_JARS      | true
-        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME_JARS      | true
-
-    }
-
-    @Issue("gradle/gradle#8700")
-    def "check default disambiguation rules (consumer=#consumer, candidates=#candidates, selected=#preferred)"() {
-        given:
-        JavaEcosystemSupport.UsageDisambiguationRules rules = new JavaEcosystemSupport.UsageDisambiguationRules(
-                usage(Usage.JAVA_API),
-                usage(Usage.JAVA_API_JARS),
-                usage(Usage.JAVA_RUNTIME),
-                usage(Usage.JAVA_RUNTIME_JARS)
-        )
-        MultipleCandidatesDetails details = new DefaultMultipleCandidateResult(usage(consumer), candidates.collect { usage(it)} as Set)
-
-        when:
-        rules.execute(details)
-
-        then:
-        details.hasResult()
-        !details.matches.empty
-        details.matches == [usage(preferred)] as Set
-
-        details
-
-        where: // not exhaustive, tests pathological cases
-        consumer                | candidates                                     | preferred
-        Usage.JAVA_API          | [Usage.JAVA_API, Usage.JAVA_RUNTIME]           | Usage.JAVA_API
-        Usage.JAVA_RUNTIME      | [Usage.JAVA_RUNTIME, Usage.JAVA_API]           | Usage.JAVA_RUNTIME
-
-        //Temporary compatibility
-        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
-        Usage.JAVA_RUNTIME      | [Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS]      | Usage.JAVA_RUNTIME_JARS
-
-        // while unlikely that a candidate would expose both JAVA_API_JARS and JAVA_API,
-        // this confirms that JAVA_API_JARS takes precedence, per JavaEcosystemSupport
-        Usage.JAVA_API          | [Usage.JAVA_API_JARS, Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
-
-    }
-
-    private Usage usage(String value) {
-        TestUtil.objectFactory().named(Usage, value)
     }
 }

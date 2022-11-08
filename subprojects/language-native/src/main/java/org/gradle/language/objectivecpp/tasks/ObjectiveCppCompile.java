@@ -26,7 +26,7 @@ import org.gradle.work.DisableCachingByDefault;
  */
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class ObjectiveCppCompile extends AbstractNativeSourceCompileTask {
+public abstract class ObjectiveCppCompile extends AbstractNativeSourceCompileTask {
     @Override
     protected NativeCompileSpec createCompileSpec() {
         return new DefaultObjectiveCppCompileSpec();

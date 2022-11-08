@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -74,9 +73,9 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
         @Override
         public LocalComponentGraphResolveState calculateValue(NodeExecutionContext context) {
             if (isLocalProject(projectState.getComponentIdentifier())) {
-                return new DefaultLocalComponentGraphResolveState(provider.getComponent(projectState));
+                return provider.getComponent(projectState);
             } else {
-                return new DefaultLocalComponentGraphResolveState(otherBuildProvider.getComponent(projectState));
+                return otherBuildProvider.getComponent(projectState);
             }
         }
 

@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
 
@@ -281,7 +280,6 @@ project(":project2") {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "publish and resolve java-library with dependency on java-platform (named #platformName)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -297,6 +295,8 @@ allprojects {
 
     group = "org.test"
     version = "1.0"
+
+    ${mavenTestRepository()}
 }
 
 project(":$platformName") {

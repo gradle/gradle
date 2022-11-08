@@ -21,6 +21,7 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheStartParam
 import org.gradle.execution.EntryTaskSelector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.ExecutionResult
+import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.buildtree.BuildTreeWorkController
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkPreparer
@@ -32,6 +33,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
     private val workGraph: BuildTreeWorkGraphController,
     private val cache: BuildTreeConfigurationCache,
     private val buildRegistry: BuildStateRegistry,
+    private val eventListenerRegistry: BuildEventListenerRegistryInternal,
     private val startParameter: ConfigurationCacheStartParameter
 ) : BuildTreeWorkController {
 
@@ -40,7 +42,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
             val result = cache.loadOrScheduleRequestedTasks(graph) {
                 workPreparer.scheduleRequestedTasks(graph, taskSelector)
             }
-            if (!result.wasLoadedFromCache && startParameter.loadAfterStore) {
+            if (!result.wasLoadedFromCache && !result.entryDiscarded && startParameter.loadAfterStore) {
                 // Load the work graph from cache instead
                 null
             } else {
@@ -50,7 +52,10 @@ class ConfigurationCacheAwareBuildTreeWorkController(
         if (executionResult != null) {
             return executionResult
         }
+
+        eventListenerRegistry.unsubscribeAll()
         buildRegistry.resetStateForAllBuilds()
+
         return workGraph.withNewWorkGraph { graph ->
             val finalizedGraph = cache.loadRequestedTasks(graph)
             workExecutor.execute(finalizedGraph)

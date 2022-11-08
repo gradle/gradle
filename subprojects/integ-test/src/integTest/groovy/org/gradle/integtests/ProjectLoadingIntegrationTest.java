@@ -309,10 +309,6 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void multiProjectBuildCanHaveSettingsFileAndRootBuildFileInSubDir() {
-        // Stop traversing to parent directory; otherwise embedded test execution will
-        // find and load the `gradle.properties` file in the root of the source repository
-        getTestDirectory().file("settings.gradle").createFile();
-
         TestFile buildFilesDir = getTestDirectory().file("root");
         TestFile relocatedSettingsFile = buildFilesDir.file("settings.gradle");
         relocatedSettingsFile.writelns(

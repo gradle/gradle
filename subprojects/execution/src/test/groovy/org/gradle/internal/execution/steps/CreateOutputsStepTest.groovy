@@ -23,11 +23,6 @@ import org.gradle.internal.file.TreeType
 class CreateOutputsStepTest extends StepSpec<ChangingOutputsContext> {
     def step = new CreateOutputsStep<>(delegate)
 
-    @Override
-    protected ChangingOutputsContext createContext() {
-        Stub(ChangingOutputsContext)
-    }
-
     def "outputs are created"() {
         given:
         def outputDir = file("outDir")
@@ -40,8 +35,8 @@ class CreateOutputsStepTest extends StepSpec<ChangingOutputsContext> {
 
         then:
         _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, new UnitOfWork.OutputFileValueSupplier(outputDir, TestFiles.fixed(outputDir)))
-            visitor.visitOutputProperty("file", TreeType.FILE, new UnitOfWork.OutputFileValueSupplier(outputFile, TestFiles.fixed(outputFile)))
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, UnitOfWork.OutputFileValueSupplier.fromStatic(outputDir, TestFiles.fixed(outputDir)))
+            visitor.visitOutputProperty("file", TreeType.FILE, UnitOfWork.OutputFileValueSupplier.fromStatic(outputFile, TestFiles.fixed(outputFile)))
             visitor.visitLocalState(localStateFile)
             visitor.visitDestroyable(destroyableFile)
         }
