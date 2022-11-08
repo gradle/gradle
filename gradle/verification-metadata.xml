@@ -1471,6 +1471,9 @@
       </component>
       <component group="org.ysb33r.gradle" name="grolifant" version="0.16.1">
          <artifact name="grolifant-0.16.1.jar">
+            <ignored-keys>
+               <ignored-key id="54ac8e2d98cfeac6" reason="also-trust requires ignoring signatures"/>
+            </ignored-keys>
             <sha256 value="a867e911d060a240b8aa111896b7379282fe61940dfb949e72600f7ca67cb92f" origin="Maven Central (also is JCenter)">
                <also-trust value="362c450c9738834181fdfac1147fa11cf21cefd59d7a5368756e174f93567a43"/>
             </sha256>
