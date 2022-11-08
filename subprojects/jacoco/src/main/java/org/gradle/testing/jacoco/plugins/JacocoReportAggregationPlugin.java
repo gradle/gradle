@@ -31,6 +31,7 @@ import org.gradle.api.attributes.TestSuiteType;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.reporting.ReportingExtension;
@@ -76,7 +77,6 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         codeCoverageResultsConf.setVisible(false);
         codeCoverageResultsConf.setCanBeConsumed(false);
         codeCoverageResultsConf.setCanBeResolved(true);
-        getEcosystemUtilities().configureAsRuntimeClasspath(codeCoverageResultsConf);
 
         ArtifactView sourceDirectories = codeCoverageResultsConf.getIncoming().artifactView(view -> {
             view.withVariantReselection();
@@ -118,6 +118,11 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
             });
         });
 
+        project.getPlugins().withType(JavaBasePlugin.class, plugin -> {
+            // If the current project is jvm-based, aggregate dependent projects as jvm-based as well.
+            getEcosystemUtilities().configureAsRuntimeClasspath(codeCoverageResultsConf);
+        });
+
         // convention for synthesizing reports based on existing test suites in "this" project
         project.getPlugins().withId("jvm-test-suite", plugin -> {
             // Depend on this project for aggregation
@@ -125,6 +130,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
 
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
             ExtensiblePolymorphicDomainObjectContainer<TestSuite> testSuites = testing.getSuites();
+
             testSuites.withType(JvmTestSuite.class).all(testSuite -> {
                 reporting.getReports().create(testSuite.getName() + "CodeCoverageReport", JacocoCoverageReport.class, report -> {
                     report.getTestType().convention(testSuite.getTestType());
