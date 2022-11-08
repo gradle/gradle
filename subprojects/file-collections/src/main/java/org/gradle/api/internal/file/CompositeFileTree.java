@@ -28,6 +28,7 @@ import org.gradle.internal.Factory;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static org.gradle.api.internal.file.AbstractFileTree.fileVisitorFrom;
 import static org.gradle.util.internal.ConfigureUtil.configure;
@@ -60,7 +61,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
 
     @Override
     public FileTree matching(final Closure filterConfigClosure) {
-        return new FilteredFileTree(this, taskDependencyFactory, patternSetFactory, () -> {
+        return newFilteredFileTree(() -> {
             // For backwards compatibility, run the closure each time the file tree contents are queried
             return configure(filterConfigClosure, patternSetFactory.create());
         });
@@ -68,7 +69,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
 
     @Override
     public FileTree matching(final Action<? super PatternFilterable> filterConfigAction) {
-        return new FilteredFileTree(this, taskDependencyFactory, patternSetFactory, () -> {
+        return newFilteredFileTree(() -> {
             // For backwards compatibility, run the action each time the file tree contents are queried
             PatternSet patternSet = patternSetFactory.create();
             filterConfigAction.execute(patternSet);
@@ -78,7 +79,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
 
     @Override
     public FileTreeInternal matching(final PatternFilterable patterns) {
-        return new FilteredFileTree(this, taskDependencyFactory, patternSetFactory, () -> {
+        return newFilteredFileTree(() -> {
             if (patterns instanceof PatternSet) {
                 return (PatternSet) patterns;
             }
@@ -117,5 +118,9 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
     @Override
     public void visitContentsAsFileTrees(Consumer<FileTreeInternal> visitor) {
         visitChildren(child -> visitor.accept((FileTreeInternal) child));
+    }
+
+    private FileTreeInternal newFilteredFileTree(Supplier<? extends PatternSet> patternSetSupplier) {
+        return new FilteredFileTree(this, taskDependencyFactory, patternSetFactory, patternSetSupplier);
     }
 }
