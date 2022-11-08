@@ -98,6 +98,7 @@ data class MultipleSubprojectsFunctionalTestBucket(
     }
 
     companion object {
+        // Method is a companion function, so it can be used from the constructor
         fun parseParallelization(jsonObject: JSONObject): ParallelizationMethod? {
             return jsonObject.getJSONObject("parallelizationMethod")?.let { parallelizationMethod ->
                 parallelizationMethod.getString("name")?.let { parallelizationName ->

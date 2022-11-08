@@ -17,11 +17,13 @@ sealed class ParallelizationMethod(val name: String) {
             fun getName() = "testDistribution"
         }
     }
-    class ParallelTesting(val numberOfBuckets: Int): ParallelizationMethod(getName()) {
+
+    class ParallelTesting(val numberOfBuckets: Int) : ParallelizationMethod(getName()) {
         companion object {
             fun getName() = "parallelTesting"
         }
     }
+    
 }
 
 
