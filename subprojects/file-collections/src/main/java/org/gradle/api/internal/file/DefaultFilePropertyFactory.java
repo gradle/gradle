@@ -240,7 +240,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
 
         @Override
-        public THIS convention(T value) {
+        public THIS convention(@Nullable T value) {
             super.convention(value);
             return Cast.uncheckedNonnullCast(this);
         }
