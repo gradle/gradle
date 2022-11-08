@@ -1605,7 +1605,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void assertRoleIsMutatible() {
         if (!roleCanBeMutated) {
-            throw new GradleException(String.format("Cannot change the role of %s, as it was locked upon creation to:\n%s\nIdeally, each configuration should have a single role.", getDisplayName(), ConfigurationRole.describeRole(this)));
+            throw new GradleException(String.format("Cannot change the role of %s, as it was locked upon creation to:\n%s\nIdeally, each configuration should have a single role.", getDisplayName(), ConfigurationRoles.describeRole(this)));
         }
     }
 

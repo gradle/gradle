@@ -148,7 +148,7 @@ public class DefaultConfigurationFactory {
      * @return the given configuration; now configured for a role
      */
     @SuppressWarnings({"fallthrough", "deprecation"})
-    public static ConfigurationInternal assignRole(ConfigurationInternal configuration, ConfigurationRole role) {
+    public static ConfigurationInternal assignRole(ConfigurationInternal configuration, ConfigurationRoles role) {
         switch (role) {
             case LEGACY:
                 configuration.setCanBeConsumed(true);
@@ -191,7 +191,7 @@ public class DefaultConfigurationFactory {
     }
 
     @SuppressWarnings({"fallthrough", "deprecation"})
-    public static ConfigurationInternal assertInRole(ConfigurationInternal configuration, ConfigurationRole role) {
+    public static ConfigurationInternal assertInRole(ConfigurationInternal configuration, ConfigurationRoles role) {
         switch (role) {
             case LEGACY:
                 if (!configuration.isCanBeConsumed() || !configuration.isCanBeResolved() || !configuration.isCanBeDeclaredAgainst()) {
@@ -232,11 +232,11 @@ public class DefaultConfigurationFactory {
         return configuration;
     }
 
-    private static void throwUnknownRole(ConfigurationInternal configuration, ConfigurationRole role) throws GradleException {
+    private static void throwUnknownRole(ConfigurationInternal configuration, ConfigurationRoles role) throws GradleException {
         throw new GradleException("Configuration '" + configuration.getName() + "' is being assigned to or queried for an unknown role: " + role);
     }
 
-    private static void throwConfigurationNotInRole(ConfigurationInternal configuration, ConfigurationRole role) throws GradleException {
-        throw new GradleException("Configuration '" + configuration.getName() + "' is not in the " + role + " role.  This configuration is:\n" + ConfigurationRole.describeRole(configuration));
+    private static void throwConfigurationNotInRole(ConfigurationInternal configuration, ConfigurationRoles role) throws GradleException {
+        throw new GradleException("Configuration '" + configuration.getName() + "' is not in the " + role + " role.  This configuration is:\n" + ConfigurationRoles.describeRole(configuration));
     }
 }

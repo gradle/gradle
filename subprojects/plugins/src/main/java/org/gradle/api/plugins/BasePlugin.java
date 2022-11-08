@@ -21,7 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -87,10 +87,10 @@ public abstract class BasePlugin implements Plugin<Project> {
         ConfigurationContainerInternal configurations = (ConfigurationContainerInternal) project.getConfigurations();
         ((ProjectInternal)project).getInternalStatus().convention("integration");
 
-        final Configuration archivesConfiguration = configurations.maybeCreateWithRole(Dependency.ARCHIVES_CONFIGURATION, ConfigurationRole.INTENDED_CONSUMABLE).
+        final Configuration archivesConfiguration = configurations.maybeCreateWithRole(Dependency.ARCHIVES_CONFIGURATION, ConfigurationRoles.INTENDED_CONSUMABLE).
             setDescription("Configuration for archive artifacts.");
 
-        final Configuration defaultConfiguration =  configurations.maybeCreateWithRole(Dependency.DEFAULT_CONFIGURATION, ConfigurationRole.INTENDED_CONSUMABLE).
+        final Configuration defaultConfiguration =  configurations.maybeCreateWithRole(Dependency.DEFAULT_CONFIGURATION, ConfigurationRoles.INTENDED_CONSUMABLE).
             setDescription("Configuration for default artifacts.");
 
         final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(

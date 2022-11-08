@@ -34,7 +34,7 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
      * immediately assigns it a role by setting internal status flags to mark possible usage options
      * for the configuration.
      */
-    default ConfigurationInternal createWithRole(String name, ConfigurationRole role) {
+    default ConfigurationInternal createWithRole(String name, ConfigurationRoles role) {
         ConfigurationInternal configuration = (ConfigurationInternal) create(name);
         return DefaultConfigurationFactory.assignRole(configuration, role);
     }
@@ -47,7 +47,7 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
      * If the configuration already exists, this method will <strong>NOT</strong>> change anything about it,
      * including its role.
      */
-    default ConfigurationInternal maybeCreateWithRole(String name, ConfigurationRole role) {
+    default ConfigurationInternal maybeCreateWithRole(String name, ConfigurationRoles role) {
         ConfigurationInternal configuration = (ConfigurationInternal) findByName(name);
         if (configuration == null) {
             return createWithRole(name, role);
@@ -61,7 +61,7 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
      * immediately assigns it a role by setting internal status flags to mark possible usage options
      * for the configuration.
      */
-    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, Closure<? super Configuration> configureClosure) throws InvalidUserDataException {
+    default ConfigurationInternal createWithRole(String name, ConfigurationRoles role, Closure<? super Configuration> configureClosure) throws InvalidUserDataException {
         ConfigurationInternal configuration = (ConfigurationInternal) create(name, configureClosure);
         return DefaultConfigurationFactory.assignRole(configuration, role);
     }
@@ -71,7 +71,7 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
      * immediately assigns it a role by setting internal status flags to mark possible usage options
      * for the configuration.
      */
-    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, Action<? super Configuration> configureAction) throws InvalidUserDataException {
+    default ConfigurationInternal createWithRole(String name, ConfigurationRoles role, Action<? super Configuration> configureAction) throws InvalidUserDataException {
         ConfigurationInternal configuration = (ConfigurationInternal) create(name, configureAction);
         return DefaultConfigurationFactory.assignRole(configuration, role);
     }

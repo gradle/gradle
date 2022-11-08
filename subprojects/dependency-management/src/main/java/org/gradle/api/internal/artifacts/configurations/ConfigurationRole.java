@@ -19,49 +19,72 @@ package org.gradle.api.internal.artifacts.configurations;
 import java.util.ArrayList;
 import java.util.List;
 
-public enum ConfigurationRole {
-    /**
-     * An unrestricted configuration, which can be used for any purpose.
-     *
-     * This is available for backwards compatibility, but should not be used for new configurations.  It is
-     * the default role for configurations created when another more specific role is <strong>not</strong> specified.
-     */
-    @Deprecated
-    LEGACY,
+public interface ConfigurationRole {
+    boolean isConsumable();
+    boolean isResolvable();
+    boolean isDeclarableAgainst();
+    boolean isConsumptionDeprecated();
+    boolean isResolutionDeprecated();
+    boolean isDeclarationAgainstDeprecated();
 
-    INTENDED_CONSUMABLE,
-
-    INTENDED_RESOLVABLE,
-
-    /**
-     * Meant to be used only for declaring dependencies.
-     *
-     * AKA {@code INTENDED_DECLARABLE}.
-     */
-    INTENDED_BUCKET,
-
-    DEPRECATED_CONSUMABLE,
-
-    DEPRECATED_RESOLVABLE;
-
-    public static String describeRole(ConfigurationInternal configuration) {
-        List<String> descriptions = new ArrayList<>();
-        if (configuration.isCanBeConsumed()) {
-            descriptions.add("\tConsumable - this configuration can be selected by another project as a dependency" + describeDeprecation(configuration.isDeprecatedForConsumption()));
-        }
-        if (configuration.isCanBeResolved()) {
-            descriptions.add("\tResolvable - this configuration can be resolved by this project to a set of files" + describeDeprecation(configuration.isDeprecatedForResolution()));
-        }
-        if (configuration.isCanBeDeclaredAgainst()) {
-            descriptions.add("\tDeclarable Against - this configuration can have dependencies added to it" + describeDeprecation(configuration.isDeprecatedForDeclarationAgainst()));
-        }
-        if (descriptions.isEmpty()) {
-            descriptions.add("\tUnusable - this configuration cannot be used for any purpose");
-        }
-        return String.join("\n", descriptions);
+    default String describe() {
+        return RoleDescriber.describeRole(this);
     }
 
-    private static String describeDeprecation(boolean deprecated) {
-        return deprecated ? " (but this behavior is marked deprecated)" : "";
+    static ConfigurationRole forUsage(boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
+        return new ConfigurationRole() {
+            @Override
+            public boolean isConsumable() {
+                return consumable;
+            }
+
+            @Override
+            public boolean isResolvable() {
+                return resolvable;
+            }
+
+            @Override
+            public boolean isDeclarableAgainst() {
+                return declarableAgainst;
+            }
+
+            @Override
+            public boolean isConsumptionDeprecated() {
+                return consumptionDeprecated;
+            }
+
+            @Override
+            public boolean isResolutionDeprecated() {
+                return resolutionDeprecated;
+            }
+
+            @Override
+            public boolean isDeclarationAgainstDeprecated() {
+                return declarationAgainstDeprecated;
+            }
+        };
+    }
+
+    final class RoleDescriber {
+        public static String describeRole(ConfigurationRole role) {
+            List<String> descriptions = new ArrayList<>();
+            if (role.isConsumable()) {
+                descriptions.add("\tConsumable - this configuration can be selected by another project as a dependency" + describeDeprecation(role.isConsumptionDeprecated()));
+            }
+            if (role.isResolvable()) {
+                descriptions.add("\tResolvable - this configuration can be resolved by this project to a set of files" + describeDeprecation(role.isResolutionDeprecated()));
+            }
+            if (role.isDeclarableAgainst()) {
+                descriptions.add("\tDeclarable Against - this configuration can have dependencies added to it" + describeDeprecation(role.isDeclarationAgainstDeprecated()));
+            }
+            if (descriptions.isEmpty()) {
+                descriptions.add("\tUnusable - this configuration cannot be used for any purpose");
+            }
+            return String.join("\n", descriptions);
+        }
+
+        private static String describeDeprecation(boolean deprecated) {
+            return deprecated ? " (but this behavior is marked deprecated)" : "";
+        }
     }
 }
