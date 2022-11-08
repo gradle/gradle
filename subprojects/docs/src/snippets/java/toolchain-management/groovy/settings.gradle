@@ -1,15 +1,26 @@
+pluginManagement {
+    repositories {
+        maven {
+            url 'https://plugins.grdev.net/m2/'
+        }
+    }
+} //TODO (#22138): use PROD portal for plugin, when published
+
+plugins {
+    id 'org.gradle.disco-toolchains' version '0.1'
+}
+
 import java.util.Optional
 import javax.inject.Inject
 
-apply plugin: AzulPlugin
 apply plugin: AdoptiumPlugin
 
 // tag::toolchain-management[]
 toolchainManagement {
     jvm { // <1>
         javaRepositories {
-            repository('azul') { // <2>
-                resolverClass = AzulResolver
+            repository('disco') { // <2>
+                resolverClass = org.gradle.disco.DiscoToolchainResolver
                 credentials {
                     username "user"
                     password "password"
@@ -28,43 +39,16 @@ toolchainManagement {
 
 rootProject.name = 'toolchain-management'
 
-abstract class AzulPlugin extends DummyPlugin {
-
-    AzulPlugin() {
-        super(AzulResolver.class)
-    }
-}
-
-abstract class AdoptiumPlugin extends DummyPlugin {
-
-    AdoptiumPlugin() {
-        super(AdoptiumResolver.class)
-    }
-}
-
-abstract class DummyPlugin implements Plugin<Settings> {
-
-    private final Class<JavaToolchainResolver> resolverClass;
+abstract class AdoptiumPlugin implements Plugin<Settings> {
 
     @Inject
     protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
-
-    DummyPlugin(Class<JavaToolchainResolver> resolverClass) {
-        this.resolverClass = resolverClass
-    }
 
     void apply(Settings settings) {
         settings.getPlugins().apply("jvm-toolchain-management");
 
         JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
-        registry.register(resolverClass)
-    }
-}
-
-abstract class AzulResolver implements JavaToolchainResolver {
-    @Override
-    Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
-        return Optional.empty();
+        registry.register(AdoptiumResolver.class)
     }
 }
 

@@ -1,3 +1,13 @@
+pluginManagement {
+    repositories {
+        maven(url = "https://plugins.grdev.net/m2/")
+    }
+} //TODO (#22138): use PROD portal for plugin, when published
+
+plugins {
+    id("org.gradle.disco-toolchains") version "0.1"
+}
+
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.jvm.toolchain.JavaToolchainResolver
@@ -6,15 +16,14 @@ import java.net.URI
 import java.util.Optional
 import javax.inject.Inject
 
-apply<AzulPlugin>()
 apply<AdoptiumPlugin>()
 
 // tag::toolchain-management[]
 toolchainManagement {
     jvm { // <1>
         javaRepositories {
-            repository("azul") { // <2>
-                resolverClass.set(AzulResolver::class.java)
+            repository("disco") { // <2>
+                resolverClass.set(org.gradle.disco.DiscoToolchainResolver::class.java)
                 credentials {
                     username = "user"
                     password = "password"
@@ -33,11 +42,7 @@ toolchainManagement {
 
 rootProject.name = "toolchain-management"
 
-abstract class AzulPlugin: DummyPlugin(AzulResolver::class)
-
-abstract class AdoptiumPlugin: DummyPlugin(AdoptiumResolver::class)
-
-abstract class DummyPlugin(val resolverClass: kotlin.reflect.KClass<out JavaToolchainResolver>): Plugin<Settings> {
+abstract class AdoptiumPlugin: Plugin<Settings> {
 
     @get:Inject
     protected abstract val toolchainResolverRegistry: JavaToolchainResolverRegistry
@@ -46,18 +51,12 @@ abstract class DummyPlugin(val resolverClass: kotlin.reflect.KClass<out JavaTool
         settings.plugins.apply("jvm-toolchain-management")
 
         val registry: JavaToolchainResolverRegistry = toolchainResolverRegistry
-        registry.register(resolverClass.java)
+        registry.register(AdoptiumResolver::class.java)
     }
 
 }
 
 abstract class AdoptiumResolver: JavaToolchainResolver {
-    override fun resolve(request: JavaToolchainRequest): Optional<JavaToolchainDownload> {
-        return Optional.empty()
-    }
-}
-
-abstract class AzulResolver: JavaToolchainResolver {
     override fun resolve(request: JavaToolchainRequest): Optional<JavaToolchainDownload> {
         return Optional.empty()
     }
