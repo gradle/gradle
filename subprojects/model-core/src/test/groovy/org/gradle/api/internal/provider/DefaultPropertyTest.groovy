@@ -36,11 +36,6 @@ class DefaultPropertyTest extends AbstractPropertySpec<String> {
     }
 
     @Override
-    DefaultProperty<String> propertyWithDefaultValue() {
-        return property()
-    }
-
-    @Override
     Class<String> type() {
         return String
     }
