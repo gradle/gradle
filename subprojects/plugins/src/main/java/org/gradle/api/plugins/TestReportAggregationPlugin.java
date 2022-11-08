@@ -80,7 +80,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         // A resolvable configuration to collect test results
         Configuration testResultsConf = project.getConfigurations().create("aggregateTestReportResults");
         testResultsConf.extendsFrom(testAggregation);
-        testResultsConf.setDescription("Supplies test result data. External library dependencies may appear as resolution failures, but this is expected behavior.");
+        testResultsConf.setDescription("Supplies test result data");
         testResultsConf.setVisible(false);
         testResultsConf.setCanBeConsumed(false);
         testResultsConf.setCanBeResolved(true);

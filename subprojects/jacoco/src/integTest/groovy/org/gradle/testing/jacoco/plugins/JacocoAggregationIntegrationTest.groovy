@@ -190,14 +190,16 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertDoesNotContainClass("org.apache.commons.io.IOUtils")
     }
 
-    @Issue('https://github.com/gradle/gradle/issues/20432')
-    def "aggregated report resolves classes variant of project dependencies"() {
+    def "aggregated report resolves sources variant of project dependencies"() {
         given:
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
 
-            tasks.register('dumpAllCodeCoverageReportClassDirectoriesConfiguration') {
-                logger.lifecycle(configurations.allCodeCoverageReportClassDirectories.asPath)
+            reporting.reports.testCodeCoverageReport.reportTask.configure {
+                doLast {
+                    assert it.sourceDirectories.files.size() == 6
+                    println it.sourceDirectories.files
+                }
             }
         """
         file("transitive/build.gradle") << """
@@ -207,7 +209,37 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds(':application:dumpAllCodeCoverageReportClassDirectoriesConfiguration')
+        succeeds(':application:testCodeCoverageReport')
+
+        then:
+        outputContains(file('application/src/main/java').absolutePath)
+        outputContains(file('application/src/main/resources').absolutePath)
+        outputContains(file('direct/src/main/java').absolutePath)
+        outputContains(file('direct/src/main/resources').absolutePath)
+        outputContains(file('transitive/src/main/java').absolutePath)
+        outputContains(file('transitive/src/main/resources').absolutePath)
+    }
+
+    def "aggregated report resolves classes variant of project dependencies"() {
+        given:
+        file("application/build.gradle") << """
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+
+            reporting.reports.testCodeCoverageReport.reportTask.configure {
+                doLast {
+                    assert it.classDirectories.files.size() == 3
+                    println it.classDirectories.files
+                }
+            }
+        """
+        file("transitive/build.gradle") << """
+            dependencies {
+                implementation 'org.apache.commons:commons-io:1.3.2'
+            }
+        """
+
+        when:
+        succeeds(':application:testCodeCoverageReport')
 
         then:
         outputContains(file('application/build/classes/java/main').absolutePath)
