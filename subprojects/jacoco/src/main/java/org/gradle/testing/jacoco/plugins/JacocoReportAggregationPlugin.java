@@ -81,7 +81,6 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         ArtifactView sourceDirectories = codeCoverageResultsConf.getIncoming().artifactView(view -> {
             view.withVariantReselection();
             view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
-            view.lenient(true);
             view.attributes(attributes -> {
                 attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.class, Bundling.EXTERNAL));
                 attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
@@ -107,7 +106,6 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
                     codeCoverageResultsConf.getIncoming().artifactView(view -> {
                         view.withVariantReselection();
                         view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
-                        view.lenient(true);
                         view.attributes(attributes -> {
                             attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
                             attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
