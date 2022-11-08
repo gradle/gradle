@@ -152,7 +152,7 @@ class SubprojectTestClassTime(
     }
 
     fun split(parallelizationFactor: Int, parallelizationMethod: ParallelizationMethod?): List<BuildTypeBucket> =
-    // If we have some parallelization method, we will use it.
+        // If we have some parallelization method, we will use it.
         // Otherwise, we split the task into numbered buckets
         parallelizationMethod?.let {
             listOf(SmallSubprojectBucket(subProject, it))
