@@ -84,7 +84,6 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         testResultsConf.setVisible(false);
         testResultsConf.setCanBeConsumed(false);
         testResultsConf.setCanBeResolved(true);
-        getEcosystemUtilities().configureAsRuntimeClasspath(testAggregation);
 
         // Iterate and configure each user-specified report.
         reporting.getReports().withType(AggregateTestReport.class).all(report -> {
@@ -103,6 +102,11 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
                 task.getTestResults().from(testResults);
                 task.getDestinationDirectory().convention(testReportDirectory.dir(report.getTestType().map(tt -> tt + "/aggregated-results")));
             });
+        });
+
+        project.getPlugins().withType(JavaBasePlugin.class, plugin -> {
+            // If the current project is jvm-based, aggregate dependent projects as jvm-based as well.
+            getEcosystemUtilities().configureAsRuntimeClasspath(testAggregation);
         });
 
         // convention for synthesizing reports based on existing test suites in "this" project
