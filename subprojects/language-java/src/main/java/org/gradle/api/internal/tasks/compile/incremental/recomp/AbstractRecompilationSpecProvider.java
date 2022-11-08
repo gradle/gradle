@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 abstract class AbstractRecompilationSpecProvider implements RecompilationSpecProvider {
     private final Deleter deleter;
@@ -119,28 +118,12 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         return String.format("%s '%s' has been %s", "resource", fileChange.getFile().getName(), fileChange.getChangeType().name().toLowerCase(Locale.US));
     }
 
-    /**
-     * For Groovy/Java joint compilation we treat recompilation of affected classes from Java source as an ABI change.
-     * This means we recompile all class dependencies, even if there was just a private change that affects class.
-     * This is because Groovy compiler tries to load these classes in some cases.
-     *
-     * Fix for issue <a href="https://github.com/gradle/gradle/issues/22531">#22531</a>.
-     */
-    private void processGroovyJavaJointCompilationAdditionalDependencies(JavaCompileSpec spec, RecompilationSpec recompilationSpec, SourceFileChangeProcessor sourceFileChangeProcessor, SourceFileClassNameConverter sourceFileClassNameConverter) {
-        if (!supportsGroovyJavaJointCompilation(spec)) {
-            return;
-        }
-        Set<String> classesWithJavaSource = recompilationSpec.getClassesToCompile().stream()
-            .flatMap(classToCompile -> sourceFileClassNameConverter.getRelativeSourcePaths(classToCompile).stream())
-            .filter(sourcePath -> sourcePath.endsWith(".java"))
-            .flatMap(sourcePath -> sourceFileClassNameConverter.getClassNames(sourcePath).stream())
-            .collect(Collectors.toSet());
-        if (!classesWithJavaSource.isEmpty()) {
-            sourceFileChangeProcessor.processChange(classesWithJavaSource, recompilationSpec);
-        }
-    }
-
-    protected abstract boolean supportsGroovyJavaJointCompilation(JavaCompileSpec javaCompileSpec);
+    protected abstract void processGroovyJavaJointCompilationAdditionalDependencies(
+        JavaCompileSpec spec,
+        RecompilationSpec recompilationSpec,
+        SourceFileChangeProcessor sourceFileChangeProcessor,
+        SourceFileClassNameConverter sourceFileClassNameConverter
+    );
 
     protected abstract boolean isIncrementalOnResourceChanges(CurrentCompilation currentCompilation);
 
