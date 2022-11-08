@@ -99,11 +99,6 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        propertiesFile << """
-            org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri=http://example.com
-            org.gradle.jvm.toolchain.install.adoptium.baseUri=http://example.com
-        """
-
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         when:

@@ -73,7 +73,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then:
         javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded("adoptopenjdk")
+        assertJdkWasDownloaded("eclipse_foundation")
     }
 
     def "can download missing j9 jdk automatically"() {

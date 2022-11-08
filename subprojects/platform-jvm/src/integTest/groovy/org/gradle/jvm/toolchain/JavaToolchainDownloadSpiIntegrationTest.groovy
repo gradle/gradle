@@ -103,8 +103,8 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
                 .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any, implementation=vendor-specific}) from 'https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse'.")
-                .assertHasCause("Toolchain provisioned from 'https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse' doesn't satisfy the specification: {languageVersion=11, vendor=any, implementation=vendor-specific}.")
+                .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any, implementation=vendor-specific}) from 'https://inexistent.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse'.")
+                .assertHasCause("Toolchain provisioned from 'https://inexistent.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse' doesn't satisfy the specification: {languageVersion=11, vendor=any, implementation=vendor-specific}.")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -359,7 +359,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             public abstract class BrokenToolchainResolver implements JavaToolchainResolver {
                 @Override
                 public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
-                    URI uri = URI.create("https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse");
+                    URI uri = URI.create("https://inexistent.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse");
                     return Optional.of(JavaToolchainDownload.fromUri(uri));
                 }
             }

@@ -58,6 +58,11 @@ Usage of invalid Java toolchain specifications is no longer supported.
 Related build errors can be avoided by making sure that language version is set on all toolchain specifications.
 See <<toolchains#sec:configuring_toolchain_specifications,user manual>> for more information.
 
+==== Using automatic toolchain downloading without having a repository configured
+
+Automatic toolchain downloading without explicitly providing repositories to use is no longer supported.
+See <<toolchains#sub:download_repositories,user manual>> for more information.
+
 ==== Changing test framework after setting test framework options is now an error
 
 When configuring the built-in test task for Java, Groovy, and Scala projects, Gradle no longer allows you to
