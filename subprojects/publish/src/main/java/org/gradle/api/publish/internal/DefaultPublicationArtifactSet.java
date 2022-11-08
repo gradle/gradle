@@ -22,7 +22,6 @@ import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.publish.PublicationArtifact;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -37,31 +36,32 @@ public class DefaultPublicationArtifactSet<T extends PublicationArtifact> extend
         Class<T> type,
         String name,
         FileCollectionFactory fileCollectionFactory,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-        TaskDependencyFactory taskDependencyFactory
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator
     ) {
         super(type, collectionCallbackActionDecorator);
         this.name = name;
-        files = fileCollectionFactory.create(taskDependencyFactory.visitingDependencies(context -> {
+        files = fileCollectionFactory.create(
+            new MinimalFileSet() {
+                @Override
+                public String getDisplayName() {
+                    return DefaultPublicationArtifactSet.this.name;
+                }
+
+                @Override
+                public Set<File> getFiles() {
+                    Set<File> result = new LinkedHashSet<File>();
+                    for (PublicationArtifact artifact : DefaultPublicationArtifactSet.this) {
+                        result.add(artifact.getFile());
+                    }
+                    return result;
+                }
+            },
+            context -> {
                 for (PublicationArtifact artifact : DefaultPublicationArtifactSet.this) {
                     context.add(artifact.getBuildDependencies());
                 }
             }
-        ), new MinimalFileSet() {
-            @Override
-            public String getDisplayName() {
-                return DefaultPublicationArtifactSet.this.name;
-            }
-
-            @Override
-            public Set<File> getFiles() {
-                Set<File> result = new LinkedHashSet<File>();
-                for (PublicationArtifact artifact : DefaultPublicationArtifactSet.this) {
-                    result.add(artifact.getFile());
-                }
-                return result;
-            }
-        });
+        );
     }
 
     @Override
