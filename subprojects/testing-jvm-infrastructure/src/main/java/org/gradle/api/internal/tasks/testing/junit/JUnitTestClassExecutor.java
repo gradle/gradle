@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.internal.concurrent.ThreadSafe;
@@ -39,14 +40,14 @@ import java.util.List;
 public class JUnitTestClassExecutor implements Action<String> {
     private final ClassLoader applicationClassLoader;
     private final RunListener listener;
-    private final JUnitSpec options;
+    private final JUnitSpec spec;
     private final TestClassExecutionListener executionListener;
 
     public JUnitTestClassExecutor(ClassLoader applicationClassLoader, JUnitSpec spec, RunListener listener, TestClassExecutionListener executionListener) {
         assert executionListener instanceof ThreadSafe;
         this.applicationClassLoader = applicationClassLoader;
         this.listener = listener;
-        this.options = spec;
+        this.spec = spec;
         this.executionListener = executionListener;
     }
 
@@ -67,20 +68,19 @@ public class JUnitTestClassExecutor implements Action<String> {
             return;
         }
         List<Filter> filters = new ArrayList<Filter>();
-        if (options.hasCategoryConfiguration()) {
+        if (spec.hasCategoryConfiguration()) {
             verifyJUnitCategorySupport();
-            filters.add(new CategoryFilter(options.getIncludeCategories(), options.getExcludeCategories(), applicationClassLoader));
+            filters.add(new CategoryFilter(spec.getIncludeCategories(), spec.getExcludeCategories(), applicationClassLoader));
         }
 
         Request request = Request.aClass(testClass);
         Runner runner = request.getRunner();
 
-        if (!options.getIncludedTests().isEmpty()
-            || !options.getIncludedTestsCommandLine().isEmpty()
-            || !options.getExcludedTests().isEmpty()) {
-            TestSelectionMatcher matcher = new TestSelectionMatcher(
-                options.getIncludedTests(), options.getExcludedTests(),
-                options.getIncludedTestsCommandLine());
+        TestFilterSpec filterSpec = spec.getFilter();
+        if (!filterSpec.getIncludedTests().isEmpty()
+            || !filterSpec.getIncludedTestsCommandLine().isEmpty()
+            || !filterSpec.getExcludedTests().isEmpty()) {
+            TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec);
 
             // For test suites (including suite-like custom Runners), if the test suite class
             // matches the filter, run the entire suite instead of filtering away its contents.

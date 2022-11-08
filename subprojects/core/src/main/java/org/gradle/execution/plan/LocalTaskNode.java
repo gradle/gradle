@@ -168,9 +168,7 @@ public class LocalTaskNode extends TaskNode {
         final MutationInfo mutations = getMutationInfo();
         outputFilePropertySpecs.forEach(spec -> {
             File outputLocation = spec.getOutputFile();
-            if (outputLocation != null) {
-                mutations.outputPaths.add(outputLocation.getAbsolutePath());
-            }
+            mutations.outputPaths.add(outputLocation.getAbsolutePath());
             mutations.hasOutputs = true;
         });
     }
