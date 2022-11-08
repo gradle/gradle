@@ -120,15 +120,15 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
             Object value = provider.get();
             if (value instanceof FileSystemLocation) {
                 FileSystemLocation location = (FileSystemLocation) value;
-                delegate = fromFile(taskDependencyFactory, location.getAsFile());
+                delegate = fromFile(location.getAsFile());
             } else if (value instanceof File) {
-                delegate = fromFile(taskDependencyFactory, (File) value);
+                delegate = fromFile((File) value);
             } else if (value instanceof AbstractArchiveTask) {
                 delegate = new ArchivePublishArtifact(taskDependencyFactory, (AbstractArchiveTask) value);
             } else if (value instanceof Task) {
-                delegate = fromFile(taskDependencyFactory, ((Task) value).getOutputs().getFiles().getSingleFile());
+                delegate = fromFile(((Task) value).getOutputs().getFiles().getSingleFile());
             } else if (fileResolver != null) {
-                delegate = fromFile(taskDependencyFactory, fileResolver.resolve(value));
+                delegate = fromFile(fileResolver.resolve(value));
             } else {
                 throw new InvalidUserDataException(String.format("Cannot convert provided value (%s) to a file.", value));
             }
@@ -136,7 +136,7 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
         return delegate;
     }
 
-    private DefaultPublishArtifact fromFile(TaskDependencyFactory taskDependencyFactory, File file) {
+    private DefaultPublishArtifact fromFile(File file) {
         ArtifactFile artifactFile = new ArtifactFile(file, version);
         return new DefaultPublishArtifact(taskDependencyFactory, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier(), null, file);
     }
