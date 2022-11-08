@@ -276,7 +276,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             LinkedList(otherSubProjectTestClassTimes),
             SubprojectTestClassTime::totalTime,
             { largeElement, factor ->
-                largeElement.split(1, parallelization(factor))
+                largeElement.split(factor, parallelization(factor))
             },
             { list ->
                 SmallSubprojectBucket(list.map { it.subProject }, parallelization(1))
