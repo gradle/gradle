@@ -118,6 +118,8 @@
          </trusted-key>
          <trusted-key id="31fae244a81d64507b47182e1b2718089ce964b8" group="com.thoughtworks.qdox"/>
          <trusted-key id="34441e504a937f43eb0daef96a65176a0fb1cd0b">
+            <trusting group="org.apache.groovy"/>
+            <trusting group="org.apache.groovy" name="groovy"/>
             <trusting group="org.codehaus.groovy"/>
             <trusting group="org.codehaus.groovy" name="groovy"/>
          </trusted-key>
@@ -1478,9 +1480,8 @@
       </component>
       <component group="org.ysb33r.gradle" name="grolifant" version="0.16.1">
          <artifact name="grolifant-0.16.1.jar">
-            <pgp value="ea022560a81e5bd48db3d18b54ac8e2d98cfeac6"/>
             <ignored-keys>
-               <ignored-key id="ea022560a81e5bd48db3d18b54ac8e2d98cfeac6" reason="also-trust requires ignoring signatures"/>
+               <ignored-key id="54ac8e2d98cfeac6" reason="also-trust requires ignoring signatures"/>
             </ignored-keys>
             <sha256 value="a867e911d060a240b8aa111896b7379282fe61940dfb949e72600f7ca67cb92f" origin="Maven Central (also is JCenter)">
                <also-trust value="362c450c9738834181fdfac1147fa11cf21cefd59d7a5368756e174f93567a43"/>
