@@ -85,7 +85,7 @@ data class MultipleSubprojectsFunctionalTestBucket(
     val subprojects: List<String>,
     val parallelizationMethod: ParallelizationMethod?
 ) : FunctionalTestBucket {
-    constructor(jsonObject: JSONObject): this(
+    constructor(jsonObject: JSONObject) : this(
         jsonObject.getJSONArray("subprojects").map { it.toString() },
         parseParallelization(jsonObject)
     )
@@ -101,7 +101,7 @@ data class MultipleSubprojectsFunctionalTestBucket(
         fun parseParallelization(jsonObject: JSONObject): ParallelizationMethod? {
             return jsonObject.getJSONObject("parallelizationMethod")?.let { parallelizationMethod ->
                 parallelizationMethod.getString("name")?.let { parallelizationName ->
-                    when(parallelizationName) {
+                    when (parallelizationName) {
                         ParallelizationMethod.TestDistribution.getName() -> ParallelizationMethod.TestDistribution()
                         ParallelizationMethod.ParallelTesting.getName() -> ParallelizationMethod.ParallelTesting(parallelizationMethod.getIntValue("numberOfBuckets"))
                         else -> throw IllegalArgumentException("Unknown parallelization method")
@@ -122,14 +122,14 @@ fun BuildTypeBucket.toJsonBucket(): FunctionalTestBucket {
 
 class SubprojectTestClassTime(
     val subProject: GradleSubproject,
-    val testClassTimes: List<TestClassTime> = emptyList()
+    private val testClassTimes: List<TestClassTime> = emptyList()
 ) {
     val totalTime: Int = testClassTimes.sumOf { it.buildTimeMs }
 
-    fun split(expectedBucketNumber: Int, parallelizationMethod: ParallelizationMethod?): List<BuildTypeBucket> {
+    private fun splitIntoBuckets(expectedBucketNumber: Int): List<BuildTypeBucket> {
         return if (expectedBucketNumber == 1) {
             listOf(
-                SmallSubprojectBucket(listOf(subProject), parallelizationMethod)
+                SmallSubprojectBucket(listOf(subProject), null)
             )
         } else {
             // fun <T, R> split(list: LinkedList<T>, toIntFunction: (T) -> Int, largeElementSplitFunction: (T, Int) -> List<R>, smallElementAggregateFunction: (List<T>) -> R, expectedBucketNumber: Int, maxNumberInBucket: Int): List<R> {
@@ -149,6 +149,13 @@ class SubprojectTestClassTime(
             }
         }
     }
+
+    fun split(parallelizationFactor: Int, parallelizationMethod: ParallelizationMethod?): List<BuildTypeBucket> =
+    // If we have some parallelization method, we will use it.
+        // Otherwise, we split the task into numbered buckets
+        parallelizationMethod?.let {
+            listOf(SmallSubprojectBucket(subProject, it))
+        } ?: splitIntoBuckets(parallelizationFactor)
 
     override fun toString(): String {
         return "SubprojectTestClassTime(subProject=${subProject.name}, totalTime=$totalTime)"
@@ -215,21 +222,25 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         return when {
             testCoverage.testType == TestType.platform && testCoverage.os == Os.LINUX ->
                 splitDocsSubproject(validSubprojects) +
-                    splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs")) { _ ->
+                    parallelize(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs")) { _ ->
                         ParallelizationMethod.TestDistribution()
                     }
 
             testCoverage.testType == TestType.platform ->
                 splitDocsSubproject(validSubprojects) +
-                    splitIntoParallelized(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs"))
+                    parallelize(validSubprojects, subProjectTestClassTimes, testCoverage, listOf("docs")) { size ->
+                        ParallelizationMethod.ParallelTesting(size)
+                    }
 
             testCoverage.os == Os.LINUX ->
-                splitIntoBuckets(validSubprojects, subProjectTestClassTimes, testCoverage) { _ ->
+                parallelize(validSubprojects, subProjectTestClassTimes, testCoverage) { _ ->
                     ParallelizationMethod.TestDistribution()
                 }
 
             else ->
-                splitIntoParallelized(validSubprojects, subProjectTestClassTimes, testCoverage)
+                parallelize(validSubprojects, subProjectTestClassTimes, testCoverage) { size ->
+                    ParallelizationMethod.ParallelTesting(size)
+                }
         }
     }
 
@@ -250,30 +261,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         return listOf(docs1, docs2, docs3, docs4)
     }
 
-    private fun splitIntoParallelized(
-        validSubprojects: List<GradleSubproject>,
-        subProjectTestClassTimes: List<SubprojectTestClassTime>,
-        testCoverage: TestCoverage,
-        excludedSubprojectNames: List<String> = emptyList(),
-    ): List<BuildTypeBucket> {
-        val specialSubprojects = validSubprojects.filter { excludedSubprojectNames.contains(it.name) }
-        val otherSubProjectTestClassTimes = subProjectTestClassTimes.filter { !excludedSubprojectNames.contains(it.subProject.name) }
-
-        return splitIntoBuckets(
-            LinkedList(otherSubProjectTestClassTimes),
-            SubprojectTestClassTime::totalTime,
-            { largeElement, size ->
-                listOf(SmallSubprojectBucket(largeElement.subProject, ParallelizationMethod.ParallelTesting(size)))
-            },
-            { list ->
-                SmallSubprojectBucket(list.map { it.subProject }, null)
-            },
-            testCoverage.expectedBucketNumber - specialSubprojects.size,
-            MAX_PROJECT_NUMBER_IN_BUCKET
-        )
-    }
-
-    private fun splitIntoBuckets(
+    private fun parallelize(
         validSubprojects: List<GradleSubproject>,
         subProjectTestClassTimes: List<SubprojectTestClassTime>,
         testCoverage: TestCoverage,
@@ -286,8 +274,8 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         return splitIntoBuckets(
             LinkedList(otherSubProjectTestClassTimes),
             SubprojectTestClassTime::totalTime,
-            { largeElement, size ->
-                largeElement.split(size, parallelization(size))
+            { largeElement, factor ->
+                largeElement.split(1, parallelization(factor))
             },
             { list ->
                 SmallSubprojectBucket(list.map { it.subProject }, parallelization(1))
