@@ -107,6 +107,29 @@ These errors can be resolved by updating the violating code or dependency. Updat
 
 For some examples of possible error or warning outputs which may arise due to this change, see <<remove_test_add_opens>>.
 
+=== Report `getOutputLocation` return type changed
+
+In the link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report[Report] interface the return type of the `outputLocation` property is now `Property<? extends FileSystemLocation>`.  It was previously `Provider<? extends FileSystemLocation>`.
+
+This change allows for more idiomatic configuration of reporting tasks, using:
+
+```groovy
+tasks.named('test') {
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('reports/my-report')
+}
+```
+
+versus the now `@Deprecated` former usage of:
+
+```groovy
+tasks.named('test') {
+    reports.junitXml.setDestination(layout.buildDirectory.file('reports/my-report-old').get().asFile)
+}
+
+```
+
+This interface is implemented by many built-in and custom reports such as those used by JUnit.  Plugins that compiled against an earlier version of Gradle containing the previous method signature may need to be recompiled to be used with newer versions of Gradle containing the new signature.
+
 ==== Minimal supported Kotlin Gradle Plugin version changed
 Gradle 7.x supports Kotlin Gradle Plugin 1.3.72 and above. Kotlin Gradle Plugin versions above 1.6.21 are not tested with Gradle 7.x.
 Gradle 8.x supports Kotlin Gradle Plugin 1.6.10 and above.
