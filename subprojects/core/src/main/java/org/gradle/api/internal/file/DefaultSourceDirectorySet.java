@@ -40,6 +40,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.util.internal.GUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,6 +66,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
 
     private TaskProvider<?> compileTaskProvider;
 
+    @Inject
     public DefaultSourceDirectorySet(String name, String displayName, Factory<PatternSet> patternSetFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
         this(name, displayName, patternSetFactory.create(), patternSetFactory.create(), fileCollectionFactory, directoryFileTreeFactory, objectFactory.directoryProperty(), objectFactory.directoryProperty());
     }

@@ -37,6 +37,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
@@ -56,7 +57,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  * @see Pmd
  * @see <a href="https://docs.gradle.org/current/userguide/pmd_plugin.html">PMD plugin reference</a>
  */
-public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
+public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     public static final String DEFAULT_PMD_VERSION = "6.48.0";
     private static final String PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION = "pmdAux";
@@ -88,8 +89,12 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("pmd", PmdExtension.class, project);
         extension.setToolVersion(DEFAULT_PMD_VERSION);
-        extension.setRuleSets(new ArrayList<>(Collections.singletonList("category/java/errorprone.xml")));
+        extension.getRulesMinimumPriority().convention(5);
+        extension.getIncrementalAnalysis().convention(true);
+        extension.getMaxFailures().convention(0);
+        extension.getThreads().convention(1);
         extension.setRuleSetFiles(project.getLayout().files());
+        extension.ruleSetsConvention(project.getProviders().provider(() -> ruleSetsConvention(extension)));
         conventionMappingOf(extension).map("targetJdk", () ->
             getDefaultTargetJdk(getJavaPluginExtension().getSourceCompatibility()));
         return extension;
@@ -127,6 +132,14 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
         configureToolchains(task);
+    }
+
+    private List<String> ruleSetsConvention(PmdExtension extension) {
+        if (extension.getRuleSetConfig() == null && extension.getRuleSetFiles().isEmpty()) {
+            return new ArrayList<>(Collections.singletonList("category/java/errorprone.xml"));
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     private void configureDefaultDependencies(Configuration configuration) {

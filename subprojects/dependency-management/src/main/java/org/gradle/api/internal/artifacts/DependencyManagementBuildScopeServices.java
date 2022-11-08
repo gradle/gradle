@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.capabilities.Capability;
@@ -76,11 +74,9 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.InMemoryModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.ReadOnlyModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.TwoStageModuleVersionsCache;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
@@ -129,11 +125,9 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.scopes.BuildScopedCache;
 import org.gradle.cache.scopes.GlobalScopedCache;
-import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
-import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildoption.FeatureFlags;
@@ -144,18 +138,12 @@ import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.history.AfterExecutionState;
-import org.gradle.internal.execution.history.BeforeExecutionState;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
-import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
 import org.gradle.internal.execution.steps.AssignWorkspaceStep;
@@ -182,7 +170,6 @@ import org.gradle.internal.execution.steps.ValidationFinishedContext;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.RelativeFilePathResolver;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
@@ -215,16 +202,13 @@ import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFact
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
 
-import java.io.File;
 import java.nio.file.Path;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -240,6 +224,7 @@ class DependencyManagementBuildScopeServices {
         registration.add(DefaultExternalResourceFileStore.Factory.class);
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
         registration.add(TransformationNodeDependencyResolver.class);
+        registration.add(DefaultProjectLocalComponentProvider.class);
     }
 
     DependencyResolutionManagementInternal createSharedDependencyResolutionServices(Instantiator instantiator,
@@ -603,13 +588,6 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectPublicationRegistry();
     }
 
-    LocalComponentProvider createProjectComponentProvider(
-        LocalComponentMetadataBuilder metaDataBuilder,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory
-    ) {
-        return new DefaultProjectLocalComponentProvider(metaDataBuilder, moduleIdentifierFactory);
-    }
-
     ComponentSelectorConverter createModuleVersionSelectorFactory(ComponentIdentifierFactory componentIdentifierFactory, LocalComponentRegistry localComponentRegistry) {
         return new DefaultComponentSelectorConverter(componentIdentifierFactory, localComponentRegistry);
     }
@@ -744,93 +722,8 @@ class DependencyManagementBuildScopeServices {
 
         @Override
         public CachingResult execute(UnitOfWork work, ValidationFinishedContext context) {
-            UpToDateResult result = delegate.execute(work, new CachingContext() {
-                @Override
-                public CachingState getCachingState() {
-                    return CachingState.NOT_DETERMINED;
-                }
-
-                @Override
-                public Optional<String> getNonIncrementalReason() {
-                    return context.getNonIncrementalReason();
-                }
-
-                @Override
-                public WorkValidationContext getValidationContext() {
-                    return context.getValidationContext();
-                }
-
-                @Override
-                public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                    return context.getInputProperties();
-                }
-
-                @Override
-                public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                    return context.getInputFileProperties();
-                }
-
-                @Override
-                public UnitOfWork.Identity getIdentity() {
-                    return context.getIdentity();
-                }
-
-                @Override
-                public File getWorkspace() {
-                    return context.getWorkspace();
-                }
-
-                @Override
-                public Optional<ExecutionHistoryStore> getHistory() {
-                    return context.getHistory();
-                }
-
-                @Override
-                public Optional<PreviousExecutionState> getPreviousExecutionState() {
-                    return context.getPreviousExecutionState();
-                }
-
-                @Override
-                public Optional<ValidationResult> getValidationProblems() {
-                    return context.getValidationProblems();
-                }
-
-                @Override
-                public Optional<BeforeExecutionState> getBeforeExecutionState() {
-                    return context.getBeforeExecutionState();
-                }
-            });
-            return new CachingResult() {
-                @Override
-                public CachingState getCachingState() {
-                    return CachingState.NOT_DETERMINED;
-                }
-
-                @Override
-                public ImmutableList<String> getExecutionReasons() {
-                    return result.getExecutionReasons();
-                }
-
-                @Override
-                public Optional<AfterExecutionState> getAfterExecutionState() {
-                    return result.getAfterExecutionState();
-                }
-
-                @Override
-                public Optional<OriginMetadata> getReusedOutputOriginMetadata() {
-                    return result.getReusedOutputOriginMetadata();
-                }
-
-                @Override
-                public Try<Execution> getExecution() {
-                    return result.getExecution();
-                }
-
-                @Override
-                public Duration getDuration() {
-                    return result.getDuration();
-                }
-            };
+            UpToDateResult result = delegate.execute(work, new CachingContext(context, CachingState.NOT_DETERMINED));
+            return new CachingResult(result, CachingState.NOT_DETERMINED);
         }
     }
 }

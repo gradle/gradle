@@ -20,7 +20,6 @@ import com.google.common.collect.Maps
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
@@ -225,7 +224,7 @@ class UnitOfWorkBuilder {
             @Override
             void visitOutputs(File workspace, UnitOfWork.OutputVisitor visitor) {
                 outputs.forEach { name, spec ->
-                    visitor.visitOutputProperty(name, spec.treeType, new UnitOfWork.OutputFileValueSupplier(spec.root, TestFiles.fixed(spec.root)))
+                    visitor.visitOutputProperty(name, spec.treeType, UnitOfWork.OutputFileValueSupplier.fromStatic(spec.root, TestFiles.fixed(spec.root)))
                 }
             }
 

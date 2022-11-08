@@ -29,10 +29,10 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
@@ -397,9 +397,9 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             File outputDir = getOutputDir(workspace);
             File resultsFile = getResultsFile(workspace);
             visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, DIRECTORY,
-                new OutputFileValueSupplier(outputDir, fileCollectionFactory.fixed(outputDir)));
+                OutputFileValueSupplier.fromStatic(outputDir, fileCollectionFactory.fixed(outputDir)));
             visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, FILE,
-                new OutputFileValueSupplier(resultsFile, fileCollectionFactory.fixed(resultsFile)));
+                OutputFileValueSupplier.fromStatic(resultsFile, fileCollectionFactory.fixed(resultsFile)));
         }
 
         @Override

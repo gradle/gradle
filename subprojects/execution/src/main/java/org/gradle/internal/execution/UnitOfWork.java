@@ -22,7 +22,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
@@ -322,20 +321,36 @@ public interface UnitOfWork extends Describable {
         }
     }
 
-    class OutputFileValueSupplier implements FileValueSupplier {
-        private final File root;
+    abstract class OutputFileValueSupplier implements FileValueSupplier {
         private final FileCollection files;
 
-        public OutputFileValueSupplier(File root, FileCollection files) {
-            this.root = root;
+        public OutputFileValueSupplier(FileCollection files) {
             this.files = files;
+        }
+
+        public static OutputFileValueSupplier fromStatic(File root, FileCollection fileCollection) {
+            return new OutputFileValueSupplier(fileCollection) {
+                @Nonnull
+                @Override
+                public File getValue() {
+                    return root;
+                }
+            };
+        }
+
+        public static OutputFileValueSupplier fromSupplier(Supplier<File> root, FileCollection fileCollection) {
+            return new OutputFileValueSupplier(fileCollection) {
+                @Nonnull
+                @Override
+                public File getValue() {
+                    return root.get();
+                }
+            };
         }
 
         @Nonnull
         @Override
-        public File getValue() {
-            return root;
-        }
+        abstract public File getValue();
 
         @Override
         public FileCollection getFiles() {

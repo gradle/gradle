@@ -32,6 +32,6 @@ public class MissingSignature extends AbstractVerificationFailure {
 
     @Override
     public void explainTo(TreeFormatter formatter) {
-        formatter.append("artifact wasn't signed");
+        formatter.append("artifact is not signed");
     }
 }

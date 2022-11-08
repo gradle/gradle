@@ -32,6 +32,22 @@ gradlePlugin { // <1>
 }
 // end::per_plugin_config[]
 
+// tag::plugin_example[]
+gradlePlugin {
+    website.set("https://github.com/ysb33r/gradleTest")
+    vcsUrl.set("https://github.com/ysb33r/gradleTest.git")
+    plugins {
+        create("gradletestPlugin") {
+            id = "org.ysb33r.gradletest"
+            displayName = "Plugin for compatibility testing of Gradle plugins"
+            description = "A plugin that helps you test your plugin against a variety of Gradle versions"
+            tags.set(listOf("testing", "integrationTesting", "compatibility"))
+            implementationClass = "org.ysb33r.gradle.gradletest.GradleTestPlugin"
+        }
+    }
+}
+// end::plugin_example[]
+
 // tag::local_repository[]
 publishing {
     repositories {

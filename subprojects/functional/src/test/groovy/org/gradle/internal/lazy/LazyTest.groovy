@@ -153,7 +153,7 @@ class LazyTest extends Specification {
     def "locking lazy can handle concurrent threads"() {
         def supplier = Mock(Supplier)
         Lazy<Integer> lazy = Lazy.locking().of(supplier)
-        def total = new AtomicInteger(0)
+        def total = new AtomicInteger()
 
         int concurrency = 20
         def barrier = new CyclicBarrier(concurrency)
@@ -177,7 +177,7 @@ class LazyTest extends Specification {
     def "locking lazy can handle concurrent threads with map"() {
         def supplier = Mock(Supplier)
         Lazy<Integer> lazy = Lazy.locking().of(supplier).map { 2 * it }
-        def total = new AtomicInteger(0)
+        def total = new AtomicInteger()
 
         int concurrency = 20
         def barrier = new CyclicBarrier(concurrency)

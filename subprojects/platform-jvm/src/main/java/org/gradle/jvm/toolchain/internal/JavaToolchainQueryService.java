@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DocumentedFailure;
@@ -31,32 +32,45 @@ import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningServic
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class JavaToolchainQueryService {
+
+    // A key that matches only the fallback toolchain
+    private static final JavaToolchainSpecInternal.Key FALLBACK_TOOLCHAIN_KEY = new JavaToolchainSpecInternal.Key() {
+        @Override
+        public String toString() {
+            return "FallbackToolchainSpecKey";
+        }
+    };
 
     private final JavaInstallationRegistry registry;
     private final JavaToolchainFactory toolchainFactory;
     private final JavaToolchainProvisioningService installService;
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
-    private final Map<JavaToolchainSpecInternal.Key, Object> matchingToolchains;
+    // Map values are either `JavaToolchain` or `Exception`
+    private final ConcurrentMap<JavaToolchainSpecInternal.Key, Object> matchingToolchains;
+    private final CurrentJvmToolchainSpec fallbackToolchainSpec;
 
     @Inject
     public JavaToolchainQueryService(
         JavaInstallationRegistry registry,
         JavaToolchainFactory toolchainFactory,
         JavaToolchainProvisioningService provisioningService,
-        ProviderFactory factory
+        ProviderFactory factory,
+        ObjectFactory objectFactory
     ) {
         this.registry = registry;
         this.toolchainFactory = toolchainFactory;
         this.installService = provisioningService;
         this.detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).map(Boolean::parseBoolean);
         this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).map(Boolean::parseBoolean);
-        this.matchingToolchains = new HashMap<>();
+        this.matchingToolchains = new ConcurrentHashMap<>();
+        this.fallbackToolchainSpec = objectFactory.newInstance(CurrentJvmToolchainSpec.class);
     }
 
     <T> Provider<T> toolFor(
@@ -71,8 +85,14 @@ public class JavaToolchainQueryService {
 
     @VisibleForTesting
     ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
-        JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) filter;
-        if (!filterInternal.isValid()) {
+        JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) Objects.requireNonNull(filter);
+        return new DefaultProvider<>(() -> resolveToolchain(filterInternal));
+    }
+
+    private JavaToolchain resolveToolchain(JavaToolchainSpecInternal requestedSpec) throws Exception {
+        requestedSpec.finalizeProperties();
+
+        if (!requestedSpec.isValid()) {
             throw DocumentedFailure.builder()
                 .withSummary("Using toolchain specifications without setting a language version is not supported.")
                 .withAdvice("Consider configuring the language version.")
@@ -80,44 +100,29 @@ public class JavaToolchainQueryService {
                 .build();
         }
 
-        return new DefaultProvider<>(() -> {
-            if (!filterInternal.isConfigured()) {
-                return null;
-            }
+        boolean useFallback = !requestedSpec.isConfigured();
+        JavaToolchainSpecInternal actualSpec = useFallback ? fallbackToolchainSpec : requestedSpec;
+        // We can't use the key of the fallback toolchain spec, because it is a spec that can match configured requests as well
+        JavaToolchainSpecInternal.Key actualKey = useFallback ? FALLBACK_TOOLCHAIN_KEY : requestedSpec.toKey();
 
-            synchronized (matchingToolchains) {
-                if (matchingToolchains.containsKey(filterInternal.toKey())) {
-                    return handleMatchingToolchainCached(filterInternal);
-                } else {
-                    return handleMatchingToolchainUnknown(filterInternal);
-                }
+        Object resolutionResult = matchingToolchains.computeIfAbsent(actualKey, key -> {
+            try {
+                return query(actualSpec, useFallback);
+            } catch (Exception e) {
+                return e;
             }
         });
-    }
 
-    private JavaToolchain handleMatchingToolchainCached(JavaToolchainSpecInternal filterInternal) throws Exception {
-        Object previousResult = matchingToolchains.get(filterInternal.toKey());
-        if (previousResult instanceof Exception) {
-            throw (Exception) previousResult;
+        if (resolutionResult instanceof Exception) {
+            throw (Exception) resolutionResult;
         } else {
-            return (JavaToolchain) previousResult;
+            return (JavaToolchain) resolutionResult;
         }
     }
 
-    private JavaToolchain handleMatchingToolchainUnknown(JavaToolchainSpecInternal filterInternal) {
-        try {
-            JavaToolchain toolchain = query(filterInternal);
-            matchingToolchains.put(filterInternal.toKey(), toolchain);
-            return toolchain;
-        } catch (Exception e) {
-            matchingToolchains.put(filterInternal.toKey(), e);
-            throw e;
-        }
-    }
-
-    private JavaToolchain query(JavaToolchainSpec spec) {
+    private JavaToolchain query(JavaToolchainSpec spec, boolean isFallback) {
         if (spec instanceof CurrentJvmToolchainSpec) {
-            return asToolchain(new InstallationLocation(Jvm.current().getJavaHome(), "current JVM"), spec).get();
+            return asToolchain(new InstallationLocation(Jvm.current().getJavaHome(), "current JVM"), spec, isFallback).get();
         }
         if (spec instanceof SpecificInstallationToolchainSpec) {
             return asToolchain(new InstallationLocation(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation"), spec).get();
@@ -147,6 +152,10 @@ public class JavaToolchainQueryService {
     }
 
     private Optional<JavaToolchain> asToolchain(InstallationLocation javaHome, JavaToolchainSpec spec) {
-        return toolchainFactory.newInstance(javaHome, new JavaToolchainInput(spec));
+        return asToolchain(javaHome, spec, false);
+    }
+
+    private Optional<JavaToolchain> asToolchain(InstallationLocation javaHome, JavaToolchainSpec spec, boolean isFallback) {
+        return toolchainFactory.newInstance(javaHome, new JavaToolchainInput(spec), isFallback);
     }
 }

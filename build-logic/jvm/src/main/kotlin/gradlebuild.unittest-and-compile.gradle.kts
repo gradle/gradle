@@ -131,6 +131,7 @@ fun addDependencies() {
         testImplementation(libs.spock)
         testImplementation(libs.junit5Vintage)
         testImplementation(libs.spockJUnit4)
+        testImplementation(libs.gradleEnterpriseTestAnnotation)
         testRuntimeOnly(libs.bytebuddy)
         testRuntimeOnly(libs.objenesis)
 
@@ -295,6 +296,15 @@ fun configureTests() {
                 // No limit; use all available executors
                 distribution.maxRemoteExecutors.set(if (project.isPerformanceProject()) 0 else null)
 
+                // Test distribution annotation-class filters
+                // See: https://docs.gradle.com/enterprise/test-distribution/#gradle_executor_restrictions_class_matcher
+                localOnly {
+                    includeAnnotationClasses.addAll("com.gradle.enterprise.testing.annotations.LocalOnly")
+                }
+                remoteOnly {
+                    includeAnnotationClasses.addAll("com.gradle.enterprise.testing.annotations.RemoteOnly")
+                }
+
                 if (BuildEnvironment.isCiServer) {
                     when {
                         OperatingSystem.current().isLinux -> requirements.set(listOf("os=linux", "gbt-dogfooding"))
@@ -329,7 +339,14 @@ fun removeTeamcityTempProperty() {
 
 fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
 
-fun Project.supportsPredictiveTestSelection() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name)
+/**
+ * Whether the project supports running with predictive test selection.
+ *
+ * Our performance tests don't work with PTS, yet.
+ * Smoke and soak tests are hard to grasp for PTS, that is why we run them without.
+ * When running on Windows with PTS, SimplifiedKotlinScriptEvaluatorTest fails. See https://github.com/gradle/gradle-private/issues/3615.
+ */
+fun Project.supportsPredictiveTestSelection() = !isPerformanceProject() && !setOf("smoke-test", "soak", "kotlin-dsl").contains(name)
 
 /**
  * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).

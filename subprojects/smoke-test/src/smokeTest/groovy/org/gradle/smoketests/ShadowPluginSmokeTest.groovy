@@ -17,6 +17,8 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -50,7 +52,14 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             """.stripIndent()
 
         when:
-        def result = runner('shadowJar').build()
+        def result = runner('shadowJar').expectDeprecationWarningIf(
+                VersionNumber.parse(version) <= VersionNumber.parse("6.0.0"),
+                "The AbstractArchiveTask.archivePath property has been deprecated. " +
+                        "This is scheduled to be removed in Gradle 9.0. " +
+                        "Please use the archiveFile property instead. " +
+                        "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archivePath for more details.",
+                ""
+        ).build()
 
         then:
         result.task(':shadowJar').outcome == SUCCESS
@@ -58,7 +67,14 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         runner('clean').build()
-        result = runner('shadowJar').build()
+        result = runner('shadowJar').expectDeprecationWarningIf(
+                VersionNumber.parse(version) <= VersionNumber.parse("6.0.0"),
+                "The AbstractArchiveTask.archivePath property has been deprecated. " +
+                        "This is scheduled to be removed in Gradle 9.0. " +
+                        "Please use the archiveFile property instead. " +
+                        "See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:archivePath for more details.",
+                ""
+        ).build()
 
         then:
         result.task(':shadowJar').outcome == SUCCESS

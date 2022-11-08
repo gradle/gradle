@@ -27,17 +27,17 @@ import org.junit.Test
 import static org.gradle.api.reflect.TypeOf.typeOf
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.CoreMatchers.instanceOf
 import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultScalaSourceSetTest {
     public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    private final DefaultScalaSourceSet sourceSet = new DefaultScalaSourceSet("<set-display-name>", TestUtil.objectFactory(tmpDir.testDirectory))
+    private final DefaultScalaSourceSet sourceSet = TestUtil.newInstance(DefaultScalaSourceSet, "<set-display-name>", TestUtil.objectFactory(tmpDir.testDirectory))
 
     @Test
-    public void defaultValues() {
+    void defaultValues() {
+        expect:
         assertThat(sourceSet.scala, instanceOf(DefaultSourceDirectorySet))
         assertThat(sourceSet.scala, isEmpty())
         assertThat(sourceSet.scala.displayName, equalTo('<set-display-name> Scala source'))
@@ -47,19 +47,21 @@ class DefaultScalaSourceSetTest {
         assertThat(sourceSet.allScala, instanceOf(DefaultSourceDirectorySet))
         assertThat(sourceSet.allScala, isEmpty())
         assertThat(sourceSet.allScala.displayName, equalTo('<set-display-name> Scala source'))
-        assertThat(sourceSet.allScala.source, hasItem(sourceSet.scala))
+
+        sourceSet.allScala.srcDirs.containsAll(sourceSet.scala.files)
+
         assertThat(sourceSet.allScala.filter.includes, equalTo(['**/*.scala'] as Set))
         assertThat(sourceSet.allScala.filter.excludes, isEmpty())
     }
 
     @Test
-    public void canConfigureScalaSource() {
+    void canConfigureScalaSource() {
         sourceSet.scala { srcDir 'src/scala' }
         assertThat(sourceSet.scala.srcDirs, equalTo([tmpDir.file('src/scala')] as Set))
     }
 
     @Test
-    public void canConfigureScalaSourceUsingAnAction() {
+    void canConfigureScalaSourceUsingAnAction() {
         sourceSet.scala({ set -> set.srcDir 'src/scala' } as Action<SourceDirectorySet>)
         assertThat(sourceSet.scala.srcDirs, equalTo([tmpDir.file('src/scala')] as Set))
     }
