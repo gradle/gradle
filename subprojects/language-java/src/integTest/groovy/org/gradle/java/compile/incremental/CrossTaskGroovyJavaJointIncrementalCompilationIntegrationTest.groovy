@@ -63,6 +63,52 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
         "groovy" | "@groovy.transform.CompileStatic " | ["B1", "E1", "E2"]
     }
 
+    def 'incremental compilation does not fail when some deleted class with Java source is private referenced in class that is loaded by Groovy'() {
+        given:
+        // A is a private dependency of B1 and B1 is referenced in E1.isCacheEnabled through inheritance.
+        // B1 is also a private dependency of B2 that is referenced in E2.isCacheEnabled through inheritance.
+        File aClass = sourceForLanguageForProject(CompiledLanguage.JAVA, "api", "class A { void m1() {}; }")
+        sourceWithFileSuffixForProject("java", "impl", "class B1 { static B1 m2() { return null; }; void m1() { A a = new A(); a.m1(); }; }")
+        sourceWithFileSuffixForProject("java", "impl", "class C1 extends B1 {}")
+        sourceWithFileSuffixForProject("java", "impl", "class D1 extends C1 { static boolean getCache() { return true; } }")
+        File e1Class = sourceWithFileSuffixForProject("groovy", "impl", "class E1 { boolean isCacheEnabled = D1.cache }")
+
+        sourceWithFileSuffixForProject("java", "impl", """
+            class B2 {
+                private static final Class<B1> bClass = B1.class;
+                private static final B1 b1 = new B1();
+                private static B1 b2 = new B1();
+                private B1 b3 = new B1();
+                private B1 m1(B1 b) { return new B1(); };
+            }
+        """)
+        sourceWithFileSuffixForProject("java", "impl", "class C2 extends B2 { }")
+        sourceWithFileSuffixForProject("java", "impl", """
+            class D2 extends C2 {
+                private static final Class<B1> bClass = B1.class;
+                private static final B1 b1 = new B1();
+                private static B1 b2 = new B1();
+                private B1 b3 = new B1();
+                private B1 m1(B1 b) { return new B1(); };
+                static boolean getCache() { return true; }
+            }
+        """)
+        File e2Class = sourceWithFileSuffixForProject("groovy", "impl", "class E2 { boolean isCacheEnabled = D2.cache }")
+
+        run ":impl:compileGroovy"
+
+        when:
+        impl.snapshot {
+            aClass.text = "class A { void m1() {}; void m2() {}; }"
+            e1Class.text = "class E1 { boolean isCacheEnabled = D1.cache; int a = 0; }"
+            e2Class.text = "class E2 { boolean isCacheEnabled = D2.cache; int a = 0; }"
+        }
+        run ":impl:compileGroovy"
+
+        then:
+        impl.recompiledClasses("B1", "C1", "D1", "E1", "E2")
+    }
+
     def 'incremental compilation does not fail on api change when we compile only groovy and affected class is #bCompileStatic#bSuffix'() {
         given:
         buildFile << """
