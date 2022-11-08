@@ -1471,7 +1471,8 @@
       </component>
       <component group="org.ysb33r.gradle" name="grolifant" version="0.16.1">
          <artifact name="grolifant-0.16.1.jar">
-            <pgp value="ea022560a81e5bd48db3d18b54ac8e2d98cfeac6"/>
+            <sha256 value="a867e911d060a240b8aa111896b7379282fe61940dfb949e72600f7ca67cb92f" origin="Maven Central"/>
+            <sha256 value="362c450c9738834181fdfac1147fa11cf21cefd59d7a5368756e174f93567a43" origin="JCenter"/>
          </artifact>
       </component>
       <component group="software.amazon.ion" name="ion-java" version="1.0.2">
