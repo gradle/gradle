@@ -38,7 +38,7 @@ import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
@@ -293,7 +293,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
         @Override
         Configuration build() {
-            Configuration cnf = configurations.maybeCreateWithRole(name, ConfigurationRole.INTENDED_CONSUMABLE);
+            Configuration cnf = configurations.maybeCreateWithRole(name, ConfigurationRoles.INTENDED_CONSUMABLE);
             if (description != null) {
                 cnf.setDescription(description);
             }
