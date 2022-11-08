@@ -115,5 +115,3 @@ The Test Report Aggregation plugin adds the following dependency configurations:
 |===
 
 It is not necessary to explicitly add dependencies to the `testReportAggregation` configuration if the project also applies the `jvm-test-suite` plugin.
-
-Note the `aggregateTestReportResults` configuration may display resolution errors for external dependencies, as these do not expose test result data.  This is expected behavior and does not affect the outcome of the build or test report aggregation process.

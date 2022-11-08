@@ -70,56 +70,41 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         jacocoAggregation.setCanBeResolved(false);
 
         ObjectFactory objects = project.getObjects();
-        Configuration sourceDirectoriesConf = project.getConfigurations().create("allCodeCoverageReportSourceDirectories");
-        sourceDirectoriesConf.setDescription("Supplies the source directories used to produce all aggregated JaCoCo coverage data reports");
-        sourceDirectoriesConf.extendsFrom(jacocoAggregation);
-        sourceDirectoriesConf.setVisible(false);
-        sourceDirectoriesConf.setCanBeConsumed(false);
-        sourceDirectoriesConf.setCanBeResolved(true);
-        sourceDirectoriesConf.attributes(attributes -> {
-            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.class, Bundling.EXTERNAL));
-            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-            attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.MAIN_SOURCES));
-        });
+        Configuration codeCoverageResultsConf = project.getConfigurations().create("aggregateCodeCoverageReportResults");
+        codeCoverageResultsConf.setDescription("Supplies code coverage result data");
+        codeCoverageResultsConf.extendsFrom(jacocoAggregation);
+        codeCoverageResultsConf.setVisible(false);
+        codeCoverageResultsConf.setCanBeConsumed(false);
+        codeCoverageResultsConf.setCanBeResolved(true);
+        getEcosystemUtilities().configureAsRuntimeClasspath(codeCoverageResultsConf);
 
-        // TODO: Do we need the updated artifact view here?
-        ArtifactView sourceDirectories = sourceDirectoriesConf.getIncoming().artifactView(view -> {
+        ArtifactView sourceDirectories = codeCoverageResultsConf.getIncoming().artifactView(view -> {
+            view.withVariantReselection();
             view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
             view.lenient(true);
+            view.attributes(attributes -> {
+                attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.class, Bundling.EXTERNAL));
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
+                attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.MAIN_SOURCES));
+            });
         });
 
-        Configuration classDirectoriesConf = project.getConfigurations().create("allCodeCoverageReportClassDirectories");
-        classDirectoriesConf.extendsFrom(jacocoAggregation);
-        classDirectoriesConf.setDescription("Supplies the class directories used to produce all aggregated JaCoCo coverage data reports");
-        classDirectoriesConf.setVisible(false);
-        classDirectoriesConf.setCanBeConsumed(false);
-        classDirectoriesConf.setCanBeResolved(true);
-        classDirectoriesConf.attributes(attributes -> {
-            attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.class, LibraryElements.CLASSES));
-        });
-
-        // TODO: Do we need the updated artifact view here?
-        ArtifactView classDirectories = classDirectoriesConf.getIncoming().artifactView(view -> {
+        ArtifactView classDirectories = codeCoverageResultsConf.getIncoming().artifactView(view -> {
+            view.withVariantReselection();
             view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
+            view.attributes(attributes -> {
+                attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.class, LibraryElements.CLASSES));
+            });
         });
 
         ReportingExtension reporting = project.getExtensions().getByType(ReportingExtension.class);
         reporting.getReports().registerBinding(JacocoCoverageReport.class, DefaultJacocoCoverageReport.class);
 
-        // A resolvable configuration to collect JaCoCo coverage data.
-        Configuration executionDataConf = project.getConfigurations().create("codeCoverageReportExecutionData");
-        executionDataConf.extendsFrom(jacocoAggregation);
-        executionDataConf.setDescription("Supplies JaCoCo coverage data. External library dependencies may appear as resolution failures, but this is expected behavior.");
-        executionDataConf.setVisible(false);
-        executionDataConf.setCanBeConsumed(false);
-        executionDataConf.setCanBeResolved(true);
-        getEcosystemUtilities().configureAsRuntimeClasspath(executionDataConf);
-
         // Iterate and configure each user-specified report.
         reporting.getReports().withType(JacocoCoverageReport.class).all(report -> {
             report.getReportTask().configure(task -> {
                 Callable<FileCollection> executionData = () ->
-                    executionDataConf.getIncoming().artifactView(view -> {
+                    codeCoverageResultsConf.getIncoming().artifactView(view -> {
                         view.withVariantReselection();
                         view.componentFilter(id -> id instanceof ProjectComponentIdentifier);
                         view.lenient(true);
