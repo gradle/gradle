@@ -127,6 +127,17 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
+    public FileCollectionInternal create(MinimalFileSet contents, Consumer<? super TaskDependencyResolveContext> visitTaskDependencies) {
+        return new FileCollectionAdapter(contents, taskDependencyFactory, patternSetFactory) {
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                super.visitDependencies(context);
+                visitTaskDependencies.accept(context);
+            }
+        };
+    }
+
+    @Override
     public FileCollectionInternal create(MinimalFileSet contents) {
         return new FileCollectionAdapter(contents, taskDependencyFactory, patternSetFactory);
     }
