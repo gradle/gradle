@@ -1,5 +1,7 @@
 package configurations
 
+import com.alibaba.fastjson.JSONObject
+import com.alibaba.fastjson.annotation.JSONField
 import common.functionalTestExtraParameters
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.parallelTests
@@ -10,22 +12,30 @@ import model.TestCoverage
 
 const val functionalTestTag = "FunctionalTest"
 
-sealed class ParallelizationMethod(val name: String) {
+sealed class ParallelizationMethod {
+    @get: JSONField(serialize = false)
+    open val extraBuildParameters: String = ""
+    val name: String = this::class.simpleName!!
 
-    class TestDistribution : ParallelizationMethod(getName()) {
-        companion object {
-            fun getName() = "testDistribution"
-        }
+    object None : ParallelizationMethod()
+    object TestDistribution : ParallelizationMethod() {
+        override val extraBuildParameters: String = "-DenableTestDistribution=%enableTestDistribution% -DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%"
     }
 
-    class ParallelTesting(val numberOfBuckets: Int) : ParallelizationMethod(getName()) {
-        companion object {
-            fun getName() = "parallelTesting"
+    class TeamCityParallelTests(val numberOfBuckets: Int) : ParallelizationMethod()
+
+    companion object {
+        fun fromJson(jsonObject: JSONObject): ParallelizationMethod {
+            val nameJsonObject = jsonObject.getJSONObject("parallelizationMethod") ?: return None
+            return when (nameJsonObject.getString("name")) {
+                null -> None
+                TestDistribution::class.simpleName -> TestDistribution
+                TeamCityParallelTests::class.simpleName -> TeamCityParallelTests(jsonObject.getIntValue("numberOfBuckets"))
+                else -> throw IllegalArgumentException("Unknown parallelization method")
+            }
         }
     }
-    
 }
-
 
 class FunctionalTest(
     model: CIBuildModel,
@@ -34,7 +44,7 @@ class FunctionalTest(
     description: String,
     val testCoverage: TestCoverage,
     stage: Stage,
-    parallelizationMethod: ParallelizationMethod? = null,
+    parallelizationMethod: ParallelizationMethod = ParallelizationMethod.None,
     subprojects: List<String> = listOf(),
     extraParameters: String = "",
     extraBuildSteps: BuildSteps.() -> Unit = {},
@@ -55,7 +65,7 @@ class FunctionalTest(
         }
     ).filter { it.isNotBlank() }.joinToString(separator = " ")
 
-    if (parallelizationMethod is ParallelizationMethod.ParallelTesting) {
+    if (parallelizationMethod is ParallelizationMethod.TeamCityParallelTests) {
         features {
             parallelTests {
                 this.numberOfBatches = parallelizationMethod.numberOfBuckets

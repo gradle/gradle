@@ -13,7 +13,6 @@ import model.DefaultFunctionalTestBucketProvider
 import model.GradleSubproject
 import model.JsonBasedGradleSubprojectProvider
 import model.QUICK_CROSS_VERSION_BUCKETS
-import model.StageName
 import model.TestCoverage
 import model.TestType
 import model.ignoredSubprojects
@@ -47,20 +46,6 @@ class CIConfigIntegrationTests {
     fun configurationTreeCanBeGenerated() {
         assertEquals(rootProject.subProjects.size, model.stages.size)
         assertEquals(rootProject.buildTypes.size, model.stages.size)
-    }
-
-    @Test
-    fun macOSBuildsSubset() {
-        val readyForRelease = rootProject.subProjects.find { it.name.contains(StageName.READY_FOR_RELEASE.stageName) }!!
-        val macOS = readyForRelease.subProjects.find { it.name.contains("Macos") }!!
-
-        macOS.buildTypes.forEach { buildType ->
-            assertFalse(
-                Os.MACOS.ignoredSubprojects.any { subProject ->
-                    buildType.name.endsWith("($subProject)")
-                }
-            )
-        }
     }
 
     @Test
