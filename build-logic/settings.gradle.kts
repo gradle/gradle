@@ -36,12 +36,6 @@ dependencyResolutionManagement {
                 includeModule("org.codehaus.groovy.modules", "http-builder-ng-core")
             }
         }
-        jcenter {
-            content {
-                includeModule("org.openmbee.junit", "junit-xml-parser")
-                includeModule("org.codehaus.groovy.modules", "http-builder-ng-core")
-            }
-        }
         mavenCentral()
         gradlePluginPortal()
     }
