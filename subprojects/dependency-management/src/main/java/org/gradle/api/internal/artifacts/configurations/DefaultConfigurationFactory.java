@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
@@ -32,7 +31,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Factory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -142,101 +140,20 @@ public class DefaultConfigurationFactory {
     }
 
     /**
-     * Assigns a usage role to a configuration, by setting internal usage flags (e.g. {@link ConfigurationInternal#isCanBeResolved()})
+     * Assigns a usage role to a configuration at creation time, by setting internal usage flags (e.g. {@link ConfigurationInternal#isCanBeResolved()})
      * and/or marking such usages as deprecated.
      *
      * @return the given configuration; now configured for a role
      */
-    @SuppressWarnings({"fallthrough", "deprecation"})
-    public static ConfigurationInternal assignRole(ConfigurationInternal configuration, ConfigurationRoles role) {
-        switch (role) {
-            case LEGACY:
-                configuration.setCanBeConsumed(true);
-                configuration.setCanBeResolved(true);
-                configuration.setCanBeDeclaredAgainst(true);
-                break;
-
-            case INTENDED_BUCKET:
-                configuration.setCanBeConsumed(false);
-                configuration.setCanBeResolved(false);
-                configuration.setCanBeDeclaredAgainst(true);
-                break;
-
-            case DEPRECATED_CONSUMABLE:
-                configuration.deprecateForConsumption(
-                    depSpec -> DeprecationLogger.deprecateConfiguration(configuration.getName())
-                        .forConsumption()
-                        .willBecomeAnErrorInGradle9()
-                        .withUserManual("dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")); // fall-through
-            case INTENDED_CONSUMABLE:
-                configuration.setCanBeConsumed(true);
-                configuration.setCanBeResolved(false);
-                configuration.setCanBeDeclaredAgainst(false);
-                break;
-
-            case DEPRECATED_RESOLVABLE:
-                configuration.deprecateForResolution(); // fall-through
-            case INTENDED_RESOLVABLE:
-                configuration.setCanBeConsumed(false);
-                configuration.setCanBeResolved(true);
-                configuration.setCanBeDeclaredAgainst(false);
-                break;
-
-            default:
-                throwUnknownRole(configuration, role);
-        }
-
+    public static ConfigurationInternal assignRoleAtCreation(ConfigurationInternal configuration, ConfigurationRole role) {
+        configuration.setRoleAtCreation(role);
+        configuration.setCanBeConsumed(role.isConsumable());
+        configuration.setCanBeResolved(role.isResolvable());
+        configuration.setCanBeDeclaredAgainst(role.isDeclarableAgainst());
+        configuration.setDeprecatedForConsumption(role.isConsumptionDeprecated());
+        configuration.setDeprecatedForResolution(role.isResolutionDeprecated());
+        configuration.setDeprecatedForDeclarationAgainst(role.isDeclarationAgainstDeprecated());
         configuration.preventRoleMutation();
         return configuration;
-    }
-
-    @SuppressWarnings({"fallthrough", "deprecation"})
-    public static ConfigurationInternal assertInRole(ConfigurationInternal configuration, ConfigurationRoles role) {
-        switch (role) {
-            case LEGACY:
-                if (!configuration.isCanBeConsumed() || !configuration.isCanBeResolved() || !configuration.isCanBeDeclaredAgainst()) {
-                    throwConfigurationNotInRole(configuration, role);
-                }
-                break;
-
-            case INTENDED_BUCKET:
-                if (configuration.isCanBeConsumed() || configuration.isCanBeResolved() || !configuration.isCanBeDeclaredAgainst()) {
-                    throwConfigurationNotInRole(configuration, role);
-                }
-                break;
-
-            case DEPRECATED_CONSUMABLE:
-                if (!configuration.isDeprecatedForConsumption()) {
-                    throwConfigurationNotInRole(configuration, role);
-                } // fall-through
-            case INTENDED_CONSUMABLE:
-                if (!configuration.isCanBeConsumed() || configuration.isCanBeResolved() || configuration.isCanBeDeclaredAgainst()) {
-                    throwConfigurationNotInRole(configuration, role);
-                }
-                break;
-
-            case DEPRECATED_RESOLVABLE:
-                if (!configuration.isDeprecatedForResolution()) {
-                    throwConfigurationNotInRole(configuration, role);
-                } // fall-through
-            case INTENDED_RESOLVABLE:
-                if (configuration.isCanBeConsumed() || !configuration.isCanBeResolved() || configuration.isCanBeDeclaredAgainst()) {
-                    throwConfigurationNotInRole(configuration, role);
-                }
-                break;
-
-            default:
-                throwUnknownRole(configuration, role);
-        }
-
-        return configuration;
-    }
-
-    private static void throwUnknownRole(ConfigurationInternal configuration, ConfigurationRoles role) throws GradleException {
-        throw new GradleException("Configuration '" + configuration.getName() + "' is being assigned to or queried for an unknown role: " + role);
-    }
-
-    private static void throwConfigurationNotInRole(ConfigurationInternal configuration, ConfigurationRoles role) throws GradleException {
-        throw new GradleException("Configuration '" + configuration.getName() + "' is not in the " + role + " role.  This configuration is:\n" + configuration.getRoleAtCreation().describe());
     }
 }

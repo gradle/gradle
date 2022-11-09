@@ -100,7 +100,7 @@ public interface ConfigurationRole {
     /**
      * Can build a human-readable description of the usage a {@link ConfigurationRole} allows on a {@link org.gradle.api.artifacts.Configuration}.
      */
-    final class RoleDescriber {
+    abstract class RoleDescriber {
         private static final String CUSTOM_ROLE_NAME = "Custom Role";
 
         private static final String CONSUMABLE = "Consumable - this configuration can be selected by another project as a dependency";
@@ -109,6 +109,8 @@ public interface ConfigurationRole {
         private static final String UNUSABLE = "Consumption Deprecated - this configuration should not be selected by another project as a dependency";
 
         private static final String IS_DEPRECATED = "(but this behavior is marked deprecated)";
+
+        private RoleDescriber() { /* not instantiable */ }
 
         /**
          * Builds a human-readable description of the usage allowed by the given role.
