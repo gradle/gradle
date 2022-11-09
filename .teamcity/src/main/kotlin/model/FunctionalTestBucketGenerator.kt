@@ -67,7 +67,7 @@ data class FunctionalTestBucket(
 
 class SubprojectTestClassTime(
     val subProject: GradleSubproject,
-    private val testClassTimes: List<TestClassTime> = emptyList()
+    testClassTimes: List<TestClassTime> = emptyList()
 ) {
     val totalTime: Int = testClassTimes.sumOf { it.buildTimeMs }
 
@@ -113,10 +113,16 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
 
     private
     fun splitBucketsByTestClassesForBuildProject(testCoverage: TestCoverage, stage: Stage, buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes): List<SmallSubprojectBucket> {
-        val subprojects = model.subprojects.subprojects
+        val validSubprojects = model.subprojects.getSubprojectsFor(testCoverage, stage)
         // Build project not found, don't split into buckets
         val subProjectToClassTimes: MutableMap<String, List<TestClassTime>> =
-            determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap() ?: return subprojects.map { SmallSubprojectBucket(it, ParallelizationMethod.None) }
+            determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap() ?: return validSubprojects.map { SmallSubprojectBucket(it, ParallelizationMethod.None) }
+
+        validSubprojects.forEach {
+            if (!subProjectToClassTimes.containsKey(it.name)) {
+                subProjectToClassTimes[it.name] = emptyList()
+            }
+        }
 
         val subProjectTestClassTimes: List<SubprojectTestClassTime> = subProjectToClassTimes
             .entries
@@ -125,11 +131,11 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             .map { SubprojectTestClassTime(model.subprojects.getSubprojectByName(it.key)!!, it.value.filter { it.testClassAndSourceSet.sourceSet != "test" }) }
             .sortedBy { -it.totalTime }
 
-        return parallelize(subprojects, subProjectTestClassTimes, testCoverage) { bucketNumber ->
+        return parallelize(validSubprojects, subProjectTestClassTimes, testCoverage) { numberOfBatches ->
             if (testCoverage.os == Os.LINUX)
                 ParallelizationMethod.TestDistribution
             else
-                ParallelizationMethod.TeamCityParallelTests(bucketNumber)
+                ParallelizationMethod.TeamCityParallelTests(numberOfBatches)
         }
     }
 
@@ -137,13 +143,19 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         validSubprojects: List<GradleSubproject>,
         subProjectTestClassTimes: List<SubprojectTestClassTime>,
         testCoverage: TestCoverage,
-        excludedSubprojectNames: List<String> = emptyList(),
-        parallelization: (buckets: Int) -> ParallelizationMethod
+        parallelization: (Int) -> ParallelizationMethod
     ): List<SmallSubprojectBucket> {
-        val specialSubprojects = validSubprojects.filter { excludedSubprojectNames.contains(it.name) }
-        val otherSubProjectTestClassTimes = subProjectTestClassTimes.filter { !excludedSubprojectNames.contains(it.subProject.name) }
+        val docsSplitSize = 3
+        val specialBuckets = if (testCoverage.testType == TestType.platform) {
+            listOf(SmallSubprojectBucket(validSubprojects.first { it.name == "docs" }, parallelization(docsSplitSize)))
+        } else emptyList()
+        val otherBucketTotalNumber = if (testCoverage.testType == TestType.platform) {
+            testCoverage.expectedBucketNumber - docsSplitSize
+        } else testCoverage.expectedBucketNumber
 
-        return splitIntoBuckets(
+        val otherSubProjectTestClassTimes = subProjectTestClassTimes.filter { it.subProject.name != "docs" }
+
+        return specialBuckets + splitIntoBuckets(
             LinkedList(otherSubProjectTestClassTimes),
             SubprojectTestClassTime::totalTime,
             { largeElement, factor ->
@@ -152,7 +164,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             { list ->
                 SmallSubprojectBucket(list.map { it.subProject }, parallelization(1))
             },
-            testCoverage.expectedBucketNumber - specialSubprojects.size,
+            otherBucketTotalNumber,
             MAX_PROJECT_NUMBER_IN_BUCKET
         )
     }

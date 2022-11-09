@@ -135,17 +135,10 @@ class GradleVersionRangeCrossVersionTestBucket(private val startInclusive: Strin
     }
 }
 
-class TestClassAndSourceSet(
+data class TestClassAndSourceSet(
     val testClass: String,
     val sourceSet: String
-) {
-    constructor(classAndSourceSet: String) : this(
-        classAndSourceSet.substringBefore("="),
-        classAndSourceSet.substringAfter("=")
-    )
-
-    fun toPropertiesLine() = "$testClass=$sourceSet"
-}
+)
 
 data class SmallSubprojectBucket(
     val subprojects: List<GradleSubproject>,

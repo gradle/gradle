@@ -13,8 +13,10 @@ import model.TestCoverage
 const val functionalTestTag = "FunctionalTest"
 
 sealed class ParallelizationMethod {
-    @get: JSONField(serialize = false)
-    open val extraBuildParameters: String = ""
+    open val extraBuildParameters: String
+        @JSONField(serialize = false)
+        get() = ""
+
     val name: String = this::class.simpleName!!
 
     object None : ParallelizationMethod()
@@ -22,15 +24,15 @@ sealed class ParallelizationMethod {
         override val extraBuildParameters: String = "-DenableTestDistribution=%enableTestDistribution% -DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%"
     }
 
-    class TeamCityParallelTests(val numberOfBuckets: Int) : ParallelizationMethod()
+    class TeamCityParallelTests(val numberOfBatches: Int) : ParallelizationMethod()
 
     companion object {
         fun fromJson(jsonObject: JSONObject): ParallelizationMethod {
-            val nameJsonObject = jsonObject.getJSONObject("parallelizationMethod") ?: return None
-            return when (nameJsonObject.getString("name")) {
+            val methodJsonObject = jsonObject.getJSONObject("parallelizationMethod") ?: return None
+            return when (methodJsonObject.getString("name")) {
                 null -> None
                 TestDistribution::class.simpleName -> TestDistribution
-                TeamCityParallelTests::class.simpleName -> TeamCityParallelTests(jsonObject.getIntValue("numberOfBuckets"))
+                TeamCityParallelTests::class.simpleName -> TeamCityParallelTests(methodJsonObject.getIntValue("numberOfBatches"))
                 else -> throw IllegalArgumentException("Unknown parallelization method")
             }
         }
@@ -59,16 +61,13 @@ class FunctionalTest(
         functionalTestExtraParameters(functionalTestTag, testCoverage.os, testCoverage.arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name),
         "-PflakyTests=${determineFlakyTestStrategy(stage)}",
         extraParameters,
-        when (parallelizationMethod) {
-            is ParallelizationMethod.TestDistribution -> "-DenableTestDistribution=%enableTestDistribution% -DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%"
-            else -> ""
-        }
+        parallelizationMethod.extraBuildParameters
     ).filter { it.isNotBlank() }.joinToString(separator = " ")
 
-    if (parallelizationMethod is ParallelizationMethod.TeamCityParallelTests) {
+    if (parallelizationMethod is ParallelizationMethod.TeamCityParallelTests && parallelizationMethod.numberOfBatches > 1) {
         features {
             parallelTests {
-                this.numberOfBatches = parallelizationMethod.numberOfBuckets
+                this.numberOfBatches = parallelizationMethod.numberOfBatches
             }
         }
     }
