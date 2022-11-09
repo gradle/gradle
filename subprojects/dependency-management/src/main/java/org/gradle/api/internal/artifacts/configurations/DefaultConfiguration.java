@@ -226,6 +226,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean resolutionDeprecated = false;
     private boolean declarationDeprecated = false;
     private boolean roleCanBeMutated = true;
+    private final ConfigurationRole roleAtCreation;
 
     private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
@@ -257,6 +258,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
      */
+    @SuppressWarnings("deprecation")
     public DefaultConfiguration(
         DomainObjectContext domainObjectContext,
         String name,
@@ -280,6 +282,61 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory
+    ) {
+        this(
+            domainObjectContext,
+            name,
+            configurationsProvider,
+            resolver,
+            dependencyResolutionListeners,
+            dependencyObservedBroadcast,
+            metaDataProvider,
+            resolutionStrategyFactory,
+            fileCollectionFactory,
+            buildOperationExecutor,
+            instantiator,
+            artifactNotationParser,
+            capabilityNotationParser,
+            attributesFactory,
+            rootComponentMetadataBuilder,
+            documentationRegistry,
+            userCodeApplicationContext,
+            projectStateRegistry,
+            workerThreadRegistry,
+            domainObjectCollectionFactory,
+            calculatedValueContainerFactory,
+            defaultConfigurationFactory,
+            ConfigurationRoles.LEGACY
+        );
+    }
+
+    /**
+     * To create an instance, use {@link DefaultConfigurationFactory#create}.
+     */
+    public DefaultConfiguration(
+            DomainObjectContext domainObjectContext,
+            String name,
+            ConfigurationsProvider configurationsProvider,
+            ConfigurationResolver resolver,
+            ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
+            ProjectDependencyObservedListener dependencyObservedBroadcast,
+            DependencyMetaDataProvider metaDataProvider,
+            Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
+            FileCollectionFactory fileCollectionFactory,
+            BuildOperationExecutor buildOperationExecutor,
+            Instantiator instantiator,
+            NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+            NotationParser<Object, Capability> capabilityNotationParser,
+            ImmutableAttributesFactory attributesFactory,
+            RootComponentMetadataBuilder rootComponentMetadataBuilder,
+            DocumentationRegistry documentationRegistry,
+            UserCodeApplicationContext userCodeApplicationContext,
+            ProjectStateRegistry projectStateRegistry,
+            WorkerThreadRegistry workerThreadRegistry,
+            DomainObjectCollectionFactory domainObjectCollectionFactory,
+            CalculatedValueContainerFactory calculatedValueContainerFactory,
+            DefaultConfigurationFactory defaultConfigurationFactory,
+            ConfigurationRole roleAtCreation
     ) {
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
@@ -324,6 +381,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(ResolveState.NOT_RESOLVED);
         this.path = domainObjectContext.projectPath(name);
         this.defaultConfigurationFactory = defaultConfigurationFactory;
+
+        this.roleAtCreation = roleAtCreation;
     }
 
     private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -1605,7 +1664,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void assertRoleIsMutatible() {
         if (!roleCanBeMutated) {
-            throw new GradleException(String.format("Cannot change the role of %s, as it was locked upon creation to:\n%s\nIdeally, each configuration should have a single role.", getDisplayName(), ConfigurationRoles.describeRole(this)));
+            throw new GradleException(String.format("Cannot change the role of %s, as it was locked upon creation to:\n%s\nIdeally, each configuration should have a single role.", getDisplayName(), roleAtCreation.describe()));
         }
     }
 
@@ -1853,6 +1912,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         DefaultResolutionHost failureHandler = new DefaultResolutionHost();
         ConfigurationFileCollection files = new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, failureHandler);
         return new ConfigurationArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
+    }
+
+    @Override
+    public ConfigurationRole getRoleAtCreation() {
+        return roleAtCreation;
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {

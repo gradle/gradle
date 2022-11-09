@@ -16,9 +16,18 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.commons.lang.WordUtils;
 
+import java.util.Optional;
+
+/**
+ * Defines {@link ConfigurationRole}s representing common allowed usage patterns.
+ *
+ * These should be preferred over defining custom roles; whenever possible.  Use {@link #byUsage(boolean, boolean, boolean, boolean, boolean, boolean)}
+ * to attempt to locate a matching role by its usage characteristics.
+ *
+ * @since 8.0
+ */
 public enum ConfigurationRoles implements ConfigurationRole {
     /**
      * An unrestricted configuration, which can be used for any purpose.
@@ -27,14 +36,14 @@ public enum ConfigurationRoles implements ConfigurationRole {
      * the default role for configurations created when another more specific role is <strong>not</strong> specified.
      */
     @Deprecated
-    LEGACY(true, true, true, true, true, true),
+    LEGACY(true, true, true, false, false, false),
 
     /**
      * Meant to be used only for consumption by other projects.
      */
     INTENDED_CONSUMABLE(true, false, false, false, false, false),
 
-    /**
+    /**d
      * Meant to be used only for resolving dependencies.
      */
     INTENDED_RESOLVABLE(false, true, false, false, false, false),
@@ -47,19 +56,40 @@ public enum ConfigurationRoles implements ConfigurationRole {
     INTENDED_BUCKET(false, false, true, false, false, false),
 
     /**
-     * Meant to be used only for consumption, warns if used otherwise.
+     * Meant to be used only for consumption, permits other usage but emits warnings if used otherwise.
      */
     @Deprecated
     DEPRECATED_CONSUMABLE(true, true, true, false, true, true),
 
     /**
-     * Meant to be used only for resolution, warns if used otherwise.
+     * Meant to be used only for resolution, permits other usage but emits warnings if used otherwise.
      */
     @Deprecated
     DEPRECATED_RESOLVABLE(true, true, true, true, false, true);
 
     private final boolean consumable, resolvable, declarableAgainst;
     private final boolean consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated;
+
+    /**
+     * Locates a pre-defined role allowing the given usage.
+     *
+     * @param consumable whether this role is consumable
+     * @param resolvable whether this role is resolvable
+     * @param declarableAgainst whether this role is declarable against
+     * @param consumptionDeprecated whether this role is deprecated for consumption
+     * @param resolutionDeprecated whether this role is deprecated for resolution
+     * @param declarationAgainstDeprecated whether this role is deprecated for declaration against
+     *
+     * @return the role enum token with matching usage characteristics, if one exists; otherwise {@link Optional#empty()}
+     */
+    public static Optional<ConfigurationRoles> byUsage(boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
+        for (ConfigurationRoles role : values()) {
+            if (role.consumable == consumable && role.resolvable == resolvable && role.declarableAgainst == declarableAgainst && role.consumptionDeprecated == consumptionDeprecated && role.resolutionDeprecated == resolutionDeprecated && role.declarationAgainstDeprecated == declarationAgainstDeprecated) {
+                return Optional.of(role);
+            }
+        }
+        return Optional.empty();
+    }
 
     ConfigurationRoles(boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
         this.consumable = consumable;
@@ -68,6 +98,11 @@ public enum ConfigurationRoles implements ConfigurationRole {
         this.consumptionDeprecated = consumptionDeprecated;
         this.resolutionDeprecated = resolutionDeprecated;
         this.declarationAgainstDeprecated = declarationAgainstDeprecated;
+    }
+
+    @Override
+    public String getName() {
+        return upperSnakeToProperCase(name());
     }
 
     @Override
@@ -100,24 +135,7 @@ public enum ConfigurationRoles implements ConfigurationRole {
         return declarationAgainstDeprecated;
     }
 
-    public static String describeRole(ConfigurationInternal configuration) {
-        List<String> descriptions = new ArrayList<>();
-        if (configuration.isCanBeConsumed()) {
-            descriptions.add("\tConsumable - this configuration can be selected by another project as a dependency" + describeDeprecation(configuration.isDeprecatedForConsumption()));
-        }
-        if (configuration.isCanBeResolved()) {
-            descriptions.add("\tResolvable - this configuration can be resolved by this project to a set of files" + describeDeprecation(configuration.isDeprecatedForResolution()));
-        }
-        if (configuration.isCanBeDeclaredAgainst()) {
-            descriptions.add("\tDeclarable Against - this configuration can have dependencies added to it" + describeDeprecation(configuration.isDeprecatedForDeclarationAgainst()));
-        }
-        if (descriptions.isEmpty()) {
-            descriptions.add("\tUnusable - this configuration cannot be used for any purpose");
-        }
-        return String.join("\n", descriptions);
-    }
-
-    private static String describeDeprecation(boolean deprecated) {
-        return deprecated ? " (but this behavior is marked deprecated)" : "";
+    private String upperSnakeToProperCase(String name) {
+        return WordUtils.capitalizeFully(name.replaceAll("_", " "));
     }
 }
