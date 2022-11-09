@@ -15,7 +15,7 @@
 [[migrating_from_maven]]
 = Migrating Builds From Apache Maven
 
-TIP: Suffering from slow Maven builds? https://gradle.com/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up Maven builds by up to 90%.
+TIP: Suffering from slow Maven builds? https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how Gradle Enterprise can speed up Maven builds by up to 90%.
 
 https://maven.apache.org[Apache Maven] is a build tool for Java and other JVM-based projects that's in widespread use, and so people that want to use Gradle often have to migrate an existing Maven build.
 This guide will help with such a migration by explaining the differences and similarities between the two tools' models and providing steps that you can follow to ease the process.
@@ -37,7 +37,7 @@ In-depth performance comparison and business cases for switching from Maven to G
 == General guidelines
 
 Gradle and Maven have fundamentally different views on how to build a project.
-Gradle provides a flexible and extensible build model that delegates the actual work to a <<what_is_gradle#the_core_model_is_based_on_tasks,_graph of task dependencies_>>.
+Gradle provides a flexible and extensible build model that delegates the actual work to the execution of a graph of tasks.
 Maven uses a model of fixed, linear phases to which you can attach goals (the things that do the work).
 This may make migrating between the two seem intimidating, but migrations can be surprisingly easy because Gradle follows many of the same conventions as Maven -- such as the <<java_plugin#sec:java_project_layout,standard project structure>> -- and its dependency management works in a similar way.
 

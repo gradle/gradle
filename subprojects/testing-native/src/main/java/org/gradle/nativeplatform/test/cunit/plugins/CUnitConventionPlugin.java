@@ -31,7 +31,7 @@ import org.gradle.testing.base.TestSuiteContainer;
  * A plugin that applies the {@link CUnitPlugin} and adds conventions on top of it.
  */
 @Incubating
-public class CUnitConventionPlugin implements Plugin<Project> {
+public abstract class CUnitConventionPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {

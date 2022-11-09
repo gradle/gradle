@@ -16,13 +16,15 @@
 
 package org.gradle.api.internal.tasks.testing.filter
 
+
 import spock.lang.Specification
 
 class TestSelectionMatcherTest extends Specification {
 
     def "knows if test matches class"() {
-        expect: new TestSelectionMatcher(input, [], []).matchesTest(className, methodName) == match
-                new TestSelectionMatcher([], [], input).matchesTest(className, methodName) == match
+        expect:
+        matcher(input, [], []).matchesTest(className, methodName) == match
+        matcher([], [], input).matchesTest(className, methodName) == match
 
         where:
         input                    | className                 | methodName            | match
@@ -53,7 +55,8 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "knows if excluded test matches class"() {
-        expect: new TestSelectionMatcher([], input, []).matchesTest(className, methodName) == match
+        expect:
+        matcher([], input, []).matchesTest(className, methodName) == match
 
         where:
         input                    | className                 | methodName            | match
@@ -84,8 +87,9 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "knows if test matches"() {
-        expect: new TestSelectionMatcher(input, [], []).matchesTest(className, methodName) == match
-                new TestSelectionMatcher([], [], input).matchesTest(className, methodName) == match
+        expect:
+        matcher(input, [], []).matchesTest(className, methodName) == match
+        matcher([], [], input).matchesTest(className, methodName) == match
 
         where:
         input                    | className                 | methodName            | match
@@ -110,8 +114,9 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "matches any of input"() {
-        expect: new TestSelectionMatcher(input, [], []).matchesTest(className, methodName) == match
-                new TestSelectionMatcher([], [], input).matchesTest(className, methodName) == match
+        expect:
+        matcher(input, [], []).matchesTest(className, methodName) == match
+        matcher([], [], input).matchesTest(className, methodName) == match
 
         where:
         input                               | className                 | methodName            | match
@@ -137,8 +142,9 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "regexp chars are handled"() {
-        expect: new TestSelectionMatcher(input, [], []).matchesTest(className, methodName) == match
-                new TestSelectionMatcher([], [], input).matchesTest(className, methodName) == match
+        expect:
+        matcher(input, [], []).matchesTest(className, methodName) == match
+        matcher([], [], input).matchesTest(className, methodName) == match
 
         where:
         input                               | className                 | methodName            | match
@@ -149,8 +155,9 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "handles null test method"() {
-        expect: new TestSelectionMatcher(input, [], []).matchesTest(className, methodName) == match
-                new TestSelectionMatcher([], [], input).matchesTest(className, methodName) == match
+        expect:
+        matcher(input, [], []).matchesTest(className, methodName) == match
+        matcher([], [], input).matchesTest(className, methodName) == match
 
         where:
         input                               | className                 | methodName            | match
@@ -164,7 +171,8 @@ class TestSelectionMatcherTest extends Specification {
     }
 
     def "script includes and command line includes both have to match"() {
-        expect: new TestSelectionMatcher(input, [], inputCommandLine).matchesTest(className, methodName) == match
+        expect:
+        matcher(input, [], inputCommandLine).matchesTest(className, methodName) == match
 
         where:
         input               | inputCommandLine | className  | methodName | match
@@ -174,8 +182,8 @@ class TestSelectionMatcherTest extends Specification {
 
     def 'can exclude as many classes as possible'() {
         expect:
-        new TestSelectionMatcher(input, [], []).mayIncludeClass(fullQualifiedName) == maybeMatch
-        new TestSelectionMatcher([], [], input).mayIncludeClass(fullQualifiedName) == maybeMatch
+        matcher(input, [], []).mayIncludeClass(fullQualifiedName) == maybeMatch
+        matcher([], [], input).mayIncludeClass(fullQualifiedName) == maybeMatch
 
         where:
         input                             | fullQualifiedName    | maybeMatch
@@ -236,7 +244,7 @@ class TestSelectionMatcherTest extends Specification {
 
     def 'can use multiple patterns'() {
         expect:
-        new TestSelectionMatcher(pattern1, [], pattern2).mayIncludeClass(fullQualifiedName) == maybeMatch
+        matcher(pattern1, [], pattern2).mayIncludeClass(fullQualifiedName) == maybeMatch
 
         where:
         pattern1                | pattern2                 | fullQualifiedName    | maybeMatch
@@ -246,5 +254,9 @@ class TestSelectionMatcherTest extends Specification {
         []                      | []                       | 'anything'           | true
         ['org.gradle.FooTest*'] | ['org.gradle.BarTest*']  | 'org.gradle.FooTest' | false
         ['org.gradle.FooTest*'] | ['*org.gradle.BarTest*'] | 'org.gradle.FooTest' | true
+    }
+
+    def matcher(Collection<String> includedTests, Collection<String> excludedTests, Collection<String> includedTestsCommandLine) {
+        return new TestSelectionMatcher(new TestFilterSpec(includedTests as Set, excludedTests as Set, includedTestsCommandLine as Set))
     }
 }

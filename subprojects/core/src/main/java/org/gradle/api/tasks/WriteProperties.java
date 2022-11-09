@@ -55,7 +55,7 @@ import java.util.concurrent.Callable;
  * @since 3.3
  */
 @CacheableTask
-public class WriteProperties extends DefaultTask {
+public abstract class WriteProperties extends DefaultTask {
     private final Map<String, Callable<String>> deferredProperties = Maps.newHashMap();
     private final Map<String, String> properties = Maps.newHashMap();
     private String lineSeparator = "\n";

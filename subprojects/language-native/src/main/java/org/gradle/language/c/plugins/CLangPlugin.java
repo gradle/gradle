@@ -47,7 +47,7 @@ import java.util.Map;
  */
 @Incubating
 @NonNullApi
-public class CLangPlugin implements Plugin<Project> {
+public abstract class CLangPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {

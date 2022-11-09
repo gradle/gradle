@@ -36,6 +36,7 @@ import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
@@ -63,7 +64,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     private final boolean relocated;
     private final String snapshotTimestamp;
 
-    private ImmutableList<? extends ConfigurationMetadata> derivedVariants;
+    private ImmutableList<? extends ModuleConfigurationMetadata> derivedVariants;
 
     private boolean filterConstraints = true;
     private MavenDependencyDescriptor[] dependenciesAsArray;
@@ -109,11 +110,11 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         return Optional.fromNullable(getDerivedVariants());
     }
 
-    protected Optional<List<? extends ConfigurationMetadata>> deriveVariants() {
+    protected Optional<List<? extends ModuleConfigurationMetadata>> deriveVariants() {
         return Optional.fromNullable(getDerivedVariants());
     }
 
-    private ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
+    private ImmutableList<? extends ModuleConfigurationMetadata> getDerivedVariants() {
         VariantDerivationStrategy strategy = getVariantDerivationStrategy();
         if (derivedVariants == null && strategy.derivesVariants()) {
             filterConstraints = false;
@@ -123,7 +124,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     @Override
-    protected ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions) {
+    protected ModuleConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions) {
         DefaultConfigurationMetadata md = (DefaultConfigurationMetadata) super.populateConfigurationFromDescriptor(name, configurationDefinitions);
         if (filterConstraints && md != null) {
             // if the first call to getConfiguration is done before getDerivedVariants() is called

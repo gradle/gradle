@@ -51,6 +51,15 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         init(initialValue, initialValue);
     }
 
+    /**
+     * A simple getter that checks if this property has been finalized.
+     *
+     * @return {@code true} if this property has been finalized, {@code false} otherwise
+     */
+    public boolean isFinalized() {
+        return state instanceof FinalizedValue;
+    }
+
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
         beforeRead(producer, consumer);

@@ -22,7 +22,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
 /**
- * State for a variant instance that is used for artifact resolution.
+ * State that is used for artifact resolution based on a variant that is selected during graph resolution.
  *
  * <p>Instances of this type are located using {@link ComponentArtifactResolveState}.</p>
  */
