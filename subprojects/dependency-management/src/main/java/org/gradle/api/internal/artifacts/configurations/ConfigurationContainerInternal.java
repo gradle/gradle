@@ -114,7 +114,7 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
             configuration.setDeprecatedForResolution(role.isResolutionDeprecated());
             configuration.setDeprecatedForDeclarationAgainst(role.isDeclarationAgainstDeprecated());
             if (lockRole) {
-                configuration.preventRoleMutation();
+                configuration.preventUsageMutation();
             }
         }
 

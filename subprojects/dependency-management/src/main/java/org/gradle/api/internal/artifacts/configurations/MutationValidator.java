@@ -44,9 +44,9 @@ public interface MutationValidator {
         ARTIFACTS("artifacts"),
 
         /**
-         * The mutation of the role of the configuration (can be queries, resolved, ...)
+         * The mutation of the allowed usage of the configuration (can be consumed, resolved, deprecated for declaration against...)
          */
-        ROLE("role");
+        USAGE("usage");
 
         private final String displayName;
 

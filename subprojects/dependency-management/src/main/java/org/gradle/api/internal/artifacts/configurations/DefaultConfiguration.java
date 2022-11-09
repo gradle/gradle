@@ -1444,7 +1444,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
             assertIsDeclarableAgainst();
             return;
-        } else if (type == MutationType.ROLE) {
+        } else if (type == MutationType.USAGE) {
             assertUsageIsMutable();
         }
 
@@ -1658,7 +1658,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void preventRoleMutation() {
+    public void preventUsageMutation() {
         roleCanBeMutated = false;
     }
 
@@ -1700,7 +1700,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public void setCanBeConsumed(boolean allowed) {
         if (canBeConsumed != allowed) {
-            validateMutation(MutationType.ROLE);
+            validateMutation(MutationType.USAGE);
             canBeConsumed = allowed;
         }
     }
@@ -1713,7 +1713,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public void setCanBeResolved(boolean allowed) {
         if (canBeResolved != allowed) {
-            validateMutation(MutationType.ROLE);
+            validateMutation(MutationType.USAGE);
             canBeResolved = allowed;
         }
     }
@@ -1726,7 +1726,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public void setCanBeDeclaredAgainst(boolean allowed) {
         if (canBeDeclaredAgainst != allowed) {
-            validateMutation(MutationType.ROLE);
+            validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
         }
     }
@@ -1756,43 +1756,49 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void setDeprecatedForConsumption(boolean deprecated) {
-        validateMutation(MutationType.ROLE);
-        if (deprecated) {
-            deprecateForConsumption(depSpec -> DeprecationLogger.deprecateConfiguration(getName())
-                    .forConsumption()
-                    .willBecomeAnErrorInGradle9()
-                    .withUserManual("dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations"));
-        } else {
-            consumptionDeprecation = null;
-            consumptionDeprecated = false;
+        if (consumptionDeprecated != deprecated) {
+            if (deprecated) {
+                deprecateForConsumption(depSpec -> DeprecationLogger.deprecateConfiguration(getName())
+                        .forConsumption()
+                        .willBecomeAnErrorInGradle9()
+                        .withUserManual("dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations"));
+            } else {
+                validateMutation(MutationType.USAGE);
+                consumptionDeprecation = null;
+                consumptionDeprecated = false;
+            }
         }
     }
 
     @Override
     public void setDeprecatedForResolution(boolean deprecated) {
-        validateMutation(MutationType.ROLE);
-        if (deprecated) {
-            deprecateForResolution();
-        } else {
-            resolutionAlternatives = null;
-            resolutionDeprecated = false;
+        if (resolutionDeprecated != deprecated) {
+            if (deprecated) {
+                deprecateForResolution();
+            } else {
+                validateMutation(MutationType.USAGE);
+                resolutionAlternatives = null;
+                resolutionDeprecated = false;
+            }
         }
     }
 
     @Override
     public void setDeprecatedForDeclarationAgainst(boolean deprecated) {
-        validateMutation(MutationType.ROLE);
-        if (deprecated) {
-            deprecateForDeclarationAgainst();
-        } else {
-            declarationAlternatives = null;
-            declarationDeprecated = false;
+        if (declarationDeprecated != deprecated) {
+            if (deprecated) {
+                deprecateForDeclarationAgainst();
+            } else {
+                validateMutation(MutationType.USAGE);
+                declarationAlternatives = null;
+                declarationDeprecated = false;
+            }
         }
     }
 
     @Override
     public DeprecatableConfiguration deprecateForDeclarationAgainst(String... alternativesForDeclaring) {
-        validateMutation(MutationType.ROLE);
+        validateMutation(MutationType.USAGE);
         this.declarationAlternatives = ImmutableList.copyOf(alternativesForDeclaring);
         declarationDeprecated = true;
         return this;
@@ -1800,7 +1806,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DeprecatableConfiguration deprecateForConsumption(Function<DeprecationMessageBuilder.DeprecateConfiguration, DeprecationMessageBuilder.WithDocumentation> deprecation) {
-        validateMutation(MutationType.ROLE);
+        validateMutation(MutationType.USAGE);
         this.consumptionDeprecation = deprecation.apply(DeprecationLogger.deprecateConfiguration(name).forConsumption());
         consumptionDeprecated = true;
         return this;
@@ -1808,7 +1814,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public DeprecatableConfiguration deprecateForResolution(String... alternativesForResolving) {
-        validateMutation(MutationType.ROLE);
+        validateMutation(MutationType.USAGE);
         this.resolutionAlternatives = ImmutableList.copyOf(alternativesForResolving);
         resolutionDeprecated = true;
         return this;
@@ -1966,8 +1972,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void setRoleAtCreation(ConfigurationRole role) {
-        validateMutation(MutationType.ROLE);
-        roleAtCreation = role;
+        if (roleAtCreation != null) {
+            validateMutation(MutationType.USAGE);
+            roleAtCreation = role;
+        }
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {

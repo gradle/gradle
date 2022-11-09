@@ -153,7 +153,7 @@ public class DefaultConfigurationFactory {
         configuration.setDeprecatedForConsumption(role.isConsumptionDeprecated());
         configuration.setDeprecatedForResolution(role.isResolutionDeprecated());
         configuration.setDeprecatedForDeclarationAgainst(role.isDeclarationAgainstDeprecated());
-        configuration.preventRoleMutation();
+        configuration.preventUsageMutation();
         return configuration;
     }
 }

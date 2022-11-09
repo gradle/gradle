@@ -149,11 +149,11 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     void setDeprecatedForDeclarationAgainst(boolean deprecated);
 
     /**
-     * Prevents any calls to methods that change this configuration's role (e.g. {@link #setCanBeConsumed(boolean)},
+     * Prevents any calls to methods that change this configuration's allowed usage (e.g. {@link #setCanBeConsumed(boolean)},
      * {@link #setCanBeResolved(boolean)}, {@link #deprecateForResolution(String...)}) from succeeding; and causes them
      * to throw an exception.
      */
-    void preventRoleMutation();
+    void preventUsageMutation();
 
     ConfigurationRole getRoleAtCreation();
 
