@@ -51,7 +51,7 @@ public interface DeprecatableConfiguration extends Configuration {
      * @param alternativesForDeclaring alternative configurations that can be used to declare dependencies
      * @return this configuration
      */
-    DeprecatableConfiguration deprecateForDeclaration(String... alternativesForDeclaring);
+    DeprecatableConfiguration deprecateForDeclarationAgainst(String... alternativesForDeclaring);
 
     /**
      * Allows plugins to deprecate the consumability property (canBeConsumed() == true) of a configuration that will be changed in the next major Gradle version.

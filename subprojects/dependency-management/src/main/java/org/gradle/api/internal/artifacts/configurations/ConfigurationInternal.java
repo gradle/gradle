@@ -144,6 +144,10 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     boolean isDeprecatedForResolution();
     boolean isDeprecatedForDeclarationAgainst();
 
+    void setDeprecatedForConsumption(boolean deprecated);
+    void setDeprecatedForResolution(boolean deprecated);
+    void setDeprecatedForDeclarationAgainst(boolean deprecated);
+
     /**
      * Prevents any calls to methods that change this configuration's role (e.g. {@link #setCanBeConsumed(boolean)},
      * {@link #setCanBeResolved(boolean)}, {@link #deprecateForResolution(String...)}) from succeeding; and causes them
@@ -151,10 +155,9 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      */
     void preventRoleMutation();
 
-    /**
-     * Returns the role used to define this configuration's allowed usage upon creation.
-     */
     ConfigurationRole getRoleAtCreation();
+
+    void setRoleAtCreation(ConfigurationRole role);
 
     /**
      * Test if the given configuration can either be declared against or extends another
@@ -172,6 +175,10 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
                     .map(ConfigurationInternal.class::cast)
                     .anyMatch(ci -> ci.isDeclarableAgainstByExtension());
         }
+    }
+
+    default boolean isUsageConsistentWithRoleAtCreation() {
+        return ConfigurationContainerInternal.RoleAssigner.isUsageConsistentWithRole(this, getRoleAtCreation());
     }
 
     interface VariantVisitor {

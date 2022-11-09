@@ -226,7 +226,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean resolutionDeprecated = false;
     private boolean declarationDeprecated = false;
     private boolean roleCanBeMutated = true;
-    private final ConfigurationRole roleAtCreation;
+    private ConfigurationRole roleAtCreation;
 
     private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
@@ -1746,7 +1746,43 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public DeprecatableConfiguration deprecateForDeclaration(String... alternativesForDeclaring) {
+    public void setDeprecatedForConsumption(boolean deprecated) {
+        validateMutation(MutationType.ROLE);
+        if (deprecated) {
+            deprecateForConsumption(depSpec -> DeprecationLogger.deprecateConfiguration(getName())
+                    .forConsumption()
+                    .willBecomeAnErrorInGradle9()
+                    .withUserManual("dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations"));
+        } else {
+            consumptionDeprecation = null;
+            consumptionDeprecated = false;
+        }
+    }
+
+    @Override
+    public void setDeprecatedForResolution(boolean deprecated) {
+        validateMutation(MutationType.ROLE);
+        if (deprecated) {
+            deprecateForResolution();
+        } else {
+            resolutionAlternatives = null;
+            resolutionDeprecated = false;
+        }
+    }
+
+    @Override
+    public void setDeprecatedForDeclarationAgainst(boolean deprecated) {
+        validateMutation(MutationType.ROLE);
+        if (deprecated) {
+            deprecateForDeclarationAgainst();
+        } else {
+            declarationAlternatives = null;
+            declarationDeprecated = false;
+        }
+    }
+
+    @Override
+    public DeprecatableConfiguration deprecateForDeclarationAgainst(String... alternativesForDeclaring) {
         validateMutation(MutationType.ROLE);
         this.declarationAlternatives = ImmutableList.copyOf(alternativesForDeclaring);
         declarationDeprecated = true;
@@ -1917,6 +1953,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public ConfigurationRole getRoleAtCreation() {
         return roleAtCreation;
+    }
+
+    @Override
+    public void setRoleAtCreation(ConfigurationRole role) {
+        validateMutation(MutationType.ROLE);
+        roleAtCreation = role;
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {

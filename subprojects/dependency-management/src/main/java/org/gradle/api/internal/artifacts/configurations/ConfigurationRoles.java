@@ -67,8 +67,12 @@ public enum ConfigurationRoles implements ConfigurationRole {
     @Deprecated
     DEPRECATED_RESOLVABLE(true, true, true, true, false, true);
 
-    private final boolean consumable, resolvable, declarableAgainst;
-    private final boolean consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated;
+    private final boolean consumable;
+    private final boolean resolvable;
+    private final boolean declarableAgainst;
+    private final boolean consumptionDeprecated;
+    private final boolean resolutionDeprecated;
+    private final boolean declarationAgainstDeprecated;
 
     /**
      * Locates a pre-defined role allowing the given usage.
