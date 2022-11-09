@@ -71,7 +71,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
 
         SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
         processSourceChanges(current, sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
-        processGroovyJavaJointCompilationAdditionalDependencies(spec, recompilationSpec, sourceFileChangeProcessor, sourceFileClassNameConverter);
+        processCompilerSpecificDependencies(spec, recompilationSpec, sourceFileChangeProcessor, sourceFileClassNameConverter);
         collectAllSourcePathsAndIndependentClasses(sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
 
         Set<String> typesToReprocess = previous.getTypesToReprocess(recompilationSpec.getClassesToCompile());
@@ -118,7 +118,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         return String.format("%s '%s' has been %s", "resource", fileChange.getFile().getName(), fileChange.getChangeType().name().toLowerCase(Locale.US));
     }
 
-    protected abstract void processGroovyJavaJointCompilationAdditionalDependencies(
+    protected abstract void processCompilerSpecificDependencies(
         JavaCompileSpec spec,
         RecompilationSpec recompilationSpec,
         SourceFileChangeProcessor sourceFileChangeProcessor,

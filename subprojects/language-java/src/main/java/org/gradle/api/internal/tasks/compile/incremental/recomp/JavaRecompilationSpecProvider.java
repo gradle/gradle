@@ -45,8 +45,8 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     }
 
     @Override
-    protected void processGroovyJavaJointCompilationAdditionalDependencies(JavaCompileSpec spec, RecompilationSpec recompilationSpec, SourceFileChangeProcessor sourceFileChangeProcessor, SourceFileClassNameConverter sourceFileClassNameConverter) {
-        // Not supported with only Java compiler
+    protected void processCompilerSpecificDependencies(JavaCompileSpec spec, RecompilationSpec recompilationSpec, SourceFileChangeProcessor sourceFileChangeProcessor, SourceFileClassNameConverter sourceFileClassNameConverter) {
+        // Nothing to do for Java compiler here
     }
 
     @Override
