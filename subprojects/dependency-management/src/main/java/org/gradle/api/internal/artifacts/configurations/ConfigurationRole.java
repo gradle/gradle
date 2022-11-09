@@ -19,7 +19,16 @@ package org.gradle.api.internal.artifacts.configurations;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Defines how a {@link org.gradle.api.artifacts.Configuration} is intended to be used.
+ *
+ * Standard roles are defined in {@link ConfigurationRoles}.
+ *
+ * @since 8.0
+ */
 public interface ConfigurationRole {
+    String getName();
+
     boolean isConsumable();
     boolean isResolvable();
     boolean isDeclarableAgainst();
@@ -27,64 +36,105 @@ public interface ConfigurationRole {
     boolean isResolutionDeprecated();
     boolean isDeclarationAgainstDeprecated();
 
+    /**
+     * Obtains a human-readable description of the usage allowed by the given role.
+     */
     default String describe() {
         return RoleDescriber.describeRole(this);
     }
 
+    /**
+     * Attempts to locate a pre-defined role allowing the given usage in {@link ConfigurationRoles} and return it;
+     * if such a roles does not exist, creates a custom anonymous implementation and return it instead.
+     *
+     * @param consumable whether this role is consumable
+     * @param resolvable whether this role is resolvable
+     * @param declarableAgainst whether this role is declarable against
+     * @param consumptionDeprecated whether this role is deprecated for consumption
+     * @param resolutionDeprecated whether this role is deprecated for resolution
+     * @param declarationAgainstDeprecated whether this role is deprecated for declaration against
+     *
+     * @return a role with matching usage characteristics
+     */
     static ConfigurationRole forUsage(boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
-        return new ConfigurationRole() {
-            @Override
-            public boolean isConsumable() {
-                return consumable;
-            }
+        return ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated)
+                .map(ConfigurationRole.class::cast)
+                .orElse(new ConfigurationRole() {
+                    @Override
+                    public String getName() {
+                        return RoleDescriber.CUSTOM_ROLE_NAME;
+                    }
 
-            @Override
-            public boolean isResolvable() {
-                return resolvable;
-            }
+                    @Override
+                    public boolean isConsumable() {
+                        return consumable;
+                    }
 
-            @Override
-            public boolean isDeclarableAgainst() {
-                return declarableAgainst;
-            }
+                    @Override
+                    public boolean isResolvable() {
+                        return resolvable;
+                    }
 
-            @Override
-            public boolean isConsumptionDeprecated() {
-                return consumptionDeprecated;
-            }
+                    @Override
+                    public boolean isDeclarableAgainst() {
+                        return declarableAgainst;
+                    }
 
-            @Override
-            public boolean isResolutionDeprecated() {
-                return resolutionDeprecated;
-            }
+                    @Override
+                    public boolean isConsumptionDeprecated() {
+                        return consumptionDeprecated;
+                    }
 
-            @Override
-            public boolean isDeclarationAgainstDeprecated() {
-                return declarationAgainstDeprecated;
-            }
-        };
+                    @Override
+                    public boolean isResolutionDeprecated() {
+                        return resolutionDeprecated;
+                    }
+
+                    @Override
+                    public boolean isDeclarationAgainstDeprecated() {
+                        return declarationAgainstDeprecated;
+                    }
+                });
     }
 
+    /**
+     * Can build a human-readable description of the usage a {@link ConfigurationRole} allows on a {@link org.gradle.api.artifacts.Configuration}.
+     */
     final class RoleDescriber {
+        private static final String CUSTOM_ROLE_NAME = "Custom Role";
+
+        private static final String CONSUMABLE = "Consumable - this configuration can be selected by another project as a dependency";
+        private static final String RESOLVABLE = "Resolvable - this configuration can be resolved by this project to a set of files";
+        private static final String DECLARABLE_AGAINST = "Declarable Against - this configuration can have dependencies added to it";
+        private static final String UNUSABLE = "Consumption Deprecated - this configuration should not be selected by another project as a dependency";
+
+        private static final String IS_DEPRECATED = "(but this behavior is marked deprecated)";
+
+        /**
+         * Builds a human-readable description of the usage allowed by the given role.
+         *
+         * @param role the role to describe
+         * @return a human-readable description of the role's allowed usage
+         */
         public static String describeRole(ConfigurationRole role) {
             List<String> descriptions = new ArrayList<>();
             if (role.isConsumable()) {
-                descriptions.add("\tConsumable - this configuration can be selected by another project as a dependency" + describeDeprecation(role.isConsumptionDeprecated()));
+                descriptions.add("\t" + CONSUMABLE + describeDeprecation(role.isConsumptionDeprecated()));
             }
             if (role.isResolvable()) {
-                descriptions.add("\tResolvable - this configuration can be resolved by this project to a set of files" + describeDeprecation(role.isResolutionDeprecated()));
+                descriptions.add("\t" + RESOLVABLE + describeDeprecation(role.isResolutionDeprecated()));
             }
             if (role.isDeclarableAgainst()) {
-                descriptions.add("\tDeclarable Against - this configuration can have dependencies added to it" + describeDeprecation(role.isDeclarationAgainstDeprecated()));
+                descriptions.add("\t" + DECLARABLE_AGAINST + describeDeprecation(role.isDeclarationAgainstDeprecated()));
             }
             if (descriptions.isEmpty()) {
-                descriptions.add("\tUnusable - this configuration cannot be used for any purpose");
+                descriptions.add("\t" + UNUSABLE);
             }
             return String.join("\n", descriptions);
         }
 
         private static String describeDeprecation(boolean deprecated) {
-            return deprecated ? " (but this behavior is marked deprecated)" : "";
+            return deprecated ? " " + IS_DEPRECATED : "";
         }
     }
 }

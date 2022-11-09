@@ -152,6 +152,11 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     void preventRoleMutation();
 
     /**
+     * Returns the role used to define this configuration's allowed usage upon creation.
+     */
+    ConfigurationRole getRoleAtCreation();
+
+    /**
      * Test if the given configuration can either be declared against or extends another
      * configuration which can be declared against.
      * This method should probably be made {@code private} when upgrading to Java 9.

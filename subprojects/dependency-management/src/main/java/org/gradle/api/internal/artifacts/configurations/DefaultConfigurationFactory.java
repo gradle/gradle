@@ -237,6 +237,6 @@ public class DefaultConfigurationFactory {
     }
 
     private static void throwConfigurationNotInRole(ConfigurationInternal configuration, ConfigurationRoles role) throws GradleException {
-        throw new GradleException("Configuration '" + configuration.getName() + "' is not in the " + role + " role.  This configuration is:\n" + ConfigurationRoles.describeRole(configuration));
+        throw new GradleException("Configuration '" + configuration.getName() + "' is not in the " + role + " role.  This configuration is:\n" + configuration.getRoleAtCreation().describe());
     }
 }
