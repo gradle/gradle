@@ -109,9 +109,9 @@
          <trusted-key id="31fae244a81d64507b47182e1b2718089ce964b8" group="com.thoughtworks.qdox"/>
          <trusted-key id="34441e504a937f43eb0daef96a65176a0fb1cd0b">
             <trusting group="org.apache.groovy"/>
-            <trusting group="org.codehaus.groovy" name="groovy"/>
-            <trusting group="org.codehaus.groovy"/>
             <trusting group="org.apache.groovy" name="groovy"/>
+            <trusting group="org.codehaus.groovy"/>
+            <trusting group="org.codehaus.groovy" name="groovy"/>
          </trusted-key>
          <trusted-key id="34d6ff19930adf43ac127792a50569c7ca7fa1f0" group="com.jcraft"/>
          <trusted-key id="36390de6a0e61ee4c7b4ba02c1d3063467f1ebd1" group="org.asciidoctor"/>
@@ -304,18 +304,18 @@
       </trusted-keys>
    </configuration>
    <components>
-      <component group="android-studio" name="android-studio" version="2022.1.1.9">
-         <artifact name="android-studio-2022.1.1.9.linux.tar.gz">
-            <sha256 value="fcd8308ba3fb5864a16950628511bc3c7a55bc130be497fc0af1fd746ad5d7f9" origin="Artifact is not signed"/>
+      <component group="android-studio" name="android-studio" version="2022.1.1.12">
+         <artifact name="android-studio-2022.1.1.12.linux.tar.gz">
+            <sha256 value="f224853c7d0f4d0933575b7c6c4abb081b4e53ca737670ff3eba557203e73ba4" origin="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2022.1.1.9.mac.zip">
-            <sha256 value="75078236fe0bd9fc8224356763b25701fbffe7958a5ac8dd272ca478f27592b9" origin="Artifact is not signed"/>
+         <artifact name="android-studio-2022.1.1.12.mac.zip">
+            <sha256 value="e9e154f7d5714f2f46463646dc7fa15b8dcb6f4c79bb87c8295ab7aa3eb6b0a4" origin="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2022.1.1.9.mac_arm.zip">
-            <sha256 value="dea4623a3b837b5068a2c4cbf10598f722e69f21f7c6ec5320c7e9ca9f8d06b9" origin="Artifact is not signed"/>
+         <artifact name="android-studio-2022.1.1.12.mac_arm.zip">
+            <sha256 value="c372719eb01b895c95aff5d072eb2afa5c64c581c640f78997251e9a33c2f043" origin="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2022.1.1.9.windows.zip">
-            <sha256 value="0955b9fde84a458dddef9cfca0ccca5a6384dd2352f45f48c1f006cafdfa0806" origin="Artifact is not signed"/>
+         <artifact name="android-studio-2022.1.1.12.windows.zip">
+            <sha256 value="6d198058cc39d568ac65cef58f84a5927f5e5a32ff6aeb76c1020f421ae0c4f7" origin="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="antlr" name="antlr" version="2.7.7">
@@ -887,7 +887,7 @@
          <artifact name="japicmp-gradle-plugin-0.4.1.jar">
             <sha256 value="5e87d84077de0c60d9ff4eedbc9fac1506693019eb6f55652afc9e1ff2b482ba" origin="Artifact is not signed"/>
          </artifact>
-      </component> 
+      </component>
       <component group="me.champeau.jmh" name="jmh-gradle-plugin" version="0.6.8">
          <artifact name="jmh-gradle-plugin-0.6.8.jar">
             <pgp value="0191e61acbbe76323ac15c83b5ad94bdd6bdb924"/>
@@ -1270,9 +1270,9 @@
             <sha256 value="5ef4102929b54c1b368be19178475c941bff09322c838484bb4dee66b6649419" origin="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.20.1">
-         <artifact name="gradle-guides-plugin-0.20.1.jar">
-            <sha256 value="4c872e5eef4a35fc46dc78a4854b0442261705ce3bfe4a4a900847bd38a2886c" origin="Artifact is not signed"/>
+      <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.21">
+         <artifact name="gradle-guides-plugin-0.21.jar">
+            <sha256 value="c136d7744951e1541a121377a34d36e83f09f732c0e2b8d8deffbd48aa125c5d" origin="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-conventions" version="0.8.0">
@@ -1471,7 +1471,12 @@
       </component>
       <component group="org.ysb33r.gradle" name="grolifant" version="0.16.1">
          <artifact name="grolifant-0.16.1.jar">
-            <sha256 value="362c450c9738834181fdfac1147fa11cf21cefd59d7a5368756e174f93567a43" origin="Artifact is not signed"/>
+            <ignored-keys>
+               <ignored-key id="54ac8e2d98cfeac6" reason="also-trust requires ignoring signatures"/>
+            </ignored-keys>
+            <sha256 value="a867e911d060a240b8aa111896b7379282fe61940dfb949e72600f7ca67cb92f" origin="Maven Central (also is JCenter)">
+               <also-trust value="362c450c9738834181fdfac1147fa11cf21cefd59d7a5368756e174f93567a43"/>
+            </sha256>
          </artifact>
       </component>
       <component group="software.amazon.ion" name="ion-java" version="1.0.2">

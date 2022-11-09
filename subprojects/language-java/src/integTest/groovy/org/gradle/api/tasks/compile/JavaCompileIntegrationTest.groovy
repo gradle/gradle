@@ -33,6 +33,40 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Resources resources = new Resources()
 
+    def "task does nothing when only minimal configuration applied"() {
+        buildFile << """
+            // No plugins applied
+            task compile(type: JavaCompile)
+        """
+
+        when:
+        run("compile")
+
+        then:
+        result.assertTasksSkipped(":compile")
+    }
+
+    @Issue("GRADLE-3152")
+    def "can use the task without applying java-base plugin"() {
+        buildFile << """
+            task compile(type: JavaCompile) {
+                classpath = files()
+                sourceCompatibility = JavaVersion.current()
+                targetCompatibility = JavaVersion.current()
+                destinationDirectory = file("build/classes")
+                source "src/main/java"
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        run("compile")
+
+        then:
+        file("build/classes/Foo.class").exists()
+    }
+
     def "uses default platform settings when applying java plugin"() {
         buildFile << """
             apply plugin: "java"
@@ -60,7 +94,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                     implementation project(':a')
                 }
             }
-"""
+        """
 
         file("a/src/main/resources/Foo.java") << "public class Foo {}"
 
@@ -901,7 +935,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "clean", "compileJava"
 
-        executer.withStacktraceDisabled()
         fails "-Pjava7", "clean", "compileJava"
         failure.assertHasErrorOutput "Main.java:8: error: cannot find symbol"
 

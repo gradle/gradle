@@ -35,7 +35,7 @@ import java.io.File;
  */
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<XcodeWorkspaceFile> {
+public abstract class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<XcodeWorkspaceFile> {
     private FileCollection xcodeProjectLocations;
 
     public GenerateXcodeWorkspaceFileTask() {

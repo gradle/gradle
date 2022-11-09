@@ -1,6 +1,6 @@
-import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.PublicApi
+import gradlebuild.basics.flakyTestStrategy
 
 plugins {
     id("gradlebuild.internal.java")
@@ -57,6 +57,11 @@ tasks.test {
 
     dependsOn(verifyAcceptedApiChangesOrdering)
     enabled = flakyTestStrategy !=  FlakyTestStrategy.ONLY
+
+    predictiveSelection {
+        // PTS doesn't work well with architecture tests which scan all classes
+        enabled.set(false)
+    }
 }
 
 class ArchUnitFreezeConfiguration(

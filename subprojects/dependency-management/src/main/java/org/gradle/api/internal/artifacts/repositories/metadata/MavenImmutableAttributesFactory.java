@@ -19,6 +19,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.CompileView;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 
@@ -31,10 +32,12 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 public interface MavenImmutableAttributesFactory extends ImmutableAttributesFactory {
     // We need to work with the 'String' version of the usage attribute, since this is expected for all providers by the `PreferJavaRuntimeVariant` schema
     Attribute<String> USAGE_ATTRIBUTE = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class);
+    Attribute<String> COMPILE_VIEW_ATTRIBUTE = Attribute.of(CompileView.VIEW_ATTRIBUTE.getName(), String.class);
     Attribute<String> FORMAT_ATTRIBUTE = Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class);
     Attribute<String> CATEGORY_ATTRIBUTE = Attribute.of(Category.CATEGORY_ATTRIBUTE.getName(), String.class);
 
-    ImmutableAttributes libraryWithUsage(ImmutableAttributes original, String usage);
+    ImmutableAttributes compileScope(ImmutableAttributes original);
+    ImmutableAttributes runtimeScope(ImmutableAttributes original);
     ImmutableAttributes platformWithUsage(ImmutableAttributes original, String usage, boolean enforced);
     ImmutableAttributes sourcesVariant(ImmutableAttributes original);
     ImmutableAttributes javadocVariant(ImmutableAttributes original);

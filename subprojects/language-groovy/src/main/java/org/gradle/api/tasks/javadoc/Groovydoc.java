@@ -61,7 +61,7 @@ import java.util.Set;
  * that is used, is the one from the Groovy dependency defined in the build script.
  */
 @CacheableTask
-public class Groovydoc extends SourceTask {
+public abstract class Groovydoc extends SourceTask {
     private FileCollection groovyClasspath;
 
     private FileCollection classpath;

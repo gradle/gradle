@@ -40,7 +40,7 @@ class JavaToolchainTest extends Specification {
             getLanguageVersion() >> JavaLanguageVersion.of(languageVersion)
             getVendor() >> DefaultJvmVendorSpec.any().toString()
             getImplementation() >> JvmImplementation.VENDOR_SPECIFIC.toString()
-        }, Stub(BuildOperationProgressEventEmitter))
+        }, false, Stub(BuildOperationProgressEventEmitter))
         then:
         javaToolchain.languageVersion.asInt() == languageVersion
         javaToolchain.javaRuntimeVersion == runtimeVersion
@@ -61,7 +61,7 @@ class JavaToolchainTest extends Specification {
         }
 
         when:
-        def javaToolchain = new JavaToolchain(metadata, Stub(JavaCompilerFactory), Stub(ToolchainToolFactory), TestFiles.fileFactory(), Stub(JavaToolchainInput), Stub(BuildOperationProgressEventEmitter))
+        def javaToolchain = new JavaToolchain(metadata, Stub(JavaCompilerFactory), Stub(ToolchainToolFactory), TestFiles.fileFactory(), Stub(JavaToolchainInput), false, Stub(BuildOperationProgressEventEmitter))
         def installationMetadata = javaToolchain as JavaInstallationMetadata
 
         then:

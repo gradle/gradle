@@ -17,34 +17,28 @@
 package org.gradle.api.tasks.testing
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.AbstractProperty
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 
 class TestTest extends AbstractProjectBuilderSpec {
 
-    def 'javaLauncher is annotated with @Nested and @Optional'() {
-        given:
-        def launcherMethod = Test.class.getMethod('getJavaLauncher', [] as Class[])
-
-        expect:
-        launcherMethod.isAnnotationPresent(Nested)
-        launcherMethod.isAnnotationPresent(Optional)
-    }
-
     def 'fails if custom executable does not exist'() {
-        def testTask = project.tasks.create("test", Test)
-        def invalidJava = "invalidjava"
+        def task = project.tasks.create("test", Test)
+        task.testClassesDirs = TestFiles.fixed(new File("tmp"))
+        task.binaryResultsDirectory.fileValue(new File("out"))
+        def invalidExecutable = "invalidExecutable"
 
         when:
-        testTask.executable = invalidJava
-        testTask.javaVersion
+        task.executable = invalidExecutable
+        task.javaLauncher.get()
 
         then:
-        def e = thrown(InvalidUserDataException)
-        e.message.contains("The configured executable does not exist")
-        e.message.contains(invalidJava)
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("The configured executable does not exist")
+        cause.message.contains(invalidExecutable)
     }
 
     def "fails if custom executable is a directory"() {
