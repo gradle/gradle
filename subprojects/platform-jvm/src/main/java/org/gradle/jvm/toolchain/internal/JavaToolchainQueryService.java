@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -122,10 +123,12 @@ public class JavaToolchainQueryService {
 
     private JavaToolchain query(JavaToolchainSpec spec, boolean isFallback) {
         if (spec instanceof CurrentJvmToolchainSpec) {
+            // TODO (#22023) Look into checking if this optional is present and throwing an exception
             return asToolchain(new InstallationLocation(Jvm.current().getJavaHome(), "current JVM"), spec, isFallback).get();
         }
         if (spec instanceof SpecificInstallationToolchainSpec) {
-            return asToolchain(new InstallationLocation(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation"), spec).get();
+            final InstallationLocation installation = new InstallationLocation(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation");
+            return asToolchain(installation, spec).orElseThrow(() -> new InvalidUserDataException("Specific installation toolchain '" + installation.getLocation() + "' is not a valid JVM."));
         }
 
         return registry.listInstallations().stream()
