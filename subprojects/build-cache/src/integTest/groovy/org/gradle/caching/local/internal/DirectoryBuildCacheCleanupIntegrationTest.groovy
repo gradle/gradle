@@ -16,8 +16,8 @@
 
 package org.gradle.caching.local.internal
 
-import org.gradle.cache.internal.CacheCleanupEnablementFixture
 import org.gradle.cache.internal.DefaultPersistentDirectoryStore
+import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
@@ -28,7 +28,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 import java.util.concurrent.TimeUnit
 
-class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, FileAccessTimeJournalFixture, CacheCleanupEnablementFixture {
+class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, FileAccessTimeJournalFixture, GradleUserHomeCleanupFixture {
     private final static int MAX_CACHE_AGE_IN_DAYS = 7
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
@@ -115,6 +115,36 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         def oldTrashFile = cacheDir.file("1" * hashStringLength).createFile()
         writeLastFileAccessTimeToJournal(newTrashFile, System.currentTimeMillis())
         writeLastFileAccessTimeToJournal(oldTrashFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+        run()
+        then:
+        newTrashFile.assertIsFile()
+        oldTrashFile.assertIsFile()
+        assertCacheWasNotCleanedUpSince(lastCleanupCheck)
+
+        when:
+        lastCleanupCheck = markCacheForCleanup()
+        run()
+        then:
+        newTrashFile.assertIsFile()
+        oldTrashFile.assertDoesNotExist()
+        assertCacheWasCleanedUpSince(lastCleanupCheck)
+    }
+
+    def "cleans up entries even if created resource cache cleanup is configured later than the default"() {
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        withCreatedResourcesRetentionInDays(MAX_CACHE_AGE_IN_DAYS * 2)
+        run() // Make sure cache directory is initialized
+        run '--stop' // ensure daemon does not cache file access times in memory
+        def lastCleanupCheck = gcFile().makeOlder().lastModified()
+
+        def hashStringLength = Hashing.defaultFunction().hexDigits
+
+        when:
+        def newTrashFile = cacheDir.file("0" * hashStringLength).createFile()
+        def oldTrashFile = cacheDir.file("1" * hashStringLength).createFile()
+        writeLastFileAccessTimeToJournal(newTrashFile, System.currentTimeMillis())
+        writeLastFileAccessTimeToJournal(oldTrashFile, daysAgo((MAX_CACHE_AGE_IN_DAYS * 2) - 1))
         run()
         then:
         newTrashFile.assertIsFile()

@@ -1580,20 +1580,21 @@ public class BuildScriptBuilder {
         }
 
         public List<String> extractComments() {
-            List<String> comments = new ArrayList<>();
-            collectComments(plugins.body, comments);
-            collectComments(repositories.body, comments);
-            collectComments(dependencies, comments);
+            final List<String> comments = new ArrayList<>();
+            collectComments(plugins.body.getStatements(), comments);
+            collectComments(repositories.body.getStatements(), comments);
+            collectComments(dependencies.getStatements(), comments);
             for (Statement otherBlock : getStatements()) {
                 if (otherBlock instanceof BlockStatement) {
-                    collectComments(((BlockStatement) otherBlock).body, comments);
+                    collectComments(((BlockStatement) otherBlock).body.getStatements(), comments);
                 }
             }
+            collectComments(tasks.blocks.values(), comments);
             return comments;
         }
 
-        private void collectComments(BlockBody body, List<String> comments) {
-            for (Statement statement : body.getStatements()) {
+        private void collectComments(Collection<Statement> statements, List<String> comments) {
+            for (Statement statement : statements) {
                 if (statement.getComment() != null) {
                     comments.add(statement.getComment());
                 }

@@ -47,7 +47,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  * Assembles a JAR archive.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class Jar extends Zip {
+public abstract class Jar extends Zip {
 
     public static final String DEFAULT_EXTENSION = "jar";
     private String manifestContentCharset = DefaultManifest.DEFAULT_CONTENT_CHARSET;

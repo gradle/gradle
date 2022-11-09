@@ -27,6 +27,8 @@ import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -47,9 +49,7 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JavadocTool;
-import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -60,6 +60,7 @@ import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkState;
 import static org.gradle.util.internal.GUtil.isTrue;
 
 /**
@@ -102,7 +103,7 @@ import static org.gradle.util.internal.GUtil.isTrue;
  * </pre>
  */
 @CacheableTask
-public class Javadoc extends SourceTask {
+public abstract class Javadoc extends SourceTask {
 
     private File destinationDir;
 
@@ -121,8 +122,15 @@ public class Javadoc extends SourceTask {
     private final Property<JavadocTool> javadocTool;
 
     public Javadoc() {
-        this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
-        this.javadocTool = getObjectFactory().property(JavadocTool.class);
+        ObjectFactory objectFactory = getObjectFactory();
+        this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
+        JavaToolchainService javaToolchainService = getJavaToolchainService();
+        Provider<JavadocTool> javadocToolConvention = getProviderFactory()
+            .provider(() -> JavadocExecutableUtils.getExecutableOverrideToolchainSpec(this, objectFactory))
+            .flatMap(javaToolchainService::javadocToolFor)
+            .orElse(javaToolchainService.javadocToolFor(it -> {}));
+        this.javadocTool = objectFactory.property(JavadocTool.class).convention(javadocToolConvention);
+        this.javadocTool.finalizeValueOnRead();
     }
 
     @TaskAction
@@ -167,6 +175,15 @@ public class Javadoc extends SourceTask {
         getJavadocToolAdapter().execute(spec);
     }
 
+    private void validateExecutableMatchesToolchain() {
+        File toolchainExecutable = getJavadocTool().get().getExecutablePath().getAsFile();
+        String customExecutable = getExecutable();
+        checkState(
+            customExecutable == null || new File(customExecutable).equals(toolchainExecutable),
+            "Toolchain from `executable` property does not match toolchain from `javadocTool` property"
+        );
+    }
+
     private boolean isModule() {
         List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getSource());
         return JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
@@ -181,6 +198,8 @@ public class Javadoc extends SourceTask {
     }
 
     private JavadocSpec createJavadocSpec(StandardJavadocDocletOptions options) {
+        validateExecutableMatchesToolchain();
+
         JavadocSpec spec = new JavadocSpec();
         spec.setOptions(options);
         spec.setIgnoreFailures(!isFailOnError());
@@ -194,14 +213,7 @@ public class Javadoc extends SourceTask {
     }
 
     private JavadocToolAdapter getJavadocToolAdapter() {
-        if (getExecutable() == null && javadocTool.isPresent()) {
-            return (JavadocToolAdapter) this.javadocTool.get();
-        }
-        JavaToolchainSpec toolchain = JavadocExecutableUtils.getExecutableOverrideToolchainSpec(this, getObjectFactory());
-        if (toolchain == null) {
-            toolchain = new CurrentJvmToolchainSpec(getObjectFactory());
-        }
-        return (JavadocToolAdapter) getJavaToolchainService().javadocToolFor(toolchain).get();
+        return (JavadocToolAdapter) getJavadocTool().get();
     }
 
     /**
@@ -219,7 +231,6 @@ public class Javadoc extends SourceTask {
      * @since 6.7
      */
     @Nested
-    @Optional
     public Property<JavadocTool> getJavadocTool() {
         return javadocTool;
     }
@@ -426,6 +437,11 @@ public class Javadoc extends SourceTask {
 
     @Inject
     protected JavaToolchainService getJavaToolchainService() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ProviderFactory getProviderFactory() {
         throw new UnsupportedOperationException();
     }
 }
