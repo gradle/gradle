@@ -59,7 +59,7 @@ compile
      |    \\--- project :c (*)
      \\--- project :c (*)
 """
-        output.contains '(*) - dependencies omitted (listed previously)'
+        output.contains '(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.'
     }
 
     def "marks project dependency that can't be resolved as 'FAILED'"() {
@@ -393,7 +393,7 @@ conf
         run "dependencies"
 
         then:
-        output.contains """(*) - dependencies omitted (listed previously)
+        output.contains """(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
 
 A web-based, searchable dependency report is available by adding the --scan option."""
     }
@@ -897,7 +897,7 @@ compile
 +--- foo:foo:1.0
 \\--- foo:bar:2.0
 
-(n) - Not resolved (configuration is not meant to be resolved)
+(n) - A dependency or dependency configuration that cannot be resolved.
 """
 
         when:
@@ -908,7 +908,7 @@ compile
 api (n)
 \\--- foo:foo:1.0 (n)
 
-(n) - Not resolved (configuration is not meant to be resolved)
+(n) - A dependency or dependency configuration that cannot be resolved.
 """
     }
 
@@ -1025,7 +1025,7 @@ compileClasspath - Compile classpath for source set 'main'.
      \\--- group:moduleB:1.0
           \\--- group:moduleC:1.0
 
-(c) - dependency constraint
+(c) - A dependency constraint, not a dependency. The dependency affected by the constraint occurs elsewhere in the tree.
 """
     }
 
@@ -1109,7 +1109,7 @@ implementation
 +--- foo:foo:1.0
 \\--- foo:bar:2.0
 
-(n) - Not resolved (configuration is not meant to be resolved)
+(n) - A dependency or dependency configuration that cannot be resolved.
 """
 
         when:
@@ -1120,7 +1120,7 @@ implementation
 compileOnly (n)
 \\--- foo:foo:1.0 (n)
 
-(n) - Not resolved (configuration is not meant to be resolved)
+(n) - A dependency or dependency configuration that cannot be resolved.
 """
     }
 }
