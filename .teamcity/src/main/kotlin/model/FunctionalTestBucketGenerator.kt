@@ -145,28 +145,29 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         testCoverage: TestCoverage,
         parallelization: (Int) -> ParallelizationMethod
     ): List<SmallSubprojectBucket> {
-        val docsSplitSize = 3
+        val docsSubproject = validSubprojects.first { it.name == "docs" }
         val specialBuckets = if (testCoverage.testType == TestType.platform) {
-            listOf(SmallSubprojectBucket(validSubprojects.first { it.name == "docs" }, parallelization(docsSplitSize)))
+            List(3) { SmallSubprojectBucket(docsSubproject, parallelization(3)) }
         } else emptyList()
-        val otherBucketTotalNumber = if (testCoverage.testType == TestType.platform) {
-            testCoverage.expectedBucketNumber - docsSplitSize
-        } else testCoverage.expectedBucketNumber
 
         val otherSubProjectTestClassTimes = subProjectTestClassTimes.filter { it.subProject.name != "docs" }
 
-        return specialBuckets + splitIntoBuckets(
+        // splitIntoBuckets() method expects us to split large element into N elements,
+        // but we want to have a single bucket with N batches.
+        // As a workaround, we repeat the bucket N times, and deduplicate the result at the end
+        val resultIncludingDuplicates = specialBuckets + splitIntoBuckets(
             LinkedList(otherSubProjectTestClassTimes),
             SubprojectTestClassTime::totalTime,
             { largeElement, factor ->
-                listOf(SmallSubprojectBucket(listOf(largeElement.subProject), parallelization(factor)))
+                List(factor) { SmallSubprojectBucket(largeElement.subProject, parallelization(factor)) }
             },
             { list ->
                 SmallSubprojectBucket(list.map { it.subProject }, parallelization(1))
             },
-            otherBucketTotalNumber,
+            testCoverage.expectedBucketNumber - specialBuckets.size,
             MAX_PROJECT_NUMBER_IN_BUCKET
         )
+        return resultIncludingDuplicates.distinctBy { it.name }
     }
 
     private fun determineSubProjectClassTimes(testCoverage: TestCoverage, buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes): Map<String, List<TestClassTime>>? {
