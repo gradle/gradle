@@ -36,4 +36,34 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
         cause.message.contains("The configured executable does not exist")
         cause.message.contains(invalidExecutable)
     }
+
+    def 'fails if custom executable is a directory'() {
+        def task = project.tasks.create("run", JavaExec)
+        def executableDir = temporaryFolder.createDir("javac")
+
+        when:
+        task.executable = executableDir.absolutePath
+        execute(task)
+
+        then:
+        def e = thrown(TaskExecutionException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("The configured executable is a directory")
+        cause.message.contains(executableDir.name)
+    }
+
+    def 'fails if custom executable is not from a valid JVM'() {
+        def task = project.tasks.create("run", JavaExec)
+        def invalidJavac = temporaryFolder.createFile("invalidJavac")
+
+        when:
+        task.executable = invalidJavac.absolutePath
+        execute(task)
+
+        then:
+        def e = thrown(TaskExecutionException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("Specific installation toolchain")
+        cause.message.contains(invalidJavac.parentFile.parentFile.absolutePath)
+    }
 }

@@ -50,9 +50,10 @@ class TestTest extends AbstractProjectBuilderSpec {
         testTask.javaVersion
 
         then:
-        def e = thrown(InvalidUserDataException)
-        e.message.contains("The configured executable is a directory")
-        e.message.contains(executableDir.name)
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("The configured executable is a directory")
+        cause.message.contains(executableDir.name)
     }
 
     def "fails if custom executable is not from a valid JVM"() {
@@ -64,8 +65,9 @@ class TestTest extends AbstractProjectBuilderSpec {
         testTask.javaVersion
 
         then:
-        def e = thrown(InvalidUserDataException)
-        e.message.contains("Specific installation toolchain")
-        e.message.contains(invalidJavac.parentFile.parentFile.absolutePath)
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("Specific installation toolchain")
+        cause.message.contains(invalidJavac.parentFile.parentFile.absolutePath)
     }
 }
