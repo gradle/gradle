@@ -242,7 +242,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             // See https://github.com/gradle/gradle/issues/14434.  We do this so that the incrementalScalaAnalysisForXXX configuration
             // is resolved during task graph calculation.  It is not an input, but if we leave it to be resolved during task execution,
             // it can potentially block trying to resolve project dependencies.
-            // TODO: This makes compileTestScala depend on compileScala (usually it only depends on the main jar)
+            // TODO: This makes compileTestScala directly depend on compileScala (otherwise it would only depend on `jar`)
             scalaCompile.dependsOn(scalaCompile.getAnalysisFiles());
         });
         JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet, project, scalaCompileTask, scalaCompileTask.map(AbstractScalaCompile::getOptions));

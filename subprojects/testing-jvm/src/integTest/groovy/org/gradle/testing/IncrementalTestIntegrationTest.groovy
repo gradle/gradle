@@ -53,7 +53,7 @@ class IncrementalTestIntegrationTest extends MultiVersionIntegrationSpec {
         file('src/main/java/MainClass.java').assertIsFile().copyFrom(file('NewMainClass.java'))
 
         then:
-        succeeds('test').assertTasksNotSkipped(':compileJava', ':classes', ':test')
+        succeeds('test').assertTasksNotSkipped(':compileJava', ':classes', ':jar', ':test')
         succeeds('test').assertTasksNotSkipped()
 
         when:

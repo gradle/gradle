@@ -311,6 +311,11 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
 
         buildFile << """
+            compileJava {
+                javaCompiler = javaToolchains.compilerFor {
+                    languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
+                }
+            }
             compileTestJava {
                 javaCompiler = javaToolchains.compilerFor {
                     languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})

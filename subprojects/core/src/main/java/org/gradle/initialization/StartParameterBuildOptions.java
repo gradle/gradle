@@ -80,6 +80,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new ConfigurationCacheDebugOption());
         options.add(new ConfigurationCacheRecreateOption());
         options.add(new ConfigurationCacheQuietOption());
+        options.add(new DefaultSuiteClasspathBehavior());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -565,6 +566,20 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheQuiet(value);
+        }
+    }
+
+    public static class DefaultSuiteClasspathBehavior extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.testing.default-suite-classpath-behavior";
+
+        public DefaultSuiteClasspathBehavior() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setDefaultTestSuiteClasspathBehavior(value);
         }
     }
 }

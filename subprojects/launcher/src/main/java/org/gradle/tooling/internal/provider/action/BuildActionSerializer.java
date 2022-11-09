@@ -153,6 +153,7 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isConfigureOnDemand());
             encoder.writeBoolean(startParameter.isContinuous());
             encoder.writeLong(startParameter.getContinuousBuildQuietPeriod().toMillis());
+            encoder.writeBoolean(startParameter.isDefaultTestSuiteClasspathBehavior());
             encoder.writeBoolean(startParameter.isBuildScan());
             encoder.writeBoolean(startParameter.isNoBuildScan());
             encoder.writeBoolean(startParameter.isWriteDependencyLocks());
@@ -238,6 +239,7 @@ public class BuildActionSerializer {
             startParameter.setConfigureOnDemand(decoder.readBoolean());
             startParameter.setContinuous(decoder.readBoolean());
             startParameter.setContinuousBuildQuietPeriod(Duration.ofMillis(decoder.readLong()));
+            startParameter.setDefaultTestSuiteClasspathBehavior(decoder.readBoolean());
             startParameter.setBuildScan(decoder.readBoolean());
             startParameter.setNoBuildScan(decoder.readBoolean());
             startParameter.setWriteDependencyLocks(decoder.readBoolean());

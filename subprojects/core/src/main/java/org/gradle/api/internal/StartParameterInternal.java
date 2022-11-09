@@ -42,6 +42,9 @@ public class StartParameterInternal extends StartParameter {
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
 
+    // TODO: THIS SHOULD DEFAULT TO FALSE
+    private boolean defaultTestSuiteClasspathBehavior = true;
+
     public StartParameterInternal() {
     }
 
@@ -205,5 +208,13 @@ public class StartParameterInternal extends StartParameter {
 
     public Duration getContinuousBuildQuietPeriod() {
         return continuousBuildQuietPeriod;
+    }
+
+    public boolean isDefaultTestSuiteClasspathBehavior() {
+        return this.defaultTestSuiteClasspathBehavior;
+    }
+
+    public void setDefaultTestSuiteClasspathBehavior(boolean value) {
+        this.defaultTestSuiteClasspathBehavior = value;
     }
 }

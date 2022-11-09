@@ -37,6 +37,7 @@ import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.component.BuildableJavaComponent;
@@ -290,7 +291,9 @@ public abstract class JavaPlugin implements Plugin<Project> {
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
         PublishArtifact jarArtifact = configureArchives(project, mainSourceSet);
 
-        configureBuiltInTest(project);
+        boolean useLegacyTestClasspath = !projectInternal.getServices().get(StartParameterInternal.class).isDefaultTestSuiteClasspathBehavior();
+        configureBuiltInTest(project, mainSourceSet, useLegacyTestClasspath);
+
         configureSourceSets(javaExtension, buildOutputCleanupRegistry);
         createConsumableConfigurations(project, mainSourceSet, jarArtifact);
         configureJavaDocTask(null, mainSourceSet, project.getTasks(), javaExtension);
@@ -308,22 +311,34 @@ public abstract class JavaPlugin implements Plugin<Project> {
      * This code here cannot live in the JvmTestSuitePlugin and must live here, so that we
      * can ensure we register this test suite after we've created the main source set.
      */
-    private static void configureBuiltInTest(Project project) {
+    private static void configureBuiltInTest(Project project, SourceSet mainSourceSet, boolean useLegacyTestClasspath) {
         TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);
         final NamedDomainObjectProvider<JvmTestSuite> testSuite = testing.getSuites().register(DEFAULT_TEST_SUITE_NAME, JvmTestSuite.class, suite -> {
             final SourceSet testSourceSet = suite.getSources();
-
-            // The default test suite compiles and runs against the internal production classpath.
-            ProjectDependency projectInternalDependency = suite.getDependencies().projectInternalView();
-            projectInternalDependency.because("For depending upon production classes");
-            suite.getDependencies().getImplementation().add(projectInternalDependency);
-
             ConfigurationContainer configurations = project.getConfigurations();
             Configuration testCompileClasspathConfiguration = configurations.getByName(testSourceSet.getCompileClasspathConfigurationName());
             Configuration testRuntimeClasspathConfiguration = configurations.getByName(testSourceSet.getRuntimeClasspathConfigurationName());
 
-            testSourceSet.setCompileClasspath(testCompileClasspathConfiguration);
-            testSourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSet.getOutput(), testRuntimeClasspathConfiguration));
+            if (useLegacyTestClasspath) {
+                Configuration testImplementationConfiguration = configurations.getByName(testSourceSet.getImplementationConfigurationName());
+                Configuration testRuntimeOnlyConfiguration = configurations.getByName(testSourceSet.getRuntimeOnlyConfigurationName());
+
+                final FileCollection mainSourceSetOutput = mainSourceSet.getOutput();
+                final FileCollection testSourceSetOutput = testSourceSet.getOutput();
+                testSourceSet.setCompileClasspath(project.getObjects().fileCollection().from(mainSourceSetOutput, testCompileClasspathConfiguration));
+                testSourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSetOutput, mainSourceSetOutput, testRuntimeClasspathConfiguration));
+
+                testImplementationConfiguration.extendsFrom(configurations.getByName(mainSourceSet.getImplementationConfigurationName()));
+                testRuntimeOnlyConfiguration.extendsFrom(configurations.getByName(mainSourceSet.getRuntimeOnlyConfigurationName()));
+            } else {
+                // The default test suite compiles and runs against the internal production classpath.
+                ProjectDependency projectInternalDependency = suite.getDependencies().projectInternalView();
+                projectInternalDependency.because("For depending upon production classes");
+                suite.getDependencies().getImplementation().add(projectInternalDependency);
+
+                testSourceSet.setCompileClasspath(testCompileClasspathConfiguration);
+                testSourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSet.getOutput(), testRuntimeClasspathConfiguration));
+            }
         });
 
         // Force the realization of this test suite, targets and task
