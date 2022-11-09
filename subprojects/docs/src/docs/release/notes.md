@@ -94,6 +94,10 @@ You can now use the `export-keys` flag to export all already trusted keys:
 
 ```asciidoc
 ./gradlew --export-keys
+```
+
+For more information, see [Exporting keys](userguide/dependency_verification.html#sec:local-keyring).
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
