@@ -83,16 +83,17 @@ In Java projects, these tools will use the same version of Java required by the 
 
 #### Dependency verification metadata
 
-Dependency verification metadata file `verification-metadata.xml` now supports `reason` attribute for the `trust` xml node under the `trusted-artifacts`.
-The same attribute is also supported for the `md5`, `sha1`, `sha256` and `sha512` nodes under the `component`.
+The following nodes with dependency verification metadata file `verification-metadata.xml` now support a `reason` attribute:
+
+- the `trust` xml node under `trusted-artifacts`
+- the `md5`, `sha1`, `sha256` and `sha512` nodes under `component`
 
 #### Dependency verification CLI
 
-It's now possible to export all already trusted keys with simple:
+You can now use the `export-keys` flag to export all already trusted keys:
+
 ```asciidoc
 ./gradlew --export-keys
-```
-Check [Exporting keys](userguide/dependency_verification.html#sec:local-keyring) for more details.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
