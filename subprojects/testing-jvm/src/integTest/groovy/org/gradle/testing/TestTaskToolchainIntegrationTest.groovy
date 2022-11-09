@@ -19,11 +19,12 @@ package org.gradle.testing
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 
-class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec {
+class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     def setup() {
         file("src/test/java/ToolchainTest.java") << """
@@ -93,7 +94,7 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec {
             configureExecutable(selectJdk(withExecutable))
         }
         if (withJavaExtension != null) {
-            configureJavaExtension(selectJdk(withJavaExtension))
+            configureJavaPluginToolchainVersion(selectJdk(withJavaExtension))
         }
 
         def targetJdk = selectJdk(target)
@@ -205,16 +206,6 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private TestFile configureJavaExtension(Jvm jdk) {
-        buildFile << """
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
-                }
-            }
-        """
-    }
-
     private TestFile configureExecutable(Jvm jdk) {
         buildFile << """
             test {
@@ -232,12 +223,4 @@ class TestTaskToolchainIntegrationTest extends AbstractIntegrationSpec {
             }
         """
     }
-
-    private withInstallations(Jvm... jvm) {
-        def installationPaths = jvm.collect { it.javaHome.absolutePath }.join(",")
-        executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
-        this
-    }
-
 }

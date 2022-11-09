@@ -109,7 +109,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
     @Override
     protected Package getPackage(String name) {
         Package p = super.getPackage(name);
-        if (p == null || !allowed(p)) {
+        if (p == null || !isPackageAllowed(p.getName())) {
             return null;
         }
         return p;
@@ -119,7 +119,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
     protected Package[] getPackages() {
         List<Package> packages = new ArrayList<Package>();
         for (Package p : super.getPackages()) {
-            if (allowed(p)) {
+            if (isPackageAllowed(p.getName())) {
                 packages.add(p);
             }
         }
@@ -128,7 +128,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
 
     @Override
     public URL getResource(String name) {
-        if (allowed(name)) {
+        if (isResourceAllowed(name)) {
             return super.getResource(name);
         }
         return EXT_CLASS_LOADER.getResource(name);
@@ -136,7 +136,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
 
     @Override
     public Enumeration<URL> getResources(String name) throws IOException {
-        if (allowed(name)) {
+        if (isResourceAllowed(name)) {
             return super.getResources(name);
         }
         return EXT_CLASS_LOADER.getResources(name);
@@ -147,13 +147,12 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         return FilteringClassLoader.class.getSimpleName() + "(" + getParent() + ")";
     }
 
-    private boolean allowed(String resourceName) {
+    private boolean isResourceAllowed(String resourceName) {
         return resourceNames.contains(resourceName)
             || resourcePrefixes.find(resourceName);
     }
 
-    private boolean allowed(Package pkg) {
-        String packageName = pkg.getName();
+    private boolean isPackageAllowed(String packageName) {
         if (disallowedPackagePrefixes.find(packageName)) {
             return false;
         }

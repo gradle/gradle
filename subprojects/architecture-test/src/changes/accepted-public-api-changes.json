@@ -225,6 +225,46 @@
             ]
         },
         {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field JAVA_API_CLASSES",
+            "acceptation": "Removing deprecated fields for Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field JAVA_API_JARS",
+            "acceptation": "Removing deprecated fields for Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field JAVA_RUNTIME_CLASSES",
+            "acceptation": "Removing deprecated fields for Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field JAVA_RUNTIME_JARS",
+            "acceptation": "Removing deprecated fields for Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field JAVA_RUNTIME_RESOURCES",
+            "acceptation": "Removing deprecated fields for Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.distribution.plugins.DistributionPlugin",
             "member": "Class org.gradle.api.distribution.plugins.DistributionPlugin",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
@@ -1246,14 +1286,6 @@
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
             "changes": [
                 "Class is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
-            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBinResultsDir()",
-            "acceptation": "Deprecated method removed",
-            "changes": [
-                "Method has been removed"
             ]
         },
         {

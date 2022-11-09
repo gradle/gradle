@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -34,7 +35,7 @@ import static org.hamcrest.CoreMatchers.equalTo
  * General tests for the JVM testing infrastructure that don't deserve their own test class.
  */
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
-class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
+class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements JavaToolchainFixture {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1948")
     def "test interrupting its own thread does not kill test execution"() {
@@ -276,13 +277,13 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
         when:
         executer
-                .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
-                .withToolchainDetectionEnabled()
+            .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
+            .withToolchainDetectionEnabled()
         buildScript """
             plugins {
                 id("java")
             }
-            ${withJava11Toolchain()}
+            ${javaPluginToolchainVersion(11)}
             ${mavenCentralRepository()}
             configurations { first {}; last {} }
             dependencies {
@@ -450,14 +451,14 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     def "test can install an irreplaceable SecurityManager"() {
         given:
         executer
-                .withStackTraceChecksDisabled()
-                .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
-                .withToolchainDetectionEnabled()
+            .withStackTraceChecksDisabled()
+            .withToolchainDetectionEnabled()
+        withInstallations(AvailableJavaHomes.getAvailableJvms())
         buildFile << """
             plugins {
                 id("java")
             }
-            ${withJava11Toolchain()}
+            ${javaPluginToolchainVersion(11)}
             ${mavenCentralRepository()}
             dependencies { testImplementation 'junit:junit:4.13' }
         """
@@ -585,16 +586,6 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 public void checkThreadName() {
                     assertEquals("Test worker", Thread.currentThread().getName());
                     Thread.currentThread().setName(getClass().getSimpleName());
-                }
-            }
-        """
-    }
-
-    private static String withJava11Toolchain() {
-        return """
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
                 }
             }
         """

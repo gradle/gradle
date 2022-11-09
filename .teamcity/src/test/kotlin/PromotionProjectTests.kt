@@ -15,6 +15,7 @@
  */
 
 import common.VersionedSettingsBranch
+import common.pluginPortalUrlOverride
 import common.toCapitalized
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
@@ -70,17 +71,19 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(3, steps.size)
 
+        val expectedGradleParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, checkReady.gradleParams)
+        assertEquals(expectedGradleParams, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
         upload.assertTasks("prepReleaseNightly uploadAll")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
 
         val promote = gradleStep(steps, 2)
         promote.assertTasks("prepReleaseNightly promoteReleaseNightly")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, promote.gradleParams)
+        assertEquals(expectedGradleParams, promote.gradleParams)
     }
 
     @Test
@@ -93,7 +96,7 @@ class PromotionProjectTests {
 
         val step = gradleStep(steps, 0)
         step.assertTasks("clean promoteStartReleaseCycle")
-        assertEquals("""-PcommitId=%dep.Gradle_Master_Check_Stage_ReadyforNightly_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" """, step.gradleParams)
+        assertEquals("""-PcommitId=%dep.Gradle_Master_Check_Stage_ReadyforNightly_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" $pluginPortalUrlOverride %additional.gradle.parameters%""", step.gradleParams)
     }
 
     @Test
@@ -117,17 +120,19 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(3, steps.size)
 
+        val expectedGradleParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, checkReady.gradleParams)
+        assertEquals(expectedGradleParams, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
         upload.assertTasks("prepReleaseNightly uploadAll")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
 
         val promote = gradleStep(steps, 2)
         promote.assertTasks("prepReleaseNightly promoteReleaseNightly")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, promote.gradleParams)
+        assertEquals(expectedGradleParams, promote.gradleParams)
     }
 
     @Test
@@ -138,17 +143,19 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(3, steps.size)
 
+        val expectedGradleParams = """-PcommitId=%dep.Gradle_Master_Check_Stage_QuickFeedback_Trigger.build.vcs.number% -PpromotedBranch=%branch.qualifier%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepSnapshot checkNeedToPromote")
-        assertEquals("""-PcommitId=%dep.Gradle_Master_Check_Stage_QuickFeedback_Trigger.build.vcs.number% -PpromotedBranch=%branch.qualifier%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, checkReady.gradleParams)
+        assertEquals(expectedGradleParams, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
         upload.assertTasks("prepSnapshot uploadAll")
-        assertEquals("""-PcommitId=%dep.Gradle_Master_Check_Stage_QuickFeedback_Trigger.build.vcs.number% -PpromotedBranch=%branch.qualifier%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
 
         val promote = gradleStep(steps, 2)
         promote.assertTasks("prepSnapshot promoteSnapshot")
-        assertEquals("""-PcommitId=%dep.Gradle_Master_Check_Stage_QuickFeedback_Trigger.build.vcs.number% -PpromotedBranch=%branch.qualifier%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, promote.gradleParams)
+        assertEquals(expectedGradleParams, promote.gradleParams)
     }
 
     @Test
@@ -159,13 +166,15 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(2, steps.size)
 
+        val expectedParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, checkReady.gradleParams)
+        assertEquals(expectedParams, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
         upload.assertTasks("prepReleaseNightly uploadAll")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedParams, upload.gradleParams)
     }
 
     @Test
@@ -176,13 +185,15 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(2, steps.size)
 
+        val expectedGradleParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, checkReady.gradleParams)
+        assertEquals(expectedGradleParams, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
         upload.assertTasks("prepReleaseNightly promoteReleaseNightly")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
     }
 
     @Test
@@ -193,17 +204,19 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(3, steps.size)
 
+        val expectedGradleParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepFinalRelease checkNeedToPromote")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, checkReady.gradleParams)
+        assertEquals(expectedGradleParams, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
         upload.assertTasks("prepFinalRelease uploadAll")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
 
         val promote = gradleStep(steps, 2)
         promote.assertTasks("prepFinalRelease promoteFinalRelease")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, promote.gradleParams)
+        assertEquals(expectedGradleParams, promote.gradleParams)
     }
 
     @Test
@@ -214,17 +227,19 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(3, steps.size)
 
+        val expectedGradleParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepRc checkNeedToPromote")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, checkReady.gradleParams)
+        assertEquals(expectedGradleParams, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
         upload.assertTasks("prepRc uploadAll")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
 
         val promote = gradleStep(steps, 2)
         promote.assertTasks("prepRc promoteRc")
-        assertEquals("""-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
     }
 
     @ParameterizedTest
@@ -241,17 +256,19 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(3, steps.size)
 
+        val expectedGradleParams = """-PcommitId=%dep.Gradle_${branch.toCapitalized()}_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepMilestone checkNeedToPromote")
-        assertEquals("""-PcommitId=%dep.Gradle_${branch.toCapitalized()}_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, checkReady.gradleParams)
+        assertEquals(expectedGradleParams, checkReady.gradleParams)
 
         val upload = gradleStep(steps, 1)
         upload.assertTasks("prepMilestone uploadAll")
-        assertEquals("""-PcommitId=%dep.Gradle_${branch.toCapitalized()}_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
 
         val promote = gradleStep(steps, 2)
         promote.assertTasks("prepMilestone $promoteTaskName")
-        assertEquals("""-PcommitId=%dep.Gradle_${branch.toCapitalized()}_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" %additional.gradle.parameters% """, upload.gradleParams)
+        assertEquals(expectedGradleParams, upload.gradleParams)
     }
 
     private fun setupModelFor(branchName: String): PromotionProject {
