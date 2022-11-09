@@ -49,7 +49,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
      * Fix for issue <a href="https://github.com/gradle/gradle/issues/22531">#22531</a>.
      */
     @Override
-    protected void processGroovyJavaJointCompilationAdditionalDependencies(
+    protected void processCompilerSpecificDependencies(
         JavaCompileSpec spec,
         RecompilationSpec recompilationSpec,
         SourceFileChangeProcessor sourceFileChangeProcessor,
@@ -64,8 +64,8 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
             .flatMap(sourcePath -> sourceFileClassNameConverter.getClassNames(sourcePath).stream())
             .collect(Collectors.toSet());
         if (!classesWithJavaSource.isEmpty()) {
-            // Because we need just subclasses of these classesWithJavaSource and subclasses haven't actually changed
-            // (or if they have changed, then they are anyway part of classesWithJavaSource), we need to collect just accessible dependents.
+            // We need to collect just accessible dependents, since it seems
+            // private references to classes are not problematic when Groovy compiler loads a class
             sourceFileChangeProcessor.processOnlyAccessibleChangeOfClasses(classesWithJavaSource, recompilationSpec);
         }
     }

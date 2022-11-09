@@ -77,18 +77,27 @@ class CrossTaskGroovyJavaJointIncrementalCompilationIntegrationTest extends Abst
             class B2 {
                 private static final Class<B1> bClass = B1.class;
                 private static final B1 b1 = new B1();
-                private static B1 b2 = new B1();
-                private B1 b3 = new B1();
+                private static final B1 b2;
+                static {
+                    b2 = new B1();
+                }
+                private static B1 b3 = new B1();
+                private B1 b4 = new B1();
                 private B1 m1(B1 b) { return new B1(); };
             }
         """)
         sourceWithFileSuffixForProject("java", "impl", "class C2 extends B2 { }")
         sourceWithFileSuffixForProject("java", "impl", """
             class D2 extends C2 {
+
                 private static final Class<B1> bClass = B1.class;
                 private static final B1 b1 = new B1();
-                private static B1 b2 = new B1();
-                private B1 b3 = new B1();
+                private static final B1 b2;
+                static {
+                    b2 = new B1();
+                }
+                private static B1 b3 = new B1();
+                private B1 b4 = new B1();
                 private B1 m1(B1 b) { return new B1(); };
                 static boolean getCache() { return true; }
             }
