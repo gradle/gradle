@@ -40,7 +40,7 @@ import org.gradle.test.fixtures.file.TestFile
 import java.util.concurrent.atomic.AtomicInteger
 
 class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
-    public static final AtomicInteger INVOCATION_COUNT = new AtomicInteger(0)
+    public static final AtomicInteger INVOCATION_COUNT = new AtomicInteger()
     public static final String SELECTED_PATH = "selected.txt"
 
     def artifactType = Attribute.of('artifactType', String)

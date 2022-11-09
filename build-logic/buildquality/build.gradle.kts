@@ -25,6 +25,9 @@ dependencies {
     implementation(kotlin("compiler-embeddable") as String) {
         because("Required by IncubatingApiReportTask")
     }
+    implementation("com.gradle:gradle-enterprise-gradle-plugin") {
+        because("Arch-test plugin configures the PTS extension")
+    }
 
     testImplementation("org.junit.jupiter:junit-jupiter-engine")
 }

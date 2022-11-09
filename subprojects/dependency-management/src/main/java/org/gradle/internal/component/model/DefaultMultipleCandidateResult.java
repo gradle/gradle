@@ -32,10 +32,15 @@ public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResu
     private Set<T> multipleMatches;
 
     public DefaultMultipleCandidateResult(@Nullable T consumerValue, Set<T> candidateValues) {
-        assert candidateValues.size() > 1;
-        for (T candidateValue : candidateValues) {
-            assert candidateValue != null;
+        if (candidateValues.isEmpty() || (consumerValue != null && candidateValues.size() == 1)) {
+            throw new IllegalArgumentException("Insufficient number of candidate values: " + candidateValues.size());
         }
+        for (T candidateValue : candidateValues) {
+            if (candidateValue == null)  {
+                throw new IllegalArgumentException("candidateValues cannot contain null elements");
+            }
+        }
+
         this.candidateValues = candidateValues;
         this.consumerValue = consumerValue;
     }

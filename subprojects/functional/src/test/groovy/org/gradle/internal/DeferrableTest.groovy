@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class DeferrableTest extends Specification {
 
     def "mapping #description invocations only creates the second invocation once"() {
-        def mappingCount = new AtomicInteger(0)
+        def mappingCount = new AtomicInteger()
 
         def mapped = deferred.map { Integer input ->
             mappingCount.incrementAndGet()
@@ -47,7 +47,7 @@ class DeferrableTest extends Specification {
     }
 
     def "composing #description invocations only creates the second invocation once"() {
-        def creationCount = new AtomicInteger(0)
+        def creationCount = new AtomicInteger()
 
         def composed = first.flatMap { Integer input ->
             creationCount.incrementAndGet()

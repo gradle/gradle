@@ -98,7 +98,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
     @Override
     public <T> void configureAsCompileClasspath(HasConfigurableAttributes<T> configuration) {
-        configureAttributes(configuration, details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM());
+        configureAttributes(configuration, details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM().apiCompileView());
     }
 
     @Override
@@ -298,6 +298,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             cnf.setVisible(false);
             cnf.setCanBeConsumed(true);
             cnf.setCanBeResolved(false);
+            ((ConfigurationInternal) cnf).setCanBeDeclaredAgainst(false);
             Configuration[] extendsFrom = buildExtendsFrom();
             if (extendsFrom != null) {
                 cnf.extendsFrom(extendsFrom);

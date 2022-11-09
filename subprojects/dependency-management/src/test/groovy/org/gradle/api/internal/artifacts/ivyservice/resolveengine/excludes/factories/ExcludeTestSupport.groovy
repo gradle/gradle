@@ -57,6 +57,13 @@ trait ExcludeTestSupport {
         factory.moduleIdSet(RandomizedIteratorHashSet.of(ids.collect { newId(it[0], it[1]) } as Set<ModuleIdentifier>))
     }
 
+    ExcludeSpec moduleIdSet(String... ids) {
+        factory.moduleIdSet(RandomizedIteratorHashSet.of(ids.collect {
+            def split = it.split(':')
+            newId(split[0], split[1])
+        } as Set))
+    }
+
     ExcludeSpec anyOf(ExcludeSpec... specs) {
         switch (specs.length) {
             case 0:

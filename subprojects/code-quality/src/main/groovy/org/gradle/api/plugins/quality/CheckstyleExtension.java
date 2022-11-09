@@ -32,7 +32,7 @@ import java.util.Map;
  *
  * @see CheckstylePlugin
  */
-public class CheckstyleExtension extends CodeQualityExtension {
+public abstract class CheckstyleExtension extends CodeQualityExtension {
 
     private final Project project;
 

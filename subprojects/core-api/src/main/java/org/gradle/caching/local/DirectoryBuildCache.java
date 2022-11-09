@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
  *
  * @since 3.5
  */
-public class DirectoryBuildCache extends AbstractBuildCache {
+public abstract class DirectoryBuildCache extends AbstractBuildCache {
     private Object directory;
     private int removeUnusedEntriesAfterDays = 7;
 
