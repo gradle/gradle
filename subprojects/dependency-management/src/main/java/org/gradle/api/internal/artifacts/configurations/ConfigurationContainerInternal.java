@@ -29,15 +29,23 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
     @Override
     ConfigurationInternal detachedConfiguration(Dependency... dependencies);
 
+    default ConfigurationInternal createWithRole(String name, ConfigurationRole role) {
+        return createWithRole(name, role, true);
+    }
+
     /**
      * Creates a new configuration in the same manner as {@link #create(String)}, and then
      * immediately assigns it a role by setting internal status flags to mark possible usage options
      * for the configuration.
      */
-    default ConfigurationInternal createWithRole(String name, ConfigurationRole role) {
+    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockRole) {
         ConfigurationInternal configuration = (ConfigurationInternal) create(name);
-        RoleAssigner.assignRoleAtCreation(configuration, role);
+        RoleAssigner.assignRoleAtCreation(configuration, role, lockRole);
         return configuration;
+    }
+
+    default ConfigurationInternal maybeCreateWithRole(String name, ConfigurationRole role) {
+        return maybeCreateWithRole(name, role, true);
     }
 
     /**
@@ -48,14 +56,18 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
      * If the configuration already exists, this method will <strong>NOT</strong>> change anything about it,
      * including its role.
      */
-    default ConfigurationInternal maybeCreateWithRole(String name, ConfigurationRole role) {
+    default ConfigurationInternal maybeCreateWithRole(String name, ConfigurationRole role, boolean lockRole) {
         ConfigurationInternal configuration = (ConfigurationInternal) findByName(name);
         if (configuration == null) {
-            return createWithRole(name, role);
+            return createWithRole(name, role, lockRole);
         } else {
             RoleAssigner.assertIsInRole(configuration, role);
             return configuration;
         }
+    }
+
+    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, Closure<? super Configuration> configureClosure) throws InvalidUserDataException {
+        return createWithRole(name, role, true, configureClosure);
     }
 
     /**
@@ -63,10 +75,14 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
      * immediately assigns it a role by setting internal status flags to mark possible usage options
      * for the configuration.
      */
-    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, Closure<? super Configuration> configureClosure) throws InvalidUserDataException {
+    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockRole, Closure<? super Configuration> configureClosure) throws InvalidUserDataException {
         ConfigurationInternal configuration = (ConfigurationInternal) create(name, configureClosure);
-        RoleAssigner.assignRoleAtCreation(configuration, role);
+        RoleAssigner.assignRoleAtCreation(configuration, role, lockRole);
         return configuration;
+    }
+
+    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, Action<? super Configuration> configureAction) throws InvalidUserDataException {
+        return createWithRole(name, role, true, configureAction);
     }
 
     /**
@@ -74,9 +90,9 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
      * immediately assigns it a role by setting internal status flags to mark possible usage options
      * for the configuration.
      */
-    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, Action<? super Configuration> configureAction) throws InvalidUserDataException {
+    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockRole, Action<? super Configuration> configureAction) throws InvalidUserDataException {
         ConfigurationInternal configuration = (ConfigurationInternal) create(name, configureAction);
-        RoleAssigner.assignRoleAtCreation(configuration, role);
+        RoleAssigner.assignRoleAtCreation(configuration, role, lockRole);
         return configuration;
     }
 
@@ -89,7 +105,7 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
          *
          * @return the given configuration; now configured for a role
          */
-        public static void assignRoleAtCreation(ConfigurationInternal configuration, ConfigurationRole role) {
+        public static void assignRoleAtCreation(ConfigurationInternal configuration, ConfigurationRole role, boolean lockRole) {
             configuration.setRoleAtCreation(role);
             configuration.setCanBeConsumed(role.isConsumable());
             configuration.setCanBeResolved(role.isResolvable());
@@ -97,7 +113,9 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
             configuration.setDeprecatedForConsumption(role.isConsumptionDeprecated());
             configuration.setDeprecatedForResolution(role.isResolutionDeprecated());
             configuration.setDeprecatedForDeclarationAgainst(role.isDeclarationAgainstDeprecated());
-            configuration.preventRoleMutation();
+            if (lockRole) {
+                configuration.preventRoleMutation();
+            }
         }
 
         public static boolean isUsageConsistentWithRole(ConfigurationInternal configuration, ConfigurationRole role) {

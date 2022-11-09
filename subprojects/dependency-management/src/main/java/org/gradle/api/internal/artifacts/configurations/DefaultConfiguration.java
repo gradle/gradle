@@ -1445,7 +1445,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             assertIsDeclarableAgainst();
             return;
         } else if (type == MutationType.ROLE) {
-            assertRoleIsMutatible();
+            assertUsageIsMutable();
         }
 
         InternalState resolvedState = currentResolveState.get().state;
@@ -1662,9 +1662,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         roleCanBeMutated = false;
     }
 
-    private void assertRoleIsMutatible() {
+    private void assertUsageIsMutable() {
         if (!roleCanBeMutated) {
-            throw new GradleException(String.format("Cannot change the role of %s, as it was locked upon creation to:\n%s\nIdeally, each configuration should have a single role.", getDisplayName(), roleAtCreation.describe()));
+            if (roleAtCreation != null) {
+                throw new GradleException(
+                        String.format("Cannot change the allowed usage of: %s, as it was locked upon creation to the role: '%s'.\n" +
+                                "This role permits the following usage:\n" +
+                                "%s\n" +
+                                "Ideally, each configuration should be used for a single purpose.",
+                                getDisplayName(), roleAtCreation.getName(), roleAtCreation.describe()));
+            } else {
+                throw new GradleException(String.format("Cannot change the allowed usage of configuration: '%s'", getDisplayName()));
+            }
         }
     }
 
