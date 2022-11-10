@@ -30,12 +30,12 @@ import org.gradle.internal.service.ServiceRegistry;
 import javax.annotation.Nullable;
 
 // TODO:configuration-cache - complain when used at configuration time, except when opted in to this
-@SuppressWarnings("rawtypes")
 public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends BuildServiceProvider<T, P> {
 
     protected final ServiceRegistry internalServices;
     protected BuildServiceDetails<T, P> serviceDetails;
 
+    @SuppressWarnings("rawtypes")
     private final IsolationScheme<BuildService, BuildServiceParameters> isolationScheme;
     private final InstantiationScheme instantiationScheme;
     private final IsolatableFactory isolatableFactory;
@@ -47,6 +47,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         String name,
         Class<T> implementationType,
         @Nullable P parameters,
+        @SuppressWarnings("rawtypes")
         IsolationScheme<BuildService, BuildServiceParameters> isolationScheme,
         InstantiationScheme instantiationScheme,
         IsolatableFactory isolatableFactory,
@@ -145,7 +146,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
 
     @Override
     public void maybeStop() {
-         synchronized (this) {
+        synchronized (this) {
             try {
                 if (instance != null) {
                     instance.ifSuccessful(t -> {

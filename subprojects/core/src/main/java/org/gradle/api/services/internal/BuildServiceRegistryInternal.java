@@ -19,6 +19,7 @@ package org.gradle.api.services.internal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
+import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.SharedResource;
@@ -46,6 +47,9 @@ public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
      * Discards all registered services.
      */
     void discardAll();
+
+    @Nullable
+    BuildServiceRegistration<?, ?> findByName(String name);
 
     List<ResourceLock> getSharedResources(Set<Provider<? extends BuildService<?>>> services);
 }
