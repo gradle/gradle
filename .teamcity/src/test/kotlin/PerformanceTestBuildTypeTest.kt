@@ -18,6 +18,7 @@ import common.JvmVendor
 import common.JvmVersion
 import common.Os
 import common.VersionedSettingsBranch
+import common.pluginPortalUrlOverride
 import configurations.BaseGradleBuildType
 import configurations.PerformanceTest
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
@@ -100,7 +101,7 @@ class PerformanceTestBuildTypeTest {
             "-DenableTestDistribution=%enableTestDistribution%",
             "-Dorg.gradle.workers.max=%maxParallelForks%",
             "-PmaxParallelForks=%maxParallelForks%",
-            "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
+            pluginPortalUrlOverride,
             "-s",
             "--no-configuration-cache",
             "%additional.gradle.parameters%",

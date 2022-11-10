@@ -52,7 +52,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.function.Function;
 
 import static org.codehaus.groovy.runtime.StringGroovyMethods.capitalize;
 import static org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation.castToBoolean;
@@ -92,11 +91,6 @@ public abstract class SigningExtension {
     private SignatoryProvider<?> signatories;
 
     /**
-     * The Sign tasks that have been created by this extension.
-     */
-    private final Map<String, Sign> signTasks;
-
-    /**
      * Configures the signing settings for the given project.
      */
     public SigningExtension(Project project) {
@@ -104,7 +98,6 @@ public abstract class SigningExtension {
         this.configuration = getDefaultConfiguration();
         this.signatureTypes = createSignatureTypeProvider();
         this.signatories = createSignatoryProvider();
-        this.signTasks = new HashMap<>();
         project.getTasks().withType(Sign.class, this::addSignatureSpecConventions);
     }
 
@@ -393,27 +386,28 @@ public abstract class SigningExtension {
     }
 
     private <T extends PublicationArtifact> Sign createSignTaskFor(final PublicationInternal<T> publicationToSign) {
-        final Function<String, Sign> computeSignTask = signTaskName -> {
-            final Sign signTask = project.getTasks().create(signTaskName, Sign.class, task -> {
-                task.setDescription("Signs all artifacts in the '" + publicationToSign.getName() + "' publication.");
-                task.sign(publicationToSign);
-            });
-            final Map<Signature, T> artifacts = new HashMap<>();
-            signTask.getSignatures().all(signature -> {
-                final T artifact = publicationToSign.addDerivedArtifact(
-                    Cast.uncheckedNonnullCast(signature.getSource()),
-                    new DefaultDerivedArtifactFile(signature, signTask)
-                );
-                artifact.builtBy(signTask);
-                artifacts.put(signature, artifact);
-            });
-            signTask.getSignatures().whenObjectRemoved(signature -> {
-                final T artifact = artifacts.remove(signature);
-                publicationToSign.removeDerivedArtifact(artifact);
-            });
-            return signTask;
-        };
-        return signTasks.computeIfAbsent(determineSignTaskNameForPublication(publicationToSign), computeSignTask);
+        final String signTaskName = determineSignTaskNameForPublication(publicationToSign);
+        if (project.getTasks().getNames().contains(signTaskName)) {
+            return project.getTasks().named(signTaskName, Sign.class).get();
+        }
+        final Sign signTask = project.getTasks().create(signTaskName, Sign.class, task -> {
+            task.setDescription("Signs all artifacts in the '" + publicationToSign.getName() + "' publication.");
+            task.sign(publicationToSign);
+        });
+        final Map<Signature, T> artifacts = new HashMap<>();
+        signTask.getSignatures().all(signature -> {
+            final T artifact = publicationToSign.addDerivedArtifact(
+                Cast.uncheckedNonnullCast(signature.getSource()),
+                new DefaultDerivedArtifactFile(signature, signTask)
+            );
+            artifact.builtBy(signTask);
+            artifacts.put(signature, artifact);
+        });
+        signTask.getSignatures().whenObjectRemoved(signature -> {
+            final T artifact = artifacts.remove(signature);
+            publicationToSign.removeDerivedArtifact(artifact);
+        });
+        return signTask;
     }
 
     private String determineSignTaskNameForPublication(Publication publication) {
@@ -421,12 +415,13 @@ public abstract class SigningExtension {
     }
 
     private Sign createSignTaskFor(CharSequence name, Action<Sign> taskConfiguration) {
-        final Function<String, Sign> computeSignTask = signTaskName -> {
-            final Sign signTask = project.getTasks().create(signTaskName, Sign.class, taskConfiguration);
-            addSignaturesToConfiguration(signTask, getConfiguration());
-            return signTask;
-        };
-        return signTasks.computeIfAbsent("sign" + capitalize(name), computeSignTask);
+        final String signTaskName = "sign" + capitalize(name);
+        if (project.getTasks().getNames().contains(signTaskName)) {
+            return project.getTasks().named(signTaskName, Sign.class).get();
+        }
+        final Sign signTask = project.getTasks().create(signTaskName, Sign.class, taskConfiguration);
+        addSignaturesToConfiguration(signTask, getConfiguration());
+        return signTask;
     }
 
     protected Object addSignaturesToConfiguration(Sign task, final Configuration configuration) {

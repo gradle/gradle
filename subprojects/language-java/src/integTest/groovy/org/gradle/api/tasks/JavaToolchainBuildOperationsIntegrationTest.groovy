@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
@@ -29,7 +30,7 @@ import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
-class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainBuildOperationsFixture {
+class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, JavaToolchainBuildOperationsFixture {
 
     static kgpLatestVersions = new KotlinGradlePluginVersions().latests.toList()
 
@@ -55,11 +56,11 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
 
             if (configureToolchain == "with java plugin") {
-                configureToolchainViaJavaPlugin(jdkMetadata)
+                configureJavaPluginToolchainVersion(jdkMetadata)
             } else if (configureToolchain == "with per task") {
                 configureToolchainPerTask(jdkMetadata)
             } else if (configureToolchain == "with java plugin and per task") {
-                configureToolchainViaJavaPlugin(AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current()))
+                configureJavaPluginToolchainVersion(AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current()))
                 configureToolchainPerTask(jdkMetadata)
             } else {
                 throw new IllegalArgumentException("Unknown configureToolchain: " + configureToolchain)
@@ -356,7 +357,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         def minJdk = [jdkMetadata1, jdkMetadata2].min { it.languageVersion }
         def maxJdk = [jdkMetadata1, jdkMetadata2].max { it.languageVersion }
 
-        configureToolchainViaJavaPlugin(minJdk)
+        configureJavaPluginToolchainVersion(minJdk)
 
         buildFile << """
             def javaExecutable = javaToolchains.launcherFor {
@@ -478,7 +479,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
 
-        configureToolchainViaJavaPlugin(jdkMetadata)
+        configureJavaPluginToolchainVersion(jdkMetadata)
 
         file("src/main/java/Foo.java") << """
             public class Foo extends Oops {}
@@ -499,7 +500,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
 
-        configureToolchainViaJavaPlugin(jdkMetadata)
+        configureJavaPluginToolchainVersion(jdkMetadata)
 
         file("src/test/java/FooTest.java") << """
             public class FooTest {
@@ -522,7 +523,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
 
-        configureToolchainViaJavaPlugin(jdkMetadata)
+        configureJavaPluginToolchainVersion(jdkMetadata)
 
         file("src/main/java/Foo.java") << """
             /**
@@ -589,23 +590,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
                 }
             }
         """
-    }
-
-    private TestFile configureToolchainViaJavaPlugin(JvmInstallationMetadata jdkMetadata) {
-        buildFile << """
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
-                }
-            }
-        """
-    }
-
-    private withInstallations(JvmInstallationMetadata... jdkMetadata) {
-        def installationPaths = jdkMetadata.collect { it.javaHome.toAbsolutePath().toString() }.join(",")
-        executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
-        this
     }
 
     private static String latestStableKotlinPluginVersion(String major) {
