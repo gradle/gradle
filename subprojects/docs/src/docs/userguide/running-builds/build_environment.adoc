@@ -36,7 +36,6 @@ Gradle provides several options that make it easy to configure the Java process 
 
 The final configuration taken into account by Gradle is a combination of all Gradle properties set on the command line and your `gradle.properties` files. If an option is configured in multiple locations, the _first one_ found in any of these locations wins:
 
-* command line, as set using the `-P` / `--project-prop` <<command_line_interface.adoc#sec:environment_options, environment options>>.
 * `gradle.properties` in `GRADLE_USER_HOME` directory.
 * `gradle.properties` in the project's directory, then its parent project's directory up to the build's root directory.
 * `gradle.properties` in Gradle installation directory.
@@ -173,13 +172,6 @@ include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="build.gra
 include::sample[dir="snippets/tutorial/gradleProperties/kotlin",files="build.gradle.kts[tags=gradle-properties-task-inputs]"]
 ====
 
-.Setting Gradle properties from the command line
-====
-----
-$ gradle -PgradlePropertiesProp=commandLineValue
-----
-====
-
 Note that <<init_scripts.adoc#init_scripts, initialization scripts>> can't read Gradle properties directly.
 The earliest Gradle properties can be read in initialization scripts is on `settingsEvaluated {}`:
 
@@ -274,7 +266,17 @@ include::sample[dir="snippets/tutorial/environmentVariables/kotlin",files="build
 [[sec:project_properties]]
 == Project properties
 
-Gradle can set properties to your link:{groovyDslPath}/org.gradle.api.Project.html[Project] object when it sees specially-named system properties or environment variables. If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`. Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`. Both of the following will set the `foo` property on your Project object to `"bar"`.
+Project properties are available on the link:{groovyDslPath}/org.gradle.api.Project.html[Project] object.
+They can be set from the command line using the `-P` / `--project-prop` <<command_line_interface.adoc#sec:environment_options, environment option>>.
+
+.Setting a project property via the command line
+====
+----
+$ gradle -PgradlePropertiesProp=commandLineValue
+----
+====
+
+Gradle can also set project properties when it sees specially-named system properties or environment variables. If the environment variable name looks like `ORG_GRADLE_PROJECT___prop__=somevalue`, then Gradle will set a `prop` property on your project object, with the value of `somevalue`. Gradle also supports this for system properties, but with a different naming pattern, which looks like `org.gradle.project.__prop__`. Both of the following will set the `foo` property on your Project object to `"bar"`.
 
 .Setting a project property via a system property
 ----
@@ -310,8 +312,6 @@ If you need to branch depending on the presence of the property, you can also us
 include::sample[dir="snippets/tutorial/projectProperties/groovy",files="build.gradle[tags=execution]"]
 include::sample[dir="snippets/tutorial/projectProperties/kotlin",files="build.gradle.kts[tags=execution]"]
 ====
-
-Gradle properties and properties set via the `-P` command line option are also available in project properties.
 
 [NOTE]
 ====
