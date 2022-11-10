@@ -21,13 +21,15 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.NONE
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.REQUESTED
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.SUPPRESSED
+import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.PluginDeclaration.EXPLICIT
+import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.PluginDeclaration.IMPLICIT
 
 class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
-        settingsFile << plugin.pluginManagement() << plugin.plugins()
+        settingsFile << plugin.pluginManagement()
         plugin.publishDummyPlugin(executer)
         buildFile << """
             task t
@@ -35,6 +37,9 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "has none requestedness if no switch present"() {
+        given:
+        settingsFile << plugin.plugins()
+
         when:
         succeeds "t"
 
@@ -43,14 +48,26 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "is requested with --scan"() {
+        given:
+        if (declaration == EXPLICIT) {
+            settingsFile << plugin.plugins()
+        }
+
         when:
-        succeeds "t", "--scan"
+        succeeds "t", "--scan", "--stacktrace"
 
         then:
         plugin.assertBuildScanRequest(output, REQUESTED)
+        plugin.assertPluginDeclaration(output, declaration)
+
+        where:
+        declaration << [EXPLICIT, IMPLICIT]
     }
 
     def "is suppressed with --no-scan"() {
+        given:
+        settingsFile << plugin.plugins()
+
         when:
         succeeds "t", "--no-scan"
 

@@ -21,12 +21,15 @@ import org.gradle.api.Plugin;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.PluginManager;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 
 import java.util.Optional;
 
 public interface PluginManagerInternal extends PluginManager {
-    void apply(PluginImplementation<?> plugin);
+    void apply(PluginImplementation<?> plugin, PluginRequestInternal.Origin origin);
+
+    void apply(PluginId id, PluginRequestInternal.Origin origin);
 
     <P extends Plugin> P addImperativePlugin(PluginImplementation<P> plugin);
 
@@ -37,6 +40,8 @@ public interface PluginManagerInternal extends PluginManager {
     <P extends Plugin<?>> Optional<PluginId> findPluginIdForClass(Class<P> plugin);
 
     DomainObjectSet<PluginWithId> pluginsForId(String id);
+
+    boolean isAutoApplied(PluginId id);
 
     class PluginWithId {
         final PluginId id;

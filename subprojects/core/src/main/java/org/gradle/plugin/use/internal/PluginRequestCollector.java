@@ -41,6 +41,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin.PROGRAMMATIC;
 import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
@@ -75,7 +76,7 @@ public class PluginRequestCollector {
         List<PluginRequestInternal> pluginRequests = collect(specs, new Transformer<PluginRequestInternal, PluginDependencySpecImpl>() {
             @Override
             public PluginRequestInternal transform(PluginDependencySpecImpl original) {
-                return new DefaultPluginRequest(original.id, original.version, original.apply, original.lineNumber, scriptSource);
+                return new DefaultPluginRequest(original.id, original.version, original.apply, original.lineNumber, scriptSource, PROGRAMMATIC);
             }
         });
 

@@ -31,21 +31,22 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     private final Integer lineNumber;
     private final String scriptDisplayName;
     private final ModuleVersionSelector artifact;
+    private final Origin origin;
     private final PluginRequestInternal originalRequest;
 
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, ScriptSource scriptSource) {
-        this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null);
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, ScriptSource scriptSource, Origin origin) {
+        this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null, origin);
     }
 
-    public DefaultPluginRequest(String id, String version, boolean apply, Integer lineNumber, String scriptDisplayName) {
-        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName, null);
+    public DefaultPluginRequest(String id, String version, boolean apply, Integer lineNumber, String scriptDisplayName, Origin origin) {
+        this(DefaultPluginId.of(id), version, apply, lineNumber, scriptDisplayName, null, origin);
     }
 
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, String scriptDisplayName, ModuleVersionSelector artifact) {
-        this(id, version, apply, lineNumber, scriptDisplayName, artifact, null);
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, String scriptDisplayName, ModuleVersionSelector artifact, Origin origin) {
+        this(id, version, apply, lineNumber, scriptDisplayName, artifact, origin, null);
     }
 
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, String scriptDisplayName, ModuleVersionSelector artifact,
+    public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, String scriptDisplayName, ModuleVersionSelector artifact, Origin origin,
                                 PluginRequestInternal originalRequest) {
         this.id = id;
         this.version = version;
@@ -53,6 +54,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         this.lineNumber = lineNumber;
         this.scriptDisplayName = scriptDisplayName;
         this.artifact = artifact;
+        this.origin = origin;
         this.originalRequest = originalRequest != null ? originalRequest : this;
     }
 
@@ -108,6 +110,11 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     @Override
     public String getDisplayName() {
         return toString();
+    }
+
+    @Override
+    public Origin getOrigin() {
+        return origin;
     }
 
     @Override

@@ -101,6 +101,7 @@ class GradleEnterprisePluginCheckInFixture {
 
                         println "gradleEnterprisePlugin.serviceFactoryCreate.config.buildScanRequest = \$config.buildScanRequest"
                         println "gradleEnterprisePlugin.serviceFactoryCreate.config.taskExecutingBuild = \$config.taskExecutingBuild"
+                        println "gradleEnterprisePlugin.serviceFactoryCreate.config.pluginDeclaration = \$config.pluginDeclaration"
 
                         println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.buildStartedTime = \$buildState.buildStartedTime"
                         println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.currentTime = \$buildState.currentTime"
@@ -170,6 +171,10 @@ class GradleEnterprisePluginCheckInFixture {
 
     void assertBuildScanRequest(String output, GradleEnterprisePluginConfig.BuildScanRequest buildScanRequest) {
         assert output.contains("gradleEnterprisePlugin.serviceFactoryCreate.config.buildScanRequest = $buildScanRequest")
+    }
+
+    void assertPluginDeclaration(String output, GradleEnterprisePluginConfig.PluginDeclaration pluginDeclaration) {
+        assert output.contains("gradleEnterprisePlugin.serviceFactoryCreate.config.pluginDeclaration = $pluginDeclaration")
     }
 
     void assertUnsupportedMessage(String output, String unsupported) {

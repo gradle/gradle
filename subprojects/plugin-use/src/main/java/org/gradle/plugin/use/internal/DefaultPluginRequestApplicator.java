@@ -146,7 +146,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private void applyPlugin(PluginManagerInternal target, Result result, PluginImplementation<?> impl) {
         applyPlugin(result.request, result.found.getPluginId(), () -> {
             if (result.request.isApply()) {
-                target.apply(impl);
+                target.apply(impl, result.request.getOrigin());
             }
         });
     }
@@ -157,7 +157,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private void applyLegacyPlugin(PluginManagerInternal target, Result result, PluginId id) {
         applyPlugin(result.request, id, () -> {
             if (result.request.isApply()) {
-                target.apply(id.toString());
+                target.apply(id, result.request.getOrigin());
             }
         });
     }

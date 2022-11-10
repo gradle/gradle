@@ -22,6 +22,7 @@ import org.gradle.plugin.management.internal.PluginRequests;
 
 import java.util.List;
 
+import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin.INJECTED;
 import static org.gradle.util.internal.CollectionUtils.collect;
 
 public class InjectedPluginResolver {
@@ -33,6 +34,6 @@ public class InjectedPluginResolver {
     }
 
     private List<PluginRequestInternal> convert(List<DefaultInjectedPluginDependency> requests) {
-        return collect(requests, original -> new DefaultPluginRequest(original.getId(), null, true, null, null));
+        return collect(requests, original -> new DefaultPluginRequest(original.getId(), null, true, null, null, INJECTED));
     }
 }

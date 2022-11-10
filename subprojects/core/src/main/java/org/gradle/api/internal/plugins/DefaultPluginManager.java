@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Plugin;
@@ -39,6 +40,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
@@ -47,6 +49,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+
+import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin.PROGRAMMATIC;
 
 @NotThreadSafe
 public class DefaultPluginManager implements PluginManagerInternal {
@@ -61,6 +66,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final Map<Class<?>, PluginImplementation<?>> plugins = Maps.newHashMap();
     private final Map<Class<?>, Plugin> instances = Maps.newLinkedHashMap();
     private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = Maps.newHashMap();
+    private final Set<PluginId> autoAppliedPlugins = Sets.newHashSet();
 
     private final BuildOperationExecutor buildOperationExecutor;
     private final UserCodeApplicationContext userCodeApplicationContext;
@@ -86,7 +92,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     @Override
     public <P extends Plugin> P addImperativePlugin(PluginImplementation<P> plugin) {
-        doApply(plugin);
+        doApply(plugin, PROGRAMMATIC);
         Class<? extends P> pluginClass = plugin.asClass();
         return pluginClass.cast(instances.get(pluginClass));
     }
@@ -97,13 +103,17 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     @Nullable // if the plugin has already been added
-    private Runnable addPluginInternal(final PluginImplementation<?> plugin) {
+    private Runnable addPluginInternal(final PluginImplementation<?> plugin, PluginRequestInternal.Origin origin) {
         final Class<?> pluginClass = plugin.asClass();
         if (plugins.containsKey(pluginClass)) {
             return null;
         }
 
         plugins.put(pluginClass, plugin);
+        if (origin == PluginRequestInternal.Origin.AUTO_APPLIED) {
+            autoAppliedPlugins.add(plugin.getPluginId());
+        }
+
         return new Runnable() {
             @Override
             public void run() {
@@ -133,25 +143,30 @@ public class DefaultPluginManager implements PluginManagerInternal {
     }
 
     @Override
-    public void apply(PluginImplementation<?> plugin) {
-        doApply(plugin);
+    public void apply(PluginImplementation<?> plugin, PluginRequestInternal.Origin origin) {
+        doApply(plugin, origin);
     }
 
     @Override
     public void apply(String pluginId) {
-        PluginImplementation<?> plugin = pluginRegistry.lookup(DefaultPluginId.unvalidated(pluginId));
+        apply(DefaultPluginId.unvalidated(pluginId), PROGRAMMATIC);
+    }
+
+    @Override
+    public void apply(PluginId id, PluginRequestInternal.Origin origin) {
+        PluginImplementation<?> plugin = pluginRegistry.lookup(id);
         if (plugin == null) {
-            throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
+            throw new UnknownPluginException("Plugin with id '" + id + "' not found.");
         }
-        doApply(plugin);
+        doApply(plugin, origin);
     }
 
     @Override
     public void apply(Class<?> type) {
-        doApply(pluginRegistry.inspect(type));
+        doApply(pluginRegistry.inspect(type), PROGRAMMATIC);
     }
 
-    private void doApply(final PluginImplementation<?> plugin) {
+    private void doApply(final PluginImplementation<?> plugin, PluginRequestInternal.Origin origin) {
         PluginId pluginId = plugin.getPluginId();
         final String pluginIdStr = pluginId == null ? null : pluginId.toString();
         final Class<?> pluginClass = plugin.asClass();
@@ -161,7 +176,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
             if (plugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
                 throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
             } else {
-                final Runnable adder = addPluginInternal(plugin);
+                final Runnable adder = addPluginInternal(plugin, origin);
                 if (adder != null) {
                     userCodeApplicationContext.apply(plugin.getDisplayName(), userCodeApplicationId ->
                         buildOperationExecutor.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId)));
@@ -259,6 +274,11 @@ public class DefaultPluginManager implements PluginManagerInternal {
             }
         };
         pluginsForId(id).all(wrappedAction);
+    }
+
+    @Override
+    public boolean isAutoApplied(PluginId id) {
+        return autoAppliedPlugins.contains(id);
     }
 
     private class AddPluginBuildOperation implements RunnableBuildOperation {
@@ -363,4 +383,3 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private static final ApplyPluginBuildOperationType.Result OPERATION_RESULT = new ApplyPluginBuildOperationType.Result() {
     };
 }
-

@@ -19,24 +19,34 @@ package org.gradle.internal.enterprise.impl;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin;
 
 @ServiceScope(Scopes.BuildTree.class)
 public class DefaultGradleEnterprisePluginConfig implements GradleEnterprisePluginConfig {
 
     private final BuildScanRequest buildScanRequest;
     private final boolean taskExecutingBuild;
+    private final PluginManagerInternal pluginManager;
 
-    public DefaultGradleEnterprisePluginConfig(GradleInternal gradle, BuildType buildType) {
+    public DefaultGradleEnterprisePluginConfig(GradleInternal gradle, BuildType buildType, PluginManagerInternal pluginManager) {
         this.buildScanRequest = buildScanRequest(gradle.getStartParameter());
         this.taskExecutingBuild = buildType == BuildType.TASKS;
+        this.pluginManager = pluginManager;
     }
 
     @Override
     public BuildScanRequest getBuildScanRequest() {
         return buildScanRequest;
+    }
+
+    @Override
+    public PluginDeclaration getPluginDeclaration() {
+        return pluginManager.isAutoApplied(AutoAppliedGradleEnterprisePlugin.ID) ? PluginDeclaration.IMPLICIT : PluginDeclaration.EXPLICIT;
     }
 
     @Override

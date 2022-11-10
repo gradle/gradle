@@ -30,6 +30,7 @@ import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.use.internal.DefaultPluginId
 import spock.lang.Specification
 
+import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin.PROGRAMMATIC
 import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver.SOURCE_NAME
 
 class ArtifactRepositoriesPluginResolverTest extends Specification {
@@ -60,7 +61,7 @@ class ArtifactRepositoriesPluginResolverTest extends Specification {
     def resolver = new ArtifactRepositoriesPluginResolver(resolution)
 
     PluginRequestInternal request(String id, String version = null) {
-        new DefaultPluginRequest(DefaultPluginId.of(id), version, true, 1, new TextResourceScriptSource(new StringTextResource("test", "test")))
+        new DefaultPluginRequest(DefaultPluginId.of(id), version, true, 1, new TextResourceScriptSource(new StringTextResource("test", "test")), PROGRAMMATIC)
     }
 
     def "fail pluginRequests without versions"() {

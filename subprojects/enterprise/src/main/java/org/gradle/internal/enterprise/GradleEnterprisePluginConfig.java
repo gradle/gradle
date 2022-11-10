@@ -27,7 +27,14 @@ public interface GradleEnterprisePluginConfig {
         SUPPRESSED // --no-scan is present
     }
 
+    enum PluginDeclaration {
+        IMPLICIT,
+        EXPLICIT
+    }
+
     BuildScanRequest getBuildScanRequest();
+
+    PluginDeclaration getPluginDeclaration();
 
     boolean isTaskExecutingBuild();
 

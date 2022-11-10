@@ -31,6 +31,7 @@ import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption;
+import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin.AUTO_APPLIED;
 
 /**
  * A hardcoded {@link AutoAppliedPluginRegistry} that only knows about the build-scan plugin for now.
@@ -74,7 +75,7 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
     private static PluginRequestInternal createGradleEnterprisePluginRequest() {
         ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedGradleEnterprisePlugin.GROUP, AutoAppliedGradleEnterprisePlugin.NAME);
         ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, AutoAppliedGradleEnterprisePlugin.VERSION);
-        return new DefaultPluginRequest(AutoAppliedGradleEnterprisePlugin.ID, AutoAppliedGradleEnterprisePlugin.VERSION, true, null, getScriptDisplayName(), artifact);
+        return new DefaultPluginRequest(AutoAppliedGradleEnterprisePlugin.ID, AutoAppliedGradleEnterprisePlugin.VERSION, true, null, getScriptDisplayName(), artifact, AUTO_APPLIED);
     }
 
     private static String getScriptDisplayName() {
