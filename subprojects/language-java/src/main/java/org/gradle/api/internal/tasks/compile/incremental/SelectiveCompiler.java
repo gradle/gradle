@@ -84,7 +84,7 @@ class SelectiveCompiler<T extends JavaCompileSpec> implements org.gradle.languag
 
         PreviousCompilationData previousCompilationData = previousCompilationAccess.readPreviousCompilationData(previousCompilationDataFile);
         PreviousCompilation previousCompilation = new PreviousCompilation(previousCompilationData);
-        RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(currentCompilation, previousCompilation);
+        RecompilationSpec recompilationSpec = recompilationSpecProvider.provideRecompilationSpec(spec, currentCompilation, previousCompilation);
 
         if (recompilationSpec.isFullRebuildNeeded()) {
             LOG.info("Full recompilation is required because {}. Analysis took {}.", recompilationSpec.getFullRebuildCause(), clock.getElapsed());
