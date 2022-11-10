@@ -17,6 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.provider.AbstractProperty
+import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
@@ -65,5 +67,56 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
         def cause = TestUtil.getRootCause(e) as InvalidUserDataException
         cause.message.contains("Specific installation toolchain")
         cause.message.contains(invalidJavac.parentFile.parentFile.absolutePath)
+    }
+
+    def "fails if custom Java home does not exist"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.destinationDirectory.fileValue(temporaryFolder.createDir())
+        def invalidJavaHome = "invalidJavaHome"
+
+        when:
+        javaCompile.options.fork = true
+        javaCompile.options.forkOptions.javaHome = new File("invalidJavaHome")
+        javaCompile.createSpec()
+
+        then:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("The configured Java home does not exist")
+        cause.message.contains(invalidJavaHome)
+    }
+
+    def "fails if custom Java home is not a directory"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.destinationDirectory.fileValue(temporaryFolder.createDir())
+        def javaHomeFile = temporaryFolder.createFile("javaHome")
+
+        when:
+        javaCompile.options.fork = true
+        javaCompile.options.forkOptions.javaHome = javaHomeFile
+        javaCompile.createSpec()
+
+        then:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("The configured Java home is not a directory")
+        cause.message.contains(javaHomeFile.absolutePath)
+    }
+
+    def "fails if custom Java home is not a valid JVM"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.destinationDirectory.fileValue(temporaryFolder.createDir())
+        def javaHomeDir = temporaryFolder.createDir("javaHome")
+
+        when:
+        javaCompile.options.fork = true
+        javaCompile.options.forkOptions.javaHome = javaHomeDir
+        javaCompile.createSpec()
+
+        then:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("Specific installation toolchain")
+        cause.message.contains(javaHomeDir.absolutePath)
     }
 }
