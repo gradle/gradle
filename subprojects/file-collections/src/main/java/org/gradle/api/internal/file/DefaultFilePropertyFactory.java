@@ -202,7 +202,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
 
         @Override
-        public THIS value(T value) {
+        public THIS value(@Nullable T value) {
             super.value(value);
             return Cast.uncheckedNonnullCast(this);
         }
@@ -214,7 +214,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
 
         @Override
-        public void set(File file) {
+        public void set(@Nullable File file) {
             if (file == null) {
                 set((T) null);
                 return;
