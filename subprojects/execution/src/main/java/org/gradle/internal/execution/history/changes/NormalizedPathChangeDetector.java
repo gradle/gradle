@@ -30,12 +30,9 @@ import java.util.Set;
 
 import static java.util.Map.Entry.comparingByKey;
 
-public class NormalizedPathChangeDetector implements CompareStrategy.ChangeDetector<FileSystemLocationFingerprint> {
+public enum NormalizedPathChangeDetector implements CompareStrategy.ChangeDetector<FileSystemLocationFingerprint> {
 
-    public static final NormalizedPathChangeDetector INSTANCE = new NormalizedPathChangeDetector();
-
-    private NormalizedPathChangeDetector() {
-    }
+    INSTANCE;
 
     /**
      * Determines changes by:
