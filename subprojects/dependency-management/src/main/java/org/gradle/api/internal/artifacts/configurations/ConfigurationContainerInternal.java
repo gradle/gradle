@@ -45,7 +45,7 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
     }
 
     default ConfigurationInternal maybeCreateWithRole(String name, ConfigurationRole role) {
-        return maybeCreateWithRole(name, role, true);
+        return maybeCreateWithRole(name, role, true, true);
     }
 
     /**
@@ -56,12 +56,14 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
      * If the configuration already exists, this method will <strong>NOT</strong>> change anything about it,
      * including its role.
      */
-    default ConfigurationInternal maybeCreateWithRole(String name, ConfigurationRole role, boolean lockRole) {
+    default ConfigurationInternal maybeCreateWithRole(String name, ConfigurationRole role, boolean lockRole, boolean assertInRole) {
         ConfigurationInternal configuration = (ConfigurationInternal) findByName(name);
         if (configuration == null) {
             return createWithRole(name, role, lockRole);
         } else {
-            RoleAssigner.assertIsInRole(configuration, role);
+            if (assertInRole) {
+                RoleAssigner.assertIsInRole(configuration, role);
+            }
             return configuration;
         }
     }
