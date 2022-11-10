@@ -111,6 +111,23 @@ testing {
 }
 ```
 
+#### Dependency verification metadata improvements
+
+The following nodes with dependency verification metadata file `verification-metadata.xml` now support a `reason` attribute:
+
+- the `trust` xml node under `trusted-artifacts`
+- the `md5`, `sha1`, `sha256` and `sha512` nodes under `component`
+
+#### Dependency verification CLI improvements
+
+You can now use the `export-keys` flag to export all already trusted keys:
+
+```asciidoc
+./gradlew --export-keys
+```
+
+For more information, see [Exporting keys](userguide/dependency_verification.html#sec:local-keyring).
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
