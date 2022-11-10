@@ -62,7 +62,7 @@ class CIConfigIntegrationTests {
             }
 
             assertEquals(
-                stage.specificBuilds.size + stage.functionalTests.size + stage.performanceTests.size + (if (prevStage != null) 1 else 0),
+                stage.specificBuilds.size + stage.functionalTests.size + stage.performanceTests.size + stage.docsTests.size + (if (prevStage != null) 1 else 0),
                 it.dependencies.items.size, stage.stageName.stageName
             )
         }

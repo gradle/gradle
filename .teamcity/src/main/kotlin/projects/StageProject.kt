@@ -4,6 +4,8 @@ import common.VersionedSettingsBranch
 import common.hiddenArtifactDestination
 import common.toCapitalized
 import configurations.BaseGradleBuildType
+import configurations.DocsTestProject
+import configurations.DocsTestTrigger
 import configurations.FunctionalTest
 import configurations.FunctionalTestsPass
 import configurations.PartialTrigger
@@ -42,6 +44,8 @@ class StageProject(
     val performanceTests: List<PerformanceTestsPass>
 
     val functionalTests: List<BaseGradleBuildType>
+
+    val docsTestTriggers: List<BaseGradleBuildType>
 
     init {
         features {
@@ -102,6 +106,11 @@ class StageProject(
                 buildType(createPerformancePartialTrigger(model, stage))
             }
         }
+
+        val docsTestProjects = stage.docsTests.map { DocsTestProject(model, stage, it.os, it.testJava, it.configCacheEnabled) }
+        docsTestProjects.forEach(this::subProject)
+        docsTestTriggers = docsTestProjects.map { DocsTestTrigger(model, it) }
+        docsTestTriggers.forEach(this::buildType)
 
         stage.performanceTestPartialTriggers.forEach { trigger ->
             buildType(

@@ -113,7 +113,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
 
     private
     fun splitBucketsByTestClassesForBuildProject(testCoverage: TestCoverage, stage: Stage, buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes): List<SmallSubprojectBucket> {
-        val validSubprojects = model.subprojects.getSubprojectsFor(testCoverage, stage)
+        val validSubprojects = model.subprojects.getSubprojectsForFunctionalTest(testCoverage, stage)
         // Build project not found, don't split into buckets
         val subProjectToClassTimes: MutableMap<String, List<TestClassTime>> =
             determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap() ?: return validSubprojects.map { SmallSubprojectBucket(it, ParallelizationMethod.None) }
@@ -129,9 +129,10 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             .filter { "UNKNOWN" != it.key }
             .filter { model.subprojects.getSubprojectByName(it.key) != null }
             .map { SubprojectTestClassTime(model.subprojects.getSubprojectByName(it.key)!!, it.value.filter { it.testClassAndSourceSet.sourceSet != "test" }) }
+            .filter { it.subProject.name != "docs" } // we handle docs specially, see `DocsTest.kt`
             .sortedBy { -it.totalTime }
 
-        return parallelize(validSubprojects, subProjectTestClassTimes, testCoverage) { numberOfBatches ->
+        return parallelize(subProjectTestClassTimes, testCoverage) { numberOfBatches ->
             if (testCoverage.os == Os.LINUX)
                 ParallelizationMethod.TestDistribution
             else
@@ -140,23 +141,15 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
     }
 
     private fun parallelize(
-        validSubprojects: List<GradleSubproject>,
         subProjectTestClassTimes: List<SubprojectTestClassTime>,
         testCoverage: TestCoverage,
         parallelization: (Int) -> ParallelizationMethod
     ): List<SmallSubprojectBucket> {
-        val docsSubproject = validSubprojects.first { it.name == "docs" }
-        val specialBuckets = if (testCoverage.testType == TestType.platform) {
-            List(3) { SmallSubprojectBucket(docsSubproject, parallelization(3)) }
-        } else emptyList()
-
-        val otherSubProjectTestClassTimes = subProjectTestClassTimes.filter { it.subProject.name != "docs" }
-
         // splitIntoBuckets() method expects us to split large element into N elements,
         // but we want to have a single bucket with N batches.
         // As a workaround, we repeat the bucket N times, and deduplicate the result at the end
-        val resultIncludingDuplicates = specialBuckets + splitIntoBuckets(
-            LinkedList(otherSubProjectTestClassTimes),
+        val resultIncludingDuplicates = splitIntoBuckets(
+            LinkedList(subProjectTestClassTimes),
             SubprojectTestClassTime::totalTime,
             { largeElement, factor ->
                 List(factor) { SmallSubprojectBucket(largeElement.subProject, parallelization(factor)) }
@@ -164,7 +157,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             { list ->
                 SmallSubprojectBucket(list.map { it.subProject }, parallelization(1))
             },
-            testCoverage.expectedBucketNumber - specialBuckets.size,
+            testCoverage.expectedBucketNumber,
             MAX_PROJECT_NUMBER_IN_BUCKET
         )
         return resultIncludingDuplicates.distinctBy { it.name }

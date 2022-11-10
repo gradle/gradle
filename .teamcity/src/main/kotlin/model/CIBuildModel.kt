@@ -13,7 +13,6 @@ import configurations.BaseGradleBuildType
 import configurations.BuildDistributions
 import configurations.CheckLinks
 import configurations.CompileAll
-import configurations.ConfigCacheDocsTest
 import configurations.FlakyTestQuarantine
 import configurations.FunctionalTest
 import configurations.Gradleception
@@ -80,13 +79,16 @@ data class CIBuildModel(
                 SpecificBuild.ConfigCacheSantaTrackerSmokeTests,
                 SpecificBuild.GradleBuildSmokeTests,
                 SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
-                SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion,
-                SpecificBuild.ConfigCacheDocsTestMaxJavaVersion
+                SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion
             ),
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
                 TestCoverage(4, TestType.platform, Os.WINDOWS, JvmCategory.MAX_VERSION),
                 TestCoverage(20, TestType.configCache, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
+            ),
+            docsTests = listOf(
+                DocsTestCoverage(Os.LINUX, JvmCategory.MAX_VERSION, true),
+                DocsTestCoverage(Os.WINDOWS, JvmCategory.MAX_VERSION, false),
             )
         ),
         Stage(
@@ -125,6 +127,9 @@ data class CIBuildModel(
                 TestCoverage(33, TestType.allVersionsIntegMultiVersion, Os.LINUX, JvmCategory.MIN_VERSION, ALL_CROSS_VERSION_BUCKETS.size),
                 TestCoverage(34, TestType.allVersionsIntegMultiVersion, Os.WINDOWS, JvmCategory.MIN_VERSION_WINDOWS, ALL_CROSS_VERSION_BUCKETS.size),
                 TestCoverage(36, TestType.platform, Os.MACOS, JvmCategory.MAX_LTS_VERSION, expectedBucketNumber = 20, arch = Arch.AARCH64)
+            ),
+            docsTests = listOf(
+                DocsTestCoverage(Os.MACOS, JvmCategory.MAX_VERSION, false),
             ),
             performanceTests = slowPerformanceTestCoverages,
             performanceTestPartialTriggers = listOf(PerformanceTestPartialTrigger("All Performance Tests", "AllPerformanceTests", performanceRegressionTestCoverages + slowPerformanceTestCoverages))
@@ -196,6 +201,7 @@ data class Stage(
     val stageName: StageName,
     val specificBuilds: List<SpecificBuild> = emptyList(),
     val functionalTests: List<TestCoverage> = emptyList(),
+    val docsTests: List<DocsTestCoverage> = emptyList(),
     val performanceTests: List<PerformanceTestCoverage> = emptyList(),
     val performanceTestPartialTriggers: List<PerformanceTestPartialTrigger> = emptyList(),
     val flameGraphs: List<FlameGraphGeneration> = emptyList(),
@@ -204,6 +210,8 @@ data class Stage(
 ) {
     val id = stageName.id
 }
+
+data class DocsTestCoverage(val os: Os, val testJava: JvmCategory, val configCacheEnabled: Boolean)
 
 data class TestCoverage(
     val uuid: Int,
@@ -400,11 +408,6 @@ enum class SpecificBuild {
     ConfigCacheSmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_LTS_VERSION, "configCacheSmokeTest", splitNumber = 4)
-        }
-    },
-    ConfigCacheDocsTestMaxJavaVersion {
-        override fun create(model: CIBuildModel, stage: Stage): BaseGradleBuildType {
-            return ConfigCacheDocsTest(model, stage, JvmCategory.MAX_VERSION)
         }
     },
     FlakyTestQuarantineLinux {

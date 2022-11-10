@@ -27,14 +27,14 @@ val ignoredSubprojects = listOf(
 
 interface GradleSubprojectProvider {
     val subprojects: List<GradleSubproject>
-    fun getSubprojectsFor(testConfig: TestCoverage, stage: Stage): List<GradleSubproject>
+    fun getSubprojectsForFunctionalTest(testConfig: TestCoverage, stage: Stage): List<GradleSubproject>
     fun getSubprojectByName(name: String): GradleSubproject?
 }
 
 data class JsonBasedGradleSubprojectProvider(private val jsonFile: File) : GradleSubprojectProvider {
     @Suppress("UNCHECKED_CAST")
     override val subprojects = JSON.parseArray(jsonFile.readText()).map { toSubproject(it as Map<String, Any>) }
-    override fun getSubprojectsFor(testConfig: TestCoverage, stage: Stage): List<GradleSubproject> =
+    override fun getSubprojectsForFunctionalTest(testConfig: TestCoverage, stage: Stage): List<GradleSubproject> =
         subprojects.filter { it.hasTestsOf(testConfig.testType) }
 
     private val nameToSubproject = subprojects.map { it.name to it }.toMap()
