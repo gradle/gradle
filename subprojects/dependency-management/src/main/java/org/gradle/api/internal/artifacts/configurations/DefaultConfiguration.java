@@ -227,6 +227,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean declarationDeprecated = false;
     private boolean roleCanBeMutated = true;
     private ConfigurationRole roleAtCreation;
+    private boolean warnOnChangingUsage = false; // Will be set to true/removed in Gradle 8.1
 
     private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
@@ -1611,6 +1612,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Optional.of(new DefaultLenientConfiguration.ArtifactResolveException(type, getIdentityPath().toString(), getDisplayName(), failures));
     }
 
+    public void setWarnOnChangingUsage(boolean warnOnChangingUsage) {
+        this.warnOnChangingUsage = warnOnChangingUsage;
+    }
+
     private void assertIsResolvable() {
         if (!canBeResolved) {
             throw new IllegalStateException("Resolving dependency configuration '" + name + "' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends '" + name + "' should be resolved.");
@@ -1677,6 +1682,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private void logChangingUsage(String usage, boolean allowed) {
+        String msgTemplate = "Configuration '{}' allowed usage is changing: {}. Ideally, usage should be fixed upon creation.";
+        if (warnOnChangingUsage) {
+            LOGGER.warn(msgTemplate, getDisplayName(), describeChangingUsage(usage, allowed));
+        } else {
+            LOGGER.info(msgTemplate, getDisplayName(), describeChangingUsage(usage, allowed));
+        }
+    }
+
+    private String describeChangingUsage(String usage, boolean allowed) {
+        return usage + " was " + !allowed + " and is now " + allowed;
+    }
+
     @Override
     public boolean isDeprecatedForConsumption() {
         return consumptionDeprecated;
@@ -1702,6 +1720,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (canBeConsumed != allowed) {
             validateMutation(MutationType.USAGE);
             canBeConsumed = allowed;
+            logChangingUsage("consumable", allowed);
         }
     }
 
@@ -1715,6 +1734,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (canBeResolved != allowed) {
             validateMutation(MutationType.USAGE);
             canBeResolved = allowed;
+            logChangingUsage("resolvable", allowed);
         }
     }
 
@@ -1728,6 +1748,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (canBeDeclaredAgainst != allowed) {
             validateMutation(MutationType.USAGE);
             canBeDeclaredAgainst = allowed;
+            logChangingUsage("declarable against", allowed);
         }
     }
 
@@ -1763,9 +1784,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                         .willBecomeAnErrorInGradle9()
                         .withUserManual("dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations"));
             } else {
-                validateMutation(MutationType.USAGE);
-                consumptionDeprecation = null;
-                consumptionDeprecated = false;
+                undeprecateForConsumption();
             }
         }
     }
@@ -1776,9 +1795,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             if (deprecated) {
                 deprecateForResolution();
             } else {
-                validateMutation(MutationType.USAGE);
-                resolutionAlternatives = null;
-                resolutionDeprecated = false;
+                undeprecateForResolution();
             }
         }
     }
@@ -1789,17 +1806,39 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             if (deprecated) {
                 deprecateForDeclarationAgainst();
             } else {
-                validateMutation(MutationType.USAGE);
-                declarationAlternatives = null;
-                declarationDeprecated = false;
+                undeprecateForDeclarationAgainst();
             }
         }
+    }
+
+    private void undeprecateForConsumption() {
+        validateMutation(MutationType.USAGE);
+        consumptionDeprecation = null;
+        consumptionDeprecated = false;
+        logChangingUsage("deprecated for consumption", false);
+    }
+
+    private void undeprecateForResolution() {
+        validateMutation(MutationType.USAGE);
+        resolutionAlternatives = null;
+        resolutionDeprecated = false;
+        logChangingUsage("deprecated for resolution", false);
+    }
+
+    private void undeprecateForDeclarationAgainst() {
+        validateMutation(MutationType.USAGE);
+        declarationAlternatives = null;
+        declarationDeprecated = false;
+        logChangingUsage("deprecated for declaration against", false);
     }
 
     @Override
     public DeprecatableConfiguration deprecateForDeclarationAgainst(String... alternativesForDeclaring) {
         validateMutation(MutationType.USAGE);
         this.declarationAlternatives = ImmutableList.copyOf(alternativesForDeclaring);
+        if (!declarationDeprecated) {
+            logChangingUsage("deprecated for declaration against", true);
+        }
         declarationDeprecated = true;
         return this;
     }
@@ -1808,6 +1847,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public DeprecatableConfiguration deprecateForConsumption(Function<DeprecationMessageBuilder.DeprecateConfiguration, DeprecationMessageBuilder.WithDocumentation> deprecation) {
         validateMutation(MutationType.USAGE);
         this.consumptionDeprecation = deprecation.apply(DeprecationLogger.deprecateConfiguration(name).forConsumption());
+        if (!consumptionDeprecated) {
+            logChangingUsage("deprecated for consumption", true);
+        }
         consumptionDeprecated = true;
         return this;
     }
@@ -1816,6 +1858,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public DeprecatableConfiguration deprecateForResolution(String... alternativesForResolving) {
         validateMutation(MutationType.USAGE);
         this.resolutionAlternatives = ImmutableList.copyOf(alternativesForResolving);
+        if (!consumptionDeprecated) {
+            logChangingUsage("deprecated for resolution", true);
+        }
         resolutionDeprecated = true;
         return this;
     }
