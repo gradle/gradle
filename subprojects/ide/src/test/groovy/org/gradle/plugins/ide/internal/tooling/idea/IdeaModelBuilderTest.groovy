@@ -76,7 +76,7 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         ideaProject.javaLanguageSettings.languageLevel == toJavaVersion(ideaProject.languageLevel)
 
         where:
-        sourceLanguageLevel << ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '1.9']
+        sourceLanguageLevel << ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
     }
 
     def "module java source settings are null for non-jvm projects"() {
@@ -91,7 +91,7 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         given:
         project.plugins.apply(JavaPlugin)
         child1.plugins.apply(JavaPlugin)
-        project.sourceCompatibility = '1.9'
+        project.sourceCompatibility = '19'
         child1.sourceCompatibility = sourceCompatibility
 
         when:
@@ -101,7 +101,7 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         ideaProject.modules.find { it.name == 'child1' }.javaLanguageSettings.languageLevel.toString() == sourceCompatibility
 
         where:
-        sourceCompatibility << ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8']
+        sourceCompatibility << ['1.1', '1.2', '1.3', '1.4', '1.5', '1.6', '1.7', '1.8', '9', '10', '11', '12', '13', '14', '15', '16', '17']
     }
 
     def "module language level is not inherited for non equal project and module language level"() {

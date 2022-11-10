@@ -814,13 +814,12 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         fails("first", "second")
 
         then:
-        // TODO - improve the error handling so as to report both failures as top level failures
-        // This documents existing behaviour, not desired behaviour
-        failure.assertHasDescription("Failed to notify build listener")
-        failure.assertHasCause("Failed to stop service 'counter1'.")
-        failure.assertHasCause("broken")
-        failure.assertHasCause("Failed to stop service 'counter2'.")
-        failure.assertHasCause("broken")
+        failure.assertHasFailure("Failed to stop service 'counter1'.") {
+            it.assertHasCause("broken")
+        }
+        failure.assertHasFailure("Failed to stop service 'counter2'.") {
+            it.assertHasCause("broken")
+        }
     }
 
     def serviceImplementation() {

@@ -46,7 +46,7 @@ import org.junit.ComparisonFailure
  */
 class ResolveTestFixture {
     final TestFile buildFile
-    final String config
+    String config
     private String defaultConfig = "default"
     private boolean buildArtifacts = true
     private boolean strictReasonsCheck
@@ -132,7 +132,7 @@ $content
      * Verifies the result of executing the task injected by {@link #prepare()}. The closure delegates to a {@link GraphBuilder} instance.
      */
     void expectGraph(@DelegatesTo(GraphBuilder) Closure closure) {
-        def graph = new GraphBuilder(defaultConfig)
+        def graph = new GraphBuilder()
         closure.resolveStrategy = Closure.DELEGATE_ONLY
         closure.delegate = graph
         closure.call()
@@ -390,9 +390,9 @@ $content
                 equals &= actualSorted.get(i).startsWith(expectedSorted.get(i))
             }
         }
-        def actualFormatted = Joiner.on("\n").join(actualSorted)
-        def expectedFormatted = Joiner.on("\n").join(expectedSorted)
         if (!equals) {
+            def actualFormatted = Joiner.on("\n").join(actualSorted)
+            def expectedFormatted = Joiner.on("\n").join(expectedSorted)
             throw new ComparisonFailure("Result contains unexpected $compType", expectedFormatted, actualFormatted);
         }
     }
@@ -400,13 +400,8 @@ $content
     static class GraphBuilder {
         private final Map<String, NodeBuilder> nodes = [:]
         private NodeBuilder root
-        private String defaultConfig
 
         final Set<String> virtualConfigurations = []
-
-        GraphBuilder(String defaultConfig) {
-            this.defaultConfig = defaultConfig
-        }
 
         Collection<NodeBuilder> getNodes() {
             return nodes.values()
@@ -699,7 +694,7 @@ $content
         /**
          * Defines a dependency on the given project. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
-        NodeBuilder project(String path, String value, @DelegatesTo(NodeBuilder) Closure cl) {
+        NodeBuilder project(String path, String value, @DelegatesTo(NodeBuilder) Closure cl = {}) {
             def node = addNode("project $path", value)
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = node

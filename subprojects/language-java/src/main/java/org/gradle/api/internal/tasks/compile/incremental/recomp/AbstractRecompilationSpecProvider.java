@@ -63,20 +63,21 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     @Override
-    public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
-        RecompilationSpec spec = new RecompilationSpec();
+    public RecompilationSpec provideRecompilationSpec(JavaCompileSpec spec, CurrentCompilation current, PreviousCompilation previous) {
+        RecompilationSpec recompilationSpec = new RecompilationSpec();
         SourceFileClassNameConverter sourceFileClassNameConverter = new FileNameDerivingClassNameConverter(previous.getSourceToClassConverter(), getFileExtensions());
 
-        processClasspathChanges(current, previous, spec);
+        processClasspathChanges(current, previous, recompilationSpec);
 
         SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
-        processSourceChanges(current, sourceFileChangeProcessor, spec, sourceFileClassNameConverter);
-        collectAllSourcePathsAndIndependentClasses(sourceFileChangeProcessor, spec, sourceFileClassNameConverter);
+        processSourceChanges(current, sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
+        processCompilerSpecificDependencies(spec, recompilationSpec, sourceFileChangeProcessor, sourceFileClassNameConverter);
+        collectAllSourcePathsAndIndependentClasses(sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
 
-        Set<String> typesToReprocess = previous.getTypesToReprocess(spec.getClassesToCompile());
-        processTypesToReprocess(typesToReprocess, spec, sourceFileClassNameConverter);
+        Set<String> typesToReprocess = previous.getTypesToReprocess(recompilationSpec.getClassesToCompile());
+        processTypesToReprocess(typesToReprocess, recompilationSpec, sourceFileClassNameConverter);
 
-        return spec;
+        return recompilationSpec;
     }
 
     protected abstract Set<String> getFileExtensions();
@@ -116,6 +117,13 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     private String rebuildClauseForChangedNonSourceFile(FileChange fileChange) {
         return String.format("%s '%s' has been %s", "resource", fileChange.getFile().getName(), fileChange.getChangeType().name().toLowerCase(Locale.US));
     }
+
+    protected abstract void processCompilerSpecificDependencies(
+        JavaCompileSpec spec,
+        RecompilationSpec recompilationSpec,
+        SourceFileChangeProcessor sourceFileChangeProcessor,
+        SourceFileClassNameConverter sourceFileClassNameConverter
+    );
 
     protected abstract boolean isIncrementalOnResourceChanges(CurrentCompilation currentCompilation);
 

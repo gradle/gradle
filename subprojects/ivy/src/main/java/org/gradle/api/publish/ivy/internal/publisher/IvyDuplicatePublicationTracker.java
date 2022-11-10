@@ -36,6 +36,6 @@ public class IvyDuplicatePublicationTracker {
     }
 
     public void checkCanPublish(PublicationInternal<?> publication, @Nullable URI repositoryLocation, String repositoryName) {
-        duplicatePublicationTracker.checkCanPublish(project, publication, repositoryLocation, repositoryName);
+        duplicatePublicationTracker.checkCanPublish(project.getDisplayName(), publication.getName(), publication.getCoordinates(), repositoryLocation, repositoryName);
     }
 }

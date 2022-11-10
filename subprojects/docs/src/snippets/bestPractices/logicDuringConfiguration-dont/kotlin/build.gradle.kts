@@ -22,7 +22,7 @@ tasks.register("printArtifactNames") {
     val libraryNames = configurations.compileClasspath.get().map { it.name }
 
     doLast {
-        logger.quiet(libraryNames.toString())
+        logger.quiet(libraryNames.joinToString())
     }
 }
 // end::config-logic[]

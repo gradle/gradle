@@ -119,7 +119,7 @@ import java.io.File;
  * A plugin that sets up the infrastructure for defining native binaries.
  */
 @Incubating
-public class NativeComponentModelPlugin implements Plugin<Project> {
+public abstract class NativeComponentModelPlugin implements Plugin<Project> {
     private final Instantiator instantiator;
     private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
 

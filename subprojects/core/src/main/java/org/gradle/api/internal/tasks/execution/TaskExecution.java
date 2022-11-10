@@ -334,17 +334,14 @@ public class TaskExecution implements UnitOfWork {
     public void visitOutputs(File workspace, OutputVisitor visitor) {
         TaskProperties taskProperties = context.getTaskProperties();
         for (OutputFilePropertySpec property : taskProperties.getOutputFileProperties()) {
-            File outputFile = property.getOutputFile();
-            if (outputFile != null) {
-                try {
-                    visitor.visitOutputProperty(
-                        property.getPropertyName(),
-                        property.getOutputType(),
-                        new OutputFileValueSupplier(outputFile, property.getPropertyFiles())
-                    );
-                } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
-                    throw decorateSnapshottingException("output", property.getPropertyName(), e.getCause());
-                }
+            try {
+                visitor.visitOutputProperty(
+                    property.getPropertyName(),
+                    property.getOutputType(),
+                    OutputFileValueSupplier.fromSupplier(property::getOutputFile, property.getPropertyFiles())
+                );
+            } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
+                throw decorateSnapshottingException("output", property.getPropertyName(), e.getCause());
             }
         }
         for (File localStateRoot : taskProperties.getLocalStateFiles()) {

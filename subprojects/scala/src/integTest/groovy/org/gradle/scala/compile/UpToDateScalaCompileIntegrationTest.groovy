@@ -20,13 +20,13 @@ import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
-import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.util.Requires
 
 import static org.gradle.api.JavaVersion.VERSION_11
 import static org.gradle.api.JavaVersion.VERSION_1_8
 
-class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainBuildOperationsFixture {
+class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, JavaToolchainBuildOperationsFixture {
 
     def setup() {
         file('src/main/scala/Person.scala') << "class Person(name: String)"
@@ -211,12 +211,5 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec implem
         then:
         skipped ":compileScala"
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
-    }
-
-    private withInstallations(JvmInstallationMetadata... jdkMetadata) {
-        def installationPaths = jdkMetadata.collect { it.javaHome.toAbsolutePath().toString() }.join(",")
-        executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
-        this
     }
 }
