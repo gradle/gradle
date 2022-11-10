@@ -22,11 +22,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.ResolvingValue;
-import org.gradle.api.internal.tasks.StaticValue;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.api.provider.Provider;
-import org.gradle.api.services.BuildService;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.execution.UnitOfWork;
@@ -237,9 +234,9 @@ public class DefaultTaskProperties implements TaskProperties {
         }
 
         @Override
-        public void visitServiceReference(String propertyName, boolean optional, Provider<? extends BuildService<?>> serviceProvider, @Nullable String serviceName) {
+        public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName) {
             // Service reference declared via annotation, validate it
-            taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, StaticValue.of(serviceProvider), optional, ValidationActions.NO_OP));
+            taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, value, optional, ValidationActions.NO_OP));
         }
 
         public List<ValidatingProperty> getTaskPropertySpecs() {
