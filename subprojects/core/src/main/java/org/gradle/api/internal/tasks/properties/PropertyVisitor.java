@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.provider.Provider;
-import org.gradle.api.services.BuildService;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
@@ -42,7 +40,7 @@ public interface PropertyVisitor {
     /**
      * Visits a service reference. Service references may or may not be declared with a name.
      */
-    void visitServiceReference(String propertyName, boolean optional, Provider<? extends BuildService<?>> value, @Nullable String serviceName);
+    void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName);
 
     class Adapter implements PropertyVisitor {
         @Override
@@ -66,7 +64,7 @@ public interface PropertyVisitor {
         }
 
         @Override
-        public void visitServiceReference(String propertyName, boolean optional, Provider<? extends BuildService<?>> value, @Nullable String serviceName) {
+        public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName) {
         }
     }
 }

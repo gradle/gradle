@@ -18,11 +18,11 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
-import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.internal.Cast;
 
@@ -50,7 +50,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
     @Nullable
     private Set<Provider<? extends BuildService<?>>> requiredServices;
 
-    public DefaultTaskRequiredServices(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, BuildServiceRegistry buildServiceRegistry) {
+    public DefaultTaskRequiredServices(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.propertyWalker = propertyWalker;
@@ -83,7 +83,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
 
     private Provider<? extends BuildService<?>> asBuildServiceProvider(Provider<? extends BuildService<?>> referenceProvider) {
         if (referenceProvider instanceof DefaultProperty) {
-            DefaultProperty asProperty = Cast.uncheckedNonnullCast(referenceProvider);
+            DefaultProperty<?> asProperty = Cast.uncheckedNonnullCast(referenceProvider);
             return Cast.uncheckedNonnullCast(asProperty.getProvider());
         }
         return referenceProvider;
@@ -92,15 +92,14 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
     private void visitServiceReferences(Consumer<Provider<? extends BuildService<?>>> visitor) {
         TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
             @Override
-            public void visitServiceReference(String propertyName, boolean optional, Provider<? extends BuildService<?>> referenceProvider, @Nullable String serviceName) {
-                visitor.accept(referenceProvider);
+            public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName) {
+                visitor.accept(Cast.uncheckedCast(value.call()));
             }
         });
     }
 
     @Override
     public void registerServiceUsage(Provider<? extends BuildService<?>> service) {
-        assert service != null;
         taskMutator.mutate("Task.usesService(Provider)", () -> {
             if (registeredServices == null) {
                 registeredServices = new HashSet<>();

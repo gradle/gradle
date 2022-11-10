@@ -139,7 +139,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         then:
         configurationCache.assertStateLoaded()
         failureDescriptionContains("Execution failed for task ':failedCount'.")
-        failureCauseContains("Cannot query the value of this property because it has no value available.")
+        failureCauseContains("Cannot query the value of task ':failedCount' property 'countingService' because it has no value available.")
     }
 
     private void withCountingServicePlugin(String registeredServiceName, String consumedServiceName) {

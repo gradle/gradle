@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Optional;
@@ -65,7 +64,7 @@ public class ServiceReferencePropertyAnnotationHandler implements PropertyAnnota
         if (propertyMetadata.isAnnotationPresent(ServiceReference.class)) {
             ServiceReference annotation = (ServiceReference) propertyMetadata.getAnnotationForCategory(AnnotationCategory.TYPE);
             String serviceName = StringUtils.trimToNull(annotation.value());
-            visitor.visitServiceReference(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), (Provider<BuildService<?>>) value.call(), serviceName);
+            visitor.visitServiceReference(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, serviceName);
         }
     }
 
