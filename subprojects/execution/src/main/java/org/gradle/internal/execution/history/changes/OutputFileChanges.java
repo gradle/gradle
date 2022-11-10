@@ -89,23 +89,26 @@ public class OutputFileChanges implements ChangeContainer {
                 // 1. The type of the snapshot is different.
                 // 2. The content hash of a regular file changed.
                 // In any case, the root needs to be reported as changed:
-                return visitor.visitChange(FINGERPRINT_CHANGE_FACTORY.modified(
+                if (visitor.visitChange(FINGERPRINT_CHANGE_FACTORY.modified(
                     currentSnapshot.getAbsolutePath(),
                     propertyTitle,
                     createRootFingerprint(previousSnapshot),
                     createRootFingerprint(currentSnapshot)
-                )) &&
+                ))) {
                     // Only one of the types will be a directory, so we now need to report all children of the other one.
-                    visitAllChildChanges(previousSnapshot, visitor, (relativePath, snapshot) -> FINGERPRINT_CHANGE_FACTORY.removed(
+                    if (visitAllChildChanges(previousSnapshot, visitor, (relativePath, snapshot) -> FINGERPRINT_CHANGE_FACTORY.removed(
                         snapshot.getAbsolutePath(),
                         propertyTitle,
                         createFingerprint(relativePath, snapshot)
-                    )) &&
-                    visitAllChildChanges(currentSnapshot, visitor, (relativePath, snapshot) -> FINGERPRINT_CHANGE_FACTORY.added(
-                        snapshot.getAbsolutePath(),
-                        propertyTitle,
-                        createFingerprint(relativePath, snapshot)
-                    ));
+                    ))) {
+                        return visitAllChildChanges(currentSnapshot, visitor, (relativePath, snapshot) -> FINGERPRINT_CHANGE_FACTORY.added(
+                            snapshot.getAbsolutePath(),
+                            propertyTitle,
+                            createFingerprint(relativePath, snapshot)
+                        ));
+                    }
+                }
+                return false;
             }
         }
 
