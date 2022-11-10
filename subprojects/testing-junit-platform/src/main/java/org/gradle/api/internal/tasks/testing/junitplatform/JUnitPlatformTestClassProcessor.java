@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor;
@@ -51,11 +52,13 @@ import static org.junit.platform.launcher.EngineFilter.includeEngines;
 import static org.junit.platform.launcher.TagFilter.excludeTags;
 import static org.junit.platform.launcher.TagFilter.includeTags;
 
-public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor<JUnitPlatformSpec> {
+public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor {
+    JUnitPlatformSpec spec;
     private CollectAllTestClassesExecutor testClassExecutor;
 
     public JUnitPlatformTestClassProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
-        super(spec, idGenerator, actorFactory, clock);
+        super(idGenerator, actorFactory, clock);
+        this.spec = spec;
     }
 
     @Override
@@ -162,9 +165,9 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
-        if (!spec.getIncludedTests().isEmpty() || !spec.getIncludedTestsCommandLine().isEmpty() || !spec.getExcludedTests().isEmpty()) {
-            TestSelectionMatcher matcher = new TestSelectionMatcher(spec.getIncludedTests(),
-                spec.getExcludedTests(), spec.getIncludedTestsCommandLine());
+        TestFilterSpec filter = spec.getFilter();
+        if (!filter.getIncludedTests().isEmpty() || !filter.getIncludedTestsCommandLine().isEmpty() || !filter.getExcludedTests().isEmpty()) {
+            TestSelectionMatcher matcher = new TestSelectionMatcher(filter);
             requestBuilder.filters(new ClassMethodNameFilter(matcher));
         }
     }

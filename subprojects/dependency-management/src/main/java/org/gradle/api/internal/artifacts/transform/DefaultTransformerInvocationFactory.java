@@ -397,9 +397,9 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             File outputDir = getOutputDir(workspace);
             File resultsFile = getResultsFile(workspace);
             visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, DIRECTORY,
-                new OutputFileValueSupplier(outputDir, fileCollectionFactory.fixed(outputDir)));
+                OutputFileValueSupplier.fromStatic(outputDir, fileCollectionFactory.fixed(outputDir)));
             visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, FILE,
-                new OutputFileValueSupplier(resultsFile, fileCollectionFactory.fixed(resultsFile)));
+                OutputFileValueSupplier.fromStatic(resultsFile, fileCollectionFactory.fixed(resultsFile)));
         }
 
         @Override

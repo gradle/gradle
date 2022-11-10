@@ -88,6 +88,7 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
                             'org.gradle.dependency.bundling': 'external',
                             'org.gradle.status': JavaBundlingResolveIntegrationTest.defaultStatus(),
                             'org.gradle.usage': 'java-api',
+                            'org.gradle.compile-view': 'java-internal',
                             'org.gradle.libraryelements': 'jar',
                             'org.gradle.category': 'library'
                     ])
@@ -155,7 +156,7 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
 
         then:
         if (shouldFail) {
-            failure.assertHasCause("No matching variant of org:producer:1.0 was found. The consumer was configured to find an API of a component, and its dependencies repackaged (shadow jar) but:")
+            failure.assertHasCause("No matching variant of org:producer:1.0 was found. The consumer was configured to find a component for use during compile-time, and its dependencies repackaged (shadow jar) but:")
         } else {
             resolve.expectGraph {
                 root(":", ":test:") {

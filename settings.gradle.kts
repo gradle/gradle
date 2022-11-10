@@ -13,12 +13,18 @@ pluginManagement {
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
             }
         }
+        jcenter {
+            content {
+                includeModule("org.openmbee.junit", "junit-xml-parser")
+                includeModule("org.codehaus.groovy.modules", "http-builder-ng-core")
+            }
+        }
         gradlePluginPortal()
     }
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.11.2") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.11.4") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("gradlebuild.base.allprojects")
     id("gradlebuild.internal.cc-experiment")
@@ -105,6 +111,7 @@ include("build-cache-http")
 include("testing-base")
 include("testing-native")
 include("testing-jvm")
+include("testing-jvm-infrastructure")
 include("testing-junit-platform")
 include("test-kit")
 include("installation-beacon")
