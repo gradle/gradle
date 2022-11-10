@@ -44,11 +44,50 @@ import java.util.Optional;
 import java.util.Set;
 
 public abstract class JavaEcosystemSupport {
+    /**
+     * The Java API of a library, packaged as a JAR only. Must not include classes directories.
+     *
+     * Available for compatibility with previously published modules.  Should <strong>NOT</strong> be used for new publishing.
+     * No plans for permanent removal.
+     */
+    @Deprecated
+    public static final String DEPRECATED_JAVA_API_JARS = "java-api-jars";
 
-    @SuppressWarnings("deprecation")
-    private static final String DEPRECATED_JAVA_API_JARS = Usage.JAVA_API_JARS;
-    @SuppressWarnings("deprecation")
-    private static final String DEPRECATED_JAVA_RUNTIME_JARS = Usage.JAVA_RUNTIME_JARS;
+    /**
+     * The Java runtime of a component, packaged as JAR only. Must not include classes directories.
+     *
+     * Available for compatibility with previously published modules.  Should <strong>NOT</strong> be used for new publishing.
+     * No plans for permanent removal.
+     */
+    @Deprecated
+    public static final String DEPRECATED_JAVA_RUNTIME_JARS = "java-runtime-jars";
+
+    /**
+     * The Java API of a library, packaged as class path elements, either a JAR or a classes directory. Should not include resources, but may.
+     *
+     * Available for compatibility with previously published modules.  Should <strong>NOT</strong> be used for new publishing.
+     * No plans for permanent removal.
+     */
+    @Deprecated
+    public static final String DEPRECATED_JAVA_API_CLASSES = "java-api-classes";
+
+    /**
+     * The Java runtime classes of a component, packaged as class path elements, either a JAR or a classes directory. Should not include resources, but may.
+     *
+     * Available for compatibility with previously published modules.  Should <strong>NOT</strong> be used for new publishing.
+     * No plans for permanent removal.
+     */
+    @Deprecated
+    public static final String DEPRECATED_JAVA_RUNTIME_CLASSES = "java-runtime-classes";
+
+    /**
+     * The Java runtime resources of a component, packaged as class path elements, either a JAR or a classes directory. Should not include classes, but may.
+     *
+     * Available for compatibility with previously published modules.  Should <strong>NOT</strong> be used for new publishing.
+     * No plans for permanent removal.
+     */
+    @Deprecated
+    public static final String DEPRECATED_JAVA_RUNTIME_RESOURCES = "java-runtime-resources";
 
     public static void configureSchema(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         configureUsage(attributesSchema, objectFactory);
@@ -181,7 +220,7 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
+    public static class UsageDisambiguationRules implements AttributeDisambiguationRule<Usage>, ReusableAction {
         final Usage javaApi;
         final Usage javaRuntime;
         final Usage javaApiJars;
@@ -191,7 +230,7 @@ public abstract class JavaEcosystemSupport {
         final ImmutableSet<Usage> runtimeVariants;
 
         @Inject
-        UsageDisambiguationRules(Usage javaApi,
+        public UsageDisambiguationRules(Usage javaApi,
                                  Usage javaApiJars,
                                  Usage javaRuntime,
                                  Usage javaRuntimeJars) {
@@ -242,7 +281,7 @@ public abstract class JavaEcosystemSupport {
     }
 
     @VisibleForTesting
-    static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage>, ReusableAction {
+    public static class UsageCompatibilityRules implements AttributeCompatibilityRule<Usage>, ReusableAction {
         private static final Set<String> COMPATIBLE_WITH_JAVA_API = ImmutableSet.of(
                 DEPRECATED_JAVA_API_JARS,
                 DEPRECATED_JAVA_RUNTIME_JARS,

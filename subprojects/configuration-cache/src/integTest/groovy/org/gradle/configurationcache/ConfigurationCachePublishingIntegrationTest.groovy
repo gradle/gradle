@@ -22,6 +22,8 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.util.internal.GUtil
 import org.junit.Rule
+import spock.lang.Ignore
+import spock.lang.Issue
 
 import static org.gradle.util.internal.GFileUtils.deleteDirectory
 import static org.gradle.util.internal.GFileUtils.listFiles
@@ -170,6 +172,8 @@ class ConfigurationCachePublishingIntegrationTest extends AbstractConfigurationC
         storeTimeMetadata == loadTimeMetadata
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/22618")
+    @Ignore("This relies on being able to reliably detect unsafe credentials")
     def "cannot use unsafe credentials provider with configuration cache"() {
         def username = "someuser"
         def password = "somepassword"
@@ -190,6 +194,8 @@ class ConfigurationCachePublishingIntegrationTest extends AbstractConfigurationC
         failure.assertHasCause("Credential values found in configuration for: repository testMavenRepo")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/22618")
+    @Ignore("This relies on being able to reliably detect unsafe credentials")
     def "cannot use identity-incompatible repository name credentials provider with configuration cache"() {
         def username = "someuser"
         def password = "somepassword"
