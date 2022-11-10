@@ -104,7 +104,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         for (stage in model.stages) {
             for (testCoverage in stage.functionalTests) {
                 if (testCoverage.testType !in listOf(TestType.allVersionsCrossVersion, TestType.quickFeedbackCrossVersion, TestType.soak)) {
-                    result[testCoverage] = splitBucketsByTestClassesForBuildProject(testCoverage, stage, buildProjectClassTimes)
+                    result[testCoverage] = splitBucketsByTestClassesForBuildProject(testCoverage, buildProjectClassTimes)
                 }
             }
         }
@@ -112,8 +112,8 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
     }
 
     private
-    fun splitBucketsByTestClassesForBuildProject(testCoverage: TestCoverage, stage: Stage, buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes): List<SmallSubprojectBucket> {
-        val validSubprojects = model.subprojects.getSubprojectsForFunctionalTest(testCoverage, stage)
+    fun splitBucketsByTestClassesForBuildProject(testCoverage: TestCoverage, buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes): List<SmallSubprojectBucket> {
+        val validSubprojects = model.subprojects.getSubprojectsForFunctionalTest(testCoverage)
         // Build project not found, don't split into buckets
         val subProjectToClassTimes: MutableMap<String, List<TestClassTime>> =
             determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap() ?: return validSubprojects.map { SmallSubprojectBucket(it, ParallelizationMethod.None) }

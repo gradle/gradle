@@ -88,7 +88,7 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
             // Sometimes people may add new subproject into `subprojects.json`
             // in this case we have no historical test running time, so we simply add these subprojects into first available bucket
             val allSubprojectsInBucketJson = buckets.flatMap { it.subprojects.map { it.name } }.toSet()
-            val allSubprojectsInModel = model.subprojects.subprojects.filter { it.hasTestsOf(testCoverage.testType) }.map { it.name }
+            val allSubprojectsInModel = model.subprojects.getSubprojectsForFunctionalTest(testCoverage).map { it.name }
             val subprojectsInModelButNotInBucketJson = allSubprojectsInModel.toMutableList().apply { removeAll(allSubprojectsInBucketJson) }
 
             if (subprojectsInModelButNotInBucketJson.isEmpty()) {

@@ -83,6 +83,7 @@ class DocsTest(
         model,
         this,
         "docs:platformTest",
+        os = os,
         timeout = 60,
         extraParameters = buildScanTag(docsTestName) +
             " -PenableConfigurationCacheForDocsTests=$configCacheEnabled" +
