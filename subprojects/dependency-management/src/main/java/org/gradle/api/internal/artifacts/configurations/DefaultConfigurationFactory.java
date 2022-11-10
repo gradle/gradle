@@ -138,22 +138,4 @@ public class DefaultConfigurationFactory {
             this
         );
     }
-
-    /**
-     * Assigns a usage role to a configuration at creation time, by setting internal usage flags (e.g. {@link ConfigurationInternal#isCanBeResolved()})
-     * and/or marking such usages as deprecated.
-     *
-     * @return the given configuration; now configured for a role
-     */
-    public static ConfigurationInternal assignRoleAtCreation(ConfigurationInternal configuration, ConfigurationRole role) {
-        configuration.setRoleAtCreation(role);
-        configuration.setCanBeConsumed(role.isConsumable());
-        configuration.setCanBeResolved(role.isResolvable());
-        configuration.setCanBeDeclaredAgainst(role.isDeclarableAgainst());
-        configuration.setDeprecatedForConsumption(role.isConsumptionDeprecated());
-        configuration.setDeprecatedForResolution(role.isResolutionDeprecated());
-        configuration.setDeprecatedForDeclarationAgainst(role.isDeclarationAgainstDeprecated());
-        configuration.preventUsageMutation();
-        return configuration;
-    }
 }
