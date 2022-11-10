@@ -87,10 +87,10 @@ public abstract class BasePlugin implements Plugin<Project> {
         ConfigurationContainerInternal configurations = (ConfigurationContainerInternal) project.getConfigurations();
         ((ProjectInternal)project).getInternalStatus().convention("integration");
 
-        final Configuration archivesConfiguration = configurations.maybeCreateWithRole(Dependency.ARCHIVES_CONFIGURATION, ConfigurationRoles.INTENDED_CONSUMABLE, false).
+        final Configuration archivesConfiguration = configurations.maybeCreateWithRole(Dependency.ARCHIVES_CONFIGURATION, ConfigurationRoles.INTENDED_CONSUMABLE, false, false).
             setDescription("Configuration for archive artifacts.");
 
-        final Configuration defaultConfiguration =  configurations.maybeCreateWithRole(Dependency.DEFAULT_CONFIGURATION, ConfigurationRoles.INTENDED_CONSUMABLE, false).
+        final Configuration defaultConfiguration =  configurations.maybeCreateWithRole(Dependency.DEFAULT_CONFIGURATION, ConfigurationRoles.INTENDED_CONSUMABLE, false, false).
             setDescription("Configuration for default artifacts.");
 
         final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(
