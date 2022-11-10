@@ -45,9 +45,6 @@ import spock.lang.Issue
 
 import javax.inject.Inject
 
-import static org.gradle.api.artifacts.transform.TransformAction.*
-import static org.gradle.api.artifacts.transform.TransformParameters.*
-import static org.gradle.api.services.internal.BuildServiceProvider.*
 import static org.hamcrest.CoreMatchers.containsString
 
 @ConfigurationCacheTest
@@ -142,6 +139,92 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'broken'
     }
 
+    @Issue("https://github.com/gradle/configuration-cache/issues/156")
+    def "does nag when service is used by artifact transform parameters and feature preview is enabled"() {
+        given:
+        serviceImplementation()
+        buildFile """
+            plugins {
+                id('java-library')
+            }
+            abstract class CounterTransform implements $TransformAction.name<Parameters> {
+                interface Parameters extends $TransformParameters.name {
+                    @$ServiceReference.name("counter")
+                    abstract Property<CountingService> getCounter()
+                }
+
+                @Override
+                void transform($TransformOutputs.name outputs) {
+                    println "Transforming ${UUID.randomUUID()}"
+                    parameters.counter.get().increment()
+                }
+            }
+
+            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+                maxParallelUsages = 1
+            }
+
+            def artifactType = Attribute.of('artifactType', String)
+            def counted = Attribute.of('counted', Boolean)
+
+            repositories {
+                mavenCentral()
+            }
+
+            configurations.all {
+                afterEvaluate {
+                    attributes.attribute(counted, true)
+                }
+            }
+
+            dependencies {
+                attributesSchema {
+                    attribute(artifactType)
+                }
+
+                artifactTypes.getByName("jar") {
+                    attributes.attribute(counted, false)
+                }
+            }
+
+            dependencies {
+                registerTransform(CounterTransform) {
+                    from.attribute(counted, false).attribute(artifactType, "jar")
+                    to.attribute(counted, true).attribute(artifactType, "jar")
+                }
+            }
+
+            dependencies {
+                implementation 'org.apache.commons:commons-lang3:3.10'
+            }
+        """
+        file("src/main/java").createDir()
+        file("src/main/java/Foo.java").createFile().text = """class Foo {}"""
+        enableStableConfigurationCache()
+        // should not be expected
+        executer.expectDocumentedDeprecationWarning(
+            "Build service 'counter' is being used by task ':compileJava' without the corresponding declaration via 'Task#usesService'. " +
+                "This behavior has been deprecated. " +
+                "This will fail with an error in Gradle 8.0. " +
+                "Declare the association between the task and the build service using 'Task#usesService'. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
+        )
+
+        when:
+        succeeds 'build'
+
+        then:
+        outputContains "Transforming"
+        outputContains """
+service: created with value = 10
+service: value is 11
+        """
+        outputContains """
+service: closed with value 11
+        """
+    }
+
     def "does not nag when service is used by task with an explicit usesService call and feature preview is enabled"() {
         given:
         serviceImplementation()
@@ -231,83 +314,6 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputDoesNotContain "'Task#usesService'"
-        outputContains """
-service: created with value = 10
-service: value is 11
-service: closed with value 11
-        """
-    }
-
-    @Issue("https://github.com/gradle/configuration-cache/issues/156")
-    def "can inject shared build service by name into artifact transform parameters when reference is annotated with @ServiceReference('...')"() {
-        given:
-        serviceImplementation()
-        buildFile """
-            plugins {
-                id('java-library')
-            }
-            abstract class CounterTransform implements $TransformAction.name<Parameters> {
-                interface Parameters extends $TransformParameters.name {
-                    @$ServiceReference.name("counter")
-                    abstract Property<CountingService> getCounter()
-                }
-
-                @Override
-                void transform($TransformOutputs.name outputs) {
-                    println "Transforming ${UUID.randomUUID()}"
-                    parameters.counter.get().increment()
-                }
-            }
-
-            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
-                parameters.initial = 10
-                maxParallelUsages = 1
-            }
-
-            def artifactType = Attribute.of('artifactType', String)
-            def counted = Attribute.of('counted', Boolean)
-
-            repositories {
-                mavenCentral()
-            }
-
-            configurations.all {
-                afterEvaluate {
-                    attributes.attribute(counted, true)
-                }
-            }
-
-            dependencies {
-                attributesSchema {
-                    attribute(artifactType)
-                }
-
-                artifactTypes.getByName("jar") {
-                    attributes.attribute(counted, false)
-                }
-            }
-
-            dependencies {
-                registerTransform(CounterTransform) {
-                    from.attribute(counted, false).attribute(artifactType, "jar")
-                    to.attribute(counted, true).attribute(artifactType, "jar")
-                }
-            }
-
-            dependencies {
-                implementation 'org.apache.commons:commons-lang3:3.10'
-            }
-        """
-        file("src/main/java").createDir()
-        file("src/main/java/Foo.java").createFile().text = """class Foo {}"""
-        enableStableConfigurationCache()
-
-        when:
-        succeeds 'build'
-
-        then:
-        outputDoesNotContain "'Task#usesService'"
-        outputContains "Transforming"
         outputContains """
 service: created with value = 10
 service: value is 11
