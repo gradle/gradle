@@ -36,6 +36,7 @@ Gradle provides several options that make it easy to configure the Java process 
 
 The final configuration taken into account by Gradle is a combination of all Gradle properties set on the command line and your `gradle.properties` files. If an option is configured in multiple locations, the _first one_ found in any of these locations wins:
 
+* command line, as set using `-D`.
 * `gradle.properties` in `GRADLE_USER_HOME` directory.
 * `gradle.properties` in the project's directory, then its parent project's directory up to the build's root directory.
 * `gradle.properties` in Gradle installation directory.
@@ -170,6 +171,13 @@ If you need to branch depending on the presence of the property, you can also us
 ====
 include::sample[dir="snippets/tutorial/gradleProperties/groovy",files="build.gradle[tags=gradle-properties-task-inputs]"]
 include::sample[dir="snippets/tutorial/gradleProperties/kotlin",files="build.gradle.kts[tags=gradle-properties-task-inputs]"]
+====
+
+.Setting Gradle properties from the command line
+====
+----
+$ gradle -DgradlePropertiesProp=commandLineValue
+----
 ====
 
 Note that <<init_scripts.adoc#init_scripts, initialization scripts>> can't read Gradle properties directly.
