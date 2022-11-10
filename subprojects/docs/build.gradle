@@ -752,10 +752,6 @@ tasks.named("docsTest") { task ->
                 "snippet-ivy-publish-quickstart_kotlin_publishingIvyPublishSingle.sample",
                 "snippet-tooling-api-custom-model_groovy_sanityCheck.sample",
 
-                // TODO(https://github.com/gradle/gradle/issues/21717)
-                "snippet-java-toolchain-filters_groovy_toolchainFilters.sample",
-                "snippet-java-toolchain-filters_kotlin_toolchainFilters.sample",
-
                 // TODO(https://github.com/gradle/gradle/issues/13470) Signing plugin support
                 "snippet-signing-configurations_groovy_signingArchivesOutput.sample",
                 "snippet-signing-configurations_kotlin_signingArchivesOutput.sample",
