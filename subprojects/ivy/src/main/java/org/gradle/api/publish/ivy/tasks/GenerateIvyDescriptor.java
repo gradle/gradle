@@ -42,7 +42,7 @@ import java.io.File;
  * @since 1.4
  */
 @UntrackedTask(because = "Gradle doesn't understand the data structures")
-public class GenerateIvyDescriptor extends DefaultTask {
+public abstract class GenerateIvyDescriptor extends DefaultTask {
 
     private IvyModuleDescriptorSpec descriptor;
     private Object destination;

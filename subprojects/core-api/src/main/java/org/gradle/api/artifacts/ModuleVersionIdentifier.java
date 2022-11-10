@@ -45,7 +45,7 @@ public interface ModuleVersionIdentifier extends Serializable {
 
     /**
      * Returns the {@link ModuleIdentifier} containing the group and the name of this module.
-     * Contains the same information as {@link #getGroup()} and {@link #getVersion()}
+     * Contains the same information as {@link #getGroup()} and {@link #getName()}
      *
      * @return the module identifier
      * @since 1.4

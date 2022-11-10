@@ -18,8 +18,8 @@ package org.gradle.test.fixtures.archive
 
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.ListMultimap
-import org.apache.tools.zip.ZipEntry
-import org.apache.tools.zip.ZipFile
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
+import org.apache.commons.compress.archivers.zip.ZipFile
 import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.charset.Charset
@@ -65,7 +65,7 @@ class ZipTestFixture extends ArchiveTestFixture {
         compressionMethodsByRelativePath.put(relativePath, compressionMethod)
     }
 
-    private String getContentForEntry(ZipEntry entry, ZipFile zipFile) {
+    private String getContentForEntry(ZipArchiveEntry entry, ZipFile zipFile) {
         def extension = entry.name.tokenize(".").last()
         if (!(extension in ["jar", "zip"])) {
             return zipFile.getInputStream(entry).getText(contentCharset)

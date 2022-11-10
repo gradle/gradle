@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPl
  * A plugin that creates tasks used for constructing native binaries.
  */
 @Incubating
-public class NativeComponentPlugin implements Plugin<Project> {
+public abstract class NativeComponentPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeComponentModelPlugin.class);

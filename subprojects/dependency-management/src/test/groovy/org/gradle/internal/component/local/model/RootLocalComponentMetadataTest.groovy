@@ -22,10 +22,12 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.locking.DefaultDependencyLockingState
+import org.gradle.util.TestUtil
 
 class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     DependencyLockingProvider dependencyLockingHandler
@@ -34,7 +36,7 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     @Override
     protected DefaultLocalComponentMetadata createMetadata() {
         dependencyLockingHandler = Mock(DependencyLockingProvider)
-        return new RootLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal), dependencyLockingHandler)
+        return new RootLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal), dependencyLockingHandler, RootScriptDomainObjectContext.INSTANCE, TestUtil.calculatedValueContainerFactory())
     }
 
     def 'locking constraints are attached to a configuration and not its children'() {

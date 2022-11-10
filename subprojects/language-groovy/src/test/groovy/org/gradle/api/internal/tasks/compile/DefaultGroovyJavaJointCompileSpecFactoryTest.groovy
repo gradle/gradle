@@ -17,13 +17,13 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -32,8 +32,8 @@ class DefaultGroovyJavaJointCompileSpecFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    def "produces correct spec type"() {
-        CompileOptions options = new CompileOptions(Mock(ObjectFactory))
+    def "produces correct spec type" () {
+        CompileOptions options = TestUtil.newInstance(CompileOptions.class, TestUtil.objectFactory())
         options.fork = fork
         options.forkOptions.executable = executable
         DefaultGroovyJavaJointCompileSpecFactory factory = new DefaultGroovyJavaJointCompileSpecFactory(options, null)
@@ -68,7 +68,7 @@ class DefaultGroovyJavaJointCompileSpecFactoryTest extends Specification {
         metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
         metadata.isCurrentJvm() >> (Jvm.current().javaHome == javaHome)
 
-        CompileOptions options = new CompileOptions(Mock(ObjectFactory))
+        CompileOptions options = TestUtil.newInstance(CompileOptions.class, TestUtil.objectFactory())
         options.fork = fork
         DefaultGroovyJavaJointCompileSpecFactory factory = new DefaultGroovyJavaJointCompileSpecFactory(options, metadata)
 
