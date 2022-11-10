@@ -16,15 +16,20 @@
 
 package org.gradle.api.services
 
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.LocalState
+import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
@@ -36,9 +41,13 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheTest
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
+import spock.lang.Issue
 
 import javax.inject.Inject
 
+import static org.gradle.api.artifacts.transform.TransformAction.*
+import static org.gradle.api.artifacts.transform.TransformParameters.*
+import static org.gradle.api.services.internal.BuildServiceProvider.*
 import static org.hamcrest.CoreMatchers.containsString
 
 @ConfigurationCacheTest
@@ -72,6 +81,54 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         given:
         serviceImplementation()
         adhocTaskUsingUndeclaredService(1)
+        enableStableConfigurationCache()
+        executer.expectDocumentedDeprecationWarning(
+            "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
+                "This behavior has been deprecated. " +
+                "This will fail with an error in Gradle 8.0. " +
+                "Declare the association between the task and the build service using 'Task#usesService'. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
+        )
+
+        expect:
+        succeeds 'broken'
+    }
+
+    @Issue("https://github.com/gradle/configuration-cache/issues/97")
+    def "does nag when service is used indirectly via another service even if task declares service reference and feature preview is enabled"() {
+        given:
+        serviceImplementation()
+        buildFile """
+            abstract class WrapperService implements ${BuildService.name}<${BuildServiceParameters.None.name}> {
+                @${ServiceReference.name}('counter')
+                abstract Property<CountingService> getCounter()
+
+                public void incrementIndirectly() {
+                    counter.get().increment()
+                }
+            }
+            abstract class Consumer extends DefaultTask {
+                @${ServiceReference.name}('wrapper')
+                abstract Property<WrapperService> getWrapper()
+                @TaskAction
+                def go() {
+                    wrapper.get().incrementIndirectly()
+                }
+            }
+
+            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+                maxParallelUsages = 1
+            }
+
+            gradle.sharedServices.registerIfAbsent("wrapper", WrapperService) {
+                maxParallelUsages = 1
+            }
+
+            task broken(type: Consumer) {
+                // reference will be set by name
+            }
+        """
         enableStableConfigurationCache()
         executer.expectDocumentedDeprecationWarning(
             "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
@@ -133,6 +190,131 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain "'Task#usesService'"
     }
 
+    def "can inject shared build service by name into nested bean property when reference is annotated with @ServiceReference('...')"() {
+        given:
+        serviceImplementation()
+        buildFile """
+            abstract class NestedBean {
+                @${ServiceReference.name}('counter')
+                abstract Property<CountingService> getCounter()
+            }
+            abstract class Consumer extends DefaultTask {
+                @${Nested.name}
+                final Property<NestedBean> nestedCounter = project.objects.property(NestedBean)
+
+                @TaskAction
+                def go() {
+                    assert nestedCounter.present
+                    nestedCounter.get().counter.get().increment()
+                }
+            }
+
+            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+                maxParallelUsages = 1
+            }
+
+            task named(type: Consumer) {
+                // reference will be set by name
+                nestedCounter.convention(providers.provider { objects.newInstance(NestedBean) } )
+                doLast {
+                    assert requiredServices.elements.any { service ->
+                        service instanceof ${BuildServiceProvider.name}
+                    }
+                }
+            }
+        """
+        enableStableConfigurationCache()
+
+        when:
+        succeeds 'named'
+
+        then:
+        outputDoesNotContain "'Task#usesService'"
+        outputContains """
+service: created with value = 10
+service: value is 11
+service: closed with value 11
+        """
+    }
+
+    @Issue("https://github.com/gradle/configuration-cache/issues/156")
+    def "can inject shared build service by name into artifact transform parameters when reference is annotated with @ServiceReference('...')"() {
+        given:
+        serviceImplementation()
+        buildFile """
+            plugins {
+                id('java-library')
+            }
+            abstract class CounterTransform implements $TransformAction.name<Parameters> {
+                interface Parameters extends $TransformParameters.name {
+                    @$ServiceReference.name("counter")
+                    abstract Property<CountingService> getCounter()
+                }
+
+                @Override
+                void transform($TransformOutputs.name outputs) {
+                    println "Transforming ${UUID.randomUUID()}"
+                    parameters.counter.get().increment()
+                }
+            }
+
+            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+                maxParallelUsages = 1
+            }
+
+            def artifactType = Attribute.of('artifactType', String)
+            def counted = Attribute.of('counted', Boolean)
+
+            repositories {
+                mavenCentral()
+            }
+
+            configurations.all {
+                afterEvaluate {
+                    attributes.attribute(counted, true)
+                }
+            }
+
+            dependencies {
+                attributesSchema {
+                    attribute(artifactType)
+                }
+
+                artifactTypes.getByName("jar") {
+                    attributes.attribute(counted, false)
+                }
+            }
+
+            dependencies {
+                registerTransform(CounterTransform) {
+                    from.attribute(counted, false).attribute(artifactType, "jar")
+                    to.attribute(counted, true).attribute(artifactType, "jar")
+                }
+            }
+
+            dependencies {
+                implementation 'org.apache.commons:commons-lang3:3.10'
+            }
+        """
+        file("src/main/java").createDir()
+        file("src/main/java/Foo.java").createFile().text = """class Foo {}"""
+        enableStableConfigurationCache()
+
+        when:
+        succeeds 'build'
+
+        then:
+        outputDoesNotContain "'Task#usesService'"
+        outputContains "Transforming"
+        outputContains """
+service: created with value = 10
+service: value is 11
+service: closed with value 11
+        """
+    }
+
     def "can inject shared build service by name when reference is annotated with @ServiceReference('...')"() {
         given:
         serviceImplementation()
@@ -146,7 +328,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             task named(type: Consumer) {
                 // reference will be set by name
                 doLast {
-                    assert requiredServices.requiredServices.any { service ->
+                    assert requiredServices.elements.any { service ->
                         service.type == CountingService
                     }
                 }

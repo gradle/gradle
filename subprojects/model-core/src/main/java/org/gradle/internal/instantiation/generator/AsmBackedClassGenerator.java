@@ -459,7 +459,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_VOID_FROM_META_CLASS = getMethodDescriptor(Type.VOID_TYPE, META_CLASS_TYPE);
         private static final String GET_DECLARED_METHOD_DESCRIPTOR = getMethodDescriptor(METHOD_TYPE, STRING_TYPE, CLASS_ARRAY_TYPE);
         private static final String RETURN_VOID_FROM_OBJECT_MODEL_OBJECT = getMethodDescriptor(VOID_TYPE, OBJECT_TYPE, MODEL_OBJECT_TYPE);
-        private static final String RETURN_VOID_FROM_DEFAULT_PROPERTY_SERVICE_REGISTRY_STRING = getMethodDescriptor(VOID_TYPE, DEFAULT_PROPERTY_TYPE, SERVICE_REGISTRY_TYPE, STRING_TYPE);
+        private static final String RETURN_VOID_FROM_DEFAULT_PROPERTY_SERVICE_LOOKUP_STRING = getMethodDescriptor(VOID_TYPE, DEFAULT_PROPERTY_TYPE, SERVICE_LOOKUP_TYPE, STRING_TYPE);
         private static final String RETURN_VOID_FROM_MODEL_OBJECT_DISPLAY_NAME = getMethodDescriptor(VOID_TYPE, MODEL_OBJECT_TYPE, DISPLAY_NAME_TYPE);
         private static final String RETURN_OBJECT_FROM_TYPE = getMethodDescriptor(OBJECT_TYPE, JAVA_LANG_REFLECT_TYPE);
         private static final String RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING = getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE);
@@ -1178,7 +1178,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _CHECKCAST(DEFAULT_PROPERTY_TYPE);
                 putServiceRegistryOnStack();
                 _LDC(serviceName);
-                _INVOKESTATIC(BUILD_SERVICE_PROVIDER_TYPE, "setBuildServiceAsConvention", RETURN_VOID_FROM_DEFAULT_PROPERTY_SERVICE_REGISTRY_STRING);
+                _INVOKESTATIC(BUILD_SERVICE_PROVIDER_TYPE, "setBuildServiceAsConvention", RETURN_VOID_FROM_DEFAULT_PROPERTY_SERVICE_LOOKUP_STRING);
             }
 
             protected void putServiceRegistryOnStack() {

@@ -96,11 +96,11 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
                 visitor.accept(referenceProvider);
             }
         });
-
     }
 
     @Override
     public void registerServiceUsage(Provider<? extends BuildService<?>> service) {
+        assert service != null;
         taskMutator.mutate("Task.usesService(Provider)", () -> {
             if (registeredServices == null) {
                 registeredServices = new HashSet<>();

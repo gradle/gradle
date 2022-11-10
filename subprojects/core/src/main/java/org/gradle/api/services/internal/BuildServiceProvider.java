@@ -23,7 +23,7 @@ import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.Cast;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nonnull;
@@ -66,8 +66,8 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
     }
 
     @SuppressWarnings("unused") // Used via instrumentation
-    public static <P extends BuildServiceParameters, T extends BuildService<P>> void setBuildServiceAsConvention(@Nonnull DefaultProperty<T> property, ServiceRegistry serviceRegistry, String buildServiceName) {
-        BuildServiceRegistryInternal buildServiceRegistry = (BuildServiceRegistryInternal) serviceRegistry.get(BuildServiceRegistry.class);
+    public static <P extends BuildServiceParameters, T extends BuildService<P>> void setBuildServiceAsConvention(@Nonnull DefaultProperty<T> property, ServiceLookup serviceLookup, String buildServiceName) {
+        BuildServiceRegistryInternal buildServiceRegistry = (BuildServiceRegistryInternal) serviceLookup.get(BuildServiceRegistry.class);
         BuildServiceProvider<T, P> consumer = Cast.uncheckedCast(buildServiceRegistry.consume(buildServiceName, property.getType()));
         property.convention(consumer);
     }
