@@ -32,7 +32,7 @@ jobs:
             If you feel this is something you could contribute, please have a look
             at our [Contributor Guide](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md).
             Thank you for your contribution.
-          days-before-issue-close: 21
+          days-before-issue-close: -1
           close-issue-message: >
             This issue has been automatically closed due to inactivity. If you can reproduce this on a
             recent version of Gradle or if you have a good use case for this feature, please feel free
@@ -49,7 +49,7 @@ jobs:
             Given the limited bandwidth of the team, it will be closed if no further activity occurs.
             If you intend to work on this pull request, please ask the team to reopen the PR or push a new PR.
             Thank you for your contributions.
-          days-before-pr-close: 21
+          days-before-pr-close: -1
           close-pr-message: >
             This pull request has been automatically closed due to inactivity.
             If you are still interested in contributing this, please ensure that
@@ -86,7 +86,7 @@ jobs:
             Given the limited bandwidth of the team, it will be closed if no further activity occurs.
             If you intend to work on this pull request, please ask the team to reopen the PR or push a new PR.
             Thank you for your contributions.
-          days-before-pr-close: 21
+          days-before-pr-close: -1
           close-pr-message: >
             This pull request has been automatically closed due to inactivity.
             If you are still interested in contributing this, please ensure that
