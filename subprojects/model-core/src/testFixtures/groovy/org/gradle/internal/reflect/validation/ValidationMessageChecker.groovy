@@ -828,7 +828,7 @@ trait ValidationMessageChecker {
         }
 
         AnnotationContext forTransformParameters() {
-            validAnnotations = "@Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested or @ReplacedBy"
+            validAnnotations = "@Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference"
             this
         }
 
