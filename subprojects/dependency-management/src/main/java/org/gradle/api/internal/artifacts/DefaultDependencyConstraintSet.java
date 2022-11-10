@@ -17,10 +17,11 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.DependencyConstraintSet;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
@@ -29,9 +30,9 @@ import java.util.List;
 
 public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<DependencyConstraint> implements DependencyConstraintSet {
     private final Describable displayName;
-    private final Configuration clientConfiguration;
+    private final ConfigurationInternal clientConfiguration;
 
-    public DefaultDependencyConstraintSet(Describable displayName, Configuration clientConfiguration, DomainObjectSet<DependencyConstraint> backingSet) {
+    public DefaultDependencyConstraintSet(Describable displayName, ConfigurationInternal clientConfiguration, DomainObjectSet<DependencyConstraint> backingSet) {
         super(backingSet);
         this.displayName = displayName;
         this.clientConfiguration = clientConfiguration;
@@ -44,6 +45,7 @@ public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<De
 
     @Override
     public boolean add(final DependencyConstraint dependencyConstraint) {
+        assertConfigurationIsDeclarableAgainst();
         warnIfConfigurationIsDeprecated();
         return addInternalDependencyConstraint(dependencyConstraint);
     }
@@ -57,9 +59,15 @@ public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<De
         List<String> alternatives = ((DeprecatableConfiguration) clientConfiguration).getDeclarationAlternatives();
         if (alternatives != null) {
             DeprecationLogger.deprecateConfiguration(clientConfiguration.getName()).forDependencyDeclaration().replaceWith(alternatives)
-                .willBecomeAnErrorInGradle8()
+                .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
                 .nagUser();
+        }
+    }
+
+    private void assertConfigurationIsDeclarableAgainst() {
+        if (!clientConfiguration.isCanBeDeclaredAgainst()) {
+            throw new GradleException("Dependency constraints can not be declared against the `" + clientConfiguration.getName() + "` configuration.");
         }
     }
 

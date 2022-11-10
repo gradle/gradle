@@ -506,10 +506,8 @@ Artifacts
         result.assertTaskExecuted(":customCompile")
     }
 
-    // This is not intended behavior, though it remains due to backwards compatibility.
-    // There is no reason to run processResources if only the classes are needed.
     @Issue("https://github.com/gradle/gradle/issues/22484")
-    def "executing task which depends on source set classes builds resources"() {
+    def "executing task which depends on source set classes does not build resources"() {
         buildFile("""
             plugins {
                 id 'java'
@@ -538,6 +536,6 @@ Artifacts
         succeeds "bar"
 
         then:
-        result.assertTasksExecuted(":compileJava", ":foo", ":processResources", ":classes", ":bar")
+        result.assertTasksExecuted(":compileJava", ":bar")
     }
 }
