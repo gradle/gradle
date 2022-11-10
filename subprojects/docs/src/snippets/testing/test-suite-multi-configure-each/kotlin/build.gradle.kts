@@ -54,7 +54,7 @@ val checkDependencies by tasks.registering {
 
     dependsOn(testRuntimeClasspath, integrationTestRuntimeClasspath, functionalTestRuntimeClasspath)
     doLast {
-        assert(testRuntimeClasspath.files.size == 13)
+        assert(testRuntimeClasspath.files.size == 14)
         assert(testRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })
         assert(integrationTestRuntimeClasspath.files.size == 13)
         assert(integrationTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" })

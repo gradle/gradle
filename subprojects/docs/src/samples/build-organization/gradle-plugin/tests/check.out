@@ -2,6 +2,7 @@
 > Task :greeting-plugin:pluginDescriptors
 > Task :greeting-plugin:processResources
 > Task :greeting-plugin:classes
+> Task :greeting-plugin:jar
 > Task :greeting-plugin:compileFunctionalTestJava
 > Task :greeting-plugin:processFunctionalTestResources NO-SOURCE
 > Task :greeting-plugin:functionalTestClasses

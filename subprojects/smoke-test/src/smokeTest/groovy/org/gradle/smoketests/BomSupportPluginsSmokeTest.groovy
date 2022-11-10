@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Ignore
 
 /**
  * https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
@@ -28,6 +29,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
     // This comes from the BOM
     static springVersion = "5.0.8.RELEASE"
 
+    @Ignore
     def 'bom support is provided by #bomSupportProvider'() {
         given:
         def springVersion = springVersion

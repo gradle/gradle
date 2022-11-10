@@ -29,7 +29,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         buildFile << """
             apply plugin: 'java'
 
-            def libsDir = file("\$buildDir/libs")
+            def libsDir = file("\$buildDir/extracted")
             task resolveLibs(type: Copy) {
                 from configurations.testCompileClasspath
                 into libsDir

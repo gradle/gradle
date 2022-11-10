@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.consistency
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.junit.Ignore
+import spock.lang.Ignore
 
 class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {

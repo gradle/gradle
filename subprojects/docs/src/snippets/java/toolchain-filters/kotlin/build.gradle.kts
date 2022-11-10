@@ -37,3 +37,12 @@ java {
 }
 // end::toolchain-matching-implementation[]
 }
+
+// At the end, set a toolchain which we expect to be installed.
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+        vendor.set(JvmVendorSpec.ADOPTIUM)
+        implementation.set(JvmImplementation.VENDOR_SPECIFIC)
+    }
+}

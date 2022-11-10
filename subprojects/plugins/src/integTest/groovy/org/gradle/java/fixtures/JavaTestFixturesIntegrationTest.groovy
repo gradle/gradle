@@ -22,9 +22,4 @@ class JavaTestFixturesIntegrationTest extends AbstractJavaTestFixturesIntegratio
         'java'
     }
 
-    @Override
-    List getSkippedJars(boolean compileClasspathPackaging) {
-        compileClasspathPackaging ? [] : [':testFixturesJar']
-    }
-
 }

@@ -22,11 +22,6 @@ class JavaLibraryTestFixturesIntegrationTest extends AbstractJavaTestFixturesInt
         'java-library'
     }
 
-    @Override
-    List getSkippedJars(boolean compileClasspathPackaging) {
-        compileClasspathPackaging ? [] : [':jar', ':testFixturesJar']
-    }
-
     def "can consume test fixtures of subproject written in Groovy"() {
         settingsFile << """
             include 'sub'
@@ -34,7 +29,7 @@ class JavaLibraryTestFixturesIntegrationTest extends AbstractJavaTestFixturesInt
         file("sub/build.gradle") << """
             apply plugin: 'java-test-fixtures'
             apply plugin: 'groovy'
-            
+
             dependencies {
                api(localGroovy())
                testFixturesApi(localGroovy())
@@ -43,7 +38,7 @@ class JavaLibraryTestFixturesIntegrationTest extends AbstractJavaTestFixturesInt
         buildFile << """
             dependencies {
                 testImplementation(testFixtures(project(":sub")))
-            }           
+            }
         """
         addPersonDomainClass("sub", "groovy")
         addPersonTestFixture("sub", "groovy")
