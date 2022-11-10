@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
+import org.gradle.api.logging.Logging;
 
 public interface ConfigurationContainerInternal extends ConfigurationContainer {
     @Override
@@ -41,15 +42,26 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
     default ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockRole) {
         ConfigurationInternal configuration = (ConfigurationInternal) create(name);
         RoleAssigner.assignRoleAtCreation(configuration, role, lockRole);
+        Logging.getLogger(ConfigurationContainerInternal.class).lifecycle("Created configuration {} with role {}", configuration.getName(), role.getName());
         return configuration;
     }
 
+    /**
+     * If it does not already exist, creates a new configuration in the same manner as {@link #maybeCreate(String)}, and then
+     * immediately assigns it a role by setting internal status flags to mark possible usage options
+     * for the configuration.
+     *
+     * If the configuration already exists, this method will <strong>NOT</strong>> change anything about it,
+     * including its role.
+     *
+     * This method will <strong>NOT</strong> verify that the given role matches an existing configuration's current usage.
+     */
     default ConfigurationInternal maybeCreateWithRole(String name, ConfigurationRole role) {
-        return maybeCreateWithRole(name, role, true, true);
+        return maybeCreateWithRole(name, role, true, false);
     }
 
     /**
-     * Creates a new configuration in the same manner as {@link #maybeCreate(String)}, and then
+     * If it does not already exist, creates a new configuration in the same manner as {@link #maybeCreate(String)}, and then
      * immediately assigns it a role by setting internal status flags to mark possible usage options
      * for the configuration.
      *
@@ -93,7 +105,8 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
      * for the configuration.
      */
     default ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockRole, Action<? super Configuration> configureAction) throws InvalidUserDataException {
-        ConfigurationInternal configuration = (ConfigurationInternal) create(name, configureAction);
+        ConfigurationInternal configuration = (ConfigurationInternal) create(name);
+        configureAction.execute(configuration);
         RoleAssigner.assignRoleAtCreation(configuration, role, lockRole);
         return configuration;
     }
@@ -107,7 +120,7 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
          *
          * @return the given configuration; now configured for a role
          */
-        public static void assignRoleAtCreation(ConfigurationInternal configuration, ConfigurationRole role, boolean lockRole) {
+        private static void assignRoleAtCreation(ConfigurationInternal configuration, ConfigurationRole role, boolean lockRole) {
             configuration.setRoleAtCreation(role);
             configuration.setCanBeConsumed(role.isConsumable());
             configuration.setCanBeResolved(role.isResolvable());
@@ -129,9 +142,26 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
                     && (role.isDeclarationAgainstDeprecated() == configuration.isDeprecatedForDeclarationAgainst());
         }
 
+        public static String describeDifferenceFromRole(ConfigurationInternal configuration, ConfigurationRole role) {
+            if (!isUsageConsistentWithRole(configuration, role)) {
+                return "Usage for configuration: " + configuration.getName() + " is not consistent with the role: " + role.getName() + ".\n" +
+                        "Expected that it is:\n" +
+                        role.describe() + "\n" +
+                        "But is actually is:\n" +
+                        "\tconsumable=" + configuration.isCanBeConsumed() +
+                        ", resolvable=" + configuration.isCanBeResolved() +
+                        ", declarableAgainst=" + configuration.isCanBeDeclaredAgainst() +
+                        ", deprecatedForConsumption=" + configuration.isDeprecatedForConsumption() +
+                        ", deprecatedForResolution=" + configuration.isDeprecatedForResolution() +
+                        ", deprecatedForDeclarationAgainst=" + configuration.isDeprecatedForDeclarationAgainst();
+            } else {
+                return "Usage for configuration: " + configuration.getName() + " is consistent with the role: " + role.getName() + ".";
+            }
+        }
+
         public static void assertIsInRole(ConfigurationInternal configuration, ConfigurationRole role) {
             if (!isUsageConsistentWithRole(configuration, role)) {
-                throw new IllegalStateException("Configuration '" + configuration.getName() + "' usage is not consistent with the role: " + role.getName());
+                throw new IllegalStateException(describeDifferenceFromRole(configuration, role));
             }
         }
     }
