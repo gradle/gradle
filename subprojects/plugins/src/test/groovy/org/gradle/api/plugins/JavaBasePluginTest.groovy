@@ -212,18 +212,17 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     }
 
     def "source and target compatibility are configured if toolchain is configured"() {
-        def currentVersion = Jvm.current().javaVersion
         given:
-        setupProjectWithToolchain(currentVersion)
+        setupProjectWithToolchain(Jvm.current().javaVersion)
 
         when:
         project.sourceSets.create('custom')
 
         then:
-        JavaVersion.toVersion(project.tasks.compileJava.getSourceCompatibility()) == currentVersion
-        JavaVersion.toVersion(project.tasks.compileJava.getTargetCompatibility()) == currentVersion
-        JavaVersion.toVersion(project.tasks.compileCustomJava.getSourceCompatibility()) == currentVersion
-        JavaVersion.toVersion(project.tasks.compileCustomJava.getTargetCompatibility()) == currentVersion
+        JavaVersion.toVersion(project.tasks.compileJava.getSourceCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileJava.getTargetCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileCustomJava.getSourceCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
+        JavaVersion.toVersion(project.tasks.compileCustomJava.getTargetCompatibility()).majorVersion == Jvm.current().javaVersion.majorVersion
     }
 
     def "wires toolchain for test if toolchain is configured"() {
@@ -361,7 +360,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def compile = project.task('customCompile', type: JavaCompile)
-        JavaVersion.toVersion(compile.sourceCompatibility) == project.sourceCompatibility
+        compile.sourceCompatibility == project.sourceCompatibility.toString()
 
         def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir
@@ -421,17 +420,12 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         }
 
         where:
-        consumer           | producer                | compatible
-        Usage.JAVA_API     | Usage.JAVA_API          | true
-        Usage.JAVA_API     | Usage.JAVA_RUNTIME      | true
+        consumer                     | producer                     | compatible
+        Usage.JAVA_API               | Usage.JAVA_API               | true
+        Usage.JAVA_API               | Usage.JAVA_RUNTIME           | true
 
-        Usage.JAVA_RUNTIME | Usage.JAVA_API          | false
-        Usage.JAVA_RUNTIME | Usage.JAVA_RUNTIME      | true
-
-        // Temporary compatibility
-        Usage.JAVA_API     | Usage.JAVA_RUNTIME_JARS | true
-        Usage.JAVA_RUNTIME | Usage.JAVA_RUNTIME_JARS | true
-
+        Usage.JAVA_RUNTIME           | Usage.JAVA_API               | false
+        Usage.JAVA_RUNTIME           | Usage.JAVA_RUNTIME           | true
     }
 
     @Issue("gradle/gradle#8700")
@@ -439,11 +433,11 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         given:
         JavaEcosystemSupport.UsageDisambiguationRules rules = new JavaEcosystemSupport.UsageDisambiguationRules(
             usage(Usage.JAVA_API),
-            usage(Usage.JAVA_API_JARS),
+            usage(JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS),
             usage(Usage.JAVA_RUNTIME),
-            usage(Usage.JAVA_RUNTIME_JARS)
+            usage(JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS)
         )
-        MultipleCandidatesDetails details = new DefaultMultipleCandidateResult(usage(consumer), candidates.collect { usage(it) } as Set)
+        MultipleCandidatesDetails details = new DefaultMultipleCandidateResult(usage(consumer), candidates.collect { usage(it)} as Set)
 
         when:
         rules.execute(details)
@@ -456,18 +450,9 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         details
 
         where: // not exhaustive, tests pathological cases
-        consumer           | candidates                                                     | preferred
-        Usage.JAVA_API     | [Usage.JAVA_API, Usage.JAVA_RUNTIME]                           | Usage.JAVA_API
-        Usage.JAVA_RUNTIME | [Usage.JAVA_RUNTIME, Usage.JAVA_API]                           | Usage.JAVA_RUNTIME
-
-        //Temporary compatibility
-        Usage.JAVA_API     | [Usage.JAVA_API_JARS, Usage.JAVA_RUNTIME_JARS]                 | Usage.JAVA_API_JARS
-        Usage.JAVA_RUNTIME | [Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS]                      | Usage.JAVA_RUNTIME_JARS
-
-        // while unlikely that a candidate would expose both JAVA_API_JARS and JAVA_API,
-        // this confirms that JAVA_API_JARS takes precedence, per JavaEcosystemSupport
-        Usage.JAVA_API     | [Usage.JAVA_API_JARS, Usage.JAVA_API, Usage.JAVA_RUNTIME_JARS] | Usage.JAVA_API_JARS
-
+        consumer                | candidates                                     | preferred
+        Usage.JAVA_API          | [Usage.JAVA_API, Usage.JAVA_RUNTIME]           | Usage.JAVA_API
+        Usage.JAVA_RUNTIME      | [Usage.JAVA_RUNTIME, Usage.JAVA_API]           | Usage.JAVA_RUNTIME
     }
 
     private Usage usage(String value) {

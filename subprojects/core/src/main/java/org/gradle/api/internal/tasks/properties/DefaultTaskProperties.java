@@ -21,7 +21,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.tasks.StaticValue;
+import org.gradle.api.internal.tasks.ResolvingValue;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
@@ -222,7 +222,7 @@ public class DefaultTaskProperties implements TaskProperties {
         public void visitUnpackedOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertySpec spec) {
             taskPropertySpecs.add(new DefaultValidatingProperty(
                 propertyName,
-                new StaticValue(spec.getOutputFile()),
+                new ResolvingValue(value, delegate -> spec.getOutputFile()),
                 optional,
                 ValidationActions.outputValidationActionFor(spec))
             );

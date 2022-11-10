@@ -19,10 +19,11 @@ package org.gradle.api.plugins
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.internal.TextUtil
 
-class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
+class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
     def "can define and build a source set with implementation dependencies"() {
         settingsFile << """
@@ -158,13 +159,6 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
         null       | null        | null            | "9"        | "11"          | "9"                  | "9"
         null       | null        | null            | null       | "11"          | "11"                 | "11"
         null       | null        | null            | null       | null          | currentJavaVersion() | currentJavaVersion()
-    }
-
-    private withInstallations(Jvm... jvm) {
-        def installationPaths = jvm.collect { it.javaHome.absolutePath }.join(",")
-        executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
-        this
     }
 
     private static String currentJavaVersion() {
