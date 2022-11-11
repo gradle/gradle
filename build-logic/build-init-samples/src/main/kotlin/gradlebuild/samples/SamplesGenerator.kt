@@ -142,6 +142,20 @@ Enter selection (default: JUnit 4) [1..4]
         else
             "link:{userManualPath}/${descriptor.language.name}_plugin.html[${descriptor.language} Plugin]"
 
+        val pluginType = if (descriptor.componentType === ComponentType.LIBRARY) "Library" else "Application"
+        val configurationCacheCompatMatrixLink = "link:{userManualPath}/configuration_cache.html#config_cache:plugins:core"
+        val configurationCacheCompatibility = when (descriptor.language) {
+            Language.CPP -> {
+                "WARNING: The {cpp} $pluginType Plugin is not compatible with the $configurationCacheCompatMatrixLink[configuration cache]."
+            }
+            Language.SWIFT -> {
+                "WARNING: The Swift $pluginType Plugin is not compatible with the $configurationCacheCompatMatrixLink[configuration cache]."
+            }
+            else -> {
+                ""
+            }
+        }
+
         projectLayoutSetupRegistry.templateOperationFactory.newTemplateOperation()
             .withTemplate(templateFolder.template("$templateFragment.adoc"))
             .withTarget(settings.target.file("../README.adoc").asFile)
@@ -164,6 +178,7 @@ Enter selection (default: JUnit 4) [1..4]
             .withBinding("testFrameworkChoice", testFrameworkChoice)
             .withBinding("tasksExecuted", "" + tasksExecuted(descriptor))
             .withBinding("languagePluginDocsLink", "" + languagePluginDocsLink)
+            .withBinding("configurationCacheCompatibility", configurationCacheCompatibility)
             .create().generate()
     }
 
