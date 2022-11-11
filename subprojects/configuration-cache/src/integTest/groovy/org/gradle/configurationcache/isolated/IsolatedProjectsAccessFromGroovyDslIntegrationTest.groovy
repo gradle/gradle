@@ -469,13 +469,14 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         where:
         statement                            | tasksToRun                       | shouldSucceed
         "graph.hasTask(':b:bTask')"          | [":b:help"]                      | true
+        "graph.hasTask(':b:help')"           | [":b:help"]                      | true
         "graph.hasTask(':help')"             | [":b:help"]                      | false
         "graph.hasTask(':x:unknown')"        | [":b:help"]                      | false
-        "graph.allTasks"                     | [":b:help"]                      | true
+        "graph.allTasks"                     | [":b:help"]                      | false
         "graph.allTasks"                     | [":b:help", ":help"]             | false
-        "graph.getDependencies(help)"        | [":b:help"]                      | true
+        "graph.getDependencies(help)"        | [":b:help"]                      | false
         "graph.getDependencies(compileJava)" | [":b:compileJava"]               | false
-        "graph.filteredTasks"                | [":b:compileJava"]               | true
+        "graph.filteredTasks"                | [":b:compileJava"]               | false
         "graph.filteredTasks"                | [":b:compileJava", "-x:classes"] | false
     }
 
