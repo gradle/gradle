@@ -30,6 +30,8 @@ public class GradleEnterprisePluginServices extends AbstractPluginServiceRegistr
         // legacy
         registration.add(DefaultBuildScanClock.class);
         registration.add(DefaultBuildScanBuildStartedTime.class);
+        registration.add(GradleEnterpriseAutoAppliedPluginRegistry.class);
+        registration.add(GradleEnterprisePluginAutoAppliedStatus.class);
     }
 
     @Override
