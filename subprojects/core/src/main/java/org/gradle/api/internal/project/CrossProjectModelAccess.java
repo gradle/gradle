@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -61,4 +62,12 @@ public interface CrossProjectModelAccess {
      * @return A Gradle instance that implements correct cross-project model access.
      */
     GradleInternal gradleInstanceForProject(ProjectInternal referrerProject, GradleInternal gradle);
+
+    /**
+     * Provides an implementation of a tracker that handles the usages of TaskDependency API in the context
+     * of the current project. The tracker checks that the usages for possible violation of cross-project model access restriction.
+     * @param referrerProject The project providing the context.
+     */
+    @Nullable
+    TaskDependencyUsageTracker taskDependencyUsageTracker(ProjectInternal referrerProject);
 }

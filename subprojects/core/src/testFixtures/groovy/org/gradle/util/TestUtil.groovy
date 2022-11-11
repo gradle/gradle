@@ -36,6 +36,7 @@ import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
+import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
@@ -97,6 +98,10 @@ class TestUtil {
         return services().get(ProviderFactory)
     }
 
+    static TaskDependencyFactory taskDependencyFactory() {
+        return services().get(TaskDependencyFactory)
+    }
+
     static PropertyFactory propertyFactory() {
         return services().get(PropertyFactory)
     }
@@ -133,15 +138,16 @@ class TestUtil {
             it.add(MutationGuard, MutationGuards.identity())
             it.add(DefaultDomainObjectCollectionFactory)
             it.add(PropertyHost, PropertyHost.NO_OP)
+            it.add(TaskDependencyFactory, DefaultTaskDependencyFactory.withNoAssociatedProject())
             it.add(DefaultPropertyFactory)
             it.addProvider(new Object() {
                 InstantiatorFactory createInstantiatorFactory() {
                     TestUtil.instantiatorFactory()
                 }
 
-                ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, NamedObjectInstantiator namedObjectInstantiator, DomainObjectCollectionFactory domainObjectCollectionFactory, PropertyFactory propertyFactory) {
+                ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, NamedObjectInstantiator namedObjectInstantiator, DomainObjectCollectionFactory domainObjectCollectionFactory, TaskDependencyFactory taskDependencyFactory, PropertyFactory propertyFactory) {
                     def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
-                    return new DefaultObjectFactory(instantiatorFactory.decorate(services), namedObjectInstantiator, TestFiles.directoryFileTreeFactory(), TestFiles.patternSetFactory, propertyFactory, filePropertyFactory, fileCollectionFactory, domainObjectCollectionFactory)
+                    return new DefaultObjectFactory(instantiatorFactory.decorate(services), namedObjectInstantiator, TestFiles.directoryFileTreeFactory(), TestFiles.patternSetFactory, propertyFactory, filePropertyFactory, taskDependencyFactory, fileCollectionFactory, domainObjectCollectionFactory)
                 }
 
                 ProjectLayout createProjectLayout() {

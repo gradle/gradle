@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Task;
 
-import java.util.function.Consumer;
+import java.util.Set;
 
-public interface TaskDependencyFactory {
-    DefaultTaskDependency configurableDependency();
-    DefaultTaskDependency configurableDependency(ImmutableSet<Object> dependencies);
-
-    DefaultTaskDependency visitingDependencies(Consumer<? super TaskDependencyResolveContext> visitDependencies);
+public interface TaskDependencyUsageTracker {
+    void onTaskDependencyUsage(Set<? extends Task> taskDependencies);
 }

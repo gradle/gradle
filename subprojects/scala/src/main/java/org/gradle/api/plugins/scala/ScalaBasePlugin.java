@@ -36,6 +36,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.scala.DefaultScalaPluginExtension;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
@@ -100,7 +101,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
     private final JvmEcosystemUtilities jvmEcosystemUtilities;
 
     @Inject
-    public ScalaBasePlugin(ObjectFactory objectFactory, JvmEcosystemUtilities jvmEcosystemUtilities) {
+    public ScalaBasePlugin(ObjectFactory objectFactory, JvmEcosystemUtilities jvmEcosystemUtilities, TaskDependencyFactory taskDependencyFactory) {
         this.objectFactory = objectFactory;
         this.jvmEcosystemUtilities = jvmEcosystemUtilities;
     }

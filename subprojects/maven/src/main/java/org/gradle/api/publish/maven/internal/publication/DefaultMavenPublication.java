@@ -56,6 +56,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -153,6 +154,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final VersionMappingStrategyInternal versionMappingStrategy;
+    private final TaskDependencyFactory taskDependencyFactory;
     private final PlatformSupport platformSupport;
     private final Set<String> silencedVariants = new HashSet<>();
     private MavenArtifact pomArtifact;
@@ -174,7 +176,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         ObjectFactory objectFactory, ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
         ImmutableAttributesFactory immutableAttributesFactory,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy,
-        PlatformSupport platformSupport, DocumentationRegistry documentationRegistry) {
+        PlatformSupport platformSupport, DocumentationRegistry documentationRegistry, TaskDependencyFactory taskDependencyFactory
+    ) {
         this.name = name;
         this.projectDependencyResolver = projectDependencyResolver;
         this.projectIdentity = projectIdentity;
@@ -184,9 +187,10 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         this.mainArtifacts = instantiator.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory, collectionCallbackActionDecorator);
         this.metadataArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         derivedArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
-        publishableArtifacts = new CompositePublicationArtifactSet<>(MavenArtifact.class, Cast.uncheckedCast(new PublicationArtifactSet<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}));
+        publishableArtifacts = new CompositePublicationArtifactSet<>(taskDependencyFactory, MavenArtifact.class, Cast.uncheckedCast(new PublicationArtifactSet<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}));
         pom = instantiator.newInstance(DefaultMavenPom.class, this, instantiator, objectFactory);
         this.documentationRegistry = documentationRegistry;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
@@ -235,7 +239,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         if (pomArtifact != null) {
             metadataArtifacts.remove(pomArtifact);
         }
-        pomArtifact = new SingleOutputTaskMavenArtifact(pomGenerator, "pom", null);
+        pomArtifact = new SingleOutputTaskMavenArtifact(pomGenerator, "pom", null, taskDependencyFactory);
         metadataArtifacts.add(pomArtifact);
     }
 
@@ -256,7 +260,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         if (moduleDescriptorGenerator == null) {
             return;
         }
-        moduleMetadataArtifact = new SingleOutputTaskMavenArtifact(moduleDescriptorGenerator, "module", null);
+        moduleMetadataArtifact = new SingleOutputTaskMavenArtifact(moduleDescriptorGenerator, "module", null, taskDependencyFactory);
         metadataArtifacts.add(moduleMetadataArtifact);
         moduleDescriptorGenerator = null;
     }
@@ -587,7 +591,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     @Override
     public MavenArtifact addDerivedArtifact(MavenArtifact originalArtifact, DerivedArtifact file) {
-        MavenArtifact artifact = new DerivedMavenArtifact((AbstractMavenArtifact) originalArtifact, file);
+        MavenArtifact artifact = new DerivedMavenArtifact((AbstractMavenArtifact) originalArtifact, file, taskDependencyFactory);
         derivedArtifacts.add(artifact);
         return artifact;
     }

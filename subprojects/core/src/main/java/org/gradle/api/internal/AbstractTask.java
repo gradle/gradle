@@ -39,7 +39,7 @@ import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
@@ -181,23 +181,23 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         assert project != null;
         assert identity.name != null;
         this.state = new TaskStateInternal();
-        TaskContainerInternal tasks = project.getTasks();
-        this.mustRunAfter = new DefaultTaskDependency(tasks);
-        this.finalizedBy = new DefaultTaskDependency(tasks);
-        this.shouldRunAfter = new DefaultTaskDependency(tasks);
-        this.lifecycleDependencies = new DefaultTaskDependency(tasks);
+        final TaskDependencyFactory taskDependencyFactory = project.getTaskDependencyFactory();
+        this.mustRunAfter = taskDependencyFactory.configurableDependency();
+        this.finalizedBy = taskDependencyFactory.configurableDependency();
+        this.shouldRunAfter = taskDependencyFactory.configurableDependency();
+        this.lifecycleDependencies = taskDependencyFactory.configurableDependency();
 
         this.services = project.getServices();
 
         PropertyWalker propertyWalker = services.get(PropertyWalker.class);
         FileCollectionFactory fileCollectionFactory = services.get(FileCollectionFactory.class);
         taskMutator = new TaskMutator(this);
-        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, fileCollectionFactory);
-        taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, fileCollectionFactory);
+        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, project.getTaskDependencyFactory(), fileCollectionFactory);
+        taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, project.getTaskDependencyFactory(), fileCollectionFactory);
         taskDestroyables = new DefaultTaskDestroyables(taskMutator, fileCollectionFactory);
         taskLocalState = new DefaultTaskLocalState(taskMutator, fileCollectionFactory);
 
-        this.dependencies = new DefaultTaskDependency(tasks, ImmutableSet.of(taskInputs, lifecycleDependencies));
+        this.dependencies = taskDependencyFactory.configurableDependency(ImmutableSet.of(taskInputs, lifecycleDependencies));
 
         this.timeout = project.getObjects().property(Duration.class);
     }

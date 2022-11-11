@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 
@@ -30,8 +31,12 @@ public abstract class AbstractOpaqueFileCollection extends AbstractFileCollectio
     public AbstractOpaqueFileCollection() {
     }
 
-    public AbstractOpaqueFileCollection(Factory<PatternSet> patternSetFactory) {
-        super(patternSetFactory);
+    public AbstractOpaqueFileCollection(TaskDependencyFactory taskDependencyFactory) {
+        super(taskDependencyFactory);
+    }
+
+    public AbstractOpaqueFileCollection(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+        super(taskDependencyFactory, patternSetFactory);
     }
 
     /**
