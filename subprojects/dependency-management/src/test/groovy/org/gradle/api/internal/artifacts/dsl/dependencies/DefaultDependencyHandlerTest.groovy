@@ -88,7 +88,7 @@ class DefaultDependencyHandlerTest extends Specification {
 
         when:
         def result = dependencyHandler.add(TEST_CONF_NAME, "someNotation") {
-            force = true
+            because 'It is necessary'
         }
 
         then:
@@ -96,7 +96,7 @@ class DefaultDependencyHandlerTest extends Specification {
 
         and:
         1 * dependencyFactory.createDependency("someNotation") >> dependency
-        1 * dependency.setForce(true)
+        1 * dependency.because('It is necessary')
         1 * dependencySet.add(dependency)
     }
 
@@ -118,7 +118,6 @@ class DefaultDependencyHandlerTest extends Specification {
 
         when:
         def result = dependencyHandler.create("someNotation") {
-            force = true
             version {
                 it.require '1.0'
             }
@@ -129,7 +128,6 @@ class DefaultDependencyHandlerTest extends Specification {
 
         and:
         1 * dependencyFactory.createDependency("someNotation") >> dependency
-        1 * dependency.setForce(true)
         1 * dependency.version(_ as Action<VersionConstraint>)
     }
 
@@ -152,7 +150,7 @@ class DefaultDependencyHandlerTest extends Specification {
         ExternalDependency dependency = Mock()
 
         when:
-        def result = dependencyHandler.someConf("someNotation") { force = true }
+        def result = dependencyHandler.someConf("someNotation") { because "It's really important" }
 
         then:
         result == dependency
@@ -160,7 +158,7 @@ class DefaultDependencyHandlerTest extends Specification {
         and:
         1 * dependencyFactory.createDependency("someNotation") >> dependency
         1 * dependencySet.add(dependency)
-        1 * dependency.setForce(true)
+        1 * dependency.because("It's really important")
     }
 
     void "can use dynamic method to add multiple dependencies"() {
