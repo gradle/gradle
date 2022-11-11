@@ -30,7 +30,6 @@ import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceSpec;
 import org.gradle.internal.build.ExecutionResult;
-import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -108,7 +107,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     @Override
     public SharedResource forService(BuildServiceProvider<?, ?> service) {
         String serviceName = service.getName();
-        DefaultServiceRegistration<?, ?> registration = findByName(serviceName);
+        DefaultServiceRegistration<?, ?> registration = uncheckedCast(findByName(serviceName));
         if (registration == null) {
             // no corresponding service registered
             return null;
@@ -125,9 +124,10 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         });
     }
 
+    @Override
     @Nullable
-    private DefaultServiceRegistration<?, ?> findByName(String name) {
-        return (DefaultServiceRegistration<?, ?>) withRegistrations(registrations -> registrations.findByName(name));
+    public BuildServiceRegistration<?, ?> findByName(String name) {
+        return withRegistrations(registrations -> registrations.findByName(name));
     }
 
     @Override
@@ -174,7 +174,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     private BuildServiceProvider<?, ?> asBuildServiceProvider(Provider<? extends BuildService<?>> service) {
         if (service instanceof BuildServiceProvider) {
-            return Cast.uncheckedCast(service);
+            return uncheckedCast(service);
         }
         throw new UnsupportedOperationException("Unexpected provider for a build service: " + service);
     }
@@ -199,7 +199,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     @Override
     public BuildServiceProvider<?, ?> consume(String name, Class<? extends BuildService<?>> implementationType) {
-        return doConsume(name, Cast.uncheckedCast(implementationType));
+        return doConsume(name, uncheckedCast(implementationType));
     }
 
     private <T extends BuildService<BuildServiceParameters>> BuildServiceProvider<T, BuildServiceParameters> doConsume(String name, Class<T> implementationType) {

@@ -34,7 +34,7 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     private final String serviceName;
     private final Class<T> serviceType;
     private final BuildIdentifier buildIdentifier;
-    private BuildServiceProvider<T, BuildServiceParameters> resolvedProvider;
+    private volatile BuildServiceProvider<T, BuildServiceParameters> resolvedProvider;
 
     public ConsumedBuildServiceProvider(
         BuildIdentifier buildIdentifier,
@@ -61,7 +61,7 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     private BuildServiceProvider<T, BuildServiceParameters> resolve() {
         if (resolvedProvider == null) {
             BuildServiceRegistry buildServiceRegistry = internalServices.get(BuildServiceRegistry.class);
-            BuildServiceRegistration<?, ?> registration = buildServiceRegistry.getRegistrations().findByName(serviceName);
+            BuildServiceRegistration<?, ?> registration = ((BuildServiceRegistryInternal) buildServiceRegistry).findByName(serviceName);
             if (registration == null) {
                 return null;
             }
