@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 public interface ConfigurationContainerInternal extends ConfigurationContainer {
     @Override
@@ -128,6 +129,12 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
             configuration.setDeprecatedForDeclarationAgainst(role.isDeclarationAgainstDeprecated());
             if (lockRole) {
                 configuration.preventUsageMutation();
+            }
+            if (ConfigurationRoles.getDeprecatedRoles().contains(role)) {
+                DeprecationLogger.deprecateBehaviour("The configuration role: " + role.getName() + " is deprecated and should no longer be used.")
+                        .willBecomeAnErrorInGradle9()
+                        .withUpgradeGuideSection(8, "deprecated_configurations_should_not_be_used")
+                        .nagUser();;
             }
         }
 
