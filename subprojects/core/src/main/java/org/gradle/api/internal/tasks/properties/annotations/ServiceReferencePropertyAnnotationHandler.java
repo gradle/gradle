@@ -84,7 +84,6 @@ public class ServiceReferencePropertyAnnotationHandler implements PropertyAnnota
                     .addPossibleSolution(String.format("Replace the @ServiceReference annotation on '%s' with @Internal and assign a value of type '%s' explicitly", propertyMetadata.getPropertyName(), typeVariables.get(0).getName()))
                     .documentedAt("validation_problems", "service_reference_must_be_a_build_service")
             );
-            return;
         }
     }
 }
