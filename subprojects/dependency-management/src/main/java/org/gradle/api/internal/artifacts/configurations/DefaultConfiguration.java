@@ -1667,9 +1667,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         roleCanBeMutated = false;
     }
 
+    @SuppressWarnings("deprecation")
     private void assertUsageIsMutable() {
         if (!roleCanBeMutated) {
-            if (roleAtCreation != null) {
+            // Don't print role message for legacy role - users might not have actively chosen this role
+            if (roleAtCreation != null && roleAtCreation != ConfigurationRoles.LEGACY) {
                 throw new GradleException(
                         String.format("Cannot change the allowed usage of: %s, as it was locked upon creation to the role: '%s'.\n" +
                                 "This role permits the following usage:\n" +
@@ -1677,7 +1679,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 "Ideally, each configuration should be used for a single purpose.",
                                 getDisplayName(), roleAtCreation.getName(), roleAtCreation.describe()));
             } else {
-                throw new GradleException(String.format("Cannot change the allowed usage of configuration: '%s'", getDisplayName()));
+                throw new GradleException(String.format("Cannot change the allowed usage of configuration: '%s', as it has been locked.", getDisplayName()));
             }
         }
     }

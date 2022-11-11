@@ -18,7 +18,10 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.apache.commons.lang.WordUtils;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Defines {@link ConfigurationRole}s representing common allowed usage patterns.
@@ -93,6 +96,10 @@ public enum ConfigurationRoles implements ConfigurationRole {
             }
         }
         return Optional.empty();
+    }
+
+    public static Set<ConfigurationRole> getDeprecatedRoles() {
+        return new HashSet<>(Arrays.asList(LEGACY, DEPRECATED_CONSUMABLE, DEPRECATED_RESOLVABLE));
     }
 
     ConfigurationRoles(boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
