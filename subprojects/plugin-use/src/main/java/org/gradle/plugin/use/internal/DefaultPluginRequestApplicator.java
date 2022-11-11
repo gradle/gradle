@@ -36,12 +36,12 @@ import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.AlreadyOnClasspathPluginResolver;
+import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositoriesProvider;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
-import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 import org.gradle.util.internal.TextUtil;
 
@@ -199,6 +199,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         try {
             try {
                 applicator.run();
+                Runnable onAccepted = request.onAccepted();
+                if (onAccepted != null) {
+                    onAccepted.run();
+                }
             } catch (UnknownPluginException e) {
                 throw couldNotApply(request, id, e);
             } catch (Exception e) {
