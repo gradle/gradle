@@ -1198,7 +1198,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      *
      * @since 4.2
      */
-    @UsedByScanPlugin("test-distribution")
+    @UsedByScanPlugin("test-distribution, test-retry")
     void setTestExecuter(TestExecuter<JvmTestExecutionSpec> testExecuter) {
         this.testExecuter = testExecuter;
     }
