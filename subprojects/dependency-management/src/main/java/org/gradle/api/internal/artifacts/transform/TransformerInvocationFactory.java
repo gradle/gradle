@@ -34,5 +34,6 @@ public interface TransformerInvocationFactory {
         File inputArtifact,
         ArtifactTransformDependencies dependencies,
         TransformationSubject subject,
+        DefaultTransformedVariantFactory.VariantKey variantKey,
         InputFingerprinter inputFingerprinter);
 }

@@ -42,17 +42,20 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
     private final List<BoundTransformationStep> transformationSteps;
     private final ImmutableAttributes target;
     private final List<? extends Capability> capabilities;
+    private final DefaultTransformedVariantFactory.VariantKey variantKey;
     private final ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result;
 
     public TransformingAsyncArtifactListener(
         List<BoundTransformationStep> transformationSteps,
         ImmutableAttributes target,
         List<? extends Capability> capabilities,
+        DefaultTransformedVariantFactory.VariantKey variantKey,
         ImmutableList.Builder<ResolvedArtifactSet.Artifacts> result
     ) {
         this.transformationSteps = transformationSteps;
         this.target = target;
         this.capabilities = capabilities;
+        this.variantKey = variantKey;
         this.result = result;
     }
 
@@ -61,7 +64,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         artifacts.visit(new ArtifactVisitor() {
             @Override
             public void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, List<? extends Capability> variantCapabilities, ResolvableArtifact artifact) {
-                TransformedArtifact transformedArtifact = new TransformedArtifact(variantName, target, capabilities, artifact, transformationSteps);
+                TransformedArtifact transformedArtifact = new TransformedArtifact(variantName, target, capabilities, artifact, transformationSteps, variantKey);
                 result.add(transformedArtifact);
             }
 
@@ -89,15 +92,24 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         private final ResolvableArtifact artifact;
         private final ImmutableAttributes target;
         private final List<BoundTransformationStep> transformationSteps;
+        private final DefaultTransformedVariantFactory.VariantKey variantKey;
         private Try<TransformationSubject> transformedSubject;
         private Deferrable<Try<TransformationSubject>> invocation;
 
-        public TransformedArtifact(DisplayName variantName, ImmutableAttributes target, List<? extends Capability> capabilities, ResolvableArtifact artifact, List<BoundTransformationStep> transformationSteps) {
+        public TransformedArtifact(
+            DisplayName variantName,
+            ImmutableAttributes target,
+            List<? extends Capability> capabilities,
+            ResolvableArtifact artifact,
+            List<BoundTransformationStep> transformationSteps,
+            DefaultTransformedVariantFactory.VariantKey variantKey
+        ) {
             this.variantName = variantName;
             this.artifact = artifact;
             this.target = target;
             this.capabilities = capabilities;
             this.transformationSteps = transformationSteps;
+            this.variantKey = variantKey;
         }
 
         public DisplayName getVariantName() {
@@ -217,13 +229,13 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             TransformationSubject initialSubject = TransformationSubject.initial(artifact);
             BoundTransformationStep initialStep = transformationSteps.get(0);
             Deferrable<Try<TransformationSubject>> invocation = initialStep.getTransformation()
-                .createInvocation(initialSubject, initialStep.getUpstreamDependencies(), null);
+                .createInvocation(initialSubject, variantKey, initialStep.getUpstreamDependencies(), null);
             for (int i = 1; i < transformationSteps.size(); i++) {
                 BoundTransformationStep nextStep = transformationSteps.get(i);
                 invocation = invocation
                     .flatMap(intermediateResult -> intermediateResult
                         .map(intermediateSubject -> nextStep.getTransformation()
-                            .createInvocation(intermediateSubject, nextStep.getUpstreamDependencies(), null))
+                            .createInvocation(intermediateSubject, variantKey, nextStep.getUpstreamDependencies(), null))
                         .getOrMapFailure(failure -> Deferrable.completed(Try.failure(failure))));
             }
             return invocation;

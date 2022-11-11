@@ -73,7 +73,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
         return 1;
     }
 
-    public Deferrable<Try<TransformationSubject>> createInvocation(TransformationSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
+    public Deferrable<Try<TransformationSubject>> createInvocation(TransformationSubject subjectToTransform, DefaultTransformedVariantFactory.VariantKey variantKey, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transformer.getDisplayName());
         }
@@ -88,22 +88,30 @@ public class TransformationStep implements Transformation, TaskDependencyContain
                     return Deferrable.completed(Try.successful(subjectToTransform.createSubjectFromResult(ImmutableList.of())));
                 } else if (inputArtifacts.size() > 1) {
                     return Deferrable.deferred(() ->
-                        doTransform(subjectToTransform, inputFingerprinter, dependencies, inputArtifacts)
+                        doTransform(subjectToTransform, variantKey, inputFingerprinter, dependencies, inputArtifacts)
                     );
                 } else {
                     File inputArtifact = inputArtifacts.get(0);
-                    return transformerInvocationFactory.createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, inputFingerprinter)
+                    System.out.printf(">>TRANSFORMINVOKE>>%s;%s;%s;%s;%s%n", variantKey, inputArtifact, transformer.getFromAttributes(), transformer.getToAttributes(), transformer.getIdentityPath());
+                    return transformerInvocationFactory.createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, variantKey, inputFingerprinter)
                         .map(result -> result.map(subjectToTransform::createSubjectFromResult));
                 }
             })
             .getOrMapFailure(failure -> Deferrable.completed(Try.failure(failure)));
     }
 
-    private Try<TransformationSubject> doTransform(TransformationSubject subjectToTransform, InputFingerprinter inputFingerprinter, ArtifactTransformDependencies dependencies, ImmutableList<File> inputArtifacts) {
+    private Try<TransformationSubject> doTransform(
+        TransformationSubject subjectToTransform,
+        DefaultTransformedVariantFactory.VariantKey variantKey,
+        InputFingerprinter inputFingerprinter,
+        ArtifactTransformDependencies dependencies,
+        ImmutableList<File> inputArtifacts
+    ) {
         ImmutableList.Builder<File> builder = ImmutableList.builder();
         for (File inputArtifact : inputArtifacts) {
+            System.out.printf(">>TRANSFORMINVOKE%s;%s;%s;%s;%s%n", variantKey, inputArtifact, transformer.getFromAttributes(), transformer.getToAttributes(), transformer.getIdentityPath());
             Try<ImmutableList<File>> result = transformerInvocationFactory
-                .createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, inputFingerprinter)
+                .createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, variantKey, inputFingerprinter)
                 .completeAndGet();
 
             if (result.getFailure().isPresent()) {

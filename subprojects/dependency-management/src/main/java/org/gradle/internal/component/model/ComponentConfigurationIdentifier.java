@@ -46,4 +46,9 @@ public class ComponentConfigurationIdentifier implements VariantResolveMetadata.
     public int hashCode() {
         return component.hashCode() ^ configurationName.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return component + " (" + configurationName + ")";
+    }
 }

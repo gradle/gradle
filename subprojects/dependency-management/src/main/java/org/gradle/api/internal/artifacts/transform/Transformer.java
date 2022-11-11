@@ -25,6 +25,7 @@ import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.util.Path;
 import org.gradle.work.InputChanges;
 
 import javax.annotation.Nullable;
@@ -81,4 +82,6 @@ public interface Transformer extends Describable, TaskDependencyContainer {
     LineEndingSensitivity getInputArtifactLineEndingNormalization();
 
     LineEndingSensitivity getInputArtifactDependenciesLineEndingNormalization();
+
+    Path getIdentityPath();
 }

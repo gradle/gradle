@@ -133,10 +133,6 @@ class AttributeMatchingVariantSelector implements VariantSelector {
 
         if (transformedVariants.size() == 1) {
             TransformedVariant result = transformedVariants.get(0);
-            String message = "Need to run transforms for " + dependenciesResolver.getContext() + " to match attributes " + requested;
-            if (loggedTransformations.add(message)) {
-                System.out.println(message);
-            }
             return factory.asTransformed(result.getRoot(), result.getVariantChain(), dependenciesResolver, transformedVariantFactory);
         }
 

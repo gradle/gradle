@@ -41,6 +41,7 @@ import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenci
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver
 import org.gradle.api.internal.artifacts.transform.Transformation
+import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory
 import org.gradle.api.internal.artifacts.transform.VariantDefinition
@@ -328,11 +329,11 @@ class EmptyDependenciesResolverFactory(private val fileCollectionFactory: FileCo
         return this
     }
 
-    override fun getContext(): String {
+    override fun getConfigurationIdentifier(): String {
         return "Empty context"
     }
 
-    override fun getTransformProgressEvent(requestedAttributes: AttributeContainer, transformation: Transformation): TransformConfigurationProgressEvent {
+    override fun getTransformProgressEvent(requestedAttributes: AttributeContainer, transformationNodes: MutableCollection<TransformationNode>): TransformConfigurationProgressEvent {
         throw UnsupportedOperationException("Should not be called")
     }
 

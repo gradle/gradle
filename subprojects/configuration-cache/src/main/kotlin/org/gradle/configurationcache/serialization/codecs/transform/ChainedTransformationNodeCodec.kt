@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache.serialization.codecs.transform
 
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory
+import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFactory
 import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -38,6 +40,8 @@ class ChainedTransformationNodeCodec(
     override suspend fun ReadContext.doDecode(): TransformationNode.ChainedTransformationNode {
         val transformationStep = readNonNull<TransformStepSpec>()
         val previousStep = readNonNull<TransformationNode>()
-        return TransformationNode.chained(transformationStep.transformation, previousStep, transformationStep.recreate(), buildOperationExecutor, calculatedValueContainerFactory)
+        // TODO: Serialize/de-serialize the variant key
+        val variantKey = DefaultTransformedVariantFactory.VariantKey(ArtifactSetFactory.SingleArtifactVariantIdentifier(previousStep.inputArtifact.id), transformationStep.transformation.toAttributes)
+        return TransformationNode.chained(transformationStep.transformation, previousStep, variantKey, transformationStep.recreate(), buildOperationExecutor, calculatedValueContainerFactory)
     }
 }

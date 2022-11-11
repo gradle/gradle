@@ -103,6 +103,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         File inputArtifact,
         ArtifactTransformDependencies dependencies,
         TransformationSubject subject,
+        DefaultTransformedVariantFactory.VariantKey variantKey,
         InputFingerprinter inputFingerprinter
     ) {
         ProjectInternal producerProject = determineProducerProject(subject);
@@ -115,6 +116,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 inputArtifact,
                 dependencies,
                 subject,
+                variantKey,
 
                 artifactTransformListener,
                 buildOperationExecutor,
@@ -129,6 +131,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 inputArtifact,
                 dependencies,
                 subject,
+                variantKey,
 
                 artifactTransformListener,
                 buildOperationExecutor,
@@ -171,7 +174,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             ArtifactTransformDependencies dependencies,
             TransformationSubject subject,
 
-            ArtifactTransformListener artifactTransformListener,
+            DefaultTransformedVariantFactory.VariantKey variantKey, ArtifactTransformListener artifactTransformListener,
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
@@ -180,7 +183,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         ) {
             super(
                 transformer, inputArtifact, dependencies, subject,
-                artifactTransformListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices
+                variantKey, artifactTransformListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices
             );
             this.fileSystemAccess = fileSystemAccess;
         }
@@ -212,14 +215,14 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             ArtifactTransformDependencies dependencies,
             TransformationSubject subject,
 
-            ArtifactTransformListener artifactTransformListener,
+            DefaultTransformedVariantFactory.VariantKey variantKey, ArtifactTransformListener artifactTransformListener,
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
             TransformationWorkspaceServices workspaceServices
         ) {
             super(
-                transformer, inputArtifact, dependencies, subject,
+                transformer, inputArtifact, dependencies, subject, variantKey,
                 artifactTransformListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices
             );
         }
@@ -240,6 +243,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         private final ArtifactTransformDependencies dependencies;
         private final TransformationSubject subject;
 
+        private DefaultTransformedVariantFactory.VariantKey variantKey;
         private final ArtifactTransformListener artifactTransformListener;
         private final BuildOperationExecutor buildOperationExecutor;
         private final FileCollectionFactory fileCollectionFactory;
@@ -253,6 +257,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             File inputArtifact,
             ArtifactTransformDependencies dependencies,
             TransformationSubject subject,
+            DefaultTransformedVariantFactory.VariantKey variantKey,
 
             ArtifactTransformListener artifactTransformListener,
             BuildOperationExecutor buildOperationExecutor,
@@ -265,12 +270,18 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             this.dependencies = dependencies;
             this.inputArtifactProvider = Providers.of(new DefaultFileSystemLocation(inputArtifact));
             this.subject = subject;
+            this.variantKey = variantKey;
             this.artifactTransformListener = artifactTransformListener;
 
             this.buildOperationExecutor = buildOperationExecutor;
             this.fileCollectionFactory = fileCollectionFactory;
             this.inputFingerprinter = inputFingerprinter;
             this.workspaceServices = workspaceServices;
+        }
+
+        @Override
+        public String getName() {
+            return variantKey.toString();
         }
 
         @Override

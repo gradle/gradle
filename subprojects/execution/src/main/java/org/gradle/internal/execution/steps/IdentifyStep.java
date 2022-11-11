@@ -90,7 +90,9 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
         ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = inputs.getValueSnapshots();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = inputs.getFileFingerprints();
         Identity identity = work.identify(identityInputProperties, identityInputFileProperties);
-
+        if (!work.getName().isEmpty()) {
+            System.out.printf(">>TRANSFORMIDENT>>%s;%s%n", identity.getUniqueId(), work.getName());
+        }
         return new IdentityContext(context, identityInputProperties, identityInputFileProperties, identity);
     }
 

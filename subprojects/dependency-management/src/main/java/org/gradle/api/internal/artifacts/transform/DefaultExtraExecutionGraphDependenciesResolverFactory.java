@@ -24,6 +24,8 @@ import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider
 import org.gradle.api.internal.artifacts.configurations.TransformConfigurationProgressEvent;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 
+import java.util.Collection;
+
 public class DefaultExtraExecutionGraphDependenciesResolverFactory implements ExtraExecutionGraphDependenciesResolverFactory {
     public static final TransformUpstreamDependenciesResolver NO_DEPENDENCIES_RESOLVER = transformationStep -> DefaultTransformUpstreamDependenciesResolver.NO_DEPENDENCIES;
 
@@ -51,12 +53,12 @@ public class DefaultExtraExecutionGraphDependenciesResolverFactory implements Ex
     }
 
     @Override
-    public String getContext() {
-        return resolutionResultProvider.getContext();
+    public String getConfigurationIdentifier() {
+        return resolutionResultProvider.getConfigurationIdentifier();
     }
 
     @Override
-    public TransformConfigurationProgressEvent getTransformProgressEvent(AttributeContainer requestedAttributes, Transformation transformation) {
-        return resolutionResultProvider.getTransformProgressEvent(requestedAttributes, transformation );
+    public TransformConfigurationProgressEvent getTransformProgressEvent(AttributeContainer requestedAttributes, Collection<TransformationNode> transformationNodes) {
+        return resolutionResultProvider.getTransformProgressEvent(requestedAttributes, transformationNodes);
     }
 }

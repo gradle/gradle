@@ -83,7 +83,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
 import org.gradle.api.internal.artifacts.transform.DefaultExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
-import org.gradle.api.internal.artifacts.transform.Transformation;
+import org.gradle.api.internal.artifacts.transform.TransformationNode;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributeContainerWithErrorMessage;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -1535,13 +1535,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public String getContext() {
-            return getDisplayName();
+        public String getConfigurationIdentifier() {
+            return DefaultConfiguration.this.getConfigurationIdentifier();
         }
 
         @Override
-        public TransformConfigurationProgressEvent getTransformProgressEvent(AttributeContainer requestedAttributes, Transformation transformation) {
-            return new DefaultTransformConfigurationProgressEvent(requestedAttributes, transformation);
+        public TransformConfigurationProgressEvent getTransformProgressEvent(AttributeContainer requestedAttributes, Collection<TransformationNode> transformationNodes) {
+            return new DefaultTransformConfigurationProgressEvent(requestedAttributes, transformationNodes);
         }
     }
 
@@ -1560,23 +1560,23 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public String getContext() {
-            return getDisplayName();
+        public String getConfigurationIdentifier() {
+            return DefaultConfiguration.this.getConfigurationIdentifier();
         }
 
         @Override
-        public TransformConfigurationProgressEvent getTransformProgressEvent(AttributeContainer requestedAttributes, Transformation transformation) {
-            return new DefaultTransformConfigurationProgressEvent(requestedAttributes, transformation);
+        public TransformConfigurationProgressEvent getTransformProgressEvent(AttributeContainer requestedAttributes, Collection<TransformationNode> transformationNodes) {
+            return new DefaultTransformConfigurationProgressEvent(requestedAttributes, transformationNodes);
         }
     }
 
     private class DefaultTransformConfigurationProgressEvent implements TransformConfigurationProgressEvent, CustomOperationTraceSerialization {
         private final AttributeContainer requestedAttributes;
-        private final Transformation transformation;
+        private final Collection<TransformationNode> transformationNodes;
 
-        public DefaultTransformConfigurationProgressEvent(AttributeContainer requestedAttributes, Transformation transformation) {
+        public DefaultTransformConfigurationProgressEvent(AttributeContainer requestedAttributes, Collection<TransformationNode> transformationNodes) {
             this.requestedAttributes = requestedAttributes;
-            this.transformation = transformation;
+            this.transformationNodes = transformationNodes;
         }
 
         @Override
@@ -1603,9 +1603,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public List<Transform> getTransforms() {
             ImmutableList.Builder<Transform> builder = ImmutableList.builder();
-            transformation.visitTransformationSteps(step -> {
-                builder.add(new TransformEvent(step.getFromAttributes(), step.getToAttributes(), step.getOwningProject()));
-            });
+            transformationNodes.forEach(node -> builder.add(new TransformEvent(node.getTransformationStep().getFromAttributes(), node.getTransformationStep().getToAttributes(), node.getTransformationStep().getOwningProject())));
             return builder.build();
         }
 
@@ -1628,6 +1626,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             model.put("transforms", transforms);
             return model;
         }
+
+    }
+
+    private String getConfigurationIdentifier() {
+        return String.format("%s;%s;%s",
+            domainObjectContext.getBuildPath().getPath(),
+            domainObjectContext.getProjectPath() == null ? null : domainObjectContext.getProjectPath().getPath(),
+            getName()
+        );
 
     }
 

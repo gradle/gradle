@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.model.ComponentConfigurationIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -60,7 +61,8 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
         VariantResolveMetadata.Identifier identifier = sourceVariant.getIdentifier();
         if (identifier == null) {
             // An ad hoc variant, do not cache the result
-            return factory.create(componentIdentifier, sourceVariant, variantDefinition, dependenciesResolverFactory);
+            System.out.printf(">>TRANSFORMADHOC>>%s;%s;%s;%s%n", dependenciesResolverFactory.getConfigurationIdentifier(), componentIdentifier.getDisplayName(), target, transformation.requiresDependencies());
+            return factory.create(componentIdentifier, sourceVariant, variantDefinition, new VariantKey(new ComponentConfigurationIdentifier(componentIdentifier, "adhoc"), target), dependenciesResolverFactory);
         }
         VariantKey variantKey;
         if (transformation.requiresDependencies()) {
@@ -72,37 +74,46 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
         // Can't use computeIfAbsent() as the default implementation does not allow recursive updates
         ResolvedArtifactSet result = variants.get(variantKey);
         if (result == null) {
-            progressEventEmitter.emitNowForCurrent(dependenciesResolverFactory.getTransformProgressEvent(variantKey.target, transformation));
-            ResolvedArtifactSet newResult = factory.create(componentIdentifier, sourceVariant, variantDefinition, dependenciesResolverFactory);
+            ResolvedArtifactSet newResult = factory.create(componentIdentifier, sourceVariant, variantDefinition, variantKey, dependenciesResolverFactory);
             result = variants.putIfAbsent(variantKey, newResult);
             if (result == null) {
                 result = newResult;
+                if (newResult instanceof TransformedProjectArtifactSet) {
+                    TransformedProjectArtifactSet transformedProjectArtifactSet = (TransformedProjectArtifactSet) newResult;
+                    progressEventEmitter.emitNowForCurrent(dependenciesResolverFactory.getTransformProgressEvent(variantKey.target, transformedProjectArtifactSet.getTransformedArtifacts()));
+                }
             }
         }
+        System.out.printf(">>TRANSFORMVARIANTKEY>>%s;%s;%s;%s%n",
+            dependenciesResolverFactory.getConfigurationIdentifier(),
+            componentIdentifier,
+            variantKey,
+            transformation.requiresDependencies()
+        );
         return result;
     }
 
-    private TransformedExternalArtifactSet doCreateExternal(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
-        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities().getCapabilities(), variantDefinition.getTransformation(), dependenciesResolverFactory, calculatedValueContainerFactory);
+    private TransformedExternalArtifactSet doCreateExternal(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, VariantKey variantKey, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
+        return new TransformedExternalArtifactSet(componentIdentifier, sourceVariant.getArtifacts(), variantDefinition.getTargetAttributes(), sourceVariant.getCapabilities().getCapabilities(), variantDefinition.getTransformation(), variantKey, dependenciesResolverFactory, calculatedValueContainerFactory);
     }
 
-    private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
+    private TransformedProjectArtifactSet doCreateProject(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, VariantKey variantKey, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory) {
         ResolvedArtifactSet sourceArtifacts;
         if (variantDefinition.getPrevious() != null) {
             sourceArtifacts = transformedProjectArtifacts(componentIdentifier, sourceVariant, variantDefinition.getPrevious(), dependenciesResolverFactory);
         } else {
             sourceArtifacts = sourceVariant.getArtifacts();
         }
-        return new TransformedProjectArtifactSet(componentIdentifier, sourceArtifacts, variantDefinition, sourceVariant.getCapabilities().getCapabilities(), dependenciesResolverFactory, transformationNodeFactory);
+        return new TransformedProjectArtifactSet(componentIdentifier, sourceArtifacts, variantDefinition, sourceVariant.getCapabilities().getCapabilities(), variantKey, dependenciesResolverFactory, transformationNodeFactory);
     }
 
     private interface Factory {
-        ResolvedArtifactSet create(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory);
+        ResolvedArtifactSet create(ComponentIdentifier componentIdentifier, ResolvedVariant sourceVariant, VariantDefinition variantDefinition, VariantKey variantKey, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory);
     }
 
-    private static class VariantKey {
-        private final VariantResolveMetadata.Identifier sourceVariant;
-        private final ImmutableAttributes target;
+    public static class VariantKey {
+        protected final VariantResolveMetadata.Identifier sourceVariant;
+        protected final ImmutableAttributes target;
 
         public VariantKey(VariantResolveMetadata.Identifier sourceVariant, ImmutableAttributes target) {
             this.sourceVariant = sourceVariant;
@@ -125,9 +136,14 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
             VariantKey other = (VariantKey) obj;
             return sourceVariant.equals(other.sourceVariant) && target.equals(other.target);
         }
+
+        @Override
+        public String toString() {
+            return String.format("%s;%s;<no dependencies>", sourceVariant, target);
+        }
     }
 
-    private static class VariantWithUpstreamDependenciesKey extends VariantKey {
+    public static class VariantWithUpstreamDependenciesKey extends VariantKey {
         private final ExtraExecutionGraphDependenciesResolverFactory dependencies;
 
         public VariantWithUpstreamDependenciesKey(VariantResolveMetadata.Identifier sourceVariant, ImmutableAttributes target, ExtraExecutionGraphDependenciesResolverFactory dependencies) {
@@ -147,6 +163,11 @@ public class DefaultTransformedVariantFactory implements TransformedVariantFacto
             }
             VariantWithUpstreamDependenciesKey other = (VariantWithUpstreamDependenciesKey) obj;
             return dependencies == other.dependencies;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s;%s;%s", sourceVariant, target, dependencies.getConfigurationIdentifier().replace(';', '/'));
         }
     }
 }

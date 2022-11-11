@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.internal.artifacts.DefaultResolvableArtifact;
 import org.gradle.api.internal.artifacts.transform.AbstractTransformedArtifactSet;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.artifacts.transform.Transformation;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
@@ -43,6 +44,7 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
+import org.gradle.internal.component.model.ComponentConfigurationIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -133,7 +135,20 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
     @Override
     public ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, VariantDefinition variantDefinition, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformedVariantFactory transformedVariantFactory) {
-        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) sourceVariant, variantDefinition.getTargetAttributes(), variantDefinition.getTransformation(), dependenciesResolver, calculatedValueContainerFactory);
+        VariantResolveMetadata.Identifier identifier = sourceVariant.getIdentifier() == null
+            ? new ComponentConfigurationIdentifier(dependencyMetadata.getComponentId(), "file-collection in " + dependenciesResolver.getConfigurationIdentifier().replace(';', '/'))
+            : sourceVariant.getIdentifier();
+        Transformation transformation = variantDefinition.getTransformation();
+        DefaultTransformedVariantFactory.VariantKey variantKey = transformation.requiresDependencies()
+            ? new DefaultTransformedVariantFactory.VariantWithUpstreamDependenciesKey(identifier, variantDefinition.getTargetAttributes(), dependenciesResolver)
+            : new DefaultTransformedVariantFactory.VariantKey(identifier, variantDefinition.getTargetAttributes());
+        System.out.printf(">>TRANSFORMVARIANTKEY>>%s;%s;%s;%s%n",
+            dependenciesResolver.getConfigurationIdentifier(),
+            dependencyMetadata.getComponentId(),
+            variantKey,
+            transformation.requiresDependencies()
+        );
+        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) sourceVariant, variantDefinition.getTargetAttributes(), transformation, variantKey, dependenciesResolver, calculatedValueContainerFactory);
     }
 
     @Override
@@ -268,9 +283,10 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         public TransformedLocalFileArtifactSet(SingletonFileResolvedVariant delegate,
                                                ImmutableAttributes attributes,
                                                Transformation transformation,
+                                               DefaultTransformedVariantFactory.VariantKey variantKey,
                                                ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver,
                                                CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            super(delegate.getComponentId(), delegate, attributes, Collections.emptyList(), transformation, dependenciesResolver, calculatedValueContainerFactory);
+            super(delegate.getComponentId(), delegate, attributes, Collections.emptyList(), transformation, variantKey, dependenciesResolver, calculatedValueContainerFactory);
             this.delegate = delegate;
         }
 

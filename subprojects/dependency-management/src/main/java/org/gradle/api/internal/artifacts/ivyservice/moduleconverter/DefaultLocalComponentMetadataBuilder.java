@@ -113,5 +113,10 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
             NestedVariantIdentifier other = (NestedVariantIdentifier) obj;
             return parent.equals(other.parent) && name.equals(other.name);
         }
+
+        @Override
+        public String toString() {
+            return parent + " (" + name + ")";
+        }
     }
 }

@@ -83,6 +83,7 @@ import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.Path;
 import org.gradle.work.InputChanges;
 
 import javax.annotation.Nullable;
@@ -103,6 +104,7 @@ public class DefaultTransformer implements Transformer {
     private final FileNormalizer fileNormalizer;
     private final FileNormalizer dependenciesNormalizer;
     private final FileLookup fileLookup;
+    private DomainObjectContext owner;
     private final ServiceLookup internalServices;
     private final boolean requiresDependencies;
     private final boolean requiresInputChanges;
@@ -144,6 +146,7 @@ public class DefaultTransformer implements Transformer {
         this.fileNormalizer = inputArtifactNormalizer;
         this.dependenciesNormalizer = dependenciesNormalizer;
         this.fileLookup = fileLookup;
+        this.owner = owner;
         this.internalServices = internalServices;
         this.instanceFactory = actionInstantiationScheme.forType(implementationClass);
         this.requiresDependencies = instanceFactory.serviceInjectionTriggeredByAnnotation(InputArtifactDependencies.class);
@@ -259,6 +262,12 @@ public class DefaultTransformer implements Transformer {
     @Override
     public LineEndingSensitivity getInputArtifactDependenciesLineEndingNormalization() {
         return dependenciesLineEndingSensitivity;
+    }
+
+    @Override
+    public Path getIdentityPath() {
+        // TODO wolfs: Do this in a better way
+        return owner.identityPath("");
     }
 
     @Override

@@ -47,19 +47,26 @@ import java.util.Set;
 public abstract class TransformationNode extends CreationOrderedNode implements SelfExecutingNode {
     protected final TransformationStep transformationStep;
     protected final ResolvableArtifact artifact;
+    protected final DefaultTransformedVariantFactory.VariantKey variantKey;
     protected final TransformUpstreamDependencies upstreamDependencies;
 
-    public static ChainedTransformationNode chained(TransformationStep current, TransformationNode previous, TransformUpstreamDependencies upstreamDependencies, BuildOperationExecutor buildOperationExecutor, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        return new ChainedTransformationNode(current, previous, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+    public static ChainedTransformationNode chained(TransformationStep current, TransformationNode previous, DefaultTransformedVariantFactory.VariantKey variantKey, TransformUpstreamDependencies upstreamDependencies, BuildOperationExecutor buildOperationExecutor, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        return new ChainedTransformationNode(current, previous, variantKey, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
     }
 
-    public static InitialTransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, TransformUpstreamDependencies upstreamDependencies, BuildOperationExecutor buildOperationExecutor, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-        return new InitialTransformationNode(initial, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+    public static InitialTransformationNode initial(TransformationStep initial, ResolvableArtifact artifact, DefaultTransformedVariantFactory.VariantKey variantKey, TransformUpstreamDependencies upstreamDependencies, BuildOperationExecutor buildOperationExecutor, CalculatedValueContainerFactory calculatedValueContainerFactory) {
+        return new InitialTransformationNode(initial, artifact, variantKey, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
     }
 
-    protected TransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, TransformUpstreamDependencies upstreamDependencies) {
+    protected TransformationNode(
+        TransformationStep transformationStep,
+        ResolvableArtifact artifact,
+        DefaultTransformedVariantFactory.VariantKey variantKey,
+        TransformUpstreamDependencies upstreamDependencies
+    ) {
         this.transformationStep = transformationStep;
         this.artifact = artifact;
+        this.variantKey = variantKey;
         this.upstreamDependencies = upstreamDependencies;
     }
 
@@ -127,8 +134,15 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
     public static class InitialTransformationNode extends TransformationNode {
         private final CalculatedValueContainer<TransformationSubject, TransformInitialArtifact> result;
 
-        public InitialTransformationNode(TransformationStep transformationStep, ResolvableArtifact artifact, TransformUpstreamDependencies upstreamDependencies, BuildOperationExecutor buildOperationExecutor, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            super(transformationStep, artifact, upstreamDependencies);
+        public InitialTransformationNode(
+            TransformationStep transformationStep,
+            ResolvableArtifact artifact,
+            DefaultTransformedVariantFactory.VariantKey variantKey,
+            TransformUpstreamDependencies upstreamDependencies,
+            BuildOperationExecutor buildOperationExecutor,
+            CalculatedValueContainerFactory calculatedValueContainerFactory
+        ) {
+            super(transformationStep, artifact, variantKey, upstreamDependencies);
             result = calculatedValueContainerFactory.create(Describables.of(this), new TransformInitialArtifact(buildOperationExecutor));
         }
 
@@ -166,7 +180,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
                         }
 
                         return transformationStep
-                            .createInvocation(initialArtifactTransformationSubject, upstreamDependencies, context)
+                            .createInvocation(initialArtifactTransformationSubject, variantKey, upstreamDependencies, context)
                             .completeAndGet()
                             .get();
                     }
@@ -187,11 +201,12 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
         public ChainedTransformationNode(
             TransformationStep transformationStep,
             TransformationNode previousTransformationNode,
+            DefaultTransformedVariantFactory.VariantKey variantKey,
             TransformUpstreamDependencies upstreamDependencies,
             BuildOperationExecutor buildOperationExecutor,
             CalculatedValueContainerFactory calculatedValueContainerFactory
         ) {
-            super(transformationStep, previousTransformationNode.artifact, upstreamDependencies);
+            super(transformationStep, previousTransformationNode.artifact, variantKey, upstreamDependencies);
             this.previousTransformationNode = previousTransformationNode;
             result = calculatedValueContainerFactory.create(Describables.of(this), new TransformPreviousArtifacts(buildOperationExecutor));
         }
@@ -233,7 +248,7 @@ public abstract class TransformationNode extends CreationOrderedNode implements 
                     protected TransformationSubject transform() {
                         return previousTransformationNode.getTransformedSubject()
                             .flatMap(transformedSubject -> transformationStep
-                                .createInvocation(transformedSubject, upstreamDependencies, context)
+                                .createInvocation(transformedSubject, variantKey, upstreamDependencies, context)
                                 .completeAndGet())
                             .get();
                     }

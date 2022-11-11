@@ -21,11 +21,13 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.transform.AbstractTransformedArtifactSet
 import org.gradle.api.internal.artifacts.transform.BoundTransformationStep
+import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -65,7 +67,9 @@ class CalculateArtifactsCodec(
         val capabilities: List<Capability> = readList().uncheckedCast()
         val files = readNonNull<List<Artifact>>()
         val steps: List<TransformStepSpec> = readList().uncheckedCast()
-        return AbstractTransformedArtifactSet.CalculateArtifacts(ownerId, FixedFilesArtifactSet(ownerId, files, calculatedValueContainerFactory), targetAttributes, capabilities, ImmutableList.copyOf(steps.map { BoundTransformationStep(it.transformation, it.recreate()) }))
+        // TODO: Serialize/de-serialize the variant key
+        val variantKey = DefaultTransformedVariantFactory.VariantKey(ArtifactSetFactory.SingleArtifactVariantIdentifier(ComponentFileArtifactIdentifier(ownerId, files.lastOrNull()?.file?.name ?: "")), targetAttributes)
+        return AbstractTransformedArtifactSet.CalculateArtifacts(ownerId, FixedFilesArtifactSet(ownerId, files, calculatedValueContainerFactory), targetAttributes, capabilities, ImmutableList.copyOf(steps.map { BoundTransformationStep(it.transformation, it.recreate()) }), variantKey)
     }
 
     private

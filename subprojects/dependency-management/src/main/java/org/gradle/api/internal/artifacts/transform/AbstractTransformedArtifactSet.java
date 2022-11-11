@@ -47,6 +47,7 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         ImmutableAttributes targetVariantAttributes,
         List<? extends Capability> capabilities,
         Transformation transformation,
+        DefaultTransformedVariantFactory.VariantKey variantKey,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
@@ -54,7 +55,7 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         ImmutableList.Builder<BoundTransformationStep> builder = ImmutableList.builder();
         transformation.visitTransformationSteps(transformationStep -> builder.add(new BoundTransformationStep(transformationStep, dependenciesResolver.dependenciesFor(transformationStep))));
         ImmutableList<BoundTransformationStep> steps = builder.build();
-        this.result = calculatedValueContainerFactory.create(Describables.of(componentIdentifier), new CalculateArtifacts(componentIdentifier, delegate, targetVariantAttributes, capabilities, steps));
+        this.result = calculatedValueContainerFactory.create(Describables.of(componentIdentifier), new CalculateArtifacts(componentIdentifier, delegate, targetVariantAttributes, capabilities, steps, variantKey));
     }
 
     public AbstractTransformedArtifactSet(CalculatedValueContainer<ImmutableList<ResolvedArtifactSet.Artifacts>, CalculateArtifacts> result) {
@@ -106,13 +107,22 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         private final ImmutableList<BoundTransformationStep> steps;
         private final ImmutableAttributes targetVariantAttributes;
         private final List<? extends Capability> capabilities;
+        private final DefaultTransformedVariantFactory.VariantKey variantKey;
 
-        public CalculateArtifacts(ComponentIdentifier ownerId, ResolvedArtifactSet delegate, ImmutableAttributes targetVariantAttributes, List<? extends Capability> capabilities, ImmutableList<BoundTransformationStep> steps) {
+        public CalculateArtifacts(
+            ComponentIdentifier ownerId,
+            ResolvedArtifactSet delegate,
+            ImmutableAttributes targetVariantAttributes,
+            List<? extends Capability> capabilities,
+            ImmutableList<BoundTransformationStep> steps,
+            DefaultTransformedVariantFactory.VariantKey variantKey
+        ) {
             this.ownerId = ownerId;
             this.delegate = delegate;
             this.steps = steps;
             this.targetVariantAttributes = targetVariantAttributes;
             this.capabilities = capabilities;
+            this.variantKey = variantKey;
         }
 
         public ComponentIdentifier getOwnerId() {
@@ -151,7 +161,7 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
             }
 
             ImmutableList.Builder<Artifacts> builder = ImmutableList.builderWithExpectedSize(1);
-            delegate.visit(new TransformingAsyncArtifactListener(steps, targetVariantAttributes, capabilities, builder));
+            delegate.visit(new TransformingAsyncArtifactListener(steps, targetVariantAttributes, capabilities, variantKey, builder));
             return builder.build();
         }
     }

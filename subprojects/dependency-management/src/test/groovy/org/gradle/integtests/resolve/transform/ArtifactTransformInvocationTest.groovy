@@ -129,11 +129,11 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
             getId() >> new OpaqueComponentArtifactIdentifier(inputArtifact)
         }
         def invocation = invocationFactory.createInvocation(
-            transform.getTransformer(),
-            inputArtifact,
-            DefaultTransformUpstreamDependenciesResolver.NO_RESULT,
-            TransformationSubject.initial(artifact),
-            inputFingerprinter
+                transform.getTransformer(),
+                inputArtifact,
+                DefaultTransformUpstreamDependenciesResolver.NO_RESULT,
+                TransformationSubject.initial(artifact), variantKey,
+                inputFingerprinter
         )
         invocation.completeAndGet()
     }

@@ -51,6 +51,7 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
         ResolvedArtifactSet delegate,
         VariantDefinition variantDefinition,
         List<? extends Capability> capabilities,
+        DefaultTransformedVariantFactory.VariantKey variantKey,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
         TransformationNodeFactory transformationNodeFactory
     ) {
@@ -58,7 +59,7 @@ public class TransformedProjectArtifactSet implements ResolvedArtifactSet, FileC
         this.targetAttributes = variantDefinition.getTargetAttributes();
         this.capabilities = capabilities;
         TransformUpstreamDependenciesResolver dependenciesResolver = dependenciesResolverFactory.create(componentIdentifier, variantDefinition.getTransformation());
-        this.transformedArtifacts = transformationNodeFactory.create(delegate, variantDefinition.getTransformationStep(), dependenciesResolver);
+        this.transformedArtifacts = transformationNodeFactory.create(delegate, variantKey, variantDefinition.getTargetAttributes(), variantDefinition.getTransformationStep(), dependenciesResolver);
     }
 
     public TransformedProjectArtifactSet(ComponentIdentifier componentIdentifier, ImmutableAttributes targetAttributes, List<? extends Capability> capabilities, Collection<TransformationNode> transformedArtifacts) {

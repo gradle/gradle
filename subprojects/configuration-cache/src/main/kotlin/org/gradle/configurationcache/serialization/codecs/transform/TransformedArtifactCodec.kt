@@ -19,7 +19,9 @@ package org.gradle.configurationcache.serialization.codecs.transform
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory
 import org.gradle.api.internal.artifacts.transform.BoundTransformationStep
+import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFactory
 import org.gradle.api.internal.artifacts.transform.TransformingAsyncArtifactListener
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.tasks.TaskDependencyContainer
@@ -59,6 +61,8 @@ class TransformedArtifactCodec(
         val artifactId = ComponentFileArtifactIdentifier(ownerId, file.name)
         val artifact = PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), artifactId, calculatedValueContainerFactory.create(Describables.of(artifactId), file), TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
         val steps = readNonNull<List<TransformStepSpec>>().map { BoundTransformationStep(it.transformation, it.recreate()) }
-        return TransformingAsyncArtifactListener.TransformedArtifact(variantName, target, capabilities, artifact, steps)
+        // TODO: Serialize/de-serialize the variant key
+        val variantKey = DefaultTransformedVariantFactory.VariantKey(ArtifactSetFactory.SingleArtifactVariantIdentifier(artifactId), target)
+        return TransformingAsyncArtifactListener.TransformedArtifact(variantName, target, capabilities, artifact, steps, variantKey)
     }
 }

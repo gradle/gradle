@@ -36,10 +36,11 @@ public class TransformedExternalArtifactSet extends AbstractTransformedArtifactS
         ImmutableAttributes target,
         List<? extends Capability> capabilities,
         Transformation transformation,
+        DefaultTransformedVariantFactory.VariantKey variantKey,
         ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        super(componentIdentifier, delegate, target, capabilities, transformation, dependenciesResolverFactory, calculatedValueContainerFactory);
+        super(componentIdentifier, delegate, target, capabilities, transformation, variantKey, dependenciesResolverFactory, calculatedValueContainerFactory);
     }
 
     public TransformedExternalArtifactSet(CalculatedValueContainer<ImmutableList<Artifacts>, AbstractTransformedArtifactSet.CalculateArtifacts> result) {

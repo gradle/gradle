@@ -17,9 +17,10 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import java.util.Collection;
 
 public interface TransformationNodeFactory {
-    Collection<TransformationNode> create(ResolvedArtifactSet artifactSet, TransformationStep transformationStep, TransformUpstreamDependenciesResolver dependenciesResolver);
+    Collection<TransformationNode> create(ResolvedArtifactSet artifactSet, DefaultTransformedVariantFactory.VariantKey variantKey, ImmutableAttributes targetAttributes, TransformationStep transformationStep, TransformUpstreamDependenciesResolver dependenciesResolver);
 }

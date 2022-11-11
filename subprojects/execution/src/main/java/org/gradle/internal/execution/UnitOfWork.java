@@ -43,6 +43,15 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public interface UnitOfWork extends Describable {
+
+    /**
+     * Gets the name of the unit of work, which uniquely identifies the invocation.
+     * The identity of the execution is determined by {@link #identify(Map, Map)}.
+     */
+    default String getName() {
+        return "";
+    }
+
     /**
      * Determine the identity of the work unit that uniquely identifies it
      * among the other work units of the same type in the current build.

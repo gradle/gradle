@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
@@ -34,20 +35,21 @@ public class DefaultTransformationNodeFactory implements TransformationNodeFacto
     }
 
     @Override
-    public Collection<TransformationNode> create(ResolvedArtifactSet artifactSet, TransformationStep transformationStep, TransformUpstreamDependenciesResolver dependenciesResolver) {
+    public Collection<TransformationNode> create(ResolvedArtifactSet artifactSet, DefaultTransformedVariantFactory.VariantKey variantKey, ImmutableAttributes targetAttributes, TransformationStep transformationStep, TransformUpstreamDependenciesResolver dependenciesResolver) {
         final ImmutableList.Builder<TransformationNode> builder = ImmutableList.builder();
         artifactSet.visitTransformSources(new ResolvedArtifactSet.TransformSourceVisitor() {
             @Override
             public void visitArtifact(ResolvableArtifact artifact) {
                 TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformationStep);
-                TransformationNode transformationNode = TransformationNode.initial(transformationStep, artifact, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+                TransformationNode transformationNode = TransformationNode.initial(transformationStep, artifact, variantKey,
+                    upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
                 builder.add(transformationNode);
             }
 
             @Override
             public void visitTransform(TransformationNode source) {
                 TransformUpstreamDependencies upstreamDependencies = dependenciesResolver.dependenciesFor(transformationStep);
-                TransformationNode transformationNode = TransformationNode.chained(transformationStep, source, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
+                TransformationNode transformationNode = TransformationNode.chained(transformationStep, source, variantKey, upstreamDependencies, buildOperationExecutor, calculatedValueContainerFactory);
                 builder.add(transformationNode);
             }
         });

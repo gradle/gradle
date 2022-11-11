@@ -92,7 +92,7 @@ public class ArtifactSetFactory {
         };
     }
 
-    private static class SingleArtifactVariantIdentifier implements VariantResolveMetadata.Identifier {
+    public static class SingleArtifactVariantIdentifier implements VariantResolveMetadata.Identifier {
         private final ComponentArtifactIdentifier artifactIdentifier;
 
         public SingleArtifactVariantIdentifier(ComponentArtifactIdentifier artifactIdentifier) {
@@ -114,6 +114,11 @@ public class ArtifactSetFactory {
             }
             SingleArtifactVariantIdentifier other = (SingleArtifactVariantIdentifier) obj;
             return artifactIdentifier.equals(other.artifactIdentifier);
+        }
+
+        @Override
+        public String toString() {
+            return artifactIdentifier.toString();
         }
     }
 
