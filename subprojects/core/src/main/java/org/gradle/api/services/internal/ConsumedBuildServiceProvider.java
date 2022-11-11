@@ -82,6 +82,11 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     }
 
     @Override
+    public BuildIdentifier getBuildIdentifier() {
+        return buildIdentifier;
+    }
+
+    @Override
     public BuildServiceDetails<T, BuildServiceParameters> getServiceDetails() {
         BuildServiceProvider<T, BuildServiceParameters> resolvedProvider = resolve();
         return resolvedProvider != null ? resolvedProvider.getServiceDetails() : new BuildServiceDetails<>(buildIdentifier, serviceName, serviceType);

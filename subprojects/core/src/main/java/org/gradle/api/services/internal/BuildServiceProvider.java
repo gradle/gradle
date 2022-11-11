@@ -16,6 +16,7 @@
 
 package org.gradle.api.services.internal;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Provider;
@@ -77,6 +78,11 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
     public abstract String getName();
 
     /**
+     * Returns the identifier for the build that owns this service.
+     */
+    public abstract BuildIdentifier getBuildIdentifier();
+
+    /**
      * Are the given providers referring to the same service provider?
      *
      * This method does not distinguish between consumed/registered providers.
@@ -90,6 +96,12 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
         }
         BuildServiceProvider thisBuildServiceProvider = (BuildServiceProvider) thisProvider;
         BuildServiceProvider otherBuildServiceProvider = (BuildServiceProvider) anotherProvider;
-        return thisBuildServiceProvider.getName().equals(otherBuildServiceProvider.getName()) && thisBuildServiceProvider.getType() == otherBuildServiceProvider.getType();
+        if (!thisBuildServiceProvider.getName().equals(otherBuildServiceProvider.getName())) {
+            return false;
+        }
+        if (thisBuildServiceProvider.getType() != otherBuildServiceProvider.getType()) {
+            return false;
+        }
+        return thisBuildServiceProvider.getBuildIdentifier().equals(otherBuildServiceProvider.getBuildIdentifier());
     }
 }
