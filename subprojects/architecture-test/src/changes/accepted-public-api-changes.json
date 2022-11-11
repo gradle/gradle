@@ -73,6 +73,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.ExternalDependency",
+            "member": "Method org.gradle.api.artifacts.ExternalDependency.setForce(boolean)",
+            "acceptation": "Removed deprecated components in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.ResolvedArtifact",
             "member": "Method org.gradle.api.artifacts.ResolvedArtifact.getExtension()",
             "acceptation": "Method always could return null",
@@ -1430,6 +1438,14 @@
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
             "changes": [
                 "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ClientModuleScope",
+            "member": "Class org.gradle.kotlin.dsl.ClientModuleScope",
+            "acceptation": "Removed deprecated components in Gradle 8.0",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.ClientModuleDelegate.setForce(boolean)"
             ]
         },
         {
