@@ -31,6 +31,8 @@ import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactReposito
 import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -99,7 +101,9 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
                 objectFactory,
                 fileResolver,
                 project.getPluginManager(),
-                project.getExtensions()));
+                project.getExtensions(),
+                ((ProjectInternal) project).getTaskDependencyFactory())
+            );
             createTasksLater(project, extension, project.getLayout().getBuildDirectory());
         });
     }
@@ -206,22 +210,25 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         private final FileResolver fileResolver;
         private final PluginManager plugins;
         private final ExtensionContainer extensionContainer;
+        private final TaskDependencyFactory taskDependencyFactory;
 
         private IvyPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, ObjectFactory objectFactory, FileResolver fileResolver,
-                                      PluginManager plugins, ExtensionContainer extensionContainer) {
+                                      PluginManager plugins, ExtensionContainer extensionContainer, TaskDependencyFactory taskDependencyFactory
+        ) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
             this.objectFactory = objectFactory;
             this.fileResolver = fileResolver;
             this.plugins = plugins;
             this.extensionContainer = extensionContainer;
+            this.taskDependencyFactory = taskDependencyFactory;
         }
 
         @Override
         public IvyPublication create(String name) {
             Module module = dependencyMetaDataProvider.getModule();
             IvyPublicationIdentity publicationIdentity = new DefaultIvyPublicationIdentity(module);
-            NotationParser<Object, IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity).create();
+            NotationParser<Object, IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity, taskDependencyFactory).create();
             VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
             configureDefaultConfigurationsUsedWhenMappingToResolvedVersions(versionMappingStrategy);
 

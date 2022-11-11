@@ -58,7 +58,9 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.logging.Logger
+import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.Convention
@@ -124,6 +126,10 @@ class ProblemReportingCrossProjectModelAccess(
 
     override fun gradleInstanceForProject(referrerProject: ProjectInternal, gradle: GradleInternal): GradleInternal {
         return CrossProjectConfigurationReportingGradle.from(gradle, referrerProject)
+    }
+
+    override fun taskDependencyUsageTracker(referrerProject: ProjectInternal): TaskDependencyUsageTracker {
+        return ReportingTaskDependencyUsageTracker(referrerProject, coupledProjectsListener, problems, userCodeContext)
     }
 
     private
@@ -917,6 +923,10 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getFileResolver(): FileResolver {
+            shouldNotBeUsed()
+        }
+
+        override fun getTaskDependencyFactory(): TaskDependencyFactory {
             shouldNotBeUsed()
         }
 

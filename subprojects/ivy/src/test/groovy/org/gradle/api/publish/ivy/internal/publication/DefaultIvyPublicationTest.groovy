@@ -295,7 +295,8 @@ class DefaultIvyPublicationTest extends Specification {
             CollectionCallbackActionDecorator.NOOP,
             Mock(VersionMappingStrategyInternal),
             Mock(PlatformSupport),
-            Mock(DocumentationRegistry)
+            Mock(DocumentationRegistry),
+            TestFiles.taskDependencyFactory()
         )
         publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
 
@@ -374,7 +375,8 @@ class DefaultIvyPublicationTest extends Specification {
             CollectionCallbackActionDecorator.NOOP,
             Mock(VersionMappingStrategyInternal),
             Mock(PlatformSupport),
-            Mock(DocumentationRegistry)
+            Mock(DocumentationRegistry),
+            TestFiles.taskDependencyFactory()
         )
         publication.setIvyDescriptorGenerator(createArtifactGenerator(ivyDescriptorFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(moduleDescriptorFile))

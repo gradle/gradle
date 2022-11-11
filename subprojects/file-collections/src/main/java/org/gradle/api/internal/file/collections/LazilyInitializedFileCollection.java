@@ -18,6 +18,8 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 
 import java.util.function.Consumer;
 
@@ -25,6 +27,22 @@ import java.util.function.Consumer;
  * A {@link FileCollection} whose contents is created lazily.
  */
 public abstract class LazilyInitializedFileCollection extends CompositeFileCollection {
+
+    // Used in a third-party plugin Freefair AspectJ:
+    //https://github.com/freefair/gradle-plugins/blob/fe992e9e8a3ed812c941aae02a594c8094da053c/aspectj-plugin/src/main/java/io/freefair/gradle/plugins/aspectj/internal/AspectJRuntime.java#L49
+    // TODO Remove once the third-party usage is considered obsolete.
+    /**
+     * @deprecated Use the overload accepting the TaskDependencyFactory
+     */
+    @Deprecated
+    public LazilyInitializedFileCollection() {
+        this(DefaultTaskDependencyFactory.withNoAssociatedProject());
+    }
+
+    public LazilyInitializedFileCollection(TaskDependencyFactory taskDependencyFactory) {
+        super(taskDependencyFactory);
+    }
+
     private FileCollectionInternal delegate;
 
     @Override
