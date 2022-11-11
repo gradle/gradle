@@ -16,14 +16,12 @@
 
 package org.gradle.api.tasks.internal;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
 
 import javax.annotation.Nullable;
-import java.io.File;
 
 public class JavaExecExecutableUtils {
 
@@ -31,14 +29,7 @@ public class JavaExecExecutableUtils {
     public static JavaToolchainSpec getExecutableOverrideToolchainSpec(JavaExec task, ObjectFactory objectFactory) {
         String customExecutable = task.getExecutable();
         if (customExecutable != null) {
-            File executable = new File(customExecutable);
-            if (executable.exists()) {
-                // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
-                File parentJavaHome = executable.getParentFile().getParentFile();
-                return new SpecificInstallationToolchainSpec(objectFactory, parentJavaHome);
-            } else {
-                throw new InvalidUserDataException("The configured executable does not exist (" + executable.getAbsolutePath() + ")");
-            }
+            return SpecificInstallationToolchainSpec.fromJavaExecutable(objectFactory, customExecutable);
         }
 
         return null;
