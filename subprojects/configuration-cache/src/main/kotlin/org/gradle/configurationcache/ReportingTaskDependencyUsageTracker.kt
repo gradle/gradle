@@ -43,8 +43,10 @@ class ReportingTaskDependencyUsageTracker(
 
     private
     fun checkForCoupledProjects(taskDependencies: Set<Task>) {
-        val projects = taskDependencies.map { it.project as ProjectInternal }
-        projects.forEach { coupledProjectsListener.onProjectReference(referrer.owner, it.owner) }
+        taskDependencies.forEach { task ->
+            val otherProject = task.project as ProjectInternal
+            coupledProjectsListener.onProjectReference(referrer.owner, otherProject.owner)
+        }
     }
 
     private

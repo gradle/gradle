@@ -36,14 +36,14 @@ public abstract class DefaultGroovySourceSet implements GroovySourceSet, HasPubl
     private final SourceDirectorySet allGroovy;
 
     @Inject
-    public DefaultGroovySourceSet(String name, String displayName, ObjectFactory objectFactory, TaskDependencyFactory taskDependencyFactory) {
-        this.groovy = createGroovySourceDirectorySet(name, displayName, objectFactory, taskDependencyFactory);
+    public DefaultGroovySourceSet(String name, String displayName, ObjectFactory objectFactory) {
+        this.groovy = createGroovySourceDirectorySet(name, displayName, objectFactory);
         allGroovy = objectFactory.sourceDirectorySet("all" + name, displayName + " Groovy source");
         allGroovy.source(groovy);
         allGroovy.getFilter().include("**/*.groovy");
     }
 
-    private static GroovySourceDirectorySet createGroovySourceDirectorySet(String name, String displayName, ObjectFactory objectFactory, TaskDependencyFactory taskDependencyFactory) {
+    private static GroovySourceDirectorySet createGroovySourceDirectorySet(String name, String displayName, ObjectFactory objectFactory) {
         GroovySourceDirectorySet groovySourceDirectorySet = objectFactory.newInstance(DefaultGroovySourceDirectorySet.class, objectFactory.sourceDirectorySet(name, displayName + " Groovy source"));
         groovySourceDirectorySet.getFilter().include("**/*.java", "**/*.groovy");
         return groovySourceDirectorySet;

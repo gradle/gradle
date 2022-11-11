@@ -179,7 +179,7 @@ public class JvmPluginsHelper {
         ObjectFactory objectFactory,
         FileResolver fileResolver,
         TaskDependencyFactory taskDependencyFactory
-        ) {
+    ) {
         Configuration variant = maybeCreateInvisibleConfig(
             configurations,
             variantName,
