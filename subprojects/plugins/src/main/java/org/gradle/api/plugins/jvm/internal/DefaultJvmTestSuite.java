@@ -204,7 +204,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 case SPOCK:
                     return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter(), false);
                 case TESTNG:
-                    return new TestNGTestFramework(task, task.getClasspath(), (DefaultTestFilter) task.getFilter(), getObjectFactory());
+                    return new TestNGTestFramework(task, (DefaultTestFilter) task.getFilter(), getObjectFactory());
                 default:
                     throw new IllegalStateException("do not know how to handle " + vtf);
             }
