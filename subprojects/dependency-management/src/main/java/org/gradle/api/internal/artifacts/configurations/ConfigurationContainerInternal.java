@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
-import org.gradle.api.logging.Logging;
 
 public interface ConfigurationContainerInternal extends ConfigurationContainer {
     @Override
@@ -42,7 +41,6 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
     default ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockRole) {
         ConfigurationInternal configuration = (ConfigurationInternal) create(name);
         RoleAssigner.assignRoleAtCreation(configuration, role, lockRole);
-        Logging.getLogger(ConfigurationContainerInternal.class).lifecycle("Created configuration {} with role {}", configuration.getName(), role.getName());
         return configuration;
     }
 
