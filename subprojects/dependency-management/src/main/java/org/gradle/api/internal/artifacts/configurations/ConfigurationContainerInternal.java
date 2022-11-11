@@ -116,8 +116,6 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
         /**
          * Assigns a usage role to a configuration at creation time, by setting internal usage flags (e.g. {@link ConfigurationInternal#isCanBeResolved()})
          * and/or marking such usages as deprecated.
-         *
-         * @return the given configuration; now configured for a role
          */
         private static void assignRoleAtCreation(ConfigurationInternal configuration, ConfigurationRole role, boolean lockRole) {
             configuration.setRoleAtCreation(role);
@@ -134,7 +132,7 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
                 DeprecationLogger.deprecateBehaviour("The configuration role: " + role.getName() + " is deprecated and should no longer be used.")
                         .willBecomeAnErrorInGradle9()
                         .withUpgradeGuideSection(8, "deprecated_configurations_should_not_be_used")
-                        .nagUser();;
+                        .nagUser();
             }
         }
 
