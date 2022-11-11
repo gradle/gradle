@@ -41,6 +41,11 @@ Some plugins will break with this new version of Gradle, for example because the
 [[deprecated_configurations_should_not_be_used]]
 ==== Usage of deprecated configurations is now an error
 
+Usage of the following `@link:{javadocPath}/javadoc/org/gradle/api/internal/artifacts/configurations/ConfigurationRoles.htm[ConfigurationRoles]` are now errors:
+
+- `LEGACY`
+- `DEPRECATED_CONSUMABLE`
+- `DEPRECATED_RESOLVABLE`
 
 === Removed APIs
 
