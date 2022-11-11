@@ -80,7 +80,7 @@ public abstract class TestReportAggregationPlugin implements Plugin<Project> {
         // A resolvable configuration to collect test results
         Configuration testResultsConf = project.getConfigurations().create("aggregateTestReportResults");
         testResultsConf.extendsFrom(testAggregation);
-        testResultsConf.setDescription("Supplies test result data");
+        testResultsConf.setDescription("Graph needed for the aggregated test results report.");
         testResultsConf.setVisible(false);
         testResultsConf.setCanBeConsumed(false);
         testResultsConf.setCanBeResolved(true);

@@ -72,7 +72,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
 
         ObjectFactory objects = project.getObjects();
         Configuration codeCoverageResultsConf = project.getConfigurations().create("aggregateCodeCoverageReportResults");
-        codeCoverageResultsConf.setDescription("Supplies code coverage result data");
+        codeCoverageResultsConf.setDescription("Graph needed for the aggregated JaCoCo coverage report.");
         codeCoverageResultsConf.extendsFrom(jacocoAggregation);
         codeCoverageResultsConf.setVisible(false);
         codeCoverageResultsConf.setCanBeConsumed(false);
