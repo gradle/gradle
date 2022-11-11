@@ -110,32 +110,30 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
 
     override fun getAllTasks(): MutableList<Task> {
         val result = delegate.allTasks
-        observingTasks(result)
+        observingTasksMaybeFromOtherProjects(result)
         return result
     }
 
     override fun getDependencies(task: Task): MutableSet<Task> {
         checkCrossProjectTaskAccess(task)
         val result = delegate.getDependencies(task)
-        observingTasks(result)
+        observingTasksMaybeFromOtherProjects(result)
         return result
     }
 
     override
     fun getFilteredTasks(): MutableSet<Task> {
         val result = delegate.filteredTasks
-        observingTasks(result)
+        observingTasksMaybeFromOtherProjects(result)
         return result
     }
 
     private
-    fun observingTasks(tasks: Collection<Task>) {
+    fun observingTasksMaybeFromOtherProjects(tasks: Collection<Task>) {
         val otherProjects = tasks.mapNotNullTo(LinkedHashSet(tasks.size / 8)) { task ->
             (task.project as? ProjectInternal)?.takeIf { project -> !project.isReferrerProject }
         }
-        if (otherProjects.isNotEmpty()) {
-            reportCrossProjectTaskAccess(otherProjects)
-        }
+        reportCrossProjectTaskAccess(otherProjects)
     }
 
     private
