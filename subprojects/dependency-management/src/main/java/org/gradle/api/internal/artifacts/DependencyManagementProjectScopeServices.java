@@ -72,7 +72,8 @@ class DependencyManagementProjectScopeServices {
         FileCollectionFactory fileCollectionFactory,
         RuntimeShadedJarFactory runtimeShadedJarFactory,
         ImmutableAttributesFactory attributesFactory,
-        SimpleMapInterner stringInterner) {
+        SimpleMapInterner stringInterner
+    ) {
         NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 

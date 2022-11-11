@@ -106,7 +106,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
     @SuppressWarnings("deprecation")
     private void configureSourceSetDefaults() {
         javaPluginExtension().getSourceSets().all(sourceSet -> {
-            final DefaultGroovySourceSet groovySourceSet = objectFactory.newInstance(DefaultGroovySourceSet.class, "groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory, taskDependencyFactory);
+            final DefaultGroovySourceSet groovySourceSet = objectFactory.newInstance(DefaultGroovySourceSet.class, "groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
             addSourceSetExtension(sourceSet, groovySourceSet);
 
             final SourceDirectorySet groovySource = groovySourceSet.getGroovy();

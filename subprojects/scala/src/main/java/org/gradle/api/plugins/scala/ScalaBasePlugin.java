@@ -97,13 +97,11 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
     private final ObjectFactory objectFactory;
     private final JvmEcosystemUtilities jvmEcosystemUtilities;
-    private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
     public ScalaBasePlugin(ObjectFactory objectFactory, JvmEcosystemUtilities jvmEcosystemUtilities, TaskDependencyFactory taskDependencyFactory) {
         this.objectFactory = objectFactory;
         this.jvmEcosystemUtilities = jvmEcosystemUtilities;
-        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
