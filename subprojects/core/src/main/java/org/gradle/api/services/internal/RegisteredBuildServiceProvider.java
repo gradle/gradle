@@ -68,9 +68,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         return serviceDetails;
     }
 
-    /**
-     * Returns the identifier for the build that owns this service.
-     */
+    @Override
     public BuildIdentifier getBuildIdentifier() {
         return serviceDetails.getBuildIdentifier();
     }
