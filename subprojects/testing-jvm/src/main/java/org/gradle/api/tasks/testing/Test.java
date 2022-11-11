@@ -23,12 +23,14 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -45,6 +47,7 @@ import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -53,7 +56,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -78,7 +80,6 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -192,9 +193,33 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         forkOptions.setEnableAssertions(true);
         forkOptions.setExecutable(null);
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
-        javaLauncher = objectFactory.property(JavaLauncher.class);
+        javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
+        javaLauncher.finalizeValueOnRead();
         testFramework = objectFactory.property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
         testFramework.finalizeValueOnRead();
+    }
+
+    private Provider<JavaLauncher> createJavaLauncherConvention() {
+        final ObjectFactory objectFactory = getObjectFactory();
+        final JavaToolchainService javaToolchainService = getJavaToolchainService();
+        Provider<JavaToolchainSpec> executableOverrideToolchainSpec = getProviderFactory().provider(new Callable<JavaToolchainSpec>() {
+            @Override
+            public JavaToolchainSpec call() {
+                return TestExecutableUtils.getExecutableToolchainSpec(Test.this, objectFactory);
+            }
+        });
+
+        return executableOverrideToolchainSpec
+            .flatMap(new Transformer<Provider<JavaLauncher>, JavaToolchainSpec>() {
+                @Override
+                public Provider<JavaLauncher> transform(JavaToolchainSpec spec) {
+                    return javaToolchainService.launcherFor(spec);
+                }
+            })
+            .orElse(javaToolchainService.launcherFor(new Action<JavaToolchainSpec>() {
+                @Override
+                public void execute(JavaToolchainSpec javaToolchainSpec) {}
+            }));
     }
 
     /**
@@ -239,7 +264,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Input
     public JavaVersion getJavaVersion() {
-        return JavaVersion.toVersion(getLauncherTool().get().getMetadata().getLanguageVersion().asInt());
+        return JavaVersion.toVersion(getJavaLauncher().get().getMetadata().getLanguageVersion().asInt());
     }
 
     /**
@@ -582,7 +607,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     private void copyToolchainAsExecutable(ProcessForkOptions target) {
-        target.setExecutable(getEffectiveExecutable());
+        String executable = getJavaLauncher().get().getExecutablePath().toString();
+        target.setExecutable(executable);
     }
 
     /**
@@ -602,20 +628,23 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
-        validateToolchainConfiguration();
+        validateExecutableMatchesToolchain();
         JavaForkOptions javaForkOptions = getForkOptionsFactory().newJavaForkOptions();
         copyTo(javaForkOptions);
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses());
+        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
 
-    private void validateToolchainConfiguration() {
-        if (javaLauncher.isPresent()) {
-            checkState(forkOptions.getExecutable() == null, "Must not use `executable` property on `Test` together with `javaLauncher` property");
-        }
+    private void validateExecutableMatchesToolchain() {
+        File toolchainExecutable = getJavaLauncher().get().getExecutablePath().getAsFile();
+        String customExecutable = getExecutable();
+        checkState(
+            customExecutable == null || new File(customExecutable).equals(toolchainExecutable),
+            "Toolchain from `executable` property does not match toolchain from `javaLauncher` property"
+        );
     }
 
     private Set<String> getPreviousFailedTestClasses() {
@@ -1020,6 +1049,17 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     void useTestFramework(TestFramework testFramework) {
+        if (((DefaultProperty<?>) this.testFramework).isFinalized()) {
+            Class<?> currentFramework = this.testFramework.get().getClass();
+            Class<?> newFramework = testFramework.getClass();
+            if (currentFramework == newFramework) {
+                // We are setting a finalized framework to its existing value, no-op so as not to trigger a failure here.
+                // We need to allow this especially for the default test task, so that existing builds that configure options and
+                // then call useJunit() afterwards don't fail
+                return;
+            }
+        }
+
         this.testFramework.set(testFramework);
     }
 
@@ -1169,30 +1209,22 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * @since 6.7
      */
     @Nested
-    @Optional
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }
 
-    private String getEffectiveExecutable() {
-        return getLauncherTool().get().getExecutablePath().toString();
-    }
-
-    private Provider<JavaLauncher> getLauncherTool() {
-        JavaToolchainSpec toolchainSpec = TestExecutableUtils.getExecutableToolchainSpec(this, getObjectFactory());
-        if (toolchainSpec == null) {
-            if (javaLauncher.isPresent()) {
-                return javaLauncher;
-            } else {
-                toolchainSpec = new CurrentJvmToolchainSpec(getObjectFactory());
-            }
-        }
-
-        return getJavaToolchainService().launcherFor(toolchainSpec);
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
+    protected JavaToolchainService getJavaToolchainService() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ProviderFactory getProviderFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -1223,11 +1255,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     @Inject
     protected JavaModuleDetector getJavaModuleDetector() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected JavaToolchainService getJavaToolchainService() {
         throw new UnsupportedOperationException();
     }
 }

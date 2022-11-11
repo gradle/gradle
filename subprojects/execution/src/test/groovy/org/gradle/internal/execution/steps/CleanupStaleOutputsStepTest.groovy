@@ -52,7 +52,7 @@ class CleanupStaleOutputsStepTest extends StepSpec<WorkspaceContext> {
 
         _ * work.shouldCleanupStaleOutputs() >> true
         _ * work.visitOutputs(_) { UnitOfWork.OutputVisitor visitor ->
-            visitor.visitOutputProperty("output", TreeType.FILE, new UnitOfWork.OutputFileValueSupplier(target, TestFiles.fixed(target)))
+            visitor.visitOutputProperty("output", TreeType.FILE, UnitOfWork.OutputFileValueSupplier.fromStatic(target, TestFiles.fixed(target)))
         }
 
         _ * cleanupRegistry.isOutputOwnedByBuild(target) >> ownedByBuild

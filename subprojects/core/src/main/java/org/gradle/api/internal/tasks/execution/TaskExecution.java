@@ -49,12 +49,12 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
@@ -338,17 +338,14 @@ public class TaskExecution implements UnitOfWork {
     public void visitOutputs(File workspace, OutputVisitor visitor) {
         TaskProperties taskProperties = context.getTaskProperties();
         for (OutputFilePropertySpec property : taskProperties.getOutputFileProperties()) {
-            File outputFile = property.getOutputFile();
-            if (outputFile != null) {
-                try {
-                    visitor.visitOutputProperty(
-                        property.getPropertyName(),
-                        property.getOutputType(),
-                        new OutputFileValueSupplier(outputFile, property.getPropertyFiles())
-                    );
-                } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
-                    throw decorateSnapshottingException("output", property.getPropertyName(), e.getCause());
-                }
+            try {
+                visitor.visitOutputProperty(
+                    property.getPropertyName(),
+                    property.getOutputType(),
+                    OutputFileValueSupplier.fromSupplier(property::getOutputFile, property.getPropertyFiles())
+                );
+            } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
+                throw decorateSnapshottingException("output", property.getPropertyName(), e.getCause());
             }
         }
         for (File localStateRoot : taskProperties.getLocalStateFiles()) {

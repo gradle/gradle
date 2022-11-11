@@ -224,7 +224,7 @@ class UnitOfWorkBuilder {
             @Override
             void visitOutputs(File workspace, UnitOfWork.OutputVisitor visitor) {
                 outputs.forEach { name, spec ->
-                    visitor.visitOutputProperty(name, spec.treeType, new UnitOfWork.OutputFileValueSupplier(spec.root, TestFiles.fixed(spec.root)))
+                    visitor.visitOutputProperty(name, spec.treeType, UnitOfWork.OutputFileValueSupplier.fromStatic(spec.root, TestFiles.fixed(spec.root)))
                 }
             }
 

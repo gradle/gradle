@@ -336,6 +336,14 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.visiting tar trees",
+    "groups" : [ {
+      "testProject" : "archivePerformanceProject",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.visiting zip trees",
     "groups" : [ {
       "testProject" : "archivePerformanceProject",
@@ -756,6 +764,11 @@
       }
     }, {
       "testProject" : "largeMonolithicGroovyProject",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "largeMonolithicJavaProject",
       "coverage" : {
         "per_commit" : [ "linux" ]
       }
