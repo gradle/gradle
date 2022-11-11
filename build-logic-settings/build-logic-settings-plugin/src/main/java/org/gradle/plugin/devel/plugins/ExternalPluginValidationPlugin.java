@@ -15,8 +15,6 @@
  */
 package org.gradle.plugin.devel.plugins;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -33,11 +31,14 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.plugin.devel.tasks.ValidatePlugins;
 import org.gradle.plugin.use.PluginId;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -54,8 +55,6 @@ import static org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin.VALIDATE_PL
  * See the user guide for more information on
  * <a href="https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks" target="_top">incremental build</a> and
  * <a href="https://docs.gradle.org/current/userguide/build_cache.html#sec:task_output_caching" target="_top">caching task outputs</a>.
- *
- * @since 7.0
  */
 @Incubating
 @CacheableTask
@@ -73,10 +72,10 @@ public abstract class ExternalPluginValidationPlugin implements Plugin<Project> 
     }
 
     @Override
-    public void apply(Project project) {
+    public void apply(@Nonnull Project project) {
         TaskProvider<Task> lifecycleTask = createLifecycleTask(project);
         PluginRegistry registry = findPluginRegistry(project);
-        Map<String, List<File>> jarsByPlugin = Maps.newHashMap();
+        Map<String, List<File>> jarsByPlugin = new HashMap<>();
         project.getPlugins().configureEach(p -> configurePluginValidation(project, lifecycleTask, registry, jarsByPlugin, p));
     }
 
@@ -110,7 +109,7 @@ public abstract class ExternalPluginValidationPlugin implements Plugin<Project> 
     }
 
     private List<File> registerValidationTaskForNewPlugin(String pluginId, Project project, TaskProvider<Task> lifecycleTask) {
-        List<File> jarsForPlugin = Lists.newArrayList();
+        List<File> jarsForPlugin = new ArrayList<>();
         TaskProvider<ValidatePlugins> validationTask = configureValidationTask(project, jarsForPlugin, pluginId);
         lifecycleTask.configure(task -> task.dependsOn(validationTask));
         return jarsForPlugin;
