@@ -230,9 +230,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
                 LOGGER.info("Uploading {} to {}", externalResource.getShortDisplayName(), externalResource.getPath());
             }
             putResource(externalResource, new FileReadableContent(content));
-            if (!localRepo) {
-                publishChecksums(externalResource, content);
-            }
+            publishChecksums(externalResource, content);
         }
 
         private void publishChecksums(ExternalResourceName destination, File content) {

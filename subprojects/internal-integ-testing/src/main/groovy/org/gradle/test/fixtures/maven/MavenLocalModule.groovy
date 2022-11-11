@@ -66,10 +66,4 @@ class MavenLocalModule extends MavenFileModule {
     protected boolean publishesMetaDataFile() {
         version.endsWith("-SNAPSHOT")
     }
-
-    /* No checksums published for local modules */
-    @Override
-    void assertArtifactsPublished(String... names) {
-        assert moduleDir.list() as Set == names as Set
-    }
 }
