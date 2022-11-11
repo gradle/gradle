@@ -39,6 +39,16 @@ class SourceFileChangeProcessor {
         spec.addResourcesToGenerate(actualDependents.getDependentResources());
     }
 
+    public void processOnlyAccessibleChangeOfClasses(Set<String> classNames, RecompilationSpec spec) {
+        DependentsSet actualDependents = previousCompilation.findDependentsOfSourceChanges(classNames);
+        if (actualDependents.isDependencyToAll()) {
+            spec.setFullRebuildCause(actualDependents.getDescription());
+            return;
+        }
+        spec.addClassesToCompile(actualDependents.getAccessibleDependentClasses());
+        spec.addResourcesToGenerate(actualDependents.getDependentResources());
+    }
+
     public Set<String> processAnnotationDependenciesOfIndependentClasses(Set<String> classNames, RecompilationSpec spec) {
         Set<String> newAdded = new LinkedHashSet<>();
         for (String className : classNames) {

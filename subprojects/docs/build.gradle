@@ -770,6 +770,8 @@ tasks.named("docsTest") { task ->
             // Tests that can and has to be fixed to run with the configuration cache enabled.
             // Set the Gradle property runBrokenConfigurationCacheDocsTests=true to run tests from this list or any of the lists above.
             def testsToBeFixedForConfigurationCache = [
+                "snippet-build-cache-configure-task_groovy_configureTask.sample",
+                "snippet-build-cache-configure-task_kotlin_configureTask.sample",
             ]
 
             def brokenTests = testsForUnsupportedFeatures + testsWithThirdPartyFailures + testsForNotYetSupportedFeatures + testsToBeFixedForConfigurationCache

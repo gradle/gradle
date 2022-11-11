@@ -58,8 +58,10 @@ import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
 import org.gradle.internal.logging.util.Log4jBannedVersion;
 import org.gradle.jvm.tasks.Jar;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.language.scala.tasks.KeepAliveMode;
 
 import javax.inject.Inject;
@@ -219,7 +221,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             JvmPluginsHelper.configureForSourceSet(sourceSet, scalaSourceSet, scalaCompile, scalaCompile.getOptions(), project);
             scalaCompile.setDescription("Compiles the " + scalaSourceSet + ".");
             scalaCompile.setSource(scalaSourceSet);
-            scalaCompile.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
+            scalaCompile.getJavaLauncher().convention(getJavaLauncher(project));
             scalaCompile.getAnalysisMappingFile().set(project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".mapping"));
 
             // cannot compute at task execution time because we need association with source set
@@ -270,6 +272,13 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         return toolMapper.apply(service, extension.getToolchain());
     }
 
+    private Provider<JavaLauncher> getJavaLauncher(Project project) {
+        final JavaPluginExtension extension = extensionOf(project, JavaPluginExtension.class);
+        final JavaToolchainService service = extensionOf(project, JavaToolchainService.class);
+        return service.launcherFor(extension.getToolchain())
+            .map(it -> ((JavaToolchain) it.getMetadata()).isFallbackToolchain() ? null : it);
+    }
+
     private static void configureCompileDefaults(final Project project, final ScalaRuntime scalaRuntime) {
         project.getTasks().withType(ScalaCompile.class).configureEach(compile -> {
             compile.getConventionMapping().map("scalaClasspath", (Callable<FileCollection>) () -> scalaRuntime.inferScalaClasspath(compile.getClasspath()));
@@ -284,7 +293,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             scalaDoc.getConventionMapping().map("destinationDir", (Callable<File>) () -> project.getExtensions().getByType(JavaPluginExtension.class).getDocsDir().dir("scaladoc").get().getAsFile());
             scalaDoc.getConventionMapping().map("title", (Callable<String>) () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
             scalaDoc.getConventionMapping().map("scalaClasspath", (Callable<FileCollection>) () -> scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath()));
-            scalaDoc.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
+            scalaDoc.getJavaLauncher().convention(getJavaLauncher(project));
         });
     }
 

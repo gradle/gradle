@@ -19,6 +19,7 @@ package org.gradle.internal.classpath;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.internal.CleanupActionDecorator;
+import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheVersionMapping;
@@ -33,7 +34,6 @@ import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
-import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultClasspathTransformerCacheFactory implements ClasspathTransformerCacheFactory {
@@ -51,10 +51,12 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
 
     private final UsedGradleVersions usedGradleVersions;
     private final CleanupActionDecorator cleanupActionDecorator;
+    private final CacheConfigurations cacheConfigurations;
 
-    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CleanupActionDecorator cleanupActionDecorator) {
+    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CleanupActionDecorator cleanupActionDecorator, CacheConfigurations cacheConfigurations) {
         this.usedGradleVersions = usedGradleVersions;
         this.cleanupActionDecorator = cleanupActionDecorator;
+        this.cacheConfigurations = cacheConfigurations;
     }
 
     @Override
@@ -75,7 +77,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
                 new LeastRecentlyUsedCacheCleanup(
                     new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP),
                     fileAccessTimeJournal,
-                    DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+                    () -> cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesAfterDays().get()
                 )
             ).build();
     }
