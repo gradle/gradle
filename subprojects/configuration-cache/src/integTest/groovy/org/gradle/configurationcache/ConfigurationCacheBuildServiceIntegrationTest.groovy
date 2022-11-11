@@ -73,9 +73,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         withCountingServicePlugin("counter", "counter")
         file('settings.gradle') << """
             pluginManagement {
-                repositories {
-                    maven { url '$mavenRepo.uri' }
-                }
+                includeBuild 'counting-service-plugin'
             }
         """
         file('build.gradle') << """
@@ -109,9 +107,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         withCountingServicePlugin("registeredCounter", "consumedCounter")
         file('settings.gradle') << """
             pluginManagement {
-                repositories {
-                    maven { url '$mavenRepo.uri' }
-                }
+                includeBuild 'counting-service-plugin'
             }
         """
         file('build.gradle') << """
@@ -143,7 +139,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
     }
 
     private void withCountingServicePlugin(String registeredServiceName, String consumedServiceName) {
-        createDir('plugin') {
+        createDir('counting-service-plugin') {
             file("src/main/java/CountingServicePlugin.java") << """
                 public abstract class CountingServicePlugin implements $Plugin.name<$Project.name> {
                     private $Provider.name<?> counterProvider;
@@ -186,15 +182,9 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             file("build.gradle") << """
                 plugins {
                     id("java-gradle-plugin")
-                    id("maven-publish")
                 }
                 group = "com.example"
                 version = "1.0"
-                publishing {
-                    repositories {
-                        maven { url '$mavenRepo.uri' }
-                    }
-                }
                 gradlePlugin {
                     plugins {
                         buildServicePlugin {
@@ -205,7 +195,6 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
                 }
             """
         }
-        executer.inDirectory(file("plugin")).withTasks("publish").run()
     }
 
     private void withListenerBuildServicePlugin(String onFinishMessage) {
