@@ -18,7 +18,6 @@ package org.gradle.api
 
 import org.gradle.api.internal.artifacts.transform.UnzipTransform
 import org.gradle.integtests.fixtures.executer.TaskOrderSpecs
-import org.gradle.test.fixtures.Flaky
 import spock.lang.Issue
 
 class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrderTaskIntegrationTest {
@@ -123,7 +122,6 @@ class ProducerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOrd
         }
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3576")
     def "producer task with a dependency in another build followed by a destroyer task followed by a producer are run in the correct order"() {
         def foo = includedBuild('child').subproject(':foo')
         def bar = subproject(':bar')
