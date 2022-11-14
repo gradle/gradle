@@ -411,14 +411,14 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
     }
 
     def "can init two projects in a row"() {
-        ConfigurationCacheFixture fixture = new ConfigurationCacheFixture(this)
+        def configurationCache = new ConfigurationCacheFixture(this)
         when:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
         configurationCacheRun "init", "--dsl", "groovy", "--type", "basic"
 
         then:
         outputContains("> Task :init")
-        fixture.assertStateStoredAndDiscarded {
+        configurationCache.assertStateStoredAndDiscarded {
             assert totalProblems == 0
         }
         succeeds 'properties'
