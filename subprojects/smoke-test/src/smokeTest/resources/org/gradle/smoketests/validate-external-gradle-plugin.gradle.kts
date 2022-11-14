@@ -30,18 +30,17 @@ import java.util.stream.Collectors
  */
 gradle.beforeProject {
     val lifecycleTask = project.tasks.register("validateExternalPlugins")
-    val registry = findPluginRegistry(project)
-    project.plugins.configureEach { configurePluginValidation(project, lifecycleTask, registry, javaClass) }
+    project.plugins.configureEach { configurePluginValidation(project, lifecycleTask, javaClass) }
 }
 
 fun configurePluginValidation(
     project: Project,
     lifecycleTask: TaskProvider<Task>,
-    registry: PluginRegistry,
     pluginClass: Class<*>
 ) {
     val jarsByPlugin = mutableMapOf<String, MutableList<File>>()
     if (isExternal(pluginClass)) {
+        val registry = findPluginRegistry(project)
         val pluginId: String = registry.findPluginForClass(pluginClass)
             .map(PluginId::getId)
             .orElseGet { pluginClass.name }
