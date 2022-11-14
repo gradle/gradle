@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import spock.lang.Issue
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -410,6 +411,20 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
     }
 
     def "can init two projects in a row"() {
+        def configurationCache = new ConfigurationCacheFixture(this)
+        when:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        configurationCacheRun "init", "--dsl", "groovy", "--type", "basic"
+
+        then:
+        outputContains("> Task :init")
+        configurationCache.assertStateStoredAndDiscarded {
+            assert totalProblems == 0
+        }
+        succeeds 'properties'
+        def projectName1 = testDirectory.name
+        outputContains("name: ${projectName1}")
+
         when:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
         configurationCacheRun "init", "--dsl", "groovy", "--type", "basic"
@@ -417,13 +432,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         then:
         outputContains("> Task :init")
         succeeds 'properties'
-
-        when:
-        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
-        configurationCacheRun "init", "--dsl", "groovy", "--type", "basic"
-
-        then:
-        outputContains("> Task :init")
-        succeeds 'properties'
+        def projectName2 = testDirectory.name
+        outputContains("name: ${projectName2}")
+        projectName1 != projectName2
     }
 }
