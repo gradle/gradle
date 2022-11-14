@@ -157,8 +157,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     ConfigurationRole getRoleAtCreation();
 
-    void setRoleAtCreation(ConfigurationRole role);
-
     /**
      * Test if the given configuration can either be declared against or extends another
      * configuration which can be declared against.

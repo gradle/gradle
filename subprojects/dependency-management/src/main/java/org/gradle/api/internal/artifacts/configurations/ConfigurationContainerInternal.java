@@ -30,20 +30,16 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
     @Override
     ConfigurationInternal detachedConfiguration(Dependency... dependencies);
 
-    default ConfigurationInternal createWithRole(String name, ConfigurationRole role) {
-        return createWithRole(name, role, true);
-    }
+    ConfigurationInternal consumable(String name, boolean lockRole);
+    ConfigurationInternal resolvable(String name, boolean lockRole);
+    ConfigurationInternal bucket(String name, boolean lockRole);
 
     /**
      * Creates a new configuration in the same manner as {@link #create(String)}, and then
      * immediately assigns it a role by setting internal status flags to mark possible usage options
      * for the configuration.
      */
-    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockRole) {
-        ConfigurationInternal configuration = (ConfigurationInternal) create(name);
-        RoleAssigner.assignRoleAtCreation(configuration, role, lockRole);
-        return configuration;
-    }
+    ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockRole);
 
     /**
      * If it does not already exist, creates a new configuration in the same manner as {@link #maybeCreate(String)}, and then
@@ -118,7 +114,6 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
          * and/or marking such usages as deprecated.
          */
         private static void assignRoleAtCreation(ConfigurationInternal configuration, ConfigurationRole role, boolean lockRole) {
-            configuration.setRoleAtCreation(role);
             configuration.setCanBeConsumed(role.isConsumable());
             configuration.setCanBeResolved(role.isResolvable());
             configuration.setCanBeDeclaredAgainst(role.isDeclarableAgainst());

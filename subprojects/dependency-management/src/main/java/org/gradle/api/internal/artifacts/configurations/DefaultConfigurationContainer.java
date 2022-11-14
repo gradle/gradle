@@ -58,6 +58,9 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final DefaultRootComponentMetadataBuilder rootComponentMetadataBuilder;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
+    @SuppressWarnings("deprecation")
+    private ConfigurationRole roleToCreate = ConfigurationRoles.LEGACY;
+
     public DefaultConfigurationContainer(
         Instantiator instantiator,
         DependencySubstitutionRules globalDependencySubstitutionRules,
@@ -83,11 +86,20 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.defaultConfigurationFactory = defaultConfigurationFactory;
     }
 
+    public void setRoleToCreate(ConfigurationRole roleToCreate) {
+        this.roleToCreate = roleToCreate;
+    }
+
+    @SuppressWarnings("deprecation")
     @Override
     protected Configuration doCreate(String name) {
-        DefaultConfiguration configuration = newConfiguration(name, this, rootComponentMetadataBuilder);
-        configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
-        return configuration;
+        try {
+            DefaultConfiguration configuration = newConfiguration(name, this, rootComponentMetadataBuilder, roleToCreate);
+            configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
+            return configuration;
+        } finally {
+            roleToCreate = ConfigurationRoles.LEGACY;
+        }
     }
 
     @Override
@@ -114,7 +126,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     public ConfigurationInternal detachedConfiguration(Dependency... dependencies) {
         String name = nextDetachedConfigurationName();
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
-        DefaultConfiguration detachedConfiguration = newConfiguration(name, detachedConfigurationsProvider, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider));
+        @SuppressWarnings("deprecation")
+        DefaultConfiguration detachedConfiguration = newConfiguration(name, detachedConfigurationsProvider, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), ConfigurationRoles.LEGACY);
         copyAllTo(detachedConfiguration, dependencies);
         detachedConfigurationsProvider.setTheOnlyConfiguration(detachedConfiguration);
         return detachedConfiguration;
@@ -131,8 +144,8 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         }
     }
 
-    private DefaultConfiguration newConfiguration(String name, ConfigurationsProvider detachedConfigurationsProvider, RootComponentMetadataBuilder componentMetadataBuilder) {
-        return defaultConfigurationFactory.create(name, detachedConfigurationsProvider, resolutionStrategyFactory, componentMetadataBuilder);
+    private DefaultConfiguration newConfiguration(String name, ConfigurationsProvider detachedConfigurationsProvider, RootComponentMetadataBuilder componentMetadataBuilder, ConfigurationRole role) {
+        return defaultConfigurationFactory.create(name, detachedConfigurationsProvider, resolutionStrategyFactory, componentMetadataBuilder, role);
     }
 
     /**
@@ -150,4 +163,28 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return reply.toString();
     }
 
+    @Override
+    public ConfigurationInternal consumable(String name, boolean lockRole) {
+        return createWithRole(name, ConfigurationRoles.INTENDED_CONSUMABLE, lockRole);
+    }
+
+    @Override
+    public ConfigurationInternal resolvable(String name, boolean lockRole) {
+        return createWithRole(name, ConfigurationRoles.INTENDED_RESOLVABLE, lockRole);
+    }
+
+    @Override
+    public ConfigurationInternal bucket(String name, boolean lockRole) {
+        return createWithRole(name, ConfigurationRoles.INTENDED_BUCKET, lockRole);
+    }
+
+    @Override
+    public ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockRole) {
+        roleToCreate = role;
+        ConfigurationInternal configuration = (ConfigurationInternal) create(name);
+        if (lockRole) {
+            configuration.preventUsageMutation();
+        }
+        return configuration;
+    }
 }
