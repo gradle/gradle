@@ -72,6 +72,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
+import org.gradle.internal.scripts.ScriptFileResolvedListener
 import org.gradle.util.Path
 import java.io.File
 import java.util.EnumSet
@@ -86,7 +87,7 @@ class ConfigurationCacheFingerprintWriter(
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val taskExecutionTracker: TaskExecutionTracker,
     private val environmentChangeTracker: EnvironmentChangeTracker,
-    private val inputTrackingState: InputTrackingState,
+    private val inputTrackingState: InputTrackingState
 ) : ValueSourceProviderFactory.ValueListener,
     ValueSourceProviderFactory.ComputationListener,
     WorkInputListener,
@@ -96,6 +97,7 @@ class ConfigurationCacheFingerprintWriter(
     ProjectDependencyObservedListener,
     CoupledProjectsListener,
     FileResourceListener,
+    ScriptFileResolvedListener,
     FeatureFlagListener,
     ConfigurationCacheEnvironment.Listener {
 
@@ -695,6 +697,10 @@ class ConfigurationCacheFingerprintWriter(
         override fun write(value: ConfigurationCacheFingerprint) {
             writer.write(ProjectSpecificFingerprint.ProjectFingerprint(project, value))
         }
+    }
+
+    override fun onScriptFileResolved(scriptFile: File) {
+        fileObserved(scriptFile)
     }
 }
 

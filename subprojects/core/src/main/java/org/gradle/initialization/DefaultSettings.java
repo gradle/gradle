@@ -47,6 +47,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.management.ToolchainManagementInternal;
 import org.gradle.internal.resource.TextUriResourceLoader;
+import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -131,7 +132,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     public DefaultProjectDescriptor createProjectDescriptor(@Nullable DefaultProjectDescriptor parent, String name, File dir) {
-        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver());
+        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver(), getScriptFileResolver());
     }
 
     @Override
@@ -255,6 +256,9 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Inject
     public abstract TextUriResourceLoader.Factory getTextUriResourceLoaderFactory();
+
+    @Inject
+    public abstract ScriptFileResolver getScriptFileResolver();
 
     @Override
     public ProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
