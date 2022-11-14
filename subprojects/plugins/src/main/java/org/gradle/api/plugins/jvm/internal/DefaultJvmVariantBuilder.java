@@ -191,6 +191,7 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
         Configuration apiElements = exposeApi ? jvmPluginServices.createOutgoingElements(apiElementsConfigurationName, builder -> {
             builder.fromSourceSet(sourceSet)
                 .providesApi()
+                .providesAttributes(JvmEcosystemAttributesDetails::apiCompileView)
                 .withDescription("API elements for " + displayName)
                 .extendsFrom(api, compileOnlyApi)
                 .withCapabilities(capabilities)
@@ -232,7 +233,9 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
                     configurations,
                     tasks,
                     project.getObjects(),
-                    project.getFileResolver());
+                    project.getFileResolver(),
+                    project.getTaskDependencyFactory()
+                );
         }
         if (sourcesJar) {
             JvmPluginsHelper.configureDocumentationVariantWithArtifact(sourceSet.getSourcesElementsConfigurationName(),
@@ -245,7 +248,9 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
                     configurations,
                     tasks,
                     project.getObjects(),
-                    project.getFileResolver());
+                    project.getFileResolver(),
+                    project.getTaskDependencyFactory()
+                );
         }
 
         if (published && component != null) {

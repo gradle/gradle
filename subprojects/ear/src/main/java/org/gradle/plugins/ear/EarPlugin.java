@@ -26,6 +26,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
@@ -47,7 +48,7 @@ import java.util.concurrent.Callable;
  * @see <a href="https://docs.gradle.org/current/userguide/ear_plugin.html">EAR plugin reference</a>
  */
 @SuppressWarnings("deprecation")
-public class EarPlugin implements Plugin<Project> {
+public abstract class EarPlugin implements Plugin<Project> {
 
     public static final String EAR_TASK_NAME = "ear";
 
@@ -58,6 +59,7 @@ public class EarPlugin implements Plugin<Project> {
 
     private final ObjectFactory objectFactory;
     private final JvmPluginServices jvmPluginServices;
+    private final TaskDependencyFactory taskDependencyFactory;
 
     /**
      * Injects an {@link ObjectFactory}
@@ -65,9 +67,10 @@ public class EarPlugin implements Plugin<Project> {
      * @since 4.2
      */
     @Inject
-    public EarPlugin(ObjectFactory objectFactory, JvmPluginServices jvmPluginServices) {
+    public EarPlugin(ObjectFactory objectFactory, JvmPluginServices jvmPluginServices, TaskDependencyFactory taskDependencyFactory) {
         this.objectFactory = objectFactory;
         this.jvmPluginServices = jvmPluginServices;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
@@ -130,7 +133,7 @@ public class EarPlugin implements Plugin<Project> {
                 deploymentDescriptor.setDescription(project.getDescription());
             }
         }
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new LazyPublishArtifact(ear, ((ProjectInternal) project).getFileResolver()));
+        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(new LazyPublishArtifact(ear, ((ProjectInternal) project).getFileResolver(), taskDependencyFactory));
 
         project.getTasks().withType(Ear.class).configureEach(new Action<Ear>() {
             @Override

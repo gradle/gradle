@@ -70,31 +70,32 @@ public interface TestFramework extends Closeable {
      * Returns a list of jars the test worker requires on the classpath.
      * These dependencies are loaded from the Gradle distribution.
      *
-     * @see #getUseImplementationDependencies()
+     * @see #getUseDistributionDependencies()
      */
     @Internal
-    List<String> getTestWorkerImplementationClasses();
+    List<String> getTestWorkerApplicationClasses();
 
     /**
      * Returns a list of modules the test worker requires on the modulepath if it runs as a module.
      * These dependencies are loaded from the Gradle distribution.
      *
-     * @see #getUseImplementationDependencies()
+     * @see #getUseDistributionDependencies()
      */
     @Internal
-    List<String> getTestWorkerImplementationModules();
+    List<String> getTestWorkerApplicationModules();
 
     /**
      * Whether the legacy behavior of loading test framework dependencies from the Gradle distribution
-     * is enabled. If true, jars and modules as specified by {@link #getTestWorkerImplementationClasses()}
-     * and {@link #getTestWorkerImplementationModules()} respectively are loaded from the Gradle distribution
-     * and placed on the test worker classpath and/or modulepath.
+     * is enabled. If true, jars and modules as specified by {@link #getTestWorkerApplicationClasses()}
+     * and {@link #getTestWorkerApplicationModules()} respectively are loaded from the Gradle distribution
+     * and placed on the test worker application classpath and/or modulepath.
      * <p>
      * This functionality is legacy and will eventually be deprecated and removed. Test framework dependencies
      * should be managed externally from the Gradle distribution, as is done by test suites.
      *
-     * @return Whether test framework implementation dependencies should be loaded from the Gradle distribution.
+     * @return Whether test framework dependencies should be loaded from the Gradle distribution.
      */
     @Internal
-    boolean getUseImplementationDependencies();
+    boolean getUseDistributionDependencies();
+
 }

@@ -21,7 +21,7 @@ import org.gradle.api.tasks.FileNormalizer;
 /**
  * {@link FileNormalizer} used for output files.
  *
- * Like {@link AbsolutePathInputNormalizer}, but ignoring missing files.
+ * Like {@link RelativePathInputNormalizer}.
  */
 public interface OutputNormalizer extends FileNormalizer {
 }

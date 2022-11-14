@@ -105,17 +105,25 @@ In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension 
 
 === Potential breaking changes
 
-=== Wrapper task configuration
+==== Plugins, tasks and extension classes are now abstract
+
+Most public classes for plugins, tasks and extensions have been made abstract. This was done to make it easier to remove boilerplate from Gradle's implementation.
+
+Plugins that are affected by this change should make their classes abstract as well.
+Gradle uses runtime class decoration to implement abstract methods as long as the object is instantiated via `ObjectFactory` or some other automatic mechanism (like <<custom_gradle_types.adoc#managed_properties,managed properties>>).
+Those methods should never be directly implemented.
+
+==== Wrapper task configuration
 If `gradle-wrapper.properties` contains the `distributionSha256Sum` property, you must specify a sum. You can specify a sum in the wrapped task configuration or with the `--gradle-distribution-sha256-sum` task option.
 
-=== Changes in the AbstractCodeQualityPlugin class
+==== Changes in the AbstractCodeQualityPlugin class
 
 The deprecated `AbstractCodeQualityPlugin.getJavaPluginConvention()` method was removed in Gradle 8.0. You should use `JavaPluginExtension` instead.
 
-=== Remove implicit `--add-opens` for Gradle workers
+==== Remove implicit `--add-opens` for Gradle workers
 Before Gradle 8.0, Gradle workers on JDK9+ automatically opened JDK modules `java.base/java.util` and `java.base/java.lang` by passing `--add-opens` CLI arguments. This enabled code executed in a Gradle worker to perform deep reflection on JDK internals without warning or failing. Workers no longer use these implicit arguments.
 
-This effects all internal Gradle workers, which are used for a variety of tasks:
+This affects all internal Gradle workers, which are used for a variety of tasks:
 
 - code-quality plugins (Checkstyle, CodeNarc, Pmd)
 - ScalaDoc
@@ -132,6 +140,44 @@ These errors can be resolved by updating the violating code or dependency. Updat
 - any Gradle plugins which use the worker API
 
 For some examples of possible error or warning outputs which may arise due to this change, see <<remove_test_add_opens>>.
+
+==== SourceSet classesDirs no longer depends upon the entire SourceSet as a task dependency
+
+Prior to Gradle 8.0, the task dependencies for `link:{groovyDslPath}/org.gradle.api.tasks.SourceSetOutput.html#org.gradle.api.tasks.SourceSetOutput:classesDirs[SourceSetOutput.classesDirs]`
+included tasks that did not produce class files. This meant that a task which
+depends on `classesDirs` would also depend on `classes`, `processResources`, and any other
+task dependency added to `link:{groovyDslPath}/org.gradle.api.tasks.SourceSetOutput.html[SourceSetOutput]`. This behavior was potentially an error because
+the `classesDirs` property did not contain the output for `processResources`.
+Since 8.0, this implicit dependency is removed. Now, depending on `classesDirs` only executes the
+tasks which directly produce files in the classes directories.
+
+Consider the following buildscript:
+```groovy
+plugins {
+    id 'java-library'
+}
+// Task lists all files in the given classFiles FileCollection
+tasks.register("listClassFiles", ListClassFiles) {
+    classFiles.from(java.sourceSets.main.output.classesDirs)
+}
+```
+
+Previously, the `listClassFiles` task depended on `compileJava`, `processResources`, and `classes`.
+Now, only `compileJava` is a task dependency of `listClassFiles`.
+
+If a task in your build relied on the previous behavior, you can instead use the entire
+`SourceSetOutput` as an input, which contains all classes and resources.
+
+If that is not feasible, you can restore the previous behavior by adding more task dependencies to `classesDirs`:
+```groovy
+java {
+    sourceSets {
+        main {
+            output.classesDirs.builtBy(output)
+        }
+    }
+}
+```
 
 ==== Minimal supported Kotlin Gradle Plugin version changed
 Gradle 7.x supports Kotlin Gradle Plugin 1.3.72 and above. Kotlin Gradle Plugin versions above 1.6.21 are not tested with Gradle 7.x.
@@ -197,7 +243,7 @@ The old format is still supported when resolving the `JavaVersion` from a string
 |===
 
 [[strict-kotlin-dsl-precompiled-scripts-accessors-by-default]]
-=== Precompiled script plugins use strict Kotlin DSL accessor generation by default
+==== Precompiled script plugins use strict Kotlin DSL accessor generation by default
 
 In precompiled script plugins, type safe Kotlin DSL accessor generation now fails the build if a plugin fails to apply.
 
@@ -222,6 +268,11 @@ eclipse {
 
 Previously, you had to explicitly configure PMD to ignore default rules with `ruleSets = []`.
 In the Gradle 8.0, setting `ruleSetConfig` or `ruleSetFiles` to a non-empty value implicitly ignores default rules.
+
+==== Removed external plugin validation plugin
+
+The incubating plugin `ExternalPluginValidationPlugin` has been removed.
+Use the link:java_gradle_plugin.html[`java-gradle-plugin`]'s `validatePlugins` task to validate plugins under development.
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier

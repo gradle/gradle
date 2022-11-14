@@ -299,18 +299,6 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         }
     }
 
-    @Issue("https://issues.gradle.org/browse/GRADLE-2022")
-    def tryingToInstantiateTaskDirectlyFailsWithGoodErrorMessage() {
-        buildFile << """
-            new DefaultTask()
-        """
-        expect:
-        2.times {
-            fails "tasks"
-            failure.assertHasCause("Task of type 'org.gradle.api.DefaultTask' has been instantiated directly which is not supported")
-        }
-    }
-
     def "sensible error message for circular task dependency"() {
         buildFile << """
             task a(dependsOn: 'b')

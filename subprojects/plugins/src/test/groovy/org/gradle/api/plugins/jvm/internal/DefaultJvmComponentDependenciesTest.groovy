@@ -20,9 +20,13 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.MutableVersionConstraint
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyAdder
 import org.gradle.api.artifacts.dsl.DependencyFactory
+import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency
+import org.gradle.api.model.ObjectFactory
+>>>>>>> origin/master
 import org.gradle.api.plugins.jvm.JvmComponentDependencies
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.ConfigureUtil

@@ -26,6 +26,7 @@ import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.internal.FeaturePreviews.Feature;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -35,6 +36,7 @@ import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.toolchain.management.ToolchainManagement;
+import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.configuration.ScriptPluginFactory;
@@ -391,7 +393,18 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
+    @Inject
+    public CacheConfigurationsInternal getCaches() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void toolchainManagement(Action<? super ToolchainManagement> toolchainManagementConfiguration) {
         toolchainManagementConfiguration.execute(getToolchainManagement());
+    }
+
+    @Override
+    public void caches(Action<? super CacheConfigurations> cachesConfiguration) {
+        cachesConfiguration.execute(getCaches());
     }
 }

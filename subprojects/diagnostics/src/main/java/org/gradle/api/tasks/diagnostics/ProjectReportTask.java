@@ -45,7 +45,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  * task from the command-line.</p>
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class ProjectReportTask extends AbstractProjectBasedReportTask<ProjectReportTask.ProjectReportModel> {
+public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<ProjectReportTask.ProjectReportModel> {
 
     private final TextReportRenderer renderer = new TextReportRenderer();
 

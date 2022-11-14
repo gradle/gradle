@@ -206,6 +206,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
                                 expectedAttributes['org.gradle.usage'] = 'java-api'
                                 expectedAttributes['org.gradle.category'] = 'library'
                                 expectedAttributes['org.gradle.libraryelements'] = 'jar'
+                                expectedAttributes['org.gradle.compile-view'] = 'java-internal'
                             }
                         }
                         variant(expectedTargetVariant, expectedAttributes)

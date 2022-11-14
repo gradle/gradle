@@ -30,7 +30,6 @@ import spock.lang.Specification
 
 import static org.gradle.util.Matchers.isEmpty
 import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.CoreMatchers.instanceOf
 import static org.hamcrest.CoreMatchers.nullValue
 import static org.hamcrest.MatcherAssert.assertThat
@@ -38,15 +37,13 @@ import static org.hamcrest.MatcherAssert.assertThat
 class DefaultSourceSetTest extends Specification {
     public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private final TaskResolver taskResolver = [resolveTask: {name -> [getName: {name}] as Task}] as TaskResolver
-    private final TaskDependencyFactory taskDependencyFactory = Stub(TaskDependencyFactory) {
-        _ * configurableDependency() >> new DefaultTaskDependency(taskResolver)
-    }
+    private final TaskDependencyFactory taskDependencyFactory = DefaultTaskDependencyFactory.forProject(taskResolver, Mock(TaskDependencyUsageTracker))
     private final FileResolver fileResolver = TestFiles.resolver(tmpDir.testDirectory)
     private final FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory, taskDependencyFactory)
 
     private DefaultSourceSet sourceSet(String name) {
-        def s = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultSourceSet, name, TestUtil.objectFactory(tmpDir.testDirectory))
-        s.classes = new DefaultSourceSetOutput(s.displayName, fileResolver, fileCollectionFactory)
+        def s = TestUtil.newInstance(DefaultSourceSet, name, TestUtil.objectFactory(tmpDir.testDirectory))
+        s.classes = TestUtil.newInstance(DefaultSourceSetOutput, s.displayName, taskDependencyFactory, fileResolver, fileCollectionFactory)
         return s
     }
 
@@ -95,7 +92,7 @@ class DefaultSourceSetTest extends Specification {
         assertThat(sourceSet.allJava, isEmpty())
         assertThat(sourceSet.allJava.displayName, equalTo('set name Java source'))
         assertThat(sourceSet.allJava.toString(), equalTo('set name Java source'))
-        assertThat(sourceSet.allJava.source, hasItem(sourceSet.java))
+        sourceSet.allJava.srcDirs.containsAll(sourceSet.java.files)
         assertThat(sourceSet.allJava.filter.includes, equalTo(['**/*.java'] as Set))
         assertThat(sourceSet.allJava.filter.excludes, isEmpty())
 
@@ -103,7 +100,7 @@ class DefaultSourceSetTest extends Specification {
         assertThat(sourceSet.allSource, isEmpty())
         assertThat(sourceSet.allSource.displayName, equalTo('set name source'))
         assertThat(sourceSet.allSource.toString(), equalTo('set name source'))
-        assertThat(sourceSet.allSource.source, hasItem(sourceSet.java))
+        sourceSet.allSource.srcDirs.containsAll(sourceSet.java.files)
     }
 
     void constructsNamesUsingSourceSetName() {

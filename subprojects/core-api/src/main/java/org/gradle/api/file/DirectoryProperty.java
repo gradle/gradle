@@ -67,7 +67,7 @@ public interface DirectoryProperty extends FileSystemLocationProperty<Directory>
      * {@inheritDoc}
      */
     @Override
-    DirectoryProperty convention(Directory value);
+    DirectoryProperty convention(@Nullable Directory value);
 
     /**
      * {@inheritDoc}
