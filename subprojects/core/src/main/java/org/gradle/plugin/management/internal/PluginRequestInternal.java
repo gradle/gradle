@@ -30,5 +30,10 @@ public interface PluginRequestInternal extends PluginRequest {
 
     PluginRequest getOriginalRequest();
 
-    Runnable getAcceptanceHandler();
+    Origin getOrigin();
+
+    enum Origin {
+        AUTO_APPLIED,
+        OTHER
+    }
 }

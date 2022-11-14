@@ -26,8 +26,6 @@ import javax.annotation.Nullable;
 
 public class DefaultPluginRequest implements PluginRequestInternal {
 
-    private static final Runnable NOOP_ACCEPTANCE_HANDLER = () -> {};
-
     private final PluginId id;
     private final String version;
     private final boolean apply;
@@ -35,7 +33,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     private final String scriptDisplayName;
     private final ModuleVersionSelector artifact;
     private final PluginRequest originalRequest;
-    private final Runnable acceptanceHandler;
+    private final Origin origin;
 
     public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, ScriptSource scriptSource) {
         this(id, version, apply, lineNumber, scriptSource.getDisplayName(), null);
@@ -46,7 +44,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     }
 
     public DefaultPluginRequest(PluginId id, String version, boolean apply, Integer lineNumber, String scriptDisplayName, ModuleVersionSelector artifact) {
-        this(id, version, apply, lineNumber, scriptDisplayName, artifact, null, NOOP_ACCEPTANCE_HANDLER);
+        this(id, version, apply, lineNumber, scriptDisplayName, artifact, null, Origin.OTHER);
     }
 
     public DefaultPluginRequest(
@@ -57,7 +55,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         String scriptDisplayName,
         ModuleVersionSelector artifact,
         PluginRequest originalRequest,
-        Runnable acceptanceHandler
+        Origin origin
     ) {
         this.id = id;
         this.version = version;
@@ -66,7 +64,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         this.scriptDisplayName = scriptDisplayName;
         this.artifact = artifact;
         this.originalRequest = originalRequest != null ? originalRequest : this;
-        this.acceptanceHandler = acceptanceHandler;
+        this.origin = origin;
     }
 
     @Override
@@ -129,7 +127,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     }
 
     @Override
-    public Runnable getAcceptanceHandler() {
-        return acceptanceHandler;
+    public Origin getOrigin() {
+        return origin;
     }
 }

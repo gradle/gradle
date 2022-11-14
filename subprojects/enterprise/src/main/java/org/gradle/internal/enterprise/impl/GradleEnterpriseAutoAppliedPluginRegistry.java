@@ -32,14 +32,9 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterpri
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption;
+import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin.AUTO_APPLIED;
 
 public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPluginRegistry {
-
-    private final GradleEnterprisePluginAutoAppliedStatus autoAppliedStatus;
-
-    public GradleEnterpriseAutoAppliedPluginRegistry(GradleEnterprisePluginAutoAppliedStatus autoAppliedStatus) {
-        this.autoAppliedStatus = autoAppliedStatus;
-    }
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Project target) {
@@ -72,7 +67,7 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
             getScriptDisplayName(),
             artifact,
             null,
-            autoAppliedStatus::markAsAutoApplied
+            AUTO_APPLIED
         );
     }
 
