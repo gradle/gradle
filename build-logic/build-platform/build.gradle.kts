@@ -23,7 +23,7 @@ dependencies {
     constraints {
         api("org.gradle.guides:gradle-guides-plugin:0.21")
         api("com.gradle:gradle-enterprise-gradle-plugin:3.11.4") // Sync with `settings.gradle.kts`
-        api("com.gradle.publish:plugin-publish-plugin:1.0.0")
+        api("com.gradle.publish:plugin-publish-plugin:1.1.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.4.1")
         api("me.champeau.jmh:jmh-gradle-plugin:0.6.8")
