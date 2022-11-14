@@ -199,10 +199,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         try {
             try {
                 applicator.run();
-                Runnable onAccepted = request.onAccepted();
-                if (onAccepted != null) {
-                    onAccepted.run();
-                }
+                request.getAcceptanceHandler().run();
             } catch (UnknownPluginException e) {
                 throw couldNotApply(request, id, e);
             } catch (Exception e) {
