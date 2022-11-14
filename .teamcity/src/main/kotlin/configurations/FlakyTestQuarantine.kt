@@ -44,7 +44,7 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
         }
     }
 
-    testsWithOs.forEach { testCoverage ->
+    testsWithOs.forEachIndexed { index, testCoverage ->
         val extraParameters = functionalTestExtraParameters("FlakyTestQuarantine", os, arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)
         val parameters = (
             buildToolGradleParameters(true) +
@@ -56,7 +56,7 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
         steps {
             gradleWrapper {
                 name = "FLAKY_TEST_QUARANTINE_${testCoverage.testType.name.uppercase()}_${testCoverage.testJvmVersion.name.uppercase()}"
-                tasks = "${testCoverage.testType.name}Test"
+                tasks = "${if (index == 0) "clean " else ""}${testCoverage.testType.name}Test"
                 gradleParams = parameters
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }
