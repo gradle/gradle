@@ -28,7 +28,7 @@ public interface ClasspathAttribute {
     /**
      * Returns the key of this attribute.
      *
-     * @return The key of this attribute..
+     * @return The key of this attribute.
      */
     String getName();
 

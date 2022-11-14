@@ -93,7 +93,8 @@ public class WorkerSharedProjectScopeServices {
             Factory<PatternSet> patternSetFactory,
             Deleter deleter,
             DocumentationRegistry documentationRegistry,
-            ProviderFactory providers
+            ProviderFactory providers,
+            TaskDependencyFactory taskDependencyFactory
     ) {
         return new DefaultFileOperations(
                 fileResolver,
@@ -109,7 +110,7 @@ public class WorkerSharedProjectScopeServices {
                 patternSetFactory,
                 deleter,
                 documentationRegistry,
-                providers);
+                taskDependencyFactory, providers);
     }
 
     protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
@@ -125,7 +126,7 @@ public class WorkerSharedProjectScopeServices {
     }
 
     ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory,
-                                      PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory,
+                                      PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
                                       DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator) {
         return new DefaultObjectFactory(
                 instantiatorFactory.decorate(services),
@@ -134,6 +135,7 @@ public class WorkerSharedProjectScopeServices {
                 patternSetFactory,
                 propertyFactory,
                 filePropertyFactory,
+                taskDependencyFactory,
                 fileCollectionFactory,
                 domainObjectCollectionFactory);
     }

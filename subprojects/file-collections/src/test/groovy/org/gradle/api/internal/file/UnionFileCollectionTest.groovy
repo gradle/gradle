@@ -27,12 +27,16 @@ class UnionFileCollectionTest extends Specification {
     def file2 = new File("2")
     def file3 = new File("3")
 
+    private UnionFileCollection newUnionFileCollection(FileCollectionInternal... source) {
+        new UnionFileCollection(TestFiles.taskDependencyFactory(), source)
+    }
+
     def containsUnionOfAllSourceCollections() {
         def source1 = new TestFileCollection(file1, file2)
         def source2 = new TestFileCollection(file2, file3)
 
         expect:
-        def collection = new UnionFileCollection(source1, source2)
+        def collection = newUnionFileCollection(source1, source2)
         collection.files.toList() == [file1, file2, file3]
         collection.sourceCollections == [source1, source2]
     }
@@ -41,7 +45,7 @@ class UnionFileCollectionTest extends Specification {
         def source1 = Mock(FileCollectionInternal)
         def source2 = Mock(FileCollectionInternal)
 
-        def collection = new UnionFileCollection(source1, source2)
+        def collection = newUnionFileCollection(source1, source2)
 
         when:
         def result = collection.files
@@ -83,7 +87,7 @@ class UnionFileCollectionTest extends Specification {
         }
 
         expect:
-        def collection = new UnionFileCollection(source1, source2)
+        def collection = newUnionFileCollection(source1, source2)
         collection.buildDependencies.getDependencies(null) as List == [task1, task2, task3]
     }
 
@@ -93,7 +97,7 @@ class UnionFileCollectionTest extends Specification {
         def source3 = Mock(FileCollectionInternal)
         def source4 = Mock(FileCollectionInternal)
 
-        def collection = new UnionFileCollection(source1, source2)
+        def collection = newUnionFileCollection(source1, source2)
 
         when:
         def replaced = collection.replace(source3, {})

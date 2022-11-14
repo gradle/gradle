@@ -340,7 +340,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
             test.shouldRunAfter(project.getTasks().withType(Jar.class));
         });
 
-        PublishArtifact jarArtifact = new LazyPublishArtifact(jarTaskProvider, ((ProjectInternal) project).getFileResolver());
+        PublishArtifact jarArtifact = new LazyPublishArtifact(jarTaskProvider, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
         return jarArtifact;
     }
