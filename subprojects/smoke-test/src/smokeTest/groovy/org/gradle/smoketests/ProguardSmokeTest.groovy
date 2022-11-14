@@ -57,10 +57,8 @@ class ProguardSmokeTest extends AbstractPluginValidatingSmokeTest implements Val
                 classpath.setFrom(configurations.runtimeClasspath)
             }
 
-            pluginManager.withPlugin("validate-external-gradle-plugin") {
-                tasks.named("validateExternalPlugins") {
-                    dependsOn(validationTask)
-                }
+            tasks.named("validateExternalPlugins") {
+                dependsOn(validationTask)
             }
         """
         def propertiesWithoutAnnotations = [
