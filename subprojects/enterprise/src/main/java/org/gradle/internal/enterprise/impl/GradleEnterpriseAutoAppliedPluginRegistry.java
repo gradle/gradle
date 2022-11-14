@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.management.internal.autoapply;
+package org.gradle.internal.enterprise.impl;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
@@ -29,21 +28,13 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin;
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginRegistry;
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption;
+import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin.AUTO_APPLIED;
 
-/**
- * A hardcoded {@link AutoAppliedPluginRegistry} that only knows about the build-scan plugin for now.
- */
-public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegistry {
-
-    private static final PluginRequests GRADLE_ENTERPRISE_PLUGIN_REQUEST = PluginRequests.of(createGradleEnterprisePluginRequest());
-
-    private final BuildDefinition buildDefinition;
-
-    public DefaultAutoAppliedPluginRegistry(BuildDefinition buildDefinition) {
-        this.buildDefinition = buildDefinition;
-    }
+public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPluginRegistry {
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Project target) {
@@ -52,16 +43,10 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Settings target) {
-        if (((StartParameterInternal) target.getStartParameter()).isUseEmptySettings()) {
+        if (((StartParameterInternal) target.getStartParameter()).isUseEmptySettings() || !shouldApplyGradleEnterprisePlugin(target)) {
             return PluginRequests.EMPTY;
-        }
-
-        PluginRequests injectedPluginRequests = buildDefinition.getInjectedPluginRequests();
-
-        if (shouldApplyGradleEnterprisePlugin(target)) {
-            return injectedPluginRequests.mergeWith(GRADLE_ENTERPRISE_PLUGIN_REQUEST);
         } else {
-            return injectedPluginRequests;
+            return PluginRequests.of(createGradleEnterprisePluginRequest());
         }
     }
 
@@ -71,10 +56,19 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
         return startParameter.isBuildScan() && gradle.getParent() == null;
     }
 
-    private static PluginRequestInternal createGradleEnterprisePluginRequest() {
+    private PluginRequestInternal createGradleEnterprisePluginRequest() {
         ModuleIdentifier moduleIdentifier = DefaultModuleIdentifier.newId(AutoAppliedGradleEnterprisePlugin.GROUP, AutoAppliedGradleEnterprisePlugin.NAME);
         ModuleVersionSelector artifact = DefaultModuleVersionSelector.newSelector(moduleIdentifier, AutoAppliedGradleEnterprisePlugin.VERSION);
-        return new DefaultPluginRequest(AutoAppliedGradleEnterprisePlugin.ID, AutoAppliedGradleEnterprisePlugin.VERSION, true, null, getScriptDisplayName(), artifact);
+        return new DefaultPluginRequest(
+            AutoAppliedGradleEnterprisePlugin.ID,
+            AutoAppliedGradleEnterprisePlugin.VERSION,
+            true,
+            null,
+            getScriptDisplayName(),
+            artifact,
+            null,
+            AUTO_APPLIED
+        );
     }
 
     private static String getScriptDisplayName() {
