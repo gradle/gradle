@@ -1733,7 +1733,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         transformingBuild.waitForFinish()
     }
 
-    def "does not clean up cache when cache cleanup is disabled"() {
+    def "does not clean up cache when cache cleanup is disabled via #method"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
         ["lib1", "lib2"].each { name ->
@@ -1743,7 +1743,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
-        disableCacheCleanup()
+        disableCacheCleanup(method)
         succeeds ":app:resolve"
 
         then:
@@ -1764,6 +1764,9 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         then:
         outputDir1.assertExists()
         outputDir2.assertExists()
+
+        where:
+        method << CleanupMethod.values()
     }
 
     String getResolveTask() {

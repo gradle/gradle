@@ -31,7 +31,7 @@ class DefaultCacheConfigurationsTest extends Specification {
         cacheConfigurations.downloadedResources.removeUnusedEntriesAfterDays.set(2)
         cacheConfigurations.releasedWrappers.removeUnusedEntriesAfterDays.set(2)
         cacheConfigurations.snapshotWrappers.removeUnusedEntriesAfterDays.set(2)
-        cacheConfigurations.cleanup.set(Cleanup.ALWAYS)
+        cacheConfigurations.cleanup.set(Cleanup.DISABLED)
 
         then:
         noExceptionThrown()
@@ -64,7 +64,7 @@ class DefaultCacheConfigurationsTest extends Specification {
         thrown(IllegalStateException)
 
         when:
-        cacheConfigurations.cleanup.set(Cleanup.DISABLED)
+        cacheConfigurations.cleanup.set(Cleanup.DEFAULT)
 
         then:
         thrown(IllegalStateException)

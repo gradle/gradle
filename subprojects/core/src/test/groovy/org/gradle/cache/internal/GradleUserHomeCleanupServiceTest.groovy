@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.api.cache.CacheConfigurations
 import org.gradle.api.cache.CacheResourceConfiguration
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.file.TestFiles
@@ -61,7 +60,7 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
     def releasedWrappers = Stub(CacheResourceConfiguration) {
         getRemoveUnusedEntriesAfterDays() >> property(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS)
     }
-    def cacheConfigurations = Stub(CacheConfigurations) {
+    def cacheConfigurations = Stub(CacheConfigurationsInternal) {
         getReleasedWrappers() >> releasedWrappers
     }
 
