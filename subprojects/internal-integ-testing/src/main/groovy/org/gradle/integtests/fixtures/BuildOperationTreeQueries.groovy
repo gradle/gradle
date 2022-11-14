@@ -127,6 +127,12 @@ abstract class BuildOperationTreeQueries {
         matches
     }
 
+    List<BuildOperationRecord.Progress> progress(Class<?> clazz) {
+        def matches = []
+        walk { matches.addAll(it.progress( clazz ) ) }
+        return matches
+    }
+
     void walk(Action<? super BuildOperationRecord> action) {
         roots.each { walk(it, action) }
     }

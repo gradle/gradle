@@ -754,6 +754,7 @@ class ConfigurationCacheState(
         BuildOperationFiringSettingsPreparer(
             { preparer() },
             gradle.serviceOf(),
+            gradle.serviceOf(),
             gradle.serviceOf<BuildDefinition>().fromBuild
         ).prepareSettings(gradle)
     }

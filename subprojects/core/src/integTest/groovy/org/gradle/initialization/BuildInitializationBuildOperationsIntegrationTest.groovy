@@ -39,14 +39,18 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         when:
         succeeds('foo')
 
-        def loadBuildBuildOperation = buildOperations.first(LoadBuildBuildOperationType)
-        def evaluateSettingsBuildOperation = buildOperations.first(EvaluateSettingsBuildOperationType)
-        def configureBuildBuildOperations = buildOperations.first(ConfigureBuildBuildOperationType)
-        def loadProjectsBuildOperation = buildOperations.first(LoadProjectsBuildOperationType)
+        def loadBuildBuildOperation = buildOperations.one(LoadBuildBuildOperationType)
+        def evaluateSettingsBuildOperation = buildOperations.one(EvaluateSettingsBuildOperationType)
+        def configureBuildBuildOperations = buildOperations.one(ConfigureBuildBuildOperationType)
+        def loadProjectsBuildOperation = buildOperations.one(LoadProjectsBuildOperationType)
+        def buildIdentifiedEvents = buildOperations.progress(BuildIdentifiedProgressDetails)
 
         then:
         loadBuildBuildOperation.details.buildPath == ":"
         loadBuildBuildOperation.result.isEmpty()
+
+        buildIdentifiedEvents.size() == 1
+        buildIdentifiedEvents[0].details.buildPath == ':'
 
         evaluateSettingsBuildOperation.details.buildPath == ":"
         evaluateSettingsBuildOperation.result.isEmpty()
@@ -177,6 +181,25 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
             ":nested-cli:buildSrc",
             ":",
             ":buildSrc",
+        ]
+
+        def buildIdentifiedEvents = buildOperations.progress(BuildIdentifiedProgressDetails)
+        buildIdentifiedEvents*.details.buildPath == [
+            ":",
+            ":nested",
+            ":nested-cli",
+            ":nested-nested",
+            ":nested-cli-nested",
+            ":buildSrc",
+            ":nested-nested:buildSrc",
+            ":nested:buildSrc",
+            ":nested-cli-nested:buildSrc",
+            ":nested-cli:buildSrc",
+            ":buildSrc:buildSrc",
+            ":nested-nested:buildSrc:buildSrc",
+            ":nested:buildSrc:buildSrc",
+            ":nested-cli-nested:buildSrc:buildSrc",
+            ":nested-cli:buildSrc:buildSrc",
         ]
 
         def evaluateSettingsBuildOperations = buildOperations.all(EvaluateSettingsBuildOperationType)
