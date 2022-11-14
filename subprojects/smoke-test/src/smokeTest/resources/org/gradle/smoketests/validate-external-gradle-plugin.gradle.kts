@@ -75,7 +75,7 @@ fun configureValidationTask(project: Project,
         val scriptClassPath = scriptHandler.scriptClassPath.asFiles
         classpath.setFrom(scriptClassPath)
 
-        val archiveOperations = (project as ProjectInternal).services.get<ArchiveOperations>(ArchiveOperations::class.java)
+        val archiveOperations = findArchiveOperations(project)
         val pluginClassesOf = pluginJars.stream()
             .map { zipPath: File? -> archiveOperations.zipTree(zipPath!!) }
             .collect(Collectors.toList())
@@ -83,30 +83,23 @@ fun configureValidationTask(project: Project,
     }
 }
 
-/**
- * Generates a plugin name for a plugin that doesn't have an id.
- * @param plugin the plugin class
- * @return an id that will be used for generating task names and for reporting
- */
-fun computePluginName(plugin: Plugin<*>): String {
-    return plugin.javaClass.name
-}
+fun createLifecycleTask(project: Project) =
+    project.tasks.register("validateExternalPlugins")
 
-fun findPluginRegistry(project: Project): PluginRegistry {
-    return (project as ProjectInternal).services.get(PluginRegistry::class.java)
-}
+fun computePluginName(plugin: Plugin<*>) =
+    plugin.javaClass.name
 
-fun createLifecycleTask(project: Project): TaskProvider<Task> {
-    return project.tasks.register("validateExternalPlugins")
-}
+fun findPluginRegistry(project: Project) =
+    (project as ProjectInternal).services.get(PluginRegistry::class.java)
 
-fun findPluginJar(pluginClass: Class<*>): File? {
-    return toFile(pluginClass.protectionDomain.codeSource.location)
-}
+fun findArchiveOperations(project: Project) =
+    (project as ProjectInternal).services.get<ArchiveOperations>(ArchiveOperations::class.java)
 
-fun isExternal(pluginClass: Class<*>): Boolean {
-    return !pluginClass.name.startsWith("org.gradle")
-}
+fun findPluginJar(pluginClass: Class<*>) =
+    toFile(pluginClass.protectionDomain.codeSource.location)
+
+fun isExternal(pluginClass: Class<*>) =
+    !pluginClass.name.startsWith("org.gradle")
 
 fun toFile(url: URL): File? {
     return try {
@@ -115,3 +108,4 @@ fun toFile(url: URL): File? {
         null
     }
 }
+
