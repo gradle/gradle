@@ -39,11 +39,20 @@ public class TaskPropertyUtils {
      * Reports errors and warnings to the given validation context.
      */
     public static void visitProperties(PropertyWalker propertyWalker, TaskInternal task, TypeValidationContext validationContext, PropertyVisitor visitor) {
-        propertyWalker.visitProperties(task, validationContext, visitor);
+        visitAnnotatedProperties(propertyWalker, task, validationContext, visitor);
+        visitRegisteredProperties(task, visitor);
+    }
+
+    private static void visitRegisteredProperties(TaskInternal task, PropertyVisitor visitor) {
         task.getInputs().visitRegisteredProperties(visitor);
         task.getOutputs().visitRegisteredProperties(visitor);
         ((TaskDestroyablesInternal) task.getDestroyables()).visitRegisteredProperties(visitor);
         ((TaskLocalStateInternal) task.getLocalState()).visitRegisteredProperties(visitor);
+        // build services declared via Task#usesService are not visited as there is no use case for that
+    }
+
+    static void visitAnnotatedProperties(PropertyWalker propertyWalker, TaskInternal task, TypeValidationContext validationContext, PropertyVisitor visitor) {
+        propertyWalker.visitProperties(task, validationContext, visitor);
     }
 
     /**

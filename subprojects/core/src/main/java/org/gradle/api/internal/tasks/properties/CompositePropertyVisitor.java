@@ -82,4 +82,11 @@ public class CompositePropertyVisitor implements PropertyVisitor {
             visitor.visitLocalStateProperty(value);
         }
     }
+
+    @Override
+    public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName) {
+        for (PropertyVisitor visitor : visitors) {
+            visitor.visitServiceReference(propertyName, optional, value, serviceName);
+        }
+    }
 }
