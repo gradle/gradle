@@ -46,6 +46,7 @@ import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.scripts.ScriptFileResolverListeners
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.vfs.FileSystemAccess
@@ -78,6 +79,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val taskExecutionTracker: TaskExecutionTracker,
     private val environmentChangeTracker: EnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
+    private val scriptFileResolverListeners: ScriptFileResolverListeners
 ) : Stoppable {
 
     interface Host {
@@ -127,7 +129,8 @@ class ConfigurationCacheFingerprintController internal constructor(
                 directoryFileTreeFactory,
                 taskExecutionTracker,
                 environmentChangeTracker,
-                inputTrackingState
+                inputTrackingState,
+
             )
             addListener(fingerprintWriter)
             return Writing(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)
@@ -262,10 +265,12 @@ class ConfigurationCacheFingerprintController internal constructor(
     fun addListener(listener: ConfigurationCacheFingerprintWriter) {
         listenerManager.addListener(listener)
         workInputListeners.addListener(listener)
+        scriptFileResolverListeners.addListener(listener)
     }
 
     private
     fun removeListener(listener: ConfigurationCacheFingerprintWriter) {
+        scriptFileResolverListeners.removeListener(listener)
         workInputListeners.removeListener(listener)
         listenerManager.removeListener(listener)
     }

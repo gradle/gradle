@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+
 class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
 
     def util = new AutoTestedSamplesUtil()
@@ -28,6 +30,9 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
             def fileToTest = tagSuffix.contains('Settings') ? settingsFile : buildFile
             if (tagSuffix.contains('WithDeprecations')) {
                 executer.noDeprecationChecks()
+            }
+            if (tagSuffix.contains('WithoutCC') && GradleContextualExecuter.configCache) {
+                return
             }
             fileToTest.text = sample
             executer
