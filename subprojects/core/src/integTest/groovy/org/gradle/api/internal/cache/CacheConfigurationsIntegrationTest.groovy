@@ -35,7 +35,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         new File(initDir, "cache-settings.gradle") << """
             beforeSettings { settings ->
                 settings.caches {
-                    cleanup = Cleanup.NEVER
+                    cleanup = Cleanup.DISABLED
                     releasedWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}
                     snapshotWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}
                     downloadedResources.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}
@@ -69,7 +69,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         property                                           | name                           | value
-        'cleanup'                                          | 'cleanup'                      | 'Cleanup.NEVER'
+        'cleanup'                                          | 'cleanup'                      | 'Cleanup.DISABLED'
         'releasedWrappers.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesAfterDays' | "${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}"
         'snapshotWrappers.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesAfterDays' | "${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}"
         'downloadedResources.removeUnusedEntriesAfterDays' | 'removeUnusedEntriesAfterDays' | "${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}"
