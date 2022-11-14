@@ -57,7 +57,6 @@ import java.util.function.Consumer;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
-import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin.AUTO_APPLIED;
 import static org.gradle.util.internal.CollectionUtils.collect;
 
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
@@ -68,7 +67,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginInspector pluginInspector;
     private final CachedClasspathTransformer cachedClasspathTransformer;
     private final PluginVersionTracker pluginVersionTracker;
-    private final PluginApplicationListener autoAppliedPluginRegistryBroadcaster;
+    private final PluginApplicationListener pluginApplicationListenerBroadcaster;
 
     public DefaultPluginRequestApplicator(
         PluginRegistry pluginRegistry,
@@ -87,7 +86,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         this.pluginInspector = pluginInspector;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
         this.pluginVersionTracker = pluginVersionTracker;
-        this.autoAppliedPluginRegistryBroadcaster = listenerManager.getBroadcaster(PluginApplicationListener.class);
+        this.pluginApplicationListenerBroadcaster = listenerManager.getBroadcaster(PluginApplicationListener.class);
     }
 
     @Override
@@ -204,9 +203,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         try {
             try {
                 applicator.run();
-                if (request.getOrigin() == AUTO_APPLIED) {
-                    autoAppliedPluginRegistryBroadcaster.autoApplied(request);
-                }
+                pluginApplicationListenerBroadcaster.pluginApplied(request);
             } catch (UnknownPluginException e) {
                 throw couldNotApply(request, id, e);
             } catch (Exception e) {

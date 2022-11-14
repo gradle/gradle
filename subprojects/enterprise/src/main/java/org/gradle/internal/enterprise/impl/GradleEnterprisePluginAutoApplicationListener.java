@@ -16,12 +16,14 @@
 
 package org.gradle.internal.enterprise.impl;
 
-import org.gradle.plugin.management.PluginRequest;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
+
+import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin.AUTO_APPLIED;
 
 public class GradleEnterprisePluginAutoApplicationListener implements PluginRequestApplicator.PluginApplicationListener {
 
@@ -33,8 +35,8 @@ public class GradleEnterprisePluginAutoApplicationListener implements PluginRequ
     }
 
     @Override
-    public void autoApplied(@Nonnull PluginRequest pluginRequest) {
-        if (AutoAppliedGradleEnterprisePlugin.ID.equals(pluginRequest.getId())) {
+    public void pluginApplied(@Nonnull PluginRequestInternal pluginRequest) {
+        if (pluginRequest.getOrigin() == AUTO_APPLIED && AutoAppliedGradleEnterprisePlugin.ID.equals(pluginRequest.getId())) {
             status.markAsAutoApplied();
         }
     }
