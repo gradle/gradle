@@ -69,6 +69,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     private final Set<Node> waitingToStartNodes = new HashSet<>();
     private final ExecutionQueue readyNodes = new ExecutionQueue();
     private final List<Throwable> failures = new ArrayList<>();
+    private final List<DiagnosticEvent> diagnosticEvents = new ArrayList<>();
     private final String displayName;
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchy destroyableHierarchy;
@@ -123,9 +124,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             node.prepareForExecution(this::monitoredNodeReady);
             node.updateAllDependenciesComplete();
             maybeNodeReady(node);
-            if (node.getDependencyPredecessors().isEmpty()) {
-                waitingToStartNodes.add(node);
-            }
+            maybeWaitingForNewNode(node, "scheduled");
         }
         lockCoordinator.addLockReleaseListener(resourceUnlockListener);
     }
@@ -195,8 +194,12 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
                 otherWaitingItems.add(node.healthDiagnostics());
             }
         });
+        List<String> eventItems = new ArrayList<>(diagnosticEvents.size());
+        for (DiagnosticEvent event : diagnosticEvents) {
+            eventItems.add(event.message());
+        }
 
-        return new Diagnostics(displayName, ordinalGroups, waitingToStartItems, readyToStartItems, otherWaitingItems);
+        return new Diagnostics(displayName, ordinalGroups, waitingToStartItems, readyToStartItems, otherWaitingItems, eventItems);
     }
 
     /**
@@ -300,10 +303,8 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     }
 
     private void addNodeToPlan(Node node) {
-        if (node.getDependencyPredecessors().isEmpty()) {
-            waitingToStartNodes.add(node);
-        }
         maybeNodeReady(node);
+        maybeWaitingForNewNode(node, "runtime");
     }
 
     private boolean attemptToStart(Node node, List<ResourceLock> resources) {
@@ -514,7 +515,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             // Wait for any dependencies of this node that have not started yet
             for (Node successor : node.getDependencySuccessors()) {
                 if (successor.isRequired()) {
-                    waitingToStartNodes.add(successor);
+                    waitingForNode(successor, "other node completed");
                 }
             }
         }
@@ -590,6 +591,20 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             maybeNodesSelectable = true;
             readyNodes.insert(node);
         }
+    }
+
+    private void maybeWaitingForNewNode(Node node, String whenAdded) {
+        if (node.getDependencyPredecessors().isEmpty()) {
+            waitingForNode(node, whenAdded);
+        }
+    }
+
+    private void waitingForNode(Node node, String whenAdded) {
+        // Add some diagnostics to track down sporadic issue
+        if (node instanceof OrdinalNode) {
+            diagnosticEvents.add(new WaitingForNode(node, whenAdded, node.getState(), node.getDependencySuccessors().size(), readyNodes.nodes.contains(node)));
+        }
+        waitingToStartNodes.add(node);
     }
 
     private void handleFailure(Node node) {
@@ -716,6 +731,31 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             if (nodes.add(node)) {
                 current = null;
             }
+        }
+    }
+
+    private interface DiagnosticEvent {
+        String message();
+    }
+
+    private static class WaitingForNode implements DiagnosticEvent {
+        private final Node node;
+        private final String whenAdded;
+        private final Node.ExecutionState state;
+        private final int dependencyCount;
+        private final boolean readyNode;
+
+        public WaitingForNode(Node node, String whenAdded, Node.ExecutionState state, int dependencyCount, boolean readyNode) {
+            this.node = node;
+            this.whenAdded = whenAdded;
+            this.state = state;
+            this.dependencyCount = dependencyCount;
+            this.readyNode = readyNode;
+        }
+
+        @Override
+        public String message() {
+            return String.format("node added to waiting-for-set: %s, when: %s, state: %s, dependencies: %s, is ready node? %s", node, whenAdded, state, dependencyCount, readyNode);
         }
     }
 }

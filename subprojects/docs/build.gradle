@@ -617,6 +617,7 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.java-modules-*.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.incubating-java-modules-*.sample"
             excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-library-module*.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-testing-patch-module*.sample'
         }
         if (OperatingSystem.current().windows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
             // Disable tests that suffer from charset issues under JDK 18 for now
@@ -641,6 +642,11 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.building-android-*.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*android-app.sample"
         }
+    }
+
+    filter {
+        // TODO(https://github.com/gradle/gradle/issues/22538)
+        excludeTestsMatching "org.gradle.docs.samples.*.snippet-groovy-cross-compilation_*_crossCompilation.sample"
     }
 
     if (isConfigurationCacheEnabledForDocsTests(project)) {
@@ -735,8 +741,8 @@ tasks.named("docsTest") { task ->
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_kotlin_iterating-dependencies.sample",
 
                 // TODO(https://github.com/gradle/gradle/issues/19725) EAR plugin support
-                "snippet-ear-ear-customized_groovy_earCustomized.groovy.sample",
-                "snippet-ear-ear-customized_kotlin_earCustomized.kotlin.sample",
+                "snippet-ear-ear-customized_groovy_earCustomized.sample",
+                "snippet-ear-ear-customized_kotlin_earCustomized.sample",
                 "snippet-ear-ear-with-war_groovy_earWithWar.sample",
                 "snippet-ear-ear-with-war_kotlin_earWithWar.sample",
 
