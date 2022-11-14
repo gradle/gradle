@@ -1465,6 +1465,30 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.DependenciesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependenciesExtensionsKt.invoke(org.gradle.api.artifacts.dsl.DependencyAdder,org.gradle.api.artifacts.Dependency,org.gradle.api.Action)",
+            "acceptation": "binary compatibilty check is confused",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependenciesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependenciesExtensionsKt.invoke(org.gradle.api.artifacts.dsl.DependencyModifier,org.gradle.api.artifacts.ModuleDependency)",
+            "acceptation": "binary compatibilty check is confused",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependenciesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependenciesExtensionsKt.module(org.gradle.api.artifacts.dsl.Dependencies,java.lang.String,java.lang.String,java.lang.String)",
+            "acceptation": "binary compatibilty check is confused",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.DependencyHandlerScope",
             "member": "Class org.gradle.kotlin.dsl.DependencyHandlerScope",
             "acceptation": "Legacy ArtifactTransform API has been removed",
