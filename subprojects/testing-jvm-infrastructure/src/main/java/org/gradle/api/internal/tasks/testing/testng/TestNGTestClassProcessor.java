@@ -17,10 +17,11 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
-import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.internal.actor.Actor;
 import org.gradle.internal.actor.ActorFactory;
@@ -39,7 +40,6 @@ import org.testng.ITestListener;
 import org.testng.TestNG;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -112,19 +112,17 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             testNg.setThreadCount(spec.getThreadCount());
         }
 
-        Class<?> configFailurePolicyArgType = getConfigFailurePolicyArgType(testNg);
-        Object configFailurePolicyArgValue = getConfigFailurePolicyArgValue(testNg);
+        setConfigFailurePolicy(testNg, spec.getConfigFailurePolicy());
+        setPreserveOrder(testNg, spec.getPreserveOrder());
+        setGroupByInstances(testNg, spec.getGroupByInstances());
 
-        invokeVerifiedMethod(testNg, "setConfigFailurePolicy", configFailurePolicyArgType, configFailurePolicyArgValue, DEFAULT_CONFIG_FAILURE_POLICY);
-        invokeVerifiedMethod(testNg, "setPreserveOrder", boolean.class, spec.getPreserveOrder(), false);
-        invokeVerifiedMethod(testNg, "setGroupByInstances", boolean.class, spec.getGroupByInstances(), false);
         testNg.setUseDefaultListeners(spec.getUseDefaultListeners());
         testNg.setVerbose(0);
         testNg.setGroups(CollectionUtils.join(",", spec.getIncludeGroups()));
         testNg.setExcludedGroups(CollectionUtils.join(",", spec.getExcludeGroups()));
 
-        //adding custom test listeners before Gradle's listeners.
-        //this way, custom listeners are more powerful and, for example, they can change test status.
+        // Adding custom test listeners before Gradle's listeners.
+        // This way, custom listeners are more powerful and, for example, they can change test status.
         for (String listenerClass : spec.getListeners()) {
             try {
                 testNg.addListener(JavaReflectionUtil.newInstance(applicationClassLoader.loadClass(listenerClass)));
@@ -148,58 +146,53 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     }
 
     /**
-     * The setter for configFailurePolicy has a different signature depending on TestNG version.  This method uses reflection to
-     * detect the API and return a reference to the correct argument type.
-     * <ul>
-     *     <li>When TestNG &gt;= 6.9.12, {@link TestNG#setConfigFailurePolicy(org.testng.xml.XmlSuite$FailurePolicy)}</li>
-     *     <li>When TestNG &lt; 6.9.12, {@link TestNG#setConfigFailurePolicy(String)}</li>
-     * </ul></li>
+     * The setter for {@code configFailurePolicy} has a different signature depending on TestNG version.
+     * This method uses reflection to detect the API and calls the version with the correct signature.
      *
-     * @param testNg the TestNG instance
-     * @return String.class or org.testng.xml.XmlSuite$FailurePolicy.class
-     */
-    private Class<?> getConfigFailurePolicyArgType(TestNG testNg) {
-        Class<?> failurePolicy;
-        try {
-            failurePolicy = Class.forName("org.testng.xml.XmlSuite$FailurePolicy", false, testNg.getClass().getClassLoader());
-        } catch (ClassNotFoundException e) {
-            // new API not found; fallback to legacy String argument
-            failurePolicy = String.class;
-        }
-        return failurePolicy;
-    }
-
-    /**
-     * The setter for configFailurePolicy has a different signature depending on TestNG version.  This method uses reflection to
-     * detect the API.  If not {@link String}, coerce the spec's string value to the expected enum value using {@link XmlSuite$FailurePolicy#getValidPolicy(String)}
-     * <ul>
-     *     <li>When TestNG &gt;= 6.9.12, {@link TestNG#setConfigFailurePolicy(org.testng.xml.XmlSuite$FailurePolicy)}</li>
-     *     <li>When TestNG &lt; 6.9.12, {@link TestNG#setConfigFailurePolicy(String)}</li>
-     * </ul></li>
+     * If the TestNG version is greater than or equal to 6.9.12, the provided {@code value} is coerced to
+     * an Enum, otherwise the method which accepts a {@code String} is called with the unmodified {@code value}.
      *
-     * @param testNg the TestNG instance
-     * @return Arg value; might be a String or an enum value of org.testng.xml.XmlSuite$FailurePolicy.class
+     * @param testNg the TestNG instance.
+     * @param value The configured value to set, as a string.
      */
-    private Object getConfigFailurePolicyArgValue(TestNG testNg) {
-        Object configFailurePolicyArgValue;
+    private void setConfigFailurePolicy(TestNG testNg, String value) {
+        Class<?> argType;
+        Object argValue;
         try {
-            Class<?> failurePolicy = Class.forName("org.testng.xml.XmlSuite$FailurePolicy", false, testNg.getClass().getClassLoader());
-            Method getValidPolicy = failurePolicy.getMethod("getValidPolicy", String.class);
-            configFailurePolicyArgValue = getValidPolicy.invoke(null, spec.getConfigFailurePolicy());
+            argType = Class.forName("org.testng.xml.XmlSuite$FailurePolicy", false, testNg.getClass().getClassLoader());
+            argValue = argType.getMethod("getValidPolicy", String.class).invoke(null, value);
         } catch (Exception e) {
-            // unable to invoke new API method; fallback to legacy String value
-            configFailurePolicyArgValue = spec.getConfigFailurePolicy();
+            // New API not found. Fallback to legacy String argument.
+            argType = String.class;
+            argValue = value;
         }
-        return configFailurePolicyArgValue;
+
+        try {
+            JavaMethod.of(TestNG.class, Object.class, "setConfigFailurePolicy", argType).invoke(testNg, argValue);
+        } catch (NoSuchMethodException e) {
+            if (!argValue.equals(DEFAULT_CONFIG_FAILURE_POLICY)) {
+                String message = String.format("The version of TestNG used does not support setting config failure policy to '%s'.", value);
+                throw new InvalidUserDataException(message);
+            }
+        }
     }
 
-    private void invokeVerifiedMethod(TestNG testNg, String methodName, Class<?> paramClass, Object value, Object defaultValue) {
+    private void setPreserveOrder(TestNG testNg, boolean value) {
         try {
-            JavaMethod.of(TestNG.class, Object.class, methodName, paramClass).invoke(testNg, value);
+            JavaMethod.of(TestNG.class, Object.class, "setPreserveOrder", boolean.class).invoke(testNg, value);
         } catch (NoSuchMethodException e) {
-            if (!value.equals(defaultValue)) {
-                // Should not reach this point as this is validated in the test framework implementation - just propagate the failure
-                throw e;
+            if (value) {
+                throw new InvalidUserDataException("Preserving the order of tests is not supported by this version of TestNG.");
+            }
+        }
+    }
+
+    private void setGroupByInstances(TestNG testNg, boolean value) {
+        try {
+            JavaMethod.of(TestNG.class, Object.class, "setGroupByInstances", boolean.class).invoke(testNg, value);
+        } catch (NoSuchMethodException e) {
+            if (value) {
+                throw new InvalidUserDataException("Grouping tests by instances is not supported by this version of TestNG.");
             }
         }
     }

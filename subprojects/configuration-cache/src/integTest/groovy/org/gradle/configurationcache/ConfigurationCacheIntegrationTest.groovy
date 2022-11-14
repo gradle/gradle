@@ -408,4 +408,22 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         then:
         outputContains("value = value")
     }
+
+    def "can init two projects in a row"() {
+        when:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        configurationCacheRun "init", "--dsl", "groovy", "--type", "basic"
+
+        then:
+        outputContains("> Task :init")
+        succeeds 'properties'
+
+        when:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        configurationCacheRun "init", "--dsl", "groovy", "--type", "basic"
+
+        then:
+        outputContains("> Task :init")
+        succeeds 'properties'
+    }
 }
