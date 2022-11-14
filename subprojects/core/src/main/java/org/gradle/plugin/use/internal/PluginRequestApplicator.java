@@ -22,7 +22,7 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.plugin.management.PluginRequest;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
 import javax.annotation.Nullable;
@@ -43,7 +43,7 @@ public interface PluginRequestApplicator {
     @EventScope(Scopes.Build.class)
     interface PluginApplicationListener {
 
-        void autoApplied(PluginRequest pluginRequest);
+        void pluginApplied(PluginRequestInternal pluginRequest);
 
     }
 }
