@@ -496,7 +496,7 @@ public class TaskExecution implements UnitOfWork {
         @Override
         public FileCollectionInternal createDelegate() {
             List<File> outputs = previousOutputs.values().stream()
-                .map(SnapshotUtil::index)
+                .map(SnapshotUtil::indexByAbsolutePath)
                 .map(Map::keySet)
                 .flatMap(Collection::stream)
                 .map(File::new)
