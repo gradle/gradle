@@ -32,20 +32,24 @@ import org.gradle.workers.internal.WorkerFactory;
 
 import javax.inject.Inject;
 
-abstract public class AbstractCompilerWorkerExecutor implements CompilerWorkerExecutor {
+/**
+ * Base implementation of {@link CompilerWorkerExecutor} which handles submitting a compile work item to exeute.
+ * Inheritors need to provide an appropriate isolated worker requirement depending on what isolation mode is being used.
+ */
+abstract public class AbstractIsolatedCompilerWorkerExecutor implements CompilerWorkerExecutor {
     private final WorkerFactory workerFactory;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 
-    public AbstractCompilerWorkerExecutor(WorkerFactory workerFactory, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+    public AbstractIsolatedCompilerWorkerExecutor(WorkerFactory workerFactory, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.workerFactory = workerFactory;
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
 
-    abstract IsolatedClassLoaderWorkerRequirement getWorkerRequirement(DaemonForkOptions daemonForkOptions);
+    abstract IsolatedClassLoaderWorkerRequirement getIsolatedWorkerRequirement(DaemonForkOptions daemonForkOptions);
 
     @Override
     public DefaultWorkResult execute(CompilerParameters parameters, DaemonForkOptions daemonForkOptions) {
-        IsolatedClassLoaderWorkerRequirement workerRequirement = getWorkerRequirement(daemonForkOptions);
+        IsolatedClassLoaderWorkerRequirement workerRequirement = getIsolatedWorkerRequirement(daemonForkOptions);
         BuildOperationAwareWorker worker = workerFactory.getWorker(workerRequirement);
 
         return worker.execute(actionExecutionSpecFactory.newIsolatedSpec("compiler daemon", CompilerWorkAction.class, parameters, workerRequirement, true));

@@ -19,15 +19,15 @@ package org.gradle.api.internal.tasks.compile.daemon;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.IsolatedClassLoaderWorkerRequirement;
-import org.gradle.workers.internal.WorkerFactory;
+import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 
-public class IsolatedClassloaderCompilerWorkerExecutor extends AbstractCompilerWorkerExecutor {
-    public IsolatedClassloaderCompilerWorkerExecutor(WorkerFactory delegate, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+public class ClassloaderIsolatedCompilerWorkerExecutor extends AbstractIsolatedCompilerWorkerExecutor {
+    public ClassloaderIsolatedCompilerWorkerExecutor(IsolatedClassloaderWorkerFactory delegate, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         super(delegate, actionExecutionSpecFactory);
     }
 
     @Override
-    public IsolatedClassLoaderWorkerRequirement getWorkerRequirement(DaemonForkOptions daemonForkOptions) {
+    public IsolatedClassLoaderWorkerRequirement getIsolatedWorkerRequirement(DaemonForkOptions daemonForkOptions) {
         return new IsolatedClassLoaderWorkerRequirement(daemonForkOptions.getJavaForkOptions().getWorkingDir(), daemonForkOptions.getClassLoaderStructure());
     }
 }
