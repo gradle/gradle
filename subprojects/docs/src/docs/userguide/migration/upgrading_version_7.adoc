@@ -269,6 +269,11 @@ eclipse {
 Previously, you had to explicitly configure PMD to ignore default rules with `ruleSets = []`.
 In the Gradle 8.0, setting `ruleSetConfig` or `ruleSetFiles` to a non-empty value implicitly ignores default rules.
 
+==== Removed external plugin validation plugin
+
+The incubating plugin `ExternalPluginValidationPlugin` has been removed.
+Use the link:java_gradle_plugin.html[`java-gradle-plugin`]'s `validatePlugins` task to validate plugins under development.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
