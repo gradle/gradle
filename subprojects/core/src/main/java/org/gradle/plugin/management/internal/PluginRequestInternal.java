@@ -32,6 +32,5 @@ public interface PluginRequestInternal extends PluginRequest {
 
     PluginRequest getOriginalRequest();
 
-    @Nullable
-    Runnable onAccepted();
+    Runnable getAcceptanceHandler();
 }
