@@ -95,9 +95,11 @@ import java.util.Map;
  * }
  *
  * dependencies {
- *   implementation('org.hibernate:hibernate:3.1') {
+ *   implementation('org.hibernate:hibernate') {
  *     //in case of versions conflict '3.1' version of hibernate wins:
- *     force = true
+ *     version {
+ *       strictly('3.1')
+ *     }
  *
  *     //excluding a particular transitive dependency:
  *     exclude module: 'cglib' //by artifact name

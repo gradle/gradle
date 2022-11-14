@@ -16,26 +16,46 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.ImmutableSet;
+
 import javax.annotation.Nullable;
+import java.util.function.Consumer;
 
 public class DefaultTaskDependencyFactory implements TaskDependencyFactory {
     @Nullable
     private final TaskResolver taskResolver;
 
+    @Nullable
+    private final TaskDependencyUsageTracker taskDependencyUsageTracker;
+
     public static TaskDependencyFactory withNoAssociatedProject() {
-        return new DefaultTaskDependencyFactory(null);
+        return new DefaultTaskDependencyFactory(null, null);
     }
 
-    public static TaskDependencyFactory forProject(TaskResolver taskResolver) {
-        return new DefaultTaskDependencyFactory(taskResolver);
+    public static TaskDependencyFactory forProject(
+        TaskResolver taskResolver,
+        @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker
+    ) {
+        return new DefaultTaskDependencyFactory(taskResolver, taskDependencyUsageTracker);
     }
 
-    private DefaultTaskDependencyFactory(@Nullable TaskResolver taskResolver) {
+    private DefaultTaskDependencyFactory(@Nullable TaskResolver taskResolver, @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker) {
         this.taskResolver = taskResolver;
+        this.taskDependencyUsageTracker = taskDependencyUsageTracker;
     }
 
     @Override
     public DefaultTaskDependency configurableDependency() {
-        return new DefaultTaskDependency(taskResolver);
+        return new DefaultTaskDependency(taskResolver, taskDependencyUsageTracker);
+    }
+
+    @Override
+    public DefaultTaskDependency configurableDependency(ImmutableSet<Object> dependencies) {
+        return new DefaultTaskDependency(taskResolver, dependencies, taskDependencyUsageTracker);
+    }
+
+    @Override
+    public DefaultTaskDependency visitingDependencies(Consumer<? super TaskDependencyResolveContext> visitDependencies) {
+        return configurableDependency(ImmutableSet.of(new DefaultTaskDependency.VisitBehavior(visitDependencies)));
     }
 }

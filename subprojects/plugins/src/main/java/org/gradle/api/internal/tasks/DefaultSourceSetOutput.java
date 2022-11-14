@@ -28,13 +28,14 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
-public class DefaultSourceSetOutput extends CompositeFileCollection implements SourceSetOutput {
+public abstract class DefaultSourceSetOutput extends CompositeFileCollection implements SourceSetOutput {
     private final ConfigurableFileCollection outputDirectories;
     private Object resourcesDir;
 
@@ -45,7 +46,9 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
 
     private DirectoryContribution resourcesContributor;
 
-    public DefaultSourceSetOutput(String sourceSetDisplayName, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+    @Inject
+    public DefaultSourceSetOutput(String sourceSetDisplayName, TaskDependencyFactory taskDependencyFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+        super(taskDependencyFactory);
         this.fileResolver = fileResolver;
 
         this.classesDirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " classesDirs");

@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPlatformPlugin;
@@ -68,7 +69,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * @since 1.4
  * @see <a href="https://docs.gradle.org/current/userguide/publishing_maven.html">Maven Publishing reference</a>
  */
-public class MavenPublishPlugin implements Plugin<Project> {
+public abstract class MavenPublishPlugin implements Plugin<Project> {
 
     public static final String PUBLISH_LOCAL_LIFECYCLE_TASK_NAME = "publishToMavenLocal";
 
@@ -78,16 +79,19 @@ public class MavenPublishPlugin implements Plugin<Project> {
     private final FileResolver fileResolver;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final ProviderFactory providerFactory;
+    private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
     public MavenPublishPlugin(InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider,
-                              FileResolver fileResolver, ImmutableAttributesFactory immutableAttributesFactory, ProviderFactory providerFactory) {
+                              FileResolver fileResolver, ImmutableAttributesFactory immutableAttributesFactory, ProviderFactory providerFactory,
+                              TaskDependencyFactory taskDependencyFactory) {
         this.instantiatorFactory = instantiatorFactory;
         this.objectFactory = objectFactory;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.providerFactory = providerFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
@@ -221,7 +225,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
         @Override
         public MavenPublication create(final String name) {
             MutableMavenProjectIdentity projectIdentity = createProjectIdentity();
-            NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver).create();
+            NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver, taskDependencyFactory).create();
             VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
             configureDefaultConfigurationsUsedWhenMappingToResolvedVersions(versionMappingStrategy);
             return objectFactory.newInstance(

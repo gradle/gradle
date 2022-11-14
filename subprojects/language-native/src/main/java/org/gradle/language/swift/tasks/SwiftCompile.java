@@ -75,7 +75,7 @@ import java.util.Set;
  * @since 4.1
  */
 @CacheableTask
-public class SwiftCompile extends DefaultTask {
+public abstract class SwiftCompile extends DefaultTask {
     private final Property<String> moduleName;
     private final RegularFileProperty moduleFile;
     private final ConfigurableFileCollection modules;

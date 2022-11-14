@@ -95,6 +95,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.BuildableBackedSetProvider;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -132,6 +133,8 @@ import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.WrapUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -157,6 +160,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
 
 @SuppressWarnings("rawtypes")
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConfiguration.class);
 
     private static final Action<Throwable> DEFAULT_ERROR_HANDLER = throwable -> {
         throw UncheckedException.throwAsUncheckedException(throwable);
@@ -182,7 +186,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
-    private ProjectDependencyObservedListener dependencyObservedBroadcast;
+    private final ProjectDependencyObservedListener dependencyObservedBroadcast;
     private final BuildOperationExecutor buildOperationExecutor;
     private final Instantiator instantiator;
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
@@ -217,6 +221,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean dependenciesModified;
     private boolean canBeConsumed = true;
     private boolean canBeResolved = true;
+    private boolean canBeDeclaredAgainst = true;
 
     private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
@@ -270,8 +275,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        DefaultConfigurationFactory defaultConfigurationFactory
+        DefaultConfigurationFactory defaultConfigurationFactory,
+        TaskDependencyFactory taskDependencyFactory
     ) {
+        super(taskDependencyFactory);
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
         this.workerThreadRegistry = workerThreadRegistry;
@@ -308,9 +315,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.ownArtifacts = (DefaultDomainObjectSet<PublishArtifact>) domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class);
         this.ownArtifacts.beforeCollectionChanges(validateMutationType(this, MutationType.ARTIFACTS));
 
-        this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory);
+        this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory, taskDependencyFactory);
 
-        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory);
+        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(ResolveState.NOT_RESOLVED);
         this.path = domainObjectContext.projectPath(name);
@@ -547,7 +554,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private ConfigurationFileCollection fileCollectionFromSpec(Spec<? super Dependency> dependencySpec) {
-        return new ConfigurationFileCollection(new SelectedArtifactsProvider(), dependencySpec, configurationAttributes, Specs.satisfyAll(), false, false, false, new DefaultResolutionHost());
+        return new ConfigurationFileCollection(
+            new SelectedArtifactsProvider(), dependencySpec, configurationAttributes, Specs.satisfyAll(), false, false, false, new DefaultResolutionHost(), taskDependencyFactory
+        );
     }
 
     @Override
@@ -589,6 +598,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ResolveState resolveToStateOrLater(final InternalState requestedState) {
         assertIsResolvable();
         warnIfConfigurationIsDeprecatedForResolving();
+        logIfImproperConfiguration();
 
         ResolveState currentState = currentResolveState.get();
         if (currentState.state.compareTo(requestedState) >= 0) {
@@ -613,9 +623,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void warnIfConfigurationIsDeprecatedForResolving() {
         if (resolutionAlternatives != null) {
             DeprecationLogger.deprecateConfiguration(this.name).forResolution().replaceWith(resolutionAlternatives)
-                .willBecomeAnErrorInGradle8()
-                .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
-                .nagUser();
+                    .willBecomeAnErrorInGradle9()
+                    .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+                    .nagUser();
         }
     }
 
@@ -843,7 +853,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
                 (attributes, filter) -> {
                     ImmutableAttributes fullAttributes = attributesFactory.concat(configurationAttributes.asImmutable(), attributes);
-                    return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), fullAttributes, filter, false, false, false, new DefaultResolutionHost());
+                    return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), fullAttributes, filter, false, false, false, new DefaultResolutionHost(), taskDependencyFactory);
                 });
         }
         return dependenciesResolverFactory;
@@ -900,9 +910,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
         if (useDependedOn) {
-            return new TasksFromProjectDependencies(taskName, this::getAllDependencies);
+            return new TasksFromProjectDependencies(taskName, this::getAllDependencies, taskDependencyFactory);
         } else {
-            return new TasksFromDependentProjects(taskName, getName());
+            return new TasksFromDependentProjects(taskName, getName(), taskDependencyFactory);
         }
     }
 
@@ -919,7 +929,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return allDependencies;
     }
 
-    @SuppressWarnings("unchecked")
     private synchronized void initAllDependencies() {
         if (allDependencies != null) {
             return;
@@ -944,7 +953,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return allDependencyConstraints;
     }
 
-    @SuppressWarnings("unchecked")
     private synchronized void initAllDependencyConstraints() {
         if (allDependencyConstraints != null) {
             return;
@@ -967,7 +975,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return allArtifacts;
     }
 
-    @SuppressWarnings("unchecked")
     private synchronized void initAllArtifacts() {
         if (allArtifacts != null) {
             return;
@@ -976,7 +983,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         if (!canBeMutated && extendsFrom.isEmpty()) {
             // No further mutation is allowed and there's no parent: the artifact set corresponds to this configuration own artifacts
-            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, fileCollectionFactory);
+            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, fileCollectionFactory, taskDependencyFactory);
             return;
         }
 
@@ -995,9 +1002,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
         }
         if (inheritedArtifacts != null) {
-            this.allArtifacts = new DefaultPublishArtifactSet(displayName, inheritedArtifacts, fileCollectionFactory);
+            this.allArtifacts = new DefaultPublishArtifactSet(displayName, inheritedArtifacts, fileCollectionFactory, taskDependencyFactory);
         } else {
-            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, fileCollectionFactory);
+            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, fileCollectionFactory, taskDependencyFactory);
         }
     }
 
@@ -1105,8 +1112,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             outgoing.preventFromFurtherMutation();
             canBeMutated = false;
 
+            logIfImproperConfiguration();
+
             // We will only check unique attributes if this configuration is consumable, not resolvable, and has attributes itself
-            if (isCanBeConsumed() && !isCanBeResolved() && !getAttributes().isEmpty()) {
+            if (mustHaveUniqueAttributes(this) && !this.getAttributes().isEmpty()) {
                 ensureUniqueAttributes();
             }
         }
@@ -1119,7 +1128,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             final Consumer<ConfigurationInternal> warnIfDuplicate = otherConfiguration -> {
                 if (hasSameCapabilitiesAs(allCapabilities, otherConfiguration) && hasSameAttributesAs(otherConfiguration)) {
-                    DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project must have unique attributes, but " + getDisplayName() + " and " + otherConfiguration.getDisplayName() + " contain identical attribute sets.")
+                    DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but " + getDisplayName() + " and " + otherConfiguration.getDisplayName() + " contain identical attribute sets.")
                         .withAdvice("Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details.")
                         .willBecomeAnErrorInGradle8()
                         .withUpgradeGuideSection(7, "unique_attribute_sets")
@@ -1128,13 +1137,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             };
 
             all.stream()
-                .filter(Configuration::isCanBeConsumed)
-                .filter(c -> !c.isCanBeResolved())
-                .filter(c -> !c.isCanBeMutated())
                 .filter(c -> c != this)
-                .filter(c -> !c.getAttributes().isEmpty())
+                .filter(this::mustHaveUniqueAttributes)
+                .filter(c -> !c.isCanBeMutated())
                 .forEach(warnIfDuplicate);
         }
+    }
+
+    /**
+     * The only configurations which must have unique attributes are those which are consumable (and not also resolvable, legacy configurations),
+     * excluding the default configuration.
+     *
+     * @param configuration the configuration to inspect
+     * @return {@code true} if the given configuration must have unique attributes; {@code false} otherwise
+     */
+    private boolean mustHaveUniqueAttributes(Configuration configuration) {
+        return configuration.isCanBeConsumed() && !configuration.isCanBeResolved() && !Dependency.DEFAULT_CONFIGURATION.equals(configuration.getName());
     }
 
     private Collection<? extends Capability> allCapabilitiesIncludingDefault(Configuration conf) {
@@ -1204,6 +1222,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         copiedConfiguration.canBeConsumed = canBeConsumed;
         copiedConfiguration.canBeResolved = canBeResolved;
+        copiedConfiguration.canBeDeclaredAgainst = canBeDeclaredAgainst;
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
@@ -1364,6 +1383,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void preventIllegalMutation(MutationType type) {
         // TODO: Deprecate and eventually prevent these mutations when already resolved
         if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
+            assertIsDeclarableAgainst();
             return;
         }
 
@@ -1463,8 +1483,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 boolean lenient,
                 boolean allowNoMatchingVariants,
                 boolean selectFromAllVariants,
-                ResolutionHost resolutionHost
+                ResolutionHost resolutionHost,
+                TaskDependencyFactory taskDependencyFactory
         ) {
+            super(taskDependencyFactory);
             this.resultProvider = resultProvider;
             this.dependencySpec = dependencySpec;
             this.viewAttributes = viewAttributes;
@@ -1536,6 +1558,30 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
+    private void assertIsDeclarableAgainst() {
+        if (!canBeDeclaredAgainst) {
+            throw new IllegalStateException("Declaring dependencies for configuration '" + name + "' is not allowed as it is defined as 'canBeDeclared=false'.");
+        }
+    }
+
+    /**
+     * Check that the combination of consumable, resolvable and declarable flags is sensible.
+     * This method should be called only after all mutations are known to be complete.
+     * This shouldn't do anything stronger than log to info, otherwise it will interrupt dependency reports.
+     * Many improper configurations are still in use, we can't just fail if one is detected here.
+     */
+    private void logIfImproperConfiguration() {
+        if (canBeConsumed && canBeResolved) {
+            LOGGER.info("The configuration " + identityPath.toString() + " is both resolvable and consumable. This is considered a legacy configuration and it will eventually only be possible to be one of these.");
+        }
+
+        if (canBeConsumed && canBeDeclaredAgainst) {
+            LOGGER.info("The configuration " + identityPath.toString() + " is both consumable and declarable. This combination is incorrect, only one of these flags should be set.");
+        }
+
+        // canBeDeclared && canBeResolved is a valid and expected combination
+    }
+
     @Override
     protected void assertCanCarryBuildDependencies() {
         assertIsResolvable();
@@ -1574,11 +1620,21 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         canBeResolved = allowed;
     }
 
+    @Override
+    public boolean isCanBeDeclaredAgainst() {
+        return canBeDeclaredAgainst;
+    }
+
+    @Override
+    public void setCanBeDeclaredAgainst(boolean allowed) {
+        validateMutation(MutationType.ROLE);
+        canBeDeclaredAgainst = allowed;
+    }
+
     @VisibleForTesting
     ListenerBroadcast<DependencyResolutionListener> getDependencyResolutionListeners() {
         return dependencyResolutionListeners;
     }
-
 
     @Override
     @Nullable
@@ -1596,13 +1652,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public List<String> getResolutionAlternatives() {
         return resolutionAlternatives;
-    }
-
-    @Override
-    public boolean isFullyDeprecated() {
-        return declarationAlternatives != null &&
-            (!canBeConsumed || consumptionDeprecation != null) &&
-            (!canBeResolved || resolutionAlternatives != null);
     }
 
     @Override
@@ -1764,7 +1813,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ConfigurationArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
         ImmutableAttributes viewAttributes = attributes.asImmutable();
         DefaultResolutionHost failureHandler = new DefaultResolutionHost();
-        ConfigurationFileCollection files = new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, failureHandler);
+        ConfigurationFileCollection files = new ConfigurationFileCollection(
+            new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, failureHandler, taskDependencyFactory
+        );
         return new ConfigurationArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
     }
 
@@ -1892,7 +1943,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             @Override
             public FileCollection getFiles() {
                 // TODO maybe make detached configuration is flag is true
-                return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, new DefaultResolutionHost());
+                return new ConfigurationFileCollection(
+                    new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, new DefaultResolutionHost(), taskDependencyFactory
+                );
             }
         }
 

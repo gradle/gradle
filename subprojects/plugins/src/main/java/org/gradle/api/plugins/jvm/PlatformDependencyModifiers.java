@@ -21,9 +21,9 @@ import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyModifier;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Nested;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.inject.Inject;
 
@@ -103,7 +103,9 @@ public interface PlatformDependencyModifiers {
         @Override
         public <D extends ModuleDependency> D modify(D dependency) {
             if (dependency instanceof ExternalDependency) {
-                DeprecationLogger.whileDisabled(() -> ((ExternalDependency)dependency).setForce(true));
+                ((AbstractExternalModuleDependency) dependency).version(constraint -> {
+                    constraint.strictly(dependency.getVersion());
+                });
             }
             dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.ENFORCED_PLATFORM)));
 

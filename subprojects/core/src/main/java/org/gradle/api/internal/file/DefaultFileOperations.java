@@ -40,6 +40,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -84,6 +85,7 @@ public class DefaultFileOperations implements FileOperations {
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileCollectionFactory fileCollectionFactory;
+    private final TaskDependencyFactory taskDependencyFactory;
     private final ProviderFactory providers;
 
     public DefaultFileOperations(
@@ -100,6 +102,7 @@ public class DefaultFileOperations implements FileOperations {
         Factory<PatternSet> patternSetFactory,
         Deleter deleter,
         DocumentationRegistry documentationRegistry,
+        TaskDependencyFactory taskDependencyFactory,
         ProviderFactory providers
     ) {
         this.fileCollectionFactory = fileCollectionFactory;
@@ -111,6 +114,7 @@ public class DefaultFileOperations implements FileOperations {
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
         this.patternSetFactory = patternSetFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
         this.providers = providers;
         this.fileCopier = new FileCopier(
             deleter,
@@ -174,7 +178,7 @@ public class DefaultFileOperations implements FileOperations {
     @Override
     public FileTreeInternal zipTree(Object zipPath) {
         Provider<File> fileProvider = asFileProvider(zipPath);
-        return new FileTreeAdapter(new ZipFileTree(fileProvider, getExpandDir(), fileSystem, directoryFileTreeFactory, fileHasher), patternSetFactory);
+        return new FileTreeAdapter(new ZipFileTree(fileProvider, getExpandDir(), fileSystem, directoryFileTreeFactory, fileHasher), taskDependencyFactory, patternSetFactory);
     }
 
     @Override
@@ -190,7 +194,7 @@ public class DefaultFileOperations implements FileOperations {
         });
 
         TarFileTree tarTree = new TarFileTree(fileProvider, resource.map(MaybeCompressedFileResource::new), getExpandDir(), fileSystem, directoryFileTreeFactory, fileHasher);
-        return new FileTreeAdapter(tarTree, patternSetFactory);
+        return new FileTreeAdapter(tarTree, taskDependencyFactory, patternSetFactory);
     }
 
     private Provider<File> asFileProvider(Object path) {
@@ -302,9 +306,11 @@ public class DefaultFileOperations implements FileOperations {
         Deleter deleter = services.get(Deleter.class);
         DocumentationRegistry documentationRegistry = services.get(DocumentationRegistry.class);
         ProviderFactory providers = services.get(ProviderFactory.class);
+        TaskDependencyFactory taskDependencyFactory = services.get(TaskDependencyFactory.class);
 
         DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
             fileResolver,
+            taskDependencyFactory,
             fileSystem,
             null,
             textResourceAdapterFactory
@@ -324,6 +330,7 @@ public class DefaultFileOperations implements FileOperations {
             patternSetFactory,
             deleter,
             documentationRegistry,
+            taskDependencyFactory,
             providers);
     }
 }

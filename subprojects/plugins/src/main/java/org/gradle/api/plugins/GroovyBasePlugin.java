@@ -27,6 +27,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
@@ -39,8 +40,10 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.api.tasks.javadoc.GroovydocAccess;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.JavaToolchain;
 
 import javax.inject.Inject;
 import java.util.function.BiFunction;
@@ -53,12 +56,13 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/groovy_plugin.html">Groovy plugin reference</a>
  */
-public class GroovyBasePlugin implements Plugin<Project> {
+public abstract class GroovyBasePlugin implements Plugin<Project> {
     public static final String GROOVY_RUNTIME_EXTENSION_NAME = "groovyRuntime";
 
     private final ObjectFactory objectFactory;
     private final ModuleRegistry moduleRegistry;
     private final JvmPluginServices jvmPluginServices;
+    private final TaskDependencyFactory taskDependencyFactory;
 
     private Project project;
     private GroovyRuntime groovyRuntime;
@@ -67,11 +71,13 @@ public class GroovyBasePlugin implements Plugin<Project> {
     public GroovyBasePlugin(
         ObjectFactory objectFactory,
         ModuleRegistry moduleRegistry,
-        JvmEcosystemUtilities jvmPluginServices
+        JvmEcosystemUtilities jvmPluginServices,
+        TaskDependencyFactory taskDependencyFactory
     ) {
         this.objectFactory = objectFactory;
         this.moduleRegistry = moduleRegistry;
         this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
@@ -102,7 +108,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     @SuppressWarnings("deprecation")
     private void configureSourceSetDefaults() {
         javaPluginExtension().getSourceSets().all(sourceSet -> {
-            final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet("groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
+            final DefaultGroovySourceSet groovySourceSet = objectFactory.newInstance(DefaultGroovySourceSet.class, "groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
             addSourceSetExtension(sourceSet, groovySourceSet);
 
             final SourceDirectorySet groovySource = groovySourceSet.getGroovy();
@@ -120,7 +126,9 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 JvmPluginsHelper.configureForSourceSet(sourceSet, groovySource, compile, compile.getOptions(), project);
                 compile.setDescription("Compiles the " + sourceSet.getName() + " Groovy source.");
                 compile.setSource(groovySource);
-                compile.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
+                Provider<JavaLauncher> javaLauncherConvention = getToolchainTool(project, JavaToolchainService::launcherFor)
+                    .map(it -> ((JavaToolchain) it.getMetadata()).isFallbackToolchain() ? null : it);
+                compile.getJavaLauncher().convention(javaLauncherConvention);
                 compile.getGroovyOptions().getDisabledGlobalASTTransformations().convention(Sets.newHashSet("groovy.grape.GrabAnnotationTransformation"));
             });
 

@@ -20,17 +20,16 @@ import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.scala.ScalaCompilationFixture
 
 import static org.gradle.api.JavaVersion.VERSION_11
 import static org.gradle.api.JavaVersion.VERSION_1_8
 
-class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, JavaToolchainFixture {
 
     String scaladoc = ":${ScalaPlugin.SCALA_DOC_TASK_NAME}"
     ScalaCompilationFixture classes = new ScalaCompilationFixture(testDirectory)
-
 
     def "changing the Scala version makes Scaladoc out of date"() {
         classes.baseline()
@@ -218,12 +217,5 @@ scaladoc {
         withInstallations(jdk8, jdk11).run scaladoc, '-Pchanged', '--info'
         then:
         skipped scaladoc
-    }
-
-    private withInstallations(JvmInstallationMetadata... jdkMetadata) {
-        def installationPaths = jdkMetadata.collect { it.javaHome.toAbsolutePath().toString() }.join(",")
-        executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
-        this
     }
 }

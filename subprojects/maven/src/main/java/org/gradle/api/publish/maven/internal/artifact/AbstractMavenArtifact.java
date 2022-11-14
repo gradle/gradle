@@ -17,10 +17,9 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import com.google.common.base.Strings;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.internal.PublicationArtifactInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -32,9 +31,12 @@ public abstract class AbstractMavenArtifact implements MavenArtifact, Publicatio
     private String extension;
     private String classifier;
 
-    protected AbstractMavenArtifact() {
+    protected AbstractMavenArtifact(TaskDependencyFactory taskDependencyFactory) {
         this.additionalBuildDependencies = new DefaultTaskDependency();
-        this.allBuildDependencies = new CompositeTaskDependency();
+        this.allBuildDependencies = taskDependencyFactory.visitingDependencies(context -> {
+            context.add(getDefaultBuildDependencies());
+            additionalBuildDependencies.visitDependencies(context);
+        });
     }
 
     @Override
@@ -81,12 +83,4 @@ public abstract class AbstractMavenArtifact implements MavenArtifact, Publicatio
         return getClass().getSimpleName() + " " + getExtension() + ":" + getClassifier();
     }
 
-    private class CompositeTaskDependency extends AbstractTaskDependency {
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(getDefaultBuildDependencies());
-            additionalBuildDependencies.visitDependencies(context);
-        }
-    }
 }

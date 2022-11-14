@@ -20,39 +20,53 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
-class TasksFromDependentProjects extends AbstractTaskDependency {
+class TasksFromDependentProjects implements TaskDependencyContainerInternal {
 
     private final String taskName;
     private final String configurationName;
-    private final TaskDependencyChecker checker;
+    private final TaskDependencyContainerInternal taskDependencyDelegate;
 
-    public TasksFromDependentProjects(String taskName, String configurationName) {
-        this(taskName, configurationName, new TaskDependencyChecker());
+    public TasksFromDependentProjects(String taskName, String configurationName, TaskDependencyFactory taskDependencyFactory) {
+        this(taskName, configurationName, new TaskDependencyChecker(), taskDependencyFactory);
     }
 
-    public TasksFromDependentProjects(String taskName, String configurationName, TaskDependencyChecker checker) {
+    public TasksFromDependentProjects(String taskName, String configurationName, TaskDependencyChecker checker, TaskDependencyFactory taskDependencyFactory) {
         this.taskName = taskName;
         this.configurationName = configurationName;
-        this.checker = checker;
+        this.taskDependencyDelegate = taskDependencyFactory.visitingDependencies(context -> {
+            Project thisProject = context.getTask().getProject();
+            Set<Task> tasksWithName = thisProject.getRootProject().getTasksByName(taskName, true);
+            for (Task nextTask : tasksWithName) {
+                if (context.getTask() != nextTask) {
+                    boolean isDependency = checker.isDependent(thisProject, configurationName, nextTask.getProject());
+                    if (isDependency) {
+                        context.add(nextTask);
+                    }
+                }
+            }
+        });
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        Project thisProject = context.getTask().getProject();
-        Set<Task> tasksWithName = thisProject.getRootProject().getTasksByName(taskName, true);
-        for (Task nextTask : tasksWithName) {
-            if (context.getTask() != nextTask) {
-                boolean isDependency = checker.isDependent(thisProject, configurationName, nextTask.getProject());
-                if (isDependency) {
-                    context.add(nextTask);
-                }
-            }
-        }
+        taskDependencyDelegate.visitDependencies(context);
+    }
+
+    @Override
+    public Set<? extends Task> getDependencies(@Nullable Task task) {
+        return taskDependencyDelegate.getDependencies(task);
+    }
+
+    @Override
+    public Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task) {
+        return taskDependencyDelegate.getDependenciesForInternalUse(task);
     }
 
     static class TaskDependencyChecker {

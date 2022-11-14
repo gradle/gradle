@@ -20,16 +20,17 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
-import org.gradle.util.internal.ToBeImplemented
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
-class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainBuildOperationsFixture {
+class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, JavaToolchainBuildOperationsFixture {
 
     static kgpLatestVersions = new KotlinGradlePluginVersions().latests.toList()
 
@@ -46,7 +47,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    @ToBeImplemented("All cases are supported except up-to-dateness for the javadoc task when toolchains are not configured")
     @Issue("https://github.com/gradle/gradle/issues/21386")
     def "emits toolchain usages for a build #configureToolchain configured toolchain for '#task' task"() {
         JvmInstallationMetadata jdkMetadata
@@ -56,11 +56,11 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
 
             if (configureToolchain == "with java plugin") {
-                configureToolchainViaJavaPlugin(jdkMetadata)
+                configureJavaPluginToolchainVersion(jdkMetadata)
             } else if (configureToolchain == "with per task") {
                 configureToolchainPerTask(jdkMetadata)
             } else if (configureToolchain == "with java plugin and per task") {
-                configureToolchainViaJavaPlugin(AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current()))
+                configureJavaPluginToolchainVersion(AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current()))
                 configureToolchainPerTask(jdkMetadata)
             } else {
                 throw new IllegalArgumentException("Unknown configureToolchain: " + configureToolchain)
@@ -93,24 +93,22 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         events = toolchainEvents(task)
         then:
         skipped(task)
-        if (emitsWhenUpToDate) {
-            assertToolchainUsages(events, jdkMetadata, tool)
-        }
+        assertToolchainUsages(events, jdkMetadata, tool)
 
         where:
-        task           | tool           | configureToolchain              | emitsWhenUpToDate
-        ":compileJava" | "JavaCompiler" | "with java plugin"              | true
-        ":compileJava" | "JavaCompiler" | "with per task"                 | true
-        ":compileJava" | "JavaCompiler" | "with java plugin and per task" | true
-        ":compileJava" | "JavaCompiler" | "without"                       | true
-        ":test"        | "JavaLauncher" | "with java plugin"              | true
-        ":test"        | "JavaLauncher" | "with per task"                 | true
-        ":test"        | "JavaLauncher" | "with java plugin and per task" | true
-        ":test"        | "JavaLauncher" | "without"                       | true
-        ":javadoc"     | "JavadocTool"  | "with java plugin"              | true
-        ":javadoc"     | "JavadocTool"  | "with per task"                 | true
-        ":javadoc"     | "JavadocTool"  | "with java plugin and per task" | true
-        ":javadoc"     | "JavadocTool"  | "without"                       | false
+        task           | tool           | configureToolchain
+        ":compileJava" | "JavaCompiler" | "with java plugin"
+        ":compileJava" | "JavaCompiler" | "with per task"
+        ":compileJava" | "JavaCompiler" | "with java plugin and per task"
+        ":compileJava" | "JavaCompiler" | "without"
+        ":test"        | "JavaLauncher" | "with java plugin"
+        ":test"        | "JavaLauncher" | "with per task"
+        ":test"        | "JavaLauncher" | "with java plugin and per task"
+        ":test"        | "JavaLauncher" | "without"
+        ":javadoc"     | "JavadocTool"  | "with java plugin"
+        ":javadoc"     | "JavadocTool"  | "with per task"
+        ":javadoc"     | "JavadocTool"  | "with java plugin and per task"
+        ":javadoc"     | "JavadocTool"  | "without"
     }
 
     def "emits toolchain usages for a custom task that uses a toolchain property"() {
@@ -266,20 +264,17 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events2, jdkMetadata2, "JavaLauncher")
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/22397")
-    def "emits toolchain usages for compilation that configures java home via fork options"() {
+    def "emits toolchain usages for compilation that configures #option via fork options"() {
         JvmInstallationMetadata curJdk = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
+        def path = TextUtil.normaliseFileSeparators(jdkMetadata.javaHome.toString() + appendPath)
 
-        // TODO: selecting minimum version for compatibility can be removed when the issue is fixed
-        def compatibilityVersion = [curJdk, jdkMetadata]
-            .collect { it.languageVersion.majorVersion.toInteger() }
-            .min()
+        def compatibilityVersion = [curJdk, jdkMetadata].collect { it.languageVersion }.min()
 
         buildFile << """
             compileJava {
                 options.fork = true
-                options.forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(jdkMetadata.javaHome.toString())}")
+                ${configure.replace("<path>", path)}
                 sourceCompatibility = "${compatibilityVersion}"
                 targetCompatibility = "${compatibilityVersion}"
             }
@@ -304,46 +299,11 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         then:
         skipped(task)
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
-    }
 
-    @Issue("https://github.com/gradle/gradle/issues/22397")
-    def "emits toolchain usages for compilation that configures java home via fork options pointing outside installations"() {
-        JvmInstallationMetadata jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
-        JvmInstallationMetadata jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
-
-        // TODO: selecting minimum version for compatibility can be removed when the issue is fixed
-        def compatibilityVersion = [jdkMetadata1, jdkMetadata2]
-            .collect { it.languageVersion.majorVersion.toInteger() }
-            .min()
-
-        buildFile << """
-            compileJava {
-                options.fork = true
-                options.forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(jdkMetadata2.javaHome.toString())}")
-                sourceCompatibility = "${compatibilityVersion}"
-                targetCompatibility = "${compatibilityVersion}"
-            }
-        """
-
-        file("src/main/java/Foo.java") << """
-            public class Foo {}
-        """
-
-        def task = ":compileJava"
-
-        when:
-        withInstallations(jdkMetadata1).run(task)
-        def events = toolchainEvents(task)
-        then:
-        executedAndNotSkipped(task)
-        assertToolchainUsages(events, jdkMetadata2, "JavaCompiler")
-
-        when:
-        withInstallations(jdkMetadata1).run(task)
-        events = toolchainEvents(task)
-        then:
-        skipped(task)
-        assertToolchainUsages(events, jdkMetadata2, "JavaCompiler")
+        where:
+        option       | configure                                       | appendPath
+        "java home"  | 'options.forkOptions.javaHome = file("<path>")' | ''
+        "executable" | 'options.forkOptions.executable = "<path>"'     | OperatingSystem.current().getExecutableName('/bin/javac')
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21367")
@@ -390,6 +350,49 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
 
+    def "emits toolchain usages for test that configures executable path overriding toolchain java extension"() {
+        JvmInstallationMetadata jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
+        JvmInstallationMetadata jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentVersion(jdkMetadata1.languageVersion))
+
+        def minJdk = [jdkMetadata1, jdkMetadata2].min { it.languageVersion }
+        def maxJdk = [jdkMetadata1, jdkMetadata2].max { it.languageVersion }
+
+        configureJavaPluginToolchainVersion(minJdk)
+
+        buildFile << """
+            def javaExecutable = javaToolchains.launcherFor {
+                languageVersion = JavaLanguageVersion.of(${maxJdk.languageVersion.majorVersion})
+            }.get().executablePath
+
+            test {
+                executable = javaExecutable
+            }
+        """
+
+        file("src/test/java/FooTest.java") << """
+            public class FooTest {
+                @org.junit.Test
+                public void test() {}
+            }
+        """
+
+        def task = ":test"
+
+        when:
+        withInstallations(minJdk, maxJdk).run(task)
+        def events = toolchainEvents(task)
+        then:
+        executedAndNotSkipped(task)
+        assertToolchainUsages(events, maxJdk, "JavaLauncher")
+
+        when:
+        withInstallations(minJdk, maxJdk).run(task)
+        events = toolchainEvents(task)
+        then:
+        skipped(task)
+        assertToolchainUsages(events, maxJdk, "JavaLauncher")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/21368")
     def "emits toolchain usages when configuring toolchains for #kotlinPlugin Kotlin plugin '#kotlinPluginVersion'"() {
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
@@ -433,9 +436,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         if (VersionNumber.parse(kotlinPluginVersion) <= VersionNumber.parse("1.6.21")) {
             executer.expectDocumentedDeprecationWarning(
                 "The AbstractCompile.destinationDir property has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Please use the destinationDirectory property instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Please use the destinationDirectory property instead. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
         }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         def eventsOnCompile = toolchainEvents(":compileKotlin")
@@ -464,9 +467,9 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         where:
         kotlinPlugin | isAlwaysUpToDate
-        "latest"     | true
-        "1.7"        | true
         "1.6"        | false
+        "1.7"        | true
+        "latest"     | true
 
         kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestStableKotlinPluginVersion(kotlinPlugin)
     }
@@ -476,7 +479,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
 
-        configureToolchainViaJavaPlugin(jdkMetadata)
+        configureJavaPluginToolchainVersion(jdkMetadata)
 
         file("src/main/java/Foo.java") << """
             public class Foo extends Oops {}
@@ -497,7 +500,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
 
-        configureToolchainViaJavaPlugin(jdkMetadata)
+        configureJavaPluginToolchainVersion(jdkMetadata)
 
         file("src/test/java/FooTest.java") << """
             public class FooTest {
@@ -520,7 +523,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
 
-        configureToolchainViaJavaPlugin(jdkMetadata)
+        configureJavaPluginToolchainVersion(jdkMetadata)
 
         file("src/main/java/Foo.java") << """
             /**
@@ -587,23 +590,6 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
                 }
             }
         """
-    }
-
-    private TestFile configureToolchainViaJavaPlugin(JvmInstallationMetadata jdkMetadata) {
-        buildFile << """
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
-                }
-            }
-        """
-    }
-
-    private withInstallations(JvmInstallationMetadata... jdkMetadata) {
-        def installationPaths = jdkMetadata.collect { it.javaHome.toAbsolutePath().toString() }.join(",")
-        executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
-        this
     }
 
     private static String latestStableKotlinPluginVersion(String major) {
