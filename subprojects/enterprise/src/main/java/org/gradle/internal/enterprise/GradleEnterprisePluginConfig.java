@@ -24,14 +24,18 @@ public interface GradleEnterprisePluginConfig {
     enum BuildScanRequest {
         NONE, // no explicit request
         REQUESTED, // --scan is present, but not --no-scan
-        SUPPRESSED, // --no-scan is present
-
-        // Since 8.0
-        REQUESTED_AND_AUTO_APPLIED, // --scan is present and the plugin was auto applied
+        SUPPRESSED // --no-scan is present
     }
 
     BuildScanRequest getBuildScanRequest();
 
     boolean isTaskExecutingBuild();
+
+    /**
+     * Whether the plugin was auto-applied via {@code --scan} without being explicitly applied.
+     *
+     * @since 8.0
+     */
+    boolean isAutoApplied();
 
 }
