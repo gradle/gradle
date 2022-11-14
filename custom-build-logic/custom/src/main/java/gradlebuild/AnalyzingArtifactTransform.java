@@ -29,6 +29,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.OutputStreamBackedEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,13 +38,18 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public abstract class AnalyzingArtifactTransform implements TransformAction<TransformParameters.None> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AnalyzingArtifactTransform.class);
 
     private final StringInterner interner = new StringInterner();
 
@@ -53,9 +60,28 @@ public abstract class AnalyzingArtifactTransform implements TransformAction<Tran
     public void transform(TransformOutputs outputs) {
         File input = getInputArtifact().get().getAsFile();
 
-        List<ClassAnalysis> analysesList = new ArrayList<>();
-        Consumer<InputStream> classStreamAcceptor =
-            stream -> analysesList.add(analyzeClassFile(stream));
+        Map<String, ClassAnalysisWrapper> classNameToSource = new HashMap<>();
+        Consumer<ClassSource> classStreamAcceptor = source -> {
+            ClassAnalysis analysis = analyzeClassFile(source.data);
+
+            String className = analysis.getClassName();
+            String newSource = source.path;
+
+            ClassAnalysisWrapper oldSource;
+            if ((oldSource = classNameToSource.get(className)) != null) {
+
+                // TODO: Detect other cases. Eg. if old is META-INF check that new is META-INF
+                if (oldSource.path.startsWith("META-INF/versions")) {
+                    // Assume new source is not a multi-release class. Override old.
+                    classNameToSource.put(className, new ClassAnalysisWrapper(analysis, newSource));
+                } else {
+                    // New source must be multi-release (maybe, probably).
+                    LOGGER.debug("Did not replace " + oldSource + " with " + newSource);
+                }
+            } else {
+                classNameToSource.put(className, new ClassAnalysisWrapper(analysis, newSource));
+            }
+        };
 
         if (input.isDirectory()) {
             walkClassesDir(input, classStreamAcceptor);
@@ -63,7 +89,7 @@ public abstract class AnalyzingArtifactTransform implements TransformAction<Tran
             walkJarClasses(input, classStreamAcceptor);
         }
 
-        DependencyAnalysis analysis = new DependencyAnalysis(analysesList);
+        DependencyAnalysis analysis = new DependencyAnalysis(classNameToSource.values().stream().map(x -> x.analysis).collect(Collectors.toList()));
         File outputFile = outputs.file(input.getName() + ".analysis");
 
         try {
@@ -76,18 +102,19 @@ public abstract class AnalyzingArtifactTransform implements TransformAction<Tran
 
     public ClassAnalysis analyzeClassFile(InputStream classData) {
         try {
+            // TODO: Not sure we want to scan the same way. This scanner is too lenient.
             return new DefaultClassDependenciesAnalyzer(interner).getClassAnalysis(classData);
         } catch (IOException e) {
             throw new GradleException("Error scanning inputs", e);
         }
     }
 
-    private void walkClassesDir(File classDir, Consumer<InputStream> classStreamAcceptor) {
+    private void walkClassesDir(File classDir, Consumer<ClassSource> classStreamAcceptor) {
         try (Stream<Path> walker = Files.walk(classDir.toPath())) {
             walker.forEach((Path file) -> {
                 if (!Files.isDirectory(file) && file.getFileName().toString().endsWith(".class")) {
                     try {
-                        classStreamAcceptor.accept(Files.newInputStream(file));
+                        classStreamAcceptor.accept(new ClassSource(classDir.toPath().relativize(file.toAbsolutePath()).toString(), Files.newInputStream(file)));
                     } catch (IOException e) {
                         throw new GradleException("Cannot read class file", e);
                     }
@@ -98,12 +125,12 @@ public abstract class AnalyzingArtifactTransform implements TransformAction<Tran
         }
     }
 
-    private void walkJarClasses(File jar, Consumer<InputStream> classStreamAcceptor) {
+    private void walkJarClasses(File jar, Consumer<ClassSource> classStreamAcceptor) {
         try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(jar.toPath()))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 if (!entry.isDirectory() && entry.getName().endsWith(".class")) {
-                    classStreamAcceptor.accept(zis);
+                    classStreamAcceptor.accept(new ClassSource(entry.getName(), zis));
                 }
             }
         } catch (IOException e) {
@@ -149,6 +176,24 @@ public abstract class AnalyzingArtifactTransform implements TransformAction<Tran
                        serializer.write(encoder, classAnalysis);
                 }
             }
+        }
+    }
+
+    private static final class ClassSource {
+        private final String path;
+        private final InputStream data;
+        public ClassSource(String path, InputStream data) {
+            this.path = path;
+            this.data = data;
+        }
+    }
+
+    private static final class ClassAnalysisWrapper {
+        private final ClassAnalysis analysis;
+        private final String path;
+        public ClassAnalysisWrapper(ClassAnalysis analysis, String path) {
+            this.analysis = analysis;
+            this.path = path;
         }
     }
 }

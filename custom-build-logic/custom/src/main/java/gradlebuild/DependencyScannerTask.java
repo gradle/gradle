@@ -19,7 +19,6 @@ package gradlebuild;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.provider.Property;
@@ -41,8 +40,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,6 +49,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class DependencyScannerTask extends DefaultTask {
+
+    private static final String GRADLE_VERSION = "8.0";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyScannerTask.class);
 
@@ -66,7 +65,7 @@ public abstract class DependencyScannerTask extends DefaultTask {
         "base-annotations", "base-services", "build-operations", "build-option",
         "cli", "enterprise-logging", "enterprise-workers", "files-temp", "files", "hashing",
         "logging-api", "logging", "messaging", "native", "process-services", "testing-base",
-        "testing-jvm", "worker-processes", "worker-services", "wrapper-shared", "wrapper");
+        "testing-jvm-infrastructure", "worker-processes", "worker-services", "wrapper-shared", "wrapper");
 
     @InputFiles
     public abstract Property<FileCollection> getAnalyzedClasspath();
@@ -87,7 +86,7 @@ public abstract class DependencyScannerTask extends DefaultTask {
                 throw new GradleException("Error reading transformed dependency analysis for: " + file.getName(), e);
             }
 
-            // SHOUILD GO HERE VVVVV
+            // SHOULD GO HERE VVVVV
             if (data.put(file, analysis) != null) {
                 throw new RuntimeException("Oh no!");
             }
@@ -111,9 +110,11 @@ public abstract class DependencyScannerTask extends DefaultTask {
                 classData.dependencyClasses = dependencyClasses;
                 classData.artifact = artifact;
 
-                if (dependencyMap.put(className, classData) != null) {
+                ClassData oldData;
+                if ((oldData = dependencyMap.put(className, classData)) != null) {
                     duplicateClasses.add(className);
-                    LOGGER.info("Found duplicate class. Name: " + className);
+                    LOGGER.warn("Duplicate: " + className);
+                    LOGGER.warn("\t" + artifact + " " + oldData.artifact);
                 } else {
                     // Only track the artifact of the first time we see a class
                     artifactMap.put(className, artifact);
@@ -138,8 +139,8 @@ public abstract class DependencyScannerTask extends DefaultTask {
             "org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker",
             "org.gradle.api.internal.tasks.testing.worker.TestWorker",
             "org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessorFactory",
-            "org.gradle.api.internal.tasks.testing.junit.TestClassProcessorFactoryImpl",
-            "org.gradle.api.internal.tasks.testing.testng.TestClassProcessorFactoryImpl"
+            "org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessorFactory",
+            "org.gradle.api.internal.tasks.testing.testng.TestNgTestClassProcessorFactory"
         ).collect(Collectors.toSet());
 
         Set<String> referencedClasses = findAllReferencedClasses(dependencyMap, rootClasses);
@@ -216,6 +217,10 @@ public abstract class DependencyScannerTask extends DefaultTask {
                     .map(dependency -> new File[]{entry.getKey(), dependency}))
             .sorted(edgeComparator)
 //            .filter(pair -> getCount(pair[0], referencedByArtifact) != 0 )
+//            .filter(pair -> {
+//                ArtifactStats stats = artifactGraph.get(pair[0]).get(pair[1]);
+//                return stats.edges > 0 || stats.contributingClassesSource.size() > 0 || stats.contributingClassesDest.size() > 0;
+//            })
             .map(pair -> {
                 ArtifactStats stats = artifactGraph.get(pair[0]).get(pair[1]);
                 String label = stats.edges + "/" + stats.contributingClassesSource.size() + "/" + stats.contributingClassesDest.size();
@@ -232,7 +237,7 @@ public abstract class DependencyScannerTask extends DefaultTask {
             .sorted(Comparator.comparing(File::getName))
             .map((File file) -> {
                 String fileName = file.getName();
-                String module = fileName.substring("gradle-".length(), fileName.indexOf("-7.6.jar.analysis"));
+                String module = fileName.substring("gradle-".length(), fileName.indexOf("-" + GRADLE_VERSION + ".jar.analysis"));
                 int count = getCount(file, referencedByArtifact);
                 String label = String.format("%s (%d/%d)", module, count, getCount(file, unreferencedByArtifact));
                 String color = getNodeColor(file, referencedByArtifact);
@@ -241,7 +246,6 @@ public abstract class DependencyScannerTask extends DefaultTask {
             }).collect(Collectors.joining("\n"));
 
         String output = String.format("digraph G {\nnode[shape=rect,style=filled]\n%s\n%s\n}", nodes, edges);
-        System.err.println(output);
         try {
             Files.newOutputStream(getOutputFile().get().getAsFile().toPath()).write(output.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
@@ -262,7 +266,12 @@ public abstract class DependencyScannerTask extends DefaultTask {
 
     public String getNodeModule(File file) {
         String fileName = file.getName();
-        return fileName.substring("gradle-".length(), fileName.indexOf("-7.6.jar.analysis"));
+        try
+        {
+            return fileName.substring("gradle-".length(), fileName.indexOf("-" + GRADLE_VERSION + ".jar.analysis"));
+        } catch (Exception e) {
+            throw new GradleException("Failed to find module of: " + fileName);
+        }
     }
 
     public int getCount(File node, Map<File, Set<String>> referencedByArtifact) {
@@ -318,8 +327,8 @@ public abstract class DependencyScannerTask extends DefaultTask {
                 for (String dependency : usedClasses) {
                     if (!seen.contains(dependency)) {
                         toProcess.add(dependency);
+                        seen.add(dependency);
                     }
-                    seen.add(dependency);
                 }
             } else {
                 missing.add(next);
@@ -334,7 +343,7 @@ public abstract class DependencyScannerTask extends DefaultTask {
         return seen;
     }
 
-    private class ClassData {
+    private static class ClassData {
         File artifact;
         Set<String> dependencyClasses;
     }
