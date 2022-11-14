@@ -2177,62 +2177,6 @@
             ]
         },
         {
-            "type": "org.gradle.workers.IsolationMode",
-            "member": "Class org.gradle.workers.IsolationMode",
-            "acceptation": "Remove deprecated class in Gradle 8.0",
-            "changes": [
-                "Class has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.workers.IsolationMode",
-            "member": "Field AUTO",
-            "acceptation": "Remove deprecated class in Gradle 8.0",
-            "changes": [
-                "Field has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.workers.IsolationMode",
-            "member": "Field CLASSLOADER",
-            "acceptation": "Remove deprecated class in Gradle 8.0",
-            "changes": [
-                "Field has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.workers.IsolationMode",
-            "member": "Field NONE",
-            "acceptation": "Remove deprecated class in Gradle 8.0",
-            "changes": [
-                "Field has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.workers.IsolationMode",
-            "member": "Field PROCESS",
-            "acceptation": "Remove deprecated class in Gradle 8.0",
-            "changes": [
-                "Field has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.workers.IsolationMode",
-            "member": "Method org.gradle.workers.IsolationMode.valueOf(java.lang.String)",
-            "acceptation": "Remove deprecated class in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.workers.IsolationMode",
-            "member": "Method org.gradle.workers.IsolationMode.values()",
-            "acceptation": "Remove deprecated class in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
             "type": "org.gradle.workers.WorkerConfiguration",
             "member": "Class org.gradle.workers.WorkerConfiguration",
             "acceptation": "Remove deprecated class in Gradle 8.0",
