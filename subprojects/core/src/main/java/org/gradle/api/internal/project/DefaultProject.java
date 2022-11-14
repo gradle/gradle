@@ -70,6 +70,7 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -132,6 +133,7 @@ import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
@@ -190,6 +192,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private final ProjectStateInternal state;
 
     private FileResolver fileResolver;
+
+    private TaskDependencyFactory taskDependencyFactory;
 
     private Factory<AntBuilder> antBuilderFactory;
 
@@ -538,6 +542,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return fileResolver;
     }
 
+    @Override
+    public TaskDependencyFactory getTaskDependencyFactory() {
+        if (taskDependencyFactory == null) {
+            taskDependencyFactory = services.get(TaskDependencyFactory.class);
+        }
+        return taskDependencyFactory;
+    }
+
     public void setFileResolver(FileResolver fileResolver) {
         this.fileResolver = fileResolver;
     }
@@ -625,6 +637,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    @Nonnull
     public Path getProjectPath() {
         return owner.getProjectPath();
     }

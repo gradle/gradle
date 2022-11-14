@@ -17,11 +17,7 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.tasks.testing.TestClassLoaderFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.ClassFileExtractionManager;
@@ -47,29 +43,22 @@ public class TestNGTestFramework implements TestFramework {
     private TestNGDetector detector;
     private final DefaultTestFilter filter;
     private final ObjectFactory objects;
-    private final String testTaskPath;
-    private final FileCollection testTaskClasspath;
     private final Factory<File> testTaskTemporaryDir;
     private final DirectoryReport htmlReport;
-    private transient ClassLoader testClassLoader;
 
-    public TestNGTestFramework(final Test testTask, FileCollection classpath, DefaultTestFilter filter, ObjectFactory objects) {
+    public TestNGTestFramework(final Test testTask, DefaultTestFilter filter, ObjectFactory objects) {
         this(
             filter,
             objects,
-            testTask.getPath(),
-            classpath,
             testTask.getTemporaryDirFactory(),
             testTask.getReports().getHtml(),
             objects.newInstance(TestNGOptions.class)
         );
     }
 
-    private TestNGTestFramework(DefaultTestFilter filter, ObjectFactory objects, String testTaskPath, FileCollection testTaskClasspath, Factory<File> testTaskTemporaryDir, DirectoryReport htmlReport, TestNGOptions options) {
+    private TestNGTestFramework(DefaultTestFilter filter, ObjectFactory objects, Factory<File> testTaskTemporaryDir, DirectoryReport htmlReport, TestNGOptions options) {
         this.filter = filter;
         this.objects = objects;
-        this.testTaskPath = testTaskPath;
-        this.testTaskClasspath = testTaskClasspath;
         this.testTaskTemporaryDir = testTaskTemporaryDir;
         this.htmlReport = htmlReport;
         this.options = options;
@@ -96,8 +85,6 @@ public class TestNGTestFramework implements TestFramework {
         return new TestNGTestFramework(
             (DefaultTestFilter) newTestFilters,
             objects,
-            testTaskPath,
-            testTaskClasspath,
             testTaskTemporaryDir,
             htmlReport,
             copiedOptions
@@ -106,9 +93,6 @@ public class TestNGTestFramework implements TestFramework {
 
     @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
-        verifyConfigFailurePolicy();
-        verifyPreserveOrder();
-        verifyGroupByInstances();
         List<File> suiteFiles = options.getSuites(testTaskTemporaryDir.create());
         TestNGSpec spec = toSpec(options, filter);
         return new TestNgTestClassProcessorFactory(this.options.getOutputDirectory(), spec, suiteFiles);
@@ -120,75 +104,6 @@ public class TestNGTestFramework implements TestFramework {
             options.getUseDefaultListeners(), options.getIncludeGroups(), options.getExcludeGroups(), options.getListeners(),
             options.getConfigFailurePolicy(), options.getPreserveOrder(), options.getGroupByInstances()
         );
-    }
-
-    private void verifyConfigFailurePolicy() {
-        if (!options.getConfigFailurePolicy().equals(TestNGTestClassProcessor.DEFAULT_CONFIG_FAILURE_POLICY)) {
-            String message = String.format("The version of TestNG used does not support setting config failure policy to '%s'.", options.getConfigFailurePolicy());
-            try {
-                // for TestNG v6.9.12 and higher
-                Class<?> failurePolicyEnum = maybeLoadFailurePolicyEnum();
-                verifyMethodExists("setConfigFailurePolicy", failurePolicyEnum, message);
-            } catch (ClassNotFoundException cnfe) {
-                // fallback to legacy String argument
-                verifyMethodExists("setConfigFailurePolicy", String.class, message);
-            }
-        }
-    }
-
-    private void verifyPreserveOrder() {
-        if (options.getPreserveOrder()) {
-            verifyMethodExists("setPreserveOrder", boolean.class, "Preserving the order of tests is not supported by this version of TestNG.");
-        }
-    }
-
-    private void verifyGroupByInstances() {
-        if (options.getGroupByInstances()) {
-            verifyMethodExists("setGroupByInstances", boolean.class, "Grouping tests by instances is not supported by this version of TestNG.");
-        }
-    }
-
-    private void verifyMethodExists(String methodName, Class<?> parameterType, String failureMessage) {
-        try {
-            createTestNg().getMethod(methodName, parameterType);
-        } catch (NoSuchMethodException e) {
-            throw new InvalidUserDataException(failureMessage, e);
-        }
-    }
-
-    private Class<?> createTestNg() {
-        maybeInitTestClassLoader();
-        try {
-            return loadClass("org.testng.TestNG");
-        } catch (ClassNotFoundException e) {
-            throw new GradleException("Could not load TestNG.", e);
-        }
-    }
-
-    /**
-     * Use reflection to load {@code org.testng.xml.XmlSuite.FailurePolicy}, added in TestNG 6.9.12
-     *
-     * @return reference to class, if exists.
-     * @throws ClassNotFoundException if using older TestNG version.
-     */
-    protected Class<?> maybeLoadFailurePolicyEnum() throws ClassNotFoundException {
-        return loadClass("org.testng.xml.XmlSuite$FailurePolicy");
-    }
-
-    private Class<?> loadClass(String clazz) throws ClassNotFoundException {
-        maybeInitTestClassLoader();
-        return testClassLoader.loadClass(clazz);
-    }
-
-    private void maybeInitTestClassLoader() {
-        if (testClassLoader == null) {
-            TestClassLoaderFactory factory = objects.newInstance(
-                TestClassLoaderFactory.class,
-                testTaskPath,
-                testTaskClasspath
-            );
-            testClassLoader = factory.create();
-        }
     }
 
     @Override
@@ -228,7 +143,6 @@ public class TestNGTestFramework implements TestFramework {
     public void close() throws IOException {
         // Clear expensive state from the test framework to avoid holding on to memory
         // This should probably be a part of the test task and managed there.
-        testClassLoader = null;
         detector = null;
     }
 

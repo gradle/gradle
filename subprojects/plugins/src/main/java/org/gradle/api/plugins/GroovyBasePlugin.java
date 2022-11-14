@@ -27,6 +27,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
@@ -61,6 +62,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
     private final ModuleRegistry moduleRegistry;
     private final JvmPluginServices jvmPluginServices;
+    private final TaskDependencyFactory taskDependencyFactory;
 
     private Project project;
     private GroovyRuntime groovyRuntime;
@@ -69,11 +71,13 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
     public GroovyBasePlugin(
         ObjectFactory objectFactory,
         ModuleRegistry moduleRegistry,
-        JvmEcosystemUtilities jvmPluginServices
+        JvmEcosystemUtilities jvmPluginServices,
+        TaskDependencyFactory taskDependencyFactory
     ) {
         this.objectFactory = objectFactory;
         this.moduleRegistry = moduleRegistry;
         this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override

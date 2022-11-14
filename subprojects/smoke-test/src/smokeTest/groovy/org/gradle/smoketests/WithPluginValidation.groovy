@@ -73,15 +73,23 @@ trait WithPluginValidation {
         }
 
         protected void performValidation(List<String> extraParameters = []) {
+            owner.file("validate-external-gradle-plugin.gradle.kts") << getClass().getResource("validate-external-gradle-plugin.gradle.kts").text
+
             def failsValidation = validations.any { !it.messages.isEmpty() }
-            def validation = owner.runner(["validateExternalPlugins", "--continue", *extraParameters] as String[])
+            def validation = owner.runner([
+                "--init-script", "validate-external-gradle-plugin.gradle.kts",
+                "validateExternalPlugins",
+                "--continue",
+                *extraParameters] as String[])
             validation.ignoreDeprecationWarnings("We are only checking type validation problems here")
+
             def result
             if (failsValidation) {
                 result = validation.buildAndFail()
             } else {
                 result = validation.build()
             }
+
             def taskPattern = ':validatePluginWithId_'
             def pluginsWithProjectPath = result.tasks
                 .findAll {

@@ -95,6 +95,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.BuildableBackedSetProvider;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -274,8 +275,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
-        DefaultConfigurationFactory defaultConfigurationFactory
+        DefaultConfigurationFactory defaultConfigurationFactory,
+        TaskDependencyFactory taskDependencyFactory
     ) {
+        super(taskDependencyFactory);
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
         this.workerThreadRegistry = workerThreadRegistry;
@@ -312,9 +315,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.ownArtifacts = (DefaultDomainObjectSet<PublishArtifact>) domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class);
         this.ownArtifacts.beforeCollectionChanges(validateMutationType(this, MutationType.ARTIFACTS));
 
-        this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory);
+        this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory, taskDependencyFactory);
 
-        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory);
+        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(ResolveState.NOT_RESOLVED);
         this.path = domainObjectContext.projectPath(name);
@@ -551,7 +554,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private ConfigurationFileCollection fileCollectionFromSpec(Spec<? super Dependency> dependencySpec) {
-        return new ConfigurationFileCollection(new SelectedArtifactsProvider(), dependencySpec, configurationAttributes, Specs.satisfyAll(), false, false, false, new DefaultResolutionHost());
+        return new ConfigurationFileCollection(
+            new SelectedArtifactsProvider(), dependencySpec, configurationAttributes, Specs.satisfyAll(), false, false, false, new DefaultResolutionHost(), taskDependencyFactory
+        );
     }
 
     @Override
@@ -848,7 +853,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
                 (attributes, filter) -> {
                     ImmutableAttributes fullAttributes = attributesFactory.concat(configurationAttributes.asImmutable(), attributes);
-                    return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), fullAttributes, filter, false, false, false, new DefaultResolutionHost());
+                    return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), fullAttributes, filter, false, false, false, new DefaultResolutionHost(), taskDependencyFactory);
                 });
         }
         return dependenciesResolverFactory;
@@ -905,9 +910,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
         if (useDependedOn) {
-            return new TasksFromProjectDependencies(taskName, this::getAllDependencies);
+            return new TasksFromProjectDependencies(taskName, this::getAllDependencies, taskDependencyFactory);
         } else {
-            return new TasksFromDependentProjects(taskName, getName());
+            return new TasksFromDependentProjects(taskName, getName(), taskDependencyFactory);
         }
     }
 
@@ -978,7 +983,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         if (!canBeMutated && extendsFrom.isEmpty()) {
             // No further mutation is allowed and there's no parent: the artifact set corresponds to this configuration own artifacts
-            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, fileCollectionFactory);
+            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, fileCollectionFactory, taskDependencyFactory);
             return;
         }
 
@@ -997,9 +1002,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
         }
         if (inheritedArtifacts != null) {
-            this.allArtifacts = new DefaultPublishArtifactSet(displayName, inheritedArtifacts, fileCollectionFactory);
+            this.allArtifacts = new DefaultPublishArtifactSet(displayName, inheritedArtifacts, fileCollectionFactory, taskDependencyFactory);
         } else {
-            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, fileCollectionFactory);
+            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, fileCollectionFactory, taskDependencyFactory);
         }
     }
 
@@ -1478,8 +1483,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 boolean lenient,
                 boolean allowNoMatchingVariants,
                 boolean selectFromAllVariants,
-                ResolutionHost resolutionHost
+                ResolutionHost resolutionHost,
+                TaskDependencyFactory taskDependencyFactory
         ) {
+            super(taskDependencyFactory);
             this.resultProvider = resultProvider;
             this.dependencySpec = dependencySpec;
             this.viewAttributes = viewAttributes;
@@ -1806,7 +1813,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ConfigurationArtifactCollection artifactCollection(AttributeContainerInternal attributes, Spec<? super ComponentIdentifier> componentFilter, boolean lenient, boolean allowNoMatchingVariants, boolean selectFromAllVariants) {
         ImmutableAttributes viewAttributes = attributes.asImmutable();
         DefaultResolutionHost failureHandler = new DefaultResolutionHost();
-        ConfigurationFileCollection files = new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, failureHandler);
+        ConfigurationFileCollection files = new ConfigurationFileCollection(
+            new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, failureHandler, taskDependencyFactory
+        );
         return new ConfigurationArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
     }
 
@@ -1934,7 +1943,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             @Override
             public FileCollection getFiles() {
                 // TODO maybe make detached configuration is flag is true
-                return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, new DefaultResolutionHost());
+                return new ConfigurationFileCollection(
+                    new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, new DefaultResolutionHost(), taskDependencyFactory
+                );
             }
         }
 

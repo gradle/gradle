@@ -20,9 +20,11 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.MutableVersionConstraint
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyAdder
 import org.gradle.api.artifacts.dsl.DependencyFactory
+import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.jvm.JvmComponentDependencies
 import org.gradle.util.internal.ConfigureUtil
@@ -130,8 +132,10 @@ class DefaultJvmComponentDependenciesTest extends Specification {
     }
 
     def "can add a dependency that selects for enforcedPlatform"() {
-        def example = Mock(ExternalModuleDependency)
-        def example2 = Mock(ExternalModuleDependency)
+        def example = Mock(AbstractExternalModuleDependency)
+        def exampleConstraint = Mock(MutableVersionConstraint)
+        def example2 = Mock(AbstractExternalModuleDependency)
+        def exampleConstraint2 = Mock(MutableVersionConstraint)
         when:
         dependencies {
             implementation enforcedPlatform("com.example:example:1.0")
@@ -141,12 +145,16 @@ class DefaultJvmComponentDependenciesTest extends Specification {
         }
         then:
         1 * dependencyFactory.create('com.example:example:1.0') >> example
-        1 * example.setForce(true)
+        1 * example.getVersionConstraint() >> exampleConstraint
+        1 * example.getVersion() >> "1.0"
+        1 * exampleConstraint.strictly("1.0")
         1 * example.attributes(_ as Action)
         1 * implementation.add(example)
 
         1 * dependencyFactory.create('com.example:example:2.0') >> example2
-        1 * example2.setForce(true)
+        1 * example2.getVersionConstraint() >> exampleConstraint2
+        1 * example2.getVersion() >> "2.0"
+        1 * exampleConstraint2.strictly("2.0")
         1 * example2.attributes(_ as Action)
         1 * implementation.add(example2, _ as Action)
 
