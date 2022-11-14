@@ -104,6 +104,7 @@ public class DefaultConfigurationFactory {
     /**
      * Creates a new {@link DefaultConfiguration} instance.
      */
+    @SuppressWarnings("deprecation")
     DefaultConfiguration create(
         String name,
         ConfigurationsProvider configurationsProvider,
@@ -112,30 +113,46 @@ public class DefaultConfigurationFactory {
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+        return create(name, configurationsProvider, resolutionStrategyFactory, rootComponentMetadataBuilder, ConfigurationRoles.LEGACY);
+    }
+
+    /**
+     * Creates a new {@link DefaultConfiguration} instance.
+     */
+    DefaultConfiguration create(
+        String name,
+        ConfigurationsProvider configurationsProvider,
+        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
+        RootComponentMetadataBuilder rootComponentMetadataBuilder,
+        ConfigurationRole role
+    ) {
+        ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
+                listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
         return instantiator.newInstance(
-            DefaultConfiguration.class,
-            domainObjectContext,
-            name,
-            configurationsProvider,
-            resolver,
-            dependencyResolutionListeners,
-            listenerManager.getBroadcaster(ProjectDependencyObservedListener.class),
-            metaDataProvider,
-            resolutionStrategyFactory,
-            fileCollectionFactory,
-            buildOperationExecutor,
-            instantiator,
-            artifactNotationParser,
-            capabilityNotationParser,
-            attributesFactory,
-            rootComponentMetadataBuilder,
-            documentationRegistry,
-            userCodeApplicationContext,
-            projectStateRegistry,
-            workerThreadRegistry,
-            domainObjectCollectionFactory,
-            calculatedValueContainerFactory,
-            this
+                DefaultConfiguration.class,
+                domainObjectContext,
+                name,
+                configurationsProvider,
+                resolver,
+                dependencyResolutionListeners,
+                listenerManager.getBroadcaster(ProjectDependencyObservedListener.class),
+                metaDataProvider,
+                resolutionStrategyFactory,
+                fileCollectionFactory,
+                buildOperationExecutor,
+                instantiator,
+                artifactNotationParser,
+                capabilityNotationParser,
+                attributesFactory,
+                rootComponentMetadataBuilder,
+                documentationRegistry,
+                userCodeApplicationContext,
+                projectStateRegistry,
+                workerThreadRegistry,
+                domainObjectCollectionFactory,
+                calculatedValueContainerFactory,
+                this,
+                role
         );
     }
 }

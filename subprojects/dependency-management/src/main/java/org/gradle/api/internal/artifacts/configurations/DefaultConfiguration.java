@@ -226,7 +226,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean resolutionDeprecated = false;
     private boolean declarationDeprecated = false;
     private boolean roleCanBeMutated = true;
-    private ConfigurationRole roleAtCreation;
+    private final ConfigurationRole roleAtCreation;
     private boolean warnOnChangingUsage = false; // Will be set to true/removed in Gradle 8.1
 
     private boolean canBeMutated = true;
@@ -2015,14 +2015,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public ConfigurationRole getRoleAtCreation() {
         return roleAtCreation;
-    }
-
-    @Override
-    public void setRoleAtCreation(ConfigurationRole role) {
-        if (roleAtCreation != null) {
-            validateMutation(MutationType.USAGE);
-            roleAtCreation = role;
-        }
     }
 
     public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
