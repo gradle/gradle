@@ -42,9 +42,8 @@ fun configurePluginValidation(
 ) {
     val jarsByPlugin = mutableMapOf<String, MutableList<File>>()
     if (isExternal(pluginClass)) {
-        val pluginForClass = registry.findPluginForClass(pluginClass)
-        val pluginId: String = pluginForClass
-            .map { obj: PluginId -> obj.id }
+        val pluginId: String = registry.findPluginForClass(pluginClass)
+            .map(PluginId::getId)
             .orElseGet { pluginClass.name }
         val pluginJar = findPluginJar(pluginClass)
         if (pluginJar != null) {
