@@ -619,11 +619,17 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-library-module*.sample'
             excludeTestsMatching 'org.gradle.docs.samples.*.snippet-testing-patch-module*.sample'
         }
-        if (OperatingSystem.current().windows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
-            // Disable tests that suffer from charset issues under JDK 18 for now
-            excludeTestsMatching "org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv-model.sample"
-            excludeTestsMatching "org.gradle.docs.samples.*.snippet-model-rules-basic-rule-source-plugin_*_basicRuleSourcePlugin-model-task.sample"
+
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution.sample"
+
+            if (OperatingSystem.current().windows) {
+                // Disable tests that suffer from charset issues under JDK 18 for now
+                excludeTestsMatching "org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv-model.sample"
+                excludeTestsMatching "org.gradle.docs.samples.*.snippet-model-rules-basic-rule-source-plugin_*_basicRuleSourcePlugin-model-task.sample"
+            }
         }
+
         if (!javaVersion.java11Compatible) {
             // Android requires Java 11+
             excludeTestsMatching "org.gradle.docs.samples.*.building-android-*.sample"
