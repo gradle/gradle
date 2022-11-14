@@ -168,9 +168,10 @@ class DefaultBuildModelControllerServices(
             cachingServiceLocator: CachingServiceLocator,
             scriptPluginFactory: ScriptPluginFactory,
             fingerprintController: ConfigurationCacheFingerprintController,
-            cancellationToken: BuildCancellationToken
+            cancellationToken: BuildCancellationToken,
+            listenerManager: ListenerManager
         ): ProjectEvaluator {
-            val evaluator = VintageModelProvider().createProjectEvaluator(buildOperationExecutor, cachingServiceLocator, scriptPluginFactory, cancellationToken)
+            val evaluator = VintageModelProvider().createProjectEvaluator(buildOperationExecutor, cachingServiceLocator, scriptPluginFactory, cancellationToken, listenerManager)
             return ConfigurationCacheAwareProjectEvaluator(evaluator, fingerprintController)
         }
 
@@ -193,11 +194,12 @@ class DefaultBuildModelControllerServices(
             buildOperationExecutor: BuildOperationExecutor,
             cachingServiceLocator: CachingServiceLocator,
             scriptPluginFactory: ScriptPluginFactory,
-            cancellationToken: BuildCancellationToken
+            cancellationToken: BuildCancellationToken,
+            listenerManager: ListenerManager
         ): ProjectEvaluator {
             val withActionsEvaluator = ConfigureActionsProjectEvaluator(
                 PluginsProjectConfigureActions.from(cachingServiceLocator),
-                BuildScriptProcessor(scriptPluginFactory),
+                BuildScriptProcessor(scriptPluginFactory, listenerManager),
                 DelayedConfigurationActions()
             )
             return LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator, cancellationToken)

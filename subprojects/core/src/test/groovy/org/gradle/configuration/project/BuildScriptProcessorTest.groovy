@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.ProjectState
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.event.ListenerManager
 import spock.lang.Specification
 
 import java.util.function.Consumer
@@ -31,11 +32,12 @@ class BuildScriptProcessorTest extends Specification {
     def project = Mock(ProjectInternal)
     def scriptSource = Mock(ScriptSource)
     def configurerFactory = Mock(ScriptPluginFactory)
+    def listenerManager = Mock(ListenerManager)
     def scriptPlugin = Mock(ScriptPlugin)
     def targetScope = Mock(ClassLoaderScope)
     def baseScope = Mock(ClassLoaderScope)
     def projectState = Mock(ProjectState)
-    def buildScriptProcessor = new BuildScriptProcessor(configurerFactory)
+    def buildScriptProcessor = new BuildScriptProcessor(configurerFactory, listenerManager)
     def scriptHandler = Mock(ScriptHandlerInternal)
 
     def "setup"() {

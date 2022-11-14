@@ -16,7 +16,39 @@
 
 package org.gradle.configurationcache
 
+import spock.lang.Issue
+
 class ConfigurationCacheMultiProjectIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    @Issue("https://github.com/gradle/gradle/issues/18897")
+    def "picking up formerly-missing build scripts"() {
+        given:
+        settingsFile << """
+            include 'a', 'b'
+        """
+
+        def a = createDir('a') {
+            file('build.gradle') << """
+                task ok
+        """
+        }
+
+        def b = createDir('b')
+
+        and:
+        configurationCacheRun 'ok'
+
+        and:
+        b.file('build.gradle') << """
+                task ok
+        """
+
+        when:
+        configurationCacheRun 'ok'
+
+        then:
+        result.assertTasksExecuted(":a:ok", ":b:ok")
+    }
 
     def "reuses cache for absolute task invocation from subproject dir across dirs"() {
         given:
