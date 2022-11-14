@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.NONE
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.REQUESTED
-import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.REQUESTED_AND_AUTO_APPLIED
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.SUPPRESSED
 
 class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpec {
@@ -44,11 +43,12 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
 
         then:
         plugin.assertBuildScanRequest(output, NONE)
+        plugin.assertAutoApplied(output, false)
     }
 
     def "is requested with --scan"() {
         given:
-        if (request == REQUESTED) {
+        if (!autoApplied) {
             settingsFile << plugin.plugins()
         }
 
@@ -56,10 +56,11 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
         succeeds "t", "--scan"
 
         then:
-        plugin.assertBuildScanRequest(output, request)
+        plugin.assertBuildScanRequest(output, REQUESTED)
+        plugin.assertAutoApplied(output, autoApplied)
 
         where:
-        request << [REQUESTED, REQUESTED_AND_AUTO_APPLIED]
+        autoApplied << [true, false]
     }
 
     def "is suppressed with --no-scan"() {
@@ -71,6 +72,7 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
 
         then:
         plugin.assertBuildScanRequest(output, SUPPRESSED)
+        plugin.assertAutoApplied(output, false)
     }
 
 }
