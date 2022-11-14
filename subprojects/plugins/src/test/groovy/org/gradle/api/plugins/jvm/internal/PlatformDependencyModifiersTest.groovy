@@ -43,7 +43,7 @@ class PlatformDependencyModifiersTest extends Specification {
         when:
         modifier.modify(dependency)
         then:
-        dependency.isForce()
+        dependency.getVersionConstraint().strictVersion == "1.0"
         dependency.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).toString() == "enforced-platform"
     }
 }

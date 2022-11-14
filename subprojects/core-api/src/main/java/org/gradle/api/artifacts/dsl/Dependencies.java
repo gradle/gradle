@@ -45,6 +45,11 @@ public interface Dependencies {
     @Inject
     DependencyFactory getDependencyFactory();
 
+    /**
+     * Injected service to create named objects.
+     *
+     * @return injected service
+     */
     @Inject
     ObjectFactory getObjectFactory();
 
