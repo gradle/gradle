@@ -640,7 +640,7 @@ Note that both variants assume the source files are text based. When you use the
 
 The `expand()` method treats the source files as https://docs.groovy-lang.org/latest/html/api/groovy/text/SimpleTemplateEngine.html[Groovy templates], which evaluate and expand expressions of the form `${expression}`. You can pass in property names and values that are then expanded in the source files. `expand()` allows for more than basic token substitution as the embedded expressions are full-blown Groovy expressions.
 
-NOTE: It's good practice to specify the character set when reading and writing the file, otherwise the transformations won't work properly for non-ASCII text. You configure the character set with the link:{javadocPath}/org/gradle/api/file/CopySpec.html#getFilteringCharset--[CopySpec.getFilteringCharset()] property. If it's not specified, the JVM default character set is used, which is likely to be different from the one you want.
+NOTE: It's good practice to specify the character set when reading and writing the file, otherwise the transformations won't work properly for non-ASCII text. You configure the character set with the link:{javadocPath}/org/gradle/api/file/CopySpec.html#setFilteringCharset-java.lang.String-[CopySpec.setFilteringCharset(String)] property. If it's not specified, the JVM default character set is used, which is likely to be different from the one you want.
 
 [[sec:using_the_copyspec_class]]
 === Using the `CopySpec` class
