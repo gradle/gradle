@@ -29,7 +29,7 @@ import java.util.stream.Collectors
  * it checks the plugins *applied to* the current build.
  */
 gradle.beforeProject {
-    val lifecycleTask = createLifecycleTask(project)
+    val lifecycleTask = project.tasks.register("validateExternalPlugins")
     val registry = findPluginRegistry(project)
     project.plugins.configureEach { configurePluginValidation(project, lifecycleTask, registry, javaClass) }
 }
@@ -82,9 +82,6 @@ fun configureValidationTask(project: Project,
         classes.setFrom(pluginClassesOf)
     }
 }
-
-fun createLifecycleTask(project: Project) =
-    project.tasks.register("validateExternalPlugins")
 
 fun findPluginRegistry(project: Project) =
     (project as ProjectInternal).services.get(PluginRegistry::class.java)
