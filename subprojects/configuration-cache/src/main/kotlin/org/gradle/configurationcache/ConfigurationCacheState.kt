@@ -26,6 +26,7 @@ import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
+import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer
@@ -175,7 +176,6 @@ class ConfigurationCacheState(
             StoredBuildTreeState(
                 storedBuilds = storedBuilds(),
                 requiredBuildServicesPerBuild = buildEventListeners
-                    .filterIsInstance<BuildServiceProvider<*, *>>()
                     .groupBy { it.buildIdentifier }
             )
         )
@@ -542,7 +542,7 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeBuildEventListenerSubscriptions(listeners: List<Provider<*>>) {
         writeCollection(listeners) { listener ->
             when (listener) {
-                is BuildServiceProvider<*, *> -> {
+                is RegisteredBuildServiceProvider<*, *> -> {
                     writeBoolean(true)
                     write(listener.buildIdentifier)
                     writeString(listener.name)
@@ -710,13 +710,12 @@ class ConfigurationCacheState(
     fun buildEventListenersOf(gradle: GradleInternal) =
         gradle.serviceOf<BuildEventListenerRegistryInternal>()
             .subscriptions
+            .filterIsInstance<RegisteredBuildServiceProvider<*, *>>()
             .filter(::isRelevantBuildEventListener)
 
     private
-    fun isRelevantBuildEventListener(provider: Provider<*>?) = when (provider) {
-        is BuildServiceProvider<*, *> -> provider.buildIdentifier.name != BUILD_SRC
-        else -> true
-    }
+    fun isRelevantBuildEventListener(provider: RegisteredBuildServiceProvider<*, *>) =
+        provider.buildIdentifier.name != BUILD_SRC
 
     private
     fun BuildStateRegistry.buildServiceRegistrationOf(buildId: BuildIdentifier) =

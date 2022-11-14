@@ -233,6 +233,12 @@ public class DefaultTaskProperties implements TaskProperties {
             taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, value, optional, ValidationActions.NO_OP));
         }
 
+        @Override
+        public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName) {
+            // Service reference declared via annotation, validate it
+            taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, value, optional, ValidationActions.NO_OP));
+        }
+
         public List<ValidatingProperty> getTaskPropertySpecs() {
             return taskPropertySpecs;
         }
